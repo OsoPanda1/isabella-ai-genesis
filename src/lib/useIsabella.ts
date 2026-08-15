@@ -43,7 +43,7 @@ export function useIsabella() {
   const [tokens, setTokens] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
 
-  const preset: Preset = PRESETS.find((p) => p.id === presetId) ?? PRESETS[0];
+  const preset: Preset = PRESETS.find((p) => p.id === presetId) ?? (PRESETS[0] as Preset);
 
   const send = useCallback(
     async (input: string) => {
