@@ -764,10 +764,12 @@ export function assessIntent(input: string): IntentAssessment {
     ...matchSignals(normalized, EXTERNAL_ACTION_PATTERNS),
   ]);
 
+  const target = inferTarget(normalized);
+
   return {
     category,
     action,
-    target: inferTarget(normalized),
+    ...(target ? { target } : {}),
     externalEffect: inferExternalEffect(category, action),
     reversible: inferReversibility(action),
     confidence: calculateIntentConfidence(category, action, signals),
