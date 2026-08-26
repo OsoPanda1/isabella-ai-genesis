@@ -1421,13 +1421,12 @@ export function canInvokeTool(
     };
   }
 
+  const requestedTarget = request.arguments["target"];
+
   const intent: IntentAssessment = {
     category: "external_action",
     action: request.action,
-    target:
-      typeof request.arguments.target === "string"
-        ? request.arguments.target
-        : undefined,
+    ...(typeof requestedTarget === "string" ? { target: requestedTarget } : {}),
     externalEffect: true,
     reversible: policy.reversible,
     confidence: 1,
