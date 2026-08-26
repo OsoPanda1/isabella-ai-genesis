@@ -61,6 +61,26 @@ export function useIsabella() {
 
   const preset: Preset = PRESETS.find((p) => p.id === presetId) ?? (PRESETS[0] as Preset);
 
+  // Rehidratación del historial de la sesión activa.
+  useEffect(() => {
+    const restored = loadSession();
+    if (restored) setMessages(restored);
+    setHydrated(true);
+  }, []);
+
+  // Persistencia por sesión (se purga al cerrar la pestaña).
+  useEffect(() => {
+    if (!hydrated || typeof window === "undefined") return;
+    try {
+      window.sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ savedAt: new Date().toISOString(), presetId, messages }),
+      );
+    } catch {
+      /* cuota agotada: la sesión sigue viva en memoria */
+    }
+  }, [messages, presetId, hydrated]);
+
   const send = useCallback(
     async (input: string) => {
       const text = input.trim();
