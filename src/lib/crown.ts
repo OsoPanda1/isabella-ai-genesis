@@ -1527,9 +1527,9 @@ export function createDefaultContext(
     timestamp: nowIso(),
     locale: overrides?.locale ?? "es-MX",
     source: overrides?.source ?? "user",
-    sessionId: overrides?.sessionId,
-    actorId: overrides?.actorId,
-    metadata: overrides?.metadata,
+    ...(overrides?.sessionId ? { sessionId: overrides.sessionId } : {}),
+    ...(overrides?.actorId ? { actorId: overrides.actorId } : {}),
+    ...(overrides?.metadata ? { metadata: overrides.metadata } : {}),
   };
 }
 
