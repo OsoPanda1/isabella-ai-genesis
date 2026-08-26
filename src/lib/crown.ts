@@ -764,10 +764,12 @@ export function assessIntent(input: string): IntentAssessment {
     ...matchSignals(normalized, EXTERNAL_ACTION_PATTERNS),
   ]);
 
+  const target = inferTarget(normalized);
+
   return {
     category,
     action,
-    target: inferTarget(normalized),
+    ...(target ? { target } : {}),
     externalEffect: inferExternalEffect(category, action),
     reversible: inferReversibility(action),
     confidence: calculateIntentConfidence(category, action, signals),
@@ -1419,13 +1421,12 @@ export function canInvokeTool(
     };
   }
 
+  const requestedTarget = request.arguments["target"];
+
   const intent: IntentAssessment = {
     category: "external_action",
     action: request.action,
-    target:
-      typeof request.arguments.target === "string"
-        ? request.arguments.target
-        : undefined,
+    ...(typeof requestedTarget === "string" ? { target: requestedTarget } : {}),
     externalEffect: true,
     reversible: policy.reversible,
     confidence: 1,
@@ -1526,9 +1527,9 @@ export function createDefaultContext(
     timestamp: nowIso(),
     locale: overrides?.locale ?? "es-MX",
     source: overrides?.source ?? "user",
-    sessionId: overrides?.sessionId,
-    actorId: overrides?.actorId,
-    metadata: overrides?.metadata,
+    ...(overrides?.sessionId ? { sessionId: overrides.sessionId } : {}),
+    ...(overrides?.actorId ? { actorId: overrides.actorId } : {}),
+    ...(overrides?.metadata ? { metadata: overrides.metadata } : {}),
   };
 }
 
@@ -1548,8 +1549,8 @@ export function routeRequest(
   const context = createDefaultContext(input, options?.context);
 
   const decision = createRoutingDecision(context, {
-    identity: options?.identity,
-    evidence: options?.evidence,
+    ...(options?.identity ? { identity: options.identity } : {}),
+    ...(options?.evidence ? { evidence: options.evidence } : {}),
   });
 
   return {
@@ -1605,7 +1606,7 @@ export function getModuleWeights(
 export function getDominantModule(
   weights: CrownWeights,
 ): ModuleId {
-  return (Object.entries(weights) as Array<[ModuleId, number]>).sort(
+  const sorted = (Object.entries(weights) as Array<[ModuleId, number]>).sort(
     ([firstId, firstWeight], [secondId, secondWeight]) => {
       if (secondWeight !== firstWeight) {
         return secondWeight - firstWeight;
@@ -1613,7 +1614,9 @@ export function getDominantModule(
 
       return firstId.localeCompare(secondId);
     },
-  )[0][0];
+  );
+
+  return sorted[0]?.[0] ?? "CROWN";
 }
 
 export const CROWN = {

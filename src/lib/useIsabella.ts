@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   PRESETS,
   buildSystemPrompt,
@@ -27,16 +27,32 @@ const now = () =>
 
 const uid = () => Math.random().toString(36).slice(2, 11);
 
+const STORAGE_KEY = "isabella.session.v1";
+
+const BOOT: TerminalMessage = {
+  id: "boot",
+  role: "system",
+  content:
+    "Núcleo C.R.O.W.N. sincronizado · ISA · SOPHIA · ORION · ARGUS en línea · Nodo Cero, Real del Monte, Hidalgo. Presencia establecida.",
+  timestamp: now(),
+};
+
+function loadSession(): TerminalMessage[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { messages?: TerminalMessage[] };
+    if (!Array.isArray(parsed.messages) || parsed.messages.length === 0) return null;
+    return parsed.messages.map((m) => ({ ...m, streaming: false }));
+  } catch {
+    return null;
+  }
+}
+
 export function useIsabella() {
-  const [messages, setMessages] = useState<TerminalMessage[]>([
-    {
-      id: "boot",
-      role: "system",
-      content:
-        "Núcleo C.R.O.W.N. sincronizado · ISA · SOPHIA · ORION · ARGUS en línea · Nodo Cero, Real del Monte, Hidalgo. Presencia establecida.",
-      timestamp: now(),
-    },
-  ]);
+  const [messages, setMessages] = useState<TerminalMessage[]>([BOOT]);
+  const [hydrated, setHydrated] = useState(false);
   const [presetId, setPresetId] = useState<PresetId>("prime");
   const [isProcessing, setIsProcessing] = useState(false);
   const [decision, setDecision] = useState<RoutingDecision | null>(null);
@@ -44,6 +60,26 @@ export function useIsabella() {
   const abortRef = useRef<AbortController | null>(null);
 
   const preset: Preset = PRESETS.find((p) => p.id === presetId) ?? (PRESETS[0] as Preset);
+
+  // Rehidratación del historial de la sesión activa.
+  useEffect(() => {
+    const restored = loadSession();
+    if (restored) setMessages(restored);
+    setHydrated(true);
+  }, []);
+
+  // Persistencia por sesión (se purga al cerrar la pestaña).
+  useEffect(() => {
+    if (!hydrated || typeof window === "undefined") return;
+    try {
+      window.sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ savedAt: new Date().toISOString(), presetId, messages }),
+      );
+    } catch {
+      /* cuota agotada: la sesión sigue viva en memoria */
+    }
+  }, [messages, presetId, hydrated]);
 
   const send = useCallback(
     async (input: string) => {
@@ -181,5 +217,60 @@ export function useIsabella() {
     setTokens(0);
   }, []);
 
-  return { messages, send, stop, reset, isProcessing, preset, presetId, setPresetId, decision, tokens };
+  /** Descarga la conversación completa en JSON auditable. */
+  const downloadConversation = useCallback(() => {
+    const payload = {
+      artifact: "isabella.conversation",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      node: "Nodo Cero · Real del Monte, Hidalgo",
+      presetId,
+      messages,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `isabella-conversacion-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [messages, presetId]);
+
+  /** Reabre una conversación exportada previamente. */
+  const openConversation = useCallback(async (file: File) => {
+    const raw = await file.text();
+    const parsed = JSON.parse(raw) as { messages?: TerminalMessage[]; presetId?: PresetId };
+    if (!Array.isArray(parsed.messages) || parsed.messages.length === 0) {
+      throw new Error("Archivo de conversación inválido.");
+    }
+    abortRef.current?.abort();
+    if (parsed.presetId && PRESETS.some((p) => p.id === parsed.presetId)) {
+      setPresetId(parsed.presetId);
+    }
+    setMessages([
+      ...parsed.messages.map((m) => ({ ...m, streaming: false })),
+      {
+        id: uid(),
+        role: "system" as const,
+        content: `Conversación reabierta desde archivo · ${parsed.messages.length} fragmentos restaurados · trazabilidad preservada.`,
+        timestamp: now(),
+      },
+    ]);
+    setDecision(null);
+  }, []);
+
+  return {
+    messages,
+    send,
+    stop,
+    reset,
+    isProcessing,
+    preset,
+    presetId,
+    setPresetId,
+    decision,
+    tokens,
+    downloadConversation,
+    openConversation,
+  };
 }

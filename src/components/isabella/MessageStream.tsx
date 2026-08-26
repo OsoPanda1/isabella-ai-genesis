@@ -1,6 +1,49 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MODULES } from "@/lib/crown";
+import { speakIsabella, stopVoice } from "@/lib/voice";
 import type { TerminalMessage } from "@/lib/useIsabella";
+
+function VoiceButton({ text }: { text: string }) {
+  const [state, setState] = useState<"idle" | "playing" | "error">("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => () => stopVoice(), []);
+
+  const toggle = async () => {
+    if (state === "playing") {
+      stopVoice();
+      setState("idle");
+      return;
+    }
+    setState("playing");
+    setError(null);
+    try {
+      await speakIsabella(text);
+      setState("idle");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Fallo de síntesis vocal.");
+      setState("error");
+    }
+  };
+
+  return (
+    <span className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => void toggle()}
+        aria-label={state === "playing" ? "Detener voz de Isabella" : "Escuchar voz de Isabella"}
+        className="rounded-lg border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-platinum"
+      >
+        {state === "playing" ? "◼ Silenciar voz" : "▶ Voz de Isabella"}
+      </button>
+      {error && (
+        <span role="status" className="font-mono text-[10px] text-destructive">
+          {error}
+        </span>
+      )}
+    </span>
+  );
+}
 
 function Meta({ label, value }: { label: string; value: string }) {
   return (
@@ -94,6 +137,12 @@ export function MessageStream({
                 <p className="mt-4 border-t border-border/40 pt-3 text-[11px] italic leading-relaxed text-muted-foreground">
                   {m.decision.rationale} · {m.decision.policyReason}
                 </p>
+              )}
+
+              {!m.error && !m.streaming && m.content.trim() && (
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <VoiceButton text={m.content} />
+                </div>
               )}
 
               {m.error && (
