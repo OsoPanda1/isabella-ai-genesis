@@ -1606,7 +1606,7 @@ export function getModuleWeights(
 export function getDominantModule(
   weights: CrownWeights,
 ): ModuleId {
-  return (Object.entries(weights) as Array<[ModuleId, number]>).sort(
+  const sorted = (Object.entries(weights) as Array<[ModuleId, number]>).sort(
     ([firstId, firstWeight], [secondId, secondWeight]) => {
       if (secondWeight !== firstWeight) {
         return secondWeight - firstWeight;
@@ -1614,7 +1614,9 @@ export function getDominantModule(
 
       return firstId.localeCompare(secondId);
     },
-  )[0][0];
+  );
+
+  return sorted[0]?.[0] ?? "CROWN";
 }
 
 export const CROWN = {
