@@ -1549,8 +1549,8 @@ export function routeRequest(
   const context = createDefaultContext(input, options?.context);
 
   const decision = createRoutingDecision(context, {
-    identity: options?.identity,
-    evidence: options?.evidence,
+    ...(options?.identity ? { identity: options.identity } : {}),
+    ...(options?.evidence ? { evidence: options.evidence } : {}),
   });
 
   return {
