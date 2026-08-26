@@ -52,6 +52,29 @@ function Index() {
             <span className="hidden font-mono text-[10px] tracking-[0.2em] text-muted-foreground sm:inline">
               {isabella.preset.name.toUpperCase()}
             </span>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json"
+              className="sr-only"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (file) void isabella.openConversation(file).catch(() => {});
+              }}
+            />
+            <button
+              onClick={isabella.downloadConversation}
+              className="hidden rounded-lg border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-platinum sm:inline-block"
+            >
+              Descargar
+            </button>
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="hidden rounded-lg border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-platinum sm:inline-block"
+            >
+              Reabrir
+            </button>
             <span
               className={`size-2 rounded-full bg-electric ${isabella.isProcessing ? "animate-breathe" : ""}`}
             />
