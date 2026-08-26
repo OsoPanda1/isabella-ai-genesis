@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   PRESETS,
   buildSystemPrompt,
@@ -27,16 +27,32 @@ const now = () =>
 
 const uid = () => Math.random().toString(36).slice(2, 11);
 
+const STORAGE_KEY = "isabella.session.v1";
+
+const BOOT: TerminalMessage = {
+  id: "boot",
+  role: "system",
+  content:
+    "Núcleo C.R.O.W.N. sincronizado · ISA · SOPHIA · ORION · ARGUS en línea · Nodo Cero, Real del Monte, Hidalgo. Presencia establecida.",
+  timestamp: now(),
+};
+
+function loadSession(): TerminalMessage[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { messages?: TerminalMessage[] };
+    if (!Array.isArray(parsed.messages) || parsed.messages.length === 0) return null;
+    return parsed.messages.map((m) => ({ ...m, streaming: false }));
+  } catch {
+    return null;
+  }
+}
+
 export function useIsabella() {
-  const [messages, setMessages] = useState<TerminalMessage[]>([
-    {
-      id: "boot",
-      role: "system",
-      content:
-        "Núcleo C.R.O.W.N. sincronizado · ISA · SOPHIA · ORION · ARGUS en línea · Nodo Cero, Real del Monte, Hidalgo. Presencia establecida.",
-      timestamp: now(),
-    },
-  ]);
+  const [messages, setMessages] = useState<TerminalMessage[]>([BOOT]);
+  const [hydrated, setHydrated] = useState(false);
   const [presetId, setPresetId] = useState<PresetId>("prime");
   const [isProcessing, setIsProcessing] = useState(false);
   const [decision, setDecision] = useState<RoutingDecision | null>(null);
