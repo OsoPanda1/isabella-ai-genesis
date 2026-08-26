@@ -27,6 +27,7 @@ function Index() {
   const isabella = useIsabella();
   const [panel, setPanel] = useState(false);
   const lastInput = useRef("");
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const send = (text: string) => {
     lastInput.current = text;

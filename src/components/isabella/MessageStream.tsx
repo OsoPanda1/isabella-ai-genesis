@@ -139,6 +139,12 @@ export function MessageStream({
                 </p>
               )}
 
+              {!m.error && !m.streaming && m.content.trim() && (
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <VoiceButton text={m.content} />
+                </div>
+              )}
+
               {m.error && (
                 <button
                   onClick={onRetry}
