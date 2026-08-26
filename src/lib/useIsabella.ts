@@ -217,5 +217,60 @@ export function useIsabella() {
     setTokens(0);
   }, []);
 
-  return { messages, send, stop, reset, isProcessing, preset, presetId, setPresetId, decision, tokens };
+  /** Descarga la conversación completa en JSON auditable. */
+  const downloadConversation = useCallback(() => {
+    const payload = {
+      artifact: "isabella.conversation",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      node: "Nodo Cero · Real del Monte, Hidalgo",
+      presetId,
+      messages,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `isabella-conversacion-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [messages, presetId]);
+
+  /** Reabre una conversación exportada previamente. */
+  const openConversation = useCallback(async (file: File) => {
+    const raw = await file.text();
+    const parsed = JSON.parse(raw) as { messages?: TerminalMessage[]; presetId?: PresetId };
+    if (!Array.isArray(parsed.messages) || parsed.messages.length === 0) {
+      throw new Error("Archivo de conversación inválido.");
+    }
+    abortRef.current?.abort();
+    if (parsed.presetId && PRESETS.some((p) => p.id === parsed.presetId)) {
+      setPresetId(parsed.presetId);
+    }
+    setMessages([
+      ...parsed.messages.map((m) => ({ ...m, streaming: false })),
+      {
+        id: uid(),
+        role: "system" as const,
+        content: `Conversación reabierta desde archivo · ${parsed.messages.length} fragmentos restaurados · trazabilidad preservada.`,
+        timestamp: now(),
+      },
+    ]);
+    setDecision(null);
+  }, []);
+
+  return {
+    messages,
+    send,
+    stop,
+    reset,
+    isProcessing,
+    preset,
+    presetId,
+    setPresetId,
+    decision,
+    tokens,
+    downloadConversation,
+    openConversation,
+  };
 }
