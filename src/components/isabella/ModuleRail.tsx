@@ -1,4 +1,4 @@
-import { MODULES, MODULE_ORDER, type ModuleId, type RoutingDecision } from "@/lib/crown";
+import { MODULES, MODULE_ORDER, type ModuleId, type RoutingDecision } from "@/lib/crown-ui";
 
 export function ModuleRail({
   decision,

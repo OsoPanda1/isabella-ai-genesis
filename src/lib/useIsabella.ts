@@ -6,7 +6,7 @@ import {
   type Preset,
   type PresetId,
   type RoutingDecision,
-} from "./crown";
+} from "./crown-ui";
 
 export interface TerminalMessage {
   id: string;
