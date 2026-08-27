@@ -1,4 +1,4 @@
-import { PRESETS, type PresetId, type RoutingDecision } from "@/lib/crown";
+import { PRESETS, type PresetId, type RoutingDecision } from "@/lib/crown-ui";
 import { ModuleRail } from "./ModuleRail";
 
 const POLICY_LABEL: Record<string, string> = {

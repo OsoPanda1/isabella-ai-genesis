@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MODULES } from "@/lib/crown";
+import { MODULES } from "@/lib/crown-ui";
 import { speakIsabella, stopVoice } from "@/lib/voice";
 import type { TerminalMessage } from "@/lib/useIsabella";
 
