@@ -123,7 +123,9 @@ export function exportTelemetryPdf(records: TelemetryRecord[], runId: string, pr
   line("Metricas por sesion", 13);
   doc.setFont("helvetica", "normal");
   line(`Ciclos evaluados: ${records.length}`);
-  line(`Policy Gate — permitidos: ${records.length - denied - approval} · aprobacion humana: ${approval} · denegados: ${denied}`);
+  line(
+    `Policy Gate — permitidos: ${records.length - denied - approval} · aprobacion humana: ${approval} · denegados: ${denied}`,
+  );
   line(`Gobernanza promedio: ${(avg((r) => r.governanceScore) * 100).toFixed(1)}%`);
   line(`Certeza epistemica promedio: ${(avg((r) => r.epistemicCertainty) * 100).toFixed(1)}%`);
   line(`Latencia de ruteo promedio: ${avg((r) => r.latencyMs).toFixed(1)} ms`);

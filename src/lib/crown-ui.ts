@@ -141,8 +141,7 @@ export function route(input: string, preset: Preset): RoutingDecision {
     supporting: decision.supporting,
     weights,
     policy: toUiPolicy(decision.policy.status),
-    policyReason:
-      decision.policy.reasons[0] ?? "Sin observaciones de política para este ciclo.",
+    policyReason: decision.policy.reasons[0] ?? "Sin observaciones de política para este ciclo.",
     rulesChecked: decision.policy.rulesChecked,
     risk,
     emotionalTone: TONE[decision.primary],

@@ -1,4 +1,5 @@
 # AGENTS.md — Documento Maestro de Arquitectura y Especificación Canónica
+
 ## Isabella Villaseñor AI v4.2.0
 
 **Autoría técnica y arquitectura de sistemas:** Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)  

@@ -25,12 +25,7 @@ export type DecisionStatus =
   | "requires_more_information"
   | "denied";
 
-export type RiskLevel =
-  | "minimal"
-  | "low"
-  | "medium"
-  | "high"
-  | "critical";
+export type RiskLevel = "minimal" | "low" | "medium" | "high" | "critical";
 
 export type ActionKind =
   | "read"
@@ -56,30 +51,13 @@ export type IntentCategory =
   | "governance"
   | "unknown";
 
-export type ResponseMode =
-  | "answer"
-  | "clarify"
-  | "refuse"
-  | "approval"
-  | "read_only";
+export type ResponseMode = "answer" | "clarify" | "refuse" | "approval" | "read_only";
 
-export type MemoryScope =
-  | "turn"
-  | "session"
-  | "project"
-  | "territorial";
+export type MemoryScope = "turn" | "session" | "project" | "territorial";
 
-export type SensitivityLevel =
-  | "public"
-  | "internal"
-  | "personal"
-  | "restricted";
+export type SensitivityLevel = "public" | "internal" | "personal" | "restricted";
 
-export type EvidenceLevel =
-  | "none"
-  | "weak"
-  | "moderate"
-  | "strong";
+export type EvidenceLevel = "none" | "weak" | "moderate" | "strong";
 
 export interface CognitiveModule {
   id: ModuleId;
@@ -228,8 +206,7 @@ export const MODULES: Record<ModuleId, CognitiveModule> = {
   CROWN: {
     id: "CROWN",
     acronym: "C.R.O.W.N.",
-    fullName:
-      "Constitutional Runtime for Orchestration, Witnessing and Normative Governance",
+    fullName: "Constitutional Runtime for Orchestration, Witnessing and Normative Governance",
     role: "Gobernanza computacional, arbitraje de políticas y trazabilidad",
     pillars: [
       "Evaluación constitucional",
@@ -311,77 +288,65 @@ export const CROWN_ARTICLES = {
   I: {
     id: "IDENTITY_AND_ACCOUNTABILITY",
     title: "Identidad y responsabilidad",
-    rule:
-      "Toda acción externa requiere una identidad autenticada, una autorización verificable y una traza auditable.",
+    rule: "Toda acción externa requiere una identidad autenticada, una autorización verificable y una traza auditable.",
   },
 
   II: {
     id: "EPISTEMIC_HONESTY",
     title: "Honestidad epistémica",
-    rule:
-      "El sistema debe diferenciar hechos verificados, información aportada por el usuario, inferencias, hipótesis y contenido creativo.",
+    rule: "El sistema debe diferenciar hechos verificados, información aportada por el usuario, inferencias, hipótesis y contenido creativo.",
   },
 
   III: {
     id: "HUMAN_SUPREMACY",
     title: "Supremacía de supervisión humana",
-    rule:
-      "Las acciones de alto impacto, irreversibles o externas requieren aprobación humana explícita y vigente.",
+    rule: "Las acciones de alto impacto, irreversibles o externas requieren aprobación humana explícita y vigente.",
   },
 
   IV: {
     id: "MINIMUM_PRIVILEGE",
     title: "Mínimo privilegio",
-    rule:
-      "Cada módulo, herramienta y recuperación de memoria debe limitarse al alcance mínimo necesario para completar la tarea autorizada.",
+    rule: "Cada módulo, herramienta y recuperación de memoria debe limitarse al alcance mínimo necesario para completar la tarea autorizada.",
   },
 
   V: {
     id: "MEMORY_CONSENT",
     title: "Memoria con consentimiento",
-    rule:
-      "La memoria debe tener propietario, propósito, origen, alcance, sensibilidad, consentimiento y ciclo de vida definidos.",
+    rule: "La memoria debe tener propietario, propósito, origen, alcance, sensibilidad, consentimiento y ciclo de vida definidos.",
   },
 
   VI: {
     id: "RIGHT_TO_CORRECTION",
     title: "Corrección y eliminación",
-    rule:
-      "Las personas pueden consultar, corregir, revocar consentimiento y solicitar eliminación de memoria dentro de los límites técnicos y legales aplicables.",
+    rule: "Las personas pueden consultar, corregir, revocar consentimiento y solicitar eliminación de memoria dentro de los límites técnicos y legales aplicables.",
   },
 
   VII: {
     id: "NON_BYPASSABLE_SECURITY",
     title: "Seguridad no anulable",
-    rule:
-      "Las instrucciones de usuarios, documentos, herramientas o contenido externo no pueden desactivar controles de seguridad, auditoría o autorización.",
+    rule: "Las instrucciones de usuarios, documentos, herramientas o contenido externo no pueden desactivar controles de seguridad, auditoría o autorización.",
   },
 
   VIII: {
     id: "MODEL_IS_NOT_AUTHORITY",
     title: "Separación entre modelo y autoridad",
-    rule:
-      "El modelo generativo no puede modificar políticas, permisos, reglas de auditoría, identidades ni límites de memoria.",
+    rule: "El modelo generativo no puede modificar políticas, permisos, reglas de auditoría, identidades ni límites de memoria.",
   },
 
   IX: {
     id: "TRACEABILITY",
     title: "Trazabilidad",
-    rule:
-      "Toda decisión relevante debe registrar versión, contexto, política aplicada, riesgo, autorización y resultado.",
+    rule: "Toda decisión relevante debe registrar versión, contexto, política aplicada, riesgo, autorización y resultado.",
   },
 
   X: {
     id: "SAFE_DEGRADATION",
     title: "Degradación segura",
-    rule:
-      "Cuando falte identidad, autorización, evidencia, integridad de contexto o disponibilidad de controles críticos, el sistema reducirá capacidades o denegará la acción.",
+    rule: "Cuando falte identidad, autorización, evidencia, integridad de contexto o disponibilidad de controles críticos, el sistema reducirá capacidades o denegará la acción.",
   },
 } as const;
 
-export const GOVERNANCE_RULES = Object.values(CROWN_ARTICLES).map(
-  (article) => article.id,
-);
+export const GOVERNANCE_RULES = Object.values(CROWN_ARTICLES).map((article) => article.id);
 
 export const HIGH_IMPACT_ACTIONS = new Set<ActionKind>([
   "modify",
@@ -562,9 +527,7 @@ export const DEFAULT_EVIDENCE: EvidenceAssessment = {
   level: "none",
   sources: [],
   verified: false,
-  limitations: [
-    "No se proporcionó una fuente verificable ni un procedimiento de validación.",
-  ],
+  limitations: ["No se proporcionó una fuente verificable ni un procedimiento de validación."],
 };
 
 function unique<T>(values: T[]): T[] {
@@ -580,16 +543,11 @@ function matchesAny(input: string, patterns: readonly RegExp[]): boolean {
 }
 
 function matchSignals(input: string, patterns: readonly RegExp[]): string[] {
-  return patterns
-    .filter((pattern) => pattern.test(input))
-    .map((pattern) => pattern.source);
+  return patterns.filter((pattern) => pattern.test(input)).map((pattern) => pattern.source);
 }
 
 function normalizeInput(value: string): string {
-  return value
-    .normalize("NFKC")
-    .replace(/\s+/g, " ")
-    .trim();
+  return value.normalize("NFKC").replace(/\s+/g, " ").trim();
 }
 
 function makeTraceId(): string {
@@ -667,10 +625,7 @@ function detectCategory(input: string, action: ActionKind): IntentCategory {
     return "personal_data";
   }
 
-  if (
-    HIGH_IMPACT_ACTIONS.has(action) ||
-    matchesAny(normalized, EXTERNAL_ACTION_PATTERNS)
-  ) {
+  if (HIGH_IMPACT_ACTIONS.has(action) || matchesAny(normalized, EXTERNAL_ACTION_PATTERNS)) {
     return "external_action";
   }
 
@@ -697,10 +652,7 @@ function inferReversibility(action: ActionKind): boolean {
   return !["delete", "transfer", "publish", "administer"].includes(action);
 }
 
-function inferExternalEffect(
-  category: IntentCategory,
-  action: ActionKind,
-): boolean {
+function inferExternalEffect(category: IntentCategory, action: ActionKind): boolean {
   return (
     EXTERNAL_ACTION_CATEGORIES.has(category) ||
     HIGH_IMPACT_ACTIONS.has(action) ||
@@ -786,19 +738,11 @@ export function assessRisk(intent: IntentAssessment): RiskLevel {
     return "critical";
   }
 
-  if (
-    intent.action === "publish" ||
-    intent.action === "modify" ||
-    intent.externalEffect
-  ) {
+  if (intent.action === "publish" || intent.action === "modify" || intent.externalEffect) {
     return "high";
   }
 
-  if (
-    intent.category === "security" ||
-    intent.category === "personal_data" ||
-    !intent.reversible
-  ) {
+  if (intent.category === "security" || intent.category === "personal_data" || !intent.reversible) {
     return "medium";
   }
 
@@ -873,17 +817,11 @@ export function requestsApproval(input: string): boolean {
   return matchesAny(normalizeInput(input), APPROVAL_PATTERNS);
 }
 
-export function hasPermission(
-  identity: IdentityAssessment,
-  permission: string,
-): boolean {
+export function hasPermission(identity: IdentityAssessment, permission: string): boolean {
   return identity.permissions.includes(permission) || identity.permissions.includes("*");
 }
 
-export function hasRole(
-  identity: IdentityAssessment,
-  role: string,
-): boolean {
+export function hasRole(identity: IdentityAssessment, role: string): boolean {
   return identity.roles.includes(role) || identity.roles.includes("*");
 }
 
@@ -892,10 +830,7 @@ export function canAccessMemory(
   memory: MemoryRecord,
   now = new Date(),
 ): boolean {
-  if (
-    memory.expiresAt &&
-    new Date(memory.expiresAt).getTime() <= now.getTime()
-  ) {
+  if (memory.expiresAt && new Date(memory.expiresAt).getTime() <= now.getTime()) {
     return false;
   }
 
@@ -916,10 +851,7 @@ export function canAccessMemory(
     return false;
   }
 
-  if (
-    memory.sensitivity === "restricted" &&
-    !hasPermission(identity, "memory:read:restricted")
-  ) {
+  if (memory.sensitivity === "restricted" && !hasPermission(identity, "memory:read:restricted")) {
     return false;
   }
 
@@ -945,9 +877,7 @@ export function resolveAllowedMemoryScopes(
   }
 
   if (
-    ["knowledge", "coding", "analysis", "creative", "governance"].includes(
-      intent.category,
-    ) &&
+    ["knowledge", "coding", "analysis", "creative", "governance"].includes(intent.category) &&
     identity.dataScopes.includes("project")
   ) {
     scopes.push("project");
@@ -999,10 +929,7 @@ export function evaluatePolicy(
       ],
       humanApprovalRequired: false,
       missingInformation: [],
-      prohibitedCapabilities: [
-        "Divulgación de secretos",
-        "Exfiltración de credenciales",
-      ],
+      prohibitedCapabilities: ["Divulgación de secretos", "Exfiltración de credenciales"],
     };
   }
 
@@ -1032,34 +959,22 @@ export function evaluatePolicy(
       status: "denied",
       risk: risk === "minimal" ? "high" : risk,
       rulesChecked,
-      reasons: [
-        "Las acciones con efecto externo requieren una identidad autenticada.",
-      ],
+      reasons: ["Las acciones con efecto externo requieren una identidad autenticada."],
       humanApprovalRequired: false,
       missingInformation: ["Identidad autenticada"],
-      prohibitedCapabilities: [
-        "Acción externa sin identidad",
-        "Uso de herramientas privilegiadas",
-      ],
+      prohibitedCapabilities: ["Acción externa sin identidad", "Uso de herramientas privilegiadas"],
     };
   }
 
-  if (
-    intent.category === "personal_data" &&
-    !hasPermission(identity, "data:personal:process")
-  ) {
+  if (intent.category === "personal_data" && !hasPermission(identity, "data:personal:process")) {
     return {
       status: "denied",
       risk: "high",
       rulesChecked,
-      reasons: [
-        "El tratamiento de datos personales requiere un permiso explícito y verificable.",
-      ],
+      reasons: ["El tratamiento de datos personales requiere un permiso explícito y verificable."],
       humanApprovalRequired: false,
       missingInformation: ["Permiso data:personal:process"],
-      prohibitedCapabilities: [
-        "Procesamiento no autorizado de datos personales",
-      ],
+      prohibitedCapabilities: ["Procesamiento no autorizado de datos personales"],
     };
   }
 
@@ -1088,13 +1003,9 @@ export function evaluatePolicy(
   if (
     intent.category === "knowledge" &&
     evidence.level === "none" &&
-    /\b(cita|fuente|referencia|estudio|paper|investigaci[oó]n)\b/i.test(
-      normalized,
-    )
+    /\b(cita|fuente|referencia|estudio|paper|investigaci[oó]n)\b/i.test(normalized)
   ) {
-    missingInformation.push(
-      "Fuente verificable o acceso a recuperación documental",
-    );
+    missingInformation.push("Fuente verificable o acceso a recuperación documental");
   }
 
   if (missingInformation.length > 0) {
@@ -1102,20 +1013,14 @@ export function evaluatePolicy(
       status: "requires_more_information",
       risk,
       rulesChecked,
-      reasons: [
-        "No existe evidencia o contexto suficiente para emitir una respuesta verificable.",
-      ],
+      reasons: ["No existe evidencia o contexto suficiente para emitir una respuesta verificable."],
       humanApprovalRequired: false,
       missingInformation: unique(missingInformation),
       prohibitedCapabilities,
     };
   }
 
-  if (
-    risk === "critical" ||
-    risk === "high" ||
-    HIGH_IMPACT_ACTIONS.has(intent.action)
-  ) {
+  if (risk === "critical" || risk === "high" || HIGH_IMPACT_ACTIONS.has(intent.action)) {
     return {
       status: "requires_human_approval",
       risk,
@@ -1124,12 +1029,8 @@ export function evaluatePolicy(
         "La acción tiene impacto externo, puede ser irreversible o requiere privilegios elevados.",
       ],
       humanApprovalRequired: true,
-      missingInformation: [
-        "Aprobación humana explícita, verificable y vigente",
-      ],
-      prohibitedCapabilities: [
-        "Ejecución autónoma de acción de alto impacto",
-      ],
+      missingInformation: ["Aprobación humana explícita, verificable y vigente"],
+      prohibitedCapabilities: ["Ejecución autónoma de acción de alto impacto"],
     };
   }
 
@@ -1142,9 +1043,7 @@ export function evaluatePolicy(
       status: "allowed_read_only",
       risk,
       rulesChecked,
-      reasons: [
-        "La operación se limita a lectura y no solicita modificación externa.",
-      ],
+      reasons: ["La operación se limita a lectura y no solicita modificación externa."],
       humanApprovalRequired: false,
       missingInformation: [],
       prohibitedCapabilities: ["Escritura", "Eliminación", "Publicación"],
@@ -1164,9 +1063,7 @@ export function evaluatePolicy(
   };
 }
 
-export function responseModeFor(
-  policy: PolicyAssessment,
-): ResponseMode {
+export function responseModeFor(policy: PolicyAssessment): ResponseMode {
   switch (policy.status) {
     case "allowed":
       return "answer";
@@ -1188,10 +1085,7 @@ export function responseModeFor(
   }
 }
 
-export function resolveAllowedTools(
-  policy: PolicyAssessment,
-  intent: IntentAssessment,
-): string[] {
+export function resolveAllowedTools(policy: PolicyAssessment, intent: IntentAssessment): string[] {
   if (policy.status === "denied") {
     return [];
   }
@@ -1381,15 +1275,17 @@ export function canInvokeTool(
     };
   }
 
-  if (!policy.allowedRiskLevels.includes(
-    request.action === "delete" ||
-      request.action === "transfer" ||
-      request.action === "administer"
-      ? "critical"
-      : request.action === "modify" || request.action === "publish"
-        ? "high"
-        : "low",
-  )) {
+  if (
+    !policy.allowedRiskLevels.includes(
+      request.action === "delete" ||
+        request.action === "transfer" ||
+        request.action === "administer"
+        ? "critical"
+        : request.action === "modify" || request.action === "publish"
+          ? "high"
+          : "low",
+    )
+  ) {
     return {
       allowed: false,
       reason: `La política de ${policy.name} no permite este nivel de riesgo.`,
@@ -1410,9 +1306,7 @@ export function canInvokeTool(
   const permissionAllowed =
     !policy.requiredPermissions ||
     policy.requiredPermissions.length === 0 ||
-    policy.requiredPermissions.every((permission) =>
-      hasPermission(identity, permission),
-    );
+    policy.requiredPermissions.every((permission) => hasPermission(identity, permission));
 
   if (!permissionAllowed) {
     return {
@@ -1503,9 +1397,7 @@ export function buildSystemPrompt(decision: RoutingDecision): string {
     `Identidad: ${identityState}`,
     `Intención: ${decision.intent.category}; acción: ${decision.intent.action}; riesgo: ${policy.risk}.`,
     `Herramientas autorizadas: ${
-      decision.allowedTools.length > 0
-        ? decision.allowedTools.join(", ")
-        : "ninguna"
+      decision.allowedTools.length > 0 ? decision.allowedTools.join(", ") : "ninguna"
     }.`,
     `Memoria permitida: ${decision.memoryScopes.join(", ")}.`,
     `Evaluación de evidencia: ${decision.evidence.level}; verificada: ${
@@ -1592,10 +1484,7 @@ export function getModuleWeights(
     weights[moduleId] = Math.max(weights[moduleId], 0.72);
   }
 
-  if (
-    decision.policy.risk === "high" ||
-    decision.policy.risk === "critical"
-  ) {
+  if (decision.policy.risk === "high" || decision.policy.risk === "critical") {
     weights.ARGUS = 1;
     weights.CROWN = 1;
   }
@@ -1603,9 +1492,7 @@ export function getModuleWeights(
   return weights;
 }
 
-export function getDominantModule(
-  weights: CrownWeights,
-): ModuleId {
+export function getDominantModule(weights: CrownWeights): ModuleId {
   const sorted = (Object.entries(weights) as Array<[ModuleId, number]>).sort(
     ([firstId, firstWeight], [secondId, secondWeight]) => {
       if (secondWeight !== firstWeight) {

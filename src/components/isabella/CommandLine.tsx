@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Waveform } from "./Waveform";
-import {
-  fileToDataUrl,
-  humanSize,
-  MAX_ATTACHMENT_BYTES,
-  type Attachment,
-} from "@/lib/attachments";
+import { fileToDataUrl, humanSize, MAX_ATTACHMENT_BYTES, type Attachment } from "@/lib/attachments";
 
 const uid = () => Math.random().toString(36).slice(2, 11);
 
@@ -95,13 +90,14 @@ export function CommandLine({
           setNotice("La grabación excede 8 MB.");
           return;
         }
+        const dataUrl = await fileToDataUrl(blob);
         setAttachments((prev) =>
           [
             ...prev,
             {
               id: uid(),
               kind: "audio" as const,
-              dataUrl: await fileToDataUrl(blob),
+              dataUrl,
               mime: recorder.mimeType || "audio/webm",
               name: `nota-de-voz-${new Date().toISOString().slice(11, 19)}`,
               size: blob.size,
@@ -160,10 +156,7 @@ export function CommandLine({
       {attachments.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-3">
           {attachments.map((a) => (
-            <div
-              key={a.id}
-              className="glass relative flex items-center gap-3 rounded-xl px-3 py-2"
-            >
+            <div key={a.id} className="glass relative flex items-center gap-3 rounded-xl px-3 py-2">
               {a.kind === "image" ? (
                 <img
                   src={a.dataUrl}

@@ -78,7 +78,10 @@ export function TelemetryPanel({
         </p>
         <div className="mt-3 space-y-1">
           {(decision?.rulesChecked ?? []).map((r) => (
-            <p key={r} className="font-mono text-[9.5px] tracking-[0.08em] text-muted-foreground/80">
+            <p
+              key={r}
+              className="font-mono text-[9.5px] tracking-[0.08em] text-muted-foreground/80"
+            >
               ✓ {r}
             </p>
           ))}

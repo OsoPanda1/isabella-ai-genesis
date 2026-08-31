@@ -1,0 +1,6 @@
+{
+  "name": "Isabella Villaseñor AI",
+  "description": "Isabella Villaseñor AI is a contextual, territorial and deeply governed hybrid cognitive architecture, coordinating memory, interpretation, tools and traceability.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
