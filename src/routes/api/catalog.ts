@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { CATALOG_ENTRIES } from "@/lib/api-catalog";
 import { routeRequest } from "@/lib/crown";
+import { SecuritySystem } from "@/lib/security";
 
 const searchSchema = z.object({
   domain: z.string().optional(),
@@ -19,9 +20,38 @@ export const Route = createFileRoute("/api/catalog")({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        const ip = request.headers.get("x-forwarded-for") || "local_client";
+        const rateLimit = SecuritySystem.checkRateLimit(ip, 60); // 60 search requests/min allowed
+        if (!rateLimit.allowed) {
+          const headers = SecuritySystem.injectSecureHeaders(
+            new Headers({ "content-type": "application/json" }),
+          );
+          return new Response(
+            JSON.stringify({ error: "Límite de solicitudes de catálogo excedido (60/min)." }),
+            { status: 429, headers },
+          );
+        }
+
         const url = new URL(request.url);
         const domain = url.searchParams.get("domain") || undefined;
         const query = url.searchParams.get("query") || undefined;
+
+        // --- LAYER 7: Content Sanitization ---
+        if (query) {
+          const checkQuery = SecuritySystem.sanitizePayload(query);
+          if (checkQuery.flagged) {
+            const headers = SecuritySystem.injectSecureHeaders(
+              new Headers({ "content-type": "application/json" }),
+            );
+            return new Response(
+              JSON.stringify({ error: "Contenido de búsqueda sospechoso bloqueado." }),
+              {
+                status: 403,
+                headers,
+              },
+            );
+          }
+        }
 
         let items = CATALOG_ENTRIES;
 
@@ -39,6 +69,13 @@ export const Route = createFileRoute("/api/catalog")({
           );
         }
 
+        const headers = SecuritySystem.injectSecureHeaders(
+          new Headers({
+            "content-type": "application/json",
+            "x-isabella-rate-remaining": rateLimit.remaining.toString(),
+          }),
+        );
+
         return new Response(
           JSON.stringify({
             schema: "isabella.api.catalog.v1",
@@ -46,46 +83,102 @@ export const Route = createFileRoute("/api/catalog")({
             count: items.length,
             items,
           }),
-          {
-            headers: { "content-type": "application/json" },
-          },
+          { headers },
         );
       },
 
       POST: async ({ request }) => {
+        const ip = request.headers.get("x-forwarded-for") || "local_client";
+        const rateLimit = SecuritySystem.checkRateLimit(ip, 30); // 30 executions/min allowed
+        if (!rateLimit.allowed) {
+          const headers = SecuritySystem.injectSecureHeaders(
+            new Headers({ "content-type": "application/json" }),
+          );
+          return new Response(
+            JSON.stringify({ error: "Límite de ejecución de contratos excedido (30/min)." }),
+            { status: 429, headers },
+          );
+        }
+
         try {
-          const body = await request.json();
-          const parsed = executeSchema.safeParse(body);
-          if (!parsed.success) {
-            return new Response(JSON.stringify({ error: "Contrato de ejecución inválido." }), {
+          let rawBody;
+          try {
+            rawBody = await request.json();
+          } catch {
+            const headers = SecuritySystem.injectSecureHeaders(
+              new Headers({ "content-type": "application/json" }),
+            );
+            return new Response(JSON.stringify({ error: "Percepción de contrato corrupta." }), {
               status: 400,
-              headers: { "content-type": "application/json" },
+              headers,
             });
           }
 
-          const { id, method, path, params } = parsed.data;
-          const entry = CATALOG_ENTRIES.find((e) => e.id === id);
+          // --- LAYER 1: Schema Integrity ---
+          const validation = SecuritySystem.validateInput(executeSchema, rawBody);
+          if (!validation.success) {
+            const headers = SecuritySystem.injectSecureHeaders(
+              new Headers({ "content-type": "application/json" }),
+            );
+            return new Response(JSON.stringify({ error: validation.error }), {
+              status: 400,
+              headers,
+            });
+          }
 
-          if (!entry) {
+          const { id, method, path, params } = validation.data;
+
+          // --- LAYER 7: Payload Integrity Check ---
+          const serializedParams = JSON.stringify(params || {});
+          const checkParams = SecuritySystem.sanitizePayload(serializedParams);
+          if (checkParams.flagged) {
+            const headers = SecuritySystem.injectSecureHeaders(
+              new Headers({ "content-type": "application/json" }),
+            );
             return new Response(
-              JSON.stringify({ error: "Contrato no registrado en el catálogo de Isabella." }),
-              {
-                status: 404,
-                headers: { "content-type": "application/json" },
-              },
+              JSON.stringify({
+                error: `Parámetros de ejecución marcados como inseguros: ${checkParams.reason}`,
+              }),
+              { status: 403, headers },
             );
           }
 
-          // Evaluate the request constitutionally using our deterministic C.R.O.W.N. router!
-          const mockInput = `Invocación nativa del contrato ${id} [${method} ${path}] con parámetros: ${JSON.stringify(params || {})}`;
+          const entry = CATALOG_ENTRIES.find((e) => e.id === id);
+
+          if (!entry) {
+            const headers = SecuritySystem.injectSecureHeaders(
+              new Headers({ "content-type": "application/json" }),
+            );
+            return new Response(
+              JSON.stringify({ error: "Contrato no registrado en el catálogo de Isabella." }),
+              { status: 404, headers },
+            );
+          }
+
+          // Evaluate request constitutionally using our deterministic C.R.O.W.N. router!
+          const mockInput = `Invocación nativa del contrato ${id} [${method} ${path}] con parámetros: ${checkParams.clean}`;
           const { decision, auditEvents } = routeRequest(mockInput);
 
-          const traceId = decision.traceId;
+          // --- LAYER 6: Telemetry correlation ---
+          const telemetry = SecuritySystem.generateTelemetry(
+            ip,
+            decision.policy.status === "allowed" ? "allowed" : "denied",
+          );
+
           const latencyMs = Math.floor(Math.random() * 85) + 12;
+
+          const headers = SecuritySystem.injectSecureHeaders(
+            new Headers({
+              "content-type": "application/json",
+              "x-isabella-trace-id": telemetry.traceId,
+              "x-isabella-correlation-id": telemetry.correlationId,
+              "x-isabella-rate-remaining": rateLimit.remaining.toString(),
+            }),
+          );
 
           return new Response(
             JSON.stringify({
-              traceId,
+              traceId: telemetry.traceId,
               contractId: id,
               method,
               path,
@@ -97,17 +190,15 @@ export const Route = createFileRoute("/api/catalog")({
               auditTrail: auditEvents,
               responsePayload: entry.mockResponse || { status: "simulated_success", resource: id },
             }),
-            {
-              headers: { "content-type": "application/json" },
-            },
+            { headers },
           );
         } catch (error) {
+          const headers = SecuritySystem.injectSecureHeaders(
+            new Headers({ "content-type": "application/json" }),
+          );
           return new Response(
-            JSON.stringify({ error: "Error en simulación nativa de contrato." }),
-            {
-              status: 500,
-              headers: { "content-type": "application/json" },
-            },
+            JSON.stringify({ error: "Error en simulación nativa de contrato con protección." }),
+            { status: 500, headers },
           );
         }
       },
