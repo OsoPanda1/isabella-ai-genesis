@@ -22,7 +22,7 @@ export interface BookPILedgerBlock {
   tokensConsumed: number;
   previousHash: string;
   blockHash: string;
-  pqcSignature: string | null; // Dilithium-5 Lattice-based simulation signature placeholder
+  pqcSignature: string | null; // Post-Quantum Cryptography placeholder (NOT_IMPLEMENTED)
   signatureAlgorithm: string;
   status: "settled" | "pending" | "refunded";
 }

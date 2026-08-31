@@ -38,7 +38,6 @@ interface UserSession {
   tenantId: string;
   role: string;
   oidcSub: string;
-  activeToken: string;
 }
 
 interface AuditLog {
@@ -60,7 +59,8 @@ interface LedgerBlock {
   costDecimal: string;
   timestamp: string;
   status: "settled" | "pending" | "refunded";
-  pqcSignature: string;
+  pqcSignature: string | null;
+  signatureAlgorithm: string;
 }
 
 export function MonetizationDashboard() {
