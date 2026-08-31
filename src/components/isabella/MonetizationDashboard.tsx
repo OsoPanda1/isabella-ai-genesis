@@ -1,109 +1,185 @@
 import { useState } from "react";
 import {
-  Shield,
-  CreditCard,
+  TrendingUp,
   Cpu,
   Key,
   Layers,
-  Sparkles,
-  Award,
-  TrendingUp,
-  FileText,
-  DollarSign,
-  Briefcase,
-  Globe,
   Settings,
-  Plus,
   RefreshCw,
-  CheckCircle,
-  XCircle,
-  HelpCircle,
+  UserPlus,
+  ShieldAlert,
+  Sparkles,
 } from "lucide-react";
 
-interface LedgerEntry {
-  id: string;
-  operation: string;
-  costDecimal: string;
-  timestamp: string;
-}
+import { AccountOnboarding } from "./AccountOnboarding";
+import { CreditLedger, type LedgerItem } from "./CreditLedger";
+import { PlanSelector } from "./PlanSelector";
+import { UsageDashboard } from "./UsageDashboard";
 
 export function MonetizationDashboard() {
-  // Free plan state
+  // Onboarding modal visibility state
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{
+    username: string;
+    email: string;
+    telemetryConsent: boolean;
+  } | null>(null);
+
+  // Free/Freemium consent state
   const [hasFreeConsent, setHasFreeConsent] = useState(true);
-  const [freeMessagesUsed, setFreeMessagesUsed] = useState(12);
-  const FREE_LIMIT = 50;
+  const [freeMessagesUsed, setFreeMessagesUsed] = useState(14);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Membership states
-  const [activePlan, setActivePlan] = useState<string | null>(null);
+  // Active membership tier state
+  const [activePlan, setActivePlan] = useState<string | null>("free");
 
-  // Consumption credits state (Decimal absolute values to prevent floating issues)
-  const [creditBalance, setCreditBalance] = useState<string>("25.00");
-  const [ledger, setLedger] = useState<LedgerEntry[]>([
+  // Multi-tier limits calculation based on active plan
+  const getLimitsAndUsage = () => {
+    switch (activePlan) {
+      case "personal":
+        return {
+          msgUsed: 145,
+          msgLimit: 5000,
+          tokensRemaining: 84320,
+          tokenLimit: 100000,
+        };
+      case "pro":
+        return {
+          msgUsed: 412,
+          msgLimit: 20000,
+          tokensRemaining: 421900,
+          tokenLimit: 500000,
+        };
+      case "enterprise":
+        return {
+          msgUsed: 1890,
+          msgLimit: 100000,
+          tokensRemaining: 1850400,
+          tokenLimit: 2000000,
+        };
+      case "free":
+      default:
+        return {
+          msgUsed: freeMessagesUsed,
+          msgLimit: 50,
+          tokensRemaining: 6850,
+          tokenLimit: 10000,
+        };
+    }
+  };
+
+  const usageStats = getLimitsAndUsage();
+
+  // Consumption credit ledger simulation
+  const [creditBalance, setCreditBalance] = useState<string>("45.00");
+  const [ledger, setLedger] = useState<LedgerItem[]>([
     {
       id: "tx_01",
-      operation: "Análisis de Documento GIS",
+      operation: "Análisis Territorial GIS (GEMET)",
+      category: "skills",
       costDecimal: "1.50",
-      timestamp: "Hace 10 mins",
+      timestamp: "Hace 12 mins",
+      status: "settled",
+      node: "node_zero",
     },
     {
       id: "tx_02",
-      operation: "Síntesis Vocal ISA Core",
+      operation: "Síntesis de Audio de Alta Fidelidad (ISA Core)",
+      category: "inference",
       costDecimal: "0.45",
       timestamp: "Hace 2 horas",
+      status: "settled",
+      node: "node_zero",
     },
     {
       id: "tx_03",
-      operation: "Ejecución de Skill Código",
+      operation: "Auditoría SAST Sandbox (PRAXIS)",
+      category: "processing",
       costDecimal: "2.00",
       timestamp: "Hace 1 día",
+      status: "settled",
+      node: "node_zero",
     },
   ]);
 
-  // API Developer states
+  // API Developer credentials simulator
   const [generatedKeys, setGeneratedKeys] = useState<
     Array<{ key: string; name: string; scopes: string[] }>
   >([]);
   const [newKeyName, setNewKeyName] = useState("");
   const [selectedScopes, setSelectedScopes] = useState<string[]>(["presentation:read"]);
 
-  // Skills Marketplace states
+  // Skills Marketplace state
   const [sastScanRunning, setSastScanRunning] = useState<string | null>(null);
   const [scannedSkills, setScannedSkills] = useState<Record<string, "passed" | "failed" | null>>({
     "gis-conector": "passed",
     "legal-doc-analyzer": null,
   });
 
-  // Target Revenue share forecast (Stage 1-6 model state)
   const [activeRoadmapStage, setActiveRoadmapStage] = useState<number>(1);
 
-  // Credit cost calculation simulation
-  const handleSimulateCreditUsage = (operationName: string, costStr: string) => {
+  // Inbound usage operations
+  const handleSimulateCreditUsage = (
+    operationName: string,
+    category: LedgerItem["category"],
+    costStr: string,
+  ) => {
     const current = parseFloat(creditBalance);
     const cost = parseFloat(costStr);
     if (current < cost) {
-      alert("Créditos insuficientes. Adquiere créditos para realizar esta acción.");
+      alert("Créditos de consumo insuficientes. Por favor recarga créditos.");
       return;
     }
     const nextBalance = (current - cost).toFixed(2);
     setCreditBalance(nextBalance);
     setLedger((prev) => [
       {
-        id: `tx_${Math.random().toString(36).slice(2, 6)}`,
+        id: `tx_${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
         operation: operationName,
+        category,
         costDecimal: costStr,
         timestamp: "Ahora",
+        status: "settled",
+        node: "node_zero",
       },
       ...prev,
     ]);
   };
 
-  const handleRefundCreditUsage = (txId: string) => {
-    const target = ledger.find((l) => l.id === txId);
-    if (!target) return;
+  const handleRefundLedgerItem = (txId: string) => {
+    const item = ledger.find((l) => l.id === txId);
+    if (!item || item.status === "refunded") return;
+
+    // Refund calculation
     const current = parseFloat(creditBalance);
-    const refund = parseFloat(target.costDecimal);
-    setCreditBalance((current + refund).toFixed(2));
-    setLedger((prev) => prev.filter((l) => l.id !== txId));
+    const refundValue = parseFloat(item.costDecimal);
+    setCreditBalance((current + refundValue).toFixed(2));
+
+    setLedger((prev) => prev.map((l) => (l.id === txId ? { ...l, status: "refunded" } : l)));
+  };
+
+  const handleSelectPlan = (planId: string) => {
+    setActivePlan(planId);
+  };
+
+  const handleRefreshLimits = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      // Simulate slight usage changes or check active quotas
+      if (activePlan === "free") {
+        setFreeMessagesUsed((prev) => Math.min(prev + 1, 50));
+      }
+    }, 800);
+  };
+
+  const handleOnboardingComplete = (data: {
+    username: string;
+    email: string;
+    telemetryConsent: boolean;
+  }) => {
+    setCurrentUser(data);
+    setHasFreeConsent(data.telemetryConsent);
   };
 
   const handleGenerateApiKey = () => {
@@ -127,240 +203,180 @@ export function MonetizationDashboard() {
     setTimeout(() => {
       setScannedSkills((prev) => ({ ...prev, [skillName]: "passed" }));
       setSastScanRunning(null);
-    }, 1500);
+    }, 1200);
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Monetization Intro */}
-      <div className="glass rounded-3xl p-6">
-        <h2 className="font-mono text-[20px] font-bold text-pearl flex items-center gap-2">
-          <TrendingUp className="size-5.5 text-electric" />
-          Monetización Diversificada y Soberanía Económica
-        </h2>
-        <p className="mt-2 text-[13px] text-muted-foreground leading-relaxed">
-          Isabella evita la dependencia de una única fuente de ingresos especulativa o extractiva.
-          Su modelo se inspira en el marco de la economía de creadores, alianzas institucionales,
-          ciencia abierta y servicios verificables mediante <strong>BookPI</strong>, garantizando
-          que la privacidad básica sea siempre gratuita.
-        </p>
-      </div>
+    <div className="flex flex-col gap-6 select-none">
+      {/* Monetization Header & Welcome Banner */}
+      <div className="glass rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h2 className="font-mono text-[20px] font-bold text-pearl flex items-center gap-2">
+            <TrendingUp className="size-5.5 text-electric animate-pulse" />
+            Consola Económica y Cuotas de Inferencia
+          </h2>
+          <p className="mt-2 text-[13px] text-muted-foreground leading-relaxed max-w-3xl">
+            Soberanía financiera sin intermediación extractiva. Administra tus límites del plan
+            gratuito constitucional, compara suscripciones de infraestructura, adquiere créditos
+            decimales exactos y genera claves de acceso para APIs locales.
+          </p>
+        </div>
 
-      {/* Grid: 4 Bento Columns */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Row 1: Plan Gratuito & Membresías */}
-        <div className="glass rounded-3xl p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between">
-              <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
-                <Globe className="size-4.5 text-teal-400" />
-                1. Plan Gratuito (Freemium)
-              </h3>
-              <span className="text-[10px] bg-teal-500/10 text-teal-400 border border-teal-500/20 px-2.5 py-0.5 rounded-full uppercase font-mono">
-                Activo por Defecto
+        {/* Account state / Onboarding button */}
+        <div className="flex items-center gap-3 shrink-0 self-start md:self-center">
+          {currentUser ? (
+            <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-2xl p-3 flex flex-col items-end">
+              <span className="font-mono text-[10.5px] text-emerald-400 font-semibold flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-emerald-400 animate-ping" />
+                Operador Identificado
+              </span>
+              <span className="font-mono text-[11px] text-platinum mt-1">
+                {currentUser.username}
               </span>
             </div>
-            <p className="mt-2.5 text-[12px] text-muted-foreground leading-relaxed">
-              Accede a funciones generales de ISA y SOPHIA con memoria temporal sin costo. El plan
-              garantiza transparencia y respeto a tus datos, evitando la extracción oculta con fines
-              comerciales.
-            </p>
+          ) : (
+            <button
+              onClick={() => setIsOnboardingOpen(true)}
+              className="px-4 py-3 bg-electric/20 hover:bg-electric/30 text-electric border border-electric/35 font-mono text-[11px] uppercase tracking-wider rounded-2xl transition-all flex items-center gap-2"
+            >
+              <UserPlus className="size-4" />
+              Configurar Cuenta S.H.
+            </button>
+          )}
+        </div>
+      </div>
 
-            <div className="mt-4 bg-secondary/15 rounded-2xl p-4 border border-border/30">
-              <div className="flex items-center justify-between font-mono text-[11px] mb-2">
-                <span className="text-muted-foreground">Consumo de cuota de mensajes:</span>
-                <span className="text-platinum font-semibold">
-                  {freeMessagesUsed} / {FREE_LIMIT}
+      {/* Account Onboarding modal container */}
+      <AccountOnboarding
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        onComplete={handleOnboardingComplete}
+      />
+
+      {/* Sleek Usage Dashboard Component */}
+      <UsageDashboard
+        activePlanId={activePlan}
+        messagesUsed={usageStats.msgUsed}
+        messageLimit={usageStats.msgLimit}
+        tokensRemaining={usageStats.tokensRemaining}
+        tokenLimit={usageStats.tokenLimit}
+        onRefresh={handleRefreshLimits}
+        isRefreshing={isRefreshing}
+      />
+
+      {/* Interactive Plan Selector Comparison Component */}
+      <div className="glass rounded-3xl p-6">
+        <PlanSelector currentPlanId={activePlan} onSelectPlan={handleSelectPlan} />
+      </div>
+
+      {/* Credit balance simulation controls & Structured Ledger UI */}
+      <div className="grid gap-6 md:grid-cols-[1fr_380px] items-stretch">
+        <div className="flex flex-col gap-6">
+          <CreditLedger ledger={ledger} onRefund={handleRefundLedgerItem} />
+        </div>
+
+        {/* Quick balance actions panel */}
+        <div className="glass rounded-3xl p-5 border border-border/40 flex flex-col justify-between">
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Créditos Disponibles
+                </span>
+                <span className="font-mono text-[11px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  Saldo: ${creditBalance}
                 </span>
               </div>
-              <div className="w-full bg-secondary/30 rounded-full h-1.5 overflow-hidden">
-                <div
-                  className="bg-teal-400 h-full transition-all duration-500"
-                  style={{ width: `${(freeMessagesUsed / FREE_LIMIT) * 100}%` }}
-                />
-              </div>
+              <h4 className="font-mono text-[13px] text-pearl font-semibold mt-2 flex items-center gap-2">
+                <Cpu className="size-4 text-crown" />
+                Simular Operaciones de Costo
+              </h4>
+              <p className="text-[11.5px] text-muted-foreground mt-1 leading-relaxed">
+                Ejecuta operaciones para comprobar la deducción decimal exacta e inmediata
+                registrada en el libro mayor.
+              </p>
+            </div>
 
-              <div className="mt-4 flex items-center justify-between border-t border-border/20 pt-3.5">
-                <div className="flex flex-col">
-                  <span className="font-mono text-[10.5px] text-pearl font-semibold">
-                    Consentimiento de Telemetría
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">
-                    Requerido para la mejora del modelo territorial.
+            <div className="space-y-2.5">
+              <button
+                onClick={() =>
+                  handleSimulateCreditUsage("Inferencia de Agente Antigravity", "inference", "4.85")
+                }
+                className="w-full text-left p-3 rounded-xl border border-border/30 bg-secondary/15 hover:bg-secondary/35 transition-all font-mono text-[11px] flex items-center justify-between"
+              >
+                <div>
+                  <span className="block text-platinum font-semibold">Agente Antigravity</span>
+                  <span className="block text-[9.5px] text-muted-foreground mt-0.5">
+                    Llamada a modelo interactivo
                   </span>
                 </div>
-                <button
-                  onClick={() => setHasFreeConsent(!hasFreeConsent)}
-                  className={`px-3 py-1 rounded-lg font-mono text-[10px] transition-all ${
-                    hasFreeConsent
-                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25"
-                      : "bg-rose-500/10 text-rose-400 border border-rose-500/25"
-                  }`}
-                >
-                  {hasFreeConsent ? "Otorgado" : "Denegado"}
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="mt-5 pt-4 border-t border-border/20">
-            <span className="font-mono text-[10.5px] text-muted-foreground">
-              *Las exportaciones avanzadas y ejecución de Skills requieren una membresía.
-            </span>
-          </div>
-        </div>
-
-        {/* Membresías de Usuario */}
-        <div className="glass rounded-3xl p-5 flex flex-col justify-between">
-          <div>
-            <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
-              <CreditCard className="size-4.5 text-electric" />
-              2. Membresías Personales y Pro
-            </h3>
-            <p className="mt-2.5 text-[12px] text-muted-foreground leading-relaxed">
-              Financia directamente la infraestructura soberana de Isabella. Obtén memoria
-              persistente, voz HD ilimitada y capacidad de procesamiento elevado.
-            </p>
-
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              {[
-                { id: "personal", name: "Isabella Personal", price: "$9.99/mes" },
-                { id: "pro", name: "Isabella Creator", price: "$19.99/mes" },
-                { id: "research", name: "Isabella Research", price: "$49.99/mes" },
-                { id: "enterprise", name: "Isabella Enterprise", price: "Custom" },
-              ].map((p) => {
-                const isActive = activePlan === p.id;
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => setActivePlan(isActive ? null : p.id)}
-                    className={`p-3 rounded-xl border font-mono text-left transition-all ${
-                      isActive
-                        ? "bg-electric/15 border-electric text-platinum shadow-[0_0_15px_-5px_var(--electric)]"
-                        : "bg-secondary/15 border-border/40 text-muted-foreground hover:border-border/60 hover:text-platinum"
-                    }`}
-                  >
-                    <span className="block text-[11px] font-semibold">{p.name}</span>
-                    <span className="block text-[10px] opacity-75 mt-0.5">{p.price}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-border/20 flex items-center justify-between">
-            <span className="font-mono text-[10.5px] text-muted-foreground">
-              {activePlan
-                ? `Suscripción activa: ${activePlan.toUpperCase()}`
-                : "Ninguna suscripción activa."}
-            </span>
-            {activePlan && (
-              <button
-                onClick={() => setActivePlan(null)}
-                className="text-rose-400 font-mono text-[10px] hover:underline"
-              >
-                Cancelar Suscripción
+                <span className="text-rose-400 font-bold">-$4.85</span>
               </button>
-            )}
+
+              <button
+                onClick={() =>
+                  handleSimulateCreditUsage("Consulta Espacial de Catastro", "skills", "1.25")
+                }
+                className="w-full text-left p-3 rounded-xl border border-border/30 bg-secondary/15 hover:bg-secondary/35 transition-all font-mono text-[11px] flex items-center justify-between"
+              >
+                <div>
+                  <span className="block text-platinum font-semibold">Consulta GIS Espacial</span>
+                  <span className="block text-[9.5px] text-muted-foreground mt-0.5">
+                    Deducción de tokens GIS
+                  </span>
+                </div>
+                <span className="text-rose-400 font-bold">-$1.25</span>
+              </button>
+
+              <button
+                onClick={() => setCreditBalance((parseFloat(creditBalance) + 20.0).toFixed(2))}
+                className="w-full text-center py-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/25 text-emerald-400 rounded-xl font-mono text-[10px] uppercase tracking-wider transition-all"
+              >
+                Adquirir Crédito (+ $20.00)
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-5 pt-3.5 border-t border-border/20 text-[10.5px] text-muted-foreground font-mono">
+            *Las transacciones con saldo insuficiente serán rechazadas automáticamente por el módulo
+            del ledger.
           </div>
         </div>
       </div>
 
+      {/* Multi-tier security & Malla CITEMESH */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Row 2: Créditos de Consumo (Exact Decimal Ledger) */}
-        <div className="glass rounded-3xl p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between">
-              <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
-                <Cpu className="size-4.5 text-crown" />
-                3. Créditos de Consumo Decimal
-              </h3>
-              <div className="font-mono text-[12px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                Saldo: <span className="font-bold">${creditBalance}</span>
-              </div>
-            </div>
-            <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">
-              Compra créditos exactos para tareas costosas y evita saldos negativos. Si una
-              operación falla, BookPI gestiona el reembolso garantizado en unidades enteras.
-            </p>
-
-            {/* Test consumption actions */}
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                onClick={() => handleSimulateCreditUsage("Ejecución de IA Epic Mode", "3.50")}
-                className="px-2.5 py-1.5 rounded-lg border border-border/40 bg-secondary/15 font-mono text-[10px] text-platinum hover:bg-secondary/35 transition-all"
-              >
-                Invocación Epic Mode (-$3.50)
-              </button>
-              <button
-                onClick={() => handleSimulateCreditUsage("Generación de Imagen GEMET", "1.20")}
-                className="px-2.5 py-1.5 rounded-lg border border-border/40 bg-secondary/15 font-mono text-[10px] text-platinum hover:bg-secondary/35 transition-all"
-              >
-                Generar Imagen GEMET (-$1.20)
-              </button>
-            </div>
-
-            {/* Live Ledger stream */}
-            <div className="mt-4">
-              <span className="block font-mono text-[9px] uppercase tracking-wider text-muted-foreground mb-1.5">
-                Libro de Transacciones Activo (Ledger)
-              </span>
-              <div className="space-y-1.5 max-h-[16vh] overflow-y-auto bg-secondary/10 rounded-xl p-3 border border-border/30">
-                {ledger.map((l) => (
-                  <div
-                    key={l.id}
-                    className="flex items-center justify-between font-mono text-[10.5px]"
-                  >
-                    <div className="flex items-center gap-1.5 text-platinum">
-                      <span className="text-[9px] text-muted-foreground">{l.id}</span>
-                      <span>{l.operation}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-rose-400 font-semibold">-${l.costDecimal}</span>
-                      <button
-                        onClick={() => handleRefundCreditUsage(l.id)}
-                        className="text-[9px] text-emerald-400 hover:underline"
-                        title="Reembolsar esta transacción si falló"
-                      >
-                        Reembolsar
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* API de Desarrolladores */}
+        {/* API Scopes Security */}
         <div className="glass rounded-3xl p-5 flex flex-col justify-between">
           <div>
             <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
               <Key className="size-4.5 text-electric" />
-              4. API & Scopes para Desarrolladores
+              API & Claves de Acceso con Scopes
             </h3>
             <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">
-              Consonancia con la malla del Node Cero. Los endpoints nativos exigen alcances
-              estrictos de seguridad.
+              Define credenciales para interactuar con los endpoints locales del Nodo Cero. Cada
+              llave debe tener alcances restringidos.
             </p>
 
-            <div className="mt-4 bg-secondary/15 border border-border/30 rounded-xl p-3">
-              <div className="flex gap-2 mb-3">
+            <div className="mt-4 bg-secondary/15 border border-border/30 rounded-2xl p-3.5 space-y-3">
+              <div className="flex gap-2">
                 <input
                   type="text"
                   placeholder="Nombre de la llave (Ej. GIS Link)"
                   value={newKeyName}
                   onChange={(e) => setNewKeyName(e.target.value)}
-                  className="flex-1 bg-secondary/30 border border-border/40 rounded-lg font-mono text-[10px] px-2.5 py-1.5 text-platinum focus:outline-none"
+                  className="flex-1 bg-secondary/30 border border-border/40 rounded-xl font-mono text-[11px] px-3 py-2 text-platinum focus:outline-none"
                 />
                 <button
                   onClick={handleGenerateApiKey}
-                  className="bg-electric/20 hover:bg-electric/30 text-electric border border-electric/30 font-mono text-[10px] px-3.5 rounded-lg transition-all"
+                  className="bg-electric/20 hover:bg-electric/30 text-electric border border-electric/30 font-mono text-[11px] px-4 rounded-xl transition-all"
                 >
-                  Generar Key
+                  Generar
                 </button>
               </div>
 
-              {/* Scopes Toggles */}
-              <div className="flex flex-wrap gap-1.5">
+              {/* Scopes Selection */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
                 {[
                   "presentation:read",
                   "evidence:read",
@@ -379,7 +395,7 @@ export function MonetizationDashboard() {
                     <button
                       key={sc}
                       onClick={() => handleToggleScope(sc)}
-                      className={`px-2 py-1 rounded font-mono text-[9px] border transition-all ${
+                      className={`px-2.5 py-1 rounded-lg font-mono text-[9px] border transition-all ${
                         isChecked
                           ? isReinforced
                             ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
@@ -395,16 +411,18 @@ export function MonetizationDashboard() {
 
               {/* Generated Keys Stream */}
               {generatedKeys.length > 0 && (
-                <div className="mt-3.5 space-y-1.5 border-t border-border/20 pt-2.5">
+                <div className="mt-3.5 space-y-2 border-t border-border/20 pt-3">
                   {generatedKeys.map((k, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between font-mono text-[10px]"
+                      className="flex items-center justify-between font-mono text-[11px] bg-secondary/20 p-2.5 rounded-xl border border-border/20 animate-fade-in"
                     >
-                      <div className="text-platinum font-semibold truncate max-w-[50%]">
+                      <div className="text-platinum font-semibold truncate max-w-[45%]">
                         {k.name}
                       </div>
-                      <div className="text-electric font-mono">{k.key}</div>
+                      <div className="text-electric font-mono text-[10.5px] select-all">
+                        {k.key}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -412,21 +430,17 @@ export function MonetizationDashboard() {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Row 3: Skills Marketplace SAST Sandboxing & Roadmap Stages */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Skills Marketplace (PRAXIS) */}
+        {/* PRAXIS Skills Catalog Security */}
         <div className="glass rounded-3xl p-5 flex flex-col justify-between">
           <div>
             <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
               <Layers className="size-4.5 text-crown" />
-              5. PRAXIS Skills Marketplace
+              Suscripción a Herramientas PRAXIS
             </h3>
-            <p className="mt-2.5 text-[12px] text-muted-foreground leading-relaxed">
-              Los desarrolladores publican herramientas verificadas. Para habilitarse en el
-              marketplace, cada Skill se somete a un riguroso análisis SAST y sandbox de seguridad
-              en la malla.
+            <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">
+              Verifica los complementos territoriales de Isabella mediante un riguroso sandboxing y
+              análisis SAST antes de su habilitación.
             </p>
 
             <div className="mt-4 space-y-3">
@@ -449,19 +463,19 @@ export function MonetizationDashboard() {
                 return (
                   <div
                     key={sk.id}
-                    className="bg-secondary/15 border border-border/30 rounded-xl p-3 flex items-center justify-between"
+                    className="bg-secondary/15 border border-border/30 rounded-2xl p-3.5 flex items-center justify-between"
                   >
                     <div>
-                      <span className="block font-mono text-[11px] text-platinum font-semibold">
+                      <span className="block font-mono text-[12px] text-platinum font-semibold">
                         {sk.label}
                       </span>
-                      <span className="block font-mono text-[9px] text-muted-foreground mt-0.5">
+                      <span className="block font-mono text-[9.5px] text-muted-foreground mt-0.5">
                         {sk.hash} · {sk.desc}
                       </span>
                     </div>
                     <div>
                       {scanStatus === "passed" ? (
-                        <span className="text-[9.5px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        <span className="text-[9.5px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/20 font-bold uppercase">
                           PASSED SAST
                         </span>
                       ) : isScanning ? (
@@ -471,9 +485,9 @@ export function MonetizationDashboard() {
                       ) : (
                         <button
                           onClick={() => runSastSandboxScan(sk.id)}
-                          className="bg-electric/10 text-electric border border-electric/30 font-mono text-[10px] px-3 py-1 rounded hover:bg-electric/25 transition-all"
+                          className="bg-electric/10 text-electric border border-electric/30 font-mono text-[10px] px-3.5 py-1 rounded-lg hover:bg-electric/25 transition-all"
                         >
-                          Escanear Sandbox
+                          Escanear
                         </button>
                       )}
                     </div>
@@ -483,106 +497,104 @@ export function MonetizationDashboard() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Roadmap Roadmap Phases */}
-        <div className="glass rounded-3xl p-5 flex flex-col justify-between">
-          <div>
-            <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
-              <Settings className="size-4.5 text-electric" />
-              Etapas y Modelo de Distribución de Ingresos
-            </h3>
-            <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">
-              Visualización económica predictiva basada en los estadios de maduración de la
-              arquitectura cognitiva.
-            </p>
+      {/* Roadmap phases block */}
+      <div className="glass rounded-3xl p-6">
+        <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
+          <Settings className="size-4.5 text-electric animate-spin-slow" />
+          Plan y Hoja de Ruta de Expansión
+        </h3>
+        <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">
+          Navega por las fases previstas de distribución económica y modelos de coinversión
+          territorial de Isabella Villaseñor AI.
+        </p>
 
-            {/* Stages Selector */}
-            <div className="flex gap-1.5 mt-4">
-              {[1, 2, 3, 4, 5, 6].map((stg) => (
-                <button
-                  key={stg}
-                  onClick={() => setActiveRoadmapStage(stg)}
-                  className={`flex-1 font-mono text-[11px] py-1 border rounded transition-all ${
-                    activeRoadmapStage === stg
-                      ? "bg-electric/25 text-platinum border-electric"
-                      : "border-border/30 text-muted-foreground hover:border-border/60"
-                  }`}
-                >
-                  E{stg}
-                </button>
-              ))}
+        {/* Stages Selector */}
+        <div className="flex gap-1.5 mt-4 overflow-x-auto pb-1 md:pb-0">
+          {[1, 2, 3, 4, 5, 6].map((stg) => (
+            <button
+              key={stg}
+              onClick={() => setActiveRoadmapStage(stg)}
+              className={`flex-1 min-w-[50px] font-mono text-[11px] py-1.5 border rounded-xl transition-all ${
+                activeRoadmapStage === stg
+                  ? "bg-electric/25 text-platinum border-electric font-semibold"
+                  : "border-border/30 text-muted-foreground hover:border-border/60"
+              }`}
+            >
+              Etapa {stg}
+            </button>
+          ))}
+        </div>
+
+        {/* Stage content details */}
+        <div className="mt-4 bg-secondary/15 rounded-2xl p-4 border border-border/30">
+          {activeRoadmapStage === 1 && (
+            <div>
+              <span className="block font-mono text-[12px] font-semibold text-platinum mb-1">
+                Etapa 1: Activación Freemium y Stripe
+              </span>
+              <p className="text-[11.5px] text-muted-foreground leading-relaxed">
+                Despliegue del plan gratuito constitucional, registro de usuarios con consentimiento
+                y políticas transparentes de telemetría.
+              </p>
             </div>
-
-            {/* Stage content details */}
-            <div className="mt-4 bg-secondary/15 rounded-xl p-4 border border-border/30">
-              {activeRoadmapStage === 1 && (
-                <div>
-                  <span className="block font-mono text-[11px] font-semibold text-platinum mb-1">
-                    Fase 1: Activación Freemium y Stripe
-                  </span>
-                  <p className="text-[10.5px] text-muted-foreground leading-relaxed">
-                    Habilitación del plan gratuito constitucional, membresías personales y de
-                    creador, entitlements directos en Stripe y controles estrictos de cuotas.
-                  </p>
-                </div>
-              )}
-              {activeRoadmapStage === 2 && (
-                <div>
-                  <span className="block font-mono text-[11px] font-semibold text-platinum mb-1">
-                    Fase 2: Consumo y API de Integración
-                  </span>
-                  <p className="text-[10.5px] text-muted-foreground leading-relaxed">
-                    Soporte a créditos de consumo exacto en BookPI, generación dinámica de API keys
-                    con scopes limitados y despliegue del catálogo de endpoints.
-                  </p>
-                </div>
-              )}
-              {activeRoadmapStage === 3 && (
-                <div>
-                  <span className="block font-mono text-[11px] font-semibold text-platinum mb-1">
-                    Fase 3: Skills Marketplace y BookPI Ledger
-                  </span>
-                  <p className="text-[10.5px] text-muted-foreground leading-relaxed">
-                    Venta de Skills validadas mediante SAST, modelo de revenue share para
-                    desarrolladores y BookPI como servicio de trazabilidad externa.
-                  </p>
-                </div>
-              )}
-              {activeRoadmapStage === 4 && (
-                <div>
-                  <span className="block font-mono text-[11px] font-semibold text-platinum mb-1">
-                    Fase 4: Soluciones Enterprise y Gubernamentales
-                  </span>
-                  <p className="text-[10.5px] text-muted-foreground leading-relaxed">
-                    Despliegue de nodos locales CITEMESH, resguardo soberano de datos de
-                    administraciones públicas, y simulación ambiental con el Gemelo Digital GEMET.
-                  </p>
-                </div>
-              )}
-              {activeRoadmapStage === 5 && (
-                <div>
-                  <span className="block font-mono text-[11px] font-semibold text-platinum mb-1">
-                    Fase 5: Formación y Ciencia Abierta
-                  </span>
-                  <p className="text-[10.5px] text-muted-foreground leading-relaxed">
-                    Certificaciones de especialización técnica PQC/BookPI, becas de investigación y
-                    datasets curados con reconocimiento estricto de autoría.
-                  </p>
-                </div>
-              )}
-              {activeRoadmapStage === 6 && (
-                <div>
-                  <span className="block font-mono text-[11px] font-semibold text-platinum mb-1">
-                    Fase 6: Tokenización Responsable
-                  </span>
-                  <p className="text-[10.5px] text-muted-foreground leading-relaxed">
-                    Pilotos cerrados para participación comunitaria tras una evaluación estricta de
-                    regulaciones financieras y mitigación de riesgos de KYC/AML.
-                  </p>
-                </div>
-              )}
+          )}
+          {activeRoadmapStage === 2 && (
+            <div>
+              <span className="block font-mono text-[12px] font-semibold text-platinum mb-1">
+                Etapa 2: Consumo y API de Integración
+              </span>
+              <p className="text-[11.5px] text-muted-foreground leading-relaxed">
+                Habilitación de créditos de consumo exacto en BookPI, generación dinámica de API
+                keys con alcances estrictos de seguridad.
+              </p>
             </div>
-          </div>
+          )}
+          {activeRoadmapStage === 3 && (
+            <div>
+              <span className="block font-mono text-[12px] font-semibold text-platinum mb-1">
+                Etapa 3: Skills Marketplace y BookPI Ledger
+              </span>
+              <p className="text-[11.5px] text-muted-foreground leading-relaxed">
+                Venta y ejecución de Skills validadas mediante análisis estático SAST, modelo de
+                distribución de ingresos para desarrolladores.
+              </p>
+            </div>
+          )}
+          {activeRoadmapStage === 4 && (
+            <div>
+              <span className="block font-mono text-[12px] font-semibold text-platinum mb-1">
+                Etapa 4: Soluciones Enterprise y Gubernamentales
+              </span>
+              <p className="text-[11.5px] text-muted-foreground leading-relaxed">
+                Despliegue de mallas dedicadas CITEMESH, resguardo de datos soberanos de
+                administraciones y simulación espacial GEMET.
+              </p>
+            </div>
+          )}
+          {activeRoadmapStage === 5 && (
+            <div>
+              <span className="block font-mono text-[12px] font-semibold text-platinum mb-1">
+                Etapa 5: Formación y Ciencia Abierta
+              </span>
+              <p className="text-[11.5px] text-muted-foreground leading-relaxed">
+                Certificaciones técnicas especializadas en resguardo de datos, becas de
+                investigación y datasets curados con autoría canónica.
+              </p>
+            </div>
+          )}
+          {activeRoadmapStage === 6 && (
+            <div>
+              <span className="block font-mono text-[12px] font-semibold text-platinum mb-1">
+                Etapa 6: Tokenización Responsable
+              </span>
+              <p className="text-[11.5px] text-muted-foreground leading-relaxed">
+                Pilotos cerrados de participación financiera tras un exhaustivo análisis regulatorio
+                y mitigación de riesgos de KYC/AML.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
