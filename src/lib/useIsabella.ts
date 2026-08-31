@@ -7,6 +7,13 @@ import {
   type PresetId,
   type RoutingDecision,
 } from "./crown-ui";
+import { audioFormatFromMime, type Attachment } from "./attachments";
+import {
+  exportTelemetryCsv,
+  exportTelemetryPdf,
+  toTelemetryRecord,
+  type TelemetryRecord,
+} from "./audit-export";
 
 export interface TerminalMessage {
   id: string;
@@ -16,6 +23,7 @@ export interface TerminalMessage {
   decision?: RoutingDecision;
   streaming?: boolean;
   error?: boolean;
+  attachments?: Attachment[];
 }
 
 const now = () =>
@@ -28,6 +36,8 @@ const now = () =>
 const uid = () => Math.random().toString(36).slice(2, 11);
 
 const STORAGE_KEY = "isabella.session.v1";
+const TELEMETRY_KEY = "isabella.telemetry.v1";
+const PRESET_KEY = "isabella.preset.v1";
 
 const BOOT: TerminalMessage = {
   id: "boot",
@@ -50,6 +60,26 @@ function loadSession(): TerminalMessage[] | null {
   }
 }
 
+/** Bloques de contenido multimodal para el gateway. */
+function buildContent(text: string, attachments?: Attachment[]) {
+  if (!attachments?.length) return text;
+  const blocks: unknown[] = [{ type: "text", text: text || "Analiza el material adjunto." }];
+  for (const a of attachments) {
+    if (a.kind === "image") {
+      blocks.push({ type: "image_url", image_url: { url: a.dataUrl } });
+    } else {
+      blocks.push({
+        type: "input_audio",
+        input_audio: {
+          data: a.dataUrl.split(",")[1] ?? "",
+          format: audioFormatFromMime(a.mime),
+        },
+      });
+    }
+  }
+  return blocks;
+}
+
 export function useIsabella() {
   const [messages, setMessages] = useState<TerminalMessage[]>([BOOT]);
   const [hydrated, setHydrated] = useState(false);
@@ -57,14 +87,24 @@ export function useIsabella() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [decision, setDecision] = useState<RoutingDecision | null>(null);
   const [tokens, setTokens] = useState(0);
+  const [telemetry, setTelemetry] = useState<TelemetryRecord[]>([]);
+  const [runId] = useState(() => `run-${uid()}`);
   const abortRef = useRef<AbortController | null>(null);
 
   const preset: Preset = PRESETS.find((p) => p.id === presetId) ?? (PRESETS[0] as Preset);
 
-  // Rehidratación del historial de la sesión activa.
+  // Rehidratación del historial y de la telemetría auditada.
   useEffect(() => {
     const restored = loadSession();
     if (restored) setMessages(restored);
+    try {
+      const savedPreset = window.localStorage.getItem(PRESET_KEY) as PresetId | null;
+      if (savedPreset && PRESETS.some((p) => p.id === savedPreset)) setPresetId(savedPreset);
+      const rawTel = window.localStorage.getItem(TELEMETRY_KEY);
+      if (rawTel) setTelemetry(JSON.parse(rawTel) as TelemetryRecord[]);
+    } catch {
+      /* almacenamiento no disponible */
+    }
     setHydrated(true);
   }, []);
 
@@ -76,24 +116,28 @@ export function useIsabella() {
         STORAGE_KEY,
         JSON.stringify({ savedAt: new Date().toISOString(), presetId, messages }),
       );
+      window.localStorage.setItem(PRESET_KEY, presetId);
+      window.localStorage.setItem(TELEMETRY_KEY, JSON.stringify(telemetry.slice(-200)));
     } catch {
       /* cuota agotada: la sesión sigue viva en memoria */
     }
-  }, [messages, presetId, hydrated]);
+  }, [messages, presetId, telemetry, hydrated]);
 
   const send = useCallback(
-    async (input: string) => {
+    async (input: string, attachments: Attachment[] = []) => {
       const text = input.trim();
-      if (!text || isProcessing) return;
+      if ((!text && attachments.length === 0) || isProcessing) return;
 
-      const routing = route(text, preset);
+      const routing = route(text || "material adjunto", preset);
       setDecision(routing);
+      setTelemetry((prev) => [...prev, toTelemetryRecord(routing, preset.id)]);
 
       const userMsg: TerminalMessage = {
         id: uid(),
         role: "user",
         content: text,
         timestamp: now(),
+        attachments,
       };
       const replyId = uid();
 
@@ -102,7 +146,7 @@ export function useIsabella() {
         .slice(-16)
         .map((m) => ({
           role: m.role === "user" ? ("user" as const) : ("assistant" as const),
-          content: m.content,
+          content: buildContent(m.content, m.attachments),
         }));
 
       setMessages((prev) => [
@@ -209,7 +253,8 @@ export function useIsabella() {
       {
         id: uid(),
         role: "system",
-        content: "Sesión purgada. Memoria inmediata reiniciada · trazabilidad preservada.",
+        content:
+          "Sesión purgada. Memoria inmediata y de sesión reiniciadas (mensajes y adjuntos) · telemetría auditable preservada.",
         timestamp: now(),
       },
     ]);
@@ -221,11 +266,13 @@ export function useIsabella() {
   const downloadConversation = useCallback(() => {
     const payload = {
       artifact: "isabella.conversation",
-      version: 1,
+      version: 2,
+      runId,
       exportedAt: new Date().toISOString(),
       node: "Nodo Cero · Real del Monte, Hidalgo",
       presetId,
       messages,
+      telemetry,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -234,7 +281,7 @@ export function useIsabella() {
     a.download = `isabella-conversacion-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [messages, presetId]);
+  }, [messages, presetId, telemetry, runId]);
 
   /** Reabre una conversación exportada previamente. */
   const openConversation = useCallback(async (file: File) => {
@@ -259,6 +306,12 @@ export function useIsabella() {
     setDecision(null);
   }, []);
 
+  const exportCsv = useCallback(() => exportTelemetryCsv(telemetry, runId), [telemetry, runId]);
+  const exportPdf = useCallback(
+    () => exportTelemetryPdf(telemetry, runId, preset.name),
+    [telemetry, runId, preset.name],
+  );
+
   return {
     messages,
     send,
@@ -270,7 +323,11 @@ export function useIsabella() {
     setPresetId,
     decision,
     tokens,
+    telemetry,
+    runId,
     downloadConversation,
     openConversation,
+    exportCsv,
+    exportPdf,
   };
 }
