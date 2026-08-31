@@ -120,6 +120,7 @@ export function MonetizationDashboard() {
     error?: string;
   }> | null>(null);
   const [isTesting, setIsTesting] = useState(false);
+  const [isVerifyingAudit, setIsVerifyingAudit] = useState(false);
 
   // Sync session and records on mount and activeRole / token changes
   const fetchDbState = useCallback(async () => {
@@ -856,7 +857,47 @@ export function MonetizationDashboard() {
                 <RefreshCw className={`size-3.5 ${isTesting ? "animate-spin" : ""}`} />
                 {isTesting ? "Verificando..." : "Auditoría Forense Criptográfica"}
               </button>
-              <span className="font-mono text-[9.5px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-1 rounded-xl">
+
+              <button
+                onClick={async () => {
+                  setIsVerifyingAudit(true);
+                  try {
+                    const res = await fetch(`/api/db?action=verify-audit-chain`, {
+                      headers: { Authorization: `Bearer ${sessionToken}` },
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      if (data.success) {
+                        toast.success(
+                          "¡Cadena de Auditoría Criptográfica Verificada e Intacta (SHA-256)!",
+                        );
+                      } else {
+                        toast.error(`¡Fallo de Integridad en Cadena de Auditoría!: ${data.error}`);
+                      }
+                    } else {
+                      toast.error(`Error: ${data.error || "Sin autorización"}`);
+                    }
+                  } catch (e) {
+                    toast.error("Fallo al contactar el servicio de validación de auditoría.");
+                  } finally {
+                    setIsVerifyingAudit(false);
+                    fetchDbState();
+                  }
+                }}
+                disabled={
+                  isVerifyingAudit || (activeRole !== "SovereignOwner" && activeRole !== "Auditor")
+                }
+                className={`font-mono text-[10px] uppercase tracking-wider px-3.5 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 ${
+                  activeRole !== "SovereignOwner" && activeRole !== "Auditor"
+                    ? "opacity-45 cursor-not-allowed border-border/30 text-muted-foreground"
+                    : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/30 cursor-pointer"
+                }`}
+              >
+                <Shield className={`size-3.5 ${isVerifyingAudit ? "animate-spin" : ""}`} />
+                {isVerifyingAudit ? "Verificando..." : "Validar Cadena Audit (SHA-256)"}
+              </button>
+
+              <span className="font-mono text-[9.5px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-1 rounded-xl font-semibold">
                 Auditoría en Caliente
               </span>
             </div>

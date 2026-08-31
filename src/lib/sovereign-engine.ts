@@ -57,6 +57,8 @@ export interface AuditLog {
   severity: "S0" | "S1" | "S2" | "S3";
   details: string;
   remediated: boolean;
+  verificationHash: string; // Cryptographic SHA-256 validation of the event payload
+  previousLogHash: string; // Append-only chained validation hash
 }
 
 // 4. 12 Cognitive Heads & 24 Inference Cells Configuration
@@ -162,6 +164,8 @@ const DEFAULT_DB: DatabaseSchema = {
       details:
         "Hardening de 7 Capas de Seguridad validado con éxito. Filtros anti-inyección listos.",
       remediated: true,
+      verificationHash: "f3c38ad9162ab3748cd9b189ff10ab4620f329910a90dfc71be9b16ea9120df0",
+      previousLogHash: "0000000000000000000000000000000000000000000000000000000000000000",
     },
   ],
   settings: {
@@ -400,16 +404,31 @@ export class SovereignDB {
     details: string,
   ): AuditLog {
     const db = this.load();
+
+    const previousLogHash =
+      db.auditLogs.length > 0
+        ? db.auditLogs[0].verificationHash
+        : "0000000000000000000000000000000000000000000000000000000000000000";
+
+    const id = `evt_${Math.random().toString(36).slice(2, 11)}`;
+    const timestamp = new Date().toISOString();
+    const remediated = severity === "S3" || severity === "S2";
+
+    const payload = `${id}|${timestamp}|${traceId}|${correlationId}|${ip}|${event}|${severity}|${details}|${remediated ? "true" : "false"}|${previousLogHash}`;
+    const verificationHash = this.sha256(payload);
+
     const newLog: AuditLog = {
-      id: `evt_${Math.random().toString(36).slice(2, 11)}`,
-      timestamp: new Date().toISOString(),
+      id,
+      timestamp,
       traceId,
       correlationId,
       actorIp: ip,
       event,
       severity,
       details,
-      remediated: severity === "S3" || severity === "S2",
+      remediated,
+      verificationHash,
+      previousLogHash,
     };
     db.auditLogs.unshift(newLog); // Prepend for real-time streams
     this.save(db);
@@ -419,6 +438,44 @@ export class SovereignDB {
   public static getAuditLogs(): AuditLog[] {
     const db = this.load();
     return db.auditLogs;
+  }
+
+  /**
+   * Cryptographically validates the entire chronological chain of security audit logs.
+   * Assures absolute anti-tampering and event compliance.
+   */
+  public static verifyAuditChain(): { success: boolean; error?: string; corruptedId?: string } {
+    const db = this.load();
+    const logs = [...db.auditLogs].reverse(); // Verify from oldest (genesis) to newest
+
+    for (let i = 0; i < logs.length; i++) {
+      const log = logs[i];
+      const expectedPrevHash =
+        i === 0
+          ? "0000000000000000000000000000000000000000000000000000000000000000"
+          : logs[i - 1].verificationHash;
+
+      if (log.previousLogHash !== expectedPrevHash) {
+        return {
+          success: false,
+          error: `Violación de integridad: El hash del log anterior no coincide en el evento [${log.id}].`,
+          corruptedId: log.id,
+        };
+      }
+
+      const payload = `${log.id}|${log.timestamp}|${log.traceId}|${log.correlationId}|${log.actorIp}|${log.event}|${log.severity}|${log.details}|${log.remediated ? "true" : "false"}|${log.previousLogHash}`;
+      const recalculatedHash = this.sha256(payload);
+
+      if (log.verificationHash !== recalculatedHash) {
+        return {
+          success: false,
+          error: `Violación de firma: El hash calculado no coincide para el evento [${log.id}].`,
+          corruptedId: log.id,
+        };
+      }
+    }
+
+    return { success: true };
   }
 
   // SHA-256 string generator helper (Real cryptographic hash)
