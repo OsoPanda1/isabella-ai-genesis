@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   TrendingUp,
   Cpu,
@@ -9,12 +9,59 @@ import {
   UserPlus,
   ShieldAlert,
   Sparkles,
+  Terminal,
+  Play,
+  CheckCircle2,
+  XCircle,
+  Shield,
+  Activity,
+  User,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { AccountOnboarding } from "./AccountOnboarding";
 import { CreditLedger, type LedgerItem } from "./CreditLedger";
 import { PlanSelector } from "./PlanSelector";
 import { UsageDashboard } from "./UsageDashboard";
+
+interface Tenant {
+  id: string;
+  name: string;
+  region: string;
+  quotaBalance: number;
+  tier: "Free" | "Enterprise" | "Sovereign";
+}
+
+interface UserSession {
+  userId: string;
+  username: string;
+  tenantId: string;
+  role: string;
+  oidcSub: string;
+  activeToken: string;
+}
+
+interface AuditLog {
+  id: string;
+  timestamp: string;
+  traceId: string;
+  correlationId: string;
+  actorIp: string;
+  event: string;
+  severity: "S0" | "S1" | "S2" | "S3";
+  details: string;
+  remediated: boolean;
+}
+
+interface LedgerBlock {
+  index: number;
+  operation: string;
+  category: "inference" | "processing" | "apis" | "skills" | "other";
+  costDecimal: string;
+  timestamp: string;
+  status: "settled" | "pending" | "refunded";
+  pqcSignature: string;
+}
 
 export function MonetizationDashboard() {
   // Onboarding modal visibility state
@@ -31,83 +78,35 @@ export function MonetizationDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Active membership tier state
-  const [activePlan, setActivePlan] = useState<string | null>("free");
+  const [activePlan, setActivePlan] = useState<string | null>("enterprise");
 
-  // Multi-tier limits calculation based on active plan
-  const getLimitsAndUsage = () => {
-    switch (activePlan) {
-      case "personal":
-        return {
-          msgUsed: 145,
-          msgLimit: 5000,
-          tokensRemaining: 84320,
-          tokenLimit: 100000,
-        };
-      case "pro":
-        return {
-          msgUsed: 412,
-          msgLimit: 20000,
-          tokensRemaining: 421900,
-          tokenLimit: 500000,
-        };
-      case "enterprise":
-        return {
-          msgUsed: 1890,
-          msgLimit: 100000,
-          tokensRemaining: 1850400,
-          tokenLimit: 2000000,
-        };
-      case "free":
-      default:
-        return {
-          msgUsed: freeMessagesUsed,
-          msgLimit: 50,
-          tokensRemaining: 6850,
-          tokenLimit: 10000,
-        };
-    }
-  };
+  // OIDC and Multi-tenancy live state
+  const [sessionToken, setSessionToken] = useState(
+    "oidc_sovereign_session_token_tamv_hidalgo_secure_channel",
+  );
+  const [activeTenant, setActiveTenant] = useState<Tenant | null>(null);
+  const [activeUser, setActiveUser] = useState<UserSession | null>(null);
+  const [ledger, setLedger] = useState<LedgerItem[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [activeRole, setActiveRole] = useState<string>("SovereignOwner");
 
-  const usageStats = getLimitsAndUsage();
-
-  // Consumption credit ledger simulation
-  const [creditBalance, setCreditBalance] = useState<string>("45.00");
-  const [ledger, setLedger] = useState<LedgerItem[]>([
-    {
-      id: "tx_01",
-      operation: "Análisis Territorial GIS (GEMET)",
-      category: "skills",
-      costDecimal: "1.50",
-      timestamp: "Hace 12 mins",
-      status: "settled",
-      node: "node_zero",
-    },
-    {
-      id: "tx_02",
-      operation: "Síntesis de Audio de Alta Fidelidad (ISA Core)",
-      category: "inference",
-      costDecimal: "0.45",
-      timestamp: "Hace 2 horas",
-      status: "settled",
-      node: "node_zero",
-    },
-    {
-      id: "tx_03",
-      operation: "Auditoría SAST Sandbox (PRAXIS)",
-      category: "processing",
-      costDecimal: "2.00",
-      timestamp: "Hace 1 día",
-      status: "settled",
-      node: "node_zero",
-    },
-  ]);
+  // Sandbox Sandbox state
+  const [sandboxCode, setSandboxCode] = useState(
+    "Math.sin(PI / 2) * ACTIVE_COGNITIVE_HEADS + MAX_INF_LIMIT",
+  );
+  const [sandboxOutput, setSandboxOutput] = useState<unknown>(null);
+  const [sandboxError, setSandboxError] = useState<string | null>(null);
+  const [isSandboxRunning, setIsSandboxRunning] = useState(false);
 
   // API Developer credentials simulator
   const [generatedKeys, setGeneratedKeys] = useState<
     Array<{ key: string; name: string; scopes: string[] }>
   >([]);
   const [newKeyName, setNewKeyName] = useState("");
-  const [selectedScopes, setSelectedScopes] = useState<string[]>(["presentation:read"]);
+  const [selectedScopes, setSelectedScopes] = useState<string[]>([
+    "presentation:read",
+    "bookpi:append",
+  ]);
 
   // Skills Marketplace state
   const [sastScanRunning, setSastScanRunning] = useState<string | null>(null);
@@ -118,44 +117,205 @@ export function MonetizationDashboard() {
 
   const [activeRoadmapStage, setActiveRoadmapStage] = useState<number>(1);
 
+  // Sync session and records on mount and activeRole / token changes
+  const fetchDbState = useCallback(async () => {
+    try {
+      // 1. Fetch Session
+      const sessRes = await fetch(`/api/db?action=session`, {
+        headers: { Authorization: `Bearer ${sessionToken}` },
+      });
+      if (sessRes.ok) {
+        const data = await sessRes.json();
+        setActiveTenant(data.tenant);
+        setActiveUser(data.session);
+        setActiveRole(data.session.role);
+
+        // Re-align plan representation based on tenant tier
+        if (data.tenant.tier === "Sovereign") setActivePlan("enterprise");
+        else if (data.tenant.tier === "Enterprise") setActivePlan("pro");
+        else setActivePlan("free");
+
+        // Sync local current user
+        setCurrentUser({
+          username: data.session.username,
+          email: `${data.session.username.toLowerCase().replace(" ", "")}@tamv.network`,
+          telemetryConsent: true,
+        });
+
+        // 2. Fetch Ledger
+        const ledgerRes = await fetch(`/api/db?action=ledger&tenantId=${data.tenant.id}`, {
+          headers: { Authorization: `Bearer ${sessionToken}` },
+        });
+        if (ledgerRes.ok) {
+          const lData = await ledgerRes.json();
+          // Map to LedgerItem layout
+          const mapped: LedgerItem[] = lData.ledger.map((block: LedgerBlock) => ({
+            id: `tx_block_${block.index}`,
+            operation: block.operation,
+            category: block.category,
+            costDecimal: block.costDecimal,
+            timestamp: new Date(block.timestamp).toLocaleTimeString("es-MX", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            }),
+            status: block.status,
+            node: block.pqcSignature.includes("genesis") ? "Nodo Cero (Hgo)" : "Malla CITEMESH",
+          }));
+          setLedger(mapped);
+        }
+
+        // 3. Fetch Audit Logs if authorized
+        if (data.session.role === "SovereignOwner" || data.session.role === "Auditor") {
+          const auditRes = await fetch(`/api/db?action=audit`, {
+            headers: { Authorization: `Bearer ${sessionToken}` },
+          });
+          if (auditRes.ok) {
+            const aData = await auditRes.json();
+            setAuditLogs(aData.auditLogs);
+          }
+        } else {
+          setAuditLogs([]);
+        }
+      }
+    } catch (err) {
+      console.error("No se pudo conectar a la API soberana:", err);
+    }
+  }, [sessionToken]);
+
+  useEffect(() => {
+    fetchDbState();
+  }, [fetchDbState]);
+
   // Inbound usage operations
-  const handleSimulateCreditUsage = (
+  const handleSimulateCreditUsage = async (
     operationName: string,
     category: LedgerItem["category"],
     costStr: string,
   ) => {
-    const current = parseFloat(creditBalance);
     const cost = parseFloat(costStr);
-    if (current < cost) {
-      alert("Créditos de consumo insuficientes. Por favor recarga créditos.");
-      return;
+    try {
+      const res = await fetch(`/api/db?action=ledger-add`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          operation: operationName,
+          category,
+          cost,
+          tokens: Math.floor(cost * 1200),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(`Denegado por RBAC / Límites: ${data.error}`);
+        return;
+      }
+
+      toast.success("Transacción registrada y firmada con PQC en el Ledger!");
+      fetchDbState();
+    } catch (err) {
+      toast.error("Error al debitar créditos del ledger.");
     }
-    const nextBalance = (current - cost).toFixed(2);
-    setCreditBalance(nextBalance);
-    setLedger((prev) => [
-      {
-        id: `tx_${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
-        operation: operationName,
-        category,
-        costDecimal: costStr,
-        timestamp: "Ahora",
-        status: "settled",
-        node: "node_zero",
-      },
-      ...prev,
-    ]);
   };
 
-  const handleRefundLedgerItem = (txId: string) => {
-    const item = ledger.find((l) => l.id === txId);
-    if (!item || item.status === "refunded") return;
+  const handleRefundLedgerItem = async (txId: string) => {
+    const blockIndex = parseInt(txId.replace("tx_block_", ""));
+    if (isNaN(blockIndex)) return;
 
-    // Refund calculation
-    const current = parseFloat(creditBalance);
-    const refundValue = parseFloat(item.costDecimal);
-    setCreditBalance((current + refundValue).toFixed(2));
+    try {
+      const res = await fetch(`/api/db?action=ledger-refund`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({ index: blockIndex }),
+      });
 
-    setLedger((prev) => prev.map((l) => (l.id === txId ? { ...l, status: "refunded" } : l)));
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(`Error de reembolso: ${data.error}`);
+        return;
+      }
+
+      toast.success("Reembolso procesado. Crédito retornado con éxito!");
+      fetchDbState();
+    } catch (err) {
+      toast.error("Fallo al reembolsar la transacción.");
+    }
+  };
+
+  const handleSwitchRole = async (role: string) => {
+    try {
+      const res = await fetch(`/api/db?action=switch-role`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({ role }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(`Error al cambiar rol: ${data.error}`);
+        return;
+      }
+
+      setActiveRole(role);
+      toast.success(`Identidad OIDC actualizada. Rol activo: ${role}`);
+      fetchDbState();
+    } catch (err) {
+      toast.error("Error al actualizar rol OIDC.");
+    }
+  };
+
+  const handleExecuteSandbox = async () => {
+    setIsSandboxRunning(true);
+    setSandboxOutput(null);
+    setSandboxError(null);
+
+    try {
+      const res = await fetch(`/api/db?action=execute-tool`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          expression: sandboxCode,
+          variables: {
+            PI: Math.PI,
+            MAX_INF_LIMIT: 24,
+            ACTIVE_COGNITIVE_HEADS: 12,
+            currentTime: Date.now(),
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setSandboxError(data.error || "Fallo de ejecución.");
+        toast.error("Ejecución en Sandbox Fallida.");
+      } else {
+        if (data.success) {
+          setSandboxOutput(data.output);
+          toast.success("Script ejecutado exitosamente en el Sandbox del servidor!");
+        } else {
+          setSandboxError(data.error);
+          toast.error("Script rechazado por el Sandbox de seguridad.");
+        }
+      }
+    } catch (err) {
+      setSandboxError("Error al enviar script al sandbox.");
+    } finally {
+      setIsSandboxRunning(false);
+      fetchDbState(); // Sync logs
+    }
   };
 
   const handleSelectPlan = (planId: string) => {
@@ -166,10 +326,8 @@ export function MonetizationDashboard() {
     setIsRefreshing(true);
     setTimeout(() => {
       setIsRefreshing(false);
-      // Simulate slight usage changes or check active quotas
-      if (activePlan === "free") {
-        setFreeMessagesUsed((prev) => Math.min(prev + 1, 50));
-      }
+      fetchDbState();
+      toast.success("Cuotas de inferencia sincronizadas.");
     }, 800);
   };
 
@@ -190,6 +348,7 @@ export function MonetizationDashboard() {
       ...prev,
     ]);
     setNewKeyName("");
+    toast.success(`Clave API empresarial '${newKeyName}' generada con éxito.`);
   };
 
   const handleToggleScope = (scope: string) => {
@@ -203,55 +362,150 @@ export function MonetizationDashboard() {
     setTimeout(() => {
       setScannedSkills((prev) => ({ ...prev, [skillName]: "passed" }));
       setSastScanRunning(null);
+      toast.success(`Verificación de código estático SAST aprobada para '${skillName}'`);
     }, 1200);
   };
 
+  const usageStats = {
+    msgUsed:
+      activePlan === "personal"
+        ? 145
+        : activePlan === "pro"
+          ? 412
+          : activePlan === "enterprise"
+            ? 1890
+            : 14,
+    msgLimit:
+      activePlan === "personal"
+        ? 5000
+        : activePlan === "pro"
+          ? 20000
+          : activePlan === "enterprise"
+            ? 100000
+            : 50,
+    tokensRemaining:
+      activePlan === "personal"
+        ? 84320
+        : activePlan === "pro"
+          ? 421900
+          : activePlan === "enterprise"
+            ? 1850400
+            : 6850,
+    tokenLimit:
+      activePlan === "personal"
+        ? 100000
+        : activePlan === "pro"
+          ? 500000
+          : activePlan === "enterprise"
+            ? 2000000
+            : 100000,
+  };
+
+  const creditBalance = activeTenant ? activeTenant.quotaBalance.toFixed(2) : "0.00";
+
   return (
     <div className="flex flex-col gap-6 select-none">
-      {/* Monetization Header & Welcome Banner */}
-      <div className="glass rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h2 className="font-mono text-[20px] font-bold text-pearl flex items-center gap-2">
-            <TrendingUp className="size-5.5 text-electric animate-pulse" />
-            Consola Económica y Cuotas de Inferencia
-          </h2>
-          <p className="mt-2 text-[13px] text-muted-foreground leading-relaxed max-w-3xl">
-            Soberanía financiera sin intermediación extractiva. Administra tus límites del plan
-            gratuito constitucional, compara suscripciones de infraestructura, adquiere créditos
-            decimales exactos y genera claves de acceso para APIs locales.
-          </p>
-        </div>
-
-        {/* Account state / Onboarding button */}
-        <div className="flex items-center gap-3 shrink-0 self-start md:self-center">
-          {currentUser ? (
-            <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-2xl p-3 flex flex-col items-end">
-              <span className="font-mono text-[10.5px] text-emerald-400 font-semibold flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-emerald-400 animate-ping" />
-                Operador Identificado
+      {/* OIDC Multi-Tenancy & Identity Hub */}
+      <div className="glass rounded-3xl p-6 border border-border/30 bg-gradient-to-br from-background via-secondary/15 to-secondary/30">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="font-mono text-[9px] uppercase tracking-wider bg-electric/10 text-electric border border-electric/20 px-2 py-0.5 rounded-md font-semibold">
+                OIDC Provider Sincronizado
               </span>
-              <span className="font-mono text-[11px] text-platinum mt-1">
-                {currentUser.username}
+              <span className="font-mono text-[9px] uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md font-semibold">
+                Multi-Tenancy Activo
               </span>
             </div>
-          ) : (
-            <button
-              onClick={() => setIsOnboardingOpen(true)}
-              className="px-4 py-3 bg-electric/20 hover:bg-electric/30 text-electric border border-electric/35 font-mono text-[11px] uppercase tracking-wider rounded-2xl transition-all flex items-center gap-2"
-            >
-              <UserPlus className="size-4" />
-              Configurar Cuenta S.H.
-            </button>
-          )}
-        </div>
-      </div>
+            <h2 className="font-mono text-[20px] font-bold text-pearl flex items-center gap-2">
+              <Shield className="size-5.5 text-electric animate-pulse" />
+              Portal de Identidades y Gobernanza (OIDC / RBAC)
+            </h2>
+            <p className="mt-2 text-[12.5px] text-muted-foreground leading-relaxed max-w-3xl">
+              Panel de control de acceso soberano. Simula cambios de tenencia e identidades OIDC en
+              caliente para ver cómo se aplican las restricciones de aislamiento del Libro Mayor
+              (BookPI) y del Sandbox.
+            </p>
+          </div>
 
-      {/* Account Onboarding modal container */}
-      <AccountOnboarding
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
-        onComplete={handleOnboardingComplete}
-      />
+          <div className="flex flex-wrap items-center gap-2 lg:self-center">
+            {/* OIDC User Profiles Select Toggles */}
+            <div className="bg-secondary/40 border border-border/40 rounded-2xl p-2 flex items-center gap-2">
+              <span className="font-mono text-[10.5px] text-muted-foreground uppercase pl-2">
+                Simular Rol OIDC:
+              </span>
+              <div className="flex gap-1">
+                {["SovereignOwner", "Auditor", "Operator", "Guest"].map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => handleSwitchRole(role)}
+                    className={`px-3 py-1 rounded-xl font-mono text-[10px] border transition-all ${
+                      activeRole === role
+                        ? "bg-electric text-platinum border-electric font-semibold shadow-[0_0_10px_rgba(112,102,249,0.3)]"
+                        : "border-border/30 text-muted-foreground hover:text-platinum hover:bg-secondary/30"
+                    }`}
+                  >
+                    {role === "SovereignOwner"
+                      ? "Owner"
+                      : role === "Auditor"
+                        ? "Auditor"
+                        : role === "Operator"
+                          ? "Operator"
+                          : "Guest"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sync Profile State Indicators */}
+        {activeUser && activeTenant && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-5 border-t border-border/20">
+            <div className="bg-secondary/20 border border-border/20 p-3 rounded-2xl">
+              <span className="block font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                Tenant / Tenencia
+              </span>
+              <span className="block font-mono text-[12px] font-semibold text-platinum mt-1">
+                {activeTenant.name}
+              </span>
+              <span className="block font-mono text-[9.5px] text-muted-foreground mt-0.5">
+                ID: {activeTenant.id} · {activeTenant.region}
+              </span>
+            </div>
+            <div className="bg-secondary/20 border border-border/20 p-3 rounded-2xl">
+              <span className="block font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                Usuario Conectado (OIDC Sub)
+              </span>
+              <span className="block font-mono text-[12px] font-semibold text-platinum mt-1">
+                {activeUser.username}
+              </span>
+              <span className="block font-mono text-[9.5px] text-muted-foreground mt-0.5">
+                Sub: {activeUser.oidcSub}
+              </span>
+            </div>
+            <div className="bg-secondary/20 border border-border/20 p-3 rounded-2xl">
+              <span className="block font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                Privilegio RBAC
+              </span>
+              <span className="inline-block font-mono text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded mt-1.5 uppercase">
+                {activeUser.role}
+              </span>
+            </div>
+            <div className="bg-secondary/20 border border-border/20 p-3 rounded-2xl">
+              <span className="block font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                Créditos de Consumo Decimal
+              </span>
+              <span className="block font-mono text-[14px] font-bold text-rose-400 mt-1">
+                ${creditBalance} USD
+              </span>
+              <span className="block font-mono text-[9.5px] text-muted-foreground mt-0.5">
+                Suscripción: {activeTenant.tier}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Sleek Usage Dashboard Component */}
       <UsageDashboard
@@ -270,7 +524,7 @@ export function MonetizationDashboard() {
       </div>
 
       {/* Credit balance simulation controls & Structured Ledger UI */}
-      <div className="grid gap-6 md:grid-cols-[1fr_380px] items-stretch">
+      <div className="grid gap-6 md:grid-cols-[1fr_380px] items-start">
         <div className="flex flex-col gap-6">
           <CreditLedger ledger={ledger} onRefund={handleRefundLedgerItem} />
         </div>
@@ -283,7 +537,7 @@ export function MonetizationDashboard() {
                 <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                   Créditos Disponibles
                 </span>
-                <span className="font-mono text-[11px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                <span className="font-mono text-[11px] text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
                   Saldo: ${creditBalance}
                 </span>
               </div>
@@ -293,14 +547,18 @@ export function MonetizationDashboard() {
               </h4>
               <p className="text-[11.5px] text-muted-foreground mt-1 leading-relaxed">
                 Ejecuta operaciones para comprobar la deducción decimal exacta e inmediata
-                registrada en el libro mayor.
+                registrada en el libro mayor persistente.
               </p>
             </div>
 
             <div className="space-y-2.5">
               <button
                 onClick={() =>
-                  handleSimulateCreditUsage("Inferencia de Agente Antigravity", "inference", "4.85")
+                  handleSimulateCreditUsage(
+                    "Inferencia de Agente Antigravity",
+                    "inference",
+                    "4.85000",
+                  )
                 }
                 className="w-full text-left p-3 rounded-xl border border-border/30 bg-secondary/15 hover:bg-secondary/35 transition-all font-mono text-[11px] flex items-center justify-between"
               >
@@ -315,7 +573,7 @@ export function MonetizationDashboard() {
 
               <button
                 onClick={() =>
-                  handleSimulateCreditUsage("Consulta Espacial de Catastro", "skills", "1.25")
+                  handleSimulateCreditUsage("Consulta Espacial de Catastro", "skills", "1.25000")
                 }
                 className="w-full text-left p-3 rounded-xl border border-border/30 bg-secondary/15 hover:bg-secondary/35 transition-all font-mono text-[11px] flex items-center justify-between"
               >
@@ -329,10 +587,33 @@ export function MonetizationDashboard() {
               </button>
 
               <button
-                onClick={() => setCreditBalance((parseFloat(creditBalance) + 20.0).toFixed(2))}
-                className="w-full text-center py-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/25 text-emerald-400 rounded-xl font-mono text-[10px] uppercase tracking-wider transition-all"
+                onClick={async () => {
+                  try {
+                    // Refill credits by simulated payment on DB
+                    const res = await fetch(`/api/db?action=ledger-add`, {
+                      method: "POST",
+                      headers: {
+                        "content-type": "application/json",
+                        Authorization: `Bearer ${sessionToken}`,
+                      },
+                      body: JSON.stringify({
+                        operation: "Recarga de Fondos Empresariales Stripe",
+                        category: "other",
+                        cost: -25.0,
+                        tokens: 0,
+                      }),
+                    });
+                    if (res.ok) {
+                      toast.success("Saldo recargado exitosamente! (+$25.00 USD)");
+                      fetchDbState();
+                    }
+                  } catch (e) {
+                    toast.error("Error al recargar saldo.");
+                  }
+                }}
+                className="w-full text-center py-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/25 text-emerald-400 rounded-xl font-mono text-[10px] uppercase tracking-wider transition-all cursor-pointer"
               >
-                Adquirir Crédito (+ $20.00)
+                Adquirir Crédito (+ $25.00)
               </button>
             </div>
           </div>
@@ -344,7 +625,7 @@ export function MonetizationDashboard() {
         </div>
       </div>
 
-      {/* Multi-tier security & Malla CITEMESH */}
+      {/* Real Server Sandbox Execution & API Scopes */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* API Scopes Security */}
         <div className="glass rounded-3xl p-5 flex flex-col justify-between">
@@ -431,73 +712,126 @@ export function MonetizationDashboard() {
           </div>
         </div>
 
-        {/* PRAXIS Skills Catalog Security */}
+        {/* Real Server Sandbox Executor */}
         <div className="glass rounded-3xl p-5 flex flex-col justify-between">
-          <div>
+          <div className="space-y-4">
             <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
-              <Layers className="size-4.5 text-crown" />
-              Suscripción a Herramientas PRAXIS
+              <Terminal className="size-4.5 text-crown animate-pulse" />
+              Ejecución Real en Sandbox Segura (NodeVM Server Sandbox)
             </h3>
-            <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">
-              Verifica los complementos territoriales de Isabella mediante un riguroso sandboxing y
-              análisis SAST antes de su habilitación.
+            <p className="text-[12px] text-muted-foreground leading-relaxed">
+              Ejecuta código JavaScript de forma segura en un entorno aislado del servidor. El
+              script se audita, filtra palabras prohibidas (fs, process, require) y calcula fórmulas
+              en caliente con variables locales inyectadas.
             </p>
 
-            <div className="mt-4 space-y-3">
-              {[
-                {
-                  id: "gis-conector",
-                  label: "Conector GIS Municipal",
-                  hash: "sha256-a19f...d49",
-                  desc: "Análisis territorial",
-                },
-                {
-                  id: "legal-doc-analyzer",
-                  label: "Analizador Legal de Contratos",
-                  hash: "sha256-f8d2...883",
-                  desc: "Cumplimiento legislativo",
-                },
-              ].map((sk) => {
-                const scanStatus = scannedSkills[sk.id];
-                const isScanning = sastScanRunning === sk.id;
-                return (
-                  <div
-                    key={sk.id}
-                    className="bg-secondary/15 border border-border/30 rounded-2xl p-3.5 flex items-center justify-between"
-                  >
-                    <div>
-                      <span className="block font-mono text-[12px] text-platinum font-semibold">
-                        {sk.label}
-                      </span>
-                      <span className="block font-mono text-[9.5px] text-muted-foreground mt-0.5">
-                        {sk.hash} · {sk.desc}
-                      </span>
-                    </div>
-                    <div>
-                      {scanStatus === "passed" ? (
-                        <span className="text-[9.5px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/20 font-bold uppercase">
-                          PASSED SAST
-                        </span>
-                      ) : isScanning ? (
-                        <span className="text-[9.5px] font-mono text-electric flex items-center gap-1.5">
-                          <RefreshCw className="size-3.5 animate-spin" /> Escaneando...
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => runSastSandboxScan(sk.id)}
-                          className="bg-electric/10 text-electric border border-electric/30 font-mono text-[10px] px-3.5 py-1 rounded-lg hover:bg-electric/25 transition-all"
-                        >
-                          Escanear
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="bg-secondary/20 rounded-2xl border border-border/30 p-3 flex flex-col gap-2.5">
+              <span className="font-mono text-[10px] text-muted-foreground">
+                Variables disponibles: PI, MAX_INF_LIMIT, ACTIVE_COGNITIVE_HEADS, currentTime
+              </span>
+
+              <textarea
+                value={sandboxCode}
+                onChange={(e) => setSandboxCode(e.target.value)}
+                className="w-full h-20 bg-black/40 border border-border/40 rounded-xl p-3 font-mono text-[11px] text-emerald-400 focus:outline-none"
+                placeholder="Escribe tu fórmula matemática o expresión JS..."
+              />
+
+              <button
+                onClick={handleExecuteSandbox}
+                disabled={isSandboxRunning || !sandboxCode}
+                className="w-full py-2 bg-crown/20 hover:bg-crown/30 text-crown border border-crown/35 font-mono text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2"
+              >
+                {isSandboxRunning ? (
+                  <>
+                    <RefreshCw className="size-3.5 animate-spin" /> Procesando VM...
+                  </>
+                ) : (
+                  <>
+                    <Play className="size-3.5" /> Ejecutar Expresión S.S.
+                  </>
+                )}
+              </button>
+
+              {/* Sandbox Outputs */}
+              {sandboxOutput !== null && (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl font-mono text-[11px] text-emerald-400 flex items-center gap-2">
+                  <CheckCircle2 className="size-4 shrink-0" />
+                  <span>
+                    Resultado VM: <strong>{JSON.stringify(sandboxOutput)}</strong>
+                  </span>
+                </div>
+              )}
+
+              {sandboxError && (
+                <div className="bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl font-mono text-[11px] text-rose-400 flex items-center gap-2">
+                  <XCircle className="size-4 shrink-0" />
+                  <span>Error: {sandboxError}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Real-time Security Audit Observability Stream */}
+      {auditLogs.length > 0 && (
+        <div className="glass rounded-3xl p-6 border border-border/30">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
+                <Activity className="size-4.5 text-rose-400 animate-pulse" />
+                Flujo de Auditoría de Seguridad Real-Time (ARGUS Telemetry)
+              </h3>
+              <p className="text-[11.5px] text-muted-foreground mt-0.5">
+                Eventos auditables de seguridad, telemetría y bloqueos capturados del pipeline
+                transaccional.
+              </p>
+            </div>
+            <span className="font-mono text-[9.5px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded">
+              Auditoría en Caliente
+            </span>
+          </div>
+
+          <div className="max-h-52 overflow-y-auto space-y-2 border border-border/20 rounded-2xl p-3 bg-secondary/10">
+            {auditLogs.map((log) => (
+              <div
+                key={log.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xl border border-border/20 bg-secondary/15 hover:bg-secondary/25 transition-all font-mono text-[11px]"
+              >
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span
+                      className={`inline-block px-1.5 py-0.5 rounded text-[8.5px] font-bold uppercase ${
+                        log.severity === "S3"
+                          ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                          : log.severity === "S2"
+                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                            : "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                      }`}
+                    >
+                      {log.severity}
+                    </span>
+                    <span className="text-platinum font-semibold">{log.event}</span>
+                    <span className="text-[10px] text-muted-foreground">Trace: {log.traceId}</span>
+                  </div>
+                  <span className="text-muted-foreground text-[10.5px]">{log.details}</span>
+                </div>
+                <div className="flex items-center gap-3 self-end sm:self-center">
+                  <span className="text-[10px] text-muted-foreground">
+                    {new Date(log.timestamp).toLocaleTimeString("es-MX")}
+                  </span>
+                  {log.remediated && (
+                    <span className="text-[9px] font-bold text-emerald-400 uppercase bg-emerald-500/10 px-1.5 rounded border border-emerald-500/20">
+                      Remediado
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Roadmap phases block */}
       <div className="glass rounded-3xl p-6">
@@ -590,8 +924,8 @@ export function MonetizationDashboard() {
                 Etapa 6: Tokenización Responsable
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                Pilotos cerrados de participación financiera tras un exhaustivo análisis regulatorio
-                y mitigación de riesgos de KYC/AML.
+                Pilotos cerrados de participación financiera tras un vasto análisis regulatorio y
+                mitigación de riesgos de KYC/AML.
               </p>
             </div>
           )}
