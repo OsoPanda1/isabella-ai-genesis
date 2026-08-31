@@ -1,12 +1,14 @@
 import * as fs from "fs";
 import * as path from "path";
+import * as crypto from "crypto";
 import { z } from "zod";
+import { SecuritySystem } from "./security";
 
 // ============================================================================
 // CANONICAL SOVEREIGN COGNITIVE & DATA ENGINE - ISABELLA v4.2.0
 // ============================================================================
 
-const PERSISTENCE_FILE_PATH = "/tmp/isabella_sovereign_db.json";
+const PERSISTENCE_FILE_PATH = path.join(process.cwd(), "isabella_sovereign_db.json");
 
 // 1. Core Cryptographic Chaining Schema (BookPI Ledger)
 export interface BookPILedgerBlock {
@@ -20,7 +22,8 @@ export interface BookPILedgerBlock {
   tokensConsumed: number;
   previousHash: string;
   blockHash: string;
-  pqcSignature: string; // Dilithium-5 Lattice-based simulation signature
+  pqcSignature: string | null; // Dilithium-5 Lattice-based simulation signature placeholder
+  signatureAlgorithm: string;
   status: "settled" | "pending" | "refunded";
 }
 
@@ -41,7 +44,6 @@ export interface UserSession {
   tenantId: string;
   role: UserRole;
   oidcSub: string;
-  activeToken: string;
 }
 
 // 3. Security Activity Audit Log
@@ -76,7 +78,7 @@ export interface DatabaseSchema {
   settings: Record<string, unknown>;
 }
 
-// Default Seed Data
+// Default Seed Data - Hardcoded fallback tokens deleted!
 const DEFAULT_DB: DatabaseSchema = {
   tenants: [
     {
@@ -108,7 +110,6 @@ const DEFAULT_DB: DatabaseSchema = {
       tenantId: "tenant_hidalgo_01",
       role: "SovereignOwner",
       oidcSub: "auth0|anubisvillasenor1",
-      activeToken: "oidc_sovereign_session_token_tamv_hidalgo_secure_channel",
     },
     {
       userId: "user_operator_rdm",
@@ -116,7 +117,6 @@ const DEFAULT_DB: DatabaseSchema = {
       tenantId: "tenant_rdm_hub",
       role: "Operator",
       oidcSub: "auth0|operator_rdm",
-      activeToken: "oidc_operator_token_rdm_hub",
     },
     {
       userId: "user_external_auditor",
@@ -124,7 +124,13 @@ const DEFAULT_DB: DatabaseSchema = {
       tenantId: "tenant_corporativa",
       role: "Auditor",
       oidcSub: "auth0|auditor_iso",
-      activeToken: "oidc_auditor_token_iso_42001",
+    },
+    {
+      userId: "user_guest_rdm",
+      username: "Visitante",
+      tenantId: "tenant_rdm_hub",
+      role: "Guest",
+      oidcSub: "auth0|guest_rdm",
     },
   ],
   ledger: [
@@ -139,7 +145,8 @@ const DEFAULT_DB: DatabaseSchema = {
       tokensConsumed: 1500,
       previousHash: "0000000000000000000000000000000000000000000000000000000000000000",
       blockHash: "df2380ad9162ab3748cd9b189ff10ab4620f329910a90dfc71be9b16ea9120df",
-      pqcSignature: "pqc_lattice_sign_dilithium5_verified_genesis_node_cero_tamv",
+      pqcSignature: null,
+      signatureAlgorithm: "NOT_IMPLEMENTED",
       status: "settled",
     },
   ],
@@ -158,7 +165,7 @@ const DEFAULT_DB: DatabaseSchema = {
     },
   ],
   settings: {
-    pqcEnabled: true,
+    pqcEnabled: false,
     activeHeadCount: 12,
     activeNucleusCount: 24,
   },
@@ -228,12 +235,9 @@ export class SovereignDB {
     const timestamp = new Date().toISOString();
     const costDecimal = cost.toFixed(5);
 
-    // Dynamic hash calculation (SHA-256 simulation with cryptographic integrity)
+    // Dynamic hash calculation (SHA-256 with real cryptographic integrity)
     const blockContent = `${index}-${timestamp}-${tenantId}-${userId}-${operation}-${category}-${costDecimal}-${tokens}-${prevHash}`;
     const blockHash = this.sha256(blockContent);
-
-    // Dilithium-5 Lattice-based Simulation Post-Quantum signature
-    const pqcSignature = `pqc_dilithium5_sig_block_${index}_lattice_${this.sha256(blockHash + "_lattice_secret_node_cero_key").slice(0, 32)}`;
 
     const newBlock: BookPILedgerBlock = {
       index,
@@ -246,7 +250,8 @@ export class SovereignDB {
       tokensConsumed: tokens,
       previousHash: prevHash,
       blockHash,
-      pqcSignature,
+      pqcSignature: null,
+      signatureAlgorithm: "NOT_IMPLEMENTED",
       status: "settled",
     };
 
@@ -296,10 +301,93 @@ export class SovereignDB {
     return db.tenants.find((t) => t.id === tenantId);
   }
 
-  // Get active session with multi-tenant OIDC and real RBAC
+  // Get active session with multi-tenant OIDC and real, signature-validated JWT claims
   public static getSessionByToken(token: string): UserSession | undefined {
     const db = this.load();
-    return db.sessions.find((s) => s.activeToken === token);
+
+    // Try to verify as a real cryptographic token first
+    const verification = SecuritySystem.verifyToken(token);
+    if (verification.success && verification.claims) {
+      const claims = verification.claims;
+      const session = db.sessions.find((s) => s.userId === claims.sub);
+      if (session) return session;
+
+      // Dynamically provision a session on the fly from valid claims if not present in seeded list
+      return {
+        userId: claims.sub,
+        username: claims.sub.replace("auth0|", ""),
+        tenantId: claims.tenantId,
+        role: claims.role as UserRole,
+        oidcSub: claims.sub,
+      };
+    }
+
+    return undefined;
+  }
+
+  // Real-time forensic ledger chain validation (Append-only blockchain validation)
+  public static verifyLedgerIntegrity(): {
+    success: boolean;
+    error?: string;
+    corruptedIndex?: number;
+  } {
+    const db = this.load();
+    for (let i = 0; i < db.ledger.length; i++) {
+      const block = db.ledger[i];
+
+      // 1. Validate sequence index
+      if (block.index !== i) {
+        return {
+          success: false,
+          error: `Fallo de secuencia: Esperado índice ${i}, encontrado ${block.index}.`,
+          corruptedIndex: i,
+        };
+      }
+
+      // 2. Validate hash chain linkage
+      if (i > 0) {
+        const prevBlock = db.ledger[i - 1];
+        if (block.previousHash !== prevBlock.blockHash) {
+          return {
+            success: false,
+            error: `Inconsistencia de encadenamiento: El bloque ${i} rompe la cadena de hashes.`,
+            corruptedIndex: i,
+          };
+        }
+      } else {
+        if (
+          block.previousHash !== "0000000000000000000000000000000000000000000000000000000000000000"
+        ) {
+          return {
+            success: false,
+            error: "Bloque Génesis inválido: Hash previo corrupto.",
+            corruptedIndex: 0,
+          };
+        }
+      }
+
+      // 3. Recalculate block hash and assert integrity
+      const blockContent = `${block.index}-${block.timestamp}-${block.tenantId}-${block.userId}-${block.operation}-${block.category}-${block.costDecimal}-${block.tokensConsumed}-${block.previousHash}`;
+      const expectedHash = this.sha256(blockContent);
+      if (block.blockHash !== expectedHash) {
+        return {
+          success: false,
+          error: `Fallo de integridad de datos (Hash mismatch) en bloque ${i}. El contenido fue alterado.`,
+          corruptedIndex: i,
+        };
+      }
+
+      // 4. Validate Post-Quantum Cryptographic signature status
+      if (block.pqcSignature !== null || block.signatureAlgorithm !== "NOT_IMPLEMENTED") {
+        return {
+          success: false,
+          error: `Firma digital Post-Cuántica inconsistente en bloque ${i}. Algoritmo debe ser NOT_IMPLEMENTED.`,
+          corruptedIndex: i,
+        };
+      }
+    }
+
+    return { success: true };
   }
 
   // Security Incident logging
@@ -333,27 +421,9 @@ export class SovereignDB {
     return db.auditLogs;
   }
 
-  public static updateSessionRole(userId: string, role: UserRole): boolean {
-    const db = this.load();
-    const idx = db.sessions.findIndex((s) => s.userId === userId);
-    if (idx !== -1) {
-      db.sessions[idx].role = role;
-      this.save(db);
-      return true;
-    }
-    return false;
-  }
-
-  // SHA-256 string generator helper (simple fast hash)
+  // SHA-256 string generator helper (Real cryptographic hash)
   private static sha256(input: string): string {
-    let hash = 0;
-    for (let i = 0; i < input.length; i++) {
-      const char = input.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    const absolute = Math.abs(hash).toString(16);
-    return Array(65 - absolute.length).join("0") + absolute;
+    return crypto.createHash("sha256").update(input).digest("hex");
   }
 }
 
@@ -548,35 +618,76 @@ export class SovereignSandbox {
     error?: string;
   } {
     try {
-      // 1. Strict sanitization of executable content
-      const hostileTokens = [
+      // 1. Strict lexical validation to block control or non-ASCII characters
+      for (let i = 0; i < codeExpression.length; i++) {
+        const charCode = codeExpression.charCodeAt(i);
+        if (charCode < 32 || charCode > 126) {
+          return {
+            success: false,
+            error: "Violación de sandbox: Caracteres de control o no-ASCII prohibidos.",
+          };
+        }
+      }
+
+      // Block all quotes, backslashes, semicolons, brackets, curly braces, and assignment operators
+      const forbiddenChars = /['"`\\;=[\]{}]/;
+      if (forbiddenChars.test(codeExpression)) {
+        return {
+          success: false,
+          error: "Violación de sandbox: Uso de caracteres reservados o estructuradores prohibido.",
+        };
+      }
+
+      // Block prototype pollution and execution tokens
+      const hazardousKeywords = [
+        "constructor",
+        "prototype",
+        "__proto__",
+        "global",
         "process",
         "require",
         "import",
-        "fs",
-        "global",
-        "window",
-        "document",
         "eval",
         "Function",
-        "constructor",
-        "axios",
-        "fetch",
       ];
-      for (const t of hostileTokens) {
-        if (codeExpression.includes(t)) {
+      for (const kw of hazardousKeywords) {
+        if (codeExpression.includes(kw)) {
           return {
             success: false,
-            error: `Violación de sandbox: Uso prohibido de token crítico [${t}].`,
+            error: `Violación de sandbox: Uso prohibido de token reservado [${kw}].`,
+          };
+        }
+      }
+
+      const keys = Object.keys(variables);
+      const values = Object.values(variables);
+
+      // Allow only safe words: variable keys, approved Math functions, and numbers
+      const words = codeExpression.match(/[a-zA-Z_$][a-zA-Z0-9_$]*/g) || [];
+      const allowedWords = [
+        "Math",
+        "sin",
+        "cos",
+        "tan",
+        "abs",
+        "round",
+        "floor",
+        "ceil",
+        "min",
+        "max",
+        "PI",
+        ...keys,
+      ];
+      for (const w of words) {
+        if (!allowedWords.includes(w)) {
+          return {
+            success: false,
+            error: `Violación de sandbox: Variable o función no autorizada [${w}].`,
           };
         }
       }
 
       // 2. Safe execution structure inside insulated isolated parameters
-      const keys = Object.keys(variables);
-      const values = Object.values(variables);
-
-      // Perform computation using dynamic safe mapping rather than unfiltered eval
       const runner = new Function(...keys, `"use strict"; return (${codeExpression});`);
       const output = runner(...values);
 

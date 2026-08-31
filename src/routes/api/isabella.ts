@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
+import { SovereignDB } from "@/lib/sovereign-engine";
 
 const bodySchema = z.object({
   system: z.string().min(1).max(8000),
@@ -20,8 +21,10 @@ export const Route = createFileRoute("/api/isabella")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // --- LAYER 0: Secure IP Resolver (Anti-Spoofing proxy guard) ---
+        const ip = SecuritySystem.resolveClientIp(request);
+
         // --- LAYER 2: Rate Limiting ---
-        const ip = request.headers.get("x-forwarded-for") || "local_client";
         const rateLimit = SecuritySystem.checkRateLimit(ip, 40);
         if (!rateLimit.allowed) {
           const headers = SecuritySystem.injectSecureHeaders(
@@ -33,7 +36,32 @@ export const Route = createFileRoute("/api/isabella")({
           );
         }
 
-        // --- LAYER 3: Sovereign Key check ---
+        // --- LAYER 3: Sovereign Authorization & Multi-tenant Session Gate ---
+        const token = request.headers.get("Authorization")?.replace("Bearer ", "") || null;
+        if (!token) {
+          const headers = SecuritySystem.injectSecureHeaders(
+            new Headers({ "content-type": "application/json" }),
+          );
+          return new Response(
+            JSON.stringify({
+              error: "No Autorizado OIDC: Falta token de sesión en la cabecera Authorization.",
+            }),
+            { status: 401, headers },
+          );
+        }
+
+        const session = SovereignDB.getSessionByToken(token);
+        if (!session) {
+          const headers = SecuritySystem.injectSecureHeaders(
+            new Headers({ "content-type": "application/json" }),
+          );
+          return new Response(
+            JSON.stringify({ error: "No Autorizado OIDC: Token inválido o sesión expirada." }),
+            { status: 401, headers },
+          );
+        }
+
+        // --- LAYER 3.5: Upstream API configuration validation ---
         const apiKey = process.env["LOVABLE_API_KEY"];
         if (!apiKey) {
           const headers = SecuritySystem.injectSecureHeaders(

@@ -81,9 +81,7 @@ export function MonetizationDashboard() {
   const [activePlan, setActivePlan] = useState<string | null>("enterprise");
 
   // OIDC and Multi-tenancy live state
-  const [sessionToken, setSessionToken] = useState(
-    "oidc_sovereign_session_token_tamv_hidalgo_secure_channel",
-  );
+  const [sessionToken, setSessionToken] = useState("");
   const [activeTenant, setActiveTenant] = useState<Tenant | null>(null);
   const [activeUser, setActiveUser] = useState<UserSession | null>(null);
   const [ledger, setLedger] = useState<LedgerItem[]>([]);
@@ -116,9 +114,32 @@ export function MonetizationDashboard() {
   });
 
   const [activeRoadmapStage, setActiveRoadmapStage] = useState<number>(1);
+  const [testResults, setTestResults] = useState<Array<{
+    name: string;
+    passed: boolean;
+    error?: string;
+  }> | null>(null);
+  const [isTesting, setIsTesting] = useState(false);
 
   // Sync session and records on mount and activeRole / token changes
   const fetchDbState = useCallback(async () => {
+    if (!sessionToken || !sessionToken.startsWith("isa_live_")) {
+      try {
+        const res = await fetch(`/api/db?action=authenticate`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ userId: "user_anubis_001" }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSessionToken(data.token);
+        }
+      } catch (err) {
+        console.error("No se pudo auto-inicializar la sesión OIDC:", err);
+      }
+      return;
+    }
+
     try {
       // 1. Fetch Session
       const sessRes = await fetch(`/api/db?action=session`, {
@@ -142,8 +163,8 @@ export function MonetizationDashboard() {
           telemetryConsent: true,
         });
 
-        // 2. Fetch Ledger
-        const ledgerRes = await fetch(`/api/db?action=ledger&tenantId=${data.tenant.id}`, {
+        // 2. Fetch Ledger (Strict multi-tenant isolation, server handles query constraint)
+        const ledgerRes = await fetch(`/api/db?action=ledger`, {
           headers: { Authorization: `Bearer ${sessionToken}` },
         });
         if (ledgerRes.ok) {
@@ -160,7 +181,7 @@ export function MonetizationDashboard() {
               second: "2-digit",
             }),
             status: block.status,
-            node: block.pqcSignature.includes("genesis") ? "Nodo Cero (Hgo)" : "Malla CITEMESH",
+            node: "Nodo Cero (Hgo)",
           }));
           setLedger(mapped);
         }
@@ -215,7 +236,7 @@ export function MonetizationDashboard() {
         return;
       }
 
-      toast.success("Transacción registrada y firmada con PQC en el Ledger!");
+      toast.success("Transacción registrada y firmada en el Ledger!");
       fetchDbState();
     } catch (err) {
       toast.error("Error al debitar créditos del ledger.");
@@ -250,25 +271,29 @@ export function MonetizationDashboard() {
   };
 
   const handleSwitchRole = async (role: string) => {
+    let targetUserId = "user_anubis_001";
+    if (role === "Auditor") targetUserId = "user_external_auditor";
+    else if (role === "Operator") targetUserId = "user_operator_rdm";
+    else if (role === "Guest") targetUserId = "user_guest_rdm";
+
     try {
-      const res = await fetch(`/api/db?action=switch-role`, {
+      const res = await fetch(`/api/db?action=authenticate`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          Authorization: `Bearer ${sessionToken}`,
         },
-        body: JSON.stringify({ role }),
+        body: JSON.stringify({ userId: targetUserId }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        toast.error(`Error al cambiar rol: ${data.error}`);
+        toast.error(`Error al cambiar de identidad OIDC: ${data.error}`);
         return;
       }
 
+      setSessionToken(data.token);
       setActiveRole(role);
       toast.success(`Identidad OIDC actualizada. Rol activo: ${role}`);
-      fetchDbState();
     } catch (err) {
       toast.error("Error al actualizar rol OIDC.");
     }
@@ -777,7 +802,7 @@ export function MonetizationDashboard() {
       {/* Real-time Security Audit Observability Stream */}
       {auditLogs.length > 0 && (
         <div className="glass rounded-3xl p-6 border border-border/30">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div>
               <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
                 <Activity className="size-4.5 text-rose-400 animate-pulse" />
@@ -788,10 +813,88 @@ export function MonetizationDashboard() {
                 transaccional.
               </p>
             </div>
-            <span className="font-mono text-[9.5px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded">
-              Auditoría en Caliente
-            </span>
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={async () => {
+                  setIsTesting(true);
+                  setTestResults(null);
+                  try {
+                    const res = await fetch(`/api/db?action=test`, {
+                      headers: { Authorization: `Bearer ${sessionToken}` },
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      setTestResults(data.results);
+                      if (data.success) {
+                        toast.success(
+                          "¡Todas las pruebas criptográficas y de seguridad pasaron con éxito!",
+                        );
+                      } else {
+                        toast.error(
+                          "Se detectaron fallos en las pruebas de seguridad del sistema.",
+                        );
+                      }
+                    } else {
+                      toast.error(`Error de ejecución: ${data.error || "Sin autorización"}`);
+                    }
+                  } catch (e) {
+                    toast.error("No se pudo contactar con la suite de pruebas automatizadas.");
+                  } finally {
+                    setIsTesting(false);
+                    fetchDbState();
+                  }
+                }}
+                disabled={
+                  isTesting || (activeRole !== "SovereignOwner" && activeRole !== "Auditor")
+                }
+                className={`font-mono text-[10px] uppercase tracking-wider px-3.5 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 ${
+                  activeRole !== "SovereignOwner" && activeRole !== "Auditor"
+                    ? "opacity-45 cursor-not-allowed border-border/30 text-muted-foreground"
+                    : "bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border-rose-500/30 cursor-pointer"
+                }`}
+              >
+                <RefreshCw className={`size-3.5 ${isTesting ? "animate-spin" : ""}`} />
+                {isTesting ? "Verificando..." : "Auditoría Forense Criptográfica"}
+              </button>
+              <span className="font-mono text-[9.5px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-1 rounded-xl">
+                Auditoría en Caliente
+              </span>
+            </div>
           </div>
+
+          {/* Test Suite Diagnostics Checklist Output */}
+          {testResults && (
+            <div className="mb-5 p-4 rounded-2xl bg-black/30 border border-border/40 animate-rise">
+              <h4 className="font-mono text-[11px] uppercase tracking-wider text-pearl font-bold mb-3 flex items-center gap-1.5">
+                <Shield className="size-4 text-rose-400" />
+                Resultados del Criptosistema y Pruebas Unitarias de Seguridad
+              </h4>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {testResults.map((r, i) => (
+                  <div
+                    key={i}
+                    className={`p-3 rounded-xl border font-mono text-[11px] flex flex-col justify-between ${
+                      r.passed
+                        ? "bg-emerald-500/5 border-emerald-500/15 text-emerald-400"
+                        : "bg-rose-500/5 border-rose-500/15 text-rose-400"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold truncate max-w-[80%]">{r.name}</span>
+                      <span className="text-[10px] font-bold uppercase">
+                        {r.passed ? "PASÓ" : "FALLÓ"}
+                      </span>
+                    </div>
+                    {r.error && (
+                      <span className="block text-[9.5px] text-rose-300 mt-1.5 italic leading-relaxed">
+                        Detalle: {r.error}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="max-h-52 overflow-y-auto space-y-2 border border-border/20 rounded-2xl p-3 bg-secondary/10">
             {auditLogs.map((log) => (
