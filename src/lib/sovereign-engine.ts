@@ -69,6 +69,9 @@ export interface CognitiveHead {
   nucleusAlphaCount: number;
   nucleusBetaCount: number;
   status: "implemented" | "verified" | "experimental" | "shadow";
+  alphaLoad: number; // Carga en tiempo real del núcleo Alpha (Epistémico)
+  betaLoad: number; // Carga en tiempo real del núcleo Beta (Cibernético)
+  consensusState: "synchronized" | "evaluating" | "locked" | "idle";
 }
 
 // Full Database Schema
@@ -496,6 +499,9 @@ export const COGNITIVE_HEADS: CognitiveHead[] = [
     nucleusAlphaCount: 2,
     nucleusBetaCount: 2,
     status: "implemented",
+    alphaLoad: 42,
+    betaLoad: 38,
+    consensusState: "synchronized",
   },
   {
     name: "ISA Core",
@@ -504,6 +510,9 @@ export const COGNITIVE_HEADS: CognitiveHead[] = [
     nucleusAlphaCount: 2,
     nucleusBetaCount: 2,
     status: "implemented",
+    alphaLoad: 88,
+    betaLoad: 75,
+    consensusState: "synchronized",
   },
   {
     name: "SOPHIA Engine",
@@ -512,6 +521,9 @@ export const COGNITIVE_HEADS: CognitiveHead[] = [
     nucleusAlphaCount: 2,
     nucleusBetaCount: 2,
     status: "implemented",
+    alphaLoad: 61,
+    betaLoad: 54,
+    consensusState: "synchronized",
   },
   {
     name: "ORION Engine",
@@ -520,6 +532,9 @@ export const COGNITIVE_HEADS: CognitiveHead[] = [
     nucleusAlphaCount: 2,
     nucleusBetaCount: 2,
     status: "implemented",
+    alphaLoad: 30,
+    betaLoad: 82,
+    consensusState: "synchronized",
   },
   {
     name: "ARGUS Sentinel",
@@ -528,6 +543,9 @@ export const COGNITIVE_HEADS: CognitiveHead[] = [
     nucleusAlphaCount: 2,
     nucleusBetaCount: 2,
     status: "implemented",
+    alphaLoad: 95,
+    betaLoad: 92,
+    consensusState: "synchronized",
   },
   {
     name: "CHRONOS Index",
@@ -536,6 +554,9 @@ export const COGNITIVE_HEADS: CognitiveHead[] = [
     nucleusAlphaCount: 1,
     nucleusBetaCount: 1,
     status: "verified",
+    alphaLoad: 12,
+    betaLoad: 18,
+    consensusState: "synchronized",
   },
   {
     name: "ASTRAEA Justice",
@@ -544,6 +565,9 @@ export const COGNITIVE_HEADS: CognitiveHead[] = [
     nucleusAlphaCount: 1,
     nucleusBetaCount: 1,
     status: "verified",
+    alphaLoad: 45,
+    betaLoad: 20,
+    consensusState: "synchronized",
   },
   {
     name: "PYTHIA Forecast",
@@ -552,6 +576,9 @@ export const COGNITIVE_HEADS: CognitiveHead[] = [
     nucleusAlphaCount: 1,
     nucleusBetaCount: 1,
     status: "experimental",
+    alphaLoad: 15,
+    betaLoad: 8,
+    consensusState: "idle",
   },
   {
     name: "KRONOS Ledger",
@@ -560,6 +587,9 @@ export const COGNITIVE_HEADS: CognitiveHead[] = [
     nucleusAlphaCount: 1,
     nucleusBetaCount: 1,
     status: "verified",
+    alphaLoad: 74,
+    betaLoad: 88,
+    consensusState: "synchronized",
   },
   {
     name: "HELIOS Power",
@@ -568,6 +598,9 @@ export const COGNITIVE_HEADS: CognitiveHead[] = [
     nucleusAlphaCount: 1,
     nucleusBetaCount: 1,
     status: "experimental",
+    alphaLoad: 50,
+    betaLoad: 45,
+    consensusState: "evaluating",
   },
   {
     name: "HERMES Canal",
@@ -576,6 +609,9 @@ export const COGNITIVE_HEADS: CognitiveHead[] = [
     nucleusAlphaCount: 1,
     nucleusBetaCount: 1,
     status: "experimental",
+    alphaLoad: 28,
+    betaLoad: 31,
+    consensusState: "idle",
   },
   {
     name: "DEMETER Soil",
@@ -584,6 +620,9 @@ export const COGNITIVE_HEADS: CognitiveHead[] = [
     nucleusAlphaCount: 1,
     nucleusBetaCount: 1,
     status: "experimental",
+    alphaLoad: 35,
+    betaLoad: 15,
+    consensusState: "idle",
   },
 ];
 

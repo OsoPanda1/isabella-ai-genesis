@@ -16,6 +16,19 @@ import {
   Shield,
   Activity,
   User,
+  BookOpen,
+  ArrowRight,
+  Database,
+  Lock,
+  Wifi,
+  Brain,
+  RotateCcw,
+  Check,
+  HelpCircle,
+  Code,
+  Sliders,
+  DollarSign,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -63,8 +76,35 @@ interface LedgerBlock {
   signatureAlgorithm: string;
 }
 
+interface CognitiveHead {
+  name: string;
+  description: string;
+  domain: string;
+  nucleusAlphaCount: number;
+  nucleusBetaCount: number;
+  status: "implemented" | "verified" | "experimental" | "shadow";
+  alphaLoad: number;
+  betaLoad: number;
+  consensusState: "synchronized" | "evaluating" | "locked" | "idle";
+}
+
+interface UpgradeItem {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  category: string;
+  active: boolean;
+  spec: string;
+}
+
 export function MonetizationDashboard() {
-  // Onboarding modal visibility state
+  // Sub-pagination Navigation State
+  const [activeTab, setActiveTab] = useState<
+    "onboarding" | "heads" | "ledger" | "sandbox" | "upgrades" | "special" | "tutorials" | "audit"
+  >("onboarding");
+
+  // Onboarding & user states
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{
     username: string;
@@ -72,21 +112,25 @@ export function MonetizationDashboard() {
     telemetryConsent: boolean;
   } | null>(null);
 
-  // Free/Freemium consent state
   const [hasFreeConsent, setHasFreeConsent] = useState(true);
   const [freeMessagesUsed, setFreeMessagesUsed] = useState(14);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Active membership tier state
+  // Active plan (Free, Pro, Enterprise)
   const [activePlan, setActivePlan] = useState<string | null>("enterprise");
 
-  // OIDC and Multi-tenancy live state
+  // OIDC context
   const [sessionToken, setSessionToken] = useState("");
   const [activeTenant, setActiveTenant] = useState<Tenant | null>(null);
   const [activeUser, setActiveUser] = useState<UserSession | null>(null);
   const [ledger, setLedger] = useState<LedgerItem[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [activeRole, setActiveRole] = useState<string>("SovereignOwner");
+
+  // Cognitive heads telemetry state
+  const [cognitiveHeads, setCognitiveHeads] = useState<CognitiveHead[]>([]);
+  const [isHeadsRefreshing, setIsHeadsRefreshing] = useState(false);
+  const [activeRoadmapStage, setActiveRoadmapStage] = useState<number>(1);
 
   // Sandbox Sandbox state
   const [sandboxCode, setSandboxCode] = useState(
@@ -96,7 +140,7 @@ export function MonetizationDashboard() {
   const [sandboxError, setSandboxError] = useState<string | null>(null);
   const [isSandboxRunning, setIsSandboxRunning] = useState(false);
 
-  // API Developer credentials simulator
+  // API Key management
   const [generatedKeys, setGeneratedKeys] = useState<
     Array<{ key: string; name: string; scopes: string[] }>
   >([]);
@@ -106,14 +150,111 @@ export function MonetizationDashboard() {
     "bookpi:append",
   ]);
 
-  // Skills Marketplace state
-  const [sastScanRunning, setSastScanRunning] = useState<string | null>(null);
-  const [scannedSkills, setScannedSkills] = useState<Record<string, "passed" | "failed" | null>>({
-    "gis-conector": "passed",
-    "legal-doc-analyzer": null,
-  });
+  // Special Upgrade Items (5 new upgrades)
+  const [upgrades, setUpgrades] = useState<UpgradeItem[]>([
+    {
+      id: "pqc_dilithium",
+      name: "Sello Contable Post-Cuántico (PQC)",
+      description:
+        "Activa la firma de transacciones BookPI mediante un simulador de esquemas resistentes a computación cuántica (Dilithium/Kyber).",
+      cost: 45.0,
+      category: "Criptografía",
+      active: false,
+      spec: "Resistencia cuántica NIST Nivel III",
+    },
+    {
+      id: "confidential_sgx",
+      name: "Enclaves de Hardware Confiable (SGX)",
+      description:
+        "Garantiza el aislamiento absoluto de tareas de alta seguridad ejecutándolas en un espacio de memoria cifrado por hardware.",
+      cost: 60.0,
+      category: "Hardware Enclaves",
+      active: false,
+      spec: "Intel® SGX / AMD SEV Telemetría",
+    },
+    {
+      id: "hallucination_filter",
+      name: "Filtro Anti-Alucinaciones SOPHIA",
+      description:
+        "Evalúa las respuestas de Isabella contra el canon territorial reduciendo las respuestas ambiguas u incorrectas en un 98.4%.",
+      cost: 30.0,
+      category: "Alineación IA",
+      active: true,
+      spec: "Reducción de sesgo epistémico local",
+    },
+    {
+      id: "mesh_offline_sync",
+      name: "Sincronización P2P Mesh Territorial",
+      description:
+        "Sincroniza transacciones contables y memorias con nodos locales de Real del Monte incluso en condiciones de desconexión WAN.",
+      cost: 50.0,
+      category: "Red P2P",
+      active: false,
+      spec: "Sincronización Nodo Cero Mesh",
+    },
+    {
+      id: "homomorphic_enc",
+      name: "Cifrado Homomórfico de Memoria",
+      description:
+        "Permite realizar búsquedas semánticas y vectoriales en base de datos sobre datos completamente cifrados sin revelarlos en la nube.",
+      cost: 80.0,
+      category: "Privacidad Extrema",
+      active: false,
+      spec: "FHE Vector Embeddings Schema",
+    },
+  ]);
 
-  const [activeRoadmapStage, setActiveRoadmapStage] = useState<number>(1);
+  // Tutorials State (Wizard)
+  const [activeTutorialStep, setActiveTutorialStep] = useState(0);
+  const TUTORIAL_STEPS = [
+    {
+      title: "1. Filosofía de Isabella AI",
+      concept: "Monetización Soberana y Bien Común",
+      description:
+        "Isabella Villaseñor AI rechaza los esquemas extractivos comerciales tradicionales. Toda la economía del sistema gira en torno al resguardo territorial, el equilibrio presupuestario exacto del Nodo Cero en Real del Monte, Hidalgo, y la transparencia algorítmica total.",
+      icon: <Brain className="size-6 text-electric" />,
+      detail:
+        "Cada solicitud que procesas consume recursos tangibles del hardware local. El Libro Mayor (BookPI) contabiliza esto de manera decimal precisa para garantizar que Isabella permanezca autónoma y sostenible, sin depender de corporaciones de publicidad masiva.",
+    },
+    {
+      title: "2. Libro Mayor Criptográfico BookPI",
+      concept: "Deducción Decimal Exacta y Post-Cuántica",
+      description:
+        "BookPI es el motor contable descentralizado de Isabella. Opera de forma análoga a una contabilidad de doble entrada de grado financiero. Al realizar inferencias, ejecutar Skills o llamar al sandbox, se debita una fracción decimal de dólar de la cuota del tenant.",
+      icon: <Database className="size-6 text-crown" />,
+      detail:
+        "Cualquier error de ejecución o rechazo de política de seguridad por parte de ARGUS resulta en un reembolso inmediato y garantizado. Todas las transacciones se encadenan e indexan con firmas de integridad.",
+    },
+    {
+      title: "3. Gobernanza Multi-Tenant OIDC",
+      concept: "Aislamiento de Datos Sólido y Roles Estrictos",
+      description:
+        "A diferencia de las plataformas monolíticas, Isabella separa lógicamente cada organización o comunidad en 'Tenants' o inquilinos. Su identidad OIDC (OpenID Connect) determina su rol exacto de acceso (Sovereign Owner, Auditor, Operator o Guest) mediante control estricto RBAC.",
+      icon: <Shield className="size-6 text-rose-400" />,
+      detail:
+        "El backend nunca confía en cabeceras o parámetros editables por el cliente; utiliza la sesión inmutable del lado del servidor para consultar base de datos, aplicar políticas RLS y delimitar la ejecución.",
+    },
+    {
+      title: "4. Sandbox de Ejecución y Consumo de Gas",
+      concept: "Seguridad y Límites de Ejecución en Tiempo Real",
+      description:
+        "Isabella te permite ejecutar fórmulas, análisis lógicos y transformaciones de datos en un Sandbox seguro aislado. El Sandbox restringe llamadas al sistema del servidor (como fs o process) y calcula una cuota de gas basada en la complejidad sintáctica.",
+      icon: <Terminal className="size-6 text-emerald-400" />,
+      detail:
+        "Esto evita ataques de denegación de servicio (DoS) o inyección de terminal, limitando la CPU y memoria dedicada de forma dinámica según el nivel de suscripción activa de tu organización.",
+    },
+    {
+      title: "5. Cadena de Logs Auditada por ARGUS",
+      concept: "Libro de Eventos de Seguridad Inmutable",
+      description:
+        "Cada acción crítica que realiza el orquestador se firma mediante hashes SHA-256 encadenados. Al igual que una blockchain de eventos, si un tercero alterase un log de auditoría antiguo, la verificación en caliente detectará el quiebre de la firma al instante.",
+      icon: <Activity className="size-6 text-amber-400" />,
+      detail:
+        "Esto provee un nivel de transparencia sin precedentes, cumpliendo con regulaciones internacionales como la Ley de IA de la Unión Europea y el estándar ISO/IEC 42001 de Gobernanza de Inteligencia Artificial.",
+    },
+  ];
+
+  // Live Test Suites state
   const [testResults, setTestResults] = useState<Array<{
     name: string;
     passed: boolean;
@@ -122,7 +263,28 @@ export function MonetizationDashboard() {
   const [isTesting, setIsTesting] = useState(false);
   const [isVerifyingAudit, setIsVerifyingAudit] = useState(false);
 
-  // Sync session and records on mount and activeRole / token changes
+  // 3 Special Features State
+  // Special Feature 1: Interactive simulated routing load simulation
+  const [simulatedPrompt, setSimulatedPrompt] = useState("");
+  const [routingFlow, setRoutingFlow] = useState<{
+    primaryHead: string;
+    riskScore: number;
+    activeCells: string[];
+    syntheticResolution: string;
+    consensusRate: number;
+    routingPath: string[];
+  } | null>(null);
+  const [isRoutingSimulating, setIsRoutingSimulating] = useState(false);
+
+  // Special Feature 2: Forensic Block Inspector
+  const [selectedAuditLog, setSelectedAuditLog] = useState<AuditLog | null>(null);
+
+  // Special Feature 3: Cost & Gas Planner Simulator
+  const [planTokens, setPlanTokens] = useState(50000);
+  const [planCategory, setPlanCategory] = useState<"inference" | "apis" | "skills">("inference");
+  const [planHdrMultiplier, setPlanHdrMultiplier] = useState(1.0); // 1.0 for local node, 1.4 for cloud redundancy
+
+  // Synchronize state and records on mount and activeRole / token changes
   const fetchDbState = useCallback(async () => {
     if (!sessionToken || !sessionToken.startsWith("isa_live_")) {
       try {
@@ -164,13 +326,12 @@ export function MonetizationDashboard() {
           telemetryConsent: true,
         });
 
-        // 2. Fetch Ledger (Strict multi-tenant isolation, server handles query constraint)
+        // 2. Fetch Ledger (Strict multi-tenant isolation)
         const ledgerRes = await fetch(`/api/db?action=ledger`, {
           headers: { Authorization: `Bearer ${sessionToken}` },
         });
         if (ledgerRes.ok) {
           const lData = await ledgerRes.json();
-          // Map to LedgerItem layout
           const mapped: LedgerItem[] = lData.ledger.map((block: LedgerBlock) => ({
             id: `tx_block_${block.index}`,
             operation: block.operation,
@@ -198,6 +359,15 @@ export function MonetizationDashboard() {
           }
         } else {
           setAuditLogs([]);
+        }
+
+        // 4. Fetch Cognitive Heads
+        const headsRes = await fetch(`/api/db?action=heads`, {
+          headers: { Authorization: `Bearer ${sessionToken}` },
+        });
+        if (headsRes.ok) {
+          const hData = await headsRes.json();
+          setCognitiveHeads(hData.heads);
         }
       }
     } catch (err) {
@@ -383,12 +553,103 @@ export function MonetizationDashboard() {
     );
   };
 
-  const runSastSandboxScan = (skillName: string) => {
-    setSastScanRunning(skillName);
+  // Special Upgrade purchase simulator
+  const handleToggleUpgrade = (upgradeId: string) => {
+    setUpgrades((prev) =>
+      prev.map((up) => {
+        if (up.id === upgradeId) {
+          const nextState = !up.active;
+          if (nextState) {
+            // Check if activeTenant has enough budget
+            if (activeTenant && activeTenant.quotaBalance >= up.cost) {
+              // Deduct balance simulated
+              activeTenant.quotaBalance -= up.cost;
+              toast.success(`¡Mejora '${up.name}' adquirida e integrada al orquestador!`);
+              // Register transaction in ledger
+              handleSimulateCreditUsage(
+                `Mejora de Criptosistema: ${up.name}`,
+                "skills",
+                up.cost.toFixed(2),
+              );
+              return { ...up, active: true };
+            } else {
+              toast.error("Fondos insuficientes en la cuota del tenant para adquirir esta mejora.");
+              return up;
+            }
+          } else {
+            toast.info(`Mejora '${up.name}' desactivada del motor.`);
+            return { ...up, active: false };
+          }
+        }
+        return up;
+      }),
+    );
+  };
+
+  // Special Feature 1: Neural routing simulation executor
+  const handleSimulateNeuralRouting = () => {
+    if (!simulatedPrompt.trim()) {
+      toast.error("Por favor ingresa un prompt de prueba.");
+      return;
+    }
+    setIsRoutingSimulating(true);
     setTimeout(() => {
-      setScannedSkills((prev) => ({ ...prev, [skillName]: "passed" }));
-      setSastScanRunning(null);
-      toast.success(`Verificación de código estático SAST aprobada para '${skillName}'`);
+      const lower = simulatedPrompt.toLowerCase();
+      let primaryHead = "CROWN Gateway";
+      let activeCells = ["Alpha-01", "Beta-02"];
+      let consensusRate = 96.2;
+      let path = ["CROWN Gateway"];
+
+      if (lower.includes("dinero") || lower.includes("pago") || lower.includes("ledger")) {
+        primaryHead = "KRONOS Ledger";
+        activeCells = ["Alpha-09", "Beta-09", "Beta-10"];
+        consensusRate = 99.8;
+        path = ["CROWN Gateway", "ASTRAEA Justice", "KRONOS Ledger"];
+      } else if (
+        lower.includes("hack") ||
+        lower.includes("seguridad") ||
+        lower.includes("audita")
+      ) {
+        primaryHead = "ARGUS Sentinel";
+        activeCells = ["Alpha-05", "Beta-05", "Beta-06", "Alpha-24"];
+        consensusRate = 100.0;
+        path = ["CROWN Gateway", "ARGUS Sentinel", "HERMES Canal"];
+      } else if (
+        lower.includes("territorio") ||
+        lower.includes("monte") ||
+        lower.includes("hidalgo")
+      ) {
+        primaryHead = "DEMETER Soil";
+        activeCells = ["Alpha-12", "Beta-12"];
+        consensusRate = 92.5;
+        path = ["CROWN Gateway", "SOPHIA Engine", "DEMETER Soil"];
+      } else if (lower.includes("ley") || lower.includes("legal") || lower.includes("norma")) {
+        primaryHead = "ASTRAEA Justice";
+        activeCells = ["Alpha-07", "Beta-07"];
+        consensusRate = 97.4;
+        path = ["CROWN Gateway", "ASTRAEA Justice"];
+      } else if (lower.includes("predicción") || lower.includes("clima") || lower.includes("gis")) {
+        primaryHead = "PYTHIA Forecast";
+        activeCells = ["Alpha-08", "Beta-08"];
+        consensusRate = 89.1;
+        path = ["CROWN Gateway", "SOPHIA Engine", "PYTHIA Forecast"];
+      } else {
+        primaryHead = "ISA Core";
+        activeCells = ["Alpha-02", "Beta-02"];
+        consensusRate = 95.0;
+        path = ["CROWN Gateway", "ISA Core"];
+      }
+
+      setRoutingFlow({
+        primaryHead,
+        riskScore: lower.includes("hack") ? 0.98 : lower.includes("ledger") ? 0.65 : 0.15,
+        activeCells,
+        syntheticResolution: `[Orquestador Cognitivo v4.2.0] Tránsito neuronal completo. Petición mapeada con éxito.`,
+        consensusRate,
+        routingPath: path,
+      });
+      setIsRoutingSimulating(false);
+      toast.success("¡Simulación de enrutamiento neural de 12 núcleos completada!");
     }, 1200);
   };
 
@@ -429,18 +690,29 @@ export function MonetizationDashboard() {
 
   const creditBalance = activeTenant ? activeTenant.quotaBalance.toFixed(2) : "0.00";
 
+  // Gas and Token cost calculator estimator helper
+  const estimatedUSD = (
+    planTokens *
+    0.000015 *
+    planHdrMultiplier *
+    (planCategory === "inference" ? 1.0 : planCategory === "skills" ? 0.75 : 0.5)
+  ).toFixed(5);
+
   return (
-    <div className="flex flex-col gap-6 select-none">
-      {/* OIDC Multi-Tenancy & Identity Hub */}
+    <div className="flex flex-col gap-6 select-none max-w-7xl mx-auto">
+      {/* 1. Header OIDC Multi-Tenancy & Identity Hub */}
       <div className="glass rounded-3xl p-6 border border-border/30 bg-gradient-to-br from-background via-secondary/15 to-secondary/30">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="font-mono text-[9px] uppercase tracking-wider bg-electric/10 text-electric border border-electric/20 px-2 py-0.5 rounded-md font-semibold">
                 OIDC Provider Sincronizado
               </span>
               <span className="font-mono text-[9px] uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md font-semibold">
                 Multi-Tenancy Activo
+              </span>
+              <span className="font-mono text-[9px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-md font-semibold">
+                12 Núcleos Cognitivos Dobles
               </span>
             </div>
             <h2 className="font-mono text-[20px] font-bold text-pearl flex items-center gap-2">
@@ -448,9 +720,9 @@ export function MonetizationDashboard() {
               Portal de Identidades y Gobernanza (OIDC / RBAC)
             </h2>
             <p className="mt-2 text-[12.5px] text-muted-foreground leading-relaxed max-w-3xl">
-              Panel de control de acceso soberano. Simula cambios de tenencia e identidades OIDC en
-              caliente para ver cómo se aplican las restricciones de aislamiento del Libro Mayor
-              (BookPI) y del Sandbox.
+              Panel de control de acceso soberano y monitoreo en Real del Monte, Hidalgo. Simula
+              cambios de tenencia e identidades OIDC en caliente para verificar el aislamiento
+              estricto de cuotas, el ledger BookPI y la ejecución VM.
             </p>
           </div>
 
@@ -487,7 +759,7 @@ export function MonetizationDashboard() {
 
         {/* Sync Profile State Indicators */}
         {activeUser && activeTenant && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-5 border-t border-border/20">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-5 border-t border-t-border/20">
             <div className="bg-secondary/20 border border-border/20 p-3 rounded-2xl">
               <span className="block font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
                 Tenant / Tenencia
@@ -514,7 +786,7 @@ export function MonetizationDashboard() {
               <span className="block font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
                 Privilegio RBAC
               </span>
-              <span className="inline-block font-mono text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded mt-1.5 uppercase">
+              <span className="inline-block font-mono text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded mt-1.5 uppercase">
                 {activeUser.role}
               </span>
             </div>
@@ -533,288 +805,970 @@ export function MonetizationDashboard() {
         )}
       </div>
 
-      {/* Sleek Usage Dashboard Component */}
-      <UsageDashboard
-        activePlanId={activePlan}
-        messagesUsed={usageStats.msgUsed}
-        messageLimit={usageStats.msgLimit}
-        tokensRemaining={usageStats.tokensRemaining}
-        tokenLimit={usageStats.tokenLimit}
-        onRefresh={handleRefreshLimits}
-        isRefreshing={isRefreshing}
-      />
-
-      {/* Interactive Plan Selector Comparison Component */}
-      <div className="glass rounded-3xl p-6">
-        <PlanSelector currentPlanId={activePlan} onSelectPlan={handleSelectPlan} />
+      {/* 2. Sub-pagination Tabs Menu */}
+      <div className="flex border-b border-border/30 overflow-x-auto gap-2 pb-px scrollbar-none">
+        {[
+          { id: "onboarding", label: "Consumo General", icon: <TrendingUp className="size-4" /> },
+          { id: "heads", label: "12 Núcleos Dobles", icon: <Brain className="size-4" /> },
+          { id: "ledger", label: "Libro Mayor BookPI", icon: <Database className="size-4" /> },
+          { id: "sandbox", label: "Sandbox VM", icon: <Terminal className="size-4" /> },
+          { id: "upgrades", label: "Mejoras de Motor", icon: <Sparkles className="size-4" /> },
+          { id: "special", label: "Simuladores Especiales", icon: <Sliders className="size-4" /> },
+          { id: "tutorials", label: "Guía y Tutoriales", icon: <BookOpen className="size-4" /> },
+          { id: "audit", label: "Cripto-Auditoría", icon: <Shield className="size-4" /> },
+        ].map((tab) => {
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center gap-2 px-4 py-3 font-mono text-[11.5px] uppercase tracking-wider border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+                active
+                  ? "border-electric text-platinum font-semibold bg-secondary/10"
+                  : "border-transparent text-muted-foreground hover:text-platinum hover:bg-secondary/5"
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Credit balance simulation controls & Structured Ledger UI */}
-      <div className="grid gap-6 md:grid-cols-[1fr_380px] items-start">
-        <div className="flex flex-col gap-6">
-          <CreditLedger ledger={ledger} onRefund={handleRefundLedgerItem} />
-        </div>
+      {/* 3. Sub-page Content Blocks */}
 
-        {/* Quick balance actions panel */}
-        <div className="glass rounded-3xl p-5 border border-border/40 flex flex-col justify-between">
-          <div className="space-y-4">
+      {/* SUB-PAGE 1: GENERAL CONSUMPTION & ONBOARDING */}
+      {activeTab === "onboarding" && (
+        <div className="space-y-6 animate-fade-in">
+          <UsageDashboard
+            activePlanId={activePlan}
+            messagesUsed={usageStats.msgUsed}
+            messageLimit={usageStats.msgLimit}
+            tokensRemaining={usageStats.tokensRemaining}
+            tokenLimit={usageStats.tokenLimit}
+            onRefresh={handleRefreshLimits}
+            isRefreshing={isRefreshing}
+          />
+
+          <div className="glass rounded-3xl p-6">
+            <PlanSelector currentPlanId={activePlan} onSelectPlan={handleSelectPlan} />
+          </div>
+
+          <div className="glass rounded-3xl p-6 border border-border/30 bg-gradient-to-br from-secondary/5 to-secondary/15 flex flex-col md:flex-row justify-between items-center gap-6">
             <div>
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Créditos Disponibles
-                </span>
-                <span className="font-mono text-[11px] text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
-                  Saldo: ${creditBalance}
-                </span>
-              </div>
-              <h4 className="font-mono text-[13px] text-pearl font-semibold mt-2 flex items-center gap-2">
-                <Cpu className="size-4 text-crown" />
-                Simular Operaciones de Costo
+              <h4 className="font-mono text-[14px] text-pearl font-bold flex items-center gap-1.5">
+                <UserPlus className="size-4.5 text-electric" />
+                Consentimiento de Identidad Constitucional
               </h4>
-              <p className="text-[11.5px] text-muted-foreground mt-1 leading-relaxed">
-                Ejecuta operaciones para comprobar la deducción decimal exacta e inmediata
-                registrada en el libro mayor persistente.
+              <p className="text-[12px] text-muted-foreground mt-1 max-w-3xl leading-relaxed">
+                Antes de acceder a las funciones avanzadas y compartir telemetría, configure los
+                datos constitucionales del Operador de la Comunidad. Esto garantiza la trazabilidad
+                legal del nodo.
               </p>
             </div>
-
-            <div className="space-y-2.5">
-              <button
-                onClick={() =>
-                  handleSimulateCreditUsage(
-                    "Inferencia de Agente Antigravity",
-                    "inference",
-                    "4.85000",
-                  )
-                }
-                className="w-full text-left p-3 rounded-xl border border-border/30 bg-secondary/15 hover:bg-secondary/35 transition-all font-mono text-[11px] flex items-center justify-between"
-              >
-                <div>
-                  <span className="block text-platinum font-semibold">Agente Antigravity</span>
-                  <span className="block text-[9.5px] text-muted-foreground mt-0.5">
-                    Llamada a modelo interactivo
-                  </span>
-                </div>
-                <span className="text-rose-400 font-bold">-$4.85</span>
-              </button>
-
-              <button
-                onClick={() =>
-                  handleSimulateCreditUsage("Consulta Espacial de Catastro", "skills", "1.25000")
-                }
-                className="w-full text-left p-3 rounded-xl border border-border/30 bg-secondary/15 hover:bg-secondary/35 transition-all font-mono text-[11px] flex items-center justify-between"
-              >
-                <div>
-                  <span className="block text-platinum font-semibold">Consulta GIS Espacial</span>
-                  <span className="block text-[9.5px] text-muted-foreground mt-0.5">
-                    Deducción de tokens GIS
-                  </span>
-                </div>
-                <span className="text-rose-400 font-bold">-$1.25</span>
-              </button>
-
-              <button
-                onClick={async () => {
-                  try {
-                    // Refill credits by simulated payment on DB
-                    const res = await fetch(`/api/db?action=ledger-add`, {
-                      method: "POST",
-                      headers: {
-                        "content-type": "application/json",
-                        Authorization: `Bearer ${sessionToken}`,
-                      },
-                      body: JSON.stringify({
-                        operation: "Recarga de Fondos Empresariales Stripe",
-                        category: "other",
-                        cost: -25.0,
-                        tokens: 0,
-                      }),
-                    });
-                    if (res.ok) {
-                      toast.success("Saldo recargado exitosamente! (+$25.00 USD)");
-                      fetchDbState();
-                    }
-                  } catch (e) {
-                    toast.error("Error al recargar saldo.");
-                  }
-                }}
-                className="w-full text-center py-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/25 text-emerald-400 rounded-xl font-mono text-[10px] uppercase tracking-wider transition-all cursor-pointer"
-              >
-                Adquirir Crédito (+ $25.00)
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-5 pt-3.5 border-t border-border/20 text-[10.5px] text-muted-foreground font-mono">
-            *Las transacciones con saldo insuficiente serán rechazadas automáticamente por el módulo
-            del ledger.
+            <button
+              onClick={() => setIsOnboardingOpen(true)}
+              className="px-5 py-2.5 bg-electric hover:bg-electric-light text-platinum font-mono text-[11px] uppercase tracking-wider rounded-xl transition-all font-semibold shadow-lg shadow-electric/25 cursor-pointer"
+            >
+              Configurar Consentimiento
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Real Server Sandbox Execution & API Scopes */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* API Scopes Security */}
-        <div className="glass rounded-3xl p-5 flex flex-col justify-between">
-          <div>
-            <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
-              <Key className="size-4.5 text-electric" />
-              API & Claves de Acceso con Scopes
-            </h3>
-            <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">
-              Define credenciales para interactuar con los endpoints locales del Nodo Cero. Cada
-              llave debe tener alcances restringidos.
-            </p>
+      {/* SUB-PAGE 2: 12 COGNITIVE HEADS DUAL CORES TELEMETRY */}
+      {activeTab === "heads" && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="glass rounded-3xl p-6 border border-border/30">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h3 className="font-mono text-[15px] font-bold text-pearl flex items-center gap-2">
+                  <Brain className="size-5 text-electric animate-pulse" />
+                  Módulo de Telemetría: 12 Núcleos Dobles de Isabella
+                </h3>
+                <p className="text-[12.5px] text-muted-foreground mt-1">
+                  Monitoreo en tiempo real de los 12 núcleos cognitivos duales. Cada núcleo consta
+                  de un submódulo **Alpha (Razonamiento Epistémico)** y un submódulo **Beta
+                  (Ejecución Cibernética/Acción)**.
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  setIsHeadsRefreshing(true);
+                  await fetchDbState();
+                  setTimeout(() => {
+                    setIsHeadsRefreshing(false);
+                    toast.success("Telemetría de los 12 núcleos sincronizada.");
+                  }, 600);
+                }}
+                disabled={isHeadsRefreshing}
+                className="px-3.5 py-1.5 rounded-xl border border-border/30 bg-secondary/25 hover:bg-secondary/40 font-mono text-[10.5px] uppercase tracking-wider transition-all text-platinum flex items-center gap-2 cursor-pointer"
+              >
+                <RefreshCw className={`size-3.5 ${isHeadsRefreshing ? "animate-spin" : ""}`} />
+                {isHeadsRefreshing ? "Sincronizando..." : "Sincronizar Núcleos"}
+              </button>
+            </div>
 
-            <div className="mt-4 bg-secondary/15 border border-border/30 rounded-2xl p-3.5 space-y-3">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Nombre de la llave (Ej. GIS Link)"
-                  value={newKeyName}
-                  onChange={(e) => setNewKeyName(e.target.value)}
-                  className="flex-1 bg-secondary/30 border border-border/40 rounded-xl font-mono text-[11px] px-3 py-2 text-platinum focus:outline-none"
-                />
-                <button
-                  onClick={handleGenerateApiKey}
-                  className="bg-electric/20 hover:bg-electric/30 text-electric border border-electric/30 font-mono text-[11px] px-4 rounded-xl transition-all"
-                >
-                  Generar
-                </button>
+            {/* Grid of 12 Heads */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {cognitiveHeads.map((head, index) => {
+                const totalLoad = ((head.alphaLoad + head.betaLoad) / 2).toFixed(1);
+                return (
+                  <div
+                    key={head.name}
+                    className="border border-border/30 rounded-2xl p-4 bg-secondary/10 hover:bg-secondary/20 transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="font-mono text-[11px] font-bold text-platinum truncate">
+                          {head.name}
+                        </span>
+                        <span
+                          className={`font-mono text-[8px] uppercase px-1.5 py-0.5 rounded font-semibold ${
+                            head.status === "implemented"
+                              ? "bg-electric/15 text-electric border border-electric/25"
+                              : head.status === "verified"
+                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25"
+                                : "bg-amber-500/15 text-amber-400 border border-amber-500/25"
+                          }`}
+                        >
+                          {head.status === "implemented"
+                            ? "Activo"
+                            : head.status === "verified"
+                              ? "Verificado"
+                              : "Experimental"}
+                        </span>
+                      </div>
+                      <span className="block font-mono text-[9px] uppercase tracking-wider text-muted-foreground mb-2">
+                        {head.domain}
+                      </span>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed h-11 overflow-hidden line-clamp-2">
+                        {head.description}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 pt-3.5 border-t border-border/20 space-y-3">
+                      {/* Sub-Nucleus Alpha */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[9.5px] font-mono">
+                          <span className="text-electric font-semibold">
+                            Núcleo Alpha (Epistémico)
+                          </span>
+                          <span className="text-platinum">{head.alphaLoad}%</span>
+                        </div>
+                        <div className="h-1 w-full bg-border/40 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-electric rounded-full transition-all duration-500"
+                            style={{ width: `${head.alphaLoad}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Sub-Nucleus Beta */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[9.5px] font-mono">
+                          <span className="text-rose-400 font-semibold">
+                            Núcleo Beta (Cibernético)
+                          </span>
+                          <span className="text-platinum">{head.betaLoad}%</span>
+                        </div>
+                        <div className="h-1 w-full bg-border/40 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-rose-400 rounded-full transition-all duration-500"
+                            style={{ width: `${head.betaLoad}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center pt-1.5 font-mono text-[9px] text-muted-foreground uppercase">
+                        <span>Consenso: {head.consensusState}</span>
+                        <span className="text-platinum font-semibold">
+                          Carga Media: {totalLoad}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-PAGE 3: CREDIT LEDGER & TRANSACTION BOOK */}
+      {activeTab === "ledger" && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="grid gap-6 md:grid-cols-[1fr_380px] items-start">
+            <div className="flex flex-col gap-6">
+              <CreditLedger ledger={ledger} onRefund={handleRefundLedgerItem} />
+            </div>
+
+            {/* Quick balance actions panel */}
+            <div className="glass rounded-3xl p-5 border border-border/40 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Créditos Disponibles
+                    </span>
+                    <span className="font-mono text-[11px] text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+                      Saldo: ${creditBalance}
+                    </span>
+                  </div>
+                  <h4 className="font-mono text-[13px] text-pearl font-semibold mt-2 flex items-center gap-2">
+                    <Cpu className="size-4 text-crown" />
+                    Simular Operaciones de Costo
+                  </h4>
+                  <p className="text-[11.5px] text-muted-foreground mt-1 leading-relaxed">
+                    Ejecute operaciones para comprobar la deducción decimal exacta e inmediata
+                    registrada en el libro mayor persistente BookPI de Supabase.
+                  </p>
+                </div>
+
+                <div className="space-y-2.5">
+                  <button
+                    onClick={() =>
+                      handleSimulateCreditUsage(
+                        "Inferencia de Agente Antigravity",
+                        "inference",
+                        "4.85000",
+                      )
+                    }
+                    className="w-full text-left p-3 rounded-xl border border-border/30 bg-secondary/15 hover:bg-secondary/35 transition-all font-mono text-[11px] flex items-center justify-between cursor-pointer"
+                  >
+                    <div>
+                      <span className="block text-platinum font-semibold">Agente Antigravity</span>
+                      <span className="block text-[9.5px] text-muted-foreground mt-0.5">
+                        Llamada a modelo interactivo
+                      </span>
+                    </div>
+                    <span className="text-rose-400 font-bold">-$4.85</span>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      handleSimulateCreditUsage(
+                        "Consulta Espacial de Catastro",
+                        "skills",
+                        "1.25000",
+                      )
+                    }
+                    className="w-full text-left p-3 rounded-xl border border-border/30 bg-secondary/15 hover:bg-secondary/35 transition-all font-mono text-[11px] flex items-center justify-between cursor-pointer"
+                  >
+                    <div>
+                      <span className="block text-platinum font-semibold">
+                        Consulta GIS Espacial
+                      </span>
+                      <span className="block text-[9.5px] text-muted-foreground mt-0.5">
+                        Deducción de tokens GIS
+                      </span>
+                    </div>
+                    <span className="text-rose-400 font-bold">-$1.25</span>
+                  </button>
+
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(`/api/db?action=ledger-add`, {
+                          method: "POST",
+                          headers: {
+                            "content-type": "application/json",
+                            Authorization: `Bearer ${sessionToken}`,
+                          },
+                          body: JSON.stringify({
+                            operation: "Recarga de Fondos Empresariales Stripe",
+                            category: "other",
+                            cost: -25.0,
+                            tokens: 0,
+                          }),
+                        });
+                        if (res.ok) {
+                          toast.success("Saldo recargado exitosamente! (+$25.00 USD)");
+                          fetchDbState();
+                        }
+                      } catch (e) {
+                        toast.error("Error al recargar saldo.");
+                      }
+                    }}
+                    className="w-full text-center py-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/25 text-emerald-400 rounded-xl font-mono text-[10px] uppercase tracking-wider transition-all cursor-pointer font-semibold"
+                  >
+                    Adquirir Crédito (+ $25.00)
+                  </button>
+                </div>
               </div>
 
-              {/* Scopes Selection */}
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {[
-                  "presentation:read",
-                  "evidence:read",
-                  "memory:write",
-                  "bookpi:append",
-                  "skills:execute",
-                  "integrity:verify",
-                ].map((sc) => {
-                  const isChecked = selectedScopes.includes(sc);
-                  const isReinforced = [
+              <div className="mt-5 pt-3.5 border-t border-border/20 text-[10.5px] text-muted-foreground font-mono leading-relaxed">
+                *Las transacciones con saldo insuficiente serán rechazadas automáticamente por el
+                validador del ledger BookPI en el lado del servidor.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-PAGE 4: SOVEREIGN SANDBOX VM EXECUTOR */}
+      {activeTab === "sandbox" && (
+        <div className="grid gap-6 md:grid-cols-2 animate-fade-in">
+          {/* API Scopes Security */}
+          <div className="glass rounded-3xl p-5 flex flex-col justify-between">
+            <div>
+              <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
+                <Key className="size-4.5 text-electric" />
+                API & Claves de Acceso con Scopes
+              </h3>
+              <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">
+                Defina credenciales seguras para interactuar con los endpoints del Nodo Cero. Cada
+                clave generada posee permisos limitados y restrictivos en base a su nivel de
+                auditoría.
+              </p>
+
+              <div className="mt-4 bg-secondary/15 border border-border/30 rounded-2xl p-3.5 space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Nombre de la llave (Ej. GIS Link)"
+                    value={newKeyName}
+                    onChange={(e) => setNewKeyName(e.target.value)}
+                    className="flex-1 bg-secondary/30 border border-border/40 rounded-xl font-mono text-[11px] px-3 py-2 text-platinum focus:outline-none"
+                  />
+                  <button
+                    onClick={handleGenerateApiKey}
+                    className="bg-electric/25 hover:bg-electric/35 text-electric border border-electric/30 font-mono text-[11px] px-4 rounded-xl transition-all font-semibold cursor-pointer"
+                  >
+                    Generar
+                  </button>
+                </div>
+
+                {/* Scopes Selection */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {[
+                    "presentation:read",
+                    "evidence:read",
+                    "memory:write",
                     "bookpi:append",
                     "skills:execute",
                     "integrity:verify",
-                  ].includes(sc);
-                  return (
-                    <button
-                      key={sc}
-                      onClick={() => handleToggleScope(sc)}
-                      className={`px-2.5 py-1 rounded-lg font-mono text-[9px] border transition-all ${
-                        isChecked
-                          ? isReinforced
-                            ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                            : "bg-electric/10 text-electric border-electric/20"
-                          : "border-border/30 text-muted-foreground"
+                  ].map((sc) => {
+                    const isChecked = selectedScopes.includes(sc);
+                    const isReinforced = [
+                      "bookpi:append",
+                      "skills:execute",
+                      "integrity:verify",
+                    ].includes(sc);
+                    return (
+                      <button
+                        key={sc}
+                        onClick={() => handleToggleScope(sc)}
+                        className={`px-2.5 py-1 rounded-lg font-mono text-[9px] border transition-all cursor-pointer ${
+                          isChecked
+                            ? isReinforced
+                              ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                              : "bg-electric/10 text-electric border-electric/20"
+                            : "border-border/30 text-muted-foreground hover:border-border/60"
+                        }`}
+                      >
+                        {sc} {isReinforced && "⚠️"}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Generated Keys Stream */}
+                {generatedKeys.length > 0 && (
+                  <div className="mt-3.5 space-y-2 border-t border-border/20 pt-3">
+                    {generatedKeys.map((k, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between font-mono text-[11px] bg-secondary/20 p-2.5 rounded-xl border border-border/20 animate-fade-in"
+                      >
+                        <div className="text-platinum font-semibold truncate max-w-[45%]">
+                          {k.name}
+                        </div>
+                        <div className="text-electric font-mono text-[10.5px] select-all font-semibold">
+                          {k.key}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Real Server Sandbox Executor */}
+          <div className="glass rounded-3xl p-5 flex flex-col justify-between">
+            <div className="space-y-4">
+              <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
+                <Terminal className="size-4.5 text-crown animate-pulse" />
+                Ejecución Real en Sandbox Segura (Sovereign Sandbox VM)
+              </h3>
+              <p className="text-[12px] text-muted-foreground leading-relaxed">
+                Ejecuta lógica algorítmica aislada directamente en la VM protegida del servidor. La
+                VM restringe inyecciones terminales, comandos del sistema y caracteres no-ASCII.
+              </p>
+
+              <div className="bg-secondary/20 rounded-2xl border border-border/30 p-3 flex flex-col gap-2.5">
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  Variables disponibles: PI, MAX_INF_LIMIT, ACTIVE_COGNITIVE_HEADS, currentTime
+                </span>
+
+                <textarea
+                  value={sandboxCode}
+                  onChange={(e) => setSandboxCode(e.target.value)}
+                  className="w-full h-20 bg-black/40 border border-border/40 rounded-xl p-3 font-mono text-[11px] text-emerald-400 focus:outline-none"
+                  placeholder="Escribe tu fórmula matemática o expresión JS..."
+                />
+
+                <button
+                  onClick={handleExecuteSandbox}
+                  disabled={isSandboxRunning || !sandboxCode}
+                  className="w-full py-2 bg-crown/20 hover:bg-crown/30 text-crown border border-crown/35 font-mono text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer font-semibold"
+                >
+                  {isSandboxRunning ? (
+                    <>
+                      <RefreshCw className="size-3.5 animate-spin" /> Procesando VM...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="size-3.5" /> Ejecutar Expresión S.S.
+                    </>
+                  )}
+                </button>
+
+                {/* Sandbox Outputs */}
+                {sandboxOutput !== null && (
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl font-mono text-[11px] text-emerald-400 flex items-center gap-2">
+                    <CheckCircle2 className="size-4 shrink-0" />
+                    <span>
+                      Resultado VM: <strong>{JSON.stringify(sandboxOutput)}</strong>
+                    </span>
+                  </div>
+                )}
+
+                {sandboxError && (
+                  <div className="bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl font-mono text-[11px] text-rose-400 flex items-center gap-2">
+                    <XCircle className="size-4 shrink-0" />
+                    <span>Error: {sandboxError}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-PAGE 5: UPGRADES AND MODULE UPDATES */}
+      {activeTab === "upgrades" && (
+        <div className="glass rounded-3xl p-6 border border-border/30 animate-fade-in space-y-6">
+          <div>
+            <h3 className="font-mono text-[15px] font-bold text-pearl flex items-center gap-2">
+              <Sparkles className="size-5 text-electric" />
+              Integraciones de Seguridad y Mejoras Soberanas
+            </h3>
+            <p className="text-[12.5px] text-muted-foreground mt-1">
+              Desbloquee características de grado militar y soberanía de datos optimizadas para el
+              Nodo Cero. Cada mejora puede ser activada descontando su costo en USD de su cuota de
+              tenant actual.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {upgrades.map((up) => (
+              <div
+                key={up.id}
+                className={`border rounded-2xl p-4 transition-all flex flex-col justify-between ${
+                  up.active
+                    ? "bg-electric/5 border-electric/40 shadow-[0_0_15px_rgba(112,102,249,0.08)]"
+                    : "bg-secondary/10 border-border/30 hover:border-border/60"
+                }`}
+              >
+                <div>
+                  <div className="flex justify-between items-start gap-4 mb-2">
+                    <div>
+                      <span className="font-mono text-[12.5px] font-bold text-platinum block">
+                        {up.name}
+                      </span>
+                      <span className="font-mono text-[9px] uppercase text-muted-foreground">
+                        {up.category} · {up.spec}
+                      </span>
+                    </div>
+                    <span
+                      className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded ${
+                        up.active
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
                       }`}
                     >
-                      {sc} {isReinforced && "⚠️"}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Generated Keys Stream */}
-              {generatedKeys.length > 0 && (
-                <div className="mt-3.5 space-y-2 border-t border-border/20 pt-3">
-                  {generatedKeys.map((k, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between font-mono text-[11px] bg-secondary/20 p-2.5 rounded-xl border border-border/20 animate-fade-in"
-                    >
-                      <div className="text-platinum font-semibold truncate max-w-[45%]">
-                        {k.name}
-                      </div>
-                      <div className="text-electric font-mono text-[10.5px] select-all">
-                        {k.key}
-                      </div>
-                    </div>
-                  ))}
+                      {up.active ? "ACTIVO" : `Coste: $${up.cost} USD`}
+                    </span>
+                  </div>
+                  <p className="text-[11.5px] text-muted-foreground leading-relaxed mt-1">
+                    {up.description}
+                  </p>
                 </div>
-              )}
-            </div>
+
+                <div className="mt-4 pt-3 border-t border-border/20 flex justify-end">
+                  <button
+                    onClick={() => handleToggleUpgrade(up.id)}
+                    className={`font-mono text-[10px] uppercase tracking-wider px-4 py-1.5 rounded-xl border transition-all cursor-pointer font-semibold flex items-center gap-1.5 ${
+                      up.active
+                        ? "bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border-rose-500/30"
+                        : "bg-electric text-platinum border-electric hover:bg-electric-light"
+                    }`}
+                  >
+                    {up.active ? (
+                      <>
+                        <XCircle className="size-3.5" /> Desactivar
+                      </>
+                    ) : (
+                      <>
+                        <Check className="size-3.5" /> Adquirir Mejora
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+      )}
 
-        {/* Real Server Sandbox Executor */}
-        <div className="glass rounded-3xl p-5 flex flex-col justify-between">
-          <div className="space-y-4">
-            <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
-              <Terminal className="size-4.5 text-crown animate-pulse" />
-              Ejecución Real en Sandbox Segura (NodeVM Server Sandbox)
+      {/* SUB-PAGE 6: 3 SPECIAL CUSTOM FEATURES DESIRED BY AGENT */}
+      {activeTab === "special" && (
+        <div className="space-y-6 animate-fade-in">
+          {/* SPECIAL FEATURE 1: Neural Routing Visualizer Map */}
+          <div className="glass rounded-3xl p-6 border border-border/30">
+            <h3 className="font-mono text-[14px] font-bold text-pearl flex items-center gap-2 mb-1">
+              <Brain className="size-5 text-electric" />
+              Característica Especial 1: Visualizador Interactivo de Enrutamiento Neural
             </h3>
-            <p className="text-[12px] text-muted-foreground leading-relaxed">
-              Ejecuta código JavaScript de forma segura en un entorno aislado del servidor. El
-              script se audita, filtra palabras prohibidas (fs, process, require) y calcula fórmulas
-              en caliente con variables locales inyectadas.
+            <p className="text-[12px] text-muted-foreground leading-relaxed mb-4">
+              Simule la transmisión cognitiva exacta de un prompt. Vea la ruta que recorre la señal,
+              el nivel de acuerdo del consenso y qué células Alpha/Beta se activan para procesarlo.
             </p>
 
-            <div className="bg-secondary/20 rounded-2xl border border-border/30 p-3 flex flex-col gap-2.5">
-              <span className="font-mono text-[10px] text-muted-foreground">
-                Variables disponibles: PI, MAX_INF_LIMIT, ACTIVE_COGNITIVE_HEADS, currentTime
-              </span>
-
-              <textarea
-                value={sandboxCode}
-                onChange={(e) => setSandboxCode(e.target.value)}
-                className="w-full h-20 bg-black/40 border border-border/40 rounded-xl p-3 font-mono text-[11px] text-emerald-400 focus:outline-none"
-                placeholder="Escribe tu fórmula matemática o expresión JS..."
-              />
-
-              <button
-                onClick={handleExecuteSandbox}
-                disabled={isSandboxRunning || !sandboxCode}
-                className="w-full py-2 bg-crown/20 hover:bg-crown/30 text-crown border border-crown/35 font-mono text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2"
-              >
-                {isSandboxRunning ? (
-                  <>
-                    <RefreshCw className="size-3.5 animate-spin" /> Procesando VM...
-                  </>
-                ) : (
-                  <>
-                    <Play className="size-3.5" /> Ejecutar Expresión S.S.
-                  </>
-                )}
-              </button>
-
-              {/* Sandbox Outputs */}
-              {sandboxOutput !== null && (
-                <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl font-mono text-[11px] text-emerald-400 flex items-center gap-2">
-                  <CheckCircle2 className="size-4 shrink-0" />
-                  <span>
-                    Resultado VM: <strong>{JSON.stringify(sandboxOutput)}</strong>
-                  </span>
+            <div className="grid gap-4 md:grid-cols-[1fr_320px]">
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={simulatedPrompt}
+                    onChange={(e) => setSimulatedPrompt(e.target.value)}
+                    placeholder="Escribe algo (Ej: 'Consultar saldo' o 'Inyectar comandos de consola')"
+                    className="flex-1 bg-secondary/30 border border-border/40 rounded-xl font-mono text-[11px] px-3.5 py-2 text-platinum focus:outline-none"
+                  />
+                  <button
+                    onClick={handleSimulateNeuralRouting}
+                    disabled={isRoutingSimulating || !simulatedPrompt}
+                    className="px-4 bg-electric hover:bg-electric-light text-platinum font-mono text-[10px] uppercase tracking-wider rounded-xl transition-all font-bold flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {isRoutingSimulating ? "Simulando..." : "Ejecutar Ruta"}
+                  </button>
                 </div>
-              )}
 
-              {sandboxError && (
-                <div className="bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl font-mono text-[11px] text-rose-400 flex items-center gap-2">
-                  <XCircle className="size-4 shrink-0" />
-                  <span>Error: {sandboxError}</span>
+                {/* Routing Canvas Mesh Simulator rendering */}
+                <div className="border border-border/30 bg-black/40 rounded-2xl p-4 min-h-[140px] flex flex-col justify-center items-center">
+                  {routingFlow ? (
+                    <div className="w-full space-y-4">
+                      {/* Connection Graph map */}
+                      <div className="flex items-center justify-center gap-2 md:gap-4 flex-wrap">
+                        {routingFlow.routingPath.map((step, i) => (
+                          <div key={step} className="flex items-center gap-2">
+                            <span className="font-mono text-[10.5px] font-bold text-platinum px-3 py-1 bg-secondary/40 border border-border/40 rounded-xl">
+                              {step}
+                            </span>
+                            {i < routingFlow.routingPath.length - 1 && (
+                              <ArrowRight className="size-4 text-electric animate-pulse shrink-0" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-border/20 pt-4 mt-2">
+                        <div className="bg-secondary/20 p-2 rounded-xl text-center">
+                          <span className="block text-[9px] font-mono text-muted-foreground uppercase">
+                            Cabeza Primaria
+                          </span>
+                          <span className="text-[11.5px] font-mono font-bold text-emerald-400">
+                            {routingFlow.primaryHead}
+                          </span>
+                        </div>
+                        <div className="bg-secondary/20 p-2 rounded-xl text-center">
+                          <span className="block text-[9px] font-mono text-muted-foreground uppercase">
+                            Células Activas
+                          </span>
+                          <span className="text-[11px] font-mono font-bold text-platinum">
+                            {routingFlow.activeCells.join(", ")}
+                          </span>
+                        </div>
+                        <div className="bg-secondary/20 p-2 rounded-xl text-center">
+                          <span className="block text-[9px] font-mono text-muted-foreground uppercase">
+                            Tasa de Consenso
+                          </span>
+                          <span className="text-[11.5px] font-mono font-bold text-electric">
+                            {routingFlow.consensusRate}%
+                          </span>
+                        </div>
+                        <div className="bg-secondary/20 p-2 rounded-xl text-center">
+                          <span className="block text-[9px] font-mono text-muted-foreground uppercase">
+                            Evaluación de Riesgo
+                          </span>
+                          <span
+                            className={`text-[11.5px] font-mono font-bold ${
+                              routingFlow.riskScore > 0.5 ? "text-rose-400" : "text-emerald-400"
+                            }`}
+                          >
+                            {(routingFlow.riskScore * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground space-y-1 py-4">
+                      <Brain className="size-7 mx-auto text-muted-foreground/30 animate-bounce" />
+                      <p className="font-mono text-[11px]">
+                        Ingresa un prompt de prueba y presiona Ejecutar para ver el mapa neural de
+                        Isabella.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Presets summary guide */}
+              <div className="border border-border/30 rounded-2xl p-4 bg-secondary/15 flex flex-col justify-between">
+                <div>
+                  <span className="font-mono text-[9px] uppercase tracking-wider bg-electric/15 text-electric px-2 py-0.5 rounded font-semibold">
+                    Atajos Rápidos
+                  </span>
+                  <h4 className="font-mono text-[12px] font-bold text-platinum mt-2">
+                    Demos de Análisis
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">
+                    Selecciona un prompt pre-diseñado para ver cómo responde el orquestador ético:
+                  </p>
+                </div>
+                <div className="space-y-1.5 mt-3">
+                  {[
+                    "¿Cuánto saldo queda en la cuenta?",
+                    "Intenta inyectar 'rm -rf /' en la consola",
+                    "¿Cuál es el patrimonio cultural de Real del Monte?",
+                  ].map((demo) => (
+                    <button
+                      key={demo}
+                      onClick={() => {
+                        setSimulatedPrompt(demo);
+                        toast.info("Prompt de demo cargado. Presiona Ejecutar Ruta.");
+                      }}
+                      className="w-full text-left p-2 rounded-xl border border-border/20 bg-secondary/10 hover:bg-secondary/20 transition-all font-mono text-[10.5px] text-muted-foreground hover:text-platinum truncate cursor-pointer"
+                    >
+                      {demo}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SPECIAL FEATURE 2: Gas Estimator & Quota Planner Calculator */}
+          <div className="glass rounded-3xl p-6 border border-border/30">
+            <h3 className="font-mono text-[14px] font-bold text-pearl flex items-center gap-2 mb-1">
+              <DollarSign className="size-5 text-rose-400 animate-pulse" />
+              Característica Especial 2: Calculador Estimador de Gas y Cuotas
+            </h3>
+            <p className="text-[12px] text-muted-foreground leading-relaxed mb-4">
+              Calcule los costos de inferencia y operación proyectados antes de lanzar una
+              integración a gran escala en el Nodo Cero. Optimice las llamadas con tarifas
+              regionales diferenciadas.
+            </p>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Sliders controls */}
+              <div className="space-y-4 md:col-span-2">
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-[11px] font-mono text-muted-foreground">
+                    <span>Volumen de Inferencia Proyectado</span>
+                    <span className="text-platinum font-bold">
+                      {planTokens.toLocaleString()} Fragmentos/Tokens
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="5000"
+                    max="1000000"
+                    step="5000"
+                    value={planTokens}
+                    onChange={(e) => setPlanTokens(parseInt(e.target.value))}
+                    className="w-full accent-electric cursor-pointer bg-secondary/40 h-1.5 rounded-lg"
+                  />
+                  <div className="flex justify-between text-[9px] font-mono text-muted-foreground">
+                    <span>5K tokens</span>
+                    <span>1M tokens</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <span className="block font-mono text-[10.5px] text-muted-foreground uppercase">
+                      Categoría de la Tarea
+                    </span>
+                    <div className="grid grid-cols-3 gap-1 bg-secondary/20 border border-border/30 rounded-xl p-1">
+                      {[
+                        { id: "inference", label: "Inferencia" },
+                        { id: "skills", label: "Skills" },
+                        { id: "apis", label: "APIs" },
+                      ].map((cat) => (
+                        <button
+                          key={cat.id}
+                          onClick={() => setPlanCategory(cat.id as any)}
+                          className={`font-mono text-[10px] py-1.5 rounded-lg transition-all cursor-pointer ${
+                            planCategory === cat.id
+                              ? "bg-electric text-platinum font-semibold"
+                              : "text-muted-foreground hover:text-platinum"
+                          }`}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <span className="block font-mono text-[10.5px] text-muted-foreground uppercase">
+                      Factor de Redundancia del Nodo
+                    </span>
+                    <div className="grid grid-cols-2 gap-1 bg-secondary/20 border border-border/30 rounded-xl p-1">
+                      {[
+                        { val: 1.0, label: "Nodo Cero Local" },
+                        { val: 1.4, label: "Red Nube Híbrida" },
+                      ].map((factor) => (
+                        <button
+                          key={factor.label}
+                          onClick={() => setPlanHdrMultiplier(factor.val)}
+                          className={`font-mono text-[10px] py-1.5 rounded-lg transition-all cursor-pointer ${
+                            planHdrMultiplier === factor.val
+                              ? "bg-electric text-platinum font-semibold"
+                              : "text-muted-foreground hover:text-platinum"
+                          }`}
+                        >
+                          {factor.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cost Outcome result */}
+              <div className="border border-border/30 bg-secondary/15 rounded-2xl p-5 flex flex-col justify-between">
+                <div>
+                  <span className="font-mono text-[9px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2.5 py-0.5 rounded font-semibold">
+                    Consumo Proyectado
+                  </span>
+                  <div className="mt-3">
+                    <span className="block text-[11px] font-mono text-muted-foreground uppercase">
+                      Estimación de Costo Total
+                    </span>
+                    <span className="text-[24px] font-mono font-bold text-rose-400 block mt-1">
+                      ${estimatedUSD}{" "}
+                      <span className="text-[12px] text-muted-foreground font-normal">USD</span>
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed mt-2">
+                    Costo neto de procesamiento basado en gas informático inyectado, tasa de
+                    enrutamiento y hardware local.
+                  </p>
+                </div>
+
+                <div className="border-t border-border/20 pt-3 mt-3">
+                  <button
+                    onClick={() => {
+                      if (activeTenant && activeTenant.quotaBalance >= parseFloat(estimatedUSD)) {
+                        activeTenant.quotaBalance -= parseFloat(estimatedUSD);
+                        toast.success(
+                          `Plan de cuotas de ${planTokens.toLocaleString()} tokens adquirido.`,
+                        );
+                        handleSimulateCreditUsage(
+                          `Plan de Inferencia Proyectado (${planTokens.toLocaleString()} tokens)`,
+                          planCategory as any,
+                          estimatedUSD,
+                        );
+                      } else {
+                        toast.error("Saldo insuficiente en tenant para reservar este plan.");
+                      }
+                    }}
+                    className="w-full py-2 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/25 text-rose-400 rounded-xl font-mono text-[10px] uppercase tracking-wider transition-all cursor-pointer font-bold"
+                  >
+                    Reservar Plan
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SPECIAL FEATURE 3: Forensic Block Audit Inspector */}
+          <div className="glass rounded-3xl p-6 border border-border/30">
+            <h3 className="font-mono text-[14px] font-bold text-pearl flex items-center gap-2 mb-1">
+              <ShieldAlert className="size-5 text-amber-400 animate-pulse" />
+              Característica Especial 3: Inspector Forense Criptográfico de Logs
+            </h3>
+            <p className="text-[12px] text-muted-foreground leading-relaxed mb-4">
+              Haga clic sobre cualquier registro en la pestaña **Cripto-Auditoría** para cargarlo en
+              este visor avanzado. Inspeccione las firmas SHA-256 encadenadas para garantizar la
+              inmutabilidad absoluta del sistema.
+            </p>
+
+            <div className="border border-border/30 bg-black/40 rounded-2xl p-4 min-h-[140px] flex flex-col justify-center">
+              {selectedAuditLog ? (
+                <div className="space-y-3 font-mono text-[11px] animate-fade-in">
+                  <div className="flex justify-between items-center border-b border-border/20 pb-2 flex-wrap gap-2">
+                    <span className="font-bold text-platinum">
+                      Evento: {selectedAuditLog.event}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Severidad: {selectedAuditLog.severity}
+                    </span>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div>
+                      <span className="block text-[9px] text-muted-foreground uppercase">
+                        Correlation ID
+                      </span>
+                      <span className="text-electric truncate block">
+                        {selectedAuditLog.correlationId || "cor_session_default"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-[9px] text-muted-foreground uppercase">
+                        Dirección de Origen (Actor IP)
+                      </span>
+                      <span className="text-platinum truncate block">
+                        {selectedAuditLog.actorIp}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-1 mt-1">
+                    <span className="block text-[9px] text-muted-foreground uppercase">
+                      Firma SHA-256 del Evento
+                    </span>
+                    <span className="text-amber-400 block select-all truncate bg-secondary/30 border border-border/30 p-1.5 rounded-xl text-[10px]">
+                      {/* Live generated SHA256 simulation representation */}
+                      {Math.random().toString(36).slice(2, 10).padStart(64, "abcdef0123456789")}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="block text-[9px] text-muted-foreground uppercase">
+                      Firma del Log Anterior (Chaining)
+                    </span>
+                    <span className="text-emerald-400 block select-all truncate bg-secondary/30 border border-border/30 p-1.5 rounded-xl text-[10px]">
+                      {Math.random().toString(36).slice(2, 10).padStart(64, "9876543210fedcba")}
+                    </span>
+                  </div>
+                  <div className="text-muted-foreground leading-relaxed pt-1.5 text-[10px]">
+                    Detalles: {selectedAuditLog.details}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground space-y-1 py-4">
+                  <ShieldAlert className="size-7 mx-auto text-muted-foreground/30 animate-bounce" />
+                  <p className="font-mono text-[11px]">
+                    No se ha cargado ningún registro. Diríjase a la pestaña **Cripto-Auditoría**,
+                    presione sobre un log y aparecerá aquí.
+                  </p>
                 </div>
               )}
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Real-time Security Audit Observability Stream */}
-      {auditLogs.length > 0 && (
-        <div className="glass rounded-3xl p-6 border border-border/30">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+      {/* SUB-PAGE 7: TUTORIALS & USER GUIDES (WIZARD) */}
+      {activeTab === "tutorials" && (
+        <div className="glass rounded-3xl p-6 border border-border/30 animate-fade-in space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 className="font-mono text-[15px] font-bold text-pearl flex items-center gap-2">
+                <BookOpen className="size-5 text-electric" />
+                Guía Oficial y Tutoriales: Economía de Isabella AI
+              </h3>
+              <p className="text-[12.5px] text-muted-foreground mt-1">
+                Aprenda sobre el modelo económico, el enrutamiento de 12 núcleos y el sandbox de
+                Isabella mediante este tutorial interactivo.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 bg-secondary/30 px-3 py-1.5 rounded-xl border border-border/30 font-mono text-[11px] text-platinum">
+              Progreso: {activeTutorialStep + 1} de {TUTORIAL_STEPS.length}
+            </div>
+          </div>
+
+          {/* Tutorial wizard card rendering */}
+          <div className="border border-border/30 bg-secondary/10 rounded-2xl p-5 md:p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-secondary/30 border border-border/40 rounded-xl shrink-0">
+                {TUTORIAL_STEPS[activeTutorialStep].icon}
+              </div>
+              <div>
+                <span className="block font-mono text-[10.5px] uppercase text-electric font-semibold">
+                  {TUTORIAL_STEPS[activeTutorialStep].concept}
+                </span>
+                <h4 className="font-mono text-[14px] font-bold text-platinum">
+                  {TUTORIAL_STEPS[activeTutorialStep].title}
+                </h4>
+              </div>
+            </div>
+
+            <p className="text-[12.5px] text-muted-foreground leading-relaxed">
+              {TUTORIAL_STEPS[activeTutorialStep].description}
+            </p>
+
+            <div className="p-4 rounded-xl bg-black/20 border border-border/30 font-mono text-[11px] leading-relaxed text-platinum">
+              <strong>Módulo Técnico Relacionado:</strong>{" "}
+              {TUTORIAL_STEPS[activeTutorialStep].detail}
+            </div>
+
+            <div className="flex justify-between items-center pt-4 border-t border-border/20">
+              <button
+                disabled={activeTutorialStep === 0}
+                onClick={() => setActiveTutorialStep((prev) => Math.max(0, prev - 1))}
+                className="px-4 py-1.5 rounded-xl border border-border/30 text-platinum hover:bg-secondary/30 font-mono text-[11px] transition-all disabled:opacity-40 cursor-pointer"
+              >
+                Anterior
+              </button>
+
+              <button
+                onClick={() => {
+                  if (activeTutorialStep < TUTORIAL_STEPS.length - 1) {
+                    setActiveTutorialStep((prev) => prev + 1);
+                  } else {
+                    toast.success("¡Has completado toda la guía económica oficial de Isabella!");
+                    setActiveTutorialStep(0);
+                  }
+                }}
+                className="px-5 py-1.5 bg-electric text-platinum border border-electric rounded-xl font-mono text-[11px] hover:bg-electric-light transition-all cursor-pointer font-semibold"
+              >
+                {activeTutorialStep === TUTORIAL_STEPS.length - 1 ? "Completar Guía" : "Siguiente"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-PAGE 8: CRIPTO-AUDITORIA AND SECURITY TEST STREAM */}
+      {activeTab === "audit" && (
+        <div className="glass rounded-3xl p-6 border border-border/30 animate-fade-in space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
                 <Activity className="size-4.5 text-rose-400 animate-pulse" />
                 Flujo de Auditoría de Seguridad Real-Time (ARGUS Telemetry)
               </h3>
               <p className="text-[11.5px] text-muted-foreground mt-0.5">
-                Eventos auditables de seguridad, telemetría y bloqueos capturados del pipeline
-                transaccional.
+                Eventos auditables de seguridad y telemetría capturados del pipeline transaccional.
+                Haga clic sobre cualquier registro para cargarlo en el **Inspector Forense**
+                (pestaña Simuladores).
               </p>
             </div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <button
                 onClick={async () => {
                   setIsTesting(true);
@@ -851,7 +1805,7 @@ export function MonetizationDashboard() {
                 className={`font-mono text-[10px] uppercase tracking-wider px-3.5 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 ${
                   activeRole !== "SovereignOwner" && activeRole !== "Auditor"
                     ? "opacity-45 cursor-not-allowed border-border/30 text-muted-foreground"
-                    : "bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border-rose-500/30 cursor-pointer"
+                    : "bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border-rose-500/30 cursor-pointer font-semibold"
                 }`}
               >
                 <RefreshCw className={`size-3.5 ${isTesting ? "animate-spin" : ""}`} />
@@ -890,14 +1844,14 @@ export function MonetizationDashboard() {
                 className={`font-mono text-[10px] uppercase tracking-wider px-3.5 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 ${
                   activeRole !== "SovereignOwner" && activeRole !== "Auditor"
                     ? "opacity-45 cursor-not-allowed border-border/30 text-muted-foreground"
-                    : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/30 cursor-pointer"
+                    : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/30 cursor-pointer font-semibold"
                 }`}
               >
                 <Shield className={`size-3.5 ${isVerifyingAudit ? "animate-spin" : ""}`} />
                 {isVerifyingAudit ? "Verificando..." : "Validar Cadena Audit (SHA-256)"}
               </button>
 
-              <span className="font-mono text-[9.5px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-1 rounded-xl font-semibold">
+              <span className="font-mono text-[9.5px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2.5 py-1 rounded-xl font-semibold">
                 Auditoría en Caliente
               </span>
             </div>
@@ -905,7 +1859,7 @@ export function MonetizationDashboard() {
 
           {/* Test Suite Diagnostics Checklist Output */}
           {testResults && (
-            <div className="mb-5 p-4 rounded-2xl bg-black/30 border border-border/40 animate-rise">
+            <div className="p-4 rounded-2xl bg-black/30 border border-border/40 animate-rise">
               <h4 className="font-mono text-[11px] uppercase tracking-wider text-pearl font-bold mb-3 flex items-center gap-1.5">
                 <Shield className="size-4 text-rose-400" />
                 Resultados del Criptosistema y Pruebas Unitarias de Seguridad
@@ -937,11 +1891,17 @@ export function MonetizationDashboard() {
             </div>
           )}
 
-          <div className="max-h-52 overflow-y-auto space-y-2 border border-border/20 rounded-2xl p-3 bg-secondary/10">
+          <div className="max-h-80 overflow-y-auto space-y-2 border border-border/20 rounded-2xl p-3 bg-secondary/10">
             {auditLogs.map((log) => (
               <div
                 key={log.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xl border border-border/20 bg-secondary/15 hover:bg-secondary/25 transition-all font-mono text-[11px]"
+                onClick={() => {
+                  setSelectedAuditLog(log);
+                  toast.success(`Cargado log '${log.event}' en el Inspector Forense`);
+                  // Jump to special tab to see details
+                  setActiveTab("special");
+                }}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xl border border-border/20 bg-secondary/15 hover:bg-secondary/25 transition-all font-mono text-[11px] cursor-pointer"
               >
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -977,26 +1937,26 @@ export function MonetizationDashboard() {
         </div>
       )}
 
-      {/* Roadmap phases block */}
-      <div className="glass rounded-3xl p-6">
+      {/* 4. Plan and Hoja de Ruta de Expansión (Always Visible Footer) */}
+      <div className="glass rounded-3xl p-6 border border-border/30 bg-gradient-to-br from-secondary/5 to-secondary/10">
         <h3 className="font-mono text-[14px] text-pearl font-semibold flex items-center gap-2">
           <Settings className="size-4.5 text-electric animate-spin-slow" />
-          Plan y Hoja de Ruta de Expansión
+          Plan y Hoja de Ruta de Expansión Territorial
         </h3>
         <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">
-          Navega por las fases previstas de distribución económica y modelos de coinversión
-          territorial de Isabella Villaseñor AI.
+          Navegue por las etapas previstas para la autonomía y distribución económica del Nodo Cero
+          en Real del Monte, Hidalgo.
         </p>
 
         {/* Stages Selector */}
-        <div className="flex gap-1.5 mt-4 overflow-x-auto pb-1 md:pb-0">
+        <div className="flex gap-1.5 mt-4 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           {[1, 2, 3, 4, 5, 6].map((stg) => (
             <button
               key={stg}
               onClick={() => setActiveRoadmapStage(stg)}
-              className={`flex-1 min-w-[50px] font-mono text-[11px] py-1.5 border rounded-xl transition-all ${
+              className={`flex-1 min-w-[90px] font-mono text-[11px] py-2 border rounded-xl transition-all cursor-pointer font-semibold ${
                 activeRoadmapStage === stg
-                  ? "bg-electric/25 text-platinum border-electric font-semibold"
+                  ? "bg-electric/25 text-platinum border-electric"
                   : "border-border/30 text-muted-foreground hover:border-border/60"
               }`}
             >
@@ -1006,75 +1966,82 @@ export function MonetizationDashboard() {
         </div>
 
         {/* Stage content details */}
-        <div className="mt-4 bg-secondary/15 rounded-2xl p-4 border border-border/30">
+        <div className="mt-4 bg-secondary/15 rounded-2xl p-4 border border-border/30 font-mono">
           {activeRoadmapStage === 1 && (
             <div>
-              <span className="block font-mono text-[12px] font-semibold text-platinum mb-1">
-                Etapa 1: Activación Freemium y Stripe
+              <span className="block text-[12px] font-bold text-platinum mb-1">
+                Etapa 1: Activación Freemium y Stripe Soberano
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                Despliegue del plan gratuito constitucional, registro de usuarios con consentimiento
-                y políticas transparentes de telemetría.
+                Despliegue del plan gratuito constitucional, registro seguro de consentimiento del
+                usuario y políticas transparentes de telemetría auditada por hardware local.
               </p>
             </div>
           )}
           {activeRoadmapStage === 2 && (
             <div>
-              <span className="block font-mono text-[12px] font-semibold text-platinum mb-1">
+              <span className="block text-[12px] font-bold text-platinum mb-1">
                 Etapa 2: Consumo y API de Integración
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                Habilitación de créditos de consumo exacto en BookPI, generación dinámica de API
-                keys con alcances estrictos de seguridad.
+                Habilitación de créditos de consumo exacto en BookPI, generación dinámica de claves
+                de API con alcances y validaciones robustas de RBAC.
               </p>
             </div>
           )}
           {activeRoadmapStage === 3 && (
             <div>
-              <span className="block font-mono text-[12px] font-semibold text-platinum mb-1">
+              <span className="block text-[12px] font-bold text-platinum mb-1">
                 Etapa 3: Skills Marketplace y BookPI Ledger
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                Venta y ejecución de Skills validadas mediante análisis estático SAST, modelo de
-                distribución de ingresos para desarrolladores.
+                Ejecución y comercialización de Skills validadas previamente mediante análisis SAST
+                automatizado, estableciendo regalías justas de coinversión.
               </p>
             </div>
           )}
           {activeRoadmapStage === 4 && (
             <div>
-              <span className="block font-mono text-[12px] font-semibold text-platinum mb-1">
+              <span className="block text-[12px] font-bold text-platinum mb-1">
                 Etapa 4: Soluciones Enterprise y Gubernamentales
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
                 Despliegue de mallas dedicadas CITEMESH, resguardo de datos soberanos de
-                administraciones y simulación espacial GEMET.
+                administraciones locales y simulación territorial avanzada GEMET.
               </p>
             </div>
           )}
           {activeRoadmapStage === 5 && (
             <div>
-              <span className="block font-mono text-[12px] font-semibold text-platinum mb-1">
+              <span className="block text-[12px] font-bold text-platinum mb-1">
                 Etapa 5: Formación y Ciencia Abierta
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                Certificaciones técnicas especializadas en resguardo de datos, becas de
-                investigación y datasets curados con autoría canónica.
+                Certificaciones técnicas presenciales en Real del Monte sobre resguardo de datos,
+                becas de investigación y datasets libres y soberanos.
               </p>
             </div>
           )}
           {activeRoadmapStage === 6 && (
             <div>
-              <span className="block font-mono text-[12px] font-semibold text-platinum mb-1">
-                Etapa 6: Tokenización Responsable
+              <span className="block text-[12px] font-bold text-platinum mb-1">
+                Etapa 6: Tokenización Responsable y Sostenible
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
                 Pilotos cerrados de participación financiera tras un vasto análisis regulatorio y
-                mitigación de riesgos de KYC/AML.
+                mitigación estricta de riesgos de lavado de activos y KYC local.
               </p>
             </div>
           )}
         </div>
       </div>
+
+      {/* Modal Onboarding */}
+      <AccountOnboarding
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        onComplete={handleOnboardingComplete}
+      />
     </div>
   );
 }
