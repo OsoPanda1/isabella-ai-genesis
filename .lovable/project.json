@@ -1,5 +1,84 @@
 {
-  "schemaVersion": 1,
-  "template": "tanstack_start_ts_current",
-  "revision": "tanstack_start_ts_current-c5239f3e3f32"
+  "$schema": "https://json.schemastore.org/project-config.json",
+  "schemaVersion": 2,
+  "identity": {
+    "name": "isabella-ai-genesis",
+    "codename": "Isabella Villaseñor AI Core",
+    "description": "Núcleo de inteligencia artificial consciente y orquestador federativo de las 7 Federaciones TAMV sobre TanStack Start y Supabase",
+    "version": "2.0.0-genesis",
+    "owner": "OsoPanda1",
+    "organization": "TAMV ONLINE ENTERPRISE"
+  },
+  "template": {
+    "name": "tanstack_start_ts_current",
+    "revision": "tanstack_start_ts_current-c5239f3e3f32",
+    "preset": "fullstack-enterprise-ai"
+  },
+  "engine": {
+    "runtime": "bun",
+    "framework": "tanstack_start",
+    "language": "typescript",
+    "ui": {
+      "framework": "react_19",
+      "styling": "tailwindcss_v4",
+      "designSystem": "shadcn_ui"
+    },
+    "database": {
+      "provider": "supabase",
+      "vectorSearch": "pgvector",
+      "realtime": true
+    }
+  },
+  "federations": {
+    "architecture": "TAMV 7-Federations Model",
+    "nodes": [
+      {
+        "id": "fed_01_cognition",
+        "name": "Federación de Cognición y Razonamiento",
+        "agent": "Isabella-Cognition-Core",
+        "enabled": true
+      },
+      {
+        "id": "fed_02_memory",
+        "name": "Federación de Datos y Memoria Vectorial",
+        "store": "supabase_vector_store",
+        "enabled": true
+      },
+      {
+        "id": "fed_03_interface",
+        "name": "Federación de Interfaz e Interacción Cognitiva",
+        "routing": "tanstack_router",
+        "enabled": true
+      },
+      {
+        "id": "fed_04_governance",
+        "name": "Federación de Seguridad, Identidad y Gobernanza",
+        "auth": "supabase_rls_auth",
+        "enabled": true
+      },
+      {
+        "id": "fed_05_swarm",
+        "name": "Federación de Agentes y Micro-servicios",
+        "manifest": "AGENTS.md",
+        "enabled": true
+      },
+      {
+        "id": "fed_06_mesh",
+        "name": "Federación de Integración y API Mesh",
+        "protocol": "fullstack_type_safe_rpc",
+        "enabled": true
+      },
+      {
+        "id": "fed_07_infrastructure",
+        "name": "Federación de Infraestructura y Despliegue",
+        "bundler": "vite_bun",
+        "enabled": true
+      }
+    ]
+  },
+  "telemetry": {
+    "logging": "verbose",
+    "healthCheck": "/api/health",
+    "metrics": true
+  }
 }
