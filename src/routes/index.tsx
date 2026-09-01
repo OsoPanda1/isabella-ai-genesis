@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Download,
   FolderOpen,
+  Cpu,
 } from "lucide-react";
 import { CinematicIntro } from "@/components/isabella/CinematicIntro";
 import { CommandLine } from "@/components/isabella/CommandLine";
@@ -21,6 +22,8 @@ import { TelemetryPanel } from "@/components/isabella/TelemetryPanel";
 import { ApiCatalogExplorer } from "@/components/isabella/ApiCatalogExplorer";
 import { TerminalView } from "@/components/isabella/TerminalView";
 import { MonetizationDashboard } from "@/components/isabella/MonetizationDashboard";
+import { QuantumUtilityDashboard } from "@/components/isabella/QuantumUtilityDashboard";
+import { AiInterfacesHub } from "@/components/isabella/AiInterfacesHub";
 import { useIsabella } from "@/lib/useIsabella";
 
 const TITLE = "Isabella Villaseñor AI — Terminal Cognitivo C.R.O.W.N.";
@@ -86,9 +89,9 @@ function Index() {
 function IsabellaInterface() {
   const isabella = useIsabella();
   const [panel, setPanel] = useState(false);
-  const [activeTab, setActiveTab] = useState<"terminal" | "cli" | "catalog" | "monetization">(
-    "terminal",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "terminal" | "cli" | "catalog" | "monetization" | "quantum" | "interfaces"
+  >("terminal");
 
   // Sidebar State for 3-part retractable accordions
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -194,6 +197,18 @@ function IsabellaInterface() {
                     <TerminalIcon className="size-4 shrink-0" />
                     {isSidebarOpen && <span className="truncate">Consola Retro CLI</span>}
                   </button>
+
+                  <button
+                    onClick={() => setActiveTab("interfaces")}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-mono text-[11.5px] transition-all crystal-glow-electric ${
+                      activeTab === "interfaces"
+                        ? "bg-electric/15 text-electric border border-electric/30 font-semibold shadow-[0_0_15px_-4px_rgba(112,102,249,0.3)]"
+                        : "text-muted-foreground hover:bg-secondary/20 hover:text-platinum border border-transparent"
+                    }`}
+                  >
+                    <Sparkles className="size-4 shrink-0" />
+                    {isSidebarOpen && <span className="truncate">Interfaces IA</span>}
+                  </button>
                 </div>
               )}
             </div>
@@ -233,6 +248,18 @@ function IsabellaInterface() {
                   >
                     <BookOpen className="size-4 shrink-0" />
                     {isSidebarOpen && <span className="truncate">Catálogo de APIs</span>}
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("quantum")}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-mono text-[11.5px] transition-all crystal-glow-crown ${
+                      activeTab === "quantum"
+                        ? "bg-crown/15 text-crown border border-crown/30 font-semibold shadow-[0_0_15px_-4px_rgba(180,112,249,0.3)]"
+                        : "text-muted-foreground hover:bg-secondary/20 hover:text-platinum border border-transparent"
+                    }`}
+                  >
+                    <Cpu className="size-4 shrink-0" />
+                    {isSidebarOpen && <span className="truncate">Utilidad Cuántica (qup)</span>}
                   </button>
 
                   {isSidebarOpen && (
@@ -352,6 +379,7 @@ function IsabellaInterface() {
                   {activeTab === "cli" && "Consola Retro Directa"}
                   {activeTab === "catalog" && "Gobernanza de APIs e Invocaciones"}
                   {activeTab === "monetization" && "Tablero de Consumo Soberano"}
+                  {activeTab === "quantum" && "Optimización y Transpilación Cuántica (qup)"}
                 </p>
               </div>
             </div>
@@ -446,6 +474,18 @@ function IsabellaInterface() {
           {activeTab === "monetization" && (
             <div className="animate-rise max-w-[1300px] mx-auto crystal-glow-emerald rounded-3xl overflow-hidden">
               <MonetizationDashboard />
+            </div>
+          )}
+
+          {activeTab === "quantum" && (
+            <div className="animate-rise max-w-[1300px] mx-auto crystal-glow-crown rounded-3xl overflow-hidden">
+              <QuantumUtilityDashboard />
+            </div>
+          )}
+
+          {activeTab === "interfaces" && (
+            <div className="animate-rise max-w-[1300px] mx-auto crystal-glow-crown rounded-3xl overflow-hidden">
+              <AiInterfacesHub />
             </div>
           )}
         </main>

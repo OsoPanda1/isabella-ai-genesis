@@ -23,6 +23,34 @@ export type RuntimeMode = z.infer<typeof runtimeModeSchema>;
 
 const coercedInt = (def: number) => z.coerce.number().int().nonnegative().default(def);
 
+const emptyToUndefined = (schema: z.ZodTypeAny) =>
+  z.preprocess((val) => {
+    if (typeof val !== "string") return undefined;
+    const trimmed = val.trim();
+    if (trimmed === "" || trimmed === "undefined" || trimmed === "null") {
+      return undefined;
+    }
+    return trimmed;
+  }, schema);
+
+const optionalUrl = () =>
+  z.preprocess((val) => {
+    if (typeof val !== "string") return undefined;
+    const trimmed = val.trim();
+    if (trimmed === "" || trimmed === "undefined" || trimmed === "null") {
+      return undefined;
+    }
+    try {
+      new URL(trimmed);
+      return trimmed;
+    } catch {
+      return undefined;
+    }
+  }, z.string().url().optional());
+
+const optionalString = () => emptyToUndefined(z.string().optional());
+const optionalMinString = (min: number) => emptyToUndefined(z.string().min(min).optional());
+
 export const envSchema = z.object({
   // --- ENVIRONMENT ---
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -30,35 +58,35 @@ export const envSchema = z.object({
   PUBLIC_URL: z.string().url().default("http://localhost:3000"),
 
   // --- SUPABASE ---
-  SUPABASE_URL: z.string().url().optional(),
-  SUPABASE_ANON_KEY: z.string().optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
-  SUPABASE_JWT_SECRET: z.string().optional(),
+  SUPABASE_URL: optionalUrl(),
+  SUPABASE_ANON_KEY: optionalString(),
+  SUPABASE_SERVICE_ROLE_KEY: optionalString(),
+  SUPABASE_JWT_SECRET: optionalString(),
 
   // --- JWT / OIDC ---
-  AUTH_JWT_SECRET: z.string().min(16).optional(),
-  AUTH_ISSUER: z.string().url().optional(),
+  AUTH_JWT_SECRET: optionalMinString(16),
+  AUTH_ISSUER: optionalUrl(),
   AUTH_AUDIENCE: z.string().default("isabella"),
   AUTH_ACCESS_TOKEN_TTL: coercedInt(3600),
   AUTH_REFRESH_TOKEN_TTL: coercedInt(604800),
-  OIDC_JWKS_URL: z.string().url().optional(),
+  OIDC_JWKS_URL: optionalUrl(),
   JWKS_CACHE_TTL: coercedInt(3600),
 
   // --- CRYPTO ---
-  ENCRYPTION_MASTER_KEY: z.string().min(32).optional(),
+  ENCRYPTION_MASTER_KEY: optionalMinString(32),
   ENCRYPTION_ALGORITHM: z.string().default("aes-256-gcm"),
 
   // --- CROWN ---
   CROWN_CONSTITUTION_VERSION: z.string().default("v4.2.0"),
-  CROWN_POLICY_SIGNING_KEY: z.string().optional(),
+  CROWN_POLICY_SIGNING_KEY: optionalString(),
   CROWN_ENFORCEMENT_MODE: z.enum(["enforce", "warn", "dry-run"]).default("enforce"),
 
   // --- BOOKPI ---
   BOOKPI_SIGNATURE_ALGORITHM: z.string().default("NOT_IMPLEMENTED"),
-  BOOKPI_SIGNING_KEY: z.string().optional(),
+  BOOKPI_SIGNING_KEY: optionalString(),
 
   // --- REDIS ---
-  REDIS_URL: z.string().optional(),
+  REDIS_URL: optionalString(),
   REDIS_PREFIX: z.string().default("isabella"),
 
   // --- RATE LIMIT ---
@@ -67,14 +95,14 @@ export const envSchema = z.object({
   RATE_LIMIT_VOICE_PER_MINUTE: coercedInt(20),
 
   // --- AI GATEWAY ---
-  LOVABLE_API_KEY: z.string().optional(),
-  GEMINI_API_KEY: z.string().optional(),
+  LOVABLE_API_KEY: optionalString(),
+  GEMINI_API_KEY: optionalString(),
   LLM_DEFAULT_MODEL: z.string().default("google/gemini-3.6-flash"),
   LLM_VOICE_MODEL: z.string().default("openai/gpt-4o-mini-tts"),
   LLM_UPSTREAM_TIMEOUT_MS: coercedInt(8500),
 
   // --- TELEMETRY ---
-  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
+  OTEL_EXPORTER_OTLP_ENDPOINT: optionalUrl(),
   OTEL_SERVICE_NAME: z.string().default("isabella-ai"),
 
   // --- REDACTION ---

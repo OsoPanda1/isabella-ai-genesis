@@ -2,9 +2,7 @@
   "name": "Isabella Villaseñor AI",
   "description": "Isabella Villaseñor AI is a contextual, territorial and deeply governed hybrid cognitive architecture, coordinating memory, interpretation, tools and traceability.",
   "requestFramePermissions": ["microphone"],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"],
   "operational": {
     "version": "4.2.0",
     "build": "isabella-ai",
@@ -12,12 +10,6 @@
     "schemaVersion": "1",
     "protocolVersion": "1",
     "compatibilityVersion": "4",
-    "runtimeModes": [
-      "development",
-      "staging",
-      "production",
-      "emergency",
-      "maintenance"
-    ]
+    "runtimeModes": ["development", "staging", "production", "emergency", "maintenance"]
   }
 }
