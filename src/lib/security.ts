@@ -1,13 +1,26 @@
 import { z } from "zod";
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
+import { config } from "./config";
 
 // ============================================================================
 // CANONICAL SEVEN LAYERS OF SECURITY HARDENING SYSTEM - ISABELLA v4.2.0
 // ============================================================================
 
-// Secret cryptographic salt for token verification
-const SECURITY_SECRET =
-  process.env.LOVABLE_API_KEY || "isabella_sovereign_security_secret_tamv_hidalgo";
+/**
+ * Clave de firma del nodo. Proviene de la configuracin validada
+ * (NUNCA de `process.env` directo ni de valores de relleno). Si no
+ * hay clave configurada, firmar tokens es un error — no se usa un
+ * fallback falso (zero mockdata / zero fake-security).
+ */
+function securitySecret(): string {
+  const value = config().AUTH_JWT_SECRET;
+  if (!value) {
+    throw new Error(
+      "securitySecret: AUTH_JWT_SECRET no configurado. No se pueden firmar tokens soberanos.",
+    );
+  }
+  return value;
+}
 
 // --- LAYER 2: In-Memory Rate Limiting Cache ---
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute window
@@ -102,7 +115,7 @@ export const SecuritySystem = {
       scope,
     };
     const payloadStr = Buffer.from(JSON.stringify(payload)).toString("base64url");
-    const signature = this.hmacSha256(`${header}.${payloadStr}`, SECURITY_SECRET);
+    const signature = this.hmacSha256(`${header}.${payloadStr}`, securitySecret());
     return `isa_live_${header}.${payloadStr}.${signature}`;
   },
 
@@ -120,9 +133,9 @@ export const SecuritySystem = {
       if (parts.length !== 3) {
         return { success: false, error: "Estructura de firma digital corrupta." };
       }
+      const [header, payloadStr, signature] = parts as [string, string, string];
 
-      const [header, payloadStr, signature] = parts;
-      const expectedSig = this.hmacSha256(`${header}.${payloadStr}`, SECURITY_SECRET);
+      const expectedSig = this.hmacSha256(`${header}.${payloadStr}`, securitySecret());
 
       if (signature !== expectedSig) {
         return {
@@ -160,7 +173,7 @@ export const SecuritySystem = {
   ): { allowed: boolean; reason?: string; claims?: TokenClaims } {
     const verification = this.verifyToken(token);
     if (!verification.success) {
-      return { allowed: false, reason: verification.error };
+      return { allowed: false, reason: verification.error ?? "Credencial no válida." };
     }
 
     const claims = verification.claims!;
@@ -215,7 +228,7 @@ export const SecuritySystem = {
   },
 
   // --- LAYER 6: Auditable Trace Telemetry ---
-  generateTelemetry(ip: string, policy: "allowed" | "denied" | "flagged"): SecurityTelemetry {
+  generateTelemetry(_ip: string, policy: "allowed" | "denied" | "flagged"): SecurityTelemetry {
     const traceId =
       "tr_" + this.simpleHash(Math.random().toString() + Date.now().toString()).toUpperCase();
     const correlationId =
