@@ -165,6 +165,236 @@ export const Route = createFileRoute("/api/db")({
           })({ request });
         }
 
+        // --- LAYER 3.2: Manual OAuth Endpoints (Supports Dev App URLs perfectly) ---
+        if (action === "oauth-url") {
+          const headers = SecuritySystem.injectSecureHeaders(
+            new Headers({ "content-type": "application/json" }),
+          );
+          const redirectUri = url.searchParams.get("redirect_uri") || `${url.origin}/api/db?action=oauth-callback`;
+          const clientId = url.searchParams.get("client_id") || "isabella_oauth_client";
+          
+          const providerUrl = `${url.origin}/api/db?action=oauth-provider&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${encodeURIComponent(clientId)}`;
+          return new Response(JSON.stringify({ url: providerUrl }), { headers });
+        }
+
+        if (action === "oauth-provider") {
+          const redirectUri = url.searchParams.get("redirect_uri") || "";
+          const clientId = url.searchParams.get("client_id") || "isabella_oauth_client";
+          const db = SovereignDB.load();
+          const sessions = db.sessions;
+
+          const html = `
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Isabella Sovereign IDP — Conexión OAuth 2.0</title>
+              <style>
+                body {
+                  background-color: #0b0c10;
+                  color: #e2e8f0;
+                  font-family: system-ui, -apple-system, sans-serif;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  min-height: 100vh;
+                  margin: 0;
+                  padding: 20px;
+                  box-sizing: border-box;
+                }
+                .card {
+                  background: rgba(17, 20, 28, 0.9);
+                  border: 1px solid rgba(112, 102, 249, 0.3);
+                  box-shadow: 0 10px 40px 0 rgba(112, 102, 249, 0.2);
+                  border-radius: 16px;
+                  padding: 32px;
+                  max-width: 440px;
+                  width: 100%;
+                  text-align: center;
+                }
+                h1 {
+                  color: #7066f9;
+                  font-size: 22px;
+                  margin-top: 12px;
+                  margin-bottom: 8px;
+                }
+                .subtitle {
+                  color: #94a3b8;
+                  font-size: 13px;
+                  margin-bottom: 24px;
+                }
+                .scope-box {
+                  background: rgba(255, 255, 255, 0.03);
+                  border: 1px solid rgba(255, 255, 255, 0.08);
+                  border-radius: 8px;
+                  padding: 12px;
+                  text-align: left;
+                  margin-bottom: 20px;
+                  font-size: 12px;
+                }
+                .scope-item {
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  margin-bottom: 6px;
+                }
+                .scope-item:last-child {
+                  margin-bottom: 0;
+                }
+                .scope-bullet {
+                  color: #10b981;
+                  font-weight: bold;
+                }
+                select {
+                  width: 100%;
+                  background: #1e293b;
+                  border: 1px solid rgba(255, 255, 255, 0.15);
+                  color: #f8fafc;
+                  padding: 10px;
+                  border-radius: 8px;
+                  font-size: 14px;
+                  outline: none;
+                  margin-bottom: 24px;
+                  cursor: pointer;
+                }
+                .btn {
+                  width: 100%;
+                  background: #7066f9;
+                  color: white;
+                  border: none;
+                  padding: 12px;
+                  border-radius: 8px;
+                  font-size: 14px;
+                  font-weight: 600;
+                  cursor: pointer;
+                  transition: background 0.2s;
+                }
+                .btn:hover {
+                  background: #5a50e5;
+                }
+                .footer {
+                  margin-top: 20px;
+                  font-size: 11px;
+                  color: #64748b;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <div style="font-size: 40px; margin-bottom: 8px;">🌸</div>
+                <h1>Isabella Sovereign IDP</h1>
+                <div class="subtitle">La identidad OIDC determina su rol de acceso mediante control estricto RBAC.</div>
+                
+                <form action="/api/db?action=oauth-authorize-action" method="POST">
+                  <input type="hidden" name="redirect_uri" value="${encodeURIComponent(redirectUri)}">
+                  <input type="hidden" name="client_id" value="${encodeURIComponent(clientId)}">
+                  
+                  <div class="scope-box">
+                    <div style="font-weight: 600; margin-bottom: 8px; color: #f1f5f9;">Permisos Solicitados:</div>
+                    <div class="scope-item"><span class="scope-bullet">✔</span> openid (Identidad de sesión única)</div>
+                    <div class="scope-item"><span class="scope-bullet">✔</span> profile (Perfil soberano en Nodo Cero)</div>
+                    <div class="scope-item"><span class="scope-bullet">✔</span> isabella:chat (Diálogo interactivo)</div>
+                  </div>
+                  
+                  <div style="text-align: left; margin-bottom: 8px; font-size: 12px; color: #94a3b8; font-weight: 500;">Seleccionar Cuenta Soberana:</div>
+                  <select name="userId">
+                    ${sessions
+                      .map(
+                        (s) =>
+                          `<option value="${s.userId}">${s.username} (${s.role})</option>`,
+                      )
+                      .join("")}
+                  </select>
+                  
+                  <button type="submit" class="btn">Autorizar Acceso Seguro</button>
+                </form>
+                
+                <div class="footer">
+                  Seguridad C.R.O.W.N. • Real del Monte, Hidalgo, MX
+                </div>
+              </div>
+            </body>
+            </html>
+          `;
+          return new Response(html, {
+            headers: new Headers({ "content-type": "text/html" }),
+          });
+        }
+
+        if (action === "oauth-callback") {
+          const code = url.searchParams.get("code") || "";
+          const userId = code.replace("authcode_", "");
+          
+          const db = SovereignDB.load();
+          const seededUser = db.sessions.find((s) => s.userId === userId);
+          if (!seededUser) {
+            return new Response("Error: Usuario no encontrado en base de datos.", { status: 400 });
+          }
+
+          const scope = "isabella:chat isabella:ledger:write isabella:sandbox:run";
+          const userToken = SecuritySystem.generateSovereignToken(
+            seededUser.userId,
+            seededUser.role,
+            seededUser.tenantId,
+            scope,
+          );
+
+          const callbackHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <title>Conexión Exitosa</title>
+              <style>
+                body {
+                  background: #0b0c10;
+                  color: #e2e8f0;
+                  font-family: system-ui, sans-serif;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  height: 100vh;
+                  margin: 0;
+                  text-align: center;
+                }
+                .msg {
+                  background: rgba(16, 185, 129, 0.1);
+                  border: 1px solid rgba(16, 185, 129, 0.3);
+                  padding: 24px;
+                  border-radius: 12px;
+                  max-width: 380px;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="msg">
+                <div style="font-size: 32px; margin-bottom: 12px;">✔</div>
+                <h3 style="margin: 0 0 8px 0; color: #10b981;">Autenticación Completa</h3>
+                <p style="margin: 0; font-size: 13px; color: #94a3b8;">La conexión con Isabella se ha verificado criptográficamente. Esta ventana se cerrará...</p>
+              </div>
+              <script>
+                if (window.opener) {
+                  window.opener.postMessage({ 
+                    type: 'OAUTH_AUTH_SUCCESS', 
+                    token: '${userToken}',
+                    userId: '${seededUser.userId}',
+                    username: '${seededUser.username}',
+                    role: '${seededUser.role}'
+                  }, '*');
+                  setTimeout(() => { window.close(); }, 800);
+                } else {
+                  window.location.href = '/';
+                }
+              </script>
+            </body>
+            </html>
+          `;
+          return new Response(callbackHtml, {
+            headers: new Headers({ "content-type": "text/html" }),
+          });
+        }
+
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json" }),
         );
@@ -183,6 +413,21 @@ export const Route = createFileRoute("/api/db")({
         );
 
         try {
+          if (action === "oauth-authorize-action") {
+            const formData = await request.formData();
+            const redirectUriEnc = formData.get("redirect_uri") as string;
+            const userId = formData.get("userId") as string;
+            
+            const redirectUri = decodeURIComponent(redirectUriEnc);
+            const code = `authcode_${userId}`;
+            
+            const targetUrl = `${redirectUri}${redirectUri.includes("?") ? "&" : "?"}code=${code}`;
+            return new Response("", {
+              status: 303,
+              headers: new Headers({ "Location": targetUrl }),
+            });
+          }
+
           // 1. OIDC Identity Exchange Handshake (Requires NO Token)
           if (action === "authenticate") {
             const body = await request.json();

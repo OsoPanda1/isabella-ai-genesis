@@ -5,8 +5,9 @@
 -- ============================================================================
 
 -- Enable UUID and pgvector extensions
+create schema if not exists extensions;
 create extension if not exists "uuid-ossp";
-create extension if not exists vector;
+create extension if not exists vector schema extensions;
 
 -- Safe Schema Setup: Drop triggers/tables selectively if re-running
 drop trigger if exists update_tenants_modtime on tenants;
@@ -62,7 +63,7 @@ create table memories (
     tenant_id varchar(64) not null references tenants(id) on delete cascade,
     user_id varchar(64) not null references profiles(id) on delete cascade,
     content text not null,
-    embedding vector(1536), -- Vector column for semantic searches (requires pgvector)
+    embedding extensions.vector(1536), -- Vector column for semantic searches (requires pgvector)
     scope varchar(50) not null default 'Session' check (scope in ('Immediate', 'Session', 'Project', 'Territorial', 'Historical')),
     metadata jsonb not null default '{}'::jsonb,
     created_at timestamptz not null default now()

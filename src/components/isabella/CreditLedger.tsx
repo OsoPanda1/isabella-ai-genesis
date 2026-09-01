@@ -12,7 +12,7 @@ import {
 export interface LedgerItem {
   id: string;
   operation: string;
-  category: "inference" | "processing" | "apis" | "skills" | "other";
+  category: "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT";
   costDecimal: string;
   timestamp: string;
   status: "settled" | "pending" | "refunded";

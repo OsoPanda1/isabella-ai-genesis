@@ -68,7 +68,7 @@ interface AuditLog {
 interface LedgerBlock {
   index: number;
   operation: string;
-  category: "inference" | "processing" | "apis" | "skills" | "other";
+  category: "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT";
   costDecimal: string;
   timestamp: string;
   status: "settled" | "pending" | "refunded";
@@ -286,7 +286,7 @@ export function MonetizationDashboard() {
 
   // Synchronize state and records on mount and activeRole / token changes
   const fetchDbState = useCallback(async () => {
-    if (!sessionToken || !sessionToken.startsWith("isa_live_")) {
+    if (!sessionToken || !sessionToken.startsWith("eyJ")) {
       try {
         const res = await fetch(`/api/db?action=authenticate`, {
           method: "POST",
@@ -378,6 +378,48 @@ export function MonetizationDashboard() {
   useEffect(() => {
     fetchDbState();
   }, [fetchDbState]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const origin = event.origin;
+      if (!origin.endsWith(".run.app") && !origin.includes("localhost")) {
+        return;
+      }
+      if (event.data?.type === "OAUTH_AUTH_SUCCESS") {
+        const { token, username } = event.data;
+        if (token) {
+          setSessionToken(token);
+          try {
+            window.sessionStorage.setItem("isabella_session_token", token);
+          } catch {}
+          toast.success(`Conexión OAuth Exitosa. Bienvenido, ${username || "Soberano"}.`);
+        }
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  const handleConnectOAuth = async () => {
+    try {
+      const redirectUri = `${window.location.origin}/api/db?action=oauth-callback`;
+      const response = await fetch(`/api/db?action=oauth-url&redirect_uri=${encodeURIComponent(redirectUri)}`);
+      if (!response.ok) throw new Error("Fallo al construir URL de OAuth");
+      const { url } = await response.json();
+      
+      const authWindow = window.open(
+        url,
+        "isabella_oauth_popup",
+        "width=500,height=600"
+      );
+      if (!authWindow) {
+        toast.error("El navegador bloqueó la ventana emergente. Por favor, habilite las ventanas emergentes.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Error al iniciar el flujo de OAuth.");
+    }
+  };
 
   // Inbound usage operations
   const handleSimulateCreditUsage = async (
@@ -726,7 +768,7 @@ export function MonetizationDashboard() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 lg:self-center">
+          <div className="flex flex-wrap items-center gap-3 lg:self-center">
             {/* OIDC User Profiles Select Toggles */}
             <div className="bg-secondary/40 border border-border/40 rounded-2xl p-2 flex items-center gap-2">
               <span className="font-mono text-[10.5px] text-muted-foreground uppercase pl-2">
@@ -754,6 +796,14 @@ export function MonetizationDashboard() {
                 ))}
               </div>
             </div>
+
+            <button
+              onClick={handleConnectOAuth}
+              className="bg-gradient-to-r from-electric to-purple-600 hover:from-electric hover:to-purple-500 text-platinum text-[10px] font-mono font-semibold px-4 py-2.5 rounded-2xl border border-electric/30 hover:border-electric/50 shadow-[0_4px_12px_rgba(112,102,249,0.2)] hover:shadow-[0_4px_20px_rgba(112,102,249,0.4)] flex items-center gap-2 transition-all cursor-pointer"
+            >
+              <Key className="size-3.5 animate-pulse text-electric-light" />
+              Iniciar OAuth Manual
+            </button>
           </div>
         </div>
 

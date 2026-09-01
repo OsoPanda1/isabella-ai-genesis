@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
 import { secrets } from "@/lib/secrets";
+import { withSovereignAuth } from "@/lib/principal-context";
 
 const bodySchema = z.object({
   text: z.string().min(1).max(4000),
@@ -11,10 +12,9 @@ const bodySchema = z.object({
 export const Route = createFileRoute("/api/isabella-voice")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
+      POST: withSovereignAuth("system", "execute", async (context, request) => {
         // --- LAYER 2: Rate Limiting ---
-        const ip = request.headers.get("x-forwarded-for") || "local_client";
-        const rateLimit = SecuritySystem.checkRateLimit(ip, 20); // Voice is heavier, lower limit (20/min)
+        const rateLimit = SecuritySystem.checkRateLimit(context.ip, 20); // Voice is heavier, lower limit (20/min)
         if (!rateLimit.allowed) {
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
@@ -85,7 +85,7 @@ export const Route = createFileRoute("/api/isabella-voice")({
         }
 
         // --- LAYER 6: Auditable Telemetry ---
-        const telemetry = SecuritySystem.generateTelemetry(ip, "allowed");
+        const telemetry = SecuritySystem.generateTelemetry(context.ip, "allowed");
 
         // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker ---
         try {
@@ -152,7 +152,7 @@ export const Route = createFileRoute("/api/isabella-voice")({
             { status: 502, headers },
           );
         }
-      },
+      }),
     },
   },
 });

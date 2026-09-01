@@ -122,11 +122,12 @@ export const SecuritySystem = {
       return { success: false, error: "Credencial nula: No se proporcionó clave de API." };
     }
 
-    // Deprecate "isa_live_" prefix by cleaning it if present, but transition fully to clean JWTs
-    const cleanToken = token.startsWith("isa_live_") ? token.replace("isa_live_", "") : token;
+    if (token.startsWith("isa_live_")) {
+      return { success: false, error: "El formato de token 'isa_live_' ha sido plenamente deprecado por razones de seguridad. Por favor, inicie sesión mediante OIDC/OAuth para obtener un JWT válido." };
+    }
 
     try {
-      const res = JWT_VERIFIER.verify(cleanToken, {
+      const res = JWT_VERIFIER.verify(token, {
         key: securitySecret(),
         algorithm: "HS256",
         issuer: "TAMV Online Network Security Hub",

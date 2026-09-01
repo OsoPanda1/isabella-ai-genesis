@@ -16,7 +16,7 @@ export interface BookPILedgerBlock {
   tenantId: string;
   userId: string;
   operation: string;
-  category: "inference" | "processing" | "apis" | "skills" | "other";
+  category: "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT";
   costDecimal: string;
   tokensConsumed: number;
   previousHash: string;
@@ -225,7 +225,7 @@ export class SovereignDB {
     tenantId: string,
     userId: string,
     operation: string,
-    category: "inference" | "processing" | "apis" | "skills" | "other",
+    category: "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT",
     cost: number,
     tokens: number,
   ): BookPILedgerBlock {
@@ -298,7 +298,7 @@ export class SovereignDB {
     const cost = parseFloat(block.costDecimal);
     const costDecimal = `-${block.costDecimal}`;
 
-    const blockData = `${newIndex}-${timestamp}-${tenantId}-${block.userId}-REFUND_EVENT: Reembolso de transacción index ${index}-other-${costDecimal}-0-${prevHash}`;
+    const blockData = `${newIndex}-${timestamp}-${tenantId}-${block.userId}-REFUND_EVENT: Reembolso de transacción index ${index}-REFUND_EVENT-${costDecimal}-0-${prevHash}`;
     const blockHash = this.sha256(blockData);
 
     const refundBlock: BookPILedgerBlock = {
@@ -307,7 +307,7 @@ export class SovereignDB {
       tenantId,
       userId: block.userId,
       operation: `REFUND_EVENT: Reembolso de transacción index ${index}`,
-      category: "other",
+      category: "REFUND_EVENT",
       costDecimal,
       tokensConsumed: 0,
       previousHash: prevHash,

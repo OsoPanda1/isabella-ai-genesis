@@ -3,6 +3,7 @@ import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
 import { SovereignDB } from "@/lib/sovereign-engine";
 import { secrets } from "@/lib/secrets";
+import { withSovereignAuth } from "@/lib/principal-context";
 
 const bodySchema = z.object({
   system: z.string().min(1).max(8000),
@@ -21,12 +22,9 @@ const bodySchema = z.object({
 export const Route = createFileRoute("/api/isabella")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        // --- LAYER 0: Secure IP Resolver (Anti-Spoofing proxy guard) ---
-        const ip = SecuritySystem.resolveClientIp(request);
-
+      POST: withSovereignAuth("system", "execute", async (context, request) => {
         // --- LAYER 2: Rate Limiting ---
-        const rateLimit = SecuritySystem.checkRateLimit(ip, 40);
+        const rateLimit = SecuritySystem.checkRateLimit(context.ip, 40);
         if (!rateLimit.allowed) {
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
@@ -34,31 +32,6 @@ export const Route = createFileRoute("/api/isabella")({
           return new Response(
             JSON.stringify({ error: "Límite de solicitudes de inferencia excedido (40/min)." }),
             { status: 429, headers },
-          );
-        }
-
-        // --- LAYER 3: Sovereign Authorization & Multi-tenant Session Gate ---
-        const token = request.headers.get("Authorization")?.replace("Bearer ", "") || null;
-        if (!token) {
-          const headers = SecuritySystem.injectSecureHeaders(
-            new Headers({ "content-type": "application/json" }),
-          );
-          return new Response(
-            JSON.stringify({
-              error: "No Autorizado OIDC: Falta token de sesión en la cabecera Authorization.",
-            }),
-            { status: 401, headers },
-          );
-        }
-
-        const session = SovereignDB.getSessionByToken(token);
-        if (!session) {
-          const headers = SecuritySystem.injectSecureHeaders(
-            new Headers({ "content-type": "application/json" }),
-          );
-          return new Response(
-            JSON.stringify({ error: "No Autorizado OIDC: Token inválido o sesión expirada." }),
-            { status: 401, headers },
           );
         }
 
@@ -137,7 +110,7 @@ export const Route = createFileRoute("/api/isabella")({
         }
 
         // --- LAYER 6: Auditable Telemetry ---
-        const telemetry = SecuritySystem.generateTelemetry(ip, "allowed");
+        const telemetry = SecuritySystem.generateTelemetry(context.ip, "allowed");
 
         // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker ---
         try {
@@ -203,7 +176,7 @@ export const Route = createFileRoute("/api/isabella")({
             { status: 502, headers },
           );
         }
-      },
+      }),
     },
   },
 });
