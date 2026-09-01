@@ -113,6 +113,14 @@ export const envSchema = z.object({
   INPUT_MAX_MESSAGES: coercedInt(200),
   INPUT_MAX_ATTACHMENT_BYTES: coercedInt(10485760),
   INPUT_MAX_TOOLS_PER_REQUEST: coercedInt(20),
+
+  // --- API KEYS ---
+  API_KEY_HASH_SECRET: optionalMinString(16),
+  API_KEY_PREFIX: z.string().default("isa_live"),
+  API_KEY_DEFAULT_TTL: coercedInt(2592000), // 30 days
+  API_KEY_MAX_TTL: coercedInt(31536000), // 365 days
+  API_KEY_ROTATION_GRACE_SECONDS: coercedInt(300),
+  API_KEY_RATE_LIMIT_DEFAULT: coercedInt(100),
 });
 
 export type Env = z.infer<typeof envSchema>;

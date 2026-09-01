@@ -27,6 +27,7 @@ export interface Secrets {
   aiGatewayKey(): string;
   supabaseJwtSecret(): string | undefined;
   policySigningKey(): string | undefined;
+  apiKeyHashSecret(): string;
 }
 
 /** Resolver de secretos ligado a config(). */
@@ -59,6 +60,13 @@ export function createSecrets(cfg = config): Secrets {
     },
     policySigningKey() {
       return cfg().CROWN_POLICY_SIGNING_KEY;
+    },
+    apiKeyHashSecret() {
+      return (
+        cfg().API_KEY_HASH_SECRET ||
+        cfg().AUTH_JWT_SECRET ||
+        "default_api_key_hash_secret_master_key"
+      );
     },
   };
 }

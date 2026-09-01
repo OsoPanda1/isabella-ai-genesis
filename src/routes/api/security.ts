@@ -3,6 +3,8 @@ import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
 import { SovereignDB } from "@/lib/sovereign-engine";
 import { withSovereignAuth } from "@/lib/principal-context";
+import { secrets } from "@/lib/secrets";
+import { config } from "@/lib/config";
 import { exec } from "node:child_process";
 import * as path from "node:path";
 
@@ -30,7 +32,7 @@ const securityEventSchema = z.object({
 
 // TypeScript equivalent scoring and level mapping matching python's pipeline.py
 function calculateTsAegisResponse(event: z.infer<typeof securityEventSchema>) {
-  const hashSecret = "replace-with-long-random-secret"; // Predefined stable fallback
+  const hashSecret = secrets.apiKeyHashSecret(); // Resolved safely from secret provider
 
   // Hash helper
   const stableHash = (val: string, secret: string): string => {
@@ -169,8 +171,8 @@ export const Route = createFileRoute("/api/security")({
           const processEnv = {
             ...process.env,
             PYTHONPATH: pythonPath,
-            AEGIS_HASH_SECRET: process.env.AEGIS_HASH_SECRET || "fallback_hash_key",
-            AEGIS_AUDIT_SECRET: process.env.AEGIS_AUDIT_SECRET || "fallback_audit_key",
+            AEGIS_HASH_SECRET: config().API_KEY_HASH_SECRET || secrets.apiKeyHashSecret(),
+            AEGIS_AUDIT_SECRET: config().CROWN_POLICY_SIGNING_KEY || secrets.jwtSecret(),
           };
 
           const inputJson = JSON.stringify(event);

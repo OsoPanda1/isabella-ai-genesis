@@ -1,6 +1,7 @@
 import * as crypto from "node:crypto";
 import { config } from "./config";
 import { SecuritySystem } from "./security";
+import { secrets } from "./secrets";
 
 // ============================================================================
 // CANONICAL DEFINITIONS OF 12 MODULES & 24 CORES OF ISABELLA v4.2.0
@@ -149,7 +150,7 @@ class TelemetryService {
   private readonly maxBufferSize = 500;
 
   private generateHmac(log: Omit<TelemetryLog, "signature">): string {
-    const key = config().AUTH_JWT_SECRET || "default_local_telemetry_key";
+    const key = secrets.jwtSecret();
     const payloadStr = JSON.stringify({
       t: log.timestamp,
       m: log.moduleId,
@@ -375,12 +376,12 @@ class AegisFirewallService {
    */
   public verifyEnvironment(): { secure: boolean; missingVars: string[] } {
     const missingVars: string[] = [];
-    const criticalVars = ["AUTH_JWT_SECRET", "GEMINI_API_KEY"];
-
-    for (const variable of criticalVars) {
-      if (!process.env[variable]) {
-        missingVars.push(variable);
-      }
+    const cfg = config();
+    if (!cfg.AUTH_JWT_SECRET) {
+      missingVars.push("AUTH_JWT_SECRET");
+    }
+    if (!cfg.GEMINI_API_KEY && !cfg.LOVABLE_API_KEY) {
+      missingVars.push("GEMINI_API_KEY");
     }
 
     const secure = missingVars.length === 0;

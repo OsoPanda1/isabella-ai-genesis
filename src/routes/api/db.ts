@@ -165,6 +165,17 @@ export const Route = createFileRoute("/api/db")({
           })({ request });
         }
 
+        if (action === "list-api-keys") {
+          return withSovereignAuth("system", "read", async (context) => {
+            const headers = SecuritySystem.injectSecureHeaders(
+              new Headers({ "content-type": "application/json" }),
+            );
+            const { ApiKeyService } = await import("@/lib/api-key-service");
+            const list = ApiKeyService.listApiKeys(context.tenantId);
+            return new Response(JSON.stringify({ keys: list }), { headers });
+          })({ request });
+        }
+
         // --- LAYER 3.2: Manual OAuth Endpoints (Supports Dev App URLs perfectly) ---
         if (action === "oauth-url") {
           const headers = SecuritySystem.injectSecureHeaders(
@@ -560,6 +571,73 @@ export const Route = createFileRoute("/api/db")({
               );
 
               return new Response(JSON.stringify(result), { headers });
+            })({ request });
+          }
+
+          if (action === "create-api-key") {
+            return withSovereignAuth("system", "write", async (context, req, body: unknown) => {
+              const { name, role, scopes, expiresInSeconds } = (body || {}) as {
+                name?: string;
+                role?: string;
+                scopes?: string[];
+                expiresInSeconds?: number;
+              };
+              if (!name || !role || !scopes) {
+                return new Response(
+                  JSON.stringify({
+                    error: "Faltan parámetros obligatorios (name, role, scopes).",
+                  }),
+                  { status: 400, headers },
+                );
+              }
+              const { ApiKeyService } = await import("@/lib/api-key-service");
+              const result = ApiKeyService.createApiKey(
+                context.tenantId,
+                context.userId,
+                name,
+                role,
+                scopes,
+                expiresInSeconds,
+              );
+              return new Response(JSON.stringify({ success: true, key: result }), { headers });
+            })({ request });
+          }
+
+          if (action === "revoke-api-key") {
+            return withSovereignAuth("system", "write", async (context, req, body: unknown) => {
+              const { id } = (body || {}) as { id?: string };
+              if (!id) {
+                return new Response(JSON.stringify({ error: "ID de llave requerido." }), {
+                  status: 400,
+                  headers,
+                });
+              }
+              const { ApiKeyService } = await import("@/lib/api-key-service");
+              const success = ApiKeyService.revokeApiKey(id, context.tenantId);
+              return new Response(JSON.stringify({ success }), { headers });
+            })({ request });
+          }
+
+          if (action === "rotate-api-key") {
+            return withSovereignAuth("system", "write", async (context, req, body: unknown) => {
+              const { id } = (body || {}) as { id?: string };
+              if (!id) {
+                return new Response(JSON.stringify({ error: "ID de llave requerido." }), {
+                  status: 400,
+                  headers,
+                });
+              }
+              const { ApiKeyService } = await import("@/lib/api-key-service");
+              const result = ApiKeyService.rotateApiKey(id, context.tenantId);
+              if (!result.success) {
+                return new Response(JSON.stringify({ error: result.error }), {
+                  status: 400,
+                  headers,
+                });
+              }
+              return new Response(JSON.stringify({ success: true, key: result.newKey }), {
+                headers,
+              });
             })({ request });
           }
 

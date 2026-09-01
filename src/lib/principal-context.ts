@@ -2,6 +2,7 @@ import { SecuritySystem, TokenClaims } from "./security";
 import { SovereignDB, UserRole, Tenant } from "./sovereign-engine";
 import { authorize, type AuthorizationRequest } from "./authorization";
 import { type Resource, type Action } from "./permission-matrix";
+import { ApiKeyAuthenticator } from "./api-key-authenticator";
 
 export class PrincipalContext {
   public readonly userId: string;
@@ -62,13 +63,81 @@ export class PrincipalContext {
       };
     }
 
+    // Prioritize API Key authentication if present
+    const hasApiKey =
+      request.headers.has("x-isabella-api-key") || request.headers.has("X-Isabella-API-Key");
+    if (hasApiKey) {
+      const authResult = ApiKeyAuthenticator.authenticate(request);
+      if (!authResult.success) {
+        return {
+          success: false,
+          response: new Response(
+            JSON.stringify({
+              error: `Acceso Denegado API Key: Credencial inválida, expirada o revocada (${authResult.error}).`,
+              traceId: telemetry.traceId,
+            }),
+            { status: 401, headers },
+          ),
+        };
+      }
+
+      const principal = authResult.principal;
+      const tenant = SovereignDB.getTenant(principal.tenantId);
+      if (!tenant) {
+        return {
+          success: false,
+          response: new Response(
+            JSON.stringify({
+              error:
+                "Aislamiento de Tenant Violado: El Tenant asignado a la API Key no está registrado.",
+              traceId: telemetry.traceId,
+            }),
+            { status: 403, headers },
+          ),
+        };
+      }
+
+      // Strict Scope verification if specified
+      if (requiredScope && !principal.scopes.includes(requiredScope)) {
+        return {
+          success: false,
+          response: new Response(
+            JSON.stringify({
+              error: `Privilegios Insuficientes: Ámbito '${requiredScope}' requerido para esta API Key.`,
+              traceId: telemetry.traceId,
+            }),
+            { status: 403, headers },
+          ),
+        };
+      }
+
+      const claims: TokenClaims = {
+        sub: principal.subject,
+        tenantId: principal.tenantId,
+        role: principal.role,
+        scope: principal.scopes.join(" "),
+      };
+
+      const context = new PrincipalContext(
+        claims,
+        tenant,
+        "api_key_session",
+        ip,
+        telemetry.traceId,
+        telemetry.correlationId,
+      );
+
+      return { success: true, context };
+    }
+
     const authHeader = request.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return {
         success: false,
         response: new Response(
           JSON.stringify({
-            error: "No Autorizado OIDC: Falta la firma criptográfica Bearer en la cabecera.",
+            error:
+              "No Autorizado OIDC: Falta la firma criptográfica Bearer en la cabecera o la cabecera X-Isabella-API-Key.",
             traceId: telemetry.traceId,
           }),
           { status: 401, headers },
