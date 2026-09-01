@@ -22,12 +22,7 @@
  * responsabilidad y es el único que puede administrar gobernanza.
  */
 export type Role =
-  | "SovereignOwner"
-  | "Operator"
-  | "Auditor"
-  | "Guest"
-  | "System"
-  | "governance_admin";
+  "SovereignOwner" | "Operator" | "Auditor" | "Guest" | "System" | "governance_admin";
 
 export const ROLES: readonly Role[] = [
   "SovereignOwner",
@@ -138,10 +133,9 @@ export function checkPermission(
   return {
     allowed: false,
     permission,
-    reason:
-      grantedPermissions(identity.role).has(permission)
-        ? PERMISSION_NOT_GRANTED
-        : PERMISSION_NOT_DEFINED,
+    reason: grantedPermissions(identity.role).has(permission)
+      ? PERMISSION_NOT_GRANTED
+      : PERMISSION_NOT_DEFINED,
   };
 }
 

@@ -11,13 +11,7 @@
  */
 
 export type CapabilityState =
-  | "implemented"
-  | "verified"
-  | "experimental"
-  | "simulated"
-  | "shadow"
-  | "planned"
-  | "unavailable";
+  "implemented" | "verified" | "experimental" | "simulated" | "shadow" | "planned" | "unavailable";
 
 export const CAPABILITY_STATES: readonly CapabilityState[] = [
   "implemented",
@@ -97,7 +91,7 @@ export function createDefaultCapabilityRegistry(): CapabilityRegistryService {
   register("bookpi", "implemented", ["src/lib/bookpi*.ts", "tabla bookpi_ledger"]);
   register("audit", "implemented", ["src/lib/repositories/audit-repository.ts"]);
   register("crown", "implemented", ["src/lib/crown.ts", "constitutional-gate.ts"]);
-  register("llm", "implemented", ["src/routes/api/isabella.ts"],);
+  register("llm", "implemented", ["src/routes/api/isabella.ts"]);
   register("voice", "implemented", ["src/routes/api/isabella-voice.ts"]);
   register("tools", "experimental", ["src/lib/tool-registry.ts", "src/lib/orion-engine.ts"]);
   register("sandbox", "experimental", ["src/lib/sovereign-sandbox.ts"]);
@@ -109,5 +103,4 @@ export function createDefaultCapabilityRegistry(): CapabilityRegistryService {
   return svc;
 }
 
-export const capabilityRegistry: CapabilityRegistryService =
-  createDefaultCapabilityRegistry();
+export const capabilityRegistry: CapabilityRegistryService = createDefaultCapabilityRegistry();

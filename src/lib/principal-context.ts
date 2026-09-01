@@ -159,7 +159,7 @@ export class PrincipalContext {
 export function withSovereignAuth(
   resource: Resource,
   action: Action,
-  handler: (context: PrincipalContext, request: Request, body?: any) => Promise<Response>,
+  handler: (context: PrincipalContext, request: Request, body?: unknown) => Promise<Response>,
 ) {
   return async ({ request }: { request: Request }): Promise<Response> => {
     // 1. Resolve Principal Context
@@ -213,7 +213,7 @@ export function withSovereignAuth(
     }
 
     // Parse body safely if possible/needed (e.g. for POST/PUT)
-    let body: any = null;
+    let body: unknown = null;
     if (request.method === "POST" || request.method === "PUT") {
       try {
         const cloned = request.clone();

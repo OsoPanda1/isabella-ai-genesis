@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, type KeyboardEvent } from "react";
-import { Terminal, Shield, Cpu, RefreshCw, Layers } from "lucide-react";
+import { Terminal, RefreshCw } from "lucide-react";
 import { useIsabella } from "@/lib/useIsabella";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 
@@ -187,8 +187,8 @@ export function TerminalView() {
         addLine("Isabella procesando entrada...", "system");
         try {
           // Direct call to useIsabella's logic
-          isabella.send(trimmed, []);
-        } catch (e) {
+          await isabella.send(trimmed, []);
+        } catch {
           addLine("Error en percepción de canal.", "error");
         }
         stopTrack();
@@ -212,7 +212,7 @@ export function TerminalView() {
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      handleCommandSubmit(inputVal);
+      void handleCommandSubmit(inputVal);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       if (history.length > 0 && historyIndex < history.length - 1) {

@@ -1,16 +1,23 @@
 import { describe, it, expect } from "vitest";
 import { identityHasPermission, type PrincipalIdentity } from "../../src/lib/rbac";
-import {
-  authorize,
-  requirePermission,
-  AuthorizationError,
-} from "../../src/lib/authorization";
+import { authorize, requirePermission, AuthorizationError } from "../../src/lib/authorization";
 import { evaluateAbac, type AttributeContext } from "../../src/lib/abac";
 import type { TenantGuardResult } from "../../src/lib/tenant-guard";
 import { SovereignSandboxService } from "../../src/lib/sovereign-sandbox";
 
-function identity(role: PrincipalIdentity["role"], subject = "s1", tenantId = "t1"): PrincipalIdentity {
-  return { subject, username: subject, tenantId, role, scopes: [], authenticated: role !== "Guest" };
+function identity(
+  role: PrincipalIdentity["role"],
+  subject = "s1",
+  tenantId = "t1",
+): PrincipalIdentity {
+  return {
+    subject,
+    username: subject,
+    tenantId,
+    role,
+    scopes: [],
+    authenticated: role !== "Guest",
+  };
 }
 
 function tenantOk(subject: string, tenantId: string): TenantGuardResult {

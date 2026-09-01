@@ -9,17 +9,10 @@ import {
   MessageSquare,
   Sparkles,
   BookOpen,
-  Cpu,
   Layers,
-  Activity,
   TrendingUp,
-  ShieldAlert,
-  Sliders,
-  LogOut,
-  FolderLock,
   Download,
   FolderOpen,
-  RefreshCw,
 } from "lucide-react";
 import { CinematicIntro } from "@/components/isabella/CinematicIntro";
 import { CommandLine } from "@/components/isabella/CommandLine";

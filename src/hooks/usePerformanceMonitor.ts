@@ -28,7 +28,7 @@ class PerformanceRegistry {
     return [...this.eventMetrics];
   }
 
-  recordRender(componentName: string, durationMs: number, isMount: boolean) {
+  recordRender(componentName: string, durationMs: number) {
     const existing = this.componentMetrics.get(componentName);
     if (!existing) {
       this.componentMetrics.set(componentName, {
@@ -101,7 +101,7 @@ export function usePerformanceMonitor(componentName: string) {
     const isMount = renderCountRef.current === 0;
     renderCountRef.current += 1;
 
-    perfRegistry.recordRender(componentName, duration, isMount);
+    perfRegistry.recordRender(componentName, duration);
 
     // Styled console logs following Isabella's aesthetic
     const color = isMount ? "#00FFC2" : "#6E66F9";
@@ -109,7 +109,7 @@ export function usePerformanceMonitor(componentName: string) {
       `%c[PERF] ${componentName} %c| ${isMount ? "MOUNT" : "RENDER #" + renderCountRef.current} | %c${duration.toFixed(2)}ms`,
       `color: ${color}; font-weight: bold; font-family: monospace;`,
       "color: #888888; font-family: monospace;",
-      "color: #FFF; font-weight: bold; font-family: monospace;"
+      "color: #FFF; font-weight: bold; font-family: monospace;",
     );
   });
 
@@ -122,7 +122,7 @@ export function usePerformanceMonitor(componentName: string) {
         `%c[PERF-EVENT] ${eventName} %c| DURATION | %c${duration.toFixed(2)}ms`,
         "color: #FBBF24; font-weight: bold; font-family: monospace;",
         "color: #888888; font-family: monospace;",
-        "color: #FFF; font-weight: bold; font-family: monospace;"
+        "color: #FFF; font-weight: bold; font-family: monospace;",
       );
     };
   }, []);

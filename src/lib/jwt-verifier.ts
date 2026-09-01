@@ -50,8 +50,7 @@ export interface JwtClaims {
 }
 
 export type JwtVerifyResult =
-  | { ok: true; payload: JwtClaims; header: Partial<JwtHeader> }
-  | { ok: false; reason: string };
+  { ok: true; payload: JwtClaims; header: Partial<JwtHeader> } | { ok: false; reason: string };
 
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 const CLOCK_TOLERANCE_DEFAULT = 30;
@@ -195,7 +194,12 @@ function verifyHmac(data: string, signature: Buffer, secret: string): boolean {
 
 function verifyRsa(data: string, signature: Buffer, publicKeyPem: string): boolean {
   const key = createPublicKey(publicKeyPem);
-  return verify("sha256", Buffer.from(data, "utf-8"), key as ReturnType<typeof createPublicKey>, signature);
+  return verify(
+    "sha256",
+    Buffer.from(data, "utf-8"),
+    key as ReturnType<typeof createPublicKey>,
+    signature,
+  );
 }
 
 export const JWT_VERIFIER = {

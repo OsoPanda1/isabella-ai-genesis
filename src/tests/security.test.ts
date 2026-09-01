@@ -32,7 +32,7 @@ export function runSecurityTestSuite(): SecurityTestSuiteReport {
         scopes: [],
         authenticated: false,
       },
-      "system:admin"
+      "system:admin",
     );
     results.push({
       name: "RBAC Guest Prevented from Admin",

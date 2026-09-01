@@ -76,7 +76,7 @@ export function principalFromSupabaseUser(user: UserLike): ResolvedPrincipal {
   const username =
     typeof meta.username === "string"
       ? meta.username
-      : user.email ?? user.phone ?? `user_${user.id.slice(0, 8)}`;
+      : (user.email ?? user.phone ?? `user_${user.id.slice(0, 8)}`);
 
   const identity: PrincipalIdentity = {
     subject: user.id,

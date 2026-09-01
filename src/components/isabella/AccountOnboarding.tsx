@@ -13,18 +13,10 @@ import {
 export interface OnboardingProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete: (data: {
-    username: string;
-    email: string;
-    telemetryConsent: boolean;
-  }) => void;
+  onComplete: (data: { username: string; email: string; telemetryConsent: boolean }) => void;
 }
 
-export function AccountOnboarding({
-  isOpen,
-  onClose,
-  onComplete,
-}: OnboardingProps) {
+export function AccountOnboarding({ isOpen, onClose, onComplete }: OnboardingProps) {
   const [step, setStep] = useState(1);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -133,9 +125,7 @@ export function AccountOnboarding({
             <div
               key={s}
               className={`h-1 flex-1 rounded-full transition-all duration-500 ${
-                s <= step
-                  ? "bg-electric shadow-[0_0_8px_rgba(110,234,255,0.4)]"
-                  : "bg-secondary/35"
+                s <= step ? "bg-electric shadow-[0_0_8px_rgba(110,234,255,0.4)]" : "bg-secondary/35"
               }`}
             />
           ))}
@@ -256,9 +246,9 @@ export function AccountOnboarding({
                   explícito.
                 </p>
                 <p className="font-mono text-[10.5px] text-muted-foreground leading-relaxed">
-                  <strong className="text-platinum">Derecho al Olvido:</strong> En cualquier
-                  momento puedes purgar por completo tu historial de conversaciones e índices de
-                  memoria persistente de forma irreversible.
+                  <strong className="text-platinum">Derecho al Olvido:</strong> En cualquier momento
+                  puedes purgar por completo tu historial de conversaciones e índices de memoria
+                  persistente de forma irreversible.
                 </p>
               </div>
 
@@ -295,7 +285,8 @@ export function AccountOnboarding({
                   />
                   <div className="flex flex-col">
                     <span className="font-mono text-[11.5px] text-platinum font-semibold group-hover:text-electric transition-colors">
-                      Acepto los términos y políticas constitucionales <span className="text-rose-400">*</span>
+                      Acepto los términos y políticas constitucionales{" "}
+                      <span className="text-rose-400">*</span>
                     </span>
                   </div>
                 </label>

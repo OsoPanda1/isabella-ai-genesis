@@ -16,19 +16,9 @@ export const WITHDRAWAL_WINDOW_PER_MONTH = 1;
 export const MONETIZATION_SUBSCRIPTION_REQUIRED = true;
 
 export type MonetizationMethod =
-  | "referral"
-  | "education"
-  | "territorial"
-  | "evidence"
-  | "professional_reference";
+  "referral" | "education" | "territorial" | "evidence" | "professional_reference";
 
-export type EarningStatus =
-  | "pending"
-  | "available"
-  | "held"
-  | "reversed"
-  | "paid"
-  | "disputed";
+export type EarningStatus = "pending" | "available" | "held" | "reversed" | "paid" | "disputed";
 
 export type MonetizationBlockReason =
   | "NO_SUBSCRIPTION"

@@ -45,9 +45,19 @@ export interface WithdrawalDependencies {
 export class WithdrawalService {
   constructor(private deps: WithdrawalDependencies) {}
 
-  async request(userId: string, opts?: { idempotencyKey?: string }): Promise<
+  async request(
+    userId: string,
+    opts?: { idempotencyKey?: string },
+  ): Promise<
     | { ok: true; payoutId: string; status: "scheduled" }
-    | { ok: false; code: string; reasons?: string[]; reviewId?: string; minimumCents?: number; availableCents?: number }
+    | {
+        ok: false;
+        code: string;
+        reasons?: string[];
+        reviewId?: string;
+        minimumCents?: number;
+        availableCents?: number;
+      }
   > {
     const idempotencyKey = opts?.idempotencyKey ?? randomUUID();
     const isIdem = await this.deps.isIdempotent(idempotencyKey);

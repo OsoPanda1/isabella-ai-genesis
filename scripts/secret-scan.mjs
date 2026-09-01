@@ -14,7 +14,16 @@ import { resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname ?? ".");
 const SCAN_DIRS = ["src", "supabase"];
-const SKIP = [".git", "node_modules", "dist", ".output", ".vinxi", "routeTree.gen.ts", "coverage", "assets"];
+const SKIP = [
+  ".git",
+  "node_modules",
+  "dist",
+  ".output",
+  ".vinxi",
+  "routeTree.gen.ts",
+  "coverage",
+  "assets",
+];
 
 const SECRET_LITERAL_RE =
   /\b(?:sk|pk|secret|password|passwd|api[_-]?key|token|jwt|private[_-]?key|signing|encryption[_-]?key)\b\s*[:=]\s*["'][A-Za-z0-9_\-\.\+\/=]{16,}["']/gi;
@@ -55,9 +64,7 @@ function checkSecrets() {
     const lines = content.split("\n");
     lines.forEach((line, idx) => {
       if (SECRET_LITERAL_RE.test(line)) {
-        problems.push(
-          `${file}:${idx + 1}: posible literal de secreto hardcodeado.`,
-        );
+        problems.push(`${file}:${idx + 1}: posible literal de secreto hardcodeado.`);
       }
     });
   }

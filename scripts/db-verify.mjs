@@ -37,9 +37,7 @@ function staticCheck() {
     errors.push("No hay migraciones SQL en supabase/migrations");
     return { errors, files };
   }
-  const allSql = files
-    .map((f) => readFileSync(resolve(MIGRATIONS_DIR, f), "utf8"))
-    .join("\n");
+  const allSql = files.map((f) => readFileSync(resolve(MIGRATIONS_DIR, f), "utf8")).join("\n");
   for (const table of REQUIRED_TABLES) {
     if (!new RegExp(`create table[^(]*${table}`, "i").test(allSql)) {
       errors.push(`Tabla canónica no encontrada en las migraciones: ${table}`);
@@ -62,7 +60,10 @@ if (databaseUrl) {
     { encoding: "utf8" },
   );
   if (res.status === 0) {
-    const tables = (res.stdout ?? "").split("\n").map((s) => s.trim()).filter(Boolean);
+    const tables = (res.stdout ?? "")
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
     const missing = REQUIRED_TABLES.filter((t) => !tables.includes(t));
     if (missing.length) {
       console.error("Faltan tablas canónicas:", missing.join(", "));

@@ -3,7 +3,6 @@ import {
   TrendingUp,
   Cpu,
   Key,
-  Layers,
   Settings,
   RefreshCw,
   UserPlus,
@@ -15,20 +14,13 @@ import {
   XCircle,
   Shield,
   Activity,
-  User,
   BookOpen,
   ArrowRight,
   Database,
-  Lock,
-  Wifi,
   Brain,
-  RotateCcw,
   Check,
-  HelpCircle,
-  Code,
   Sliders,
   DollarSign,
-  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -106,14 +98,6 @@ export function MonetizationDashboard() {
 
   // Onboarding & user states
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{
-    username: string;
-    email: string;
-    telemetryConsent: boolean;
-  } | null>(null);
-
-  const [hasFreeConsent, setHasFreeConsent] = useState(true);
-  const [freeMessagesUsed, setFreeMessagesUsed] = useState(14);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Active plan (Free, Pro, Enterprise)
@@ -376,7 +360,7 @@ export function MonetizationDashboard() {
   }, [sessionToken]);
 
   useEffect(() => {
-    fetchDbState();
+    void fetchDbState();
   }, [fetchDbState]);
 
   useEffect(() => {
@@ -391,7 +375,9 @@ export function MonetizationDashboard() {
           setSessionToken(token);
           try {
             window.sessionStorage.setItem("isabella_session_token", token);
-          } catch {}
+          } catch {
+            // Ignore sessionStorage errors
+          }
           toast.success(`Conexión OAuth Exitosa. Bienvenido, ${username || "Soberano"}.`);
         }
       }
@@ -403,17 +389,17 @@ export function MonetizationDashboard() {
   const handleConnectOAuth = async () => {
     try {
       const redirectUri = `${window.location.origin}/api/db?action=oauth-callback`;
-      const response = await fetch(`/api/db?action=oauth-url&redirect_uri=${encodeURIComponent(redirectUri)}`);
+      const response = await fetch(
+        `/api/db?action=oauth-url&redirect_uri=${encodeURIComponent(redirectUri)}`,
+      );
       if (!response.ok) throw new Error("Fallo al construir URL de OAuth");
       const { url } = await response.json();
-      
-      const authWindow = window.open(
-        url,
-        "isabella_oauth_popup",
-        "width=500,height=600"
-      );
+
+      const authWindow = window.open(url, "isabella_oauth_popup", "width=500,height=600");
       if (!authWindow) {
-        toast.error("El navegador bloqueó la ventana emergente. Por favor, habilite las ventanas emergentes.");
+        toast.error(
+          "El navegador bloqueó la ventana emergente. Por favor, habilite las ventanas emergentes.",
+        );
       }
     } catch (e) {
       console.error(e);
@@ -450,8 +436,8 @@ export function MonetizationDashboard() {
       }
 
       toast.success("Transacción registrada y firmada en el Ledger!");
-      fetchDbState();
-    } catch (err) {
+      void fetchDbState();
+    } catch {
       toast.error("Error al debitar créditos del ledger.");
     }
   };
@@ -477,8 +463,8 @@ export function MonetizationDashboard() {
       }
 
       toast.success("Reembolso procesado. Crédito retornado con éxito!");
-      fetchDbState();
-    } catch (err) {
+      void fetchDbState();
+    } catch {
       toast.error("Fallo al reembolsar la transacción.");
     }
   };
@@ -507,7 +493,7 @@ export function MonetizationDashboard() {
       setSessionToken(data.token);
       setActiveRole(role);
       toast.success(`Identidad OIDC actualizada. Rol activo: ${role}`);
-    } catch (err) {
+    } catch {
       toast.error("Error al actualizar rol OIDC.");
     }
   };
@@ -548,11 +534,11 @@ export function MonetizationDashboard() {
           toast.error("Script rechazado por el Sandbox de seguridad.");
         }
       }
-    } catch (err) {
+    } catch {
       setSandboxError("Error al enviar script al sandbox.");
     } finally {
       setIsSandboxRunning(false);
-      fetchDbState(); // Sync logs
+      void fetchDbState(); // Sync logs
     }
   };
 
@@ -564,7 +550,7 @@ export function MonetizationDashboard() {
     setIsRefreshing(true);
     setTimeout(() => {
       setIsRefreshing(false);
-      fetchDbState();
+      void fetchDbState();
       toast.success("Cuotas de inferencia sincronizadas.");
     }, 800);
   };
@@ -574,8 +560,7 @@ export function MonetizationDashboard() {
     email: string;
     telemetryConsent: boolean;
   }) => {
-    setCurrentUser(data);
-    setHasFreeConsent(data.telemetryConsent);
+    console.log("Onboarding complete for user:", data.username);
   };
 
   const handleGenerateApiKey = () => {
@@ -608,7 +593,7 @@ export function MonetizationDashboard() {
               activeTenant.quotaBalance -= up.cost;
               toast.success(`¡Mejora '${up.name}' adquirida e integrada al orquestador!`);
               // Register transaction in ledger
-              handleSimulateCreditUsage(
+              void handleSimulateCreditUsage(
                 `Mejora de Criptosistema: ${up.name}`,
                 "skills",
                 up.cost.toFixed(2),
@@ -871,7 +856,19 @@ export function MonetizationDashboard() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() =>
+                setActiveTab(
+                  tab.id as
+                    | "onboarding"
+                    | "heads"
+                    | "ledger"
+                    | "sandbox"
+                    | "upgrades"
+                    | "special"
+                    | "tutorials"
+                    | "audit",
+                )
+              }
               className={`flex items-center gap-2 px-4 py-3 font-mono text-[11.5px] uppercase tracking-wider border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                 active
                   ? "border-electric text-platinum font-semibold bg-secondary/10"
@@ -937,7 +934,10 @@ export function MonetizationDashboard() {
                   Módulo de Telemetría: 12 Heads Cognitivos Configurados (24 Núcleos Modelados)
                 </h3>
                 <p className="text-[12.5px] text-muted-foreground mt-1">
-                  Monitoreo de estado de los 12 heads cognitivos configurados (con 24 núcleos independientes modelados para ejecución cognitiva). Cada head consta de un submódulo **Alpha (Razonamiento Epistémico)** y un submódulo **Beta (Ejecución Cibernética/Acción)** modelados arquitectónicamente.
+                  Monitoreo de estado de los 12 heads cognitivos configurados (con 24 núcleos
+                  independientes modelados para ejecución cognitiva). Cada head consta de un
+                  submódulo **Alpha (Razonamiento Epistémico)** y un submódulo **Beta (Ejecución
+                  Cibernética/Acción)** modelados arquitectónicamente.
                 </p>
               </div>
               <button
@@ -959,7 +959,7 @@ export function MonetizationDashboard() {
 
             {/* Grid of 12 Heads */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {cognitiveHeads.map((head, index) => {
+              {cognitiveHeads.map((head) => {
                 const totalLoad = ((head.alphaLoad + head.betaLoad) / 2).toFixed(1);
                 return (
                   <div
@@ -1132,9 +1132,9 @@ export function MonetizationDashboard() {
                         });
                         if (res.ok) {
                           toast.success("Saldo recargado exitosamente! (+$25.00 USD)");
-                          fetchDbState();
+                          void fetchDbState();
                         }
-                      } catch (e) {
+                      } catch {
                         toast.error("Error al recargar saldo.");
                       }
                     }}
@@ -1568,7 +1568,17 @@ export function MonetizationDashboard() {
                       ].map((cat) => (
                         <button
                           key={cat.id}
-                          onClick={() => setPlanCategory(cat.id as any)}
+                          onClick={() =>
+                            setPlanCategory(
+                              cat.id as
+                                | "inference"
+                                | "processing"
+                                | "apis"
+                                | "skills"
+                                | "other"
+                                | "REFUND_EVENT",
+                            )
+                          }
                           className={`font-mono text-[10px] py-1.5 rounded-lg transition-all cursor-pointer ${
                             planCategory === cat.id
                               ? "bg-electric text-platinum font-semibold"
@@ -1636,9 +1646,15 @@ export function MonetizationDashboard() {
                         toast.success(
                           `Plan de cuotas de ${planTokens.toLocaleString()} tokens adquirido.`,
                         );
-                        handleSimulateCreditUsage(
+                        void handleSimulateCreditUsage(
                           `Plan de Inferencia Proyectado (${planTokens.toLocaleString()} tokens)`,
-                          planCategory as any,
+                          planCategory as
+                            | "inference"
+                            | "processing"
+                            | "apis"
+                            | "skills"
+                            | "other"
+                            | "REFUND_EVENT",
                           estimatedUSD,
                         );
                       } else {
@@ -1840,11 +1856,11 @@ export function MonetizationDashboard() {
                     } else {
                       toast.error(`Error de ejecución: ${data.error || "Sin autorización"}`);
                     }
-                  } catch (e) {
+                  } catch {
                     toast.error("No se pudo contactar con la suite de pruebas automatizadas.");
                   } finally {
                     setIsTesting(false);
-                    fetchDbState();
+                    void fetchDbState();
                   }
                 }}
                 disabled={
@@ -1879,11 +1895,11 @@ export function MonetizationDashboard() {
                     } else {
                       toast.error(`Error: ${data.error || "Sin autorización"}`);
                     }
-                  } catch (e) {
+                  } catch {
                     toast.error("Fallo al contactar el servicio de validación de auditoría.");
                   } finally {
                     setIsVerifyingAudit(false);
-                    fetchDbState();
+                    void fetchDbState();
                   }
                 }}
                 disabled={

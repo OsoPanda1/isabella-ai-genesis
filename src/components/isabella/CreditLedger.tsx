@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  BookOpen,
-  RefreshCcw,
-  Search,
-  Calendar,
-  ChevronRight,
-  CheckCircle2,
-  RefreshCw,
-} from "lucide-react";
+import { BookOpen, Search, RefreshCw } from "lucide-react";
 
 export interface LedgerItem {
   id: string;

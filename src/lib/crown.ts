@@ -902,7 +902,6 @@ export function evaluatePolicy(
 ): PolicyAssessment {
   const normalized = normalizeInput(context.input);
   const risk = assessRisk(intent);
-  const reasons: string[] = [];
   const missingInformation: string[] = [];
   const prohibitedCapabilities: string[] = [];
   const rulesChecked = [...GOVERNANCE_RULES];

@@ -123,7 +123,11 @@ export const SecuritySystem = {
     }
 
     if (token.startsWith("isa_live_")) {
-      return { success: false, error: "El formato de token 'isa_live_' ha sido plenamente deprecado por razones de seguridad. Por favor, inicie sesión mediante OIDC/OAuth para obtener un JWT válido." };
+      return {
+        success: false,
+        error:
+          "El formato de token 'isa_live_' ha sido plenamente deprecado por razones de seguridad. Por favor, inicie sesión mediante OIDC/OAuth para obtener un JWT válido.",
+      };
     }
 
     try {
@@ -135,7 +139,11 @@ export const SecuritySystem = {
       });
 
       if (!res.ok) {
-        return { success: false, error: res.reason ?? "Firma digital no válida: Manipulación detectada (Integrity violation)." };
+        return {
+          success: false,
+          error:
+            res.reason ?? "Firma digital no válida: Manipulación detectada (Integrity violation).",
+        };
       }
 
       return { success: true, claims: res.payload as unknown as TokenClaims };
@@ -190,11 +198,8 @@ export const SecuritySystem = {
 
   // --- LAYER 6: Auditable Trace Telemetry ---
   generateTelemetry(ip: string, policy: "allowed" | "denied" | "flagged"): SecurityTelemetry {
-    const traceId =
-      "tr_" + this.simpleHash(crypto.randomUUID()).toUpperCase();
-    const correlationId =
-      "corr_" +
-      this.simpleHash(crypto.randomUUID() + "corr").toUpperCase();
+    const traceId = "tr_" + this.simpleHash(crypto.randomUUID()).toUpperCase();
+    const correlationId = "corr_" + this.simpleHash(crypto.randomUUID() + "corr").toUpperCase();
 
     const entry = rateLimitCache.get(ip);
     const maxLimit = 120;
@@ -287,7 +292,11 @@ export class UpstreamCircuitBreaker {
 
   private updateState() {
     const now = Date.now();
-    if (this.state === "OPEN" && this.lastFailureTime && now - this.lastFailureTime > this.recoveryTimeoutMs) {
+    if (
+      this.state === "OPEN" &&
+      this.lastFailureTime &&
+      now - this.lastFailureTime > this.recoveryTimeoutMs
+    ) {
       this.state = "HALF_OPEN";
       console.log("[CircuitBreaker] Cooldown elapsed. Transitioning to HALF_OPEN.");
     }
@@ -299,9 +308,10 @@ export class UpstreamCircuitBreaker {
     if (this.state === "OPEN") {
       return new Response(
         JSON.stringify({
-          error: "Servicio temporalmente deshabilitado: Disyuntor activo (Circuit Breaker OPEN). El núcleo de inferencia está experimentando fallos consecutivos.",
+          error:
+            "Servicio temporalmente deshabilitado: Disyuntor activo (Circuit Breaker OPEN). El núcleo de inferencia está experimentando fallos consecutivos.",
         }),
-        { status: 503, headers: { "content-type": "application/json" } }
+        { status: 503, headers: { "content-type": "application/json" } },
       );
     }
 
@@ -327,7 +337,8 @@ export class UpstreamCircuitBreaker {
       if (err instanceof Error && err.name === "AbortError") {
         return new Response(
           JSON.stringify({
-            error: "Límite de tiempo excedido al comunicarse con el núcleo de inferencia (Timeout protection).",
+            error:
+              "Límite de tiempo excedido al comunicarse con el núcleo de inferencia (Timeout protection).",
           }),
           { status: 504, headers: { "content-type": "application/json" } },
         );

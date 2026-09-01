@@ -145,7 +145,9 @@ export async function verifyIdToken(
   let kid: string | undefined;
   try {
     const normalized = headerSegment.replace(/-/g, "+").replace(/_/g, "/");
-    const header = JSON.parse(Buffer.from(normalized, "base64").toString("utf-8")) as { kid?: string };
+    const header = JSON.parse(Buffer.from(normalized, "base64").toString("utf-8")) as {
+      kid?: string;
+    };
     kid = header.kid;
   } catch {
     throw new Error("id_token: cabecera no decodificable.");
@@ -165,7 +167,10 @@ export function jwkToPem(jwk: { kty: string; n?: string; e?: string }): string {
   if (jwk.kty !== "RSA" || !jwk.n || !jwk.e) {
     throw new Error("Solo se admite conversión de JWK RSA.");
   }
-  const key = createPublicKey({ key: { kty: "RSA", n: jwk.n, e: jwk.e }, format: "jwk" }) as KeyExporter;
+  const key = createPublicKey({
+    key: { kty: "RSA", n: jwk.n, e: jwk.e },
+    format: "jwk",
+  }) as KeyExporter;
   return key.export({ format: "pem", type: "spki" });
 }
 

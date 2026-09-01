@@ -71,7 +71,10 @@ export class KeyRotationService {
   snapshot(): KeyringState {
     return {
       activeKid: this.keyring.active().kid,
-      keys: this.keyring.kids().map((k) => this.keyring.get(k)!).sort((a, b) => a.activeAt - b.activeAt),
+      keys: this.keyring
+        .kids()
+        .map((k) => this.keyring.get(k)!)
+        .sort((a, b) => a.activeAt - b.activeAt),
     };
   }
 

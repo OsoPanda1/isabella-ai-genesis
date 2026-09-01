@@ -2,11 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
-import {
-  createRequestContext,
-  withRequestContext,
-  getRequestContext,
-} from "./lib/request-context";
+import { createRequestContext, withRequestContext, getRequestContext } from "./lib/request-context";
 import { redact } from "./lib/secret-redactor";
 import { assertBodyWithinLimits, LimitError } from "./lib/input-limits";
 import { ensureRuntimeReady } from "./lib/runtime-integrity";
@@ -37,7 +33,7 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   if (!isH3SwallowedErrorBody(body)) return response;
 
   const err = consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`);
-  console.error(redact(err instanceof Error ? err.stack ?? err.message : String(err)));
+  console.error(redact(err instanceof Error ? (err.stack ?? err.message) : String(err)));
   return new Response(renderErrorPage(), {
     status: 500,
     headers: { "content-type": "text/html; charset=utf-8" },
@@ -64,10 +60,7 @@ function withSecurityHeaders(response: Response): Response {
   setIfMissing("Referrer-Policy", "no-referrer");
   // Modern standard: disable the legacy XSS auditor to avoid filter bypass exploits, relying strictly on strong CSP
   setIfMissing("X-XSS-Protection", "0");
-  setIfMissing(
-    "Strict-Transport-Security",
-    "max-age=63072000; includeSubDomains; preload",
-  );
+  setIfMissing("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
   setIfMissing(
     "Content-Security-Policy",
     [
@@ -137,7 +130,11 @@ export default {
       return await fetchWithRequestChain(request, env, ctx);
     } catch (error) {
       const traceId = getRequestContext()?.traceId ?? "no-trace";
-      console.error(redact(`[${traceId}] ${error instanceof Error ? error.stack ?? error.message : String(error)}`));
+      console.error(
+        redact(
+          `[${traceId}] ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`,
+        ),
+      );
       return withSecurityHeaders(
         new Response(renderErrorPage(), {
           status: 500,
@@ -147,4 +144,3 @@ export default {
     }
   },
 };
-

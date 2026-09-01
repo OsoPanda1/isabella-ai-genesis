@@ -1,4 +1,4 @@
-import { Activity, ShieldCheck, Database, RefreshCw, Cpu, Star } from "lucide-react";
+import { Activity, RefreshCw } from "lucide-react";
 
 interface UsageDashboardProps {
   activePlanId: string | null;
@@ -32,13 +32,6 @@ export function UsageDashboard({
       default:
         return "Isabella Free (Invitado)";
     }
-  };
-
-  const getPlanIconClass = (id: string | null) => {
-    if (id === "pro" || id === "enterprise") {
-      return "bg-electric/20 text-electric border-electric/30";
-    }
-    return "bg-teal-500/10 text-teal-400 border-teal-500/20";
   };
 
   const messagePercentage = Math.min((messagesUsed / messageLimit) * 100, 100);

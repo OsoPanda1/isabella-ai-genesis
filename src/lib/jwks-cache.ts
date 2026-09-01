@@ -143,10 +143,7 @@ function findByKid(document: JwksDocument, kid: string | undefined): JwkKey | un
 }
 
 /** Utilitario para construir un emisor configurado desde `config()`. */
-export function createJwksCache(
-  issuer: string,
-  options?: JwksCacheOptions,
-): JwksCache {
+export function createJwksCache(issuer: string, options?: JwksCacheOptions): JwksCache {
   return new JwksCache(issuer, options);
 }
 

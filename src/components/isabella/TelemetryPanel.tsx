@@ -103,7 +103,9 @@ export function TelemetryPanel({
         </h2>
         <div className="space-y-3">
           {stats.length === 0 ? (
-            <span className="font-mono text-[10.5px] text-muted-foreground">Sin telemetría de render.</span>
+            <span className="font-mono text-[10.5px] text-muted-foreground">
+              Sin telemetría de render.
+            </span>
           ) : (
             stats.map((s) => (
               <div key={s.componentName} className="font-mono text-[11px]">
@@ -124,12 +126,20 @@ export function TelemetryPanel({
                 Eventos Perceptivos
               </span>
               <div className="space-y-1 max-h-[80px] overflow-y-auto pr-1 scrollbar-thin">
-                {events.slice(-3).reverse().map((e, idx) => (
-                  <div key={idx} className="flex justify-between font-mono text-[9.5px] text-muted-foreground/90 leading-tight">
-                    <span className="truncate max-w-[170px]">{e.eventName}</span>
-                    <span className="text-amber-400 font-semibold">{e.durationMs.toFixed(0)}ms</span>
-                  </div>
-                ))}
+                {events
+                  .slice(-3)
+                  .reverse()
+                  .map((e, idx) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between font-mono text-[9.5px] text-muted-foreground/90 leading-tight"
+                    >
+                      <span className="truncate max-w-[170px]">{e.eventName}</span>
+                      <span className="text-amber-400 font-semibold">
+                        {e.durationMs.toFixed(0)}ms
+                      </span>
+                    </div>
+                  ))}
               </div>
             </div>
           )}

@@ -100,8 +100,7 @@ const EMPTY_DB: DatabaseSchema = {
 };
 
 /** Hash previo canónico de génesis (bloque raíz). */
-const GENESIS_PREVIOUS_HASH =
-  "0000000000000000000000000000000000000000000000000000000000000000";
+const GENESIS_PREVIOUS_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
 
 // ============================================================================
 // HELPER METHODS: PERSISTENT STORAGE CONTROLLER (Atomic File I/O)
@@ -109,25 +108,31 @@ const GENESIS_PREVIOUS_HASH =
 
 export class SovereignDB {
   private static seed(db: DatabaseSchema): DatabaseSchema {
-    const tenants = db.tenants.length > 0 ? db.tenants : [
-      {
-        id: "tenant_tamv_001",
-        name: "TAMV Online Network (Real del Monte)",
-        region: "MX-HGO",
-        quotaBalance: 500.0,
-        tier: "Sovereign" as const,
-      }
-    ];
+    const tenants =
+      db.tenants.length > 0
+        ? db.tenants
+        : [
+            {
+              id: "tenant_tamv_001",
+              name: "TAMV Online Network (Real del Monte)",
+              region: "MX-HGO",
+              quotaBalance: 500.0,
+              tier: "Sovereign" as const,
+            },
+          ];
 
-    const sessions = db.sessions.length > 0 ? db.sessions : [
-      {
-        userId: "user_anubis_001",
-        username: "anubis_villasenor",
-        tenantId: "tenant_tamv_001",
-        role: "SovereignOwner" as const,
-        oidcSub: "auth0|user_anubis_001",
-      }
-    ];
+    const sessions =
+      db.sessions.length > 0
+        ? db.sessions
+        : [
+            {
+              userId: "user_anubis_001",
+              username: "anubis_villasenor",
+              tenantId: "tenant_tamv_001",
+              role: "SovereignOwner" as const,
+              oidcSub: "auth0|user_anubis_001",
+            },
+          ];
 
     return {
       ...db,
@@ -175,7 +180,7 @@ export class SovereignDB {
   public static getLedger(tenantId: string): BookPILedgerBlock[] {
     const db = this.load();
     const refundedIndexes = new Set<number>();
-    
+
     // Find all refunded indexes via append-only refund event blocks
     for (const item of db.ledger) {
       if (item.operation.startsWith("REFUND_EVENT: Reembolso de transacción index ")) {
@@ -200,7 +205,7 @@ export class SovereignDB {
   public static getFullLedger(): BookPILedgerBlock[] {
     const db = this.load();
     const refundedIndexes = new Set<number>();
-    
+
     // Find all refunded indexes via append-only refund event blocks
     for (const item of db.ledger) {
       if (item.operation.startsWith("REFUND_EVENT: Reembolso de transacción index ")) {
@@ -231,9 +236,7 @@ export class SovereignDB {
   ): BookPILedgerBlock {
     const db = this.load();
     const lastBlock = db.ledger[db.ledger.length - 1];
-    const prevHash = lastBlock
-      ? lastBlock.blockHash
-      : GENESIS_PREVIOUS_HASH;
+    const prevHash = lastBlock ? lastBlock.blockHash : GENESIS_PREVIOUS_HASH;
 
     const index = db.ledger.length;
     const timestamp = new Date().toISOString();
@@ -283,7 +286,7 @@ export class SovereignDB {
 
     // Check if already refunded by checking for the REFUND_EVENT block
     const isAlreadyRefunded = db.ledger.some(
-      (b) => b.operation === `REFUND_EVENT: Reembolso de transacción index ${index}`
+      (b) => b.operation === `REFUND_EVENT: Reembolso de transacción index ${index}`,
     );
     if (isAlreadyRefunded || block.status === "refunded") {
       return { success: false, error: "Esta transacción ya ha sido reembolsada." };
@@ -438,8 +441,7 @@ export class SovereignDB {
   ): AuditLog {
     const db = this.load();
 
-    const previousLogHash =
-      db.auditLogs[0]?.verificationHash ?? GENESIS_PREVIOUS_HASH;
+    const previousLogHash = db.auditLogs[0]?.verificationHash ?? GENESIS_PREVIOUS_HASH;
 
     const id = `evt_${crypto.randomUUID()}`;
     const timestamp = new Date().toISOString();
@@ -489,8 +491,7 @@ export class SovereignDB {
         };
       }
       const prevLog = logs[i - 1];
-      const expectedPrevHash =
-        i === 0 ? GENESIS_PREVIOUS_HASH : (prevLog?.verificationHash ?? "");
+      const expectedPrevHash = i === 0 ? GENESIS_PREVIOUS_HASH : (prevLog?.verificationHash ?? "");
 
       if (log.previousLogHash !== expectedPrevHash) {
         return {
@@ -818,6 +819,7 @@ export class SovereignSandbox {
       }
 
       // 2. Safe execution structure inside insulated isolated parameters
+      // eslint-disable-next-line no-new-func
       const runner = new Function(...keys, `"use strict"; return (${codeExpression});`);
       const output = runner(...values);
 

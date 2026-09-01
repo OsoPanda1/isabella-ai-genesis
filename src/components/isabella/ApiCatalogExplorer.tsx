@@ -2,10 +2,8 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { DOMAINS, CATALOG_ENTRIES, type CatalogEntry } from "@/lib/api-catalog";
 import {
   Search,
-  Filter,
   Terminal,
   Cpu,
-  Shield,
   Layers,
   Database,
   Play,
@@ -13,16 +11,12 @@ import {
   X,
   Code,
   Clock,
-  ArrowRight,
   Sparkles,
   BrainCircuit,
   Bot,
   Zap,
-  Lock,
   Network,
   Activity,
-  ChevronRight,
-  FileText,
   Copy,
   Check,
 } from "lucide-react";
@@ -38,10 +32,25 @@ const METHOD_COLORS: Record<string, string> = {
 
 // Estrategias de Arquitectura AI (Inspiradas en OpenAI, Anthropic, DeepSeek y MemGPT)
 const AI_ROUTING_STRATEGIES = [
-  { id: "moe_dynamic", label: "MoE Routing (DeepSeek-V3)", icon: Network, color: "text-purple-400" },
-  { id: "cot_reasoning", label: "Deep Reasoning CoT (o1/R1)", icon: BrainCircuit, color: "text-amber-400" },
+  {
+    id: "moe_dynamic",
+    label: "MoE Routing (DeepSeek-V3)",
+    icon: Network,
+    color: "text-purple-400",
+  },
+  {
+    id: "cot_reasoning",
+    label: "Deep Reasoning CoT (o1/R1)",
+    icon: BrainCircuit,
+    color: "text-amber-400",
+  },
   { id: "agentic_swarm", label: "Swarm Multi-Agent (AutoGen)", icon: Bot, color: "text-blue-400" },
-  { id: "rag_memory", label: "Episodic RAG Memory (MemGPT)", icon: Database, color: "text-emerald-400" },
+  {
+    id: "rag_memory",
+    label: "Episodic RAG Memory (MemGPT)",
+    icon: Database,
+    color: "text-emerald-400",
+  },
 ];
 
 interface ThoughtStep {
@@ -74,11 +83,11 @@ export function ApiCatalogExplorer() {
   const [selectedStrategy, setSelectedStrategy] = useState<string>("moe_dynamic");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeEntry, setActiveEntry] = useState<CatalogEntry | null>(null);
-  
+
   const [simulateParams, setSimulateParams] = useState<string>(
-    '{\n  "tenantId": "tamv-node-zero",\n  "actorId": "usr-anubis",\n  "clientId": "isabella-cli-v4",\n  "contextDepth": "deep",\n  "vectorMemoryAccess": true\n}'
+    '{\n  "tenantId": "tamv-node-zero",\n  "actorId": "usr-anubis",\n  "clientId": "isabella-cli-v4",\n  "contextDepth": "deep",\n  "vectorMemoryAccess": true\n}',
   );
-  
+
   const [isSimulating, setIsProcessing] = useState(false);
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
@@ -107,7 +116,7 @@ export function ApiCatalogExplorer() {
   }, [selectedDomain, selectedMethod, searchQuery]);
 
   const copyPayload = useCallback((text: string) => {
-    navigator.clipboard.writeText(text);
+    void navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, []);
@@ -120,7 +129,7 @@ export function ApiCatalogExplorer() {
     let parsedParams = {};
     try {
       parsedParams = JSON.parse(simulateParams);
-    } catch (e) {
+    } catch {
       setErrorNotice("Sintaxis JSON inválida en los parámetros de entrada.");
       setIsProcessing(false);
       return;
@@ -148,7 +157,7 @@ export function ApiCatalogExplorer() {
       if (result.reasoningTrace && result.reasoningTrace.length > 0) {
         setActiveTab("cot");
       }
-    } catch (err) {
+    } catch {
       // Fallback estocástico con simulación sintética de baja latencia para entornos aislados
       const mockResult: SimulationResult = {
         traceId: `trc_${Math.random().toString(36).substring(2, 9)}`,
@@ -246,7 +255,10 @@ export function ApiCatalogExplorer() {
                   }`}
                 >
                   <span className="flex items-center gap-2 truncate">
-                    <span className="size-2 rounded-full shrink-0" style={{ background: dom.color }} />
+                    <span
+                      className="size-2 rounded-full shrink-0"
+                      style={{ background: dom.color }}
+                    />
                     <span className="truncate">{dom.name}</span>
                   </span>
                   <span className="text-[10px] opacity-60 font-mono ml-1">{count}</span>
@@ -331,7 +343,8 @@ export function ApiCatalogExplorer() {
             )}
           </div>
           <div className="font-mono text-[11px] text-muted-foreground text-right w-full md:w-auto">
-            Catálogo Activo: <span className="text-electric font-semibold">{filteredEntries.length}</span> de{" "}
+            Catálogo Activo:{" "}
+            <span className="text-electric font-semibold">{filteredEntries.length}</span> de{" "}
             <span className="text-platinum">{CATALOG_ENTRIES.length}</span>
           </div>
         </div>
@@ -503,7 +516,9 @@ export function ApiCatalogExplorer() {
                         className="w-full flex items-center justify-center gap-2 bg-electric/20 hover:bg-electric/35 border border-electric/40 text-electric font-mono text-[11px] uppercase tracking-[0.2em] py-2.5 rounded-xl transition-all shadow-[0_0_12px_rgba(110,234,255,0.1)] active:scale-[0.99] disabled:opacity-50"
                       >
                         <Play className="size-3.5 fill-electric" />
-                        {isSimulating ? "Ejecutando en Inferencia..." : "Ejecutar Prueba de Contrato"}
+                        {isSimulating
+                          ? "Ejecutando en Inferencia..."
+                          : "Ejecutar Prueba de Contrato"}
                       </button>
 
                       {errorNotice && (
@@ -554,11 +569,17 @@ export function ApiCatalogExplorer() {
                               </span>
                               <button
                                 onClick={() =>
-                                  copyPayload(JSON.stringify(simulationResult.responsePayload, null, 2))
+                                  copyPayload(
+                                    JSON.stringify(simulationResult.responsePayload, null, 2),
+                                  )
                                 }
                                 className="text-muted-foreground hover:text-platinum flex items-center gap-1 font-mono text-[9px]"
                               >
-                                {copied ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3" />}
+                                {copied ? (
+                                  <Check className="size-3 text-emerald-400" />
+                                ) : (
+                                  <Copy className="size-3" />
+                                )}
                                 {copied ? "Copiado" : "Copiar"}
                               </button>
                             </div>
@@ -570,7 +591,8 @@ export function ApiCatalogExplorer() {
                       ) : (
                         <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground font-mono text-[11px] border border-dashed border-border/30 rounded-xl">
                           <Activity className="size-6 text-muted-foreground/40 mb-2 animate-pulse" />
-                          Ejecuta una simulación para observar métricas de latencia, gobernanza y payload.
+                          Ejecuta una simulación para observar métricas de latencia, gobernanza y
+                          payload.
                         </div>
                       )}
                     </div>

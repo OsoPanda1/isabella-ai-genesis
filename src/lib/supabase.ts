@@ -10,20 +10,11 @@
  * `runtime-integrity` ya exige estas variables antes de arrancar.
  */
 
+import { createClient } from "@supabase/supabase-js";
 import { config } from "./config";
 
 /** Cliente guardado tras la primera construcción. */
 let cachedClient: SupabaseState | null = null;
-
-/**
- * Crea el cliente Supabase subyacente. Se importa de forma perezosa
- * para no cargar el SDK en entornos sin red ni credenciales.
- */
-function createClientInternal() {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { createClient } = require("@supabase/supabase-js") as typeof import("@supabase/supabase-js");
-  return createClient;
-}
 
 export interface SupabaseState {
   client: unknown;
@@ -45,8 +36,7 @@ function buildState(): SupabaseState {
   }
 
   try {
-    const create = createClientInternal();
-    const client = create(url, anonKey, {
+    const client = createClient(url, anonKey, {
       auth: { persistSession: true, autoRefreshToken: true },
     });
     return { client, configured: true, reason: "Cliente Supabase configurado." };
@@ -54,7 +44,10 @@ function buildState(): SupabaseState {
     return {
       client: null,
       configured: false,
-      reason: error instanceof Error ? `No se pudo construir el cliente: ${error.message}` : "Error desconocido.",
+      reason:
+        error instanceof Error
+          ? `No se pudo construir el cliente: ${error.message}`
+          : "Error desconocido.",
     };
   }
 }
@@ -76,7 +69,11 @@ export async function testSupabaseConnection(): Promise<{ success: boolean; mess
   if (!state.configured) {
     return { success: false, message: state.reason };
   }
-  const client = state.client as { from: (table: string) => { select: (q: string) => Promise<{ data: unknown; error: { message: string } | null }> } };
+  const client = state.client as {
+    from: (table: string) => {
+      select: (q: string) => Promise<{ data: unknown; error: { message: string } | null }>;
+    };
+  };
   try {
     const { error } = await client.from("tenants").select("count");
     if (error) {

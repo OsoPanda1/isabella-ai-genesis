@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState, useId, useCallback } from "react";
 import { Waveform } from "./Waveform";
-import {
-  fileToDataUrl,
-  humanSize,
-  MAX_ATTACHMENT_BYTES,
-  type Attachment,
-} from "@/lib/attachments";
+import { fileToDataUrl, humanSize, MAX_ATTACHMENT_BYTES, type Attachment } from "@/lib/attachments";
 import {
   Paperclip,
   Mic,
@@ -14,12 +9,8 @@ import {
   Send,
   Trash2,
   BrainCircuit,
-  Search,
   Wrench,
-  Sparkles,
-  Zap,
   Globe,
-  FileCode2,
   AlertTriangle,
 } from "lucide-react";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
@@ -37,26 +28,21 @@ export interface CommandLineProps {
   onSend: (
     value: string,
     attachments: ExtendedAttachment[],
-    config: { mode: ExecutionMode; webSearch: boolean; toolsEnabled: boolean }
+    config: { mode: ExecutionMode; webSearch: boolean; toolsEnabled: boolean },
   ) => void;
   onStop: () => void;
   onReset: () => void;
   isProcessing: boolean;
 }
 
-export function CommandLine({
-  onSend,
-  onStop,
-  onReset,
-  isProcessing,
-}: CommandLineProps) {
+export function CommandLine({ onSend, onStop, onReset, isProcessing }: CommandLineProps) {
   const { startTrack } = usePerformanceMonitor("CommandLine");
   const [value, setValue] = useState("");
   const [attachments, setAttachments] = useState<ExtendedAttachment[]>([]);
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
-  
+
   // Estados avanzados de configuración IA
   const [executionMode, setExecutionMode] = useState<ExecutionMode>("fast");
   const [webSearchEnabled, setWebSearchEnabled] = useState(true);
@@ -70,7 +56,9 @@ export function CommandLine({
   const inputId = useId();
 
   // Estimación rápida de tokens en tiempo real (Inspirado en Kimi & Prometheus)
-  const estimatedTokens = Math.ceil(value.length / 4) + attachments.reduce((acc, curr) => acc + (curr.kind === "image" ? 256 : 512), 0);
+  const estimatedTokens =
+    Math.ceil(value.length / 4) +
+    attachments.reduce((acc, curr) => acc + (curr.kind === "image" ? 256 : 512), 0);
 
   // Auto-ajuste de altura de textarea
   useEffect(() => {
@@ -125,7 +113,16 @@ export function CommandLine({
     setAttachments([]);
     setShowCommandsMenu(false);
     stopTrack();
-  }, [value, attachments, isProcessing, onSend, executionMode, webSearchEnabled, toolsEnabled, startTrack]);
+  }, [
+    value,
+    attachments,
+    isProcessing,
+    onSend,
+    executionMode,
+    webSearchEnabled,
+    toolsEnabled,
+    startTrack,
+  ]);
 
   const addPhotos = async (files: FileList | null) => {
     if (!files) return;
@@ -175,7 +172,7 @@ export function CommandLine({
               size: blob.size,
               tokenEstimate: 512,
             },
-          ].slice(0, 8)
+          ].slice(0, 8),
         );
       };
       recorder.start();
@@ -218,7 +215,9 @@ export function CommandLine({
             <BrainCircuit className="size-4 text-purple-400" />
             <div>
               <span className="font-semibold text-purple-300">/think</span>
-              <span className="text-muted-foreground ml-2">Razonamiento Profundo CoT (Estilo DeepSeek-R1 / o1)</span>
+              <span className="text-muted-foreground ml-2">
+                Razonamiento Profundo CoT (Estilo DeepSeek-R1 / o1)
+              </span>
             </div>
           </button>
           <button
@@ -228,7 +227,9 @@ export function CommandLine({
             <Globe className="size-4 text-teal-400" />
             <div>
               <span className="font-semibold text-teal-300">/research</span>
-              <span className="text-muted-foreground ml-2">Búsqueda y Síntesis Web Extensa (Perplexity)</span>
+              <span className="text-muted-foreground ml-2">
+                Búsqueda y Síntesis Web Extensa (Perplexity)
+              </span>
             </div>
           </button>
           <button
@@ -238,7 +239,9 @@ export function CommandLine({
             <Wrench className="size-4 text-amber-400" />
             <div>
               <span className="font-semibold text-amber-300">/agent</span>
-              <span className="text-muted-foreground ml-2">Ejecución de Herramientas & Sandbox (Hermes/Gemini)</span>
+              <span className="text-muted-foreground ml-2">
+                Ejecución de Herramientas & Sandbox (Hermes/Gemini)
+              </span>
             </div>
           </button>
         </div>
@@ -252,8 +255,8 @@ export function CommandLine({
               isProcessing
                 ? "bg-electric animate-ping"
                 : recording
-                ? "bg-rose-500 animate-pulse"
-                : "bg-emerald-400"
+                  ? "bg-rose-500 animate-pulse"
+                  : "bg-emerald-400"
             }`}
           />
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
@@ -270,8 +273,8 @@ export function CommandLine({
               isProcessing
                 ? "bg-electric/15 border-electric/30 text-electric"
                 : recording
-                ? "bg-rose-500/15 border-rose-500/30 text-rose-400"
-                : "bg-secondary/40 border-border/30 text-muted-foreground"
+                  ? "bg-rose-500/15 border-rose-500/30 text-rose-400"
+                  : "bg-secondary/40 border-border/30 text-muted-foreground"
             }`}
           >
             {isProcessing ? "SINTETIZANDO" : recording ? "GRABANDO" : "EN ESCUCHA"}
@@ -320,7 +323,9 @@ export function CommandLine({
                 <audio controls src={a.dataUrl} className="h-8 max-w-[160px]" />
               )}
               <div className="max-w-[130px]">
-                <p className="truncate font-mono text-[10px] text-platinum font-semibold">{a.name}</p>
+                <p className="truncate font-mono text-[10px] text-platinum font-semibold">
+                  {a.name}
+                </p>
                 <p className="font-mono text-[8.5px] text-muted-foreground">
                   {a.kind === "image" ? "IMAGEN" : "AUDIO"} · {humanSize(a.size)}
                 </p>
@@ -340,7 +345,10 @@ export function CommandLine({
 
       {/* Alertas y Notificaciones */}
       {notice && (
-        <div role="status" className="flex items-center gap-2 font-mono text-[10.5px] text-rose-400 bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20">
+        <div
+          role="status"
+          className="flex items-center gap-2 font-mono text-[10.5px] text-rose-400 bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20"
+        >
           <AlertTriangle className="size-3.5 shrink-0" />
           <span>{notice}</span>
         </div>
@@ -361,7 +369,7 @@ export function CommandLine({
               e.target.value = "";
             }}
           />
-          
+
           <button
             type="button"
             onClick={() => photoRef.current?.click()}
@@ -381,7 +389,11 @@ export function CommandLine({
                 : "border-border/30 text-muted-foreground hover:text-platinum hover:bg-secondary/30"
             }`}
           >
-            {recording ? <MicOff className="size-3.5 text-rose-400 animate-pulse" /> : <Mic className="size-3.5 text-emerald-400" />}
+            {recording ? (
+              <MicOff className="size-3.5 text-rose-400 animate-pulse" />
+            ) : (
+              <Mic className="size-3.5 text-emerald-400" />
+            )}
             <span>
               {recording
                 ? `${String(Math.floor(recSeconds / 60)).padStart(2, "0")}:${String(recSeconds % 60).padStart(2, "0")}`

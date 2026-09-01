@@ -1,15 +1,22 @@
 import { identityHasPermission, type PrincipalIdentity } from "../../src/lib/rbac";
-import {
-  authorize,
-  requirePermission,
-  AuthorizationError,
-} from "../../src/lib/authorization";
+import { authorize, requirePermission, AuthorizationError } from "../../src/lib/authorization";
 import { evaluateAbac, type AttributeContext } from "../../src/lib/abac";
 import type { TenantGuardResult } from "../../src/lib/tenant-guard";
 import { SovereignSandboxService } from "../../src/lib/sovereign-sandbox";
 
-function identity(role: PrincipalIdentity["role"], subject = "s1", tenantId = "t1"): PrincipalIdentity {
-  return { subject, username: subject, tenantId, role, scopes: [], authenticated: role !== "Guest" };
+function identity(
+  role: PrincipalIdentity["role"],
+  subject = "s1",
+  tenantId = "t1",
+): PrincipalIdentity {
+  return {
+    subject,
+    username: subject,
+    tenantId,
+    role,
+    scopes: [],
+    authenticated: role !== "Guest",
+  };
 }
 
 function tenantOk(subject: string, tenantId: string): TenantGuardResult {
@@ -38,13 +45,13 @@ export function runSecurityTestSuite() {
     results.push({
       name: "un Guest jamás obtiene system:admin ni ledger:write",
       passed,
-      error: passed ? undefined : "Guest was granted privileged scopes"
+      error: passed ? undefined : "Guest was granted privileged scopes",
     });
   } catch (e: any) {
     results.push({
       name: "un Guest jamás obtiene system:admin ni ledger:write",
       passed: false,
-      error: e.message
+      error: e.message,
     });
   }
 
@@ -56,13 +63,13 @@ export function runSecurityTestSuite() {
     results.push({
       name: "un Auditor no puede escribir memoria ni ejecutar herramientas",
       passed,
-      error: passed ? undefined : "Auditor was granted memory:write:own or tool:execute"
+      error: passed ? undefined : "Auditor was granted memory:write:own or tool:execute",
     });
   } catch (e: any) {
     results.push({
       name: "un Auditor no puede escribir memoria ni ejecutar herramientas",
       passed: false,
-      error: e.message
+      error: e.message,
     });
   }
 
@@ -79,13 +86,13 @@ export function runSecurityTestSuite() {
     results.push({
       name: "la autorización rechaza operaciones prohibidas por la matriz",
       passed,
-      error: passed ? undefined : `Expected denied, got ${authResult.decision}`
+      error: passed ? undefined : `Expected denied, got ${authResult.decision}`,
     });
   } catch (e: any) {
     results.push({
       name: "la autorización rechaza operaciones prohibidas por la matriz",
       passed: false,
-      error: e.message
+      error: e.message,
     });
   }
 
@@ -110,13 +117,15 @@ export function runSecurityTestSuite() {
     results.push({
       name: "requirePermission lanza en deny paths con metadatos",
       passed: threwCorrectly,
-      error: threwCorrectly ? undefined : "Did not throw expected AuthorizationError with status 403 and code AUTHORIZATION_DENIED"
+      error: threwCorrectly
+        ? undefined
+        : "Did not throw expected AuthorizationError with status 403 and code AUTHORIZATION_DENIED",
     });
   } catch (e: any) {
     results.push({
       name: "requirePermission lanza en deny paths con metadatos",
       passed: false,
-      error: e.message
+      error: e.message,
     });
   }
 
@@ -139,13 +148,13 @@ export function runSecurityTestSuite() {
     results.push({
       name: "ABAC niega request no autenticado con riesgo alto",
       passed,
-      error: passed ? undefined : `Expected deny, got ${abacResult.decision}`
+      error: passed ? undefined : `Expected deny, got ${abacResult.decision}`,
     });
   } catch (e: any) {
     results.push({
       name: "ABAC niega request no autenticado con riesgo alto",
       passed: false,
-      error: e.message
+      error: e.message,
     });
   }
 
@@ -156,18 +165,18 @@ export function runSecurityTestSuite() {
     results.push({
       name: "el sandbox sin ejecutor real devuelve unavailable (nunca un éxito fabricado)",
       passed,
-      error: undefined
+      error: undefined,
     });
   } catch (e: any) {
     results.push({
       name: "el sandbox sin ejecutor real devuelve unavailable (nunca un éxito fabricado)",
       passed: false,
-      error: e.message
+      error: e.message,
     });
   }
 
   return {
     success: results.every((r) => r.passed),
-    results
+    results,
   };
 }

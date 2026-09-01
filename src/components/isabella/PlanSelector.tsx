@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Star, Zap, Cpu, Award, ShieldAlert } from "lucide-react";
+import { Check, Zap } from "lucide-react";
 
 export interface SubscriptionTier {
   id: string;

@@ -147,7 +147,7 @@ export const Route = createFileRoute("/api/db")({
         }
 
         if (action === "audit") {
-          return withSovereignAuth("audit", "read", async (context) => {
+          return withSovereignAuth("audit", "read", async () => {
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({ "content-type": "application/json" }),
             );
@@ -157,7 +157,7 @@ export const Route = createFileRoute("/api/db")({
         }
 
         if (action === "heads") {
-          return withSovereignAuth("system", "read", async (context) => {
+          return withSovereignAuth("system", "read", async () => {
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({ "content-type": "application/json" }),
             );
@@ -170,9 +170,10 @@ export const Route = createFileRoute("/api/db")({
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );
-          const redirectUri = url.searchParams.get("redirect_uri") || `${url.origin}/api/db?action=oauth-callback`;
+          const redirectUri =
+            url.searchParams.get("redirect_uri") || `${url.origin}/api/db?action=oauth-callback`;
           const clientId = url.searchParams.get("client_id") || "isabella_oauth_client";
-          
+
           const providerUrl = `${url.origin}/api/db?action=oauth-provider&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${encodeURIComponent(clientId)}`;
           return new Response(JSON.stringify({ url: providerUrl }), { headers });
         }
@@ -300,10 +301,7 @@ export const Route = createFileRoute("/api/db")({
                   <div style="text-align: left; margin-bottom: 8px; font-size: 12px; color: #94a3b8; font-weight: 500;">Seleccionar Cuenta Soberana:</div>
                   <select name="userId">
                     ${sessions
-                      .map(
-                        (s) =>
-                          `<option value="${s.userId}">${s.username} (${s.role})</option>`,
-                      )
+                      .map((s) => `<option value="${s.userId}">${s.username} (${s.role})</option>`)
                       .join("")}
                   </select>
                   
@@ -325,7 +323,7 @@ export const Route = createFileRoute("/api/db")({
         if (action === "oauth-callback") {
           const code = url.searchParams.get("code") || "";
           const userId = code.replace("authcode_", "");
-          
+
           const db = SovereignDB.load();
           const seededUser = db.sessions.find((s) => s.userId === userId);
           if (!seededUser) {
@@ -417,14 +415,14 @@ export const Route = createFileRoute("/api/db")({
             const formData = await request.formData();
             const redirectUriEnc = formData.get("redirect_uri") as string;
             const userId = formData.get("userId") as string;
-            
+
             const redirectUri = decodeURIComponent(redirectUriEnc);
             const code = `authcode_${userId}`;
-            
+
             const targetUrl = `${redirectUri}${redirectUri.includes("?") ? "&" : "?"}code=${code}`;
             return new Response("", {
               status: 303,
-              headers: new Headers({ "Location": targetUrl }),
+              headers: new Headers({ Location: targetUrl }),
             });
           }
 
@@ -546,7 +544,10 @@ export const Route = createFileRoute("/api/db")({
                 await sandbox.deprovisionInstance();
               } else {
                 const { SovereignSandbox } = await import("@/lib/sovereign-engine");
-                result = SovereignSandbox.executeTool(val.data.expression, val.data.variables || {});
+                result = SovereignSandbox.executeTool(
+                  val.data.expression,
+                  val.data.variables || {},
+                );
               }
 
               SovereignDB.appendAuditLog(

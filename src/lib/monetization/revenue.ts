@@ -1,8 +1,4 @@
-import {
-  PLATFORM_FEE_BASIS_POINTS,
-  USER_SCHARE_BASIS_POINTS,
-  type RevenueSplit,
-} from "./types";
+import { PLATFORM_FEE_BASIS_POINTS, USER_SCHARE_BASIS_POINTS, type RevenueSplit } from "./types";
 
 /**
  * DESGLOSE DE REPARTO (src/lib/monetization/revenue.ts)
@@ -35,9 +31,7 @@ export function splitRevenue(input: RevenueComputationInput): RevenueSplit {
   const distributable = grossAmountCents - refundReserveCents - communityShareCents;
   if (distributable < 0) throw new Error("Las reservas no pueden exceder el monto bruto");
 
-  const platformFeeCents = Math.round(
-    (distributable * PLATFORM_FEE_BASIS_POINTS) / 10_000,
-  );
+  const platformFeeCents = Math.round((distributable * PLATFORM_FEE_BASIS_POINTS) / 10_000);
   const netAmountCents = distributable - platformFeeCents;
 
   return {

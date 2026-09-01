@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
-import { SovereignDB } from "@/lib/sovereign-engine";
 import { secrets } from "@/lib/secrets";
 import { withSovereignAuth } from "@/lib/principal-context";
 

@@ -40,14 +40,7 @@ export const RESOURCES: readonly Resource[] = [
 
 /** Acciones estandarizadas sobre un recurso. */
 export type Action =
-  | "read"
-  | "write"
-  | "delete"
-  | "execute"
-  | "verify"
-  | "admin"
-  | "configure"
-  | "list";
+  "read" | "write" | "delete" | "execute" | "verify" | "admin" | "configure" | "list";
 
 export const ACTIONS: readonly Action[] = [
   "read",

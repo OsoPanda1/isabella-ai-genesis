@@ -11,12 +11,7 @@ import { config } from "./config";
  */
 
 export type SecretKind =
-  | "jwt"
-  | "encryption"
-  | "bookpi"
-  | "ai"
-  | "supabase-service"
-  | "policy-signing";
+  "jwt" | "encryption" | "bookpi" | "ai" | "supabase-service" | "policy-signing";
 
 function requireSecret(kind: SecretKind, value: string | undefined, label: string): string {
   if (!value || value.length === 0) {
@@ -38,11 +33,7 @@ export interface Secrets {
 export function createSecrets(cfg = config): Secrets {
   return {
     jwtSecret() {
-      return requireSecret(
-        "jwt",
-        cfg().AUTH_JWT_SECRET,
-        "AUTH_JWT_SECRET (ver .env.example)",
-      );
+      return requireSecret("jwt", cfg().AUTH_JWT_SECRET, "AUTH_JWT_SECRET (ver .env.example)");
     },
     encryptionMasterKey() {
       return requireSecret(

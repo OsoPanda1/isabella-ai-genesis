@@ -188,9 +188,9 @@ export function useIsabella() {
 
         const res = await fetch("/api/isabella", {
           method: "POST",
-          headers: { 
+          headers: {
             "content-type": "application/json",
-            ...(token ? { "Authorization": `Bearer ${token}` } : {})
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           signal: controller.signal,
           body: JSON.stringify({

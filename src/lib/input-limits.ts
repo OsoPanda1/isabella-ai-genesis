@@ -43,11 +43,7 @@ export function assertMessagesWithinLimits(count: number): void {
 
 export function assertAttachmentWithinLimits(bytes: number): void {
   if (bytes > getInputLimits().maxAttachmentBytes) {
-    throw new LimitError(
-      "ATTACHMENT_TOO_LARGE",
-      getInputLimits().maxAttachmentBytes,
-      bytes,
-    );
+    throw new LimitError("ATTACHMENT_TOO_LARGE", getInputLimits().maxAttachmentBytes, bytes);
   }
 }
 

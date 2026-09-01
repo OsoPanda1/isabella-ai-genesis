@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  signJwtHs256,
-  verifyJwt,
-  type JwtClaims,
-} from "../../src/lib/jwt-verifier";
+import { signJwtHs256, verifyJwt, type JwtClaims } from "../../src/lib/jwt-verifier";
 
 const SECRET = "test_secret_at_least_16_bytes_xyz";
 const ISSUER = "https://isabella.test";
@@ -48,10 +44,7 @@ describe("JWT verifier (HS256) — verificación criptográfica", () => {
   });
 
   it("rechaza un token expirado", () => {
-    const token = signJwtHs256(
-      buildClaims({ exp: Math.floor(Date.now() / 1000) - 100 }),
-      SECRET,
-    );
+    const token = signJwtHs256(buildClaims({ exp: Math.floor(Date.now() / 1000) - 100 }), SECRET);
     const result = verifyJwt(token, { key: SECRET, algorithm: "HS256", issuer: ISSUER });
     expect(result.ok).toBe(false);
   });

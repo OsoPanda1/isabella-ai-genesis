@@ -14,15 +14,28 @@ import {
   type Action,
 } from "../../src/lib/permission-matrix";
 import { evaluateAbac, type AttributeContext } from "../../src/lib/abac";
+import { assertTenantBoundary, type TenantContext } from "../../src/lib/tenant-context";
 import {
-  assertTenantBoundary,
-  type TenantContext,
-} from "../../src/lib/tenant-context";
-import { resolveTenantContext, guardTenantBoundary, TenantBoundaryError, type TenantGuardResult } from "../../src/lib/tenant-guard";
+  resolveTenantContext,
+  guardTenantBoundary,
+  TenantBoundaryError,
+  type TenantGuardResult,
+} from "../../src/lib/tenant-guard";
 import { authorize, requirePermission, AuthorizationError } from "../../src/lib/authorization";
 
-function identity(role: PrincipalIdentity["role"], subject = "u1", tenantId = "t1"): PrincipalIdentity {
-  return { subject, username: subject, tenantId, role, scopes: [], authenticated: role !== "Guest" };
+function identity(
+  role: PrincipalIdentity["role"],
+  subject = "u1",
+  tenantId = "t1",
+): PrincipalIdentity {
+  return {
+    subject,
+    username: subject,
+    tenantId,
+    role,
+    scopes: [],
+    authenticated: role !== "Guest",
+  };
 }
 
 function tenantOk(subject: string, tenantId: string): TenantGuardResult {
@@ -108,9 +121,7 @@ describe("ABAC — atributos y aislamiento territorial", () => {
   });
 
   it("niega acceso a datos personales ajenos", () => {
-    const result = evaluateAbac(
-      baseContext({ resource: "data:personal", resourceOwner: "otro" }),
-    );
+    const result = evaluateAbac(baseContext({ resource: "data:personal", resourceOwner: "otro" }));
     expect(result.decision).toBe("deny");
   });
 });

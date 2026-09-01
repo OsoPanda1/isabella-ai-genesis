@@ -7,13 +7,29 @@ const SECRET_PATTERN =
   /\b(?:sk|pk|secret|token|password|passwd|api[_-]?key|access[_-]?key|private[_-]?key|isabella_sovereign_security_secret)[-\w]*\b\s*[:=]\s*['"][A-Za-z0-9_\-\.\/\+]{16,}['"]/i;
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi", "routeTree.gen.ts", "coverage", "node_modules"] },
+  {
+    ignores: [
+      "dist",
+      ".output",
+      ".vinxi",
+      "routeTree.gen.ts",
+      "coverage",
+      "node_modules",
+      "test",
+      "test/**/*",
+      "src/tests/**/*",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx,js,mjs}"],
     languageOptions: {
       ecmaVersion: 2020,
       globals: { ...globals.browser, ...globals.node },
+      parserOptions: {
+        project: "./tsconfig.json",
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     plugins: { security },
     rules: {

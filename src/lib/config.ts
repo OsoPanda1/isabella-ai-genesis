@@ -19,9 +19,7 @@ let loadError: string | null = null;
 function resolveEnv(source: RawEnv): Env {
   const parsed = envSchema.safeParse(source);
   if (!parsed.success) {
-    const issues = parsed.error.issues
-      .map((i) => `${i.path.join(".")}: ${i.message}`)
-      .join("; ");
+    const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
     throw new Error(`Configuración de entorno inválida: ${issues}`);
   }
   return parsed.data;

@@ -39,9 +39,9 @@ function buildSecretPatterns(values: string[]): RegExp {
   const literals = seeded.join("|");
 
   const generic =
-    /(\b(?:api[_-]?key|secret|token|password|passwd|auth|bearer|authorization)\b\s*[:=]\s*["']?)([A-Za-z0-9_\-\.\+\/=]{12,})(["']?)/gi;
-  const bearer = /(\bBearer\s+)[A-Za-z0-9_\-\.\+\/=]{20,}/gi;
-  const iv = /(iv|nonce)=["']?[A-Za-z0-9\+\/=]{12,}["']?/gi;
+    /(\b(?:api[_-]?key|secret|token|password|passwd|auth|bearer|authorization)\b\s*[:=]\s*["']?)([A-Za-z0-9_\-.+=/]{12,})(["']?)/gi;
+  const bearer = /(\bBearer\s+)[A-Za-z0-9_\-.+=/]{20,}/gi;
+  const iv = /(iv|nonce)=["']?[A-Za-z0-9+=/]{12,}["']?/gi;
 
   const parts = [generic.source, bearer.source, iv.source];
   if (literals) {
@@ -52,8 +52,7 @@ function buildSecretPatterns(values: string[]): RegExp {
 
 export function createRedactor(extraValues: string[] = []): Redactor {
   const cfg = config();
-  const extraKeys = cfg.REDACT_EXTRA_KEYS
-    .split(",")
+  const extraKeys = cfg.REDACT_EXTRA_KEYS.split(",")
     .map((s) => s.trim())
     .filter(Boolean);
 
@@ -64,11 +63,7 @@ export function createRedactor(extraValues: string[] = []): Redactor {
   }
   // Añade valores cargados vía secrets/config (degradación segura si faltan).
   try {
-    for (const v of [
-      secrets.jwtSecret(),
-      secrets.aiGatewayKey(),
-      secrets.encryptionMasterKey(),
-    ]) {
+    for (const v of [secrets.jwtSecret(), secrets.aiGatewayKey(), secrets.encryptionMasterKey()]) {
       if (v) dynamicValues.push(v);
     }
   } catch {

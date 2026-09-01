@@ -4,11 +4,6 @@ import { CATALOG_ENTRIES } from "@/lib/api-catalog";
 import { routeRequest } from "@/lib/crown";
 import { SecuritySystem } from "@/lib/security";
 
-const searchSchema = z.object({
-  domain: z.string().optional(),
-  query: z.string().optional(),
-});
-
 const executeSchema = z.object({
   id: z.string(),
   method: z.string(),
@@ -192,7 +187,7 @@ export const Route = createFileRoute("/api/catalog")({
             }),
             { headers },
           );
-        } catch (error) {
+        } catch {
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );

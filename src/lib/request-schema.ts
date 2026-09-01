@@ -29,7 +29,11 @@ export const messageSchema = z.object({
 });
 
 export const inferenceRequestSchema = z.object({
-  input: z.string().trim().min(1).max(32 * 1024),
+  input: z
+    .string()
+    .trim()
+    .min(1)
+    .max(32 * 1024),
   attachments: z.array(z.string()).max(8).optional(),
   preset: z.string().max(64).optional(),
   messages: z.array(messageSchema).max(limits.maxMessages).optional(),

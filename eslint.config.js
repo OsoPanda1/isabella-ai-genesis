@@ -7,13 +7,28 @@ import tseslint from "typescript-eslint";
 import security from "eslint-plugin-security";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi", "routeTree.gen.ts", "coverage"] },
+  {
+    ignores: [
+      "dist",
+      ".output",
+      ".vinxi",
+      "routeTree.gen.ts",
+      "coverage",
+      "test",
+      "test/**/*",
+      "src/tests/**/*",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+      parserOptions: {
+        project: "./tsconfig.json",
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     plugins: {
       "react-hooks": reactHooks,
@@ -44,7 +59,11 @@ export default tseslint.config(
       "no-warning-comments": ["warn", { terms: ["todo", "fixme", "hack"] }],
       "no-restricted-globals": [
         "error",
-        { name: "Math.random", message: "Do not use Math.random for security-sensitive randomness; use crypto.getRandomValues." },
+        {
+          name: "Math.random",
+          message:
+            "Do not use Math.random for security-sensitive randomness; use crypto.getRandomValues.",
+        },
       ],
     },
   },
