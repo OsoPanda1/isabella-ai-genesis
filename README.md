@@ -3,7 +3,7 @@
 > **Cerebro Operativo del Gemelo Digital Territorial de Real del Monte**  
 > *Ecosistema TAMV Network | Gobernanza Ética y Soberanía Humana*
 
-[![Licencia](https://img.shields.io/badge/Licencia-Mixta_(Apache--2.0%2FISCL--1.0%2FCC_BY_4.0)-blue.svg)](#licenciamiento)
+[![Licencia](https://img.shields.io/badge/Licencia-Mixta_(Apache--2.0%2FISCL--1.0%2FCC_BY_4.0)-blue.svg)](#contratos-y-licenciamiento)
 [![Estado](https://img.shields.io/badge/Estado-92%25_Sandbox_Verified-success.svg)](#plan-de-implantacion)
 [![Normativa](https://img.shields.io/badge/Gobernanza-ISO%2FIEC_42001_Readiness-purple.svg)](#marco-normativo)
 
@@ -11,14 +11,14 @@
 
 ## 1. Resumen Ejecutivo
 
-**Isabella Villaseñor AI** es una arquitectura cognitiva híbrida, descentralizada y soberana, diseñada como interfaz de gobernanza territorial y cerebro operativo del Gemelo Digital de Real del Monte (Hidalgo, México).  
+**Isabella Villaseñor AI** es una arquitectura cognitiva híbrida, descentralizada y soberana, diseñada como cerebro operativo y sistema de gobernanza territorial del Gemelo Digital de Real del Monte (Hidalgo, México).  
 Su principio rector: *“Nacimos para guiar, no para explotar”*.
 
 ### Problema Detectado
 - Extracción extractiva de datos comunitarios.  
 - Falta de trazabilidad auditable en inferencias.  
 - Ausencia de gobernanza en cascada.  
-- Vulnerabilidad frente a inyecciones de prompt.
+- Vulnerabilidad frente a inyecciones de prompt.  
 
 ### Propuesta de Remedio
 - **Hardening Multicapa de 7 niveles**.  
