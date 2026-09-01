@@ -56,7 +56,7 @@ export type FlagKey = keyof typeof FLAGS;
 
 export interface FeatureFlagService {
   isEnabled(key: FlagKey): boolean;
-  get<T extends FlagValue>(key: FlagKey): T;
+  get(key: FlagKey): FlagValue;
   all(): Record<string, FlagValue>;
 }
 
@@ -89,10 +89,11 @@ export function createFeatureFlagsService(
     if (def.requiresExplicitEnable && value === "true") return true;
     if (def.default === true && value === "false") return false;
 
-    if (typeof def.default === "boolean") return value === "true";
-    if (typeof def.default === "number") {
+    const base: FlagValue = def.default;
+    if (typeof base === "boolean") return value === "true";
+    if (typeof base === "number") {
       const n = Number(value);
-      return Number.isNaN(n) ? def.default : n;
+      return Number.isNaN(n) ? base : n;
     }
     return value;
   }
@@ -102,7 +103,7 @@ export function createFeatureFlagsService(
       return resolve(key) === true;
     },
     get(key) {
-      return resolve(key) as FlagValue;
+      return resolve(key);
     },
     all() {
       const out: Record<string, FlagValue> = {};

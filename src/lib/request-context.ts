@@ -48,7 +48,7 @@ export function withRequestContext<T>(
   ctx: RequestContextData,
   fn: () => T | Promise<T>,
 ): Promise<T> {
-  return requestStore.run(ctx, fn);
+  return requestStore.run(ctx, () => Promise.resolve(fn()));
 }
 
 export function getRequestContext(): RequestContextData | null {

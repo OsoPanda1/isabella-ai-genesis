@@ -71,13 +71,15 @@ export function buildManifest(
     // versión por defecto
   }
 
-  return {
+  const manifest: BuildManifest = {
     builtAt: new Date().toISOString(),
     version,
     sourceHash: computeSourceHash(root),
     envFingerprint: computeEnvFingerprint(),
-    commit: process.env.COMMIT_SHA,
     runtime,
     depsHash: hashText(process.version + version),
   };
+  const commit = process.env.COMMIT_SHA;
+  if (commit) manifest.commit = commit;
+  return manifest;
 }

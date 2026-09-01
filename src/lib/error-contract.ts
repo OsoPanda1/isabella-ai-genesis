@@ -44,7 +44,7 @@ export class ContractError extends Error {
     this.traceId = opts.traceId ?? getTraceId();
     this.retryable = opts.retryable ?? false;
     this.severity = opts.severity ?? "error";
-    this.details = opts.details;
+    if (opts.details) this.details = opts.details;
     this.httpStatus = opts.httpStatus ?? 500;
   }
 
@@ -61,12 +61,13 @@ export class ContractError extends Error {
 }
 
 export function toContractError(payload: ContractErrorPayload): ContractError {
-  return new ContractError(payload.code, payload.message, {
+  const opts: ConstructorParameters<typeof ContractError>[2] = {
     traceId: payload.traceId,
     retryable: payload.retryable,
     severity: payload.severity,
-    details: payload.details,
-  });
+  };
+  if (payload.details) opts.details = payload.details;
+  return new ContractError(payload.code, payload.message, opts);
 }
 
 /** Serializa HTTP para una respuesta de error estructurada. */
@@ -107,12 +108,14 @@ export const Errors = {
       severity: "info",
       httpStatus: 404,
     }),
-  validation: (details?: Record<string, unknown>) =>
-    new ContractError("VALIDATION_ERROR", "Entrada inválida", {
+  validation: (details?: Record<string, unknown>) => {
+    const opts: ConstructorParameters<typeof ContractError>[2] = {
       severity: "info",
       httpStatus: 422,
-      details,
-    }),
+    };
+    if (details) opts.details = details;
+    return new ContractError("VALIDATION_ERROR", "Entrada inválida", opts);
+  },
   rateLimited: () =>
     new ContractError("RATE_LIMITED", "Demasiadas peticiones", {
       severity: "info",
@@ -129,5 +132,4 @@ export const Errors = {
       severity: "info",
       httpStatus: 400,
     }),
-  unavailable?: undefined,
 } as const;

@@ -83,8 +83,11 @@ export class CapabilityRegistryService {
 export function createDefaultCapabilityRegistry(): CapabilityRegistryService {
   const svc = new CapabilityRegistryService();
   const now = new Date().toISOString();
-  const register = (id: string, state: CapabilityState, evidence?: string[]): void =>
-    svc.register({ id, state, evidence, updatedAt: now });
+  const register = (id: string, state: CapabilityState, evidence?: string[]): void => {
+    const record: CapabilityRecord = { id, state, updatedAt: now };
+    if (evidence) record.evidence = evidence;
+    svc.register(record);
+  };
 
   register("build", "implemented", ["package.json scripts", "npm run typecheck/lint/test/build"]);
   register("auth", "implemented", ["src/lib/principal-context.ts", "src/lib/jwt-verifier.ts"]);

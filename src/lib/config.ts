@@ -27,7 +27,7 @@ function resolveEnv(source: RawEnv): Env {
   return parsed.data;
 }
 
-function assertRequired(env: Env, mode: RuntimeMode, source: RawEnv): void {
+function assertRequired(mode: RuntimeMode, source: RawEnv): void {
   const required = requiredEnvKeys(mode);
   for (const key of required) {
     const raw = source[key];
@@ -47,7 +47,7 @@ export function loadConfig(source: RawEnv = process.env): Env {
     parsed.NODE_ENV === "production" ? "production" : parsed.NODE_ENV === "test" ? "development" : "development";
 
   try {
-    assertRequired(parsed, mode, source);
+    assertRequired(mode, source);
   } catch (error) {
     loadError = error instanceof Error ? error.message : String(error);
   }

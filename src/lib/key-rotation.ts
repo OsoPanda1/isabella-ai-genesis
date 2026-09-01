@@ -46,7 +46,7 @@ export class KeyRotationService {
   }
 
   rotate(now = Date.now()): KeyMaterial {
-    const newKey = generateKeyMaterial(secrets().jwtSecret(), this.label);
+    const newKey = generateKeyMaterial(secrets.jwtSecret(), this.label);
     // La activa pasa a histórica.
     const current = this.keyring.active();
     this.keyring.add({ ...current, isActive: false });
@@ -81,5 +81,5 @@ export class KeyRotationService {
 }
 
 export function createKeyRotation(state?: KeyringState): KeyRotationService {
-  return new KeyRotationService(secrets().jwtSecret(), "jwt", state);
+  return new KeyRotationService(secrets.jwtSecret(), "jwt", state);
 }

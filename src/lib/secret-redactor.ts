@@ -62,10 +62,17 @@ export function createRedactor(extraValues: string[] = []): Redactor {
     const value = process.env[key];
     if (value) dynamicValues.push(value);
   }
-  // Añade valores cargados vía secrets/config.
-  const s = secrets();
-  for (const v of [s.jwtSecret(), s.aiGatewayKey(), s.encryptionMasterKey()]) {
-    if (v) dynamicValues.push(v);
+  // Añade valores cargados vía secrets/config (degradación segura si faltan).
+  try {
+    for (const v of [
+      secrets.jwtSecret(),
+      secrets.aiGatewayKey(),
+      secrets.encryptionMasterKey(),
+    ]) {
+      if (v) dynamicValues.push(v);
+    }
+  } catch {
+    // Sin secretos configurados (p.ej. desarrollo): solo patrones genéricos.
   }
 
   const pattern = buildSecretPatterns([...dynamicValues, ...extraValues]);
@@ -75,7 +82,7 @@ export function createRedactor(extraValues: string[] = []): Redactor {
   );
 
   function redact(input: string): string {
-    let out = input.replace(pattern, (match, prefix = "") => `${prefix}[REDACTED]`);
+    let out = input.replace(pattern, (_match, prefix = "") => `${prefix}[REDACTED]`);
     out = out.replace(patternKeys, "$1[REDACTED]$2");
     return out;
   }

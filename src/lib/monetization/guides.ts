@@ -214,5 +214,3 @@ export function getGuide(method: string): MonetizationGuide | undefined {
 export function listGuides(): MonetizationGuide[] {
   return Object.values(GUIDES);
 }
-
-export { MONETIZATION_OVERVIEW };
