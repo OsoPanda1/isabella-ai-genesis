@@ -1,7 +1,6 @@
-import * as fs from "fs";
-import * as path from "path";
-import * as crypto from "crypto";
-import { z } from "zod";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as crypto from "node:crypto";
 import { SecuritySystem } from "./security";
 
 // ============================================================================
@@ -84,99 +83,25 @@ export interface DatabaseSchema {
 }
 
 // Default Seed Data - Hardcoded fallback tokens deleted!
-const DEFAULT_DB: DatabaseSchema = {
-  tenants: [
-    {
-      id: "tenant_hidalgo_01",
-      name: "TAMV Network Hidalgo",
-      region: "Nodo 0 (Real del Monte)",
-      quotaBalance: 12500.5,
-      tier: "Sovereign",
-    },
-    {
-      id: "tenant_rdm_hub",
-      name: "RDM Digital Hub",
-      region: "Nodo 1",
-      quotaBalance: 50.0,
-      tier: "Free",
-    },
-    {
-      id: "tenant_corporativa",
-      name: "CITEMESH Enterprise",
-      region: "Nodo Global",
-      quotaBalance: 5000.0,
-      tier: "Enterprise",
-    },
-  ],
-  sessions: [
-    {
-      userId: "user_anubis_001",
-      username: "Anubis Villaseñor",
-      tenantId: "tenant_hidalgo_01",
-      role: "SovereignOwner",
-      oidcSub: "auth0|anubisvillasenor1",
-    },
-    {
-      userId: "user_operator_rdm",
-      username: "Operador Comunitario",
-      tenantId: "tenant_rdm_hub",
-      role: "Operator",
-      oidcSub: "auth0|operator_rdm",
-    },
-    {
-      userId: "user_external_auditor",
-      username: "Auditor ISO/IEC 42001",
-      tenantId: "tenant_corporativa",
-      role: "Auditor",
-      oidcSub: "auth0|auditor_iso",
-    },
-    {
-      userId: "user_guest_rdm",
-      username: "Visitante",
-      tenantId: "tenant_rdm_hub",
-      role: "Guest",
-      oidcSub: "auth0|guest_rdm",
-    },
-  ],
-  ledger: [
-    {
-      index: 0,
-      timestamp: new Date().toISOString(),
-      tenantId: "tenant_hidalgo_01",
-      userId: "user_anubis_001",
-      operation: "Inferencia Inicial - Genesis C.R.O.W.N. Router Sync",
-      category: "inference",
-      costDecimal: "0.00450",
-      tokensConsumed: 1500,
-      previousHash: "0000000000000000000000000000000000000000000000000000000000000000",
-      blockHash: "df2380ad9162ab3748cd9b189ff10ab4620f329910a90dfc71be9b16ea9120df",
-      pqcSignature: null,
-      signatureAlgorithm: "NOT_IMPLEMENTED",
-      status: "settled",
-    },
-  ],
-  auditLogs: [
-    {
-      id: "evt_genesis_001",
-      timestamp: new Date().toISOString(),
-      traceId: "trc_f8423ab",
-      correlationId: "cor_9934ba8",
-      actorIp: "127.0.0.1",
-      event: "Módulos de Seguridad C.R.O.W.N. Inicializados",
-      severity: "S3",
-      details:
-        "Hardening de 7 Capas de Seguridad validado con éxito. Filtros anti-inyección listos.",
-      remediated: true,
-      verificationHash: "f3c38ad9162ab3748cd9b189ff10ab4620f329910a90dfc71be9b16ea9120df0",
-      previousLogHash: "0000000000000000000000000000000000000000000000000000000000000000",
-    },
-  ],
+// El arranque parte de un estado REAL y vacío: ningún tenant, sesión,
+// bloque de libro mayor ni log de auditoría fabricado. La génesis se
+// genera en runtime con hashes criptográficos reales cuando ocurre la
+// primera operación. Zero mockdata / zero fake-security.
+const EMPTY_DB: DatabaseSchema = {
+  tenants: [],
+  sessions: [],
+  ledger: [],
+  auditLogs: [],
   settings: {
     pqcEnabled: false,
     activeHeadCount: 12,
     activeNucleusCount: 24,
   },
 };
+
+/** Hash previo canónico de génesis (bloque raíz). */
+const GENESIS_PREVIOUS_HASH =
+  "0000000000000000000000000000000000000000000000000000000000000000";
 
 // ============================================================================
 // HELPER METHODS: PERSISTENT STORAGE CONTROLLER (Atomic File I/O)
@@ -191,13 +116,12 @@ export class SovereignDB {
       }
     } catch (e) {
       console.error(
-        "No se pudo cargar la base de datos persistente. Restableciendo datos sembrados:",
+        "No se pudo cargar la base de datos persistente. Restableciendo estado vacío:",
         e,
       );
     }
-    // Seed initial database
-    this.save(DEFAULT_DB);
-    return DEFAULT_DB;
+    this.save(EMPTY_DB);
+    return EMPTY_DB;
   }
 
   private static save(db: DatabaseSchema) {
@@ -236,7 +160,7 @@ export class SovereignDB {
     const lastBlock = db.ledger[db.ledger.length - 1];
     const prevHash = lastBlock
       ? lastBlock.blockHash
-      : "0000000000000000000000000000000000000000000000000000000000000000";
+      : GENESIS_PREVIOUS_HASH;
 
     const index = db.ledger.length;
     const timestamp = new Date().toISOString();
@@ -263,12 +187,9 @@ export class SovereignDB {
     };
 
     // Deduct Tenant Credits (Real Billing / Multi-tenancy isolation)
-    const tenantIndex = db.tenants.findIndex((t) => t.id === tenantId);
-    if (tenantIndex !== -1) {
-      db.tenants[tenantIndex].quotaBalance = Math.max(
-        0,
-        db.tenants[tenantIndex].quotaBalance - cost,
-      );
+    const tenant = db.tenants.find((t) => t.id === tenantId);
+    if (tenant) {
+      tenant.quotaBalance = Math.max(0, tenant.quotaBalance - cost);
     }
 
     db.ledger.push(newBlock);
@@ -293,9 +214,9 @@ export class SovereignDB {
 
     // Credit back
     const cost = parseFloat(block.costDecimal);
-    const tenantIndex = db.tenants.findIndex((t) => t.id === tenantId);
-    if (tenantIndex !== -1) {
-      db.tenants[tenantIndex].quotaBalance += cost;
+    const tenant = db.tenants.find((t) => t.id === tenantId);
+    if (tenant) {
+      tenant.quotaBalance += cost;
     }
 
     this.save(db);
@@ -341,6 +262,13 @@ export class SovereignDB {
     const db = this.load();
     for (let i = 0; i < db.ledger.length; i++) {
       const block = db.ledger[i];
+      if (!block) {
+        return {
+          success: false,
+          error: `Bloque ausente en índice ${i}.`,
+          corruptedIndex: i,
+        };
+      }
 
       // 1. Validate sequence index
       if (block.index !== i) {
@@ -354,6 +282,13 @@ export class SovereignDB {
       // 2. Validate hash chain linkage
       if (i > 0) {
         const prevBlock = db.ledger[i - 1];
+        if (!prevBlock) {
+          return {
+            success: false,
+            error: `Bloque previo ausente en índice ${i - 1}.`,
+            corruptedIndex: i,
+          };
+        }
         if (block.previousHash !== prevBlock.blockHash) {
           return {
             success: false,
@@ -362,9 +297,7 @@ export class SovereignDB {
           };
         }
       } else {
-        if (
-          block.previousHash !== "0000000000000000000000000000000000000000000000000000000000000000"
-        ) {
+        if (block.previousHash !== GENESIS_PREVIOUS_HASH) {
           return {
             success: false,
             error: "Bloque Génesis inválido: Hash previo corrupto.",
@@ -409,11 +342,9 @@ export class SovereignDB {
     const db = this.load();
 
     const previousLogHash =
-      db.auditLogs.length > 0
-        ? db.auditLogs[0].verificationHash
-        : "0000000000000000000000000000000000000000000000000000000000000000";
+      db.auditLogs[0]?.verificationHash ?? GENESIS_PREVIOUS_HASH;
 
-    const id = `evt_${Math.random().toString(36).slice(2, 11)}`;
+    const id = `evt_${crypto.randomUUID()}`;
     const timestamp = new Date().toISOString();
     const remediated = severity === "S3" || severity === "S2";
 
@@ -453,10 +384,16 @@ export class SovereignDB {
 
     for (let i = 0; i < logs.length; i++) {
       const log = logs[i];
+      if (!log) {
+        return {
+          success: false,
+          error: `Evento ausente en la cadena (índice ${i}).`,
+          corruptedId: "unknown",
+        };
+      }
+      const prevLog = logs[i - 1];
       const expectedPrevHash =
-        i === 0
-          ? "0000000000000000000000000000000000000000000000000000000000000000"
-          : logs[i - 1].verificationHash;
+        i === 0 ? GENESIS_PREVIOUS_HASH : (prevLog?.verificationHash ?? "");
 
       if (log.previousLogHash !== expectedPrevHash) {
         return {

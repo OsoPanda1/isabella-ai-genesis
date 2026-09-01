@@ -1,65 +1,22 @@
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
 import { SovereignDB } from "./sovereign-engine";
 
 /**
- * Interface definition for a secure, isolated WASM runtime environment.
- * Complies with the Sovereign-Engine 7-Layer security architecture.
+ * SANDBOX SOBERANO (src/lib/sovereign-sandbox.ts)
+ * -----------------------------------------------------------------
+ * Orquestador de ejecución aislada (WASM y contenedores) con
+ * fail-closed estricto y CERO mockdata:
+ *
+ *  - Verifica la integridad SHA-256 real del binario antes de usarlo.
+ *  - La ejecución REAL se delega en ejecutores inyectados
+ *    (`IWasmExecutor` / `IContainerExecutor`). Si no hay ejecutor
+ *    disponible, la llamada devuelve un fallo genuino de capacidad
+ *    `unavailable` — NUNCA un resultado fabricado.
+ *  - Mide tiempo real con `Date.now()`; nunca simula con `Math.random`.
+ *  - Audita cada intento de ejecución (exitoso o vetado).
  */
-export interface IWasmRuntime {
-  moduleId: string;
-  moduleHash: string; // SHA-256 integrity hash
-  memoryLimitMb: number;
-  cpuTimeoutMs: number;
 
-  /**
-   * Loads the WASM binary safely, verifying its SHA-256 signature.
-   */
-  loadModule(binary: Buffer, expectedHash: string): Promise<boolean>;
-
-  /**
-   * Executes an export function from the loaded WASM module inside an isolated thread.
-   */
-  executeExport(
-    functionName: string,
-    args: unknown[],
-    quota: number,
-  ): Promise<ISandboxExecutionResult>;
-}
-
-/**
- * Interface definition for a containerized tool or job execution environment.
- */
-export interface IContainerRuntime {
-  containerId: string;
-  imageName: string;
-  cpuQuota: number; // percentage (e.g., 50 for 0.5 CPU)
-  memoryLimitMb: number;
-  readOnlyRootfs: boolean;
-  networkBlocked: boolean;
-
-  /**
-   * Deploys and provisions a secure, ephemeral container instance.
-   */
-  provisionInstance(traceId: string): Promise<void>;
-
-  /**
-   * Safely executes an isolated task inside the container.
-   */
-  executeTask(
-    command: string[],
-    envVars: Record<string, string>,
-    inputPayload: string,
-  ): Promise<ISandboxExecutionResult>;
-
-  /**
-   * Destroys the ephemeral container, sanitizing disk/memory remnants.
-   */
-  deprovisionInstance(): Promise<void>;
-}
-
-/**
- * Standard output structure for secure executions inside the SovereignSandbox.
- */
+/** Resultado estándar de una ejecución aislada. */
 export interface ISandboxExecutionResult {
   success: boolean;
   output: string;
@@ -68,38 +25,69 @@ export interface ISandboxExecutionResult {
   memoryConsumedBytes: number;
   gasTokensConsumed: number;
   traceId: string;
-  cryptographicVerificationHash: string; // SHA-256 verification of result authenticity
+  cryptographicVerificationHash: string;
   error?: string;
 }
 
-/**
- * Production-ready SovereignSandbox service orchestrator.
- * Implements strict memory and lexical boundaries, verification keys, and real-time audit logging.
- */
-export class SovereignSandboxService implements IWasmRuntime, IContainerRuntime {
-  // IWasmRuntime state
+/** Ejecutor real de WASM (a inyectar por el adaptador de runtime). */
+export interface IWasmExecutor {
+  execute(
+    binary: Uint8Array,
+    functionName: string,
+    args: unknown[],
+  ): Promise<{ output: string; memoryConsumedBytes: number; gasTokensConsumed: number }>;
+}
+
+/** Ejecutor real de contenedores (a inyectar por el adaptador de orquestación). */
+export interface IContainerExecutor {
+  provision(traceId: string): Promise<void>;
+  execute(
+    command: string[],
+    envVars: Record<string, string>,
+    inputPayload: string,
+  ): Promise<{ output: string; memoryConsumedBytes: number; gasTokensConsumed: number }>;
+  deprovision(): Promise<void>;
+}
+
+const FAIL_MSG_NO_WASM = "Módulo WASM no cargado. Debe inicializarse con loadModule().";
+const FAIL_MSG_NO_EXECUTOR =
+  "Capacidad unavailable: no hay ejecutor WASM real conectado en este runtime. Rechazado (fail-closed, sin resultado fabricado).";
+const FAIL_MSG_NO_CONTAINER =
+  "Capacidad unavailable: no hay ejecutor de contenedores real conectado. Rechazado (fail-closed, sin resultado fabricado).";
+const FAIL_MSG_NOT_PROVISIONED =
+  "El contenedor efímero no ha sido aprovisionado. Ejecute provisionInstance() primero.";
+
+export class SovereignSandboxService {
   public moduleId = "wasm_isabella_v4_01";
   public moduleHash = "";
   public memoryLimitMb = 64;
   public cpuTimeoutMs = 2500;
 
-  // IContainerRuntime state
   public containerId = "container_isabella_ephemeral_01";
   public imageName = "isabella-sovereign-executor-alpine:latest";
-  public cpuQuota = 25; // 0.25 CPU
+  public cpuQuota = 25;
   public readOnlyRootfs = true;
   public networkBlocked = true;
 
-  private activeBinary: Buffer | null = null;
+  private activeBinary: Uint8Array | null = null;
   private isProvisioned = false;
 
-  constructor(private traceId: string = "trc_sandbox_init") {}
+  constructor(
+    private traceId: string = "trc_sandbox_init",
+    private readonly wasmExecutor?: IWasmExecutor,
+    private readonly containerExecutor?: IContainerExecutor,
+  ) {}
 
-  /**
-   * Safe module loader with strict SHA-256 integrity checking
-   */
-  public async loadModule(binary: Buffer, expectedHash: string): Promise<boolean> {
-    const computedHash = crypto.createHash("sha256").update(binary).digest("hex");
+  /** Carga diferida del módulo criptográfico (evita costos en el borde). */
+  private static sha256(data: Uint8Array | string): string {
+    const input = typeof data === "string" ? Buffer.from(data, "utf-8") : Buffer.from(data);
+    return crypto.createHash("sha256").update(input).digest("hex");
+  }
+
+  /** Verifica la integridad del binario y lo activa. */
+  public async loadModule(binary: Uint8Array, expectedHash: string): Promise<boolean> {
+    const computedHash = SovereignSandboxService.sha256(binary);
+
     if (computedHash !== expectedHash) {
       SovereignDB.appendAuditLog(
         this.traceId,
@@ -128,9 +116,7 @@ export class SovereignSandboxService implements IWasmRuntime, IContainerRuntime 
     return true;
   }
 
-  /**
-   * Executes a verified WASM export function inside a simulated secure worker state.
-   */
+  /** Ejecuta una exportación del módulo WASM mediante el ejecutor real. */
   public async executeExport(
     functionName: string,
     args: unknown[],
@@ -139,59 +125,49 @@ export class SovereignSandboxService implements IWasmRuntime, IContainerRuntime 
     const startTime = Date.now();
 
     if (!this.activeBinary) {
-      return this.generateFailedResult(
-        "Módulo WASM no cargado. Debe inicializarse con loadModule().",
-        startTime,
-        1,
-      );
+      return this.generateResult(false, FAIL_MSG_NO_WASM, startTime, 1, 0, 0, 0);
     }
 
-    // Lexical check on functionName to avoid prototype injection
+    if (!this.wasmExecutor) {
+      return this.generateResult(false, FAIL_MSG_NO_EXECUTOR, startTime, 1, 0, 0, 0);
+    }
+
     if (
       /[;'"\\=`[\]{}]/.test(functionName) ||
       [...functionName].some((char) => char.charCodeAt(0) <= 31 || char.charCodeAt(0) === 127) ||
       ["constructor", "prototype", "__proto__"].includes(functionName)
     ) {
-      return this.generateFailedResult(
+      return this.generateResult(
+        false,
         "Fallo de Validación Léxica: Nombre de función malicioso o inválido.",
         startTime,
         403,
+        0,
+        0,
+        0,
       );
     }
 
     try {
-      // Simulate highly secure WASM worker thread execution
-      // Calculates dynamic limits
-      const executionTimeMs = Math.floor(Math.random() * 45) + 5; // Fast execution
-      const memoryConsumedBytes = Math.floor(Math.random() * 12 * 1024 * 1024) + 1024 * 1024; // ~1-13MB
-      const gasTokensConsumed = Math.floor(executionTimeMs * 1.5) + 2;
+      const exec = await this.wasmExecutor.execute(this.activeBinary, functionName, args);
+      const executionTimeMs = Date.now() - startTime;
 
-      if (gasTokensConsumed > quota) {
-        return this.generateFailedResult(
+      if (exec.gasTokensConsumed > quota) {
+        return this.generateResult(
+          false,
           "Límite de gas / créditos excedido en el hilo aislado WASM.",
           startTime,
           429,
+          executionTimeMs,
+          0,
+          0,
         );
       }
 
-      const mockResult = `WASM_EXECUTION_SUCCESS: Function [${functionName}] returned value: ${((args[0] as number) || 0) * 2}`;
-
-      const verificationPayload = `${this.moduleId}-${this.traceId}-${mockResult}-${executionTimeMs}-${memoryConsumedBytes}`;
-      const cryptographicVerificationHash = crypto
-        .createHash("sha256")
-        .update(verificationPayload)
-        .digest("hex");
-
-      const result: ISandboxExecutionResult = {
-        success: true,
-        output: mockResult,
-        exitCode: 0,
-        executionTimeMs,
-        memoryConsumedBytes,
-        gasTokensConsumed,
-        traceId: this.traceId,
-        cryptographicVerificationHash,
-      };
+      const output = exec.output;
+      const verificationHash = SovereignSandboxService.sha256(
+        `${this.moduleId}|${this.traceId}|${output}|${executionTimeMs}|${exec.memoryConsumedBytes}|${exec.gasTokensConsumed}`,
+      );
 
       SovereignDB.appendAuditLog(
         this.traceId,
@@ -199,23 +175,40 @@ export class SovereignSandboxService implements IWasmRuntime, IContainerRuntime 
         "127.0.0.1",
         "WASM Export Executed Safely",
         "S3",
-        `Exportación WASM [${functionName}] ejecutada correctamente. Gas consumido: ${gasTokensConsumed}.`,
+        `Exportación WASM [${functionName}] ejecutada correctamente. Gas consumido: ${exec.gasTokensConsumed}.`,
       );
 
-      return result;
+      return {
+        success: true,
+        output,
+        exitCode: 0,
+        executionTimeMs,
+        memoryConsumedBytes: exec.memoryConsumedBytes,
+        gasTokensConsumed: exec.gasTokensConsumed,
+        traceId: this.traceId,
+        cryptographicVerificationHash: verificationHash,
+      };
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      return this.generateFailedResult(
+      const duration = Date.now() - startTime;
+      return this.generateResult(
+        false,
         `Error interno en WASM Virtual Machine: ${msg}`,
         startTime,
         500,
+        duration,
+        0,
+        0,
       );
     }
   }
 
-  // IContainerRuntime implementations
+  /** Aprovisiona un contenedor aislado mediante el ejecutor real. */
   public async provisionInstance(traceId: string): Promise<void> {
     this.traceId = traceId;
+    if (this.containerExecutor) {
+      await this.containerExecutor.provision(traceId);
+    }
     this.isProvisioned = true;
 
     SovereignDB.appendAuditLog(
@@ -228,6 +221,7 @@ export class SovereignSandboxService implements IWasmRuntime, IContainerRuntime 
     );
   }
 
+  /** Ejecuta una tarea aislada en el contenedor mediante el ejecutor real. */
   public async executeTask(
     command: string[],
     envVars: Record<string, string>,
@@ -236,14 +230,13 @@ export class SovereignSandboxService implements IWasmRuntime, IContainerRuntime 
     const startTime = Date.now();
 
     if (!this.isProvisioned) {
-      return this.generateFailedResult(
-        "El contenedor efímero no ha sido aprovisionado.",
-        startTime,
-        1,
-      );
+      return this.generateResult(false, FAIL_MSG_NOT_PROVISIONED, startTime, 1, 0, 0, 0);
     }
 
-    // Command sanitization to prevent terminal injection
+    if (!this.containerExecutor) {
+      return this.generateResult(false, FAIL_MSG_NO_CONTAINER, startTime, 1, 0, 0, 0);
+    }
+
     for (const cmd of command) {
       if (
         /[;&|`$<>]/.test(cmd) ||
@@ -257,38 +250,24 @@ export class SovereignSandboxService implements IWasmRuntime, IContainerRuntime 
           "S1",
           `Intento de inyección de consola detectado y vetado: ${cmd}`,
         );
-        return this.generateFailedResult(
+        return this.generateResult(
+          false,
           "Violación de Seguridad: Intento de inyección de consola vetado.",
           startTime,
           403,
+          0,
+          0,
+          0,
         );
       }
     }
 
     try {
-      const executionTimeMs = Math.floor(Math.random() * 250) + 15;
-      const memoryConsumedBytes = Math.floor(Math.random() * 48 * 1024 * 1024) + 10 * 1024 * 1024; // ~10-58MB
-      const gasTokensConsumed = Math.floor(executionTimeMs * 2.5);
-
-      const parsedPayload = inputPayload ? JSON.parse(inputPayload) : {};
-      const mockOutput = `CONTAINER_TASK_OK: Command [${command.join(" ")}] processed payload: ${JSON.stringify(parsedPayload)}`;
-
-      const verificationPayload = `${this.containerId}-${this.traceId}-${mockOutput}-${executionTimeMs}-${memoryConsumedBytes}`;
-      const cryptographicVerificationHash = crypto
-        .createHash("sha256")
-        .update(verificationPayload)
-        .digest("hex");
-
-      const result: ISandboxExecutionResult = {
-        success: true,
-        output: mockOutput,
-        exitCode: 0,
-        executionTimeMs,
-        memoryConsumedBytes,
-        gasTokensConsumed,
-        traceId: this.traceId,
-        cryptographicVerificationHash,
-      };
+      const exec = await this.containerExecutor.execute(command, envVars, inputPayload);
+      const executionTimeMs = Date.now() - startTime;
+      const verificationHash = SovereignSandboxService.sha256(
+        `${this.containerId}|${this.traceId}|${exec.output}|${executionTimeMs}|${exec.memoryConsumedBytes}|${exec.gasTokensConsumed}`,
+      );
 
       SovereignDB.appendAuditLog(
         this.traceId,
@@ -296,21 +275,39 @@ export class SovereignSandboxService implements IWasmRuntime, IContainerRuntime 
         "127.0.0.1",
         "Container Task Completed",
         "S3",
-        `Tarea del contenedor completada de forma segura. Comando: ${command[0]}.`,
+        `Tarea del contenedor completada de forma segura. Comando: ${command[0] ?? ""}.`,
       );
 
-      return result;
+      return {
+        success: true,
+        output: exec.output,
+        exitCode: 0,
+        executionTimeMs,
+        memoryConsumedBytes: exec.memoryConsumedBytes,
+        gasTokensConsumed: exec.gasTokensConsumed,
+        traceId: this.traceId,
+        cryptographicVerificationHash: verificationHash,
+      };
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      return this.generateFailedResult(
+      const duration = Date.now() - startTime;
+      return this.generateResult(
+        false,
         `Error al ejecutar tarea en contenedor: ${msg}`,
         startTime,
         500,
+        duration,
+        0,
+        0,
       );
     }
   }
 
+  /** Deprovisiona el contenedor mediante el ejecutor real. */
   public async deprovisionInstance(): Promise<void> {
+    if (this.containerExecutor) {
+      await this.containerExecutor.deprovision();
+    }
     this.isProvisioned = false;
 
     SovereignDB.appendAuditLog(
@@ -323,29 +320,34 @@ export class SovereignSandboxService implements IWasmRuntime, IContainerRuntime 
     );
   }
 
-  // Helpers
-  private generateFailedResult(
-    errorMsg: string,
+  /** Construye un resultado (éxito o fallo) con verificación real. */
+  private generateResult(
+    success: boolean,
+    messageOrOutput: string,
     startTime: number,
     exitCode: number,
+    executionTimeMs: number,
+    memoryConsumedBytes: number,
+    gasTokensConsumed: number,
   ): ISandboxExecutionResult {
-    const duration = Date.now() - startTime;
-    const verificationPayload = `${this.moduleId}-${this.traceId}-error-${errorMsg}-${duration}`;
-    const cryptographicVerificationHash = crypto
-      .createHash("sha256")
-      .update(verificationPayload)
-      .digest("hex");
-
+    const duration = executionTimeMs > 0 ? executionTimeMs : Date.now() - startTime;
+    const verificationHash = SovereignSandboxService.sha256(
+      `${this.moduleId}|${this.traceId}|${success ? "ok" : "error"}|${messageOrOutput}|${duration}`,
+    );
     return {
-      success: false,
-      output: "",
+      success,
+      output: success ? messageOrOutput : "",
       exitCode,
       executionTimeMs: duration,
-      memoryConsumedBytes: 0,
-      gasTokensConsumed: 0,
+      memoryConsumedBytes,
+      gasTokensConsumed,
       traceId: this.traceId,
-      cryptographicVerificationHash,
-      error: errorMsg,
+      cryptographicVerificationHash: verificationHash,
+      ...(success ? {} : { error: messageOrOutput }),
     };
   }
 }
+
+export const SUPERVISED_SANDBOX = {
+  SERVICE: SovereignSandboxService,
+};
