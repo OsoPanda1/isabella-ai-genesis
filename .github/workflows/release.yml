@@ -9,6 +9,8 @@ jobs:
   release_build:
     name: Build & Package Production Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repository
@@ -42,4 +44,3 @@ jobs:
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true

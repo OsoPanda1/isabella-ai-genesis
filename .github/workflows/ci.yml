@@ -8,7 +8,7 @@ on:
 
 jobs:
   build_and_test:
-    name: Build & Test
+    name: Continuous Integration Quality Gate
     runs-on: ubuntu-latest
 
     steps:
@@ -28,11 +28,32 @@ jobs:
       - name: Install Dependencies
         run: bun install --frozen-lockfile || npm ci
 
+      - name: Run Linter (ESLint)
+        run: npm run lint
+
       - name: Code Formatting Check
-        run: npm run format:check || true
+        run: npm run format:check
 
       - name: TypeScript Type Checking
-        run: npm run typecheck || bun x tsc --noEmit
+        run: npm run typecheck
+
+      - name: Run Unit Tests
+        run: npm run test:unit
+
+      - name: Run Integration Tests
+        run: npm run test:integration
+
+      - name: Run Security Tests
+        run: npm run test:security
+
+      - name: Run E2E Tests
+        run: npm run test:e2e
+
+      - name: Dependency Vulnerability Audit
+        run: npm audit || echo "Audit finished"
+
+      - name: Secret Scan & Security Analysis
+        run: npm run security:scan
 
       - name: Build Application
         run: npm run build

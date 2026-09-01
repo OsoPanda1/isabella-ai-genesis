@@ -1,4 +1,4 @@
-name: Security Hardening Scan
+name: Security Quality Gate
 
 on:
   push:
@@ -6,11 +6,16 @@ on:
   pull_request:
     branches: [ main ]
   schedule:
-    - cron: '0 0 * * 1' # Runs every Monday at midnight
+    - cron: '0 0 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
 
 jobs:
   security_audit:
-    name: Security Audits
+    name: Security Scan & Audit Gate
     runs-on: ubuntu-latest
 
     steps:
@@ -31,16 +36,38 @@ jobs:
         run: bun install --frozen-lockfile || npm ci
 
       - name: Security Linter Scan
-        run: npm run security:scan || npx eslint -c eslint.security.mjs src/ || true
+        run: npm run security:scan
 
-      - name: Audit NPM Dependencies
-        run: bun pm audit || npm audit --audit-level=high || true
+      - name: Audit Dependencies (Blocking High/Critical)
+        run: npm audit --audit-level=high
 
-      - name: Scan for Secret Leaks
+      - name: Scan for Secret Leaks (Trufflehog)
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
           extra_args: --only-verified
-        continue-on-error: true
+
+  codeql_analysis:
+    name: CodeQL Static Analysis (SAST)
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3

@@ -24,7 +24,11 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Verify Migrations & SQL Formatting
-        run: |
-          supabase db lint || echo "Supabase schema is verified."
-          supabase db test || echo "Supabase local schema verification complete."
+      - name: Start Local Supabase Verification Container
+        run: supabase start
+
+      - name: Validate Schema and Lint SQL Migrations
+        run: supabase db lint
+
+      - name: Run Schema Database Assertions
+        run: supabase db test
