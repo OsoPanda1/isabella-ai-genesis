@@ -14,6 +14,7 @@ import {
   Download,
   FolderOpen,
   Cpu,
+  Shield,
 } from "lucide-react";
 import { CinematicIntro } from "@/components/isabella/CinematicIntro";
 import { CommandLine } from "@/components/isabella/CommandLine";
@@ -24,6 +25,7 @@ import { TerminalView } from "@/components/isabella/TerminalView";
 import { MonetizationDashboard } from "@/components/isabella/MonetizationDashboard";
 import { QuantumUtilityDashboard } from "@/components/isabella/QuantumUtilityDashboard";
 import { AiInterfacesHub } from "@/components/isabella/AiInterfacesHub";
+import { LatamAegisDashboard } from "@/components/isabella/LatamAegisDashboard";
 import { useIsabella } from "@/lib/useIsabella";
 
 const TITLE = "Isabella Villaseñor AI — Terminal Cognitivo C.R.O.W.N.";
@@ -90,7 +92,7 @@ function IsabellaInterface() {
   const isabella = useIsabella();
   const [panel, setPanel] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "terminal" | "cli" | "catalog" | "monetization" | "quantum" | "interfaces"
+    "terminal" | "cli" | "catalog" | "monetization" | "quantum" | "interfaces" | "aegis"
   >("terminal");
 
   // Sidebar State for 3-part retractable accordions
@@ -262,6 +264,18 @@ function IsabellaInterface() {
                     {isSidebarOpen && <span className="truncate">Utilidad Cuántica (qup)</span>}
                   </button>
 
+                  <button
+                    onClick={() => setActiveTab("aegis")}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-mono text-[11.5px] transition-all crystal-glow-crown ${
+                      activeTab === "aegis"
+                        ? "bg-rose-500/15 text-rose-400 border border-rose-500/30 font-semibold shadow-[0_0_15px_-4px_rgba(239,68,68,0.3)]"
+                        : "text-muted-foreground hover:bg-secondary/20 hover:text-platinum border border-transparent"
+                    }`}
+                  >
+                    <Shield className="size-4 shrink-0" />
+                    {isSidebarOpen && <span className="truncate">Defensa AEGIS-X</span>}
+                  </button>
+
                   {isSidebarOpen && (
                     <div className="px-3 py-2 mt-1 mx-1 rounded-xl bg-secondary/15 border border-border/20 text-[10px] text-muted-foreground font-mono">
                       <div className="flex items-center justify-between mb-1">
@@ -380,6 +394,7 @@ function IsabellaInterface() {
                   {activeTab === "catalog" && "Gobernanza de APIs e Invocaciones"}
                   {activeTab === "monetization" && "Tablero de Consumo Soberano"}
                   {activeTab === "quantum" && "Optimización y Transpilación Cuántica (qup)"}
+                  {activeTab === "aegis" && "Muro de Defensa Activa LATAM AEGIS-X"}
                 </p>
               </div>
             </div>
@@ -486,6 +501,12 @@ function IsabellaInterface() {
           {activeTab === "interfaces" && (
             <div className="animate-rise max-w-[1300px] mx-auto crystal-glow-crown rounded-3xl overflow-hidden">
               <AiInterfacesHub />
+            </div>
+          )}
+
+          {activeTab === "aegis" && (
+            <div className="animate-rise max-w-[1300px] mx-auto crystal-glow-crown rounded-3xl overflow-hidden">
+              <LatamAegisDashboard />
             </div>
           )}
         </main>

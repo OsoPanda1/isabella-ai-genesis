@@ -3,6 +3,11 @@ import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
 import { secrets } from "@/lib/secrets";
 import { withSovereignAuth } from "@/lib/principal-context";
+import {
+  LatamAegisXFirewall,
+  CentralizedTelemetryService,
+  AutoAuditingSystem,
+} from "@/lib/latam-aegis-x";
 
 const bodySchema = z.object({
   system: z.string().min(1).max(8000),
@@ -111,6 +116,73 @@ export const Route = createFileRoute("/api/isabella")({
         // --- LAYER 6: Auditable Telemetry ---
         const telemetry = SecuritySystem.generateTelemetry(context.ip, "allowed");
 
+        // --- CENTRALIZED TELEMETRY SECURE LOGGING ---
+        CentralizedTelemetryService.logEvent(
+          "CROWN_GATEWAY",
+          "CROWN_ROUTER",
+          "InferenceRequestReceived",
+          { ip: context.ip, messagesCount: messages.length, temperature },
+          "info",
+          telemetry.traceId,
+          telemetry.correlationId,
+        );
+
+        // --- LATAM-AEGIS-X FIREWALL INTERCEPTOR ---
+        const lastUserMessage = messages[messages.length - 1]?.content || "";
+        const interceptResult = LatamAegisXFirewall.interceptRequest(
+          lastUserMessage,
+          { qecErrorRate: 0.02 },
+          telemetry.traceId,
+          telemetry.correlationId,
+        );
+
+        if (!interceptResult.allowed) {
+          const headers = SecuritySystem.injectSecureHeaders(
+            new Headers({ "content-type": "application/json" }),
+          );
+
+          // Asynchronously audit the blocking event as a governance deviation log
+          void AutoAuditingSystem.auditExecutionFlow(
+            "CROWN",
+            "OrchestratePrompt",
+            {
+              targetWeight: 0.0,
+              violationType: "AegisFirewallBlock",
+              reason: interceptResult.reason,
+            },
+            telemetry.traceId,
+          );
+
+          return new Response(
+            JSON.stringify({
+              error: `LATAM-AEGIS-X Cortafuegos: Acción Bloqueada. ${interceptResult.reason}`,
+            }),
+            { status: 403, headers },
+          );
+        }
+
+        // Audit the allowed transaction signature compliance flow
+        void AutoAuditingSystem.auditExecutionFlow(
+          "CROWN",
+          "OrchestratePrompt",
+          {
+            targetWeight: 0.85,
+            anomalyScore: interceptResult.anomalyScore,
+          },
+          telemetry.traceId,
+        );
+
+        // Track a simulated monetization split contability ledger audit
+        void AutoAuditingSystem.auditExecutionFlow(
+          "ORION",
+          "DebitTransaction",
+          {
+            amount: 0.0025,
+            pqcSignature: `sig_pqc_${telemetry.traceId}`,
+          },
+          telemetry.traceId,
+        );
+
         // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker ---
         try {
           const upstream = await SecuritySystem.fetchSafeUpstream(
@@ -160,6 +232,16 @@ export const Route = createFileRoute("/api/isabella")({
               "x-isabella-correlation-id": telemetry.correlationId,
               "x-isabella-rate-remaining": rateLimit.remaining.toString(),
             }),
+          );
+
+          CentralizedTelemetryService.logEvent(
+            "CROWN_GATEWAY",
+            "CROWN_CONSTITUTION",
+            "UpstreamInferenceAuthorized",
+            { status: upstream.status },
+            "info",
+            telemetry.traceId,
+            telemetry.correlationId,
           );
 
           return new Response(upstream.body, { headers });

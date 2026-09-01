@@ -761,7 +761,9 @@ export function QuantumUtilityDashboard() {
             <span className="block text-[10px] font-mono text-muted-foreground uppercase">
               Runtime Connection
             </span>
-            <span className="block text-xs font-bold text-platinum font-mono">Simulada (Mock)</span>
+            <span className="block text-xs font-bold text-platinum font-mono">
+              Local Offline Driver
+            </span>
             <span className="text-[9px] font-mono text-crown flex items-center gap-1">
               🟡 Gateway C.R.O.W.N.
             </span>
