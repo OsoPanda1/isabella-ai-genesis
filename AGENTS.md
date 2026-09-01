@@ -295,16 +295,60 @@ Si el framework del repo usa otra estructura, respeta la ya existente y adapta e
 
 ---
 
-## 12. Calidad y validación
+## 12. Archivos críticos (módulos de autoridad)
+
+Estos son los puntos de autoridad obligatorios. Cualquier cambio que los toque debe:
+preservar la cadena de autoridad y añadir una prueba (unit, integration o security).
+
+- `src/server.ts` — punto de entrada de seguridad; toda request pasa por la cadena correlation→identity→tenant→rate→validation→policy→handler→audit.
+- `src/lib/config.ts` + `src/lib/env-schema.ts` — única vía de acceso a configuración (nunca `process.env` directo en otros archivos).
+- `src/lib/principal-context.ts` — autoridad server-side de identidad/tenant/roles/scopes/session.
+- `src/lib/tenant-guard.ts` + `src/lib/tenant-context.ts` — aislamiento de tenant derivado de identidad.
+- `src/lib/authorization.ts` + `src/lib/rbac.ts`·`abac.ts`·`permission-matrix.ts` — punto único de decisión.
+- `src/lib/crown.ts` + `src/lib/constitutional-gate.ts` — autoridad de gobernanza; una heurística nunca es autorización por sí sola.
+- `src/lib/sovereign-engine.ts` · `sovereign-pipeline.ts` — orquestación cognitiva.
+- `src/lib/memory-engine.ts` + `src/lib/repositories/memory-repository.ts` — memoria real.
+- `src/lib/bookpi*.ts` + `src/lib/repositories/bookpi-repository.ts` — ledger inmutable.
+- `src/lib/repositories/audit-repository.ts` — auditoría append-only.
+- `src/lib/tool-registry.ts` + `src/lib/orion-engine.ts` + `src/lib/sovereign-sandbox.ts` — ejecución de herramientas.
+- `supabase/migrations/*` — esquema y RLS; única autoridad de datos.
+- `src/routes/api/*` — delgados; sin lógica de autoridad dentro del handler.
+
+### Prohibiciones absolutas
+
+- No mockdata en código de producción (salvo contratos explícitamente marcados `simulated`).
+- No `process.env` fuera de `config.ts`.
+- No decisiones de autorización basadas únicamente en el cliente.
+- No ejecución de código arbitrario sin sandbox ni política.
+- No mutaciones al libro mayor (BookPI) ni a auditoría sin pasar por sus motores.
+
+## 13. Flujo de PR
+
+1. Crea una rama de trabajo (`feat/...`, `fix/...`, `refactor/...`, `test/...`) desde `main`.
+2. Implementa cambios pequeños y funcionales.
+3. Valida localmente: `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`.
+4. Si toca seguridad: `npm run security:scan`.
+5. Si toca esquema: `npm run db:verify` y añade migración.
+6. Añade pruebas del comportamiento sensible (test de seguridad para deny paths).
+7. Abre PR. No uses `push --force`, `rebase`, `commit --amend` ni squash sobre la historia publicada (compatibilidad Lovable).
+8. Mantén `main` en estado compilable y reversible con commits nuevos.
+
+---
+
+## 14. Calidad y validación
 
 Antes de cerrar un cambio, valida lo que exista en el proyecto:
 
 ```bash
-npm run lint
 npm run typecheck
+npm run lint
 npm run test
 npm run build
 ```
+
+Si toca seguridad, además: `npm run security:scan`
+Si toca base de datos: `npm run db:migrate` y `npm run db:verify`
+Si toca UI o contratos públicos: `npm run format:check`
 
 Si los nombres difieren, usa los equivalentes definidos en `package.json`.
 
@@ -319,7 +363,7 @@ Si los nombres difieren, usa los equivalentes definidos en `package.json`.
 
 ---
 
-## 13. Commits y ramas
+## 15. Commits y ramas
 
 ### Commits
 
@@ -343,7 +387,7 @@ Ejemplos:
 
 ---
 
-## 14. Documentación viva
+## 16. Documentación viva
 
 Actualiza documentación cuando cambie:
 
@@ -359,7 +403,7 @@ Para decisiones importantes, agrega una ADR breve con contexto, decisión, conse
 
 ---
 
-## 15. Variables de entorno
+## 17. Variables de entorno
 
 - Mantén `.env.example` actualizado.
 - Nunca incluyas valores reales.
@@ -369,7 +413,7 @@ Para decisiones importantes, agrega una ADR breve con contexto, decisión, conse
 
 ---
 
-## 16. Criterio de finalización
+## 18. Criterio de finalización
 
 Un cambio solo está terminado si:
 
@@ -382,7 +426,7 @@ Un cambio solo está terminado si:
 
 ---
 
-## 17. Prioridad en conflictos
+## 19. Prioridad en conflictos
 
 Si hay conflicto entre instrucciones, prioriza:
 
@@ -396,6 +440,6 @@ Si hay conflicto entre instrucciones, prioriza:
 
 ---
 
-## 18. Declaración final
+## 20. Declaración final
 
 Isabella existe para coordinar inteligencia, territorio, memoria y gobernanza bajo soberanía humana. Todo cambio en este repositorio debe reforzar esa idea.

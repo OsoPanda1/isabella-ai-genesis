@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -21,6 +21,7 @@ import {
   FolderOpen,
   RefreshCw,
 } from "lucide-react";
+import { CinematicIntro } from "@/components/isabella/CinematicIntro";
 import { CommandLine } from "@/components/isabella/CommandLine";
 import { MessageStream } from "@/components/isabella/MessageStream";
 import { TelemetryPanel } from "@/components/isabella/TelemetryPanel";
@@ -47,7 +48,49 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+/**
+ * Puerta de entrada: muestra la intro cinemática (con recuadro de autorización
+ * de autoplay) al ingresar a la app. Al terminar (onComplete), revela la
+ * interfaz de Isabella. La intro se reproduce una vez por sesión de pestaña
+ * (sessionStorage) para que al recargar dentro de la misma pestaña no se repita,
+ * pero sí vuelve a mostrarse en un nuevo ingreso.
+ */
+const INTRO_SEEN_KEY = "isabella.entry.intro.v1";
+
 function Index() {
+  const [introDone, setIntroDone] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let seen = false;
+    try {
+      seen = window.sessionStorage.getItem(INTRO_SEEN_KEY) === "1";
+    } catch {
+      seen = false;
+    }
+    if (seen) setIntroDone(true);
+  }, []);
+
+  const handleIntroComplete = () => {
+    try {
+      window.sessionStorage.setItem(INTRO_SEEN_KEY, "1");
+    } catch {
+      /* almacenamiento no disponible: la intro se re-muestra en la próxima carga */
+    }
+    setIntroDone(true);
+  };
+
+  // Durante la intro no se monta la interfaz de Isabella (evita llamadas/APIs
+  // bajo el splash). En SSR no existe sesión de cliente: se muestra la intro,
+  // lo que mantiene consistente el primer render con la hidratación.
+  if (!introDone) {
+    return <CinematicIntro onComplete={handleIntroComplete} />;
+  }
+
+  return <IsabellaInterface />;
+}
+
+function IsabellaInterface() {
   const isabella = useIsabella();
   const [panel, setPanel] = useState(false);
   const [activeTab, setActiveTab] = useState<"terminal" | "cli" | "catalog" | "monetization">(

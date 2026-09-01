@@ -12,4 +12,22 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    // FRONTEND/SERVER BOUNDARY
+    // -----------------------------------------------
+    // 1. Únicamente las variables con prefijo VITE_* se exponen al navegador.
+    //    TODO lo demás (secrets, service-role, claves de cifrado) vive en el
+    //    servidor y se accede SOLO a través de src/lib/config.ts (Zod).
+    // 2. Las dependencias de autoridad/secretos se colocan en ficheros *.server.ts
+    //    para evitar su inclusión accidental en el bundle del cliente.
+    // 3. El runtime distingue servidor (SSR) de navegador: en código se usa
+    //    `import.meta.env.SSR` (true en servidor, false en cliente).
+    resolve: {
+      alias: {
+        // Guarda explícita: cualquier import de server-only desde el cliente
+        // debe resolverse a un stub vacío (seguridad por fallo).
+        "server-only": "vite/client",
+      },
+    },
+  },
 });

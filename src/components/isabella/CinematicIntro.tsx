@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import logo from "@/assets/logo-isabella.jpeg.asset.json";
-import chime from "@/assets/isabella-online-chime.mp3.asset.json";
+
+/**
+ * Audio de fondo de la intro cinemática.
+ * Se sirve desde src/assets como asset estático (mismo patrón que
+ * /src/assets/logo-isabella.jpeg usado en la interfaz principal).
+ * El autoplay lo desbloquea el usuario al pulsar "Iniciar experiencia".
+ */
+const BACKGROUND_AUDIO_SRC = "/src/assets/background-audio.mp3";
 
 /**
  * Cinematic 3D Intro Component — WebGL Three.js Experience
@@ -942,7 +949,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
     <div ref={containerRef} className="fixed inset-0 z-50 overflow-hidden bg-[#01030a] select-none">
       {/* Background Audio */}
       <audio ref={audioRef} preload="auto" crossOrigin="anonymous">
-        <source src={chime.url} type="audio/mpeg" />
+        <source src={BACKGROUND_AUDIO_SRC} type="audio/mpeg" />
       </audio>
 
       {/* Start screen interaction card */}

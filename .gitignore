@@ -20,7 +20,39 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# ---------------------------------------------------------------------------
+# SECRETS & CREDENTIALS — nunca versionar valores reales
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.der
+secrets/
+SECRETS.md
+
+# ---------------------------------------------------------------------------
+# DATOS LOCALES / PERSISTENCIA / AUDITORÍA / BACKUPS
+# ---------------------------------------------------------------------------
+# Fallback local de la base soberana (ejecución sin Supabase configurado)
+data/
+isabella_sovereign_db.json
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.backup
+*.bak
+audit/
+coverage/
+
+# ---------------------------------------------------------------------------
 # Editor directories and files
+# ---------------------------------------------------------------------------
 .vscode/*
 !.vscode/extensions.json
 .idea
