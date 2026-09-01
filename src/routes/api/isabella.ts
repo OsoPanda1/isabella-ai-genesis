@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
 import { SovereignDB } from "@/lib/sovereign-engine";
+import { secrets } from "@/lib/secrets";
 
 const bodySchema = z.object({
   system: z.string().min(1).max(8000),
@@ -62,7 +63,12 @@ export const Route = createFileRoute("/api/isabella")({
         }
 
         // --- LAYER 3.5: Upstream API configuration validation ---
-        const apiKey = process.env["LOVABLE_API_KEY"];
+        let apiKey: string;
+        try {
+          apiKey = secrets.aiGatewayKey();
+        } catch {
+          apiKey = "";
+        }
         if (!apiKey) {
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),

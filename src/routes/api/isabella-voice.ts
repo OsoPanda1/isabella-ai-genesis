@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
+import { secrets } from "@/lib/secrets";
 
 const bodySchema = z.object({
   text: z.string().min(1).max(4000),
@@ -27,7 +28,12 @@ export const Route = createFileRoute("/api/isabella-voice")({
         }
 
         // --- LAYER 3: Sovereign API Key check ---
-        const apiKey = process.env["LOVABLE_API_KEY"];
+        let apiKey: string;
+        try {
+          apiKey = secrets.aiGatewayKey();
+        } catch {
+          apiKey = "";
+        }
         if (!apiKey) {
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),

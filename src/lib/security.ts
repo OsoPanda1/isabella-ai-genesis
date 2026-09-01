@@ -230,10 +230,10 @@ export const SecuritySystem = {
   // --- LAYER 6: Auditable Trace Telemetry ---
   generateTelemetry(_ip: string, policy: "allowed" | "denied" | "flagged"): SecurityTelemetry {
     const traceId =
-      "tr_" + this.simpleHash(Math.random().toString() + Date.now().toString()).toUpperCase();
+      "tr_" + this.simpleHash(crypto.randomUUID()).toUpperCase();
     const correlationId =
       "corr_" +
-      this.simpleHash(Math.random().toString() + Date.now().toString() + "corr").toUpperCase();
+      this.simpleHash(crypto.randomUUID() + "corr").toUpperCase();
 
     return {
       traceId,
