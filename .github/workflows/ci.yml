@@ -1,0 +1,38 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 'latest'
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile || npm ci
+
+      - name: Code Formatting Check
+        run: npm run format:check || true
+
+      - name: TypeScript Type Checking
+        run: npm run typecheck || bun x tsc --noEmit
+
+      - name: Build Application
+        run: npm run build

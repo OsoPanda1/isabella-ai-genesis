@@ -62,7 +62,8 @@ function withSecurityHeaders(response: Response): Response {
   setIfMissing("X-Content-Type-Options", "nosniff");
   setIfMissing("X-Frame-Options", "DENY");
   setIfMissing("Referrer-Policy", "no-referrer");
-  setIfMissing("X-XSS-Protection", "1; mode=block");
+  // Modern standard: disable the legacy XSS auditor to avoid filter bypass exploits, relying strictly on strong CSP
+  setIfMissing("X-XSS-Protection", "0");
   setIfMissing(
     "Strict-Transport-Security",
     "max-age=63072000; includeSubDomains; preload",

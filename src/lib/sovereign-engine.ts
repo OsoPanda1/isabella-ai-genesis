@@ -108,11 +108,45 @@ const GENESIS_PREVIOUS_HASH =
 // ============================================================================
 
 export class SovereignDB {
+  private static seed(db: DatabaseSchema): DatabaseSchema {
+    const tenants = db.tenants.length > 0 ? db.tenants : [
+      {
+        id: "tenant_tamv_001",
+        name: "TAMV Online Network (Real del Monte)",
+        region: "MX-HGO",
+        quotaBalance: 500.0,
+        tier: "Sovereign" as const,
+      }
+    ];
+
+    const sessions = db.sessions.length > 0 ? db.sessions : [
+      {
+        userId: "user_anubis_001",
+        username: "anubis_villasenor",
+        tenantId: "tenant_tamv_001",
+        role: "SovereignOwner" as const,
+        oidcSub: "auth0|user_anubis_001",
+      }
+    ];
+
+    return {
+      ...db,
+      tenants,
+      sessions,
+    };
+  }
+
   private static load(): DatabaseSchema {
     try {
       if (fs.existsSync(PERSISTENCE_FILE_PATH)) {
         const raw = fs.readFileSync(PERSISTENCE_FILE_PATH, "utf8");
-        return JSON.parse(raw) as DatabaseSchema;
+        const db = JSON.parse(raw) as DatabaseSchema;
+        if (db.tenants.length === 0 || db.sessions.length === 0) {
+          const seeded = this.seed(db);
+          this.save(seeded);
+          return seeded;
+        }
+        return db;
       }
     } catch (e) {
       console.error(
@@ -120,8 +154,9 @@ export class SovereignDB {
         e,
       );
     }
-    this.save(EMPTY_DB);
-    return EMPTY_DB;
+    const seeded = this.seed(EMPTY_DB);
+    this.save(seeded);
+    return seeded;
   }
 
   private static save(db: DatabaseSchema) {
@@ -139,12 +174,50 @@ export class SovereignDB {
   // Multi-tenancy Isolation: Get ledger records isolated by Tenant
   public static getLedger(tenantId: string): BookPILedgerBlock[] {
     const db = this.load();
-    return db.ledger.filter((item) => item.tenantId === tenantId);
+    const refundedIndexes = new Set<number>();
+    
+    // Find all refunded indexes via append-only refund event blocks
+    for (const item of db.ledger) {
+      if (item.operation.startsWith("REFUND_EVENT: Reembolso de transacción index ")) {
+        const parts = item.operation.split("index ");
+        const idx = parseInt(parts[1] || "", 10);
+        if (!isNaN(idx)) {
+          refundedIndexes.add(idx);
+        }
+      }
+    }
+
+    return db.ledger
+      .filter((item) => item.tenantId === tenantId)
+      .map((item) => {
+        if (refundedIndexes.has(item.index) || item.status === "refunded") {
+          return { ...item, status: "refunded" as const };
+        }
+        return item;
+      });
   }
 
   public static getFullLedger(): BookPILedgerBlock[] {
     const db = this.load();
-    return db.ledger;
+    const refundedIndexes = new Set<number>();
+    
+    // Find all refunded indexes via append-only refund event blocks
+    for (const item of db.ledger) {
+      if (item.operation.startsWith("REFUND_EVENT: Reembolso de transacción index ")) {
+        const parts = item.operation.split("index ");
+        const idx = parseInt(parts[1] || "", 10);
+        if (!isNaN(idx)) {
+          refundedIndexes.add(idx);
+        }
+      }
+    }
+
+    return db.ledger.map((item) => {
+      if (refundedIndexes.has(item.index) || item.status === "refunded") {
+        return { ...item, status: "refunded" as const };
+      }
+      return item;
+    });
   }
 
   // Cryptographically secure chaining (BookPI Ledger Block Generation)
@@ -197,8 +270,8 @@ export class SovereignDB {
     return newBlock;
   }
 
-  // Safe Refund Process with ledger updates
-  public static refundLedgerBlock(
+  // Safe Refund Process with ledger updates (Append-only transaction event)
+  public static appendRefundEvent(
     index: number,
     tenantId: string,
   ): { success: boolean; error?: string } {
@@ -207,13 +280,46 @@ export class SovereignDB {
     if (!block) return { success: false, error: "Transacción no encontrada." };
     if (block.tenantId !== tenantId)
       return { success: false, error: "Violación de tenencia cruzada (Cross-Tenant violation)." };
-    if (block.status === "refunded")
-      return { success: false, error: "Esta transacción ya ha sido reembolsada." };
 
-    block.status = "refunded";
+    // Check if already refunded by checking for the REFUND_EVENT block
+    const isAlreadyRefunded = db.ledger.some(
+      (b) => b.operation === `REFUND_EVENT: Reembolso de transacción index ${index}`
+    );
+    if (isAlreadyRefunded || block.status === "refunded") {
+      return { success: false, error: "Esta transacción ya ha sido reembolsada." };
+    }
+
+    // Append a new, secure REFUND_EVENT block to the ledger
+    // Generates genuine cryptographic chaining hash for this refund block
+    const prevBlock = db.ledger[db.ledger.length - 1];
+    const prevHash = prevBlock ? prevBlock.blockHash : GENESIS_PREVIOUS_HASH;
+    const newIndex = db.ledger.length;
+    const timestamp = new Date().toISOString();
+    const cost = parseFloat(block.costDecimal);
+    const costDecimal = `-${block.costDecimal}`;
+
+    const blockData = `${newIndex}-${timestamp}-${tenantId}-${block.userId}-REFUND_EVENT: Reembolso de transacción index ${index}-other-${costDecimal}-0-${prevHash}`;
+    const blockHash = this.sha256(blockData);
+
+    const refundBlock: BookPILedgerBlock = {
+      index: newIndex,
+      timestamp,
+      tenantId,
+      userId: block.userId,
+      operation: `REFUND_EVENT: Reembolso de transacción index ${index}`,
+      category: "other",
+      costDecimal,
+      tokensConsumed: 0,
+      previousHash: prevHash,
+      blockHash,
+      pqcSignature: null,
+      signatureAlgorithm: "SHA-256",
+      status: "settled",
+    };
+
+    db.ledger.push(refundBlock);
 
     // Credit back
-    const cost = parseFloat(block.costDecimal);
     const tenant = db.tenants.find((t) => t.id === tenantId);
     if (tenant) {
       tenant.quotaBalance += cost;
@@ -239,21 +345,12 @@ export class SovereignDB {
       const claims = verification.claims;
       const session = db.sessions.find((s) => s.userId === claims.sub);
       if (session) return session;
-
-      // Dynamically provision a session on the fly from valid claims if not present in seeded list
-      return {
-        userId: claims.sub,
-        username: claims.sub.replace("auth0|", ""),
-        tenantId: claims.tenantId,
-        role: claims.role as UserRole,
-        oidcSub: claims.sub,
-      };
     }
 
     return undefined;
   }
 
-  // Real-time forensic ledger chain validation (Append-only blockchain validation)
+  // Real-time forensic ledger chain validation (Append-only hash chain validation)
   public static verifyLedgerIntegrity(): {
     success: boolean;
     error?: string;

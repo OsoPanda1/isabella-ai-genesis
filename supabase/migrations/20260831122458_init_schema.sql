@@ -4,19 +4,14 @@
 -- Target Platform: PostgreSQL (Supabase Compatible)
 -- ============================================================================
 
--- Enable UUID extension
+-- Enable UUID and pgvector extensions
 create extension if not exists "uuid-ossp";
+create extension if not exists vector;
 
--- Clean existing schema components safely
+-- Safe Schema Setup: Drop triggers/tables selectively if re-running
 drop trigger if exists update_tenants_modtime on tenants;
 drop trigger if exists update_profiles_modtime on profiles;
 
-drop table if exists bookpi_ledger cascade;
-drop table if exists audit_events cascade;
-drop table if exists memories cascade;
-drop table if exists sessions cascade;
-drop table if exists profiles cascade;
-drop table if exists tenants cascade;
 
 -- ============================================================================
 -- 1. TENANTS TABLE

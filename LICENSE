@@ -1,0 +1,39 @@
+===========================================================================
+ISABELLA VILLASEÑOR AI — MASTER CANONICAL LICENSING SUMMARY
+===========================================================================
+
+This repository contains various components of Isabella Villaseñor AI, which are licensed
+under different, highly specific licenses depending on their functional nature (Software,
+Documentation, Artwork, Prompts, etc.).
+
+---------------------------------------------------------------------------
+1. SOFTWARE CODEBASE (src/, tests/, server/, components/, scripts/)
+---------------------------------------------------------------------------
+The core software, modules, and execution logic of Isabella Villaseñor AI are
+fully dual-licensed under:
+
+  - Apache License, Version 2.0 (see LICENSE-APACHE)
+  - ISC License (see LICENSE-ISCL)
+
+You may choose to use, copy, modify, merge, publish, distribute, sublicense, or
+sell copies of the Software under the terms of either of these two licenses.
+
+---------------------------------------------------------------------------
+2. DOCUMENTATION & CANONICAL SCHEMAS (docs/, AGENTS.md, *.md)
+---------------------------------------------------------------------------
+All specifications, master architecture manuals (such as AGENTS.md), and
+explanatory documentation are licensed under:
+
+  - Creative Commons Attribution 4.0 International License (see LICENSE-CONTENT)
+    (CC BY 4.0)
+
+---------------------------------------------------------------------------
+3. BRAND, ARTWORK, VISUAL ASSETS & TERRITORIAL DATA (public/, assets/)
+---------------------------------------------------------------------------
+All proprietary branding, visual artwork, icons, soundscapes, and territorial
+gemstone digital assets of the TAMV Online Network are protected under:
+
+  - Creative Commons Attribution-NoDerivatives 4.0 International
+    (CC BY-ND 4.0)
+
+Please refer to the NOTICE file for copyright and attribution statements.

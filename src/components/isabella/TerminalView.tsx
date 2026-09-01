@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, type KeyboardEvent } from "react";
 import { Terminal, Shield, Cpu, RefreshCw, Layers } from "lucide-react";
 import { useIsabella } from "@/lib/useIsabella";
+import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 
 interface TerminalLine {
   text: string;
@@ -9,6 +10,7 @@ interface TerminalLine {
 
 export function TerminalView() {
   const isabella = useIsabella();
+  const { startTrack } = usePerformanceMonitor("TerminalView");
   const [inputVal, setInputVal] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -43,6 +45,9 @@ export function TerminalView() {
     const trimmed = cmdStr.trim();
     if (!trimmed) return;
 
+    // Start performance tracking of CLI command execution
+    const stopTrack = startTrack(`CLI Command Execution: ${trimmed.split(" ")[0]}`);
+
     // Save to command history
     setHistory((prev) => [trimmed, ...prev]);
     setHistoryIndex(-1);
@@ -63,10 +68,12 @@ export function TerminalView() {
         addLine("  monetize  - Carga el plan constitucional de monetización soberana.", "output");
         addLine("  clear     - Limpia el búfer de la terminal.", "output");
         addLine("  [texto]   - Envía cualquier otra consulta al motor de Isabella.", "output");
+        stopTrack();
         break;
 
       case "clear":
         setLines([]);
+        stopTrack();
         break;
 
       case "info":
@@ -76,6 +83,7 @@ export function TerminalView() {
         addLine("  - ORCID: 0009-0008-5050-1539", "output");
         addLine("  - Gateway: CROWN Decision Router", "output");
         addLine("  - Licencia: CC Attribution 4.0 International", "output");
+        stopTrack();
         break;
 
       case "status":
@@ -102,6 +110,7 @@ export function TerminalView() {
             "output",
           );
           addLine("Estado general del nodo: EXCELENTE (Soberanía Territorial 100%)", "success");
+          stopTrack();
         }, 300);
         break;
 
@@ -120,6 +129,7 @@ export function TerminalView() {
               "error",
             );
           }
+          stopTrack();
         }, 200);
         break;
 
@@ -151,6 +161,7 @@ export function TerminalView() {
             'Escribe "monetize --detail" o ingresa a la pestaña "Modelos de Monetización" para ver el plan completo.',
             "success",
           );
+          stopTrack();
         }, 200);
         break;
 
@@ -168,6 +179,7 @@ export function TerminalView() {
           "  - Proporciones sugeridas: 40% Enterprise, 25% Suscripciones, 15% APIs, 10% Servicios.",
           "output",
         );
+        stopTrack();
         break;
 
       default:
@@ -175,10 +187,11 @@ export function TerminalView() {
         addLine("Isabella procesando entrada...", "system");
         try {
           // Direct call to useIsabella's logic
-          isabella.onSendMessage(trimmed, []);
+          isabella.send(trimmed, []);
         } catch (e) {
           addLine("Error en percepción de canal.", "error");
         }
+        stopTrack();
         break;
     }
   };

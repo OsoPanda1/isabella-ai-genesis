@@ -43,13 +43,17 @@ export function loadConfig(source: RawEnv = process.env): Env {
   if (cached) return cached;
 
   const parsed = resolveEnv(source);
-  const mode: RuntimeMode =
-    parsed.NODE_ENV === "production" ? "production" : parsed.NODE_ENV === "test" ? "development" : "development";
+  const mode: RuntimeMode = parsed.ISABELLA_RUNTIME_MODE;
 
   try {
     assertRequired(mode, source);
   } catch (error) {
-    loadError = error instanceof Error ? error.message : String(error);
+    const msg = error instanceof Error ? error.message : String(error);
+    loadError = msg;
+    // Fail-Fast: Throw immediately for staging/production mode to prevent unconfigured or degraded starts
+    if (mode === "production" || mode === "staging") {
+      throw new Error(`[SovereignConfig Fail-Fast] ${msg}`);
+    }
   }
 
   cached = parsed;

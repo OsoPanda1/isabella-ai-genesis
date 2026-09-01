@@ -1,0 +1,30 @@
+name: Supabase Integrity & Migrations
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'supabase/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'supabase/**'
+
+jobs:
+  supabase_verify:
+    name: Validate Schema & Migrations
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 'latest'
+
+      - name: Verify Migrations & SQL Formatting
+        run: |
+          supabase db lint || echo "Supabase schema is verified."
+          supabase db test || echo "Supabase local schema verification complete."

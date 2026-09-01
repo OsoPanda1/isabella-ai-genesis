@@ -1,0 +1,34 @@
+===========================================================================
+ISABELLA VILLASEÑOR AI — ATTRIBUTION NOTICE
+===========================================================================
+
+Isabella Villaseñor AI
+Copyright (c) 2026 Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)
+Copyright (c) 2026 TAMV Online Network / RDM Digital Hub / Nodo Cero
+
+This product includes software developed as part of Isabella Villaseñor AI,
+led by Edwin Oswaldo Castillo Trejo under the TAMV Online Network.
+
+---------------------------------------------------------------------------
+AUTHORSHIP & INTELLECTUAL PROPERTY RECONCILIATION
+---------------------------------------------------------------------------
+- **System Architect:** Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)
+- **ORCID ID:** https://orcid.org/0009-0008-5050-1539
+- **Affiliation:** TAMV Online Network / Nodo Cero, Real del Monte, Hidalgo, México.
+- **Licensing Combination:**
+  - Software Engine: Dual Apache-2.0 / ISC
+  - Documentation, AGENTS.md, & Specifications: Creative Commons Attribution 4.0 International (CC BY 4.0)
+  - Visual Artwork & Territorial Content: Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)
+
+---------------------------------------------------------------------------
+THIRD-PARTY ACKNOWLEDGEMENTS
+---------------------------------------------------------------------------
+This product incorporates or links with several open-source modules, including:
+- **TanStack Start / TanStack Router** (MIT)
+- **Vite & Rollup** (MIT)
+- **Tailwind CSS** (MIT)
+- **Lucide Icons** (ISC)
+- **Zod Schema Validation** (MIT)
+- **JWT & Cryptography Utilities** (MIT)
+
+All third-party modules are subject to their respective licenses.

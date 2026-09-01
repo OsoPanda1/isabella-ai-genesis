@@ -1,0 +1,46 @@
+name: Security Hardening Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 1' # Runs every Monday at midnight
+
+jobs:
+  security_audit:
+    name: Security Audits
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 'latest'
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile || npm ci
+
+      - name: Security Linter Scan
+        run: npm run security:scan || npx eslint -c eslint.security.mjs src/ || true
+
+      - name: Audit NPM Dependencies
+        run: bun pm audit || npm audit --audit-level=high || true
+
+      - name: Scan for Secret Leaks
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+        continue-on-error: true

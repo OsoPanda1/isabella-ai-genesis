@@ -1,5 +1,6 @@
 import { PRESETS, type PresetId, type RoutingDecision } from "@/lib/crown-ui";
 import { ModuleRail } from "./ModuleRail";
+import { usePerformanceStats } from "@/hooks/usePerformanceMonitor";
 
 const POLICY_LABEL: Record<string, string> = {
   allowed: "AUTORIZADO",
@@ -29,6 +30,7 @@ export function TelemetryPanel({
   isProcessing: boolean;
 }) {
   const policy = decision?.policy ?? "allowed";
+  const { stats, events } = usePerformanceStats();
 
   return (
     <aside className="flex flex-col gap-4">
@@ -93,6 +95,45 @@ export function TelemetryPanel({
           Módulos activos
         </h2>
         <ModuleRail decision={decision} active={isProcessing} />
+      </section>
+
+      <section className="glass rounded-2xl p-4">
+        <h2 className="mb-2 font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+          Rendimiento UI (Core)
+        </h2>
+        <div className="space-y-3">
+          {stats.length === 0 ? (
+            <span className="font-mono text-[10.5px] text-muted-foreground">Sin telemetría de render.</span>
+          ) : (
+            stats.map((s) => (
+              <div key={s.componentName} className="font-mono text-[11px]">
+                <div className="flex items-center justify-between text-platinum font-semibold">
+                  <span className="text-electric">{s.componentName}</span>
+                  <span>{s.averageRenderTimeMs.toFixed(1)}ms</span>
+                </div>
+                <div className="flex items-center justify-between text-muted-foreground text-[9px] mt-0.5">
+                  <span>Renders: {s.renderCount}</span>
+                  <span>Mount: {s.mountTimeMs.toFixed(1)}ms</span>
+                </div>
+              </div>
+            ))
+          )}
+          {events.length > 0 && (
+            <div className="border-t border-border/15 pt-2.5 mt-2">
+              <span className="block font-mono text-[9px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                Eventos Perceptivos
+              </span>
+              <div className="space-y-1 max-h-[80px] overflow-y-auto pr-1 scrollbar-thin">
+                {events.slice(-3).reverse().map((e, idx) => (
+                  <div key={idx} className="flex justify-between font-mono text-[9.5px] text-muted-foreground/90 leading-tight">
+                    <span className="truncate max-w-[170px]">{e.eventName}</span>
+                    <span className="text-amber-400 font-semibold">{e.durationMs.toFixed(0)}ms</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </section>
 
       <section className="glass rounded-2xl p-4">

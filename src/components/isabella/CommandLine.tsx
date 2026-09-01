@@ -22,6 +22,7 @@ import {
   FileCode2,
   AlertTriangle,
 } from "lucide-react";
+import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 
 const uid = () => Math.random().toString(36).slice(2, 11);
 
@@ -49,6 +50,7 @@ export function CommandLine({
   onReset,
   isProcessing,
 }: CommandLineProps) {
+  const { startTrack } = usePerformanceMonitor("CommandLine");
   const [value, setValue] = useState("");
   const [attachments, setAttachments] = useState<ExtendedAttachment[]>([]);
   const [recording, setRecording] = useState(false);
@@ -111,6 +113,8 @@ export function CommandLine({
     const text = value.trim();
     if ((!text && attachments.length === 0) || isProcessing) return;
 
+    const stopTrack = startTrack(`Transmit Prompt (${executionMode})`);
+
     onSend(text, attachments, {
       mode: executionMode,
       webSearch: webSearchEnabled,
@@ -120,7 +124,8 @@ export function CommandLine({
     setValue("");
     setAttachments([]);
     setShowCommandsMenu(false);
-  }, [value, attachments, isProcessing, onSend, executionMode, webSearchEnabled, toolsEnabled]);
+    stopTrack();
+  }, [value, attachments, isProcessing, onSend, executionMode, webSearchEnabled, toolsEnabled, startTrack]);
 
   const addPhotos = async (files: FileList | null) => {
     if (!files) return;

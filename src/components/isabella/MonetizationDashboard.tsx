@@ -247,7 +247,7 @@ export function MonetizationDashboard() {
       title: "5. Cadena de Logs Auditada por ARGUS",
       concept: "Libro de Eventos de Seguridad Inmutable",
       description:
-        "Cada acción crítica que realiza el orquestador se firma mediante hashes SHA-256 encadenados. Al igual que una blockchain de eventos, si un tercero alterase un log de auditoría antiguo, la verificación en caliente detectará el quiebre de la firma al instante.",
+        "Cada acción crítica que realiza el orquestador se firma mediante hashes SHA-256 encadenados. Al igual que una cadena de hashes append-only de eventos, si un tercero alterase un log de auditoría antiguo, la verificación en caliente detectará el quiebre de la firma al instante.",
       icon: <Activity className="size-6 text-amber-400" />,
       detail:
         "Esto provee un nivel de transparencia sin precedentes, cumpliendo con regulaciones internacionales como la Ley de IA de la Unión Europea y el estándar ISO/IEC 42001 de Gobernanza de Inteligencia Artificial.",
@@ -884,12 +884,10 @@ export function MonetizationDashboard() {
               <div>
                 <h3 className="font-mono text-[15px] font-bold text-pearl flex items-center gap-2">
                   <Brain className="size-5 text-electric animate-pulse" />
-                  Módulo de Telemetría: 12 Núcleos Dobles de Isabella
+                  Módulo de Telemetría: 12 Heads Cognitivos Configurados (24 Núcleos Modelados)
                 </h3>
                 <p className="text-[12.5px] text-muted-foreground mt-1">
-                  Monitoreo en tiempo real de los 12 núcleos cognitivos duales. Cada núcleo consta
-                  de un submódulo **Alpha (Razonamiento Epistémico)** y un submódulo **Beta
-                  (Ejecución Cibernética/Acción)**.
+                  Monitoreo de estado de los 12 heads cognitivos configurados (con 24 núcleos independientes modelados para ejecución cognitiva). Cada head consta de un submódulo **Alpha (Razonamiento Epistémico)** y un submódulo **Beta (Ejecución Cibernética/Acción)** modelados arquitectónicamente.
                 </p>
               </div>
               <button
@@ -898,14 +896,14 @@ export function MonetizationDashboard() {
                   await fetchDbState();
                   setTimeout(() => {
                     setIsHeadsRefreshing(false);
-                    toast.success("Telemetría de los 12 núcleos sincronizada.");
+                    toast.success("Telemetría de los 12 heads configurados sincronizada.");
                   }, 600);
                 }}
                 disabled={isHeadsRefreshing}
                 className="px-3.5 py-1.5 rounded-xl border border-border/30 bg-secondary/25 hover:bg-secondary/40 font-mono text-[10.5px] uppercase tracking-wider transition-all text-platinum flex items-center gap-2 cursor-pointer"
               >
                 <RefreshCw className={`size-3.5 ${isHeadsRefreshing ? "animate-spin" : ""}`} />
-                {isHeadsRefreshing ? "Sincronizando..." : "Sincronizar Núcleos"}
+                {isHeadsRefreshing ? "Sincronizando..." : "Sincronizar Heads"}
               </button>
             </div>
 

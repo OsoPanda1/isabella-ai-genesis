@@ -26,6 +26,7 @@ const coercedInt = (def: number) => z.coerce.number().int().nonnegative().defaul
 export const envSchema = z.object({
   // --- ENVIRONMENT ---
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  ISABELLA_RUNTIME_MODE: runtimeModeSchema.default("development"),
   PUBLIC_URL: z.string().url().default("http://localhost:3000"),
 
   // --- SUPABASE ---

@@ -1,5 +1,7 @@
 import { SecuritySystem, TokenClaims } from "./security";
 import { SovereignDB, UserRole, Tenant } from "./sovereign-engine";
+import { authorize, type AuthorizationRequest } from "./authorization";
+import { type Resource, type Action } from "./permission-matrix";
 
 export class PrincipalContext {
   public readonly userId: string;
@@ -152,4 +154,75 @@ export class PrincipalContext {
 
     return { success: true, context };
   }
+}
+
+export function withSovereignAuth(
+  resource: Resource,
+  action: Action,
+  handler: (context: PrincipalContext, request: Request, body?: any) => Promise<Response>,
+) {
+  return async ({ request }: { request: Request }): Promise<Response> => {
+    // 1. Resolve Principal Context
+    const authResult = PrincipalContext.authorize(request);
+    if (!authResult.success) {
+      return authResult.response;
+    }
+
+    const { context } = authResult;
+
+    // 2. Build Authorization Request
+    const authReq: AuthorizationRequest = {
+      identity: {
+        subject: context.userId,
+        username: context.username,
+        tenantId: context.tenantId,
+        role: context.role,
+        scopes: context.scope ? context.scope.split(" ") : [],
+        authenticated: true,
+      },
+      resource,
+      action,
+      tenant: {
+        context: {
+          subject: context.userId,
+          username: context.username,
+          tenantId: context.tenantId,
+          resolvedBy: "bearer",
+          authenticated: true,
+          resolvedAt: new Date().toISOString(),
+        },
+        boundaryOk: true,
+        reason: "ok",
+      },
+    };
+
+    // 3. Centralized Authorization Decision
+    const decisionResult = authorize(authReq);
+    if (decisionResult.decision === "denied") {
+      const headers = SecuritySystem.injectSecureHeaders(
+        new Headers({ "content-type": "application/json" }),
+      );
+      return new Response(
+        JSON.stringify({
+          error: `Acceso Denegado por Política Centralizada: Privilegios insuficientes para la operación (${resource}:${action}).`,
+          reasons: decisionResult.reasons,
+          traceId: context.traceId,
+        }),
+        { status: 403, headers },
+      );
+    }
+
+    // Parse body safely if possible/needed (e.g. for POST/PUT)
+    let body: any = null;
+    if (request.method === "POST" || request.method === "PUT") {
+      try {
+        const cloned = request.clone();
+        body = await cloned.json();
+      } catch {
+        // Ignore parsing error, handler can handle it
+      }
+    }
+
+    return handler(context, request, body);
+  };
 }
