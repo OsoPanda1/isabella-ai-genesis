@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getSessionToken } from "@/lib/auth-client";
 import {
   Shield,
   ShieldAlert,
@@ -163,26 +164,10 @@ export function LatamAegisDashboard() {
     { name: "Corrida 3", score: 0.25, level: 1 },
   ]);
 
-  // Initialize secure OIDC session
+  // Initialize secure OIDC session (tokens solo vía flujos autorizados)
   useState(() => {
     const initAuth = async () => {
-      let token = sessionStorage.getItem("isabella_session_token");
-      if (!token) {
-        try {
-          const res = await fetch("/api/db?action=authenticate", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ userId: "user_anubis_001" }),
-          });
-          const data = await res.json();
-          if (data.token) {
-            token = data.token;
-            sessionStorage.setItem("isabella_session_token", token);
-          }
-        } catch (e) {
-          console.error("Fallo al inicializar sesión OIDC:", e);
-        }
-      }
+      const token = getSessionToken();
       setSessionToken(token);
     };
     void initAuth();

@@ -167,24 +167,8 @@ export function useIsabella() {
       abortRef.current = controller;
 
       try {
-        let token = "";
-        try {
-          token = window.sessionStorage.getItem("isabella_session_token") || "";
-          if (!token) {
-            const authRes = await fetch("/api/db?action=authenticate", {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({ userId: "user_anubis_001" }),
-            });
-            if (authRes.ok) {
-              const authData = await authRes.json();
-              token = authData.token;
-              window.sessionStorage.setItem("isabella_session_token", token);
-            }
-          }
-        } catch (e) {
-          console.error("No se pudo resolver el token de sesión:", e);
-        }
+        const { getSessionToken } = await import("@/lib/auth-client");
+        const token = getSessionToken();
 
         const res = await fetch("/api/isabella", {
           method: "POST",

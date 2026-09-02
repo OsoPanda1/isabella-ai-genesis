@@ -24,6 +24,11 @@ import {
   Coins,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  isTrustedOAuthEvent,
+  setSessionToken as persistSessionToken,
+  setStoredSovereignUserId,
+} from "@/lib/auth-client";
 
 import { AccountOnboarding } from "./AccountOnboarding";
 import { CreditLedger, type LedgerItem } from "./CreditLedger";
@@ -301,19 +306,8 @@ export function MonetizationDashboard() {
   // Synchronize state and records on mount and activeRole / token changes
   const fetchDbState = useCallback(async () => {
     if (!sessionToken || !sessionToken.startsWith("eyJ")) {
-      try {
-        const res = await fetch(`/api/db?action=authenticate`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ userId: "user_anubis_001" }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setSessionToken(data.token);
-        }
-      } catch (err) {
-        console.error("No se pudo auto-inicializar la sesión OIDC:", err);
-      }
+      // Los tokens solo se obtienen mediante flujos autorizados (OAuth/OIDC).
+      // Sin token emitido por el servidor, la UI permanece desautenticada.
       return;
     }
 
@@ -395,19 +389,18 @@ export function MonetizationDashboard() {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      const origin = event.origin;
-      if (!origin.endsWith(".run.app") && !origin.includes("localhost")) {
-        return;
-      }
+      // Origen EXACTO de la aplicación: nunca se aceptan prefijos/dominios parciales.
+      if (!isTrustedOAuthEvent(event)) return;
       if (event.data?.type === "OAUTH_AUTH_SUCCESS") {
-        const { token, username } = event.data;
+        const { token, username, userId } = event.data as {
+          token?: string;
+          username?: string;
+          userId?: string;
+        };
         if (token) {
+          persistSessionToken(token);
           setSessionToken(token);
-          try {
-            window.sessionStorage.setItem("isabella_session_token", token);
-          } catch {
-            // Ignore sessionStorage errors
-          }
+          if (userId) setStoredSovereignUserId(userId);
           toast.success(`Conexión OAuth Exitosa. Bienvenido, ${username || "Soberano"}.`);
         }
       }
@@ -499,33 +492,13 @@ export function MonetizationDashboard() {
     }
   };
 
-  const handleSwitchRole = async (role: string) => {
-    let targetUserId = "user_anubis_001";
-    if (role === "Auditor") targetUserId = "user_external_auditor";
-    else if (role === "Operator") targetUserId = "user_operator_rdm";
-    else if (role === "Guest") targetUserId = "user_guest_rdm";
-
-    try {
-      const res = await fetch(`/api/db?action=authenticate`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ userId: targetUserId }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(`Error al cambiar de identidad OIDC: ${data.error}`);
-        return;
-      }
-
-      setSessionToken(data.token);
-      setActiveRole(role);
-      toast.success(`Identidad OIDC actualizada. Rol activo: ${role}`);
-    } catch {
-      toast.error("Error al actualizar rol OIDC.");
-    }
+  const handleSwitchRole = async (_role: string) => {
+    // Los roles NO pueden cambiarse acuñando tokens por cuenta propia: la
+    // identidad la emite únicamente el servidor mediante flujos autorizados
+    // (provision-owner con token de bootstrap o IDP OIDC/Supabase).
+    toast.info(
+      "El cambio de identidad requiere un flujo autorizado (OIDC o provisionamiento).",
+    );
   };
 
   const handleExecuteSandbox = async () => {
