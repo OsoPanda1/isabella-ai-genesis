@@ -53,3 +53,37 @@ export function setStoredSovereignUserId(userId: string): void {
 export function isTrustedOAuthEvent(event: MessageEvent): boolean {
   return event.origin === window.location.origin;
 }
+
+/** Obtiene una sesión emitida por el IDP de desarrollo; nunca fabrica tokens. */
+export async function ensureSessionToken(): Promise<string> {
+  const existing = getSessionToken();
+  if (existing) return existing;
+
+  const response = await fetch(`/api/db?action=oauth-url&redirect_uri=${encodeURIComponent(`${window.location.origin}/api/db?action=oauth-callback`)}`);
+  const payload = (await response.json().catch(() => ({}))) as { url?: string; error?: string };
+  if (!response.ok || !payload.url) throw new Error(payload.error || "ARGUS requiere una sesión OIDC válida.");
+
+  return new Promise((resolve, reject) => {
+    const popup = window.open(payload.url, "isabella-oidc", "width=520,height=720,resizable=yes");
+    if (!popup) {
+      reject(new Error("El navegador bloqueó la ventana de autorización OIDC."));
+      return;
+    }
+    const timeout = window.setTimeout(() => {
+      window.removeEventListener("message", handleMessage);
+      reject(new Error("La autorización OIDC expiró o fue cancelada."));
+    }, 120000);
+    const handleMessage = (event: MessageEvent) => {
+      if (!isTrustedOAuthEvent(event)) return;
+      const token = typeof event.data?.token === "string" ? event.data.token : "";
+      if (!token) return;
+      window.clearTimeout(timeout);
+      window.removeEventListener("message", handleMessage);
+      popup.close();
+      setSessionToken(token);
+      if (typeof event.data?.userId === "string") setStoredSovereignUserId(event.data.userId);
+      resolve(token);
+    };
+    window.addEventListener("message", handleMessage);
+  });
+}
