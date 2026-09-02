@@ -952,9 +952,11 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
 
       {/* First-click gateway: visual identity and audio are intentionally user-initiated. */}
       {!started && (
-        <div className="absolute inset-0 z-[100] grid place-items-center overflow-y-auto bg-[radial-gradient(circle_at_50%_42%,rgba(43,67,108,0.24),transparent_34%),linear-gradient(135deg,rgba(1,3,10,0.96),rgba(7,12,22,0.88))] p-6 sm:p-10">
+        <div className="absolute inset-0 z-[100] grid place-items-center overflow-y-auto bg-[#05070b] p-6 sm:p-10">
+          <img src="/assets/isabella-intro-backdrop.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 size-full object-cover opacity-80" />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(2,4,8,0.18),rgba(2,4,8,0.7)),radial-gradient(circle_at_50%_48%,transparent_12%,rgba(1,3,8,0.72)_78%)]" />
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/70 to-transparent" />
-          <div className="w-[min(640px,100%)] animate-rise text-center">
+          <div className="relative z-10 w-[min(640px,100%)] animate-rise text-center">
             <div className="mb-8 flex items-center justify-center gap-3 font-mono text-[9px] font-semibold uppercase tracking-[0.38em] text-cyan-200/70">
               <span className="h-px w-10 bg-cyan-200/30" />
               Nodo Cero · Real del Monte
@@ -978,7 +980,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
 
       {/* 3D Canvas rendering */}
       {started && !reduced && (
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
+        <canvas ref={canvasRef} className="absolute inset-0 block size-full opacity-25 mix-blend-screen" />
       )}
 
       {/* Cinematic Phase Layout */}
@@ -1026,7 +1028,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       {/* Shading, vignette & whiteout overlays */}
       <div className="absolute inset-0 pointer-events-none vignette z-8 mix-blend-multiply bg-radial-vignette" />
       <div className="absolute inset-0 pointer-events-none color-grade z-9 mix-blend-screen bg-linear-colorgrade" />
-      <div className="absolute inset-0 pointer-events-none scanlines z-10 opacity-5 bg-repeating-scanlines" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.58)_100%)] z-10" />
       <div
         id="whiteout"
         className={`absolute inset-0 z-50 bg-white pointer-events-none transition-opacity duration-[1350ms] ${
