@@ -111,8 +111,17 @@ export class PrincipalContext {
         };
       }
 
+      // Claims sintetizadas para API Keys: la vigencia se deriva de la credencial
+      // (ya fue verificada previamente); el emisor/audiencia son soberanos.
+      const expMillis = principal.expiresAt
+        ? new Date(principal.expiresAt).getTime()
+        : Date.now() + 24 * 60 * 60 * 1000;
+
       const claims: TokenClaims = {
+        iss: "isabella.sovereign.api-keys",
         sub: principal.subject,
+        aud: principal.tenantId,
+        exp: Math.floor(expMillis / 1000),
         tenantId: principal.tenantId,
         role: principal.role,
         scope: principal.scopes.join(" "),

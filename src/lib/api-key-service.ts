@@ -46,7 +46,7 @@ export class ApiKeyService {
       scopes,
       status: "active",
       created_at: new Date().toISOString(),
-      expires_at: expiresAt,
+      ...(expiresAt ? { expires_at: expiresAt } : {}),
     };
 
     const keys = SovereignDB.getApiKeys();
@@ -69,7 +69,7 @@ export class ApiKeyService {
       key: rawKey,
       prefix,
       scopes,
-      expiresAt,
+      ...(expiresAt ? { expiresAt } : {}),
     };
   }
 

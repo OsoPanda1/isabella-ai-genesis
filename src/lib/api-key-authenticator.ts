@@ -36,8 +36,8 @@ export class ApiKeyAuthenticator {
       credentialId: record.id,
       credentialType: "api_key",
       issuedAt: record.created_at,
-      expiresAt: record.expires_at,
       authenticationMethod: "api_key_header",
+      ...(record.expires_at ? { expiresAt: record.expires_at } : {}),
     };
 
     return { success: true, principal };
