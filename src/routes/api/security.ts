@@ -34,15 +34,9 @@ const securityEventSchema = z.object({
 function calculateTsAegisResponse(event: z.infer<typeof securityEventSchema>) {
   const hashSecret = secrets.apiKeyHashSecret(); // Resolved safely from secret provider
 
-  // Hash helper
+  // Hash helper: HMAC-SHA256 criptográfico (nunca FNV), truncado para redacción.
   const stableHash = (val: string, secret: string): string => {
-    let hash = 0x811c9dc5;
-    const combined = val + secret;
-    for (let i = 0; i < combined.length; i++) {
-      hash ^= combined.charCodeAt(i);
-      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
-    }
-    return (hash >>> 0).toString(16).padStart(8, "0");
+    return SecuritySystem.hmacSha256(val, secret).slice(0, 16);
   };
 
   const sanitizedActor = `hash_actor_${stableHash(event.actor, hashSecret)}`;
@@ -168,8 +162,13 @@ export const Route = createFileRoute("/api/security")({
           );
           const pythonPath = path.join(process.cwd(), "latam-aegis-x", "src");
 
-          const processEnv = {
-            ...process.env,
+          // Entorno restringido del proceso hijo: solo variables necesarias.
+          // Nunca se pasan por alto todas las variables de proceso (evita la
+          // fuga inadvertida de secretos del host hacia el subproceso).
+          const processEnv: NodeJS.ProcessEnv = {
+            PATH: process.env.PATH ?? "",
+            LANG: process.env.LANG ?? "C.UTF-8",
+            LC_ALL: process.env.LC_ALL ?? "C.UTF-8",
             PYTHONPATH: pythonPath,
             AEGIS_HASH_SECRET: config().API_KEY_HASH_SECRET || secrets.apiKeyHashSecret(),
             AEGIS_AUDIT_SECRET: config().CROWN_POLICY_SIGNING_KEY || secrets.jwtSecret(),
