@@ -3,23 +3,15 @@ import { useEffect, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
-  ChevronUp,
-  Terminal as TerminalIcon,
-  MessageSquare,
-  Sparkles,
-  BookOpen,
-  Layers,
-  TrendingUp,
   Download,
   FolderOpen,
-  Cpu,
-  Shield,
 } from "lucide-react";
 import { CinematicIntro } from "@/components/isabella/CinematicIntro";
 import { CommandLine } from "@/components/isabella/CommandLine";
 import { MessageStream } from "@/components/isabella/MessageStream";
-import { TelemetryPanel } from "@/components/isabella/TelemetryPanel";
+import { RightRails } from "@/components/isabella/RightRails";
+import { Starfield } from "@/components/isabella/Starfield";
+import { CrystalNavigation, NAV_GROUPS, type NavTabId } from "@/components/isabella/CrystalNavigation";
 import { ApiCatalogExplorer } from "@/components/isabella/ApiCatalogExplorer";
 import { TerminalView } from "@/components/isabella/TerminalView";
 import { MonetizationDashboard } from "@/components/isabella/MonetizationDashboard";
@@ -91,15 +83,22 @@ function Index() {
 function IsabellaInterface() {
   const isabella = useIsabella();
   const [panel, setPanel] = useState(false);
-  const [activeTab, setActiveTab] = useState<
-    "terminal" | "cli" | "catalog" | "monetization" | "quantum" | "interfaces" | "aegis"
-  >("terminal");
+  const [activeTab, setActiveTab] = useState<NavTabId>("terminal");
 
   // Sidebar State for 3-part retractable accordions
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [upperOpen, setUpperOpen] = useState(true);
   const [middleOpen, setMiddleOpen] = useState(true);
   const [lowerOpen, setLowerOpen] = useState(true);
+
+  const navGroups = NAV_GROUPS(
+    { cognition: upperOpen, catalog: middleOpen, sovereignty: lowerOpen },
+    (id) => {
+      if (id === "cognition") setUpperOpen((o) => !o);
+      else if (id === "catalog") setMiddleOpen((o) => !o);
+      else if (id === "sovereignty") setLowerOpen((o) => !o);
+    },
+  );
 
   const lastInput = useRef("");
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -112,7 +111,10 @@ function IsabellaInterface() {
   const turns = isabella.messages.filter((m) => m.role === "user").length;
 
   return (
-    <div className="min-h-screen flex bg-background text-foreground transition-all duration-300">
+    <div className="relative min-h-screen flex bg-background text-foreground transition-all duration-300">
+      {/* Starfield atmosférico de fondo (1.000 micro-estrellas marfil/platino) */}
+      <Starfield />
+
       {/* ==============================================================
           CANONICAL 3-PART RETRACTABLE LEFT SIDEBAR WITH CRYSTAL GLOWS
          ============================================================== */}
@@ -149,200 +151,13 @@ function IsabellaInterface() {
             )}
           </div>
 
-          {/* Accordion List Container */}
-          <div className="p-2 space-y-4 flex-1">
-            {/* 1. UPPER NAVBAR BLOCK: COGNICIÓN E INTERFACES */}
-            <div className="space-y-1">
-              {isSidebarOpen ? (
-                <button
-                  onClick={() => setUpperOpen(!upperOpen)}
-                  className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-muted-foreground hover:text-platinum font-mono text-[10px] uppercase tracking-wider transition-all"
-                >
-                  <span className="flex items-center gap-2">
-                    <Sparkles className="size-3.5 text-electric animate-pulse" />
-                    Cognición & Flujos
-                  </span>
-                  {upperOpen ? (
-                    <ChevronUp className="size-3" />
-                  ) : (
-                    <ChevronDown className="size-3" />
-                  )}
-                </button>
-              ) : (
-                <div className="w-full flex justify-center py-1">
-                  <Sparkles className="size-4.5 text-electric animate-pulse" />
-                </div>
-              )}
-
-              {(!isSidebarOpen || upperOpen) && (
-                <div className="space-y-1 animate-rise">
-                  <button
-                    onClick={() => setActiveTab("terminal")}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-mono text-[11.5px] transition-all crystal-glow-electric ${
-                      activeTab === "terminal"
-                        ? "bg-electric/15 text-electric border border-electric/30 font-semibold shadow-[0_0_15px_-4px_rgba(112,102,249,0.3)]"
-                        : "text-muted-foreground hover:bg-secondary/20 hover:text-platinum border border-transparent"
-                    }`}
-                  >
-                    <MessageSquare className="size-4 shrink-0" />
-                    {isSidebarOpen && <span className="truncate">Terminal Cognitivo</span>}
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab("cli")}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-mono text-[11.5px] transition-all crystal-glow-electric ${
-                      activeTab === "cli"
-                        ? "bg-electric/15 text-electric border border-electric/30 font-semibold shadow-[0_0_15px_-4px_rgba(112,102,249,0.3)]"
-                        : "text-muted-foreground hover:bg-secondary/20 hover:text-platinum border border-transparent"
-                    }`}
-                  >
-                    <TerminalIcon className="size-4 shrink-0" />
-                    {isSidebarOpen && <span className="truncate">Consola Retro CLI</span>}
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab("interfaces")}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-mono text-[11.5px] transition-all crystal-glow-electric ${
-                      activeTab === "interfaces"
-                        ? "bg-electric/15 text-electric border border-electric/30 font-semibold shadow-[0_0_15px_-4px_rgba(112,102,249,0.3)]"
-                        : "text-muted-foreground hover:bg-secondary/20 hover:text-platinum border border-transparent"
-                    }`}
-                  >
-                    <Sparkles className="size-4 shrink-0" />
-                    {isSidebarOpen && <span className="truncate">Interfaces IA</span>}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* 2. MIDDLE NAVBAR BLOCK: CONTRATOS & SERVICIOS */}
-            <div className="space-y-1">
-              {isSidebarOpen ? (
-                <button
-                  onClick={() => setMiddleOpen(!middleOpen)}
-                  className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-muted-foreground hover:text-platinum font-mono text-[10px] uppercase tracking-wider transition-all"
-                >
-                  <span className="flex items-center gap-2">
-                    <Layers className="size-3.5 text-crown" />
-                    Catálogo & Contratos
-                  </span>
-                  {middleOpen ? (
-                    <ChevronUp className="size-3" />
-                  ) : (
-                    <ChevronDown className="size-3" />
-                  )}
-                </button>
-              ) : (
-                <div className="w-full flex justify-center py-1">
-                  <Layers className="size-4.5 text-crown" />
-                </div>
-              )}
-
-              {(!isSidebarOpen || middleOpen) && (
-                <div className="space-y-1 animate-rise">
-                  <button
-                    onClick={() => setActiveTab("catalog")}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-mono text-[11.5px] transition-all crystal-glow-crown ${
-                      activeTab === "catalog"
-                        ? "bg-crown/15 text-crown border border-crown/30 font-semibold shadow-[0_0_15px_-4px_rgba(180,112,249,0.3)]"
-                        : "text-muted-foreground hover:bg-secondary/20 hover:text-platinum border border-transparent"
-                    }`}
-                  >
-                    <BookOpen className="size-4 shrink-0" />
-                    {isSidebarOpen && <span className="truncate">Catálogo de APIs</span>}
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab("quantum")}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-mono text-[11.5px] transition-all crystal-glow-crown ${
-                      activeTab === "quantum"
-                        ? "bg-crown/15 text-crown border border-crown/30 font-semibold shadow-[0_0_15px_-4px_rgba(180,112,249,0.3)]"
-                        : "text-muted-foreground hover:bg-secondary/20 hover:text-platinum border border-transparent"
-                    }`}
-                  >
-                    <Cpu className="size-4 shrink-0" />
-                    {isSidebarOpen && <span className="truncate">Utilidad Cuántica (qup)</span>}
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab("aegis")}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-mono text-[11.5px] transition-all crystal-glow-crown ${
-                      activeTab === "aegis"
-                        ? "bg-rose-500/15 text-rose-400 border border-rose-500/30 font-semibold shadow-[0_0_15px_-4px_rgba(239,68,68,0.3)]"
-                        : "text-muted-foreground hover:bg-secondary/20 hover:text-platinum border border-transparent"
-                    }`}
-                  >
-                    <Shield className="size-4 shrink-0" />
-                    {isSidebarOpen && <span className="truncate">Defensa AEGIS-X</span>}
-                  </button>
-
-                  {isSidebarOpen && (
-                    <div className="px-3 py-2 mt-1 mx-1 rounded-xl bg-secondary/15 border border-border/20 text-[10px] text-muted-foreground font-mono">
-                      <div className="flex items-center justify-between mb-1">
-                        <span>Filtro SAST:</span>
-                        <span className="text-emerald-400 font-bold">ACTIVO</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span>Gateway:</span>
-                        <span className="text-electric font-semibold">C.R.O.W.N.</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* 3. LOWER NAVBAR BLOCK: SOBERANÍA & FINANZAS */}
-            <div className="space-y-1">
-              {isSidebarOpen ? (
-                <button
-                  onClick={() => setLowerOpen(!lowerOpen)}
-                  className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-muted-foreground hover:text-platinum font-mono text-[10px] uppercase tracking-wider transition-all"
-                >
-                  <span className="flex items-center gap-2">
-                    <TrendingUp className="size-3.5 text-emerald-400" />
-                    Soberanía & Cuotas
-                  </span>
-                  {lowerOpen ? (
-                    <ChevronUp className="size-3" />
-                  ) : (
-                    <ChevronDown className="size-3" />
-                  )}
-                </button>
-              ) : (
-                <div className="w-full flex justify-center py-1">
-                  <TrendingUp className="size-4.5 text-emerald-400" />
-                </div>
-              )}
-
-              {(!isSidebarOpen || lowerOpen) && (
-                <div className="space-y-1 animate-rise">
-                  <button
-                    onClick={() => setActiveTab("monetization")}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-mono text-[11.5px] transition-all crystal-glow-emerald ${
-                      activeTab === "monetization"
-                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold shadow-[0_0_15px_-4px_rgba(52,211,153,0.3)]"
-                        : "text-muted-foreground hover:bg-secondary/20 hover:text-platinum border border-transparent"
-                    }`}
-                  >
-                    <TrendingUp className="size-4 shrink-0" />
-                    {isSidebarOpen && <span className="truncate">Suscripción y Cuotas</span>}
-                  </button>
-
-                  {isSidebarOpen && (
-                    <div className="p-3 mx-1 mt-1.5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 text-center crystal-glow-emerald">
-                      <span className="block font-mono text-[9px] uppercase tracking-wider text-emerald-400 font-semibold">
-                        Límite Constitucional
-                      </span>
-                      <span className="block font-mono text-[11.5px] font-bold text-platinum mt-0.5">
-                        Activo: Plan Gratuito
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Crystal accordion navigation (estados, selección, teclado, ARIA) */}
+          <CrystalNavigation
+            groups={navGroups}
+            activeTab={activeTab}
+            onSelect={setActiveTab}
+            collapsed={!isSidebarOpen}
+          />
         </div>
 
         {/* Sidebar Footer & Toggle Collapse controller */}
@@ -460,14 +275,12 @@ function IsabellaInterface() {
               </section>
 
               <div
-                className={`${panel ? "block animate-rise" : "hidden lg:block"} crystal-glow-electric rounded-3xl overflow-hidden`}
+                className={`${panel ? "block animate-rise" : "hidden lg:block"} flex flex-col gap-4`}
               >
-                <TelemetryPanel
+                <RightRails
                   presetId={isabella.presetId}
                   setPresetId={isabella.setPresetId}
                   decision={isabella.decision}
-                  tokens={isabella.tokens}
-                  turns={turns}
                   isProcessing={isabella.isProcessing}
                 />
               </div>

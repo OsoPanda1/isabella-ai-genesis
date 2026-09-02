@@ -1,5 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { BokehPass } from "three/addons/postprocessing/BokehPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
 import logo from "@/assets/logo-isabella.jpeg.asset.json";
 
 /**
@@ -12,19 +19,41 @@ const BACKGROUND_AUDIO_SRC = "/src/assets/background-audio.mp3";
 
 /**
  * Cinematic 3D Intro Component — WebGL Three.js Experience
+ * -----------------------------------------------------------------
+ * Evolución magistral: cámara orbital 360°, velocidades por escenario,
+ * zoom dinámico, audio reactivo (AudioAnalyser), bloom/DOF/vignette,
+ * partículas volumétricas, transiciones no lineales y 52 s exactos.
  */
 
 const CONFIG = {
-  duration: 26000,
-  starsDesktop: 8500,
-  starsMobile: 3000,
-  dataDesktop: 1300,
+  duration: 52_000,
+
+  starsDesktop: 8_500,
+  starsMobile: 2_800,
+
+  dataDesktop: 1_300,
   dataMobile: 420,
-  cometCount: 9,
-  basePixelRatio: 1.75,
-  initialCameraZ: 1120,
-  finalCameraZ: 310,
-};
+
+  cometCount: 12,
+
+  maxPixelRatio: 1.75,
+  mobilePixelRatio: 1.25,
+
+  initialCameraZ: 1_180,
+  finalCameraZ: 325,
+
+  bloomStrength: 1.65,
+  bloomRadius: 0.82,
+  bloomThreshold: 0.05,
+
+  audioSmoothing: 0.82,
+  cameraSmoothing: 0.045,
+
+  orbitalRadius: 96,
+  orbitalHeight: 54,
+
+  reducedMotionDuration: 2_600,
+} as const;
 
 const HEADS = [
   "CROWN",
@@ -52,22 +81,177 @@ interface Phase {
   sub: string;
 }
 
+/** Fases narrativas sincronizadas con los 52 segundos (7 escenas cinematográficas). */
 const PHASES: Phase[] = [
   { at: 0, title: "Vacío cognitivo", sub: "Nodo Cero · Real del Monte, Hidalgo" },
-  { at: 4, title: "Primer pulso", sub: "Sincronizando memoria territorial" },
+  { at: 6.2, title: "Primer pulso", sub: "Sincronizando memoria territorial" },
   {
-    at: 9,
+    at: 14,
     title: "C.R.O.W.N. Activo",
     sub: "Control · Riesgo · Orquestación · Whitelist · Notificación",
   },
-  { at: 14, title: "Red de 12 Cabezas", sub: "Interconexión soberana de orquestación ética" },
+  { at: 22.4, title: "Red de 12 Cabezas", sub: "Interconexión soberana de orquestación ética" },
   {
-    at: 19,
+    at: 31.2,
     title: "Mnemósine & Tellus",
     sub: "Gobernanza de conocimiento y pertenencia territorial",
   },
-  { at: 22, title: "Núcleo Establecido", sub: "Isabella Villaseñor AI está en línea" },
+  { at: 39.5, title: "Núcleo Establecido", sub: "Isabella Villaseñor AI está en línea" },
+  { at: 47.3, title: "Liberación", sub: "Transferencia al espacio Isabella" },
 ];
+
+/* -------------------------------------------------------------------------
+ * Cocina matemática / cinematográfica
+ * ---------------------------------------------------------------------- */
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function smoothstep(edge0: number, edge1: number, value: number) {
+  const t = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
+}
+
+function inverseLerp(a: number, b: number, value: number) {
+  return clamp((value - a) / (b - a), 0, 1);
+}
+
+function easeInOutCubic(value: number) {
+  const t = clamp(value, 0, 1);
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+type ScenePhase =
+  | "void"
+  | "pulse"
+  | "crown"
+  | "network"
+  | "memory"
+  | "core"
+  | "release";
+
+interface CinematicScene {
+  from: number;
+  to: number;
+  name: ScenePhase;
+  cameraZ: [number, number];
+  orbitSpeed: number;
+  orbitRadius: number;
+  cameraHeight: number;
+  bloom: number;
+  technology: [number, number];
+}
+
+const CINEMATIC_SCENES: readonly CinematicScene[] = [
+  {
+    from: 0,
+    to: 0.12,
+    name: "void",
+    cameraZ: [1180, 1040],
+    orbitSpeed: 0.04,
+    orbitRadius: 22,
+    cameraHeight: 14,
+    bloom: 0.45,
+    technology: [0, 0.08],
+  },
+  {
+    from: 0.12,
+    to: 0.27,
+    name: "pulse",
+    cameraZ: [1040, 820],
+    orbitSpeed: 0.08,
+    orbitRadius: 42,
+    cameraHeight: 24,
+    bloom: 0.72,
+    technology: [0.08, 0.22],
+  },
+  {
+    from: 0.27,
+    to: 0.43,
+    name: "crown",
+    cameraZ: [820, 650],
+    orbitSpeed: 0.13,
+    orbitRadius: 68,
+    cameraHeight: 35,
+    bloom: 1.1,
+    technology: [0.22, 0.46],
+  },
+  {
+    from: 0.43,
+    to: 0.6,
+    name: "network",
+    cameraZ: [650, 520],
+    orbitSpeed: 0.18,
+    orbitRadius: 94,
+    cameraHeight: 52,
+    bloom: 1.35,
+    technology: [0.46, 0.68],
+  },
+  {
+    from: 0.6,
+    to: 0.76,
+    name: "memory",
+    cameraZ: [520, 450],
+    orbitSpeed: 0.11,
+    orbitRadius: 78,
+    cameraHeight: 42,
+    bloom: 1.58,
+    technology: [0.68, 0.82],
+  },
+  {
+    from: 0.76,
+    to: 0.91,
+    name: "core",
+    cameraZ: [450, 360],
+    orbitSpeed: 0.22,
+    orbitRadius: 48,
+    cameraHeight: 28,
+    bloom: 2.15,
+    technology: [0.82, 0.98],
+  },
+  {
+    from: 0.91,
+    to: 1,
+    name: "release",
+    cameraZ: [360, 325],
+    orbitSpeed: 0.36,
+    orbitRadius: 118,
+    cameraHeight: 62,
+    bloom: 2.8,
+    technology: [0.98, 0.42],
+  },
+];
+
+function getCinematicScene(progress: number) {
+  return (
+    CINEMATIC_SCENES.find((scene) => progress >= scene.from && progress <= scene.to) ??
+    CINEMATIC_SCENES[CINEMATIC_SCENES.length - 1]!
+  );
+}
+
+/* -------------------------------------------------------------------------
+ * Motor de audio reactivo
+ * ---------------------------------------------------------------------- */
+
+interface AudioReactiveState {
+  amplitude: number;
+  bass: number;
+  mid: number;
+  treble: number;
+  beat: number;
+}
+
+interface AudioEngine {
+  context: AudioContext;
+  analyser: AnalyserNode;
+  source: MediaElementAudioSourceNode;
+  data: Uint8Array<ArrayBuffer>;
+}
 
 function prefersReducedMotion() {
   if (typeof window === "undefined") return false;
@@ -78,6 +262,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioEngineRef = useRef<AudioEngine | null>(null);
 
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -91,34 +276,130 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
 
-  const finish = () => {
+  const createAudioEngine = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || audioEngineRef.current) {
+      return audioEngineRef.current;
+    }
+
+    const context = new AudioContext();
+    const source = context.createMediaElementSource(audio);
+    const analyser = context.createAnalyser();
+
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = CONFIG.audioSmoothing;
+
+    source.connect(analyser);
+    analyser.connect(context.destination);
+
+    const data = new Uint8Array(analyser.frequencyBinCount);
+
+    const engine: AudioEngine = {
+      context,
+      analyser,
+      source,
+      data,
+    };
+
+    audioEngineRef.current = engine;
+    return engine;
+  }, []);
+
+  const readAudioReactiveState = useCallback((): AudioReactiveState => {
+    const engine = audioEngineRef.current;
+    if (!engine) {
+      return { amplitude: 0, bass: 0, mid: 0, treble: 0, beat: 0 };
+    }
+
+    engine.analyser.getByteFrequencyData(engine.data);
+
+    const total = engine.data.length;
+    const bassEnd = Math.floor(total * 0.12);
+    const midEnd = Math.floor(total * 0.55);
+
+    let bass = 0;
+    let mid = 0;
+    let treble = 0;
+
+    for (let index = 0; index < total; index++) {
+      const value = engine.data[index]! / 255;
+      if (index < bassEnd) {
+        bass += value;
+      } else if (index < midEnd) {
+        mid += value;
+      } else {
+        treble += value;
+      }
+    }
+
+    bass /= Math.max(1, bassEnd);
+    mid /= Math.max(1, midEnd - bassEnd);
+    treble /= Math.max(1, total - midEnd);
+
+    const amplitude = bass * 0.5 + mid * 0.32 + treble * 0.18;
+
+    return {
+      amplitude,
+      bass,
+      mid,
+      treble,
+      beat: Math.pow(bass, 2.4),
+    };
+  }, []);
+
+  const finish = useCallback(() => {
     if (doneRef.current) return;
     doneRef.current = true;
     setFinished(true);
 
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
     }
 
-    if (audioRef.current) {
-      audioRef.current.pause();
+    const audio = audioRef.current;
+    if (audio) {
+      const fadeDuration = 800;
+      const initialVolume = audio.volume;
+      const startedAt = performance.now();
+
+      const fadeOut = (now: number) => {
+        const progress = clamp((now - startedAt) / fadeDuration, 0, 1);
+        audio.volume = initialVolume * (1 - progress);
+        if (progress < 1) {
+          requestAnimationFrame(fadeOut);
+        } else {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+      };
+
+      requestAnimationFrame(fadeOut);
     }
 
     onComplete();
-  };
+  }, [onComplete]);
 
-  const startExperience = () => {
+  const startExperience = useCallback(async () => {
     if (started) return;
     setStarted(true);
-    clockRef.current = new THREE.Clock();
 
-    if (audioRef.current) {
-      audioRef.current.volume = 0.65;
-      audioRef.current.play().catch(() => {
-        setStatusText("Experiencia visual activa · audio silenciado por navegador");
-      });
+    const audio = audioRef.current;
+    const engine = createAudioEngine();
+
+    try {
+      if (engine?.context.state === "suspended") {
+        await engine.context.resume();
+      }
+      if (audio) {
+        audio.currentTime = 0;
+        audio.volume = 0.68;
+        await audio.play();
+      }
+    } catch {
+      setStatusText("Experiencia visual activa · audio no disponible");
     }
-  };
+  }, [createAudioEngine, started]);
 
   // Keyboard shortcut listener
   useEffect(() => {
@@ -129,20 +410,18 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [finish]);
+
+  // Fallback accesible de movimiento reducido: no se renderiza la escena.
+  useEffect(() => {
+    if (!reduced || !started) return;
+    const timeout = window.setTimeout(finish, CONFIG.reducedMotionDuration);
+    return () => window.clearTimeout(timeout);
+  }, [finish, reduced, started]);
 
   // WebGL Initialization & Simulation loop
   useEffect(() => {
-    if (reduced) {
-      // Direct completion fallback for prefers-reduced-motion
-      if (started) {
-        const t = window.setTimeout(finish, 2600);
-        return () => window.clearTimeout(t);
-      }
-      return;
-    }
-
+    if (reduced) return;
     if (!started || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
@@ -150,13 +429,6 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
     const STAR_COUNT = isMobile ? CONFIG.starsMobile : CONFIG.starsDesktop;
     const DATA_COUNT = isMobile ? CONFIG.dataMobile : CONFIG.dataDesktop;
 
-    // Standard Math Helpers
-    const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
-    const smoothstep = (edge0: number, edge1: number, value: number) => {
-      const t = clamp((value - edge0) / (edge1 - edge0), 0, 1);
-      return t * t * (3 - 2 * t);
-    };
-    const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
     const randomBetween = (min: number, max: number) => min + Math.random() * (max - min);
 
     const randomSphere = (radius: number) => {
@@ -195,9 +467,38 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       powerPreference: "high-performance",
     });
     rendererRef.current = renderer;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, CONFIG.basePixelRatio));
+    renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio, isMobile ? CONFIG.mobilePixelRatio : CONFIG.maxPixelRatio),
+    );
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    // 2. Postprocesamiento cinematográfico: composer + bloom + bokeh + output
+    const composer = new EffectComposer(renderer);
+    composer.setPixelRatio(
+      Math.min(window.devicePixelRatio, isMobile ? CONFIG.mobilePixelRatio : CONFIG.maxPixelRatio),
+    );
+
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      CONFIG.bloomStrength,
+      CONFIG.bloomRadius,
+      CONFIG.bloomThreshold,
+    );
+    composer.addPass(bloomPass);
+
+    const bokehPass = new BokehPass(scene, camera, {
+      focus: 620,
+      aperture: 0.000018,
+      maxblur: isMobile ? 0.004 : 0.012,
+    });
+    composer.addPass(bokehPass);
+
+    const outputPass = new OutputPass();
+    composer.addPass(outputPass);
 
     // 2. Procedural Nebula background
     const nebulaGeometry = new THREE.PlaneGeometry(4300, 2600, 1, 1);
@@ -208,6 +509,9 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       uniforms: {
         uTime: { value: 0 },
         uTechnology: { value: 0 },
+        uBass: { value: 0 },
+        uMid: { value: 0 },
+        uTreble: { value: 0 },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -219,6 +523,9 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       fragmentShader: `
         uniform float uTime;
         uniform float uTechnology;
+        uniform float uBass;
+        uniform float uMid;
+        uniform float uTreble;
         varying vec2 vUv;
 
         float hash(vec2 p) {
@@ -239,18 +546,30 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
         void main() {
           vec2 uv = vUv - 0.5;
           float radius = length(uv);
-          float n = noise(uv * 4.4 + vec2(uTime * 0.006, -uTime * 0.004));
-          n += 0.45 * noise(uv * 9.0 - vec2(uTime * 0.012, uTime * 0.009));
 
-          float cloud = smoothstep(0.72, 0.08, radius) * n;
-          vec3 cyan = vec3(0.025, 0.30, 0.72);
-          vec3 violet = vec3(0.22, 0.06, 0.55);
-          vec3 gold = vec3(0.75, 0.31, 0.08);
+          float audioWarp =
+            uBass * sin(uv.x * 18.0 + uTime * 2.0) +
+            uMid * cos(uv.y * 14.0 - uTime * 1.4) +
+            uTreble * sin(radius * 32.0 - uTime * 3.0);
 
-          vec3 color = mix(cyan, violet, n);
-          color = mix(color, gold, uTechnology * n);
+          vec2 warpedUv = uv + audioWarp * 0.018;
 
-          float alpha = cloud * 0.28 * (1.0 - uTechnology * 0.72);
+          float cloud = noise(warpedUv * 4.8 + vec2(uTime * 0.006, -uTime * 0.004));
+          cloud += 0.42 * noise(warpedUv * 10.0 - vec2(uTime * 0.012, uTime * 0.009));
+
+          float falloff = smoothstep(0.76, 0.04, radius);
+          float intensity = cloud * falloff;
+
+          vec3 cyan = vec3(0.015, 0.28, 0.72);
+          vec3 violet = vec3(0.22, 0.04, 0.52);
+          vec3 gold = vec3(0.9, 0.4, 0.08);
+
+          vec3 color = mix(cyan, violet, cloud);
+          color = mix(color, gold, uTechnology * 0.75);
+          color += vec3(0.1, 0.26, 0.42) * uBass;
+
+          float alpha = intensity * (0.24 + uBass * 0.18) * (1.0 - uTechnology * 0.55);
+
           gl_FragColor = vec4(color, alpha);
         }
       `,
@@ -314,6 +633,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
         uTime: { value: 0 },
         uOpacity: { value: 0.95 },
         uTechnology: { value: 0 },
+        uBass: { value: 0 },
       },
       vertexShader: `
         attribute float aSize;
@@ -322,6 +642,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
 
         uniform float uTime;
         uniform float uTechnology;
+        uniform float uBass;
 
         varying vec3 vColor;
         varying float vPulse;
@@ -334,7 +655,8 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
           vColor = mix(aColor, vec3(0.19, 0.58, 1.0), uTechnology * 0.65);
           vPulse = pulse;
 
-          gl_PointSize = aSize * pulse * depth * (610.0 / max(1.0, -mvPosition.z));
+          float audioPulse = 1.0 + uBass * 0.9;
+          gl_PointSize = aSize * pulse * depth * audioPulse * (610.0 / max(1.0, -mvPosition.z));
           gl_Position = projectionMatrix * mvPosition;
         }
       `,
@@ -361,7 +683,6 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       `,
     });
     const starField = new THREE.Points(starGeometry, starMaterial);
-    scene.add(starField);
 
     // 4. Data Flows between nodes
     const dataPositions = new Float32Array(DATA_COUNT * 3);
@@ -451,7 +772,6 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       `,
     });
     const dataFlow = new THREE.Points(dataGeometry, dataMaterial);
-    scene.add(dataFlow);
 
     // 5. Tech Network Grid
     const gridGroup = new THREE.Group();
@@ -480,7 +800,6 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
     gridGroup.position.y = -270;
     gridGroup.position.z = -30;
     gridGroup.scale.setScalar(0.01);
-    scene.add(gridGroup);
 
     // 6. Central Core (Pulsing Icosahedron)
     const coreGroup = new THREE.Group();
@@ -523,13 +842,13 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       opacity: 0,
       blending: THREE.AdditiveBlending,
     });
-    const glowMesh = new THREE.Mesh(new THREE.SphereGeometry(47, 48, 48), glowMaterial);
+    const glowMesh = new THREE.Mesh(new THREE.SphereGeometry(47, 32, 32), glowMaterial);
     coreGroup.add(glowMesh);
 
     const coreRings: THREE.Mesh<THREE.TorusGeometry, THREE.MeshBasicMaterial>[] = [];
     for (let i = 0; i < 3; i++) {
       const ring = new THREE.Mesh(
-        new THREE.TorusGeometry(128 + i * 46, 0.85, 8, 180),
+        new THREE.TorusGeometry(128 + i * 46, 0.85, 8, 160),
         new THREE.MeshBasicMaterial({
           color: i === 1 ? 0xffd47d : 0x5fe9ff,
           transparent: true,
@@ -542,7 +861,6 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       coreGroup.add(ring);
       coreRings.push(ring);
     }
-    scene.add(coreGroup);
 
     // 7. 12 Cognitive heads
     const headGroup = new THREE.Group();
@@ -588,9 +906,8 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
         phase: Math.random() * Math.PI * 2,
       });
     });
-    scene.add(headGroup);
 
-    // 8. Connecting lines
+    // 8. Connecting lines (local to headGroup, centered at origin)
     interface NetworkLine {
       line: THREE.Line;
       geometry: THREE.BufferGeometry;
@@ -684,7 +1001,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
     }
 
     // 10. Explosion Particles
-    const explosionCount = isMobile ? 900 : 2200;
+    const explosionCount = isMobile ? 700 : 1800;
     const explosionPositions = new Float32Array(explosionCount * 3);
     const explosionVelocity: { x: number; y: number; z: number }[] = [];
 
@@ -714,6 +1031,18 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
     });
     const explosion = new THREE.Points(explosionGeometry, explosionMaterial);
     scene.add(explosion);
+
+    /* ------------------------------------------------------------------
+     * Grupo orquestal rotatorio: estrellas + datos + núcleo + cabezas + rejilla
+     * (la escena "entera" orbita alrededor del origen como cuerpo rígido).
+     * ------------------------------------------------------------------ */
+    const cinematicGroup = new THREE.Group();
+    cinematicGroup.add(starField);
+    cinematicGroup.add(dataFlow);
+    cinematicGroup.add(coreGroup);
+    cinematicGroup.add(headGroup);
+    cinematicGroup.add(gridGroup);
+    scene.add(cinematicGroup);
 
     // 11. Dynamic Updates Helpers
     const updateStars = (
@@ -788,9 +1117,6 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
     };
 
     const updateNetwork = (time: number, technologyVal: number, coreProgressVal: number) => {
-      headGroup.rotation.z = time * 0.018;
-      headGroup.rotation.y = Math.sin(time * 0.15) * 0.12;
-
       headNodes.forEach((head, index) => {
         const pulse = 0.7 + 0.3 * Math.sin(time * 2.3 + head.phase);
         const scale = 1 + pulse * coreProgressVal * 0.42;
@@ -814,19 +1140,23 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       });
     };
 
-    const updateCore = (time: number, coreProgressVal: number, releaseVal: number) => {
-      coreGroup.scale.setScalar(lerp(0.001, 1.0, coreProgressVal) * (1 + releaseVal * 4.5));
-      coreMesh.rotation.x = time * 0.21;
-      coreMesh.rotation.y = time * 0.32;
-
+    const updateCore = (
+      time: number,
+      coreProgressVal: number,
+      releaseVal: number,
+      worldDelta: number,
+    ) => {
       coreMaterial.uniforms.uTime.value = time;
       coreMaterial.uniforms.uOpacity.value = coreProgressVal * (0.5 + releaseVal * 2.1);
       glowMaterial.opacity = coreProgressVal * (0.12 + releaseVal * 0.5);
 
+      coreMesh.rotation.x += worldDelta * 0.75;
+      coreMesh.rotation.y += worldDelta;
+
       coreRings.forEach((ring, index) => {
         ring.material.opacity = coreProgressVal * (0.22 + releaseVal * 0.8);
-        ring.rotation.x += 0.002 + index * 0.001;
-        ring.rotation.y += 0.004 + index * 0.001;
+        ring.rotation.x += worldDelta * (0.08 + index * 0.04);
+        ring.rotation.y += worldDelta * (0.12 + index * 0.04);
       });
     };
 
@@ -846,101 +1176,220 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
     // 12. Main Simulation & Animation Loop
     let startTimestamp: number | null = null;
     const clock = new THREE.Clock();
+    clockRef.current = clock;
 
     const loop = (timestamp: number) => {
-      if (!startTimestamp) startTimestamp = timestamp;
+      if (startTimestamp === null) startTimestamp = timestamp;
+
       const elapsedMs = timestamp - startTimestamp;
       const progressVal = clamp(elapsedMs / CONFIG.duration, 0, 1);
       const time = clock.getElapsedTime();
+      const reactive = readAudioReactiveState();
+      const cinematicScene = getCinematicScene(progressVal);
 
       setElapsed(elapsedMs);
 
-      // Delta-time based milestones
-      const convergenceVal = smoothstep(0.16, 0.48, progressVal);
-      const technologyVal = smoothstep(0.39, 0.69, progressVal);
-      const coreProgressVal = smoothstep(0.63, 0.84, progressVal);
-      const releaseVal = smoothstep(0.86, 0.96, progressVal);
+      // Hitos narrativos (delta con el ciclo de 52 s)
+      const convergenceVal = smoothstep(0.12, 0.43, progressVal);
+      const technologyVal = smoothstep(0.35, 0.68, progressVal);
+      const coreProgressVal = smoothstep(0.62, 0.84, progressVal);
+      const releaseVal = smoothstep(0.86, 0.98, progressVal);
 
       nebulaMaterial.uniforms.uTime.value = time;
       nebulaMaterial.uniforms.uTechnology.value = technologyVal;
+      nebulaMaterial.uniforms.uBass.value = reactive.bass;
+      nebulaMaterial.uniforms.uMid.value = reactive.mid;
+      nebulaMaterial.uniforms.uTreble.value = reactive.treble;
+
+      starMaterial.uniforms.uBass.value = reactive.bass;
 
       updateStars(time, convergenceVal, technologyVal, releaseVal);
       updateData(time, technologyVal, coreProgressVal);
       updateComets(time, progressVal);
       updateNetwork(time, technologyVal, coreProgressVal);
-      updateCore(time, coreProgressVal, releaseVal);
+
+      // Velocidad independiente por escenario (ritmo propio) + world delta
+      const sceneSpeed = cinematicScene.orbitSpeed * (1 + reactive.bass * 0.42);
+      const worldDelta = clock.getDelta() * sceneSpeed;
+
+      gridGroup.rotation.z += worldDelta * 0.12;
+      headGroup.rotation.z += worldDelta * 0.35;
+
+      updateCore(time, coreProgressVal, releaseVal, worldDelta);
       updateExplosion(releaseVal);
 
-      // Scale & Rotate technological grids
-      gridGroup.scale.setScalar(lerp(0.01, 1.0, technologyVal));
+      // Rejilla tecnológica
+      const targetGridScale = lerp(0.01, 1.0, technologyVal);
+      gridGroup.scale.setScalar(THREE.MathUtils.lerp(gridGroup.scale.x, targetGridScale, 0.06));
       gridGroup.position.y = lerp(-500, -270, technologyVal);
-      gridGroup.rotation.z = time * 0.006;
-      gridMaterial.opacity = technologyVal * 0.3;
+      gridMaterial.opacity = THREE.MathUtils.lerp(
+        gridMaterial.opacity,
+        technologyVal * 0.34 + reactive.mid * 0.12,
+        0.08,
+      );
 
-      // Adjust camera positions smoothly
-      camera.position.z = lerp(CONFIG.initialCameraZ, CONFIG.finalCameraZ, technologyVal);
-      camera.position.x = Math.sin(time * 0.12) * 24 * technologyVal;
-      camera.position.y = Math.cos(time * 0.13) * 16 * technologyVal;
+      // Escala del núcleo (audiovisual + narrativa)
+      const desiredCoreScale =
+        lerp(0.001, 1.0, coreProgressVal) *
+        (1 + releaseVal * 4.5) *
+        (1 + reactive.beat * 0.18);
+      coreGroup.scale.setScalar(THREE.MathUtils.lerp(coreGroup.scale.x, desiredCoreScale, 0.08));
 
-      // Camera vibration on core release
-      camera.position.x += Math.sin(time * 23.0) * releaseVal * 5;
-      camera.position.y += Math.cos(time * 19.0) * releaseVal * 4;
-      camera.lookAt(0, 0, 0);
+      // Rotación y escala del mundo orbital
+      const bassScale = 1 + reactive.bass * 0.09;
+      cinematicGroup.rotation.y = THREE.MathUtils.lerp(
+        cinematicGroup.rotation.y,
+        time * cinematicScene.orbitSpeed + progressVal * Math.PI * 2,
+        0.025,
+      );
+      cinematicGroup.rotation.x = THREE.MathUtils.lerp(
+        cinematicGroup.rotation.x,
+        Math.sin(time * 0.12) * 0.08 + reactive.mid * 0.035,
+        0.025,
+      );
+      cinematicGroup.scale.setScalar(
+        THREE.MathUtils.lerp(cinematicGroup.scale.x, bassScale, 0.035),
+      );
 
-      // UI phase updates
-      if (progressVal < 0.22) {
+      // Cámara orbital 360° por escenario
+      const sceneLocalProgress = easeInOutCubic(
+        inverseLerp(cinematicScene.from, cinematicScene.to, progressVal),
+      );
+      const sceneCameraZ = lerp(
+        cinematicScene.cameraZ[0],
+        cinematicScene.cameraZ[1],
+        sceneLocalProgress,
+      );
+
+      const orbitRadius =
+        cinematicScene.orbitRadius + reactive.bass * 22 + reactive.beat * 18;
+      const orbitAngle = time * cinematicScene.orbitSpeed + progressVal * Math.PI * 4;
+
+      camera.position.x = THREE.MathUtils.lerp(
+        camera.position.x,
+        Math.sin(orbitAngle) * orbitRadius,
+        CONFIG.cameraSmoothing,
+      );
+      camera.position.y = THREE.MathUtils.lerp(
+        camera.position.y,
+        Math.cos(orbitAngle * 0.72) * cinematicScene.cameraHeight,
+        CONFIG.cameraSmoothing,
+      );
+      camera.position.z = THREE.MathUtils.lerp(
+        camera.position.z,
+        sceneCameraZ + reactive.beat * 16,
+        CONFIG.cameraSmoothing,
+      );
+
+      // Vibración contenida reactiva al audio
+      camera.position.x += Math.sin(time * 18.0) * reactive.bass * 3.5;
+      camera.position.y += Math.cos(time * 21.0) * reactive.treble * 1.2;
+
+      camera.lookAt(
+        Math.sin(time * 0.18) * 28,
+        Math.cos(time * 0.13) * 18,
+        Math.cos(time * 0.09) * 8,
+      );
+
+      // Bloom dinámico por escenario + audio + clímax
+      const releaseBloom = smoothstep(0.86, 0.98, progressVal);
+      bloomPass.strength = THREE.MathUtils.lerp(
+        bloomPass.strength,
+        cinematicScene.bloom + reactive.bass * 0.8 + releaseBloom * 1.35,
+        0.08,
+      );
+      bloomPass.radius = THREE.MathUtils.lerp(
+        bloomPass.radius,
+        0.72 + reactive.treble * 0.24 + releaseBloom * 0.4,
+        0.08,
+      );
+
+      // UI status por fases
+      if (progressVal < 0.12) {
         setStatusText("Cartografiando campo estelar...");
-      } else if (progressVal < 0.48) {
-        setStatusText("Convergiendo memoria y territorio...");
-      } else if (progressVal < 0.7) {
+      } else if (progressVal < 0.27) {
+        setStatusText("Primer pulso · sincronizando memoria...");
+      } else if (progressVal < 0.43) {
         setStatusText("Construyendo plano tecnológico...");
-      } else if (progressVal < 0.86) {
+      } else if (progressVal < 0.6) {
         setStatusText("Sincronizando 12 cabezas cognitivas...");
-      } else if (progressVal < 0.96) {
+      } else if (progressVal < 0.76) {
+        setStatusText("Consolidando Mnemósine y Tellus...");
+      } else if (progressVal < 0.91) {
         setStatusText("Activando núcleo Isabella...");
       } else {
         setStatusText("Transferencia al espacio Isabella...");
       }
 
-      renderer.render(scene, camera);
+      composer.render();
 
       if (progressVal >= 1.0) {
         finish();
-      } else {
-        rafRef.current = requestAnimationFrame(loop);
+        return;
       }
+      rafRef.current = requestAnimationFrame(loop);
     };
 
     rafRef.current = requestAnimationFrame(loop);
 
-    // Resizing boundary
+    // Resizing boundary (actualiza también el composer)
     const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, CONFIG.basePixelRatio));
+
+      renderer.setSize(width, height);
+      composer.setSize(width, height);
+
+      const pixelRatio = isMobile ? CONFIG.mobilePixelRatio : CONFIG.maxPixelRatio;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatio));
+      composer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatio));
     };
     window.addEventListener("resize", handleResize);
 
+    // Limpieza de audio WebGL, GPU y contexto
     return () => {
       window.removeEventListener("resize", handleResize);
+
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
       }
-      scene.traverse((obj) => {
-        if (obj instanceof THREE.Mesh || obj instanceof THREE.Points || obj instanceof THREE.Line) {
-          obj.geometry.dispose();
-          if (Array.isArray(obj.material)) {
-            obj.material.forEach((m) => m.dispose());
+
+      const audioEngine = audioEngineRef.current;
+      if (audioEngine) {
+        audioEngine.source.disconnect();
+        audioEngine.analyser.disconnect();
+        void audioEngine.context.close();
+        audioEngineRef.current = null;
+      }
+
+      scene.traverse((object) => {
+        if (
+          object instanceof THREE.Mesh ||
+          object instanceof THREE.Points ||
+          object instanceof THREE.Line
+        ) {
+          object.geometry.dispose();
+          if (Array.isArray(object.material)) {
+            object.material.forEach((material) => material.dispose());
           } else {
-            obj.material.dispose();
+            object.material.dispose();
           }
         }
       });
+
+      composer.dispose();
       renderer.dispose();
+
+      sceneRef.current = null;
+      rendererRef.current = null;
+      clockRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [started, reduced]);
+  }, [started, reduced, finish, readAudioReactiveState]);
 
   const progress = Math.min(1, elapsed / CONFIG.duration);
   const phase = [...PHASES].reverse().find((p) => elapsed >= p.at * 1000) ?? PHASES[0]!;
@@ -968,7 +1417,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
               territorial de Isabella.
             </p>
             <button
-              onClick={startExperience}
+              onClick={() => void startExperience()}
               className="mt-6 appearance-none border-0 rounded-2xl px-7 py-3.5 text-slate-950 bg-gradient-to-r from-cyan-400 to-sky-300 shadow-lg shadow-cyan-400/20 font-bold text-xs tracking-wider uppercase cursor-pointer hover:translate-y-[-2px] hover:shadow-cyan-400/50 transition-all"
             >
               Iniciar experiencia
