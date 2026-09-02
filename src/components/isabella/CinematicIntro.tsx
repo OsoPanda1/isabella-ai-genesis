@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import backgroundAudio from "@/assets/background-audio.mp3";
+
 const OFFICIAL_LOGO_SRC = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-isabella-NYSrdGvZYuJp7200gu2CUzA0ookKJ9.jpeg";
-const BACKGROUND_AUDIO_SRC = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/background-audio-J9p5kwgi9cNWNkRZIvA2xh3xW88Qov.mp3";
+const BACKGROUND_AUDIO_SRC = backgroundAudio;
 
 /**
  * La reproducción sonora se desbloquea únicamente tras una acción explícita
@@ -13,7 +15,7 @@ const BACKGROUND_AUDIO_SRC = "https://hebbkx1anhila5yf.public.blob.vercel-storag
  */
 
 const CONFIG = {
-  duration: 26000,
+  duration: 42000,
   starsDesktop: 8500,
   starsMobile: 3000,
   dataDesktop: 1300,
@@ -980,7 +982,12 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
 
       {/* 3D Canvas rendering */}
       {started && !reduced && (
-        <canvas ref={canvasRef} className="absolute inset-0 block size-full opacity-25 mix-blend-screen" />
+        <div aria-hidden="true" className="absolute inset-0 overflow-hidden bg-[#05070b]">
+          <div className="absolute inset-0 bg-[url('/assets/isabella-intro-backdrop.png')] bg-cover bg-center opacity-90" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_47%,rgba(255,226,164,0.18),transparent_16%),linear-gradient(180deg,rgba(3,6,12,0.12),rgba(3,6,12,0.78))]" />
+          <div className="absolute left-1/2 top-1/2 size-[min(58vw,620px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-amber-100/20 shadow-[0_0_80px_rgba(125,211,252,0.15),inset_0_0_80px_rgba(253,230,138,0.12)] animate-[spin_42s_linear_infinite]" />
+          <div className="absolute left-1/2 top-1/2 size-[min(38vw,410px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-100/25 shadow-[0_0_55px_rgba(103,232,249,0.2)] animate-[spin_28s_linear_infinite_reverse]" />
+        </div>
       )}
 
       {/* Cinematic Phase Layout */}
