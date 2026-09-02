@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import * as nodeCrypto from "node:crypto";
 import { SovereignDB, COGNITIVE_HEADS } from "@/lib/sovereign-engine";
 import { SecuritySystem } from "@/lib/security";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { SovereignSandboxService } from "@/lib/sovereign-sandbox";
+import { config } from "@/lib/config";
 
 const addLedgerSchema = z.object({
   operation: z.string().min(1).max(200),
@@ -17,6 +19,83 @@ const executeToolSchema = z.object({
   variables: z.record(z.unknown()).optional(),
   useWasmSim: z.boolean().optional().default(false),
 });
+
+const provisionOwnerSchema = z.object({
+  tenantId: z
+    .string()
+    .min(3)
+    .max(64)
+    .regex(/^[a-z0-9_-]+$/i),
+  tenantName: z.string().min(1).max(128),
+  ownerId: z
+    .string()
+    .min(3)
+    .max(64)
+    .regex(/^[a-zA-Z0-9_-]+$/),
+  ownerUsername: z.string().min(1).max(64),
+});
+
+// ============================================================================
+// OAuth manual (solo desarrollo) — códigos de un solo uso y validación de origen
+// ============================================================================
+
+const OAUTH_CODE_TTL_MS = 120_000;
+
+interface OAuthCodeEntry {
+  userId: string;
+  redirectUri: string;
+  expiresAt: number;
+}
+
+// Almacén en memoria de códigos de autorización de un solo uso.
+const oauthCodes = new Map<string, OAuthCodeEntry>();
+
+function isDevSessionEnabled(): boolean {
+  return config().AUTH_DEV_SESSION_ENABLED === true;
+}
+
+function timingSafeEqualStrings(a: string, b: string): boolean {
+  const aBuf = Buffer.from(a, "utf8");
+  const bBuf = Buffer.from(b, "utf8");
+  if (aBuf.length !== bBuf.length) return false;
+  return nodeCrypto.timingSafeEqual(aBuf, bBuf);
+}
+
+function isSameOrigin(requestUrl: URL, redirectUri: string): boolean {
+  try {
+    const target = new URL(redirectUri);
+    return target.origin === requestUrl.origin;
+  } catch {
+    return false;
+  }
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (ch) => {
+    switch (ch) {
+      case "&":
+        return "&amp;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case '"':
+        return "&quot;";
+      default:
+        return "&#39;";
+    }
+  });
+}
+
+function auditAccessAttempt(
+  traceId: string,
+  ip: string,
+  event: string,
+  details: string,
+  severity: "S0" | "S1" | "S2" | "S3" = "S1",
+): void {
+  SovereignDB.appendAuditLog(traceId, `corr_${traceId}`, ip, event, severity, details);
+}
 
 export const Route = createFileRoute("/api/db")({
   server: {
@@ -176,13 +255,33 @@ export const Route = createFileRoute("/api/db")({
           })({ request });
         }
 
-        // --- LAYER 3.2: Manual OAuth Endpoints (Supports Dev App URLs perfectly) ---
+        // --- LAYER 3.2: Manual OAuth Endpoints (solo desarrollo / fail-closed) ---
         if (action === "oauth-url") {
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );
-          const redirectUri =
-            url.searchParams.get("redirect_uri") || `${url.origin}/api/db?action=oauth-callback`;
+          if (!isDevSessionEnabled()) {
+            auditAccessAttempt(
+              `trc_oauth_${nodeCrypto.randomUUID().slice(0, 8)}`,
+              SecuritySystem.resolveClientIp(request),
+              "oauth.url_denied",
+              "Flujo OAuth manual deshabilitado fuera del modo desarrollo.",
+            );
+            return new Response(
+              JSON.stringify({
+                error: "El flujo OAuth manual está deshabilitado en este modo.",
+              }),
+              { status: 403, headers },
+            );
+          }
+          const rawRedirect = url.searchParams.get("redirect_uri") || "";
+          if (rawRedirect && !isSameOrigin(url, rawRedirect)) {
+            return new Response(
+              JSON.stringify({ error: "redirect_uri debe pertenecer al mismo origen." }),
+              { status: 400, headers },
+            );
+          }
+          const redirectUri = rawRedirect || `${url.origin}/api/db?action=oauth-callback`;
           const clientId = url.searchParams.get("client_id") || "isabella_oauth_client";
 
           const providerUrl = `${url.origin}/api/db?action=oauth-provider&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${encodeURIComponent(clientId)}`;
@@ -190,10 +289,22 @@ export const Route = createFileRoute("/api/db")({
         }
 
         if (action === "oauth-provider") {
+          if (!isDevSessionEnabled()) {
+            return new Response("Flujo OAuth manual deshabilitado en este modo.", {
+              status: 403,
+              headers: SecuritySystem.injectSecureHeaders(
+                new Headers({ "content-type": "text/plain" }),
+              ),
+            });
+          }
           const redirectUri = url.searchParams.get("redirect_uri") || "";
+          if (!isSameOrigin(url, redirectUri)) {
+            return new Response("redirect_uri inválido: debe pertenecer al mismo origen.", {
+              status: 400,
+            });
+          }
           const clientId = url.searchParams.get("client_id") || "isabella_oauth_client";
-          const db = SovereignDB.load();
-          const sessions = db.sessions;
+          const sessions = SovereignDB.getSessions();
 
           const html = `
             <!DOCTYPE html>
@@ -312,7 +423,10 @@ export const Route = createFileRoute("/api/db")({
                   <div style="text-align: left; margin-bottom: 8px; font-size: 12px; color: #94a3b8; font-weight: 500;">Seleccionar Cuenta Soberana:</div>
                   <select name="userId">
                     ${sessions
-                      .map((s) => `<option value="${s.userId}">${s.username} (${s.role})</option>`)
+                      .map(
+                        (s) =>
+                          `<option value="${s.userId}">${escapeHtml(s.username)} (${s.role})</option>`,
+                      )
                       .join("")}
                   </select>
                   
@@ -332,22 +446,83 @@ export const Route = createFileRoute("/api/db")({
         }
 
         if (action === "oauth-callback") {
+          const ip = SecuritySystem.resolveClientIp(request);
+          if (!isDevSessionEnabled()) {
+            return new Response("Flujo OAuth manual deshabilitado en este modo.", {
+              status: 403,
+              headers: SecuritySystem.injectSecureHeaders(
+                new Headers({ "content-type": "text/plain" }),
+              ),
+            });
+          }
           const code = url.searchParams.get("code") || "";
-          const userId = code.replace("authcode_", "");
+          const entry = oauthCodes.get(code);
+          oauthCodes.delete(code); // Consumir código de un solo uso inmediatamente
 
-          const db = SovereignDB.load();
-          const seededUser = db.sessions.find((s) => s.userId === userId);
-          if (!seededUser) {
+          if (!entry) {
+            auditAccessAttempt(
+              `trc_oauth_cb_${nodeCrypto.randomUUID().slice(0, 8)}`,
+              ip,
+              "oauth.callback_invalid_code",
+              "Código de autorización inválido, expirado o ya utilizado.",
+            );
+            return new Response(
+              "Error: Código de autorización inválido, expirado o ya utilizado.",
+              { status: 400 },
+            );
+          }
+          if (Date.now() > entry.expiresAt) {
+            auditAccessAttempt(
+              `trc_oauth_cb_${nodeCrypto.randomUUID().slice(0, 8)}`,
+              ip,
+              "oauth.callback_expired_code",
+              "Código de autorización expirado.",
+            );
+            return new Response("Error: Código de autorización expirado.", { status: 400 });
+          }
+          if (!isSameOrigin(url, entry.redirectUri)) {
+            auditAccessAttempt(
+              `trc_oauth_cb_${nodeCrypto.randomUUID().slice(0, 8)}`,
+              ip,
+              "oauth.callback_origin_mismatch",
+              "Origen de redirección inconsistente con el emitido.",
+            );
+            return new Response("Error: Origen de redirección inválido.", { status: 400 });
+          }
+
+          const session = SovereignDB.getSessions().find((s) => s.userId === entry.userId);
+          if (!session) {
+            auditAccessAttempt(
+              `trc_oauth_cb_${nodeCrypto.randomUUID().slice(0, 8)}`,
+              ip,
+              "oauth.callback_user_missing",
+              "Usuario solicitado no registrado en el nodo.",
+            );
             return new Response("Error: Usuario no encontrado en base de datos.", { status: 400 });
           }
 
           const scope = "isabella:chat isabella:ledger:write isabella:sandbox:run";
           const userToken = SecuritySystem.generateSovereignToken(
-            seededUser.userId,
-            seededUser.role,
-            seededUser.tenantId,
+            session.userId,
+            session.role,
+            session.tenantId,
             scope,
           );
+
+          auditAccessAttempt(
+            `trc_oidc_cb_${nodeCrypto.randomUUID().slice(0, 8)}`,
+            ip,
+            "oauth.callback_success",
+            `Sesión OIDC emitida para ${session.username} (${session.role}).`,
+            "S3",
+          );
+
+          // Valores únicamente de servidor, serializados como literales JS seguros.
+          const targetOriginJson = JSON.stringify(url.origin);
+          const userTokenJson = JSON.stringify(userToken);
+          const sessionUserIdJson = JSON.stringify(session.userId);
+          const sessionUsernameJson = JSON.stringify(session.username);
+          const sessionRoleJson = JSON.stringify(session.role);
 
           const callbackHtml = `
             <!DOCTYPE html>
@@ -384,13 +559,13 @@ export const Route = createFileRoute("/api/db")({
               </div>
               <script>
                 if (window.opener) {
-                  window.opener.postMessage({ 
-                    type: 'OAUTH_AUTH_SUCCESS', 
-                    token: '${userToken}',
-                    userId: '${seededUser.userId}',
-                    username: '${seededUser.username}',
-                    role: '${seededUser.role}'
-                  }, '*');
+                  window.opener.postMessage({
+                    type: 'OAUTH_AUTH_SUCCESS',
+                    token: ${userTokenJson},
+                    userId: ${sessionUserIdJson},
+                    username: ${sessionUsernameJson},
+                    role: ${sessionRoleJson}
+                  }, ${targetOriginJson});
                   setTimeout(() => { window.close(); }, 800);
                 } else {
                   window.location.href = '/';
@@ -423,54 +598,140 @@ export const Route = createFileRoute("/api/db")({
 
         try {
           if (action === "oauth-authorize-action") {
+            if (!isDevSessionEnabled()) {
+              auditAccessAttempt(
+                `trc_oauth_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                ip,
+                "oauth.dev_flow_denied",
+                "Intento de usar el flujo OAuth manual fuera del modo desarrollo.",
+              );
+              return new Response(
+                JSON.stringify({ error: "Flujo OAuth manual deshabilitado en este modo." }),
+                { status: 403, headers },
+              );
+            }
             const formData = await request.formData();
             const redirectUriEnc = formData.get("redirect_uri") as string;
             const userId = formData.get("userId") as string;
 
             const redirectUri = decodeURIComponent(redirectUriEnc);
-            const code = `authcode_${userId}`;
+            if (!isSameOrigin(url, redirectUri)) {
+              return new Response(
+                JSON.stringify({ error: "redirect_uri inválido: mismo origen requerido." }),
+                { status: 400, headers },
+              );
+            }
+            if (SovereignDB.getSessions().find((s) => s.userId === userId) === undefined) {
+              return new Response(
+                JSON.stringify({ error: "Usuario no registrado en el nodo." }),
+                { status: 400, headers },
+              );
+            }
 
-            const targetUrl = `${redirectUri}${redirectUri.includes("?") ? "&" : "?"}code=${code}`;
+            const code = `authcode_${nodeCrypto.randomBytes(24).toString("hex")}`;
+            oauthCodes.set(code, {
+              userId,
+              redirectUri,
+              expiresAt: Date.now() + OAUTH_CODE_TTL_MS,
+            });
+
+            const targetUrl = `${redirectUri}${redirectUri.includes("?") ? "&" : "?"}code=${encodeURIComponent(code)}`;
             return new Response("", {
               status: 303,
               headers: new Headers({ Location: targetUrl }),
             });
           }
 
-          // 1. OIDC Identity Exchange Handshake (Requires NO Token)
-          if (action === "authenticate") {
-            const body = await request.json();
-            const { userId } = body;
-            const db = SovereignDB.load();
-            const seededUser = db.sessions.find((s) => s.userId === userId);
-            if (!seededUser) {
+          // 1. Provisionamiento soberano del primer tenant/owner (bootstrap).
+          //    NO es un endpoint de autenticación: requiere PROVISION_OWNER_TOKEN.
+          if (action === "provision-owner") {
+            const expectedToken = config().PROVISION_OWNER_TOKEN;
+            const suppliedToken = (request.headers.get("x-isabella-api-key") || "").trim();
+
+            if (!expectedToken || suppliedToken.length === 0) {
+              auditAccessAttempt(
+                `trc_prov_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                ip,
+                "provision.owner_denied",
+                "Provisionamiento soberano intentado sin token de bootstrap.",
+              );
               return new Response(
-                JSON.stringify({
-                  error: "Identidad OIDC no registrada en la whitelist de Isabella.",
-                }),
-                { status: 404, headers },
+                JSON.stringify({ error: "Provisionamiento de owner no autorizado." }),
+                { status: 403, headers },
               );
             }
 
-            const scope = "isabella:chat isabella:ledger:write isabella:sandbox:run";
-            const userToken = SecuritySystem.generateSovereignToken(
-              seededUser.userId,
-              seededUser.role,
-              seededUser.tenantId,
-              scope,
-            );
+            if (!timingSafeEqualStrings(expectedToken, suppliedToken)) {
+              auditAccessAttempt(
+                `trc_prov_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                ip,
+                "provision.owner_invalid_token",
+                "Token de bootstrap inválido para aprovisionar owner.",
+              );
+              return new Response(
+                JSON.stringify({ error: "Token de bootstrap inválido." }),
+                { status: 403, headers },
+              );
+            }
 
-            SovereignDB.appendAuditLog(
-              "trc_oidc_auth",
-              "cor_oidc_auth",
+            let provBody: unknown;
+            try {
+              provBody = await request.json();
+            } catch {
+              return new Response(
+                JSON.stringify({ error: "Payload JSON inválido." }),
+                { status: 400, headers },
+              );
+            }
+            const parsedOwner = provisionOwnerSchema.safeParse(provBody);
+            if (!parsedOwner.success) {
+              return new Response(
+                JSON.stringify({ error: "Esquema de provisión inválido." }),
+                { status: 400, headers },
+              );
+            }
+            const { tenantId, tenantName, ownerId, ownerUsername } = parsedOwner.data;
+
+            if (SovereignDB.getTenant(tenantId)) {
+              return new Response(
+                JSON.stringify({ error: "El tenant ya existe." }),
+                { status: 409, headers },
+              );
+            }
+
+            SovereignDB.upsertTenant({
+              id: tenantId,
+              name: tenantName,
+              region: "MX-HGO",
+              quotaBalance: 0,
+              tier: "Sovereign",
+            });
+            SovereignDB.upsertSession({
+              userId: ownerId,
+              username: ownerUsername,
+              tenantId,
+              role: "SovereignOwner",
+              oidcSub: `provision|${ownerId}`,
+            });
+
+            auditAccessAttempt(
+              `trc_prov_${nodeCrypto.randomUUID().slice(0, 8)}`,
               ip,
-              "Autenticación OIDC Exitosa",
+              "provision.owner_success",
+              `Owner [${ownerId}] aprovisionado para tenant [${tenantId}].`,
               "S3",
-              `Emitido token criptográfico seguro para el usuario ${seededUser.username} (${seededUser.role})`,
             );
 
-            return new Response(JSON.stringify({ success: true, token: userToken }), { headers });
+            return new Response(
+              JSON.stringify({ success: true, tenantId, ownerId }),
+              { headers },
+            );
           }
+
+          // [ELIMINADO] action "authenticate" era una puerta trasera: acuñaba un JWT
+          // para cualquier userId sin credencial. Sustituido por provision-owner
+          // (bootstrap con token) y el flujo OAuth manual (dev, código de un solo
+          // uso). No reintroducir sin acreditar la identidad.
 
           // 2. Enforce verified centralized Authorization Wrapper for ledger & tool execution actions
           if (action === "ledger-add") {

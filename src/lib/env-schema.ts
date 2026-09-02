@@ -72,6 +72,21 @@ export const envSchema = z.object({
   OIDC_JWKS_URL: optionalUrl(),
   JWKS_CACHE_TTL: coercedInt(3600),
 
+  // --- DEV SESSION / PROVISIONING ---
+  // Solo desarrollo: habilita el login OIDC/OAuth manual de pruebas y la acción
+  // `authenticate` (NUNCA en staging/production). Fail-closed por defecto.
+  AUTH_DEV_SESSION_ENABLED: z
+    .preprocess((val) => {
+      if (typeof val !== "string") return undefined;
+      const trimmed = val.trim().toLowerCase();
+      if (trimmed === "" || trimmed === "undefined" || trimmed === "null") return undefined;
+      return trimmed;
+    }, z.enum(["true", "false"]).default("false"))
+    .transform((val) => val === "true"),
+  // Token de aprovisionamiento soberano del primer tenant/owner (bootstrap).
+  // Sin este token, `provision-owner` niega la operación (fail-closed).
+  PROVISION_OWNER_TOKEN: optionalString(),
+
   // --- CRYPTO ---
   ENCRYPTION_MASTER_KEY: optionalMinString(32),
   ENCRYPTION_ALGORITHM: z.string().default("aes-256-gcm"),
