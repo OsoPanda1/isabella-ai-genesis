@@ -241,7 +241,8 @@ export function withSovereignAuth(
 ) {
   return async ({ request }: { request: Request }): Promise<Response> => {
     // 1. Resolve Principal Context
-    const authResult = PrincipalContext.authorize(request);
+    const requiredScope = resource === "system" && action === "execute" ? "isabella:chat" : undefined;
+    const authResult = PrincipalContext.authorize(request, requiredScope);
     if (!authResult.success) {
       return authResult.response;
     }

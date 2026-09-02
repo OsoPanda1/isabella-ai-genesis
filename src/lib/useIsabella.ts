@@ -167,8 +167,8 @@ export function useIsabella() {
       abortRef.current = controller;
 
       try {
-        const { getSessionToken } = await import("@/lib/auth-client");
-        const token = getSessionToken();
+        const { ensureSessionToken } = await import("@/lib/auth-client");
+        const token = await ensureSessionToken();
 
         const res = await fetch("/api/isabella", {
           method: "POST",

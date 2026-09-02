@@ -123,7 +123,11 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
   // Keyboard shortcut listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" || e.key === "Enter") {
+      if (e.key === "Enter" && !started) {
+        e.preventDefault();
+        startExperience();
+      } else if (e.key === "Escape" && started) {
+        e.preventDefault();
         finish();
       }
     };
