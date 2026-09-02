@@ -117,6 +117,8 @@ const MATRIX: Record<Resource, Partial<Record<Action, Permission | null>>> = {
   },
   system: {
     read: "system:state",
+    write: "system:admin",
+    delete: "system:admin",
     execute: "system:telemetry",
     admin: "system:admin",
   },

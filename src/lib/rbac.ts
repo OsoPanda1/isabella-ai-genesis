@@ -44,12 +44,17 @@ export const ROLE_DESCRIPTIONS: Record<Role, string> = {
 };
 
 /** Mapa completo de herencia entre roles (el rol hereda de su lista). */
+// Mínimo privilegio: jerarquía estricta hacia abajo. Nunca se heredan r
+// permisos de roles de mayor privilegio si no son estrictamente necesarios.
 const ROLE_INHERITANCE: Record<Role, readonly Role[]> = {
+  // El propietario soberano es el único rol con acceso completo al sistema.
   SovereignOwner: ["governance_admin", "Operator", "Auditor", "System", "Guest"],
-  governance_admin: ["Operator", "Auditor", "System", "Guest"],
-  Operator: ["Guest", "System"],
+  // governance_admin administra gobernanza y lee auditoría/ledger; NO hereda
+  // privilegios de Operator (sandbox/http) ni System (telemetría de sistema).
+  governance_admin: ["Auditor", "Guest"],
+  Operator: ["Guest"],
   Auditor: ["Guest"],
-  System: ["Guest"],
+  System: [],
   Guest: [],
 };
 
@@ -202,16 +207,9 @@ const ALL = Object.keys(PERMISSIONS) as Permission[];
  * Define el mínimo privilegio de cada rol.
  */
 const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
-  Guest: [
-    "memory:read:own",
-    "ledger:read:own",
-    "governance:read",
-    "tool:list",
-    "monetization:read",
-    "system:state",
-    "data:personal:export",
-    "audit:write",
-  ],
+  // Guest: acceso público no autenticado con privilegios mínimos. Nunca
+  // escribe auditoría, no exporta datos personales ni consulta estado/telemetría.
+  Guest: ["memory:read:own", "ledger:read:own", "governance:read", "tool:list", "monetization:read"],
   System: [
     "audit:write",
     "ledger:verify",

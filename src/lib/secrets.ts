@@ -62,10 +62,12 @@ export function createSecrets(cfg = config): Secrets {
       return cfg().CROWN_POLICY_SIGNING_KEY;
     },
     apiKeyHashSecret() {
-      return (
-        cfg().API_KEY_HASH_SECRET ||
-        cfg().AUTH_JWT_SECRET ||
-        "default_api_key_hash_secret_master_key"
+      // Fail-closed: nunca usar un valor por defecto hardcodeado. Si no hay
+      // clave huésped para el hash de API keys, el sistema niega la operación.
+      return requireSecret(
+        "jwt",
+        cfg().API_KEY_HASH_SECRET || cfg().AUTH_JWT_SECRET,
+        "API_KEY_HASH_SECRET o AUTH_JWT_SECRET",
       );
     },
   };

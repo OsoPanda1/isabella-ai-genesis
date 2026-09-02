@@ -84,23 +84,25 @@ export interface DatabaseSchema {
   settings: Record<string, unknown>;
 }
 
-// Default Seed Data - Hardcoded fallback tokens deleted!
-// El arranque parte de un estado REAL y vacío: ningún tenant, sesión,
-// bloque de libro mayor ni log de auditoría fabricado. La génesis se
-// genera en runtime con hashes criptográficos reales cuando ocurre la
-// primera operación. Zero mockdata / zero fake-security.
-const EMPTY_DB: DatabaseSchema = {
-  tenants: [],
-  sessions: [],
-  ledger: [],
-  auditLogs: [],
-  apiKeys: [],
-  settings: {
-    pqcEnabled: false,
-    activeHeadCount: 12,
-    activeNucleusCount: 24,
-  },
-};
+// Zero mockdata: el arranque parte de un estado REAL y vacío. Ningún tenant,
+// sesión, bloque de libro mayor ni log de auditoría se fabrica en código.
+// La génesis se genera en runtime con hashes criptográficos reales cuando
+// ocurre la primera operación. La provisión de identidad se realiza mediante
+// flujos autorizados (provision-owner / IDP OIDC).
+function emptyDatabase(): DatabaseSchema {
+  return {
+    tenants: [],
+    sessions: [],
+    ledger: [],
+    auditLogs: [],
+    apiKeys: [],
+    settings: {
+      pqcEnabled: false,
+      activeHeadCount: 12,
+      activeNucleusCount: 24,
+    },
+  };
+}
 
 /** Hash previo canónico de génesis (bloque raíz). */
 const GENESIS_PREVIOUS_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
@@ -110,50 +112,15 @@ const GENESIS_PREVIOUS_HASH = "0000000000000000000000000000000000000000000000000
 // ============================================================================
 
 export class SovereignDB {
-  private static seed(db: DatabaseSchema): DatabaseSchema {
-    const tenants =
-      db.tenants.length > 0
-        ? db.tenants
-        : [
-            {
-              id: "tenant_tamv_001",
-              name: "TAMV Online Network (Real del Monte)",
-              region: "MX-HGO",
-              quotaBalance: 500.0,
-              tier: "Sovereign" as const,
-            },
-          ];
-
-    const sessions =
-      db.sessions.length > 0
-        ? db.sessions
-        : [
-            {
-              userId: "user_anubis_001",
-              username: "anubis_villasenor",
-              tenantId: "tenant_tamv_001",
-              role: "SovereignOwner" as const,
-              oidcSub: "auth0|user_anubis_001",
-            },
-          ];
-
-    return {
-      ...db,
-      tenants,
-      sessions,
-    };
-  }
-
-  private static load(): DatabaseSchema {
+  /**
+   * Carga el estado persistente real. Si no existe archivo o está corrupto,
+   * arranca desde un estado vacío auténtico. Nunca fabrica datos (zero mockdata).
+   */
+  public static load(): DatabaseSchema {
     try {
       if (fs.existsSync(PERSISTENCE_FILE_PATH)) {
         const raw = fs.readFileSync(PERSISTENCE_FILE_PATH, "utf8");
         const db = JSON.parse(raw) as DatabaseSchema;
-        if (db.tenants.length === 0 || db.sessions.length === 0) {
-          const seeded = this.seed(db);
-          this.save(seeded);
-          return seeded;
-        }
         return db;
       }
     } catch (e) {
@@ -162,9 +129,9 @@ export class SovereignDB {
         e,
       );
     }
-    const seeded = this.seed(EMPTY_DB);
-    this.save(seeded);
-    return seeded;
+    const db = emptyDatabase();
+    this.save(db);
+    return db;
   }
 
   private static save(db: DatabaseSchema) {
@@ -177,6 +144,37 @@ export class SovereignDB {
     } catch (e) {
       console.error("Fallo crítico al escribir en la base de datos persistente:", e);
     }
+  }
+
+  // --- Provisioning de identidad (real, no mockdata) ---
+  // El primer tenant/owner se crea únicamente mediante flujos autorizados
+  // (provision-owner protegido por token o IDP OIDC/Supabase configurado).
+
+  public static getSessions(): UserSession[] {
+    const db = this.load();
+    return db.sessions;
+  }
+
+  public static upsertTenant(tenant: Tenant): void {
+    const db = this.load();
+    const index = db.tenants.findIndex((t) => t.id === tenant.id);
+    if (index >= 0) {
+      db.tenants[index] = tenant;
+    } else {
+      db.tenants.push(tenant);
+    }
+    this.save(db);
+  }
+
+  public static upsertSession(session: UserSession): void {
+    const db = this.load();
+    const index = db.sessions.findIndex((s) => s.userId === session.userId);
+    if (index >= 0) {
+      db.sessions[index] = session;
+    } else {
+      db.sessions.push(session);
+    }
+    this.save(db);
   }
 
   // Multi-tenancy Isolation: Get ledger records isolated by Tenant
@@ -752,6 +750,314 @@ export class CognitiveOrchestrator {
 // REAL SECURE JAVASCRIPT TOOL RUNNER (SANDBOXED EXECUTOR)
 // ============================================================================
 
+/**
+ * Evaluador de expresiones aritméticas/lógicas SIN `eval` ni `new Function`.
+ * Pequeño intérprete por descenso recursivo sobre un tokenizador determinista:
+ * solo números, operadores, variables numéricas autorizadas y un subconjunto
+ * cerrado de funciones de Math. Fail-closed ante cualquier token, función o
+ * profundidad no permitida. Zero code-execution arbitraria (zero unsafe-eval).
+ */
+
+const MAX_EXPRESSION_DEPTH = 40;
+
+type SandboxValue = number | boolean;
+
+interface SandboxToken {
+  kind: "number" | "ident" | "op";
+  value: string;
+}
+
+function tokenizeExpression(input: string): SandboxToken[] {
+  const tokens: SandboxToken[] = [];
+  let i = 0;
+  while (i < input.length) {
+    const ch = input[i]!;
+    if (ch === " " || ch === "\t" || ch === "\r" || ch === "\n") {
+      i += 1;
+      continue;
+    }
+    if ((ch >= "0" && ch <= "9") || (ch === "." && (input[i + 1] ?? "") >= "0" && (input[i + 1] ?? "") <= "9")) {
+      let j = i + 1;
+      while (j < input.length && ((input[j]! >= "0" && input[j]! <= "9") || input[j] === ".")) j += 1;
+      const raw = input.slice(i, j);
+      if (!Number.isFinite(Number(raw))) {
+        throw new Error(`Literal numérico inválido [${raw}].`);
+      }
+      tokens.push({ kind: "number", value: raw });
+      i = j;
+      continue;
+    }
+    if (
+      (ch >= "a" && ch <= "z") ||
+      (ch >= "A" && ch <= "Z") ||
+      ch === "_" ||
+      ch === "$"
+    ) {
+      let j = i + 1;
+      while (
+        j < input.length &&
+        ((input[j]! >= "a" && input[j]! <= "z") ||
+          (input[j]! >= "A" && input[j]! <= "Z") ||
+          (input[j]! >= "0" && input[j]! <= "9") ||
+          input[j] === "_" ||
+          input[j] === "$")
+      ) {
+        j += 1;
+      }
+      tokens.push({ kind: "ident", value: input.slice(i, j) });
+      i = j;
+      continue;
+    }
+    if (".+-*/%^(),<>=".includes(ch)) {
+      const two = input.slice(i, i + 2);
+      if (two === "<=" || two === ">=" || two === "==" || two === "!=" || two === "&&" || two === "||") {
+        tokens.push({ kind: "op", value: two });
+        i += 2;
+        continue;
+      }
+      tokens.push({ kind: "op", value: ch });
+      i += 1;
+      continue;
+    }
+    throw new Error(`Tokén no autorizado [${ch}].`);
+  }
+  return tokens;
+}
+
+class ExpressionEvaluator {
+  private readonly tokens: SandboxToken[];
+  private pos = 0;
+
+  private constructor(input: string) {
+    this.tokens = tokenizeExpression(input);
+  }
+
+  public static run(input: string, variables: Record<string, number>): SandboxValue {
+    const evaluator = new ExpressionEvaluator(input);
+    const result = evaluator.parseOr(0, variables);
+    evaluator.expectEnd();
+    return result;
+  }
+
+  private peek(): SandboxToken | undefined {
+    return this.tokens[this.pos];
+  }
+
+  private next(): SandboxToken | undefined {
+    return this.tokens[this.pos++];
+  }
+
+  private matchOp(op: string): boolean {
+    const t = this.peek();
+    if (t?.kind === "op" && t.value === op) {
+      this.pos += 1;
+      return true;
+    }
+    return false;
+  }
+
+  private expectOp(op: string): void {
+    const t = this.peek();
+    if (t?.kind === "op" && t.value === op) {
+      this.pos += 1;
+      return;
+    }
+    throw new Error(`Se esperaba el operador [${op}].`);
+  }
+
+  private expectEnd(): void {
+    const t = this.peek();
+    if (t) throw new Error(`Expresión extra después del final [${t.value}].`);
+  }
+
+  private toNumber(value: SandboxValue | undefined): number {
+    if (typeof value !== "number") throw new Error("Operación aritmética con valor no numérico.");
+    return value;
+  }
+
+  private parseOr(depth: number, variables: Record<string, number>): SandboxValue {
+    let left = this.parseAnd(depth, variables);
+    for (;;) {
+      if (this.matchOp("||")) {
+        const right = this.parseAnd(depth, variables);
+        left = this.toNumber(left) !== 0 || this.toNumber(right) !== 0;
+      } else break;
+    }
+    return left;
+  }
+
+  private parseAnd(depth: number, variables: Record<string, number>): SandboxValue {
+    let left = this.parseComparison(depth, variables);
+    for (;;) {
+      if (this.matchOp("&&")) {
+        const right = this.parseComparison(depth, variables);
+        left = this.toNumber(left) !== 0 && this.toNumber(right) !== 0;
+      } else break;
+    }
+    return left;
+  }
+
+  private parseComparison(depth: number, variables: Record<string, number>): SandboxValue {
+    const left = this.parseSum(depth, variables);
+    const t = this.peek();
+    if (t?.kind === "op") {
+      if (t.value === "<") { this.pos += 1; return this.toNumber(left) < this.toNumber(this.parseSum(depth, variables)); }
+      if (t.value === "<=") { this.pos += 1; return this.toNumber(left) <= this.toNumber(this.parseSum(depth, variables)); }
+      if (t.value === ">") { this.pos += 1; return this.toNumber(left) > this.toNumber(this.parseSum(depth, variables)); }
+      if (t.value === ">=") { this.pos += 1; return this.toNumber(left) >= this.toNumber(this.parseSum(depth, variables)); }
+      if (t.value === "==") { this.pos += 1; return this.toNumber(left) === this.toNumber(this.parseSum(depth, variables)); }
+      if (t.value === "!=") { this.pos += 1; return this.toNumber(left) !== this.toNumber(this.parseSum(depth, variables)); }
+    }
+    return left;
+  }
+
+  private parseSum(depth: number, variables: Record<string, number>): SandboxValue {
+    let left = this.toNumber(this.parseProduct(depth, variables));
+    for (;;) {
+      if (this.matchOp("+")) {
+        left = left + this.toNumber(this.parseProduct(depth, variables));
+      } else if (this.matchOp("-")) {
+        left = left - this.toNumber(this.parseProduct(depth, variables));
+      } else break;
+    }
+    return left;
+  }
+
+  private parseProduct(depth: number, variables: Record<string, number>): SandboxValue {
+    let left = this.toNumber(this.parseUnary(depth, variables));
+    for (;;) {
+      if (this.matchOp("*")) {
+        left = left * this.toNumber(this.parseUnary(depth, variables));
+      } else if (this.matchOp("/")) {
+        const right = this.toNumber(this.parseUnary(depth, variables));
+        if (right === 0) throw new Error("División por cero no permitida.");
+        left = left / right;
+      } else if (this.matchOp("%")) {
+        const right = this.toNumber(this.parseUnary(depth, variables));
+        if (right === 0) throw new Error("Módulo por cero no permitido.");
+        left = left % right;
+      } else break;
+    }
+    return left;
+  }
+
+  private parseUnary(depth: number, variables: Record<string, number>): SandboxValue {
+    if (this.matchOp("+")) return this.parseUnary(depth, variables);
+    if (this.matchOp("-")) return -this.toNumber(this.parseUnary(depth, variables));
+    return this.parsePower(depth, variables);
+  }
+
+  private parsePower(depth: number, variables: Record<string, number>): SandboxValue {
+    const base = this.toNumber(this.parsePrimary(depth, variables));
+    if (this.matchOp("^")) {
+      const exponent = this.toNumber(this.parseUnary(depth, variables));
+      return Math.pow(base, exponent);
+    }
+    return base;
+  }
+
+  private parsePrimary(depth: number, variables: Record<string, number>): SandboxValue {
+    if (depth > MAX_EXPRESSION_DEPTH) {
+      throw new Error("Profundidad máxima de expresión excedida.");
+    }
+    const token = this.next();
+    if (!token) throw new Error("Expresión incompleta.");
+    if (token.kind === "number") {
+      const value = Number(token.value);
+      if (!Number.isFinite(value)) throw new Error("Literal numérico fuera de rango.");
+      return value;
+    }
+    if (token.kind === "op") {
+      if (token.value === "(") {
+        const inner = this.parseOr(depth + 1, variables);
+        this.expectOp(")");
+        return inner;
+      }
+      throw new Error(`Operador no permitido en esta posición [${token.value}].`);
+    }
+
+    const name = token.value;
+    if (name === "PI") return Math.PI;
+    if (Object.prototype.hasOwnProperty.call(variables, name)) {
+      const value = variables[name]!;
+      if (typeof value !== "number" || !Number.isFinite(value)) {
+        throw new Error(`Variable no numérica [${name}].`);
+      }
+      return value;
+    }
+    const next = this.peek();
+    if (next?.kind === "op" && next.value === "." && name === "Math") {
+      this.pos += 1;
+      const fnToken = this.next();
+      if (!fnToken || fnToken.kind !== "ident" || !MATH_FN_NAMES.has(fnToken.value)) {
+        throw new Error("Función Math no autorizada.");
+      }
+      return this.callFunction(fnToken.value, depth, variables);
+    }
+    if (MATH_FN_NAMES.has(name)) {
+      return this.callFunction(name, depth, variables);
+    }
+    throw new Error(`Identificador no autorizado [${name}].`);
+  }
+
+  private callFunction(name: string, depth: number, variables: Record<string, number>): SandboxValue {
+    this.expectOp("(");
+    const args: number[] = [];
+    if (!this.matchOp(")")) {
+      for (;;) {
+        args.push(this.toNumber(this.parseOr(depth + 1, variables)));
+        if (this.matchOp(")")) break;
+        this.expectOp(",");
+      }
+    }
+    const single = (): number => {
+      if (args.length !== 1) {
+        throw new Error(`Función [${name}] requiere exactamente 1 argumento.`);
+      }
+      return args[0]!;
+    };
+    switch (name) {
+      case "abs": return Math.abs(single());
+      case "round": return Math.round(single());
+      case "floor": return Math.floor(single());
+      case "ceil": return Math.ceil(single());
+      case "sqrt": return Math.sqrt(single());
+      case "log": return Math.log(single());
+      case "exp": return Math.exp(single());
+      case "sin": return Math.sin(single());
+      case "cos": return Math.cos(single());
+      case "tan": return Math.tan(single());
+      case "min":
+        if (args.length < 1) throw new Error(`Función [${name}] requiere al menos 1 argumento.`);
+        return Math.min(...args);
+      case "max":
+        if (args.length < 1) throw new Error(`Función [${name}] requiere al menos 1 argumento.`);
+        return Math.max(...args);
+      case "pow":
+        if (args.length !== 2) throw new Error(`Función [${name}] requiere exactamente 2 argumentos.`);
+        return Math.pow(args[0]!, args[1]!);
+      default:
+        throw new Error(`Función no autorizada [${name}].`);
+    }
+  }
+}
+
+const MATH_FN_NAMES = new Set<string>([
+  "abs",
+  "round",
+  "floor",
+  "ceil",
+  "sqrt",
+  "log",
+  "exp",
+  "sin",
+  "cos",
+  "tan",
+  "min",
+  "max",
+  "pow",
+]);
+
 export class SovereignSandbox {
   // Executes mathematical expressions and simple data mappings in a safe sandboxed context
   public static executeTool(
@@ -774,68 +1080,33 @@ export class SovereignSandbox {
         }
       }
 
-      // Block all quotes, backslashes, semicolons, brackets, curly braces, and assignment operators
-      const forbiddenChars = /['"`\\;=[\]{}]/;
-      if (forbiddenChars.test(codeExpression)) {
+      if (codeExpression.length === 0 || codeExpression.length > 1000) {
         return {
           success: false,
-          error: "Violación de sandbox: Uso de caracteres reservados o estructuradores prohibido.",
+          error: "Violación de sandbox: Longitud de expresión no permitida.",
         };
       }
 
-      // Block prototype pollution and execution tokens
-      const hazardousKeywords = [
-        "constructor",
-        "prototype",
-        "__proto__",
-        "global",
-        "process",
-        "require",
-        "import",
-        "eval",
-        "Function",
-      ];
-      for (const kw of hazardousKeywords) {
-        if (codeExpression.includes(kw)) {
+      // 2. Validate every variable identifier and coerce to finite numbers
+      const numericVariables: Record<string, number> = {};
+      for (const [key, value] of Object.entries(variables)) {
+        if (!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)) {
           return {
             success: false,
-            error: `Violación de sandbox: Uso prohibido de token reservado [${kw}].`,
+            error: `Violación de sandbox: Nombre de variable no autorizado [${key}].`,
           };
         }
-      }
-
-      const keys = Object.keys(variables);
-      const values = Object.values(variables);
-
-      // Allow only safe words: variable keys, approved Math functions, and numbers
-      const words = codeExpression.match(/[a-zA-Z_$][a-zA-Z0-9_$]*/g) || [];
-      const allowedWords = [
-        "Math",
-        "sin",
-        "cos",
-        "tan",
-        "abs",
-        "round",
-        "floor",
-        "ceil",
-        "min",
-        "max",
-        "PI",
-        ...keys,
-      ];
-      for (const w of words) {
-        if (!allowedWords.includes(w)) {
+        if (typeof value !== "number" || !Number.isFinite(value)) {
           return {
             success: false,
-            error: `Violación de sandbox: Variable o función no autorizada [${w}].`,
+            error: `Violación de sandbox: Variable no numérica [${key}].`,
           };
         }
+        numericVariables[key] = value;
       }
 
-      // 2. Safe execution structure inside insulated isolated parameters
-      // eslint-disable-next-line no-new-func
-      const runner = new Function(...keys, `"use strict"; return (${codeExpression});`);
-      const output = runner(...values);
+      // 3. Deterministic interpreter (no `eval`, no `new Function`)
+      const output = ExpressionEvaluator.run(codeExpression, numericVariables);
 
       return { success: true, output };
     } catch (e: unknown) {
