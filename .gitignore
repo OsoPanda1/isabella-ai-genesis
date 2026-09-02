@@ -41,6 +41,10 @@ SECRETS.md
 # Fallback local de la base soberana (ejecución sin Supabase configurado)
 data/
 isabella_sovereign_db.json
+# Almacenes locales de memoria, ledger BookPI y auditoría (append-only)
+isabella_memory_store.json
+isabella_bookpi_ledger.json
+isabella_audit_store.json
 *.db
 *.sqlite
 *.sqlite3
@@ -49,6 +53,16 @@ isabella_sovereign_db.json
 *.bak
 audit/
 coverage/
+
+# ---------------------------------------------------------------------------
+# ARTEFACTOS Y CACHÉ (lint, compilación, Python)
+# ---------------------------------------------------------------------------
+lint_out.txt
+lint_output.txt
+*.tsbuildinfo
+__pycache__/
+*.pyc
+.pytest_cache/
 
 # ---------------------------------------------------------------------------
 # Editor directories and files

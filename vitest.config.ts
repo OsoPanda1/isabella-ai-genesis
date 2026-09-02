@@ -4,14 +4,12 @@ import { resolve } from "node:path";
 /**
  * CONFIGURACIÓN DE TESTS (vitest.config.ts)
  * -----------------------------------------------------------------
- * Proyectos de test:
- *   unit        → tests rápidos y aislados (test/unit/**)
- *   integration → lógica con dependencias reales/inyectadas (test/integration/**)
- *   e2e         → flujos de extremo a extremo (test/e2e/**)
- *   security    → vectores de seguridad (test/security/**)
+ * Proyectos de test activos:
+ *   unit      → tests rápidos y aislados (test/unit/**)
+ *   security  → vectores de seguridad (test/security/**)
  *
- * Los tests unitarios e de integración usan alias @/* y corren en
- * Node (sin DOM). Los e2e/security se definen según si requieren DOM.
+ * (En este repositorio no existen directorios test/integration ni
+ * test/e2e: eliminados para no exponer proyectos/skripts muertos en CI.)
  */
 export default defineConfig({
   resolve: {
@@ -29,20 +27,6 @@ export default defineConfig({
         test: {
           name: "unit",
           include: ["test/unit/**/*.test.ts"],
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: "integration",
-          include: ["test/integration/**/*.test.ts"],
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: "e2e",
-          include: ["test/e2e/**/*.test.ts"],
         },
       },
       {

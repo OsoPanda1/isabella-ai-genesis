@@ -19,22 +19,21 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-
-      - name: Install Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: "latest"
+          node-version: "22"
 
       - name: Install Dependencies
-        run: bun install --frozen-lockfile || npm ci
+        run: npm install
 
       - name: Compile and Bundle Production Build
         run: npm run build
 
       - name: Create Production Release Bundle
         run: |
-          tar -czf isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz dist/ package.json
+          if [ -d ".output" ]; then
+            tar -czf isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz .output/ dist/ package.json
+          else
+            tar -czf isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz dist/ package.json
+          fi
 
       - name: Publish GitHub Release Artifacts
         uses: softprops/action-gh-release@v2
