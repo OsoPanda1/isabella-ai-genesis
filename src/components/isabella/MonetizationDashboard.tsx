@@ -306,8 +306,25 @@ export function MonetizationDashboard() {
   // Synchronize state and records on mount and activeRole / token changes
   const fetchDbState = useCallback(async () => {
     if (!sessionToken || !sessionToken.startsWith("eyJ")) {
-      // Los tokens solo se obtienen mediante flujos autorizados (OAuth/OIDC).
-      // Sin token emitido por el servidor, la UI permanece desautenticada.
+      // Fail-closed: si no hay token, intentar dev-session (solo desarrollo).
+      // Si el servidor responde 403, la UI permanece desautenticada.
+      try {
+        const devRes = await fetch("/api/db?action=dev-session", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+        });
+        if (devRes.ok) {
+          const devData = await devRes.json();
+          if (devData.token) {
+            persistSessionToken(devData.token);
+            if (devData.userId) setStoredSovereignUserId(devData.userId);
+            setSessionToken(devData.token);
+            return; // Re-invoke after token is set
+          }
+        }
+      } catch {
+        // Servidor no disponible o dev-session denegado.
+      }
       return;
     }
 

@@ -52,6 +52,7 @@ export const dbActionSchema = z.object({
     "audit",
     "heads",
     "provision-owner",
+    "dev-session",
     "ledger-add",
     "ledger-refund",
     "execute-tool",

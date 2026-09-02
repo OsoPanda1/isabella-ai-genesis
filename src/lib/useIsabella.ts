@@ -167,8 +167,31 @@ export function useIsabella() {
       abortRef.current = controller;
 
       try {
-        const { ensureSessionToken } = await import("@/lib/auth-client");
-        const token = await ensureSessionToken();
+        const { getSessionToken, setSessionToken } = await import("@/lib/auth-client");
+        let token = getSessionToken();
+
+        // Fail-closed: si no hay token de sesión, intentar obtener uno del
+        // endpoint dev-session (solo funciona cuando NODE_ENV=development Y
+        // AUTH_DEV_SESSION_ENABLED=true). Si el servidor responde 403,
+        // significa que el modo desarrollo no está habilitado y se prosigue
+        // sin token (el servidor rechazará si se requiere autenticación).
+        if (!token) {
+          try {
+            const devRes = await fetch("/api/db?action=dev-session", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+            });
+            if (devRes.ok) {
+              const devData = await devRes.json();
+              if (devData.token) {
+                token = devData.token;
+                setSessionToken(token);
+              }
+            }
+          } catch {
+            // Servidor no disponible o dev-session denegado: continuar sin token.
+          }
+        }
 
         const res = await fetch("/api/isabella", {
           method: "POST",
