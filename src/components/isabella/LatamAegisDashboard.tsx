@@ -167,7 +167,26 @@ export function LatamAegisDashboard() {
   // Initialize secure OIDC session (tokens solo vía flujos autorizados)
   useState(() => {
     const initAuth = async () => {
-      const token = getSessionToken();
+      let token = getSessionToken();
+      if (!token) {
+        // Fail-closed: intentar dev-session (solo desarrollo).
+        // Si el servidor responde 403, la UI permanece desautenticada.
+        try {
+          const devRes = await fetch("/api/db?action=dev-session", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+          });
+          if (devRes.ok) {
+            const devData = await devRes.json();
+            if (devData.token) {
+              token = devData.token;
+              sessionStorage.setItem("isabella_session_token", token);
+            }
+          }
+        } catch {
+          // Servidor no disponible o dev-session denegado.
+        }
+      }
       setSessionToken(token);
     };
     void initAuth();

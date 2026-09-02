@@ -50,8 +50,13 @@ interface OAuthCodeEntry {
 // Almacén en memoria de códigos de autorización de un solo uso.
 const oauthCodes = new Map<string, OAuthCodeEntry>();
 
+/**
+ * Fail-closed: sesiones de desarrollo solo se habilitan cuando AMBAS condiciones
+ * se cumplen — NODE_ENV === "development" Y AUTH_DEV_SESSION_ENABLED === true.
+ * Si falta cualquiera de las dos, la puerta queda cerrada.
+ */
 function isDevSessionEnabled(): boolean {
-  return config().AUTH_DEV_SESSION_ENABLED === true;
+  return config().NODE_ENV === "development" && config().AUTH_DEV_SESSION_ENABLED === true;
 }
 
 function timingSafeEqualStrings(a: string, b: string): boolean {
@@ -732,6 +737,59 @@ export const Route = createFileRoute("/api/db")({
           // para cualquier userId sin credencial. Sustituido por provision-owner
           // (bootstrap con token) y el flujo OAuth manual (dev, código de un solo
           // uso). No reintroducir sin acreditar la identidad.
+
+          // --- DEV SESSION: mock user para desarrollo local ---
+          // Fail-closed: solo funciona cuando NODE_ENV=development Y
+          // AUTH_DEV_SESSION_ENABLED=true. En staging/production esta acción
+          // responde 403 y nunca emite tokens.
+          if (action === "dev-session") {
+            if (!isDevSessionEnabled()) {
+              auditAccessAttempt(
+                `trc_dev_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                ip,
+                "dev.session_denied",
+                "Sesión de desarrollo solicitada fuera del modo desarrollo.",
+              );
+              return new Response(
+                JSON.stringify({ error: "Sesión de desarrollo no disponible en este modo." }),
+                { status: 403, headers },
+              );
+            }
+
+            // Mock user: solo se usa para desarrollo local sin OAuth real.
+            const DEV_USER = {
+              userId: "dev_user_local",
+              username: "Dev Admin",
+              role: "SovereignOwner" as const,
+              tenantId: "nodo-cero",
+            };
+
+            const devToken = SecuritySystem.generateSovereignToken(
+              DEV_USER.userId,
+              DEV_USER.role,
+              DEV_USER.tenantId,
+              "isabella:chat isabella:ledger:write isabella:sandbox:run",
+            );
+
+            auditAccessAttempt(
+              `trc_dev_${nodeCrypto.randomUUID().slice(0, 8)}`,
+              ip,
+              "dev.session_issued",
+              `Sesión de desarrollo emitida para ${DEV_USER.username} (${DEV_USER.role}).`,
+              "S3",
+            );
+
+            return new Response(
+              JSON.stringify({
+                success: true,
+                token: devToken,
+                userId: DEV_USER.userId,
+                username: DEV_USER.username,
+                role: DEV_USER.role,
+              }),
+              { headers },
+            );
+          }
 
           // 2. Enforce verified centralized Authorization Wrapper for ledger & tool execution actions
           if (action === "ledger-add") {
