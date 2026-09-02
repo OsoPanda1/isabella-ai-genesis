@@ -1,21 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import logo from "@/assets/logo-isabella.jpeg.asset.json";
+import backgroundAudio from "@/assets/background-audio.mp3";
+
+const OFFICIAL_LOGO_SRC = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-isabella-NYSrdGvZYuJp7200gu2CUzA0ookKJ9.jpeg";
+const BACKGROUND_AUDIO_SRC = backgroundAudio;
 
 /**
- * Audio de fondo de la intro cinemática.
- * Se sirve desde src/assets como asset estático (mismo patrón que
- * /src/assets/logo-isabella.jpeg usado en la interfaz principal).
- * El autoplay lo desbloquea el usuario al pulsar "Iniciar experiencia".
+ * La reproducción sonora se desbloquea únicamente tras una acción explícita
+ * del usuario, respetando las políticas de autoplay y sus preferencias.
  */
-const BACKGROUND_AUDIO_SRC = "/src/assets/background-audio.mp3";
 
 /**
  * Cinematic 3D Intro Component — WebGL Three.js Experience
  */
 
 const CONFIG = {
-  duration: 26000,
+  duration: 42000,
   starsDesktop: 8500,
   starsMobile: 3000,
   dataDesktop: 1300,
@@ -123,7 +123,11 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
   // Keyboard shortcut listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" || e.key === "Enter") {
+      if (e.key === "Enter" && !started) {
+        e.preventDefault();
+        startExperience();
+      } else if (e.key === "Escape" && started) {
+        e.preventDefault();
         finish();
       }
     };
@@ -952,41 +956,50 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
         <source src={BACKGROUND_AUDIO_SRC} type="audio/mpeg" />
       </audio>
 
-      {/* Start screen interaction card */}
+      {/* First-click gateway: visual identity and audio are intentionally user-initiated. */}
       {!started && (
-        <div className="absolute inset-0 z-100 display grid place-items-center p-6 bg-radial-gradient">
-          <div className="w-[min(530px,100%)] p-8 text-center border border-sky-400/25 rounded-[30px] bg-gradient-to-br from-slate-900/80 to-slate-950/80 backdrop-blur-xl shadow-2xl animate-rise">
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-full border border-cyan-400/35 bg-sky-950/60 font-mono text-[10px] text-cyan-400 font-bold uppercase tracking-[0.18em]">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
-              Nodo Cero · Inicialización
+        <div className="absolute inset-0 z-[100] grid place-items-center overflow-y-auto bg-[#05070b] p-6 sm:p-10">
+          <img src="/assets/isabella-intro-backdrop.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 size-full object-cover opacity-80" />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(2,4,8,0.18),rgba(2,4,8,0.7)),radial-gradient(circle_at_50%_48%,transparent_12%,rgba(1,3,8,0.72)_78%)]" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/70 to-transparent" />
+          <div className="relative z-10 w-[min(640px,100%)] animate-rise text-center">
+            <div className="mb-8 flex items-center justify-center gap-3 font-mono text-[9px] font-semibold uppercase tracking-[0.38em] text-cyan-200/70">
+              <span className="h-px w-10 bg-cyan-200/30" />
+              Nodo Cero · Real del Monte
+              <span className="h-px w-10 bg-cyan-200/30" />
             </div>
-            <h1 className="mt-5 text-[32px] sm:text-[40px] font-black text-pearl leading-none tracking-tight">
-              Isabella Villaseñor AI
-            </h1>
-            <p className="mt-3.5 max-w-[410px] mx-auto text-muted-foreground text-sm leading-relaxed">
-              Una experiencia cinematográfica desde el espacio profundo hacia el núcleo cognitivo
-              territorial de Isabella.
-            </p>
-            <button
-              onClick={startExperience}
-              className="mt-6 appearance-none border-0 rounded-2xl px-7 py-3.5 text-slate-950 bg-gradient-to-r from-cyan-400 to-sky-300 shadow-lg shadow-cyan-400/20 font-bold text-xs tracking-wider uppercase cursor-pointer hover:translate-y-[-2px] hover:shadow-cyan-400/50 transition-all"
-            >
+            <div className="relative mx-auto mb-8 w-[min(560px,94vw)] overflow-hidden rounded-[28px] border border-white/15 bg-black/30 p-2 shadow-[0_30px_100px_-35px_rgba(96,165,250,0.7)] backdrop-blur-sm">
+              <div className="pointer-events-none absolute inset-0 rounded-[28px] ring-1 ring-inset ring-amber-200/20" />
+              <img src="/assets/logo-isabella.jpeg" data-official-source={OFFICIAL_LOGO_SRC} alt="Isabella Villaseñor AI — identidad oficial" className="relative block aspect-[16/9] w-full rounded-[21px] object-cover opacity-95" referrerPolicy="no-referrer" />
+            </div>
+            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.32em] text-amber-100/70">Una nueva era de inteligencia soberana</p>
+            <h1 className="text-balance font-display text-[clamp(2.3rem,7vw,5.2rem)] font-semibold leading-[0.95] tracking-[-0.045em] text-pearl">Entra al nacimiento de algo especial.</h1>
+            <p className="mx-auto mt-6 max-w-[480px] text-pretty text-sm leading-7 text-slate-300/80">Una presencia cognitiva para guiar, proteger y crear contigo. Tu primer click inicia la experiencia visual y sonora de Isabella.</p>
+            <button onClick={startExperience} aria-label="Iniciar experiencia con audio" className="group mt-8 inline-flex items-center gap-4 rounded-full border border-amber-100/40 bg-amber-50 px-7 py-4 font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-slate-950 shadow-[0_15px_45px_-15px_rgba(253,230,138,0.8)] transition-all duration-500 hover:-translate-y-1 hover:bg-white hover:shadow-[0_22px_60px_-15px_rgba(103,232,249,0.6)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200">
+              <span className="grid size-8 place-items-center rounded-full bg-slate-950 text-amber-100 transition-transform group-hover:scale-110">→</span>
               Iniciar experiencia
             </button>
+            <p className="mt-5 font-mono text-[9px] uppercase tracking-[0.22em] text-slate-500">Audio inmersivo · Presiona Enter para continuar</p>
           </div>
         </div>
       )}
 
       {/* 3D Canvas rendering */}
       {started && !reduced && (
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
+        <div aria-hidden="true" className="absolute inset-0 overflow-hidden bg-[#05070b]">
+          <div className="absolute inset-0 bg-[url('/assets/isabella-intro-backdrop.png')] bg-cover bg-center opacity-90" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_47%,rgba(255,226,164,0.18),transparent_16%),linear-gradient(180deg,rgba(3,6,12,0.12),rgba(3,6,12,0.78))]" />
+          <div className="absolute left-1/2 top-1/2 size-[min(58vw,620px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-amber-100/20 shadow-[0_0_80px_rgba(125,211,252,0.15),inset_0_0_80px_rgba(253,230,138,0.12)] animate-[spin_42s_linear_infinite]" />
+          <div className="absolute left-1/2 top-1/2 size-[min(38vw,410px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-100/25 shadow-[0_0_55px_rgba(103,232,249,0.2)] animate-[spin_28s_linear_infinite_reverse]" />
+        </div>
       )}
 
       {/* Cinematic Phase Layout */}
       {started && (
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
           <img
-            src={logo.url}
+            src="/assets/logo-isabella.jpeg"
+            data-official-source={OFFICIAL_LOGO_SRC}
             alt="Marca de Isabella Villaseñor"
             className="mb-8 w-[min(380px,72vw)] rounded-2xl opacity-90 mix-blend-screen transition-all"
             style={{ filter: `brightness(${0.55 + progress * 0.6})` }}
@@ -1026,7 +1039,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       {/* Shading, vignette & whiteout overlays */}
       <div className="absolute inset-0 pointer-events-none vignette z-8 mix-blend-multiply bg-radial-vignette" />
       <div className="absolute inset-0 pointer-events-none color-grade z-9 mix-blend-screen bg-linear-colorgrade" />
-      <div className="absolute inset-0 pointer-events-none scanlines z-10 opacity-5 bg-repeating-scanlines" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.58)_100%)] z-10" />
       <div
         id="whiteout"
         className={`absolute inset-0 z-50 bg-white pointer-events-none transition-opacity duration-[1350ms] ${
