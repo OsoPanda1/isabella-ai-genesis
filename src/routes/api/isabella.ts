@@ -8,6 +8,7 @@ import {
   CentralizedTelemetryService,
   AutoAuditingSystem,
 } from "@/lib/latam-aegis-x";
+import { nativeInference } from "@/lib/isabella-native-ml";
 
 const bodySchema = z.object({
   system: z.string().min(1).max(8000),
@@ -217,8 +218,8 @@ export const Route = createFileRoute("/api/isabella")({
           if (!upstream.ok || !upstream.body) {
             const detail = await upstream.text().catch(() => "");
             console.error(`Isabella gateway error [${upstream.status}]: ${detail}`);
-            // Fallback soberano: siempre responde en SSE para que el chat nunca quede vacío — modo local
-            const fallbackText = `Isabella · Nodo Cero — modo soberano local. Recibí: "${lastUserMessage.slice(0, 120)}". El núcleo externo respondió [${upstream.status}], pero la infraestructura local mantiene la conversación. ¿En qué puedo ayudarte desde Real del Monte?`;
+            // Fallback soberano nativo 100% español LATAM — garantiza respuesta incluso sin Gemini
+            const native = nativeInference({ text: lastUserMessage, locale: "es-MX", tenantId: context.tenantId, history: messages as Array<{ role: "user" | "assistant"; content: string }> });
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({
                 "content-type": "text/event-stream",
@@ -227,9 +228,11 @@ export const Route = createFileRoute("/api/isabella")({
                 "x-isabella-trace-id": telemetry.traceId,
                 "x-isabella-correlation-id": telemetry.correlationId,
                 "x-isabella-rate-remaining": rateLimit.remaining.toString(),
+                "x-isabella-native-intent": native.intent,
+                "x-isabella-native-confidence": String(native.confidence),
               }),
             );
-            const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: fallbackText } }] })}\n\ndata: [DONE]\n\n`;
+            const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: native.text } }] })}\n\ndata: [DONE]\n\n`;
             return new Response(sseBody, { headers });
           }
 
@@ -342,8 +345,8 @@ export const Route = createFileRoute("/api/isabella")({
               "x-isabella-correlation-id": telemetry.correlationId,
             }),
           );
-          const fallbackText = `Isabella · Nodo Cero — modo soberano local activo. Recibí tu mensaje y estoy lista para ayudarte desde Real del Monte, incluso sin conexión externa. ¿Qué necesitas?`;
-          const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: fallbackText } }] })}\n\ndata: [DONE]\n\n`;
+          const native = nativeInference({ text: lastUserMessage, locale: "es-MX", tenantId: context.tenantId, history: messages as Array<{ role: "user" | "assistant"; content: string }> });
+          const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: native.text } }] })}\n\ndata: [DONE]\n\n`;
           return new Response(sseBody, { headers });
         }
       }),

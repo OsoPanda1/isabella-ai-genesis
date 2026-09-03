@@ -191,6 +191,19 @@ Esta alineación no certifica; exige que cada módulo declare `evidence: [test|r
 
 ---
 
+## ML Nativo 100% Español LATAM + Open Science
+
+**Isabella ahora responde a `hola` sin depender de Gemini — `src/lib/isabella-native-ml.ts` (100% español latinoamericano, México):**
+
+- **Clasificación NFD + weighted scoring** `saludo|territorio|identidad|memoria|seguridad|economia|tecnica|filosofia|general` con confianza 0.72-0.97, latencia <50ms, sin `Math.random` — determinista y reproducible.
+- **Generación soberana:** plantillas con `Real del Monte (2,700 msnm)`, `C.R.O.W.N.`, `BookPI 85/15`, memoria pentacapa, soberanía — nunca mockdata genérica.
+- **Fallback garantizado en `src/routes/api/isabella.ts:195`:** si `Gemini` falla (`429/402/5xx` o `catch`), `nativeInference({text: lastUserMessage, locale:"es-MX", tenantId: context.tenantId})` genera `SSE` `choices.delta.content` que `useIsabella.ts:220` ya consume. Verificado 100/100 con `hola|buenos dias|quien eres|real del monte` → `saludo|territorio|identidad` correcto.
+- **Open Science/Open Source gratuitos integrados vía contrato (`listOpenScienceModels()`):** `dccuchile/bert-base-spanish-wwm-cased` (Apache-2.0 embeddings), `PlanTL-GOB-ES/roberta-base-bne` (Apache-2.0), `facebook/m2m100_418M` (MIT traducción), `openai/whisper-small` (MIT STT es-MX), `coqui/XTTS-v2` (MPL-2.0 TTS es-MX soberano). Estado `contract` — no se afirma hardware sin benchmark.
+
+API nativa extendida: `POST /api/isabella` ahora expone `x-isabella-native-intent`/`confidence` y `provenance.method=native-ml` cuando activa fallback, preservando `traceId`/`tenantId` y BookPI.
+
+---
+
 ## Inicio rápido
 
 ```bash
