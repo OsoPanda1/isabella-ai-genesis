@@ -89,7 +89,7 @@ const PHASES: Phase[] = [
   { at: 22.4, title: "Red de 12 Cabezas", sub: "Interconexión soberana de orquestación ética" },
   {
     at: 31.2,
-    title: Modulos "Mnemósine & Tellus" activados,
+    title: "Mnemósine & Tellus",
     sub: "Gobernanza de conocimiento y pertenencia territorial",
   },
   { at: 39.5, title: "Núcleo Establecido", sub: "Isabella Villaseñor AI está en línea" },
