@@ -1,24 +1,15 @@
-import { defineConfig } from "vite";
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import viteReact from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-import tsConfigPaths from "vite-tsconfig-paths";
+// @lovable.dev/vite-tanstack-config ya incluye tanstackStart, viteReact, tailwindcss, tsConfigPaths, nitro
+import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-    tsConfigPaths(),
-    tanstackStart(),
-    viteReact(),
-  ],
-  server: {
-    port: 3000,
-    host: "0.0.0.0",
-    strictPort: true,
+  tanstackStart: {
+    server: { entry: "server" },
   },
-  resolve: {
-    alias: {
-      "server-only": "vite/client",
+  vite: {
+    resolve: {
+      alias: {
+        "server-only": "vite/client",
+      },
     },
   },
 });
