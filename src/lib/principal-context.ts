@@ -3,7 +3,7 @@ import { authorize, type AuthorizationRequest } from "./authorization";
 import { type Resource, type Action } from "./permission-matrix";
 import { type Role } from "./rbac";
 import { ApiKeyAuthenticator } from "./api-key-authenticator";
-import { repositoryFactory } from "./persistence/repository";
+import { repositoryFactory } from "./persistence/repository-factory";
 
 export class PrincipalContext {
   public readonly userId: string;

@@ -223,7 +223,7 @@ pnpm run security:scan # eslint.security.mjs + secret-scan.mjs
 pnpm run db:verify && pnpm run db:migrate
 ```
 
-`AGENTS.md:18` criterio finalización: objetivo funcional + seguridad/privacidad + Lovable reversible + validaciones verdes.
+`AGENTS.md:18` criterio finalización: objetivo funcional + seguridad/privacidad + Vercel reversible + validaciones verdes.
 
 ---
 

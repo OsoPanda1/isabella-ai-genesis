@@ -27,7 +27,6 @@ Disallow: /*.env*
 Disallow: /node_modules/
 Disallow: /.git/
 Disallow: /.github/
-Disallow: /.lovable/
 Disallow: /supabase/
 
 # Permitir explícitamente recursos críticos para renderizado visual (Google/Bing)
@@ -95,7 +94,6 @@ Allow: /
 Disallow: /node_modules/
 Disallow: /.git/
 Disallow: /.github/
-Disallow: /.lovable/
 Disallow: /supabase/
 
 

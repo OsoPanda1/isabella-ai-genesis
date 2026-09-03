@@ -112,6 +112,12 @@ export interface IRepository<T> {
    * Health check / connection verification
    */
   health(): Promise<{ ok: boolean; latencyMs: number }>;
+
+  /**
+   * Find candidate by key prefix for API key auth — tenant-agnostic prefix lookup, hash verification follows
+   * Implementations must not use generic list for auth; use indexed prefix lookup
+   */
+  findByPrefix?(prefix: string): Promise<T | null>;
 }
 
 export interface RepositoryFactory {
@@ -157,4 +163,4 @@ export function isRepositoryError(error: unknown): error is RepositoryError {
   );
 }
 
-export { JsonFileRepository, JsonRepositoryFactory, repositoryFactory } from "./adapters/json-adapter";
+export { JsonFileRepository, JsonRepositoryFactory } from "./adapters/json-adapter";

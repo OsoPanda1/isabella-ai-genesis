@@ -23,9 +23,31 @@ function securitySecret(): string {
   return value;
 }
 
-// --- LAYER 2: In-Memory Rate Limiting Cache ---
+// --- LAYER 2: Distributed Rate Limiting (Upstash Redis + in-memory fallback) ---
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute window
 const rateLimitCache = new Map<string, { count: number; windowStart: number }>();
+
+// Upstash Redis client lazy — only instantiated if REDIS_URL/KV_URL present
+let redisClient: { incr: (key: string) => Promise<number>; expire: (key: string, sec: number) => Promise<number>; ttl: (key: string) => Promise<number> } | null = null;
+async function getRedis(): Promise<typeof redisClient> {
+  if (redisClient) return redisClient;
+  const url = config().REDIS_URL || (config() as unknown as Record<string, unknown>).KV_URL as string | undefined || process.env.REDIS_URL || process.env.KV_URL;
+  if (!url) return null;
+  try {
+    // Dynamic import to avoid hard dependency in dev without Redis
+    const mod = await import("@upstash/redis").catch(() => null) as unknown as { Redis?: new (opts: { url: string; token?: string }) => unknown } | null;
+    if (!mod?.Redis) {
+      // Fallback to simple fetch-based incr if @upstash/redis not installed — use memory
+      return null;
+    }
+    const token = (config() as unknown as Record<string, unknown>).KV_REST_API_TOKEN as string | undefined || process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_TOKEN;
+    // @ts-ignore — Upstash Redis constructor
+    redisClient = new (mod.Redis as unknown as new (opts: Record<string, unknown>) => typeof redisClient)({ url, token } as Record<string, unknown>) as typeof redisClient;
+    return redisClient;
+  } catch {
+    return null;
+  }
+}
 
 export interface SecurityTelemetry {
   traceId: string;
@@ -47,24 +69,31 @@ export interface TokenClaims {
 }
 
 export const SecuritySystem = {
-  // --- LAYER 0: Secure IP Resolver (Anti-Spoofing Proxy Guard) ---
+  // --- LAYER 0: Secure IP Resolver (Trusted Proxy Guard) ---
   resolveClientIp(request: Request): string {
-    // Prevent malicious headers injection by looking up headers in priority order,
-    // prioritizing trusted hosting environments headers (like Cloud Run / Cloudflare / GCP)
-    const cfIp = request.headers.get("cf-connecting-ip");
-    if (cfIp) return cfIp.trim();
-
-    const realIp = request.headers.get("x-real-ip");
-    if (realIp) return realIp.trim();
-
-    const forwardedFor = request.headers.get("x-forwarded-for");
-    if (forwardedFor) {
-      // x-forwarded-for can be a comma-separated list; the first entry is the client IP.
-      const parts = forwardedFor.split(",");
-      const firstIp = parts[0]?.trim();
-      if (firstIp) return firstIp;
+    const trustedMode = ((): boolean => {
+      try {
+        return (config() as unknown as Record<string, unknown>).TRUSTED_PROXY_MODE === "true" || process.env.TRUSTED_PROXY_MODE === "true";
+      } catch {
+        return process.env.TRUSTED_PROXY_MODE === "true";
+      }
+    })();
+    // Only trust x-forwarded-for/cf-connecting-ip when behind trusted proxy (Vercel/Cloudflare)
+    if (trustedMode) {
+      const cfIp = request.headers.get("cf-connecting-ip");
+      if (cfIp) return cfIp.trim();
+      const realIp = request.headers.get("x-real-ip");
+      if (realIp) return realIp.trim();
+      const forwardedFor = request.headers.get("x-forwarded-for");
+      if (forwardedFor) {
+        const parts = forwardedFor.split(",");
+        const firstIp = parts[0]?.trim();
+        if (firstIp) return firstIp;
+      }
     }
-
+    // Fallback: Vercel provides x-vercel-forwarded-for, otherwise remote address is not reliably available in edge
+    const vercelIp = request.headers.get("x-vercel-forwarded-for");
+    if (vercelIp) return vercelIp.split(",")[0]?.trim() ?? "local_client";
     return "local_client";
   },
 
@@ -90,7 +119,6 @@ export const SecuritySystem = {
     const entry = rateLimitCache.get(ip);
 
     if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-      // Create or refresh rate limit window
       rateLimitCache.set(ip, { count: 1, windowStart: now });
       return { allowed: true, remaining: limit - 1 };
     }
@@ -101,6 +129,21 @@ export const SecuritySystem = {
 
     entry.count += 1;
     return { allowed: true, remaining: limit - entry.count };
+  },
+
+  // Distributed rate limit — uses Upstash Redis when available, falls back to memory
+  async checkRateLimitDistributed(ip: string, limit: number = 30): Promise<{ allowed: boolean; remaining: number }> {
+    const redis = await getRedis();
+    if (!redis) return this.checkRateLimit(ip, limit);
+    try {
+      const key = `ratelimit:${ip}:${Math.floor(Date.now() / RATE_LIMIT_WINDOW_MS)}`;
+      const count = await redis.incr(key);
+      if (count === 1) await redis.expire(key, 60);
+      const remaining = Math.max(0, limit - count);
+      return { allowed: count <= limit, remaining };
+    } catch {
+      return this.checkRateLimit(ip, limit);
+    }
   },
 
   // --- LAYER 3: Sovereign Cryptographic Authorization & Token Verification ---
@@ -173,13 +216,13 @@ export const SecuritySystem = {
     return { allowed: true, claims };
   },
 
-  // --- LAYER 4: Hardened OWASP Secure Headers (No unsafe-eval!) ---
+  // --- LAYER 4: Hardened OWASP Secure Headers (No unsafe-eval, minimal unsafe-inline) ---
   injectSecureHeaders(headers: Headers = new Headers()): Headers {
-    // Inject OWASP top security headers - UNSAFE-EVAL COMPLETELY REMOVED.
-    // Modernized script-src and style-src to allow required assets while blocking dangerous executions.
+    // Note: 'unsafe-inline' for script/style is required by Vite/TanStack hydration in dev; in prod consider nonce/hash with strict CSP.
+    // connect-src no longer includes Lovable — uses Gemini + self + Supabase.
     headers.set(
       "Content-Security-Policy",
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: referrer; media-src 'self' blob:; connect-src 'self' https://ai.gateway.lovable.dev; frame-ancestors 'self';",
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' blob:; connect-src 'self' https://generativelanguage.googleapis.com https://*.supabase.co https://*.neon.tech; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
     );
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("X-Frame-Options", "SAMEORIGIN");

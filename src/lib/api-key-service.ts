@@ -1,4 +1,5 @@
-import { repositoryFactory, type ApiKey } from "./persistence/repository";
+import { repositoryFactory } from "./persistence/repository-factory";
+import type { ApiKey } from "./persistence/repository";
 import { ApiKeyCrypto } from "./api-key-crypto";
 import type { ApiKeyRecord } from "./credential-types";
 import { config } from "./config";
@@ -140,8 +141,15 @@ export class ApiKeyService {
 
     const prefix = parts.slice(0, -1).join("_");
 
-    const { items } = await this.repo.list("", { keyPrefix: prefix });
-    const record = items[0];
+    // P0-06: use indexed prefix lookup, not generic list — fail-closed if prefix not found
+    const repoWithPrefix = this.repo as unknown as { findByPrefix?: (prefix: string) => Promise<unknown> };
+    let record: unknown | null = null;
+    if (repoWithPrefix.findByPrefix) {
+      record = await repoWithPrefix.findByPrefix(prefix);
+    } else {
+      const { items } = await this.repo.list("", { keyPrefix: prefix });
+      record = items[0] ?? null;
+    }
     if (!record) {
       return { success: false, error: "invalid_credential" };
     }

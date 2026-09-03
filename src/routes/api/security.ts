@@ -1,12 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
-import { SovereignDB } from "@/lib/sovereign-engine";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { secrets } from "@/lib/secrets";
 import { config } from "@/lib/config";
 import { spawn } from "node:child_process";
 import * as path from "node:path";
+import * as crypto from "node:crypto";
+import { repositoryFactory } from "@/lib/persistence/repository-factory";
+
+async function auditSecurity(traceId: string, tenantId: string, action: string, severity: "S0" | "S1" | "S2" | "S3", details: string): Promise<void> {
+  try {
+    await repositoryFactory.getAuditRepository().audit({
+      id: crypto.randomUUID(),
+      tenantId,
+      traceId,
+      timestamp: new Date().toISOString(),
+      action,
+      resource: "security",
+      severity,
+      actor: "system",
+      result: severity === "S1" || severity === "S0" ? "failure" : "success",
+      details: { details },
+    });
+  } catch {}
+}
 
 // Enum matching Python domain
 const EventTypeSchema = z.enum([
@@ -191,28 +209,14 @@ export const Route = createFileRoute("/api/security")({
 
           child.on("error", () => {
             const tsResult = calculateTsAegisResponse(event);
-            SovereignDB.appendAuditLog(
-              context.traceId,
-              context.correlationId,
-              context.ip,
-              "Análisis Aegis-X (TS Fallback Activo)",
-              tsResult.aegis_level >= 2 ? "S1" : "S3",
-              `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}.`,
-            );
+            void auditSecurity(context.traceId, context.tenantId, "aegis.fallback", tsResult.aegis_level >= 2 ? "S1" : "S3", `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}.`);
             resolve(new Response(JSON.stringify(tsResult), { headers }));
           });
 
           child.on("close", (code) => {
             if (code !== 0) {
               const tsResult = calculateTsAegisResponse(event);
-              SovereignDB.appendAuditLog(
-                context.traceId,
-                context.correlationId,
-                context.ip,
-                "Análisis Aegis-X (TS Fallback Activo)",
-                tsResult.aegis_level >= 2 ? "S1" : "S3",
-                `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}. Stderr: ${stderr.slice(0, 200)}`,
-              );
+              void auditSecurity(context.traceId, context.tenantId, "aegis.fallback", tsResult.aegis_level >= 2 ? "S1" : "S3", `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}. Stderr: ${stderr.slice(0, 200)}`);
               return resolve(new Response(JSON.stringify(tsResult), { headers }));
             }
             try {
@@ -223,14 +227,7 @@ export const Route = createFileRoute("/api/security")({
                 sanitizedSource: `hash_src_${pyResult.source || "hashed"}`,
                 redactedMetadata: { ...event.metadata, original_resource: event.resource_class },
               };
-              SovereignDB.appendAuditLog(
-                context.traceId,
-                context.correlationId,
-                context.ip,
-                "Análisis Aegis-X (Python Core)",
-                finalResult.aegis_level >= 2 ? "S1" : "S3",
-                `Análisis exitoso mediante motor nativo Python. Decisión: ${finalResult.decision.toUpperCase()}. Score: ${finalResult.score}.`,
-              );
+              void auditSecurity(context.traceId, context.tenantId, "aegis.python_core", finalResult.aegis_level >= 2 ? "S1" : "S3", `Análisis exitoso mediante motor nativo Python. Decisión: ${finalResult.decision.toUpperCase()}. Score: ${finalResult.score}.`);
               return resolve(new Response(JSON.stringify(finalResult), { headers }));
             } catch {
               const tsResult = calculateTsAegisResponse(event);

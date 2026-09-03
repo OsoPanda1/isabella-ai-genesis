@@ -21,6 +21,18 @@ const FILES: Record<string, string> = {
   audit: "auditLogs.json",
 };
 
+function assertJsonAllowed(): void {
+  const isProd = process.env.NODE_ENV === "production" || process.env.ISABELLA_RUNTIME_MODE === "production" || process.env.ISABELLA_RUNTIME_MODE === "staging";
+  const allowed = process.env.DURABLE_JSON_ALLOWED === "true";
+  if (isProd && !allowed) {
+    throw Object.assign(new Error("[FATAL] JSON persistence forbidden in production — DURABLE_JSON_ALLOWED=false"), {
+      code: "REPOSITORY_FORBIDDEN",
+      statusCode: 500,
+      retryable: false,
+    });
+  }
+}
+
 function ensureDir() {
   if (!fs.existsSync(PERSISTENCE_DIR)) {
     fs.mkdirSync(PERSISTENCE_DIR, { recursive: true });
@@ -62,82 +74,115 @@ function toRepositoryError(err: unknown): RepositoryError {
   return rep;
 }
 
+function recordTenantId(record: unknown): string | undefined {
+  const r = record as Record<string, unknown>;
+  return (r.tenantId as string) ?? (r.tenant_id as string) ?? (r.tenant_id as string) ?? undefined;
+}
+
+function isTenantIsolated<T>(record: T, tenantId: string): boolean {
+  if (!tenantId) return true; // empty tenant allowed only for prefix lookup during auth
+  const tid = recordTenantId(record);
+  // For Tenant records, id === tenantId
+  const id = (record as { id: string }).id;
+  if (tid === undefined && id === tenantId) return true;
+  return tid === tenantId;
+}
+
 export class JsonFileRepository<T extends { id: string }> implements IRepository<T> {
   private readonly type: string;
 
   constructor(type: string) {
     this.type = type;
+    assertJsonAllowed();
   }
 
-  async create(
-    _tenantId: string,
-    data: Partial<T>,
-    _options?: WriteOptions,
-  ): Promise<T> {
+  async create(tenantId: string, data: Partial<T>, _options?: WriteOptions): Promise<T> {
+    assertJsonAllowed();
+    if (!tenantId) throw toRepositoryError(new Error("tenantId required for create"));
     const items = load<T>(this.type);
     const record = {
       ...data,
       id: (data as Record<string, unknown>).id ?? crypto.randomUUID(),
-    } as T;
+      tenantId,
+      tenant_id: tenantId,
+    } as unknown as T;
+    // Ensure tenant isolation field set
+    (record as Record<string, unknown>).tenantId = tenantId;
+    (record as Record<string, unknown>).tenant_id = tenantId;
     items.push(record);
     save(this.type, items);
     return record;
   }
 
-  async read(
-    _tenantId: string,
-    id: string,
-    _options?: ReadOptions,
-  ): Promise<T | null> {
+  async read(tenantId: string, id: string, _options?: ReadOptions): Promise<T | null> {
+    assertJsonAllowed();
     const items = load<T>(this.type);
-    const found = items.find((r) => r.id === id) ?? null;
+    const found = items.find((r) => r.id === id && isTenantIsolated(r, tenantId)) ?? null;
     return found;
   }
 
   async list(
-    _tenantId: string,
+    tenantId: string,
     _filters?: Record<string, unknown>,
     limit?: number,
     offset?: number,
   ): Promise<{ items: T[]; total: number }> {
+    assertJsonAllowed();
     const items = load<T>(this.type);
     let result = items;
+    // Enforce tenant isolation unless empty (auth prefix lookup)
+    if (tenantId) {
+      result = result.filter((r) => isTenantIsolated(r, tenantId));
+    }
     if (_filters) {
       result = result.filter((r) =>
-        Object.entries(_filters).every(([k, v]) => (r as Record<string, unknown>)[k] === v),
+        Object.entries(_filters).every(([k, v]) => {
+          const rv = (r as Record<string, unknown>)[k] ?? (r as Record<string, unknown>)[toSnake(k)] ?? (r as Record<string, unknown>)[toCamel(k)];
+          return rv === v;
+        }),
       );
     }
     const total = result.length;
-    const sliced = offset !== undefined ? result.slice(offset, offset + (limit ?? total)) : result;
+    const sliced = offset !== undefined ? result.slice(offset, offset + (limit ?? total)) : limit !== undefined ? result.slice(0, limit) : result;
     return { items: sliced, total };
   }
 
-  async update(
-    _tenantId: string,
-    id: string,
-    data: Partial<T>,
-    _options?: WriteOptions,
-  ): Promise<T> {
+  async update(tenantId: string, id: string, data: Partial<T>, _options?: WriteOptions): Promise<T> {
+    assertJsonAllowed();
+    if (!tenantId) throw toRepositoryError(new Error("tenantId required for update"));
     const items = load<T>(this.type);
-    const idx = items.findIndex((r) => r.id === id);
+    const idx = items.findIndex((r) => r.id === id && isTenantIsolated(r, tenantId));
     if (idx < 0) {
-      throw toRepositoryError(new Error(`Record ${id} not found`));
+      throw toRepositoryError(new Error(`Record ${id} not found for tenant ${tenantId}`));
     }
-    items[idx] = { ...items[idx], ...data } as T;
+    // Prevent tenantId tampering
+    const sanitized = { ...data } as Record<string, unknown>;
+    delete sanitized.tenantId;
+    delete sanitized.tenant_id;
+    items[idx] = { ...items[idx], ...sanitized } as T;
     save(this.type, items);
     return items[idx];
   }
 
-  async delete(_tenantId: string, id: string): Promise<boolean> {
+  async delete(tenantId: string, id: string): Promise<boolean> {
+    assertJsonAllowed();
+    if (!tenantId) throw toRepositoryError(new Error("tenantId required for delete"));
     const items = load<T>(this.type);
-    const idx = items.findIndex((r) => r.id === id);
+    const idx = items.findIndex((r) => r.id === id && isTenantIsolated(r, tenantId));
     if (idx < 0) return false;
     items.splice(idx, 1);
     save(this.type, items);
     return true;
   }
 
+  async findByPrefix(prefix: string): Promise<T | null> {
+    assertJsonAllowed();
+    const items = load<T>(this.type);
+    return (items.find((r) => (r as Record<string, unknown>).keyPrefix === prefix || (r as Record<string, unknown>).prefix === prefix || (r as Record<string, unknown>).key_prefix === prefix) as T | undefined) ?? null;
+  }
+
   async audit(entry: AuditEntry): Promise<void> {
+    assertJsonAllowed();
     const items = load<AuditEntry>("audit");
     items.unshift(entry);
     save("audit", items);
@@ -146,6 +191,7 @@ export class JsonFileRepository<T extends { id: string }> implements IRepository
   async health(): Promise<{ ok: boolean; latencyMs: number }> {
     const start = performance.now();
     try {
+      assertJsonAllowed();
       ensureDir();
       fs.accessSync(filePath(this.type));
       return { ok: true, latencyMs: performance.now() - start };
@@ -153,6 +199,13 @@ export class JsonFileRepository<T extends { id: string }> implements IRepository
       return { ok: false, latencyMs: performance.now() - start };
     }
   }
+}
+
+function toSnake(key: string): string {
+  return key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
+}
+function toCamel(key: string): string {
+  return key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
 }
 
 export class JsonRepositoryFactory implements RepositoryFactory {
@@ -167,6 +220,7 @@ export class JsonRepositoryFactory implements RepositoryFactory {
   }
 
   getAdapter<T extends { id: string }>(type: "supabase" | "neon" | "redis", _schema?: string): IRepository<T> {
+    assertJsonAllowed();
     return new JsonFileRepository<T>(type);
   }
 

@@ -10,7 +10,6 @@ import { secrets } from "./secrets";
  */
 
 const BUILTIN_KEYS = [
-  "LOVABLE_API_KEY",
   "GEMINI_API_KEY",
   "AUTH_JWT_SECRET",
   "SUPABASE_SERVICE_ROLE_KEY",

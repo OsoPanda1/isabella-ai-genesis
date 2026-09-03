@@ -192,22 +192,24 @@ export const Route = createFileRoute("/api/isabella")({
           telemetry.traceId,
         );
 
-        // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker ---
+        // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker — Gemini (Lovable eliminado) ---
         try {
           const upstream = await SecuritySystem.fetchSafeUpstream(
-            "https://ai.gateway.lovable.dev/v1/chat/completions",
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:streamGenerateContent?key=${encodeURIComponent(apiKey)}`,
             {
               method: "POST",
               headers: {
                 "content-type": "application/json",
-                "Lovable-API-Key": apiKey,
-                "X-Lovable-AIG-SDK": "fetch",
               },
               body: JSON.stringify({
-                model: "google/gemini-3.6-flash",
-                stream: true,
-                temperature,
-                messages: [{ role: "system", content: sanitizedSystem.clean }, ...messages],
+                contents: [
+                  { role: "user", parts: [{ text: sanitizedSystem.clean }] },
+                  ...messages.map((m) => ({
+                    role: m.role === "assistant" ? "model" : "user",
+                    parts: [{ text: typeof m.content === "string" ? m.content : JSON.stringify(m.content) }],
+                  })),
+                ],
+                generationConfig: { temperature, maxOutputTokens: 8192 },
               }),
             },
           );

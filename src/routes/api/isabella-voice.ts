@@ -87,18 +87,17 @@ export const Route = createFileRoute("/api/isabella-voice")({
         // --- LAYER 6: Auditable Telemetry ---
         const telemetry = SecuritySystem.generateTelemetry(context.ip, "allowed");
 
-        // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker ---
+        // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker — edge-tts soberano (Lovable eliminado) ---
         try {
+          const voiceApiUrl = process.env.VOICE_API_URL || "http://localhost:8001";
           const upstream = await SecuritySystem.fetchSafeUpstream(
-            "https://ai.gateway.lovable.dev/v1/audio/speech",
+            `${voiceApiUrl.replace(/\/$/, "")}/v1/audio/speech`,
             {
               method: "POST",
               headers: {
                 "content-type": "application/json",
-                Authorization: `Bearer ${apiKey}`,
               },
               body: JSON.stringify({
-                model: "openai/gpt-4o-mini-tts",
                 input: sanitizedText.clean,
                 voice,
                 instructions:

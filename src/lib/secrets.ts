@@ -49,11 +49,7 @@ export function createSecrets(cfg = config): Secrets {
       return requireSecret("bookpi", cfg().BOOKPI_SIGNING_KEY, "BOOKPI_SIGNING_KEY");
     },
     aiGatewayKey() {
-      return (
-        cfg().LOVABLE_API_KEY ||
-        cfg().GEMINI_API_KEY ||
-        requireSecret("ai", undefined, "LOVABLE_API_KEY o GEMINI_API_KEY")
-      );
+      return cfg().GEMINI_API_KEY || requireSecret("ai", undefined, "GEMINI_API_KEY");
     },
     supabaseJwtSecret() {
       return cfg().SUPABASE_JWT_SECRET;

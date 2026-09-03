@@ -380,7 +380,7 @@ class AegisFirewallService {
     if (!cfg.AUTH_JWT_SECRET) {
       missingVars.push("AUTH_JWT_SECRET");
     }
-    if (!cfg.GEMINI_API_KEY && !cfg.LOVABLE_API_KEY) {
+    if (!cfg.GEMINI_API_KEY) {
       missingVars.push("GEMINI_API_KEY");
     }
 

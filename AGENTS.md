@@ -25,19 +25,19 @@ Toda contribución debe respetar cuatro principios:
 
 ---
 
-## 1. Regla crítica Lovable / GitHub
+## 1. Regla crítica Vercel / GitHub
 
 > [!IMPORTANT]
-> Este proyecto está conectado a Lovable.
+> Este proyecto despliega desde Vercel (sin Lovable). Fuente única de verdad: `main` en GitHub.
 >
 > No reescribas historial ya publicado. No uses `push --force`, `rebase`, `commit --amend` sobre commits ya enviados, ni squash de historia remota.
 >
-> Los commits enviados a la rama sincronizada se reflejan en Lovable. Mantén siempre la rama en estado compilable y reversible mediante commits nuevos.
+> Cada push a `main` dispara deploy en Vercel. Mantén siempre la rama en estado compilable y reversible mediante commits nuevos.
 
 ### Normas obligatorias
 
 - Usa commits pequeños y funcionales.
-- No rompas la sincronización con Lovable.
+- No rompas el deploy de Vercel con builds rotos.
 - No introduzcas cambios masivos sin validación previa.
 - No subas secretos, llaves, dumps, tokens ni archivos generados innecesarios.
 - Si un cambio es arriesgado, hazlo incrementalmente.

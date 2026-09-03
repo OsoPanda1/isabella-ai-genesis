@@ -326,18 +326,18 @@ const AI_PLATFORMS: AiPlatform[] = [
     ],
   },
   {
-    id: "lovable",
-    name: "Lovable",
-    provider: "Lovable",
+    id: "gemini",
+    name: "Gemini",
+    provider: "Google",
     category: "Código & Desarrollo",
     description:
-      "Crea aplicaciones funcionales completas y bases de datos con desarrollo visual instantáneo.",
+      "Modelo multimodal de Google para razonamiento, código y generación soberana — vía API directa con GEMINI_API_KEY.",
     features: [
-      "Lienzo de desarrollo 'Vibe Coding': Interfaz pensada para crear aplicaciones web completas describiendo la idea en lenguaje natural.",
-      "Visor de arquitectura de proyecto: Vista en árbol que muestra las carpetas, componentes y base de datos creados en el fondo.",
-      "Editor visual directo: Posibilidad de hacer clic en elementos del diseño para pedir cambios de estilo o lógica de forma aislada.",
-      "Consola de errores asistida: Módulo de depuración que detecta fallos visuales o de código y ofrece un botón de reparación automática.",
-      "Publicación en un clic (Deploy): Panel de despliegue directo con dominio personalizado integrado sin salir de la plataforma.",
+      "Generación multimodal nativa: Texto, código, visión y razonamiento con ventana de contexto larga y streaming.",
+      "Function calling soberano: Invocación tipada de tools con validación Zod y auditoría CROWN antes de ejecutar.",
+      "Grounding con Google Search: Capa opcional de verificación con fuentes citadas y control de alucinaciones.",
+      "Ventana 1M+ tokens: Procesamiento de documentos extensos, memoria territorial y repositorios completos.",
+      "Despliegue Vercel directo: API `generativelanguage.googleapis.com` con `GEMINI_API_KEY` y circuit breaker 8.5s.",
     ],
   },
   {

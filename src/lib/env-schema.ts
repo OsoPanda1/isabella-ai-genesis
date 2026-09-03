@@ -110,7 +110,6 @@ export const envSchema = z.object({
   RATE_LIMIT_VOICE_PER_MINUTE: coercedInt(20),
 
   // --- AI GATEWAY ---
-  LOVABLE_API_KEY: optionalString(),
   GEMINI_API_KEY: optionalString(),
   LLM_DEFAULT_MODEL: z.string().default("google/gemini-3.6-flash"),
   LLM_VOICE_MODEL: z.string().default("openai/gpt-4o-mini-tts"),
@@ -136,6 +135,21 @@ export const envSchema = z.object({
   API_KEY_MAX_TTL: coercedInt(31536000), // 365 days
   API_KEY_ROTATION_GRACE_SECONDS: coercedInt(300),
   API_KEY_RATE_LIMIT_DEFAULT: coercedInt(100),
+
+  // --- PERSISTENCE ---
+  DURABLE_JSON_ALLOWED: z
+    .preprocess(
+      (val) => {
+        if (typeof val === "boolean") return val;
+        if (typeof val !== "string") return undefined;
+        const t = val.trim().toLowerCase();
+        if (t === "true") return true;
+        if (t === "false") return false;
+        return undefined;
+      },
+      z.boolean().default(false),
+    )
+    .describe("Allow JSON file persistence in production — must be false in prod, true only for dev/test"),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -160,7 +174,7 @@ export function requiredEnvKeys(mode: RuntimeMode): (keyof Env)[] {
         "SUPABASE_URL",
         "SUPABASE_ANON_KEY",
         "AUTH_JWT_SECRET",
-        "LOVABLE_API_KEY",
+        "GEMINI_API_KEY",
         "ENCRYPTION_MASTER_KEY",
       ];
     case "emergency":

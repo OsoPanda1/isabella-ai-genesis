@@ -1,5 +1,52 @@
 import * as crypto from "node:crypto";
-import { SovereignDB } from "./sovereign-engine";
+import { config } from "./config";
+import { repositoryFactory } from "./persistence/repository-factory";
+import type { AuditEntry } from "./persistence/repository";
+
+function isSandboxEnabled(): boolean {
+  try {
+    const cfg = config();
+    if (cfg.NODE_ENV === "production" || cfg.ISABELLA_RUNTIME_MODE === "production") {
+      return process.env.SANDBOX_ENABLED === "true";
+    }
+  } catch {
+    if (process.env.NODE_ENV === "production" && process.env.SANDBOX_ENABLED !== "true") return false;
+  }
+  return true;
+}
+
+async function auditSandbox(traceId: string, ...rest: unknown[]): Promise<void> {
+  // Supports both legacy 6-arg void auditSandbox(traceId, corr, ip, event, severity, details)
+  // and new 4-arg auditSandbox(traceId, event, severity, details)
+  let event: string, severity: AuditEntry["severity"], details: string;
+  if (rest.length === 5) {
+    event = rest[2] as string;
+    severity = rest[3] as AuditEntry["severity"];
+    details = rest[4] as string;
+  } else if (rest.length === 3) {
+    event = rest[0] as string;
+    severity = rest[1] as AuditEntry["severity"];
+    details = rest[2] as string;
+  } else {
+    return;
+  }
+  try {
+    await repositoryFactory.getAuditRepository().audit({
+      id: crypto.randomUUID(),
+      tenantId: "system",
+      traceId,
+      timestamp: new Date().toISOString(),
+      action: event,
+      resource: "sandbox",
+      severity,
+      actor: "system",
+      result: severity === "S1" || severity === "S0" ? "failure" : "success",
+      details: { details },
+    });
+  } catch {
+    // Fallback — audit repository unavailable
+  }
+}
 
 /**
  * SANDBOX SOBERANO (src/lib/sovereign-sandbox.ts)
@@ -89,7 +136,7 @@ export class SovereignSandboxService {
     const computedHash = SovereignSandboxService.sha256(binary);
 
     if (computedHash !== expectedHash) {
-      SovereignDB.appendAuditLog(
+      void auditSandbox(
         this.traceId,
         "cor_sandbox_load_fail",
         "127.0.0.1",
@@ -105,7 +152,7 @@ export class SovereignSandboxService {
     this.activeBinary = binary;
     this.moduleHash = computedHash;
 
-    SovereignDB.appendAuditLog(
+    void auditSandbox(
       this.traceId,
       "cor_sandbox_load_ok",
       "127.0.0.1",
@@ -123,6 +170,10 @@ export class SovereignSandboxService {
     quota: number,
   ): Promise<ISandboxExecutionResult> {
     const startTime = Date.now();
+
+    if (!isSandboxEnabled()) {
+      return this.generateResult(false, "Capability unavailable: sandbox disabled in production (fail-closed).", startTime, 503, 0, 0, 0);
+    }
 
     if (!this.activeBinary) {
       return this.generateResult(false, FAIL_MSG_NO_WASM, startTime, 1, 0, 0, 0);
@@ -169,7 +220,7 @@ export class SovereignSandboxService {
         `${this.moduleId}|${this.traceId}|${output}|${executionTimeMs}|${exec.memoryConsumedBytes}|${exec.gasTokensConsumed}`,
       );
 
-      SovereignDB.appendAuditLog(
+      void auditSandbox(
         this.traceId,
         "cor_sandbox_wasm_exec",
         "127.0.0.1",
@@ -211,7 +262,7 @@ export class SovereignSandboxService {
     }
     this.isProvisioned = true;
 
-    SovereignDB.appendAuditLog(
+    void auditSandbox(
       this.traceId,
       "cor_container_provision",
       "127.0.0.1",
@@ -229,6 +280,10 @@ export class SovereignSandboxService {
   ): Promise<ISandboxExecutionResult> {
     const startTime = Date.now();
 
+    if (!isSandboxEnabled()) {
+      return this.generateResult(false, "Capability unavailable: sandbox disabled in production (fail-closed).", startTime, 503, 0, 0, 0);
+    }
+
     if (!this.isProvisioned) {
       return this.generateResult(false, FAIL_MSG_NOT_PROVISIONED, startTime, 1, 0, 0, 0);
     }
@@ -242,7 +297,7 @@ export class SovereignSandboxService {
         /[;&|`$<>]/.test(cmd) ||
         [...cmd].some((char) => char.charCodeAt(0) <= 31 || char.charCodeAt(0) === 127)
       ) {
-        SovereignDB.appendAuditLog(
+        void auditSandbox(
           this.traceId,
           "cor_sandbox_shell_inject",
           "127.0.0.1",
@@ -269,7 +324,7 @@ export class SovereignSandboxService {
         `${this.containerId}|${this.traceId}|${exec.output}|${executionTimeMs}|${exec.memoryConsumedBytes}|${exec.gasTokensConsumed}`,
       );
 
-      SovereignDB.appendAuditLog(
+      void auditSandbox(
         this.traceId,
         "cor_sandbox_container_exec",
         "127.0.0.1",
@@ -310,7 +365,7 @@ export class SovereignSandboxService {
     }
     this.isProvisioned = false;
 
-    SovereignDB.appendAuditLog(
+    void auditSandbox(
       this.traceId,
       "cor_container_deprovision",
       "127.0.0.1",
