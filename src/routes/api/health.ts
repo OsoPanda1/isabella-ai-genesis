@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { repositoryFactory } from "@/lib/persistence/repository-factory";
 import { config } from "@/lib/config";
 
-export const Route = createFileRoute("/api/health" as any)({
+export const Route = createFileRoute("/api/health")({
   server: {
     handlers: {
       GET: async ({ request }) => {
