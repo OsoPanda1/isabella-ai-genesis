@@ -1,7 +1,14 @@
 import { z } from "zod";
 import { capabilityRegistry, type CapabilityState } from "./capability-registry";
 
-export const SkillId = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+export const SkillId = z.string().min(1).max(80).refine((value) => {
+  if (value.startsWith("-") || value.endsWith("-")) return false;
+  for (const character of value) {
+    const isAlphaNumeric = (character >= "a" && character <= "z") || (character >= "0" && character <= "9");
+    if (!isAlphaNumeric && character !== "-") return false;
+  }
+  return true;
+}, "Invalid skill id");
 export type SkillStatus = Extract<CapabilityState, "implemented" | "verified" | "experimental" | "unavailable">;
 
 export interface IsabellaSkill {
@@ -29,9 +36,17 @@ export const ISABELLA_SKILLS: readonly IsabellaSkill[] = [
 export interface SkillInvocation { skill: IsabellaSkill; prompt: string; invocation: string; }
 
 export function parseSkillInvocation(input: string): { requestedId: string; prompt: string; invocation: string } | null {
-  const match = input.match(/^\s*@([a-z0-9]+(?:-[a-z0-9]+)*)(?:\s+|$)([\s\S]*)$/i);
-  if (!match) return null;
-  return { requestedId: match[1].toLowerCase(), prompt: match[2]?.trim() ?? "", invocation: match[0].trim() };
+  const trimmed = input.trim();
+  if (!trimmed.startsWith("@")) return null;
+  const separator = trimmed.search(/[\t\n\r ]/);
+  const token = separator === -1 ? trimmed : trimmed.slice(0, separator);
+  const requestedId = token.slice(1).toLowerCase();
+  if (!requestedId || !SkillId.safeParse(requestedId).success) return null;
+  return {
+    requestedId,
+    prompt: separator === -1 ? "" : trimmed.slice(separator).trim(),
+    invocation: token,
+  };
 }
 
 export function resolveSkillInvocation(input: string): SkillInvocation | { error: string; code: string } | null {
