@@ -45,9 +45,16 @@ export async function speakIsabella(text: string): Promise<void> {
     playhead += buffer.duration;
   };
 
+  const { getSessionToken } = await import("@/lib/auth-client");
+  const token = getSessionToken();
+  if (!token) {
+    stopVoice();
+    throw new Error("ARGUS requiere una sesión autorizada para activar la voz.");
+  }
+
   const res = await fetch("/api/isabella-voice", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", Authorization: `Bearer ${token}` },
     signal: controller.signal,
     body: JSON.stringify({ text: text.slice(0, 4000) }),
   });

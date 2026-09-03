@@ -8,6 +8,7 @@ import {
   type RoutingDecision,
 } from "./crown-ui";
 import { audioFormatFromMime, type Attachment } from "./attachments";
+import { resolveSkillInvocation } from "./skill-registry";
 import {
   exportTelemetryCsv,
   exportTelemetryPdf,
@@ -128,14 +129,21 @@ export function useIsabella() {
       const text = input.trim();
       if ((!text && attachments.length === 0) || isProcessing) return;
 
-      const routing = route(text || "material adjunto", preset);
+      const skillResolution = resolveSkillInvocation(text);
+      if (skillResolution && "error" in skillResolution) {
+        setMessages((prev) => [...prev, { id: uid(), role: "system", content: `ARGUS :: ${skillResolution.error}`, timestamp: now(), error: true }]);
+        return;
+      }
+      const skillContext = skillResolution && "skill" in skillResolution ? `\n\n[SKILL AUTORIZADO: ${skillResolution.skill.id}]\n${skillResolution.skill.description}` : "";
+      const effectiveText = skillResolution && "skill" in skillResolution ? skillResolution.prompt : text;
+      const routing = route(effectiveText || "material adjunto", preset);
       setDecision(routing);
       setTelemetry((prev) => [...prev, toTelemetryRecord(routing, preset.id)]);
 
       const userMsg: TerminalMessage = {
         id: uid(),
         role: "user",
-        content: text,
+        content: input.trim(),
         timestamp: now(),
         attachments,
       };
@@ -201,7 +209,7 @@ export function useIsabella() {
           },
           signal: controller.signal,
           body: JSON.stringify({
-            system: buildSystemPrompt(routing, preset),
+            system: buildSystemPrompt(routing, preset) + skillContext,
             temperature: preset.temperature,
             messages: history,
           }),

@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { PRESETS, type PresetId, type RoutingDecision } from "@/lib/crown-ui";
+import { skillGroups, type IsabellaSkill } from "@/lib/skill-registry";
+import { CheckCircle2, FlaskConical, XCircle, Sparkles } from "lucide-react";
 import { ModuleRail } from "./ModuleRail";
 
 /**
@@ -39,6 +41,8 @@ export function RightRails({
 }) {
   const [presetOpen, setPresetOpen] = useState(true);
   const [argusOpen, setArgusOpen] = useState(true);
+  const [skillsOpen, setSkillsOpen] = useState(false);
+  const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({ Orquestación: true });
   const presetRef = useRef<HTMLDivElement | null>(null);
   const argusRef = useRef<HTMLDivElement | null>(null);
   const presetHeaderRef = useRef<HTMLButtonElement | null>(null);
@@ -199,8 +203,26 @@ export function RightRails({
           </div>
         )}
       </section>
+
+      <section className="crystal-3d crystal-3d-argus rounded-2xl">
+        <button type="button" onClick={() => setSkillsOpen((value) => !value)} aria-expanded={skillsOpen} aria-controls="rail-skills-panel" className="w-full flex items-center justify-between px-4 py-3 text-left">
+          <span className="flex items-center gap-2"><Sparkles className="size-3.5 text-cyan-200" /><span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/80">Skills de Isabella</span></span>
+          <Chevron className={skillsOpen ? "rotate-180" : ""} />
+        </button>
+        {skillsOpen && <div id="rail-skills-panel" className="space-y-2 px-3 pb-3 animate-rise" aria-label="Registro de skills funcionales">
+          {skillGroups().map((group) => <div key={group.folder} className="rounded-xl border border-border/50 bg-background/20">
+            <button type="button" className="flex w-full items-center justify-between px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-cyan-100" aria-expanded={openFolders[group.folder] ?? false} onClick={() => setOpenFolders((value) => ({ ...value, [group.folder]: !(value[group.folder] ?? false) }))}><span>{group.folder}</span><Chevron className={openFolders[group.folder] ? "rotate-180" : ""} /></button>
+            {openFolders[group.folder] && <div className="space-y-1 px-2 pb-2">{group.items.map((skill) => <SkillRow key={skill.id} skill={skill} />)}</div>}
+          </div>)}
+        </div>}
+      </section>
     </div>
   );
+}
+
+function SkillRow({ skill }: { skill: IsabellaSkill }) {
+  const Icon = skill.status === "verified" || skill.status === "implemented" ? CheckCircle2 : skill.status === "experimental" ? FlaskConical : XCircle;
+  return <div className="crystal-touch rounded-lg border border-border/40 px-2.5 py-2" title={`Invoca con @${skill.id}`}><div className="flex items-center gap-2"><Icon className="size-3.5 text-cyan-200" /><span className="font-mono text-[10px] text-foreground/90">@{skill.id}</span></div><p className="mt-1 text-[10px] leading-snug text-muted-foreground">{skill.description}</p></div>;
 }
 
 function Chevron({ className = "" }: { className?: string }) {
