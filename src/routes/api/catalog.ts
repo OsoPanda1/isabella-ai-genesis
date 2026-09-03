@@ -8,7 +8,7 @@ const executeSchema = z.object({
   id: z.string(),
   method: z.string(),
   path: z.string(),
-  params: z.any().optional(),
+  params: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const Route = createFileRoute("/api/catalog")({
@@ -96,6 +96,7 @@ export const Route = createFileRoute("/api/catalog")({
         }
 
         try {
+          const startedAt = performance.now();
           let rawBody;
           try {
             rawBody = await request.json();
@@ -150,9 +151,15 @@ export const Route = createFileRoute("/api/catalog")({
             );
           }
 
-          // Evaluate request constitutionally using our deterministic C.R.O.W.N. router!
-          const mockInput = `Invocación nativa del contrato ${id} [${method} ${path}] con parámetros: ${checkParams.clean}`;
-          const { decision, auditEvents } = routeRequest(mockInput);
+          const expectedMethod = entry.method.toUpperCase();
+          const expectedPath = entry.path;
+          if (method.toUpperCase() !== expectedMethod || path !== expectedPath) {
+            const headers = SecuritySystem.injectSecureHeaders(new Headers({ "content-type": "application/json" }));
+            return new Response(JSON.stringify({ error: "El método o path no coincide con el contrato registrado." }), { status: 409, headers });
+          }
+
+          const policyInput = `Invocación nativa del contrato ${id} [${method} ${path}] con parámetros: ${checkParams.clean}`;
+          const { decision, auditEvents } = routeRequest(policyInput);
 
           // --- LAYER 6: Telemetry correlation ---
           const telemetry = SecuritySystem.generateTelemetry(
@@ -160,7 +167,7 @@ export const Route = createFileRoute("/api/catalog")({
             decision.policy.status === "allowed" ? "allowed" : "denied",
           );
 
-          const latencyMs = Math.floor(Math.random() * 85) + 12;
+          const latencyMs = Math.max(0, performance.now() - startedAt);
 
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({
@@ -183,7 +190,7 @@ export const Route = createFileRoute("/api/catalog")({
               allowedTools: decision.allowedTools,
               latencyMs,
               auditTrail: auditEvents,
-              responsePayload: entry.mockResponse || { status: "simulated_success", resource: id },
+              responsePayload: { status: "authorized_contract", resource: id, execution: "delegated_to_registered_handler" },
             }),
             { headers },
           );

@@ -402,7 +402,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter" && !started) {
         e.preventDefault();
-        startExperience();
+        void startExperience();
       } else if (e.key === "Escape" && started) {
         e.preventDefault();
         finish();
@@ -1101,7 +1101,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       dataMaterial.uniforms.uOpacity.value = technologyVal * 0.76;
     };
 
-    const updateComets = (time: number, progressVal: number) => {
+    const updateComets = (time: number) => {
   const cometOpacity = 0; // La narrativa premium usa estrellas y núcleo, no estelas aleatorias.
 
       comets.forEach((comet) => {
@@ -1204,7 +1204,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
 
       updateStars(time, convergenceVal, technologyVal, releaseVal);
       updateData(time, technologyVal, coreProgressVal);
-      updateComets(time, progressVal);
+      updateComets(time);
       updateNetwork(time, technologyVal, coreProgressVal);
 
       // Velocidad independiente por escenario (ritmo propio) + world delta
@@ -1387,7 +1387,6 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       rendererRef.current = null;
       clockRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [started, reduced, finish, readAudioReactiveState]);
 
   const progress = Math.min(1, elapsed / CONFIG.duration);

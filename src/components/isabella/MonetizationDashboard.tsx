@@ -503,6 +503,7 @@ export function MonetizationDashboard() {
   };
 
   const handleSwitchRole = async (_role: string) => {
+    void _role;
     // Los roles NO pueden cambiarse acuñando tokens por cuenta propia: la
     // identidad la emite únicamente el servidor mediante flujos autorizados
     // (provision-owner con token de bootstrap o IDP OIDC/Supabase).

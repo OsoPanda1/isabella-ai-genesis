@@ -108,7 +108,6 @@ function IsabellaInterface() {
     void isabella.send(text);
   };
 
-  const turns = isabella.messages.filter((m) => m.role === "user").length;
 
   return (
     <div className="relative min-h-screen flex bg-background text-foreground transition-all duration-300">
