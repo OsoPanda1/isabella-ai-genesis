@@ -200,7 +200,7 @@ export function TerminalView() {
   useEffect(() => {
     if (isabella.messages.length === 0) return;
     const lastMsg = isabella.messages[isabella.messages.length - 1];
-    if (lastMsg && lastMsg.role === "assistant" && !lastMsg.streaming) {
+    if (lastMsg && lastMsg.role === "isabella" && !lastMsg.streaming) {
       // Avoid duplicate lines of assistant replies
       const text = lastMsg.content;
       const isDuplicate = lines.some((l) => l.text === text && l.type === "output");

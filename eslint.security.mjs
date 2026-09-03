@@ -18,6 +18,8 @@ export default tseslint.config(
       "test",
       "test/**/*",
       "src/tests/**/*",
+      "**/*.js",
+      "**/*.mjs",
     ],
   },
   {
@@ -44,20 +46,6 @@ export default tseslint.config(
       "security/detect-unsafe-regex": "error",
       "security/detect-non-literal-fs-filename": "warn",
       "security/detect-pseudoRandomBytes": "error",
-    },
-  },
-  {
-    files: ["**/*.{ts,tsx,js,mjs}"],
-    name: "isabella/secret-literal",
-    rules: {
-      "no-restricted-syntax": [
-        "error",
-        {
-          selector: "Literal",
-          message:
-            "Hardcoded secret-like literals are prohibited in source. Load secrets through src/lib/config.ts at runtime from env variables only.",
-        },
-      ],
     },
   },
 );

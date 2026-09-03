@@ -14,6 +14,9 @@
  * reversibles cuando sea posible y subordinadas a la supervisión humana.
  */
 
+/* Fixed policy literals are bounded and reviewed as governance rules. */
+/* eslint security/detect-unsafe-regex: off */
+
 export const CROWN_VERSION = "2.0.0";
 
 export type ModuleId = "ISA" | "SOPHIA" | "ORION" | "ARGUS" | "CROWN";

@@ -149,7 +149,7 @@ export const Route = createFileRoute("/api/security")({
           });
         }
 
-        const event = validation.data;
+        const event = { ...validation.data, metadata: validation.data.metadata ?? {}, features: validation.data.features ?? {} };
 
         // Try Python run pipeline via shell bridge with PYTHONPATH configured
         return new Promise<Response>((resolve) => {

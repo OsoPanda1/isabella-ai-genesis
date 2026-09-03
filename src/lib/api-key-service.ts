@@ -26,6 +26,12 @@ export class ApiKeyService {
     scopes: string[];
     expiresAt?: string;
   } {
+    if (!tenantId || !ownerId || !name.trim() || scopes.length === 0 || scopes.some((scope) => !/^[a-z0-9:_-]+$/i.test(scope))) {
+      throw new Error("invalid_api_key_request");
+    }
+    if (expiresInSeconds !== undefined && (!Number.isInteger(expiresInSeconds) || expiresInSeconds <= 0)) {
+      throw new Error("invalid_api_key_ttl");
+    }
     const id = crypto.randomUUID();
     const prefix = `${config().API_KEY_PREFIX || "isa_live"}_${ApiKeyCrypto.generatePrefix()}`;
     const secret = ApiKeyCrypto.generateSecret();

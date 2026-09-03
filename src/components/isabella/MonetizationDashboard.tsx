@@ -344,13 +344,6 @@ export function MonetizationDashboard() {
         else if (data.tenant.tier === "Enterprise") setActivePlan("pro");
         else setActivePlan("free");
 
-        // Sync local current user
-        setCurrentUser({
-          username: data.session.username,
-          email: `${data.session.username.toLowerCase().replace(" ", "")}@tamv.network`,
-          telemetryConsent: true,
-        });
-
         // 2. Fetch Ledger (Strict multi-tenant isolation)
         const ledgerRes = await fetch(`/api/db?action=ledger`, {
           headers: { Authorization: `Bearer ${sessionToken}` },
@@ -510,6 +503,7 @@ export function MonetizationDashboard() {
   };
 
   const handleSwitchRole = async (_role: string) => {
+    void _role;
     // Los roles NO pueden cambiarse acuñando tokens por cuenta propia: la
     // identidad la emite únicamente el servidor mediante flujos autorizados
     // (provision-owner con token de bootstrap o IDP OIDC/Supabase).
@@ -1590,13 +1584,7 @@ export function MonetizationDashboard() {
                           key={cat.id}
                           onClick={() =>
                             setPlanCategory(
-                              cat.id as
-                                | "inference"
-                                | "processing"
-                                | "apis"
-                                | "skills"
-                                | "other"
-                                | "REFUND_EVENT",
+                              cat.id as "inference" | "skills" | "apis",
                             )
                           }
                           className={`font-mono text-[10px] py-1.5 rounded-lg transition-all cursor-pointer ${

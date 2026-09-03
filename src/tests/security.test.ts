@@ -24,14 +24,7 @@ export function runSecurityTestSuite(): SecurityTestSuiteReport {
   // Test 1: RBAC guest prevention
   try {
     const adminAllowedForGuest = identityHasPermission(
-      {
-        subject: "anon",
-        username: "anonymous",
-        tenantId: "default",
-        role: "Guest",
-        scopes: [],
-        authenticated: false,
-      },
+      { role: "Guest" },
       "system:admin",
     );
     results.push({

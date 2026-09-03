@@ -372,7 +372,7 @@ export function QuantumUtilityDashboard() {
                 <input
                   type="checkbox"
                   checked={expectsSamples}
-                  onChange={(e) => setExpectsSamples(e.checked)}
+                  onChange={(e) => setExpectsSamples(e.target.checked)}
                   className="rounded border-border/40 text-electric focus:ring-electric"
                 />
                 <div className="flex flex-col">

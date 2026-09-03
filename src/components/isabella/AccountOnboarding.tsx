@@ -8,6 +8,7 @@ import {
   ArrowRight,
   ArrowLeft,
   X,
+  Sparkles,
 } from "lucide-react";
 
 export interface OnboardingProps {
