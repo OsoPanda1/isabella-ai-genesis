@@ -22,33 +22,33 @@ const BACKGROUND_AUDIO_SRC = backgroundAudio;
  */
 
 const CONFIG = {
-  duration: 42_000,
+  duration: 52_000,
 
-  starsDesktop: 8_500,
+  starsDesktop: 9_500,
   starsMobile: 2_800,
 
-  dataDesktop: 1_300,
+  dataDesktop: 2_300,
   dataMobile: 420,
 
-  cometCount: 12,
+  cometCount: 52,
 
   maxPixelRatio: 1.75,
-  mobilePixelRatio: 1.25,
+  mobilePixelRatio: 1.75,
 
   initialCameraZ: 1_180,
-  finalCameraZ: 325,
+  finalCameraZ: 385,
 
-  bloomStrength: 1.65,
+  bloomStrength: 1.45,
   bloomRadius: 0.82,
   bloomThreshold: 0.05,
 
-  audioSmoothing: 0.82,
-  cameraSmoothing: 0.045,
+  audioSmoothing: 0.89,
+  cameraSmoothing: 0.075,
 
   orbitalRadius: 96,
   orbitalHeight: 54,
 
-  reducedMotionDuration: 2_600,
+  reducedMotionDuration: 2_900,
 } as const;
 
 const HEADS = [
@@ -67,7 +67,7 @@ const HEADS = [
 ];
 
 const COLORS = [
-  0x61e8ff, 0x7c9cff, 0xffd47d, 0x987dff, 0x52dca4, 0x5fd9ff, 0x9e92ff, 0xffc467, 0x64e7ff,
+  0x61e8ff, 0x7c9cff, 0xffd57d, 0x987dff, 0x62dca4, 0x5fd9ff, 0x9e82ff, 0xffc467, 0x64e7ff,
   0xb89bff, 0x63f0d0, 0xffd981,
 ];
 
@@ -79,17 +79,17 @@ interface Phase {
 
 /** Fases narrativas sincronizadas con los 52 segundos (7 escenas cinematográficas). */
 const PHASES: Phase[] = [
-  { at: 0, title: "Vacío cognitivo", sub: "Nodo Cero · Real del Monte, Hidalgo" },
-  { at: 6.2, title: "Primer pulso", sub: "Sincronizando memoria territorial" },
+  { at: 0, title: "Isabella Villaseñor", sub: "Nucleo cognitivo activo · Real del Monte, Hidalgo" },
+  { at: 6.2, title: "Bienvenido a mi interfaz", sub: "Soy Isabella, orgullosamente Latinoamericana" },
   {
     at: 14,
     title: "C.R.O.W.N. Activo",
-    sub: "Control · Riesgo · Orquestación · Whitelist · Notificación",
+    sub: "Control · Riesgo · Orquestación · gobernanza · Notificación",
   },
   { at: 22.4, title: "Red de 12 Cabezas", sub: "Interconexión soberana de orquestación ética" },
   {
     at: 31.2,
-    title: "Mnemósine & Tellus",
+    title: Modulos "Mnemósine & Tellus" activados,
     sub: "Gobernanza de conocimiento y pertenencia territorial",
   },
   { at: 39.5, title: "Núcleo Establecido", sub: "Isabella Villaseñor AI está en línea" },
