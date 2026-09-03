@@ -1,23 +1,24 @@
 import { SecuritySystem, TokenClaims } from "./security";
-import { SovereignDB, UserRole, Tenant } from "./sovereign-engine";
 import { authorize, type AuthorizationRequest } from "./authorization";
 import { type Resource, type Action } from "./permission-matrix";
+import { type Role } from "./rbac";
 import { ApiKeyAuthenticator } from "./api-key-authenticator";
+import { repositoryFactory } from "./persistence/repository";
 
 export class PrincipalContext {
   public readonly userId: string;
   public readonly username: string;
   public readonly tenantId: string;
-  public readonly role: UserRole;
+  public readonly role: Role;
   public readonly scope: string;
   public readonly ip: string;
   public readonly traceId: string;
   public readonly correlationId: string;
-  public readonly tenant: Tenant;
+  public readonly tenant: { id: string; slug: string; tier: string; quotaBalance: number };
 
   private constructor(
     claims: TokenClaims,
-    tenant: Tenant,
+    tenant: { id: string; slug: string; tier: string; quotaBalance: number },
     username: string,
     ip: string,
     traceId: string,
@@ -26,7 +27,7 @@ export class PrincipalContext {
     this.userId = claims.sub;
     this.username = username;
     this.tenantId = claims.tenantId;
-    this.role = claims.role as UserRole;
+    this.role = claims.role as Role;
     this.scope = claims.scope;
     this.ip = ip;
     this.traceId = traceId;
@@ -34,21 +35,16 @@ export class PrincipalContext {
     this.tenant = tenant;
   }
 
-  /**
-   * Safe middleware gate. Extracts and validates OIDC token strictly.
-   * Leverages 7-layer security system to construct an authorized context.
-   */
-  public static authorize(
+  public static async authorize(
     request: Request,
     requiredScope?: string,
-  ): { success: true; context: PrincipalContext } | { success: false; response: Response } {
+  ): Promise<{ success: true; context: PrincipalContext } | { success: false; response: Response }> {
     const ip = SecuritySystem.resolveClientIp(request);
     const telemetry = SecuritySystem.generateTelemetry(ip, "allowed");
     const headers = SecuritySystem.injectSecureHeaders(
       new Headers({ "content-type": "application/json" }),
     );
 
-    // Rate Limiting Gate
     const limitCheck = SecuritySystem.checkRateLimit(ip);
     if (!limitCheck.allowed) {
       return {
@@ -63,11 +59,10 @@ export class PrincipalContext {
       };
     }
 
-    // Prioritize API Key authentication if present
     const hasApiKey =
       request.headers.has("x-isabella-api-key") || request.headers.has("X-Isabella-API-Key");
     if (hasApiKey) {
-      const authResult = ApiKeyAuthenticator.authenticate(request);
+      const authResult = await ApiKeyAuthenticator.authenticate(request);
       if (!authResult.success) {
         return {
           success: false,
@@ -82,14 +77,17 @@ export class PrincipalContext {
       }
 
       const principal = authResult.principal;
-      const tenant = SovereignDB.getTenant(principal.tenantId);
-      if (!tenant) {
+      const tenantRecord = await repositoryFactory.getTenantRepository().read(principal.tenantId, principal.tenantId);
+      const tenant = tenantRecord
+        ? { id: tenantRecord.id, slug: tenantRecord.slug, tier: tenantRecord.tier, quotaBalance: tenantRecord.quotaBalance }
+        : { id: principal.tenantId, slug: "", tier: "free", quotaBalance: 0 };
+
+      if (!tenantRecord) {
         return {
           success: false,
           response: new Response(
             JSON.stringify({
-              error:
-                "Aislamiento de Tenant Violado: El Tenant asignado a la API Key no está registrado.",
+              error: "Aislamiento de Tenant Violado: El Tenant asignado a la API Key no está registrado.",
               traceId: telemetry.traceId,
             }),
             { status: 403, headers },
@@ -97,7 +95,6 @@ export class PrincipalContext {
         };
       }
 
-      // Strict Scope verification if specified
       if (requiredScope && !principal.scopes.includes(requiredScope)) {
         return {
           success: false,
@@ -111,8 +108,6 @@ export class PrincipalContext {
         };
       }
 
-      // Claims sintetizadas para API Keys: la vigencia se deriva de la credencial
-      // (ya fue verificada previamente); el emisor/audiencia son soberanos.
       const expMillis = principal.expiresAt
         ? new Date(principal.expiresAt).getTime()
         : Date.now() + 24 * 60 * 60 * 1000;
@@ -155,8 +150,6 @@ export class PrincipalContext {
     }
 
     const token = authHeader.replace("Bearer ", "");
-
-    // JWT signature validation (Strict verification against server-side keys)
     const verification = SecuritySystem.verifyToken(token);
     if (!verification.success || !verification.claims) {
       return {
@@ -173,7 +166,6 @@ export class PrincipalContext {
 
     const claims = verification.claims;
 
-    // Strict Scope verification if specified
     if (requiredScope) {
       const scopeCheck = SecuritySystem.verifyApiScope(token, requiredScope);
       if (!scopeCheck.allowed) {
@@ -190,9 +182,12 @@ export class PrincipalContext {
       }
     }
 
-    // Load matching tenant, enforcing strict Isolation boundary
-    const tenant = SovereignDB.getTenant(claims.tenantId);
-    if (!tenant) {
+    const tenantRecord = await repositoryFactory.getTenantRepository().read(claims.tenantId, claims.tenantId);
+    const tenant = tenantRecord
+      ? { id: tenantRecord.id, slug: tenantRecord.slug, tier: tenantRecord.tier, quotaBalance: tenantRecord.quotaBalance }
+      : { id: claims.tenantId, slug: "", tier: "free", quotaBalance: 0 };
+
+    if (!tenantRecord) {
       return {
         success: false,
         response: new Response(
@@ -205,8 +200,8 @@ export class PrincipalContext {
       };
     }
 
-    // Verify session still exists on the server memory pool
-    const session = SovereignDB.getSessionByToken(token);
+    const { items: sessions } = await repositoryFactory.getSessionRepository().list(claims.sub, { userId: claims.sub });
+    const session = sessions.find((s: { id: string }) => s.id === token || (s as unknown as Record<string, unknown>).id === token);
     if (!session) {
       return {
         success: false,
@@ -224,7 +219,7 @@ export class PrincipalContext {
     const context = new PrincipalContext(
       claims,
       tenant,
-      session.username,
+      (session as unknown as Record<string, unknown>).username as string ?? "",
       ip,
       telemetry.traceId,
       telemetry.correlationId,
@@ -240,16 +235,14 @@ export function withSovereignAuth(
   handler: (context: PrincipalContext, request: Request, body?: unknown) => Promise<Response>,
 ) {
   return async ({ request }: { request: Request }): Promise<Response> => {
-    // 1. Resolve Principal Context
     const requiredScope = resource === "system" && action === "execute" ? "isabella:chat" : undefined;
-    const authResult = PrincipalContext.authorize(request, requiredScope);
+    const authResult = await PrincipalContext.authorize(request, requiredScope);
     if (!authResult.success) {
       return authResult.response;
     }
 
     const { context } = authResult;
 
-    // 2. Build Authorization Request
     const authReq: AuthorizationRequest = {
       identity: {
         subject: context.userId,
@@ -275,7 +268,6 @@ export function withSovereignAuth(
       },
     };
 
-    // 3. Centralized Authorization Decision
     const decisionResult = authorize(authReq);
     if (decisionResult.decision === "denied") {
       const headers = SecuritySystem.injectSecureHeaders(
@@ -291,7 +283,6 @@ export function withSovereignAuth(
       );
     }
 
-    // Parse body safely if possible/needed (e.g. for POST/PUT)
     let body: unknown = null;
     if (request.method === "POST" || request.method === "PUT") {
       try {

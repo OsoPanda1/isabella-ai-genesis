@@ -5,7 +5,7 @@ import { SovereignDB } from "@/lib/sovereign-engine";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { secrets } from "@/lib/secrets";
 import { config } from "@/lib/config";
-import { exec } from "node:child_process";
+import { spawn } from "node:child_process";
 import * as path from "node:path";
 
 // Enum matching Python domain
@@ -162,9 +162,7 @@ export const Route = createFileRoute("/api/security")({
           );
           const pythonPath = path.join(process.cwd(), "latam-aegis-x", "src");
 
-          // Entorno restringido del proceso hijo: solo variables necesarias.
-          // Nunca se pasan por alto todas las variables de proceso (evita la
-          // fuga inadvertida de secretos del host hacia el subproceso).
+          // Entorno restringido: solo variables necesarias, sin shell, sin interpolación.
           const processEnv: NodeJS.ProcessEnv = {
             PATH: process.env.PATH ?? "",
             LANG: process.env.LANG ?? "C.UTF-8",
@@ -176,36 +174,55 @@ export const Route = createFileRoute("/api/security")({
 
           const inputJson = JSON.stringify(event);
 
-          const child = exec(`python3 -u "${cliScript}"`, { env: processEnv }, (error, stdout) => {
-            if (error) {
-              // If Python failed (e.g. dependencies missing), use the 100% mathematically equivalent TS engine
-              const tsResult = calculateTsAegisResponse(event);
+          const child = spawn("python3", ["-u", cliScript], {
+            env: processEnv,
+            stdio: ["pipe", "pipe", "pipe"],
+          });
 
-              // Log incident fallback audit
+          let stdout = "";
+          let stderr = "";
+
+          child.stdout.on("data", (chunk: Buffer) => {
+            stdout += chunk.toString();
+          });
+          child.stderr.on("data", (chunk: Buffer) => {
+            stderr += chunk.toString();
+          });
+
+          child.on("error", () => {
+            const tsResult = calculateTsAegisResponse(event);
+            SovereignDB.appendAuditLog(
+              context.traceId,
+              context.correlationId,
+              context.ip,
+              "Análisis Aegis-X (TS Fallback Activo)",
+              tsResult.aegis_level >= 2 ? "S1" : "S3",
+              `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}.`,
+            );
+            resolve(new Response(JSON.stringify(tsResult), { headers }));
+          });
+
+          child.on("close", (code) => {
+            if (code !== 0) {
+              const tsResult = calculateTsAegisResponse(event);
               SovereignDB.appendAuditLog(
                 context.traceId,
                 context.correlationId,
                 context.ip,
                 "Análisis Aegis-X (TS Fallback Activo)",
                 tsResult.aegis_level >= 2 ? "S1" : "S3",
-                `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}.`,
+                `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}. Stderr: ${stderr.slice(0, 200)}`,
               );
-
               return resolve(new Response(JSON.stringify(tsResult), { headers }));
             }
-
             try {
               const pyResult = JSON.parse(stdout);
-
-              // Add TS-exclusive metadata properties to match UI rendering requirements
               const finalResult = {
                 ...pyResult,
                 sanitizedActor: `hash_actor_${pyResult.actor || "hashed"}`,
                 sanitizedSource: `hash_src_${pyResult.source || "hashed"}`,
                 redactedMetadata: { ...event.metadata, original_resource: event.resource_class },
               };
-
-              // Log incident real execution audit
               SovereignDB.appendAuditLog(
                 context.traceId,
                 context.correlationId,
@@ -214,18 +231,15 @@ export const Route = createFileRoute("/api/security")({
                 finalResult.aegis_level >= 2 ? "S1" : "S3",
                 `Análisis exitoso mediante motor nativo Python. Decisión: ${finalResult.decision.toUpperCase()}. Score: ${finalResult.score}.`,
               );
-
               return resolve(new Response(JSON.stringify(finalResult), { headers }));
             } catch {
-              // Fallback on JSON parse error
               const tsResult = calculateTsAegisResponse(event);
               return resolve(new Response(JSON.stringify(tsResult), { headers }));
             }
           });
 
-          // Write payload to Python stdin
-          child.stdin?.write(inputJson);
-          child.stdin?.end();
+          child.stdin.write(inputJson);
+          child.stdin.end();
         });
       }),
     },

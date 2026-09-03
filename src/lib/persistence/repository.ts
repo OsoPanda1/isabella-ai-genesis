@@ -22,8 +22,12 @@ export interface AuditEntry {
 export interface ApiKey {
   id: string;
   tenantId: string;
+  ownerId: string;
   keyHash: string;
   keyPrefix: string;
+  name: string;
+  role: string;
+  status: 'active' | 'suspended' | 'expired' | 'revoked';
   secretHint: string;
   scopes: string[];
   createdAt: string;
@@ -32,6 +36,7 @@ export interface ApiKey {
   revokedAt: string | null;
   lastUsedAt: string | null;
   createdBy: string;
+  metadata: Record<string, unknown>;
 }
 
 export interface Tenant {
@@ -113,7 +118,7 @@ export interface RepositoryFactory {
   /**
    * Get adapter by type
    */
-  getAdapter<T>(type: 'supabase' | 'neon' | 'redis', schema?: string): IRepository<T>;
+  getAdapter<T extends { id: string }>(type: 'supabase' | 'neon' | 'redis', schema?: string): IRepository<T>;
 
   /**
    * Get specialized API key repository
@@ -151,3 +156,5 @@ export function isRepositoryError(error: unknown): error is RepositoryError {
     'retryable' in error
   );
 }
+
+export { JsonFileRepository, JsonRepositoryFactory, repositoryFactory } from "./adapters/json-adapter";

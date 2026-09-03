@@ -255,7 +255,7 @@ export const Route = createFileRoute("/api/db")({
               new Headers({ "content-type": "application/json" }),
             );
             const { ApiKeyService } = await import("@/lib/api-key-service");
-            const list = ApiKeyService.listApiKeys(context.tenantId);
+            const list = await ApiKeyService.listApiKeys(context.tenantId);
             return new Response(JSON.stringify({ keys: list }), { headers });
           })({ request });
         }
@@ -910,7 +910,7 @@ export const Route = createFileRoute("/api/db")({
                 );
               }
               const { ApiKeyService } = await import("@/lib/api-key-service");
-              const result = ApiKeyService.createApiKey(
+              const result = await ApiKeyService.createApiKey(
                 context.tenantId,
                 context.userId,
                 name,
@@ -932,7 +932,7 @@ export const Route = createFileRoute("/api/db")({
                 });
               }
               const { ApiKeyService } = await import("@/lib/api-key-service");
-              const success = ApiKeyService.revokeApiKey(id, context.tenantId);
+              const success = await ApiKeyService.revokeApiKey(id, context.tenantId);
               return new Response(JSON.stringify({ success }), { headers });
             })({ request });
           }
@@ -947,7 +947,7 @@ export const Route = createFileRoute("/api/db")({
                 });
               }
               const { ApiKeyService } = await import("@/lib/api-key-service");
-              const result = ApiKeyService.rotateApiKey(id, context.tenantId);
+              const result = await ApiKeyService.rotateApiKey(id, context.tenantId);
               if (!result.success) {
                 return new Response(JSON.stringify({ error: result.error }), {
                   status: 400,

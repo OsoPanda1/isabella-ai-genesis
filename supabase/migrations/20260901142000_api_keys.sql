@@ -23,10 +23,16 @@ CREATE TABLE IF NOT EXISTS public.api_keys (
 -- Enable RLS
 ALTER TABLE public.api_keys ENABLE ROW LEVEL SECURITY;
 
--- Tenant Isolation Policies
-CREATE POLICY api_keys_tenant_isolation ON public.api_keys
-  FOR ALL
-  USING (tenant_id = current_setting('request.jwt.claim.tenant_id', true));
+-- Tenant Isolation Policies — FIX 2026-09-02: request.jwt.claims (plural) + granular per-operation
+DROP POLICY IF EXISTS api_keys_tenant_isolation ON public.api_keys;
+CREATE POLICY api_keys_select ON public.api_keys
+  FOR SELECT USING (tenant_id = current_setting('request.jwt.claims.tenant_id', true));
+CREATE POLICY api_keys_insert ON public.api_keys
+  FOR INSERT WITH CHECK (tenant_id = current_setting('request.jwt.claims.tenant_id', true));
+CREATE POLICY api_keys_update ON public.api_keys
+  FOR UPDATE USING (tenant_id = current_setting('request.jwt.claims.tenant_id', true)) WITH CHECK (tenant_id = current_setting('request.jwt.claims.tenant_id', true));
+CREATE POLICY api_keys_delete ON public.api_keys
+  FOR DELETE USING (tenant_id = current_setting('request.jwt.claims.tenant_id', true));
 
 -- Create indexes for extremely fast lookup
 CREATE INDEX IF NOT EXISTS idx_api_keys_prefix ON public.api_keys(prefix);

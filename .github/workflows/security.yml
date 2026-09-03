@@ -45,8 +45,8 @@ jobs:
       - name: Security Linter Scan
         run: npm run security:scan
 
-      - name: Audit Dependencies (Informational, non-blocking)
-        run: npm audit || echo "Advisory presente; validado manualmente en main."
+      - name: Audit Dependencies
+        run: npm audit --audit-level=high
 
       - name: Scan for Secret Leaks (Trufflehog)
         uses: trufflesecurity/trufflehog@main

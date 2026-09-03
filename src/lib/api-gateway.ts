@@ -28,7 +28,7 @@ export class ApiGateway {
     );
 
     // 1. Autenticación y resolución de Principal Context
-    const authResult = PrincipalContext.authorize(request);
+    const authResult = await PrincipalContext.authorize(request);
     if (!authResult.success) {
       return authResult.response;
     }

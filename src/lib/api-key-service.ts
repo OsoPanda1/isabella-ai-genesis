@@ -1,31 +1,75 @@
-import { SovereignDB } from "./sovereign-engine";
+import { repositoryFactory, type ApiKey } from "./persistence/repository";
 import { ApiKeyCrypto } from "./api-key-crypto";
 import type { ApiKeyRecord } from "./credential-types";
 import { config } from "./config";
 
-/**
- * SERVICIO CENTRAL DE CICLO DE VIDA DE API KEYS
- * Responsabilidad: Crear, verificar, rotar, revocar y enlistar llaves API.
- */
+function recordToApiKey(r: ApiKeyRecord): Partial<ApiKey> {
+  return {
+    id: r.id,
+    tenantId: r.tenant_id,
+    ownerId: r.owner_id,
+    keyHash: r.key_hash,
+    keyPrefix: r.prefix,
+    name: r.name,
+    secretHint: "",
+    role: r.role,
+    status: (r.status as ApiKey["status"]) ?? "active",
+    scopes: r.scopes,
+    createdAt: r.created_at,
+    expiresAt: r.expires_at ?? null,
+    rotatedAt: r.rotated_from ?? null,
+    revokedAt: r.revoked_at ?? null,
+    lastUsedAt: r.last_used_at ?? null,
+    createdBy: r.created_by ?? "",
+    metadata: r.metadata ?? {},
+  };
+}
+
+function apiKeyToRecord(k: unknown): ApiKeyRecord {
+  const kk = k as Record<string, unknown>;
+  return {
+    id: String(kk.id),
+    tenant_id: String(kk.tenantId),
+    owner_id: String(kk.ownerId),
+    name: String(kk.name),
+    prefix: String(kk.keyPrefix),
+    key_hash: String(kk.keyHash),
+    role: String(kk.role),
+    scopes: (kk.scopes as string[]) ?? [],
+    status: (kk.status as ApiKeyRecord["status"]) ?? "active",
+    created_at: String(kk.createdAt),
+    expires_at: (kk.expiresAt as string) ?? undefined,
+    last_used_at: (kk.lastUsedAt as string) ?? undefined,
+    revoked_at: (kk.revokedAt as string) ?? undefined,
+    rotated_from: (kk.rotatedAt as string) ?? undefined,
+    created_by: String(kk.createdBy),
+    metadata: (kk.metadata as Record<string, unknown>) ?? {},
+  };
+}
+
 export class ApiKeyService {
-  /**
-   * Crea una nueva API Key y la guarda de forma segura. Retorna la llave cruda UNA SOLA VEZ.
-   */
-  public static createApiKey(
+  private static get repo() {
+    return repositoryFactory.getApiKeyRepository();
+  }
+  private static get auditRepo() {
+    return repositoryFactory.getAuditRepository();
+  }
+
+  public static async createApiKey(
     tenantId: string,
     ownerId: string,
     name: string,
     role: string,
     scopes: string[],
     expiresInSeconds?: number,
-  ): {
+  ): Promise<{
     id: string;
     name: string;
     key: string;
     prefix: string;
     scopes: string[];
     expiresAt?: string;
-  } {
+  }> {
     if (!tenantId || !ownerId || !name.trim() || scopes.length === 0 || scopes.some((scope) => !/^[a-z0-9:_-]+$/i.test(scope))) {
       throw new Error("invalid_api_key_request");
     }
@@ -55,19 +99,20 @@ export class ApiKeyService {
       ...(expiresAt ? { expires_at: expiresAt } : {}),
     };
 
-    const keys = SovereignDB.getApiKeys();
-    keys.push(record);
-    SovereignDB.saveApiKeys(keys);
+    await this.repo.create(tenantId, recordToApiKey(record));
 
-    // Guardar evento de auditoría canónico
-    SovereignDB.appendAuditLog(
-      `trace_ak_${crypto.randomUUID().slice(0, 8)}`,
-      `corr_ak_${crypto.randomUUID().slice(0, 8)}`,
-      "127.0.0.1",
-      "api_key.created",
-      "S3",
-      `API Key [${id}] con prefijo [${prefix}] creada por usuario [${ownerId}] para tenant [${tenantId}].`,
-    );
+    await this.auditRepo.audit({
+      id: crypto.randomUUID(),
+      tenantId,
+      traceId: `trace_ak_${crypto.randomUUID().slice(0, 8)}`,
+      timestamp: new Date().toISOString(),
+      action: "api_key.created",
+      resource: "api_key",
+      severity: "S3",
+      actor: ownerId,
+      result: "success",
+      details: { keyId: id, prefix, tenantId },
+    });
 
     return {
       id,
@@ -79,91 +124,77 @@ export class ApiKeyService {
     };
   }
 
-  /**
-   * Verifica la integridad y vigencia de una llave cruda en tiempo constante.
-   */
-  public static verifyApiKey(rawKey: string): {
+  public static async verifyApiKey(rawKey: string): Promise<{
     success: boolean;
     record?: ApiKeyRecord;
     error?: string;
-  } {
+  }> {
     if (!rawKey) {
       return { success: false, error: "invalid_credential" };
     }
 
-    // Extraer prefijo buscando la última parte
     const parts = rawKey.split("_");
     if (parts.length < 3) {
       return { success: false, error: "invalid_credential" };
     }
 
-    // El prefijo es todo antes del último fragmento secreto
     const prefix = parts.slice(0, -1).join("_");
 
-    const keys = SovereignDB.getApiKeys();
-    const record = keys.find((k) => k.prefix === prefix);
-
+    const { items } = await this.repo.list("", { keyPrefix: prefix });
+    const record = items[0];
     if (!record) {
       return { success: false, error: "invalid_credential" };
     }
 
-    // Verificar firma constante
-    const signatureMatch = ApiKeyCrypto.verifySecret(rawKey, record.key_hash);
+    const rec = apiKeyToRecord(record);
+    const signatureMatch = ApiKeyCrypto.verifySecret(rawKey, rec.key_hash);
     if (!signatureMatch) {
       return { success: false, error: "invalid_credential" };
     }
 
-    // Verificar estatus
-    if (record.status !== "active") {
-      return { success: false, error: `credential_${record.status}` };
+    if (rec.status !== "active") {
+      return { success: false, error: `credential_${rec.status}` };
     }
 
-    // Verificar vigencia temporal
-    if (record.expires_at && new Date(record.expires_at).getTime() < Date.now()) {
-      record.status = "expired";
-      SovereignDB.saveApiKeys(keys);
+    if (rec.expires_at && new Date(rec.expires_at).getTime() < Date.now()) {
+      await this.repo.update(rec.tenant_id, rec.id, { status: "expired" });
       return { success: false, error: "credential_expired" };
     }
 
-    // Touch last used timestamp
-    record.last_used_at = new Date().toISOString();
-    SovereignDB.saveApiKeys(keys);
+    await this.repo.update(rec.tenant_id, rec.id, { lastUsedAt: new Date().toISOString() });
 
-    return { success: true, record };
+    return { success: true, record: rec };
   }
 
-  /**
-   * Revoca una API Key por completo.
-   */
-  public static revokeApiKey(id: string, tenantId: string): boolean {
-    const keys = SovereignDB.getApiKeys();
-    const record = keys.find((k) => k.id === id && k.tenant_id === tenantId);
+  public static async revokeApiKey(id: string, tenantId: string): Promise<boolean> {
+    const existing = await this.repo.read(tenantId, id);
+    if (!existing) return false;
 
-    if (!record) return false;
+    await this.repo.update(tenantId, id, {
+      status: "revoked",
+      revokedAt: new Date().toISOString(),
+    });
 
-    record.status = "revoked";
-    record.revoked_at = new Date().toISOString();
-    SovereignDB.saveApiKeys(keys);
-
-    SovereignDB.appendAuditLog(
-      `trace_ak_${crypto.randomUUID().slice(0, 8)}`,
-      `corr_ak_${crypto.randomUUID().slice(0, 8)}`,
-      "127.0.0.1",
-      "api_key.revoked",
-      "S2",
-      `API Key [${id}] revocada exitosamente.`,
-    );
+    await this.auditRepo.audit({
+      id: crypto.randomUUID(),
+      tenantId,
+      traceId: `trace_ak_${crypto.randomUUID().slice(0, 8)}`,
+      timestamp: new Date().toISOString(),
+      action: "api_key.revoked",
+      resource: "api_key",
+      severity: "S2",
+      actor: existing.createdBy,
+      result: "success",
+      details: { keyId: id },
+    });
 
     return true;
   }
 
-  /**
-   * Rota una llave API activa, revocando la anterior y creando una nueva con el mismo nivel de permisos.
-   */
-  public static rotateApiKey(
+  public static async rotateApiKey(
     id: string,
     tenantId: string,
-  ): {
+  ): Promise<{
     success: boolean;
     newKey?: {
       id: string;
@@ -174,47 +205,33 @@ export class ApiKeyService {
       expiresAt?: string;
     };
     error?: string;
-  } {
-    const keys = SovereignDB.getApiKeys();
-    const oldRecord = keys.find((k) => k.id === id && k.tenant_id === tenantId);
-
-    if (!oldRecord) {
+  }> {
+    const existing = await this.repo.read(tenantId, id);
+    if (!existing) {
       return { success: false, error: "Llave no encontrada." };
     }
 
-    // Revocar vieja
-    oldRecord.status = "revoked";
-    oldRecord.revoked_at = new Date().toISOString();
-    SovereignDB.saveApiKeys(keys);
+    const rec = apiKeyToRecord(existing);
+    await this.repo.update(tenantId, id, { status: "revoked", revokedAt: new Date().toISOString() });
 
-    // Crear nueva
-    const newKey = this.createApiKey(
+    const newKey = await this.createApiKey(
       tenantId,
-      oldRecord.owner_id,
-      oldRecord.name,
-      oldRecord.role,
-      oldRecord.scopes,
-      oldRecord.expires_at
-        ? Math.max(0, Math.floor((new Date(oldRecord.expires_at).getTime() - Date.now()) / 1000))
+      rec.owner_id,
+      rec.name,
+      rec.role,
+      rec.scopes,
+      rec.expires_at
+        ? Math.max(0, Math.floor((new Date(rec.expires_at).getTime() - Date.now()) / 1000))
         : undefined,
     );
 
-    // Marcar origen
-    const updatedKeys = SovereignDB.getApiKeys();
-    const newRecord = updatedKeys.find((k) => k.id === newKey.id);
-    if (newRecord) {
-      newRecord.rotated_from = id;
-      SovereignDB.saveApiKeys(updatedKeys);
-    }
+    await this.repo.update(tenantId, newKey.id, { rotatedAt: id });
 
     return { success: true, newKey };
   }
 
-  /**
-   * Enlista todas las API Keys registradas en un tenant (ocultando siempre los secretos).
-   */
-  public static listApiKeys(tenantId: string): ApiKeyRecord[] {
-    const keys = SovereignDB.getApiKeys();
-    return keys.filter((k) => k.tenant_id === tenantId);
+  public static async listApiKeys(tenantId: string): Promise<ApiKeyRecord[]> {
+    const { items } = await this.repo.list(tenantId, { tenantId });
+    return items.map(apiKeyToRecord);
   }
 }

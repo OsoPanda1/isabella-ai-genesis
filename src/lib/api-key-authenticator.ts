@@ -11,9 +11,9 @@ export class ApiKeyAuthenticator {
   /**
    * Intenta autenticar la solicitud entrante utilizando la cabecera de API Key.
    */
-  public static authenticate(
+  public static async authenticate(
     request: Request,
-  ): { success: true; principal: AuthenticatedPrincipal } | { success: false; error: string } {
+  ): Promise<{ success: true; principal: AuthenticatedPrincipal } | { success: false; error: string }> {
     const rawHeader =
       request.headers.get(this.HEADER_NAME) || request.headers.get("X-Isabella-API-Key");
 
@@ -21,7 +21,7 @@ export class ApiKeyAuthenticator {
       return { success: false, error: "missing_header" };
     }
 
-    const verification = ApiKeyService.verifyApiKey(rawHeader);
+    const verification = await ApiKeyService.verifyApiKey(rawHeader);
     if (!verification.success || !verification.record) {
       return { success: false, error: verification.error || "unauthorized" };
     }
