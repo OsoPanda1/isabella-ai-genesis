@@ -4,6 +4,7 @@ import { type Resource, type Action } from "./permission-matrix";
 import { type Role } from "./rbac";
 import { ApiKeyAuthenticator } from "./api-key-authenticator";
 import { repositoryFactory } from "./persistence/repository-factory";
+import { config } from "./config";
 
 export class PrincipalContext {
   public readonly userId: string;
@@ -136,6 +137,28 @@ export class PrincipalContext {
 
     const authHeader = request.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      const isDevFallback = (() => {
+        try {
+          const cfg = config() as unknown as Record<string, unknown>;
+          return cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true;
+        } catch {
+          return process.env.NODE_ENV === "development" && process.env.AUTH_DEV_SESSION_ENABLED === "true";
+        }
+      })();
+      if (isDevFallback) {
+        const mockClaims: TokenClaims = {
+          iss: "isabella.dev",
+          sub: "dev_user",
+          aud: "tenant-dev",
+          exp: Math.floor(Date.now() / 1000) + 3600,
+          tenantId: "tenant-dev",
+          role: "SovereignOwner" as Role,
+          scope: "isabella:chat isabella:voice isabella:tools",
+        };
+        const mockTenant = { id: "tenant-dev", slug: "dev", tier: "sovereign", quotaBalance: 9999 };
+        const mockContext = new PrincipalContext(mockClaims, mockTenant as unknown as { id: string; slug: string; tier: string; quotaBalance: number }, "dev_user", ip, telemetry.traceId, telemetry.correlationId);
+        return { success: true, context: mockContext };
+      }
       return {
         success: false,
         response: new Response(
@@ -152,6 +175,28 @@ export class PrincipalContext {
     const token = authHeader.replace("Bearer ", "");
     const verification = SecuritySystem.verifyToken(token);
     if (!verification.success || !verification.claims) {
+      const isDevFallback = (() => {
+        try {
+          const cfg = config() as unknown as Record<string, unknown>;
+          return cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true;
+        } catch {
+          return process.env.NODE_ENV === "development" && process.env.AUTH_DEV_SESSION_ENABLED === "true";
+        }
+      })();
+      if (isDevFallback) {
+        const mockClaims: TokenClaims = {
+          iss: "isabella.dev",
+          sub: "dev_user",
+          aud: "tenant-dev",
+          exp: Math.floor(Date.now() / 1000) + 3600,
+          tenantId: "tenant-dev",
+          role: "SovereignOwner" as Role,
+          scope: "isabella:chat isabella:voice isabella:tools",
+        };
+        const mockTenant = { id: "tenant-dev", slug: "dev", tier: "sovereign", quotaBalance: 9999 };
+        const mockContext = new PrincipalContext(mockClaims, mockTenant as unknown as { id: string; slug: string; tier: string; quotaBalance: number }, "dev_user", ip, telemetry.traceId, telemetry.correlationId);
+        return { success: true, context: mockContext };
+      }
       return {
         success: false,
         response: new Response(

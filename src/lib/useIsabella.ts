@@ -140,9 +140,34 @@ export function useIsabella() {
       setDecision(routing);
       setTelemetry((prev) => [...prev, toTelemetryRecord(routing, preset.id)]);
 
-      const { getSessionToken, ensureSessionToken } = await import("@/lib/auth-client");
+      const { getSessionToken, ensureSessionToken, setSessionToken } = await import("@/lib/auth-client");
       let token = getSessionToken();
-      if (!token) token = await ensureSessionToken();
+      if (!token) {
+        // Dev fallback: intenta sesión soberana sin OAuth (solo development + ALLOW_DEV_AUTH_FALLBACK)
+        try {
+          const devRes = await fetch("/api/db?action=dev-session", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+          });
+          if (devRes.ok) {
+            const devData = (await devRes.json()) as { token?: string; userId?: string };
+            if (devData.token) {
+              const { setStoredSovereignUserId } = await import("@/lib/auth-client");
+              setSessionToken(devData.token);
+              if (devData.userId) setStoredSovereignUserId(devData.userId);
+              token = devData.token;
+            }
+          }
+        } catch {}
+      }
+      if (!token) {
+        try {
+          token = await ensureSessionToken();
+        } catch {
+          // En dev sin OAuth configurado, permite request sin token — el backend hará fail-closed controlado
+          token = "";
+        }
+      }
 
       const userMsg: TerminalMessage = {
         id: uid(),

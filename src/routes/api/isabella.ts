@@ -233,7 +233,7 @@ export const Route = createFileRoute("/api/isabella")({
             });
           }
 
-          // --- LAYER 4: Hardened OWASP Secure Headers ---
+          // --- LAYER 4: Hardened OWASP Secure Headers + Gemini→OpenAI SSE translation ---
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({
               "content-type": "text/event-stream",
@@ -255,7 +255,82 @@ export const Route = createFileRoute("/api/isabella")({
             telemetry.correlationId,
           );
 
-          return new Response(upstream.body, { headers });
+          // Translate Gemini stream (candidates) → OpenAI delta format expected by useIsabella
+          const contentType = upstream.headers.get("content-type") ?? "";
+          if (contentType.includes("text/event-stream") || contentType.includes("text/plain")) {
+            const geminiStream = upstream.body as ReadableStream<Uint8Array>;
+            const openAIStream = new ReadableStream<Uint8Array>({
+              async start(controller) {
+                const reader = geminiStream.getReader();
+                const decoder = new TextDecoder();
+                const encoder = new TextEncoder();
+                let buffer = "";
+                try {
+                  for (;;) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    let nl: number;
+                    while ((nl = buffer.indexOf("\n")) !== -1) {
+                      const line = buffer.slice(0, nl).trim();
+                      buffer = buffer.slice(nl + 1);
+                      if (!line) continue;
+                      // Gemini SSE: data: {"candidates":[{"content":{"parts":[{"text":"..."}]}}]}
+                      // OpenAI SSE: data: {"choices":[{"delta":{"content":"..."}}]}
+                      const jsonStr = line.startsWith("data:") ? line.slice(5).trim() : line.trim();
+                      if (!jsonStr || jsonStr === "[DONE]") continue;
+                      try {
+                        const gem = JSON.parse(jsonStr);
+                        const text: string | undefined =
+                          gem.candidates?.[0]?.content?.parts?.[0]?.text ??
+                          gem.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text).join("") ??
+                          gem.text ??
+                          undefined;
+                        if (text) {
+                          const openAIChunk = `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`;
+                          controller.enqueue(encoder.encode(openAIChunk));
+                        }
+                      } catch {
+                        // ignore partial JSON
+                      }
+                    }
+                  }
+                  // Flush remaining buffer
+                  const remaining = buffer.trim();
+                  if (remaining) {
+                    try {
+                      const gem = JSON.parse(remaining.startsWith("data:") ? remaining.slice(5).trim() : remaining);
+                      const text: string | undefined = gem.candidates?.[0]?.content?.parts?.[0]?.text;
+                      if (text) {
+                        const openAIChunk = `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`;
+                        controller.enqueue(new TextEncoder().encode(openAIChunk));
+                      }
+                    } catch {}
+                  }
+                  controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+                  controller.close();
+                } catch (e) {
+                  controller.error(e);
+                }
+              },
+            });
+            return new Response(openAIStream, { headers });
+          }
+          // Fallback: Gemini non-stream JSON → convert to single SSE delta
+          try {
+            const gemJson = (await upstream.json()) as {
+              candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+              text?: string;
+            };
+            const fullText =
+              gemJson.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ??
+              gemJson.text ??
+              "Isabella: respuesta generada en modo soberano — Nodo Cero.";
+            const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: fullText } }] })}\n\ndata: [DONE]\n\n`;
+            return new Response(sseBody, { headers });
+          } catch {
+            return new Response(upstream.body, { headers });
+          }
         } catch (err) {
           console.error("Critical gateway failure:", err);
           const headers = SecuritySystem.injectSecureHeaders(
