@@ -84,6 +84,16 @@ function IsabellaInterface() {
   const isabella = useIsabella();
   const [panel, setPanel] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTabId>("terminal");
+  const [monetizationSubTab, setMonetizationSubTab] = useState<string | null>(null);
+
+  const handleMonetizationNavigate = (subTab: string) => {
+    setActiveTab("monetization");
+    setMonetizationSubTab(subTab);
+    // deep-link hash para trazabilidad y bookmark
+    try {
+      window.history.replaceState(null, "", `#monetization-${subTab}`);
+    } catch {}
+  };
 
   // Sidebar State for 3-part retractable accordions
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -281,6 +291,7 @@ function IsabellaInterface() {
                   setPresetId={isabella.setPresetId}
                   decision={isabella.decision}
                   isProcessing={isabella.isProcessing}
+                  onMonetizationNavigate={handleMonetizationNavigate}
                 />
               </div>
             </div>
@@ -300,7 +311,7 @@ function IsabellaInterface() {
 
           {activeTab === "monetization" && (
             <div className="animate-rise max-w-[1300px] mx-auto crystal-glow-emerald rounded-3xl overflow-hidden">
-              <MonetizationDashboard />
+              <MonetizationDashboard initialTab={monetizationSubTab} />
             </div>
           )}
 

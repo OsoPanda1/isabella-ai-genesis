@@ -1,7 +1,22 @@
 import { useState, useRef, useEffect } from "react";
 import { PRESETS, type PresetId, type RoutingDecision } from "@/lib/crown-ui";
 import { skillGroups, type IsabellaSkill } from "@/lib/skill-registry";
-import { CheckCircle2, FlaskConical, XCircle, Sparkles } from "lucide-react";
+import {
+  CheckCircle2,
+  FlaskConical,
+  XCircle,
+  Sparkles,
+  Coins,
+  TrendingUp,
+  Store,
+  Gift,
+  BarChart3,
+  GraduationCap,
+  ShieldCheck,
+  Cpu,
+  ScrollText,
+  Wallet,
+} from "lucide-react";
 import { ModuleRail } from "./ModuleRail";
 
 /**
@@ -28,21 +43,51 @@ const POLICY_COLOR: Record<string, string> = {
   denied: "var(--destructive)",
 };
 
+const MONETIZATION_OPTIONS: Array<{
+  id: string;
+  label: string;
+  description: string;
+  icon: typeof Coins;
+  href: string;
+  glow: string;
+}> = [
+  { id: "onboarding", label: "Suscripción y Cuotas", description: "Planes Free/Pro/Sovereign y consumo general", icon: TrendingUp, href: "/#monetization-onboarding", glow: "crystal-glow-emerald" },
+  { id: "heads", label: "Núcleos Cognitivos", description: "12 heads dobles Alpha/Beta y telemetría", icon: Cpu, href: "/#monetization-heads", glow: "crystal-glow-emerald" },
+  { id: "ledger", label: "Libro Mayor BookPI", description: "Transacciones inmutables y reembolsos", icon: ScrollText, href: "/#monetization-ledger", glow: "crystal-glow-emerald" },
+  { id: "sandbox", label: "Sandbox Soberano", description: "Ejecución VM con scopes y límites", icon: ShieldCheck, href: "/#monetization-sandbox", glow: "crystal-glow-emerald" },
+  { id: "upgrades", label: "Mejoras de Motor", description: "PQC, SGX, filtro SOPHIA, mesh P2P", icon: Sparkles, href: "/#monetization-upgrades", glow: "crystal-glow-emerald" },
+  { id: "special", label: "Simuladores Especiales", description: "Routing neural y auditoría forense", icon: BarChart3, href: "/#monetization-special", glow: "crystal-glow-emerald" },
+  { id: "tutorials", label: "Guías y Tutoriales", description: "Filosofía, BookPI y soberanía", icon: GraduationCap, href: "/#monetization-tutorials", glow: "crystal-glow-emerald" },
+  { id: "audit", label: "Cripto-Auditoría", description: "Verificación SHA-256 y hash chain", icon: ShieldCheck, href: "/#monetization-audit", glow: "crystal-glow-emerald" },
+  { id: "marketplace", label: "Marketplace", description: "Ofertas, productos y servicios territoriales", icon: Store, href: "/#marketplace", glow: "crystal-glow-emerald" },
+  { id: "offers", label: "Ofertas y Gifts", description: "Gifts, rewards y licenciamiento", icon: Gift, href: "/#offers", glow: "crystal-glow-emerald" },
+  { id: "payouts", label: "Payouts y Retiros", description: "85/15, reservas y disputas — payouts idempotentes", icon: Wallet, href: "/#payouts", glow: "crystal-glow-emerald" },
+  { id: "analytics", label: "Analíticas", description: "Uso, consumo y métricas de monetización", icon: BarChart3, href: "/#analytics", glow: "crystal-glow-emerald" },
+];
+
 export function RightRails({
   presetId,
   setPresetId,
   decision,
   isProcessing,
+  onMonetizationNavigate,
 }: {
   presetId: PresetId;
   setPresetId: (id: PresetId) => void;
   decision: RoutingDecision | null;
   isProcessing: boolean;
+  onMonetizationNavigate?: (subTab: string) => void;
 }) {
   const [presetOpen, setPresetOpen] = useState(true);
   const [argusOpen, setArgusOpen] = useState(true);
   const [skillsOpen, setSkillsOpen] = useState(false);
+  const [monetizationOpen, setMonetizationOpen] = useState(true);
   const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({ Orquestación: true });
+  const [openMonetizationGroups, setOpenMonetizationGroups] = useState<Record<string, boolean>>({
+    Economía: true,
+    Creador: true,
+    Operación: false,
+  });
   const presetRef = useRef<HTMLDivElement | null>(null);
   const argusRef = useRef<HTMLDivElement | null>(null);
   const presetHeaderRef = useRef<HTMLButtonElement | null>(null);
@@ -215,6 +260,74 @@ export function RightRails({
             {openFolders[group.folder] && <div className="space-y-1 px-2 pb-2">{group.items.map((skill) => <SkillRow key={skill.id} skill={skill} />)}</div>}
           </div>)}
         </div>}
+      </section>
+
+      {/* ===================== RAIL 4: MONETIZACIÓN & ECONOMÍA SOBERANA ===================== */}
+      <section className="crystal-3d crystal-3d-emerald rounded-2xl border border-emerald-500/20" aria-label="Monetización y economía soberana">
+        <button
+          type="button"
+          onClick={() => setMonetizationOpen((v) => !v)}
+          aria-expanded={monetizationOpen}
+          aria-controls="rail-monetization-panel"
+          className="w-full flex items-center justify-between px-4 py-3 text-left"
+        >
+          <span className="flex items-center gap-2">
+            <Coins className="size-3.5 text-emerald-300" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-foreground/80">Monetización</span>
+            <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider text-emerald-300 border border-emerald-500/20">Soberana</span>
+          </span>
+          <Chevron className={monetizationOpen ? "rotate-180" : ""} />
+        </button>
+        {monetizationOpen && (
+          <div id="rail-monetization-panel" className="space-y-2 px-3 pb-3 animate-rise" aria-label="Opciones de monetización">
+            <p className="px-1 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Canales BookPI · 85/15 · territorial</p>
+            {[
+              { key: "Economía", items: MONETIZATION_OPTIONS.filter((o) => ["onboarding", "ledger", "payouts", "analytics"].includes(o.id)) },
+              { key: "Creador", items: MONETIZATION_OPTIONS.filter((o) => ["marketplace", "offers", "upgrades", "special"].includes(o.id)) },
+              { key: "Operación", items: MONETIZATION_OPTIONS.filter((o) => ["heads", "sandbox", "audit", "tutorials"].includes(o.id)) },
+            ].map((group) => (
+              <div key={group.key} className="rounded-xl border border-emerald-500/15 bg-emerald-950/10">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-emerald-200"
+                  aria-expanded={openMonetizationGroups[group.key] ?? false}
+                  onClick={() => setOpenMonetizationGroups((v) => ({ ...v, [group.key]: !(v[group.key] ?? false) }))}
+                >
+                  <span>{group.key}</span>
+                  <Chevron className={openMonetizationGroups[group.key] ? "rotate-180" : ""} />
+                </button>
+                {(openMonetizationGroups[group.key] ?? false) && (
+                  <div className="space-y-1 px-2 pb-2">
+                    {group.items.map((opt) => {
+                      const Icon = opt.icon;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            if (onMonetizationNavigate) onMonetizationNavigate(opt.id);
+                            else window.location.hash = opt.href;
+                          }}
+                          className="crystal-touch w-full rounded-lg border border-emerald-500/15 bg-background/20 px-2.5 py-2 text-left hover:bg-emerald-500/10 hover:border-emerald-500/25 transition-colors"
+                          title={opt.description}
+                        >
+                          <span className="flex items-center gap-2">
+                            <Icon className="size-3.5 text-emerald-300 shrink-0" />
+                            <span className="font-mono text-[10px] font-medium text-foreground/90">{opt.label}</span>
+                          </span>
+                          <span className="mt-1 block font-mono text-[9px] leading-snug text-muted-foreground line-clamp-2">{opt.description}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+            <div className="rounded-lg border border-emerald-500/10 bg-emerald-500/5 px-2.5 py-2 font-mono text-[9px] leading-snug text-muted-foreground">
+              Distribución territorial 85% operador · 15% Nodo Cero. Ledger append-only, payouts idempotentes, disputas retenidas.
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );

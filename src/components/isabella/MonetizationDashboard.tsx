@@ -96,11 +96,32 @@ interface UpgradeItem {
   spec: string;
 }
 
-export function MonetizationDashboard() {
+export function MonetizationDashboard({ initialTab }: { initialTab?: string | null }) {
   // Sub-pagination Navigation State
   const [activeTab, setActiveTab] = useState<
     "onboarding" | "heads" | "ledger" | "sandbox" | "upgrades" | "special" | "tutorials" | "audit"
   >("onboarding");
+
+  // Sincroniza sub-navegación desde RightRails monetización (retractable navbar)
+  useEffect(() => {
+    if (!initialTab) return;
+    const map: Record<string, typeof activeTab> = {
+      onboarding: "onboarding",
+      heads: "heads",
+      ledger: "ledger",
+      sandbox: "sandbox",
+      upgrades: "upgrades",
+      special: "special",
+      tutorials: "tutorials",
+      audit: "audit",
+      marketplace: "upgrades",
+      offers: "upgrades",
+      payouts: "ledger",
+      analytics: "onboarding",
+    };
+    const mapped = map[initialTab];
+    if (mapped) setActiveTab(mapped);
+  }, [initialTab]);
 
   // Onboarding & user states
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
