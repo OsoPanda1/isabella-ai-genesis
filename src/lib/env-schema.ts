@@ -83,6 +83,14 @@ export const envSchema = z.object({
       return trimmed;
     }, z.enum(["true", "false"]).default("false"))
     .transform((val) => val === "true"),
+  ALLOW_GUEST_CHAT: z
+    .preprocess((val) => {
+      if (typeof val !== "string") return undefined;
+      const t = val.trim().toLowerCase();
+      if (t === "" || t === "undefined" || t === "null") return undefined;
+      return t;
+    }, z.enum(["true", "false"]).default("true"))
+    .transform((val) => val === "true"),
   // Token de aprovisionamiento soberano del primer tenant/owner (bootstrap).
   // Sin este token, `provision-owner` niega la operación (fail-closed).
   PROVISION_OWNER_TOKEN: optionalString(),

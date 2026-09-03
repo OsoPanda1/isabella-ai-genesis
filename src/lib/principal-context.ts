@@ -137,6 +137,29 @@ export class PrincipalContext {
 
     const authHeader = request.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      const isGuestAllowed = (() => {
+        try {
+          const cfg = config() as unknown as Record<string, unknown>;
+          return cfg.ALLOW_GUEST_CHAT === true || (cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true);
+        } catch {
+          return process.env.ALLOW_GUEST_CHAT === "true" || (process.env.NODE_ENV === "development" && process.env.AUTH_DEV_SESSION_ENABLED === "true");
+        }
+      })();
+      const canGuest = isGuestAllowed && (!requiredScope || requiredScope === "isabella:chat" || requiredScope === "isabella:voice" || requiredScope === "isabella:tools");
+      if (canGuest) {
+        const guestClaims: TokenClaims = {
+          iss: "isabella.guest",
+          sub: "guest_user",
+          aud: "nodo_cero_rdm",
+          exp: Math.floor(Date.now() / 1000) + 3600,
+          tenantId: "nodo_cero_rdm",
+          role: "Guest" as Role,
+          scope: "isabella:chat",
+        };
+        const guestTenant = { id: "nodo_cero_rdm", slug: "nodo-cero", tier: "sovereign", quotaBalance: 9999 };
+        const guestContext = new PrincipalContext(guestClaims, guestTenant as unknown as { id: string; slug: string; tier: string; quotaBalance: number }, "guest_user", ip, telemetry.traceId, telemetry.correlationId);
+        return { success: true, context: guestContext };
+      }
       const isDevFallback = (() => {
         try {
           const cfg = config() as unknown as Record<string, unknown>;
@@ -175,6 +198,28 @@ export class PrincipalContext {
     const token = authHeader.replace("Bearer ", "");
     const verification = SecuritySystem.verifyToken(token);
     if (!verification.success || !verification.claims) {
+      const isGuestAllowed = (() => {
+        try {
+          const cfg = config() as unknown as Record<string, unknown>;
+          return cfg.ALLOW_GUEST_CHAT === true;
+        } catch {
+          return process.env.ALLOW_GUEST_CHAT === "true";
+        }
+      })();
+      if (isGuestAllowed && (!requiredScope || requiredScope === "isabella:chat" || requiredScope === "isabella:voice")) {
+        const guestClaims: TokenClaims = {
+          iss: "isabella.guest",
+          sub: "guest_user",
+          aud: "nodo_cero_rdm",
+          exp: Math.floor(Date.now() / 1000) + 3600,
+          tenantId: "nodo_cero_rdm",
+          role: "Guest" as Role,
+          scope: "isabella:chat",
+        };
+        const guestTenant = { id: "nodo_cero_rdm", slug: "nodo-cero", tier: "sovereign", quotaBalance: 9999 };
+        const guestContext = new PrincipalContext(guestClaims, guestTenant as unknown as { id: string; slug: string; tier: string; quotaBalance: number }, "guest_user", ip, telemetry.traceId, telemetry.correlationId);
+        return { success: true, context: guestContext };
+      }
       const isDevFallback = (() => {
         try {
           const cfg = config() as unknown as Record<string, unknown>;
