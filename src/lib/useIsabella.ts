@@ -8,6 +8,7 @@ import {
   type RoutingDecision,
 } from "./crown-ui";
 import { audioFormatFromMime, type Attachment } from "./attachments";
+import { resolveSkillInvocation } from "./skill-registry";
 import {
   exportTelemetryCsv,
   exportTelemetryPdf,
@@ -128,14 +129,25 @@ export function useIsabella() {
       const text = input.trim();
       if ((!text && attachments.length === 0) || isProcessing) return;
 
-      const routing = route(text || "material adjunto", preset);
+      const skillResolution = resolveSkillInvocation(text);
+      if (skillResolution && "error" in skillResolution) {
+        setMessages((prev) => [...prev, { id: uid(), role: "system", content: `ARGUS :: ${skillResolution.error}`, timestamp: now(), error: true }]);
+        return;
+      }
+      const skillContext = skillResolution && "skill" in skillResolution ? `\n\n[SKILL AUTORIZADO: ${skillResolution.skill.id}]\n${skillResolution.skill.description}` : "";
+      const effectiveText = skillResolution && "skill" in skillResolution ? skillResolution.prompt : text;
+      const routing = route(effectiveText || "material adjunto", preset);
       setDecision(routing);
       setTelemetry((prev) => [...prev, toTelemetryRecord(routing, preset.id)]);
+
+      const { getSessionToken, ensureSessionToken } = await import("@/lib/auth-client");
+      let token = getSessionToken();
+      if (!token) token = await ensureSessionToken();
 
       const userMsg: TerminalMessage = {
         id: uid(),
         role: "user",
-        content: text,
+        content: input.trim(),
         timestamp: now(),
         attachments,
       };
@@ -167,32 +179,6 @@ export function useIsabella() {
       abortRef.current = controller;
 
       try {
-        const { getSessionToken, setSessionToken } = await import("@/lib/auth-client");
-        let token = getSessionToken();
-
-        // Fail-closed: si no hay token de sesión, intentar obtener uno del
-        // endpoint dev-session (solo funciona cuando NODE_ENV=development Y
-        // AUTH_DEV_SESSION_ENABLED=true). Si el servidor responde 403,
-        // significa que el modo desarrollo no está habilitado y se prosigue
-        // sin token (el servidor rechazará si se requiere autenticación).
-        if (!token) {
-          try {
-            const devRes = await fetch("/api/db?action=dev-session", {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-            });
-            if (devRes.ok) {
-              const devData = await devRes.json();
-              if (devData.token) {
-                token = devData.token;
-                setSessionToken(token);
-              }
-            }
-          } catch {
-            // Servidor no disponible o dev-session denegado: continuar sin token.
-          }
-        }
-
         const res = await fetch("/api/isabella", {
           method: "POST",
           headers: {
@@ -201,7 +187,7 @@ export function useIsabella() {
           },
           signal: controller.signal,
           body: JSON.stringify({
-            system: buildSystemPrompt(routing, preset),
+            system: buildSystemPrompt(routing, preset) + skillContext,
             temperature: preset.temperature,
             messages: history,
           }),
@@ -245,6 +231,16 @@ export function useIsabella() {
           }
         }
 
+        buffer += decoder.decode();
+        for (const line of buffer.split(/\r?\n/)) {
+          if (!line.trim().startsWith("data:") || line.trim().slice(5).trim() === "[DONE]") continue;
+          try {
+            const json = JSON.parse(line.trim().slice(5).trim());
+            const delta: string | undefined = json.choices?.[0]?.delta?.content;
+            if (delta) acc += delta;
+          } catch { /* final incomplete event is safely ignored */ }
+        }
+
         setMessages((prev) =>
           prev.map((m) =>
             m.id === replyId
@@ -258,6 +254,10 @@ export function useIsabella() {
           ),
         );
       } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          setMessages((prev) => prev.filter((m) => m.id !== replyId));
+          return;
+        }
         const message = err instanceof Error ? err.message : "Interrupción del núcleo.";
         setMessages((prev) =>
           prev.map((m) =>

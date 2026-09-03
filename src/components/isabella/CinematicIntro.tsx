@@ -93,7 +93,7 @@ const PHASES: Phase[] = [
     sub: "Gobernanza de conocimiento y pertenencia territorial",
   },
   { at: 39.5, title: "Núcleo Establecido", sub: "Isabella Villaseñor AI está en línea" },
-  { at: 47.3, title: "Liberación", sub: "Transferencia al espacio Isabella" },
+  { at: 39.5, title: "Liberación", sub: "Transferencia al espacio Isabella" },
 ];
 
 /* -------------------------------------------------------------------------

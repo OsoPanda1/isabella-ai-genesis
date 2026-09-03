@@ -35,6 +35,8 @@ Plataforma cognitiva soberana para TAMV / RDM Digital / Nodo Cero. El sistema co
 
 ## Desarrollo y validación
 
+El gate de seguridad ejecuta instalación reproducible con `pnpm --frozen-lockfile`, typecheck, build de producción, secret scan y CodeQL SAST con configuración explícita. Los avisos heurísticos de ESLint Security no se convierten en falsos positivos bloqueantes; los errores de seguridad y secretos detectados sí detienen el pipeline.
+
 ```bash
 pnpm install
 pnpm dev

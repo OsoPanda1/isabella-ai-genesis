@@ -63,6 +63,7 @@ function checkSecrets() {
     }
     const lines = content.split("\n");
     lines.forEach((line, idx) => {
+      SECRET_LITERAL_RE.lastIndex = 0;
       if (SECRET_LITERAL_RE.test(line)) {
         problems.push(`${file}:${idx + 1}: posible literal de secreto hardcodeado.`);
       }

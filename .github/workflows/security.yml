@@ -22,13 +22,25 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Enable pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up dependency cache
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: pnpm
 
       - name: Install Dependencies
-        run: npm install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Production Build
+        run: pnpm run build:production
 
       - name: Security Linter Scan
         run: npm run security:scan
@@ -60,9 +72,21 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript
+          config-file: ./.github/codeql-config.yml
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - name: Install Dependencies
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
