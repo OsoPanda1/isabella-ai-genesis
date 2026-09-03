@@ -47,22 +47,15 @@ export const Route = createFileRoute("/api/isabella")({
           );
         }
 
-        // --- LAYER 3.5: Upstream API configuration validation ---
+        // --- LAYER 3.5: Upstream API configuration validation — fallback nativo si no hay GEMINI ---
         let apiKey: string;
         try {
           apiKey = secrets.aiGatewayKey();
         } catch {
           apiKey = "";
         }
-        if (!apiKey) {
-          const headers = SecuritySystem.injectSecureHeaders(
-            new Headers({ "content-type": "application/json" }),
-          );
-          return new Response(
-            JSON.stringify({ error: "El núcleo de inferencia no está configurado." }),
-            { status: 500, headers },
-          );
-        }
+        // Si no hay GEMINI_API_KEY en Vercel, no bloquear chat: usar ML nativo es-MX directamente
+        const useNativeOnly = !apiKey;
 
         // Parse Request Body safely
         let rawBody;
@@ -193,7 +186,23 @@ export const Route = createFileRoute("/api/isabella")({
           telemetry.traceId,
         );
 
-        // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker — Gemini (Lovable eliminado) ---
+        // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker — Gemini o Nativo es-MX ---
+        if (useNativeOnly) {
+          const native = nativeInference({ text: lastUserMessage, locale: "es-MX", tenantId: context.tenantId, history: messages as Array<{ role: "user" | "assistant"; content: string }> });
+          const headers = SecuritySystem.injectSecureHeaders(
+            new Headers({
+              "content-type": "text/event-stream",
+              "cache-control": "no-cache",
+              connection: "keep-alive",
+              "x-isabella-trace-id": telemetry.traceId,
+              "x-isabella-correlation-id": telemetry.correlationId,
+              "x-isabella-native-intent": native.intent,
+              "x-isabella-native-confidence": String(native.confidence),
+            }),
+          );
+          const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: native.text } }] })}\n\ndata: [DONE]\n\n`;
+          return new Response(sseBody, { headers });
+        }
         try {
           const upstream = await SecuritySystem.fetchSafeUpstream(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:streamGenerateContent?key=${encodeURIComponent(apiKey)}`,
