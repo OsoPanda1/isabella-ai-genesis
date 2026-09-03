@@ -8,14 +8,10 @@ import { BokehPass } from "three/addons/postprocessing/BokehPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
 import logo from "@/assets/logo-isabella.jpeg.asset.json";
+import backgroundAudio from "@/assets/background-audio.mp3";
 
-/**
- * Audio de fondo de la intro cinemática.
- * Se sirve desde src/assets como asset estático (mismo patrón que
- * /src/assets/logo-isabella.jpeg usado en la interfaz principal).
- * El autoplay lo desbloquea el usuario al pulsar "Iniciar experiencia".
- */
-const BACKGROUND_AUDIO_SRC = "/src/assets/background-audio.mp3";
+/** El audio local se inicia solo tras un gesto explícito del usuario. */
+const BACKGROUND_AUDIO_SRC = backgroundAudio;
 
 /**
  * Cinematic 3D Intro Component — WebGL Three.js Experience
@@ -26,7 +22,7 @@ const BACKGROUND_AUDIO_SRC = "/src/assets/background-audio.mp3";
  */
 
 const CONFIG = {
-  duration: 52_000,
+  duration: 42_000,
 
   starsDesktop: 8_500,
   starsMobile: 2_800,
@@ -404,7 +400,11 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
   // Keyboard shortcut listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" || e.key === "Enter") {
+      if (e.key === "Enter" && !started) {
+        e.preventDefault();
+        startExperience();
+      } else if (e.key === "Escape" && started) {
+        e.preventDefault();
         finish();
       }
     };
@@ -631,7 +631,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       blending: THREE.AdditiveBlending,
       uniforms: {
         uTime: { value: 0 },
-        uOpacity: { value: 0.95 },
+        uOpacity: { value: 1.35 },
         uTechnology: { value: 0 },
         uBass: { value: 0 },
       },
@@ -1102,8 +1102,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
     };
 
     const updateComets = (time: number, progressVal: number) => {
-      const cometOpacity =
-        smoothstep(0.03, 0.16, progressVal) * (1 - smoothstep(0.69, 0.88, progressVal));
+  const cometOpacity = 0; // La narrativa premium usa estrellas y núcleo, no estelas aleatorias.
 
       comets.forEach((comet) => {
         const local = (time * comet.speed + comet.offset) % 1;
@@ -1136,7 +1135,7 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
         array[5] = head.node.position.z;
 
         lineData.geometry.attributes.position.needsUpdate = true;
-        lineData.material.opacity = technologyVal * coreProgressVal * (0.14 + pulse * 0.28);
+        lineData.material.opacity = 0;
       });
     };
 
@@ -1403,18 +1402,20 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
 
       {/* Start screen interaction card */}
       {!started && (
-        <div className="absolute inset-0 z-100 display grid place-items-center p-6 bg-radial-gradient">
-          <div className="w-[min(530px,100%)] p-8 text-center border border-sky-400/25 rounded-[30px] bg-gradient-to-br from-slate-900/80 to-slate-950/80 backdrop-blur-xl shadow-2xl animate-rise">
+        <div className="absolute inset-0 z-[100] grid place-items-center overflow-hidden bg-[#03060d] p-6">
+          <img src="/assets/isabella-intro-backdrop.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 size-full object-cover opacity-70" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(255,226,164,0.16),transparent_22%),linear-gradient(180deg,rgba(3,6,13,0.12),rgba(3,6,13,0.82))]" />
+          <div className="relative z-10 w-[min(620px,100%)] p-7 text-center border border-white/20 rounded-[30px] bg-slate-950/75 backdrop-blur-2xl shadow-[0_24px_100px_-25px_rgba(125,211,252,0.65)] animate-rise">
             <div className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-full border border-cyan-400/35 bg-sky-950/60 font-mono text-[10px] text-cyan-400 font-bold uppercase tracking-[0.18em]">
               <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
               Nodo Cero · Inicialización
             </div>
-            <h1 className="mt-5 text-[32px] sm:text-[40px] font-black text-pearl leading-none tracking-tight">
+            <img src="/assets/logo-isabella.jpeg" alt="Isabella Villaseñor AI" className="mx-auto mt-5 mb-5 w-[min(440px,92%)] rounded-2xl opacity-100 shadow-[0_0_40px_rgba(255,255,255,0.22)]" />
+            <h1 className="mt-3 text-balance text-[32px] sm:text-[46px] font-black text-white leading-none tracking-tight drop-shadow-[0_3px_18px_rgba(0,0,0,0.95)]">
               Isabella Villaseñor AI
             </h1>
             <p className="mt-3.5 max-w-[410px] mx-auto text-muted-foreground text-sm leading-relaxed">
-              Una experiencia cinematográfica desde el espacio profundo hacia el núcleo cognitivo
-              territorial de Isabella.
+              Nacimos para guiar, no para explotar. Una presencia cognitiva soberana para proponer, corregir y evolucionar contigo.
             </p>
             <button
               onClick={() => void startExperience()}
@@ -1437,13 +1438,13 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
           <img
             src={logo.url}
             alt="Marca de Isabella Villaseñor"
-            className="mb-8 w-[min(380px,72vw)] rounded-2xl opacity-90 mix-blend-screen transition-all"
-            style={{ filter: `brightness(${0.55 + progress * 0.6})` }}
+            className="mb-8 w-[min(380px,72vw)] rounded-2xl opacity-100 mix-blend-screen drop-shadow-[0_0_34px_rgba(255,255,255,0.35)] transition-all"
+            style={{ filter: `brightness(${1.05 + progress * 0.25}) contrast(1.08)` }}
           />
-          <h2 className="text-iridescent animate-rise font-display text-[28px] sm:text-[42px] leading-tight font-black tracking-tight text-pearl">
+          <h2 className="text-iridescent animate-rise font-display text-[28px] sm:text-[42px] leading-tight font-black tracking-tight text-white drop-shadow-[0_3px_18px_rgba(0,0,0,0.95)]">
             {phase.title}
           </h2>
-          <p className="mt-3 font-mono text-[9px] sm:text-[11px] uppercase tracking-[0.32em] text-muted-foreground max-w-[500px] leading-relaxed">
+          <p className="mt-3 font-mono text-[9px] sm:text-[11px] uppercase tracking-[0.32em] text-white/90 max-w-[500px] leading-relaxed drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
             {phase.sub}
           </p>
         </div>
@@ -1473,9 +1474,8 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
       )}
 
       {/* Shading, vignette & whiteout overlays */}
-      <div className="absolute inset-0 pointer-events-none vignette z-8 mix-blend-multiply bg-radial-vignette" />
-      <div className="absolute inset-0 pointer-events-none color-grade z-9 mix-blend-screen bg-linear-colorgrade" />
-      <div className="absolute inset-0 pointer-events-none scanlines z-10 opacity-5 bg-repeating-scanlines" />
+      <div className="absolute inset-0 pointer-events-none vignette z-8 bg-radial-vignette opacity-55" />
+      <div className="absolute inset-0 pointer-events-none color-grade z-9 bg-linear-colorgrade opacity-35" />
       <div
         id="whiteout"
         className={`absolute inset-0 z-50 bg-white pointer-events-none transition-opacity duration-[1350ms] ${
