@@ -16,7 +16,14 @@ const bodySchema = z.object({
     .array(
       z.object({
         role: z.enum(["user", "assistant"]),
-        content: z.string().min(1).max(12000),
+        content: z.union([
+          z.string().min(1).max(12000),
+          z.array(z.discriminatedUnion("type", [
+            z.object({ type: z.literal("text"), text: z.string().min(1).max(12000) }),
+            z.object({ type: z.literal("image_url"), image_url: z.object({ url: z.string().max(11_000_000) }) }),
+            z.object({ type: z.literal("input_audio"), input_audio: z.object({ data: z.string().max(11_000_000), format: z.enum(["m4a", "ogg", "wav", "mp3", "webm"]) }) }),
+          ])).max(10),
+        ]),
       }),
     )
     .min(1)
@@ -99,7 +106,8 @@ export const Route = createFileRoute("/api/isabella")({
         }
 
         for (const msg of messages) {
-          const sanitizedMsg = SecuritySystem.sanitizePayload(msg.content);
+          const contentText = typeof msg.content === "string" ? msg.content : msg.content.map((block) => block.type === "text" ? block.text : `[${block.type}]`).join(" ");
+          const sanitizedMsg = SecuritySystem.sanitizePayload(contentText);
           if (sanitizedMsg.flagged) {
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({ "content-type": "application/json" }),
@@ -128,7 +136,8 @@ export const Route = createFileRoute("/api/isabella")({
         );
 
         // --- LATAM-AEGIS-X FIREWALL INTERCEPTOR ---
-        const lastUserMessage = messages[messages.length - 1]?.content || "";
+        const lastContent = messages[messages.length - 1]?.content;
+        const lastUserMessage = typeof lastContent === "string" ? lastContent : lastContent?.map((block) => block.type === "text" ? block.text : `[${block.type}]`).join(" ") || "";
         const interceptResult = LatamAegisXFirewall.interceptRequest(
           lastUserMessage,
           { qecErrorRate: 0.02 },
