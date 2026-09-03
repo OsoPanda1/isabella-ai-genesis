@@ -1110,8 +1110,8 @@ export function CinematicIntro({ onComplete }: { onComplete: () => void }) {
         const point = comet.points[clamp(index, 0, comet.points.length - 1)]!;
 
         comet.head.position.copy(point);
-        comet.material.opacity = cometOpacity * 0.75;
-        comet.head.material.opacity = cometOpacity * 0.95;
+        (comet.material as THREE.LineBasicMaterial).opacity = cometOpacity * 0.75;
+        (comet.head.material as THREE.PointsMaterial).opacity = cometOpacity * 0.95;
       });
     };
 

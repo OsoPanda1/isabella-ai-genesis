@@ -72,7 +72,7 @@ describe("RBAC — control de acceso basado en roles", () => {
   });
 
   it("un permiso inexistente o un rol desconocido resuelve denied", () => {
-    const unknown = { role: "Desconocido" } as PrincipalIdentity;
+    const unknown = { role: "Desconocido" } as unknown as PrincipalIdentity;
     expect(identityHasPermission(unknown, "tool:list")).toBe(false);
     const check = checkPermission(unknown, "tool:list");
     expect(check.allowed).toBe(false);

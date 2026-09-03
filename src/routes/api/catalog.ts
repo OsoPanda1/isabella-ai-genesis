@@ -177,7 +177,7 @@ export const Route = createFileRoute("/api/catalog")({
               contractId: id,
               method,
               path,
-              governanceScore: decision.policy.risk === "none" ? 1.0 : 0.8,
+              governanceScore: decision.policy.risk === "low" ? 1.0 : 0.8,
               decisionStatus: decision.policy.status,
               riskLevel: decision.policy.risk,
               allowedTools: decision.allowedTools,

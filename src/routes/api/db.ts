@@ -826,7 +826,7 @@ export const Route = createFileRoute("/api/db")({
 
           if (action === "ledger-refund") {
             return withSovereignAuth("ledger", "admin", async (context, req, body) => {
-              const { index } = body || {};
+              const { index } = (body ?? {}) as { index?: unknown };
               if (typeof index !== "number") {
                 return new Response(JSON.stringify({ error: "Índice del bloque requerido." }), {
                   status: 400,
