@@ -211,9 +211,9 @@ export function RightRails({
   // Al abrir un panel, mover el foco al contenido y anunciar su estado.
   useEffect(() => {
     if (presetOpen && presetFocusIndex >= 0) {
-      presetRef.current
-        ?.querySelectorAll<HTMLButtonElement>("[data-preset-btn]")
-        [presetFocusIndex]?.focus();
+      const presetButtons =
+        presetRef.current?.querySelectorAll<HTMLButtonElement>("[data-preset-btn]");
+      presetButtons?.[presetFocusIndex]?.focus();
     }
   }, [presetFocusIndex, presetOpen]);
 

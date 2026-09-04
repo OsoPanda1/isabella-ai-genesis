@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from enum import StrEnum
+
 from latam_aegis.audit import AuditLedger
 from latam_aegis.config import Settings
 from latam_aegis.domain import (
@@ -12,6 +14,19 @@ from latam_aegis.ml import Detector
 from latam_aegis.privacy import sanitize, stable_hash
 from latam_aegis.rules import CRITICAL_RULES, detect_rules
 from latam_aegis.wall import AdaptiveWall
+
+
+class PipelineStage(StrEnum):
+    NORMALIZATION = "normalization"
+    CORRELATION = "correlation"
+    AUTHENTICATION = "authentication"
+    TENANT_RESOLUTION = "tenant_resolution"
+    INPUT_VALIDATION = "input_validation"
+    POLICY_EVALUATION = "policy_evaluation"
+    CAPABILITY_CHECK = "capability_check"
+    DOMAIN_OPERATION = "domain_operation"
+    OUTPUT_VALIDATION = "output_validation"
+    AUDIT = "audit"
 
 
 class SecurityPipeline:

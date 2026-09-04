@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from enum import StrEnum
 
 from pydantic import Field, SecretStr
@@ -24,6 +25,12 @@ class Settings(BaseSettings):
 
     hash_secret: SecretStr = SecretStr("default-hash-secret-change-me")
     audit_secret: SecretStr = SecretStr("default-audit-secret-change-me")
+
+    allowed_origins: list[str] = Field(
+        default_factory=lambda: ["http://localhost", "http://127.0.0.1"]
+    )
+    build_commit: str = "local"
+    start_time: float = Field(default_factory=time.time)
 
     ml_threshold: float = Field(default=0.82, ge=0, le=1)
 

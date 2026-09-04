@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 from latam_aegis.domain import AegisLevel
@@ -11,6 +11,21 @@ class WallState:
     level: AegisLevel
     reasons: tuple[str, ...]
     activated_at: datetime
+
+
+@dataclass(slots=True, frozen=True)
+class FirewallRule:
+    rule_id: str
+    pattern: str
+    action: str
+    priority: int = 0
+
+
+@dataclass(slots=True, frozen=True)
+class RateLimitConfig:
+    max_requests: int = 100
+    window_seconds: int = 60
+    burst: int = 20
 
 
 class AdaptiveWall:
