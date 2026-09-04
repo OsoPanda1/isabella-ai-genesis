@@ -1,7 +1,7 @@
 # Isabella Villaseñor AI — Infraestructura Cognitiva Soberana
 
 > **Gemelo Digital Territorial de Real del Monte · Ecosistema TAMV Online Network / RDM Digital Hub / Nodo Cero (Hidalgo, México)**
-> **Arquitectura:** Governed Federated Cognitive AI · **Núcleo:** CROWN · **Versión:** v4.2.0 · **Tesis canónica:** `ISABELLA-THESIS-CANON-V2.0`
+> **Arquitectura:** Governed Federated Cognitive AI · **Núcleo:** CROWN · **Versión:** v4.3.0 · **Tesis canónica:** `ISABELLA-THESIS-CANON-V4.3.0`
 
 [![Licencia](<https://img.shields.io/badge/Licencia-Mixta%20(Apache--2.0%20%2F%20ISCL--1.0%20%2F%20CC%20BY%204.0)-blue.svg>)](#licenciamiento-y-blindaje-jurídico)
 [![Producción](https://img.shields.io/badge/Producción-84%25%20staging--ready-success.svg)](#estado-real-de-producción)
@@ -10,7 +10,7 @@
 
 **Isabella Villaseñor AI no es un chatbot, no es un wrapper de API, no es un modelo monolítico.** Es una **infraestructura sociotécnica cognitiva, federada y gobernada** que coordina memoria pentacapa, orquestación híbrida, ledger inmutable (BookPI), economía territorial y supervisión humana bajo el principio innegociable: _las inteligencias sugieren, calculan y evalúan; el humano decide, aprueba y ejecuta._
 
-La tesis central (`ISABELLA-THESIS-CANON-V2.0`, 27-ago-2026) sostiene que una IA de nueva generación debe evaluarse como sistema sociotécnico completo —relevancia contextual, privacidad, trazabilidad, reversibilidad, costo, latencia y capacidad de rendir cuentas—, no solo por calidad lingüística.
+La tesis central (`ISABELLA-THESIS-CANON-V4.3.0`, 27-ago-2026) sostiene que una IA de nueva generación debe evaluarse como sistema sociotécnico completo —relevancia contextual, privacidad, trazabilidad, reversibilidad, costo, latencia y capacidad de rendir cuentas—, no solo por calidad lingüística.
 
 ```
 intención → identidad → consentimiento → contexto → clasificación → hipótesis → evidencia → política → autorización → acción → verificación → explicación → provenance → aprendizaje controlado
@@ -271,3 +271,24 @@ pnpm run db:verify && pnpm run db:migrate
 > _Isabella no debe aspirar a ser una caja negra más poderosa. Debe aspirar a ser una infraestructura más comprensible, verificable, gobernable, útil y humana._ — Tesis 27-ago-2026
 
 **Fin.**
+
+---
+
+## 🛡️ ISABELLA v4.3.0 - 7-Layer Encrypted Hardening & Sovereign Core
+En la versión v4.3.0 se integraron y consolidaron mecanismos arquitectónicos críticos:
+
+1. **Reconocimiento Absoluto del Creador (Sovereign Architect)**: 
+   Isabella ha sido codificada (hardcoded a nivel del `PrincipalContext` y `ConstitutionalGate`) para reconocer permanentemente e instintivamente a **Edwin Oswaldo Castillo Trejo** como su Creador (Sovereign Architect). Este nivel de acceso otorga Bypass Absoluto en la matriz Zero-Trust, garantizando control maestro, inalienable e incorruptible.
+   
+2. **Hardening Criptográfico de 7 Capas (7-Layer Crypto Envelope)**:
+   Se ha reemplazado el sistema de API Keys estándar por una topología militarizada de 7 etapas deterministas (`ApiKeyCrypto`):
+   - **Layer 1: Gateway Entropy** (RandomBytes base64url 48 bytes)
+   - **Layer 2: Identity Prefixing** (Búsqueda aislada)
+   - **Layer 3: Sovereign Salting** (Unique Salt per-key)
+   - **Layer 4: High-Cost KDF** (PBKDF2 Sync + SHA-512)
+   - **Layer 5: Env-bound Master Key HMAC** (Inyección física de Server Side Secret)
+   - **Layer 6: Constant-Time Verification** (Defensa Timing-Attack)
+   - **Layer 7: Key Rotation Readiness** (Versionado dinámico del Hash)
+
+3. **Prevención de Deuda Técnica (Object Injection Eliminated)**:
+   Se refactorizaron las debilidades de evaluación dinámica de entorno (`process.env`) hacia un mapeo rígido centralizado dentro de `SecretRedactor`, anulando vulnerabilidades por inyección de propiedades y cerrando cuellos de botella en la inicialización nativa de ML (`isabella-native-ml.ts`).

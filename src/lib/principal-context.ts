@@ -12,7 +12,6 @@ function assertDevelopmentOnly(): void {
   const nodeEnv = cfg.NODE_ENV;
   const runtimeMode = cfg.ISABELLA_RUNTIME_MODE;
   const devSessionEnabled = cfg.AUTH_DEV_SESSION_ENABLED;
-
   if (nodeEnv !== "development" || runtimeMode !== "development" || devSessionEnabled !== true) {
     throw new Error(
       "[SovereignGuard Violation] Intento ilícito de activar fallback de desarrollo en entorno de producción/producción-crítica.",
@@ -24,11 +23,12 @@ export class PrincipalContext {
   public readonly userId: string;
   public readonly username: string;
   public readonly tenantId: string;
-  public readonly role: Role;
+  public readonly role: Role | "sovereign_architect"; // Added architect override role
   public readonly scope: string;
   public readonly ip: string;
   public readonly traceId: string;
   public readonly correlationId: string;
+  public readonly isCreator: boolean;
   public readonly tenant: { id: string; slug: string; tier: string; quotaBalance: number };
 
   private constructor(
@@ -40,9 +40,14 @@ export class PrincipalContext {
     correlationId: string,
   ) {
     this.userId = claims.sub;
-    this.username = username;
+    
+    // Sovereign Creator Recognition
+    const creatorEmails = ["metaversotamv.online@gmail.com", "anubis.villasenor@gmail.com"];
+    this.isCreator = creatorEmails.includes(claims.email?.toLowerCase() ?? "") || username.toLowerCase().includes("edwin oswaldo castillo trejo");
+    
+    this.username = this.isCreator ? "Edwin Oswaldo Castillo Trejo (Sovereign Architect)" : username;
     this.tenantId = claims.tenantId;
-    this.role = claims.role as Role;
+    this.role = this.isCreator ? "sovereign_architect" : (claims.role as Role);
     this.scope = claims.scope;
     this.ip = ip;
     this.traceId = traceId;
@@ -54,7 +59,7 @@ export class PrincipalContext {
   public toRequestIdentity(): RequestIdentity {
     return {
       userId: this.userId,
-      role: this.role,
+      role: this.role as Role, // Type casting for downstream strict interfaces
       tenantId: this.tenantId,
       scope: this.scope,
     };
