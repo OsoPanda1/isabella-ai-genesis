@@ -627,10 +627,10 @@ export const Route = createFileRoute("/api/db")({
               );
             }
             if (SovereignDB.getSessions().find((s) => s.userId === userId) === undefined) {
-              return new Response(
-                JSON.stringify({ error: "Usuario no registrado en el nodo." }),
-                { status: 400, headers },
-              );
+              return new Response(JSON.stringify({ error: "Usuario no registrado en el nodo." }), {
+                status: 400,
+                headers,
+              });
             }
 
             const code = `authcode_${nodeCrypto.randomBytes(24).toString("hex")}`;
@@ -673,35 +673,35 @@ export const Route = createFileRoute("/api/db")({
                 "provision.owner_invalid_token",
                 "Token de bootstrap inválido para aprovisionar owner.",
               );
-              return new Response(
-                JSON.stringify({ error: "Token de bootstrap inválido." }),
-                { status: 403, headers },
-              );
+              return new Response(JSON.stringify({ error: "Token de bootstrap inválido." }), {
+                status: 403,
+                headers,
+              });
             }
 
             let provBody: unknown;
             try {
               provBody = await request.json();
             } catch {
-              return new Response(
-                JSON.stringify({ error: "Payload JSON inválido." }),
-                { status: 400, headers },
-              );
+              return new Response(JSON.stringify({ error: "Payload JSON inválido." }), {
+                status: 400,
+                headers,
+              });
             }
             const parsedOwner = provisionOwnerSchema.safeParse(provBody);
             if (!parsedOwner.success) {
-              return new Response(
-                JSON.stringify({ error: "Esquema de provisión inválido." }),
-                { status: 400, headers },
-              );
+              return new Response(JSON.stringify({ error: "Esquema de provisión inválido." }), {
+                status: 400,
+                headers,
+              });
             }
             const { tenantId, tenantName, ownerId, ownerUsername } = parsedOwner.data;
 
             if (SovereignDB.getTenant(tenantId)) {
-              return new Response(
-                JSON.stringify({ error: "El tenant ya existe." }),
-                { status: 409, headers },
-              );
+              return new Response(JSON.stringify({ error: "El tenant ya existe." }), {
+                status: 409,
+                headers,
+              });
             }
 
             SovereignDB.upsertTenant({
@@ -727,10 +727,7 @@ export const Route = createFileRoute("/api/db")({
               "S3",
             );
 
-            return new Response(
-              JSON.stringify({ success: true, tenantId, ownerId }),
-              { headers },
-            );
+            return new Response(JSON.stringify({ success: true, tenantId, ownerId }), { headers });
           }
 
           // [ELIMINADO] action "authenticate" era una puerta trasera: acuñaba un JWT
@@ -909,13 +906,49 @@ export const Route = createFileRoute("/api/db")({
                   { status: 400, headers },
                 );
               }
+
+              // FASE 2.2: Validar privilegios del emisor antes de emitir la credencial.
+              // Un emisor nunca puede conceder un privilegio mayor al que posee.
+              const { validateApiKeyIssue } = await import("@/lib/privilege-validation");
+              const scopeList = Array.isArray(scopes)
+                ? scopes
+                : String(scopes).split(/\s+/).filter(Boolean);
+              const issuerScopes = context.scope ? context.scope.split(/\s+/).filter(Boolean) : [];
+              const issueParams: {
+                issuerRole: string;
+                issuerScopes: string[];
+                issuerTenantId: string;
+                requestedRole: string;
+                requestedScopes: string[];
+                requestedTenantId: string;
+                requestedTtlSeconds?: number;
+              } = {
+                issuerRole: context.role,
+                issuerScopes,
+                issuerTenantId: context.tenantId,
+                requestedRole: role,
+                requestedScopes: scopeList,
+                requestedTenantId: context.tenantId,
+              };
+              if (expiresInSeconds !== undefined)
+                issueParams.requestedTtlSeconds = expiresInSeconds;
+              const issueCheck = validateApiKeyIssue(issueParams);
+              if (!issueCheck.allowed) {
+                return new Response(
+                  JSON.stringify({
+                    error: `Emisión de credencial denegada: ${issueCheck.reason}.`,
+                  }),
+                  { status: 403, headers },
+                );
+              }
+
               const { ApiKeyService } = await import("@/lib/api-key-service");
               const result = await ApiKeyService.createApiKey(
                 context.tenantId,
                 context.userId,
                 name,
                 role,
-                scopes,
+                scopeList,
                 expiresInSeconds,
               );
               return new Response(JSON.stringify({ success: true, key: result }), { headers });
@@ -965,9 +998,20 @@ export const Route = createFileRoute("/api/db")({
             headers,
           });
         } catch (e: unknown) {
-          const errMessage =
+          // P0-48: no exponer detalles internos al cliente. Separar error interno
+          // de un mensaje público estable, registrando el detalle en logs protegidos.
+          const internalId = nodeCrypto.randomUUID().slice(0, 8);
+          const internalMessage =
             e instanceof Error ? e.message : "Error en el pipeline transaccional de base de datos.";
-          return new Response(JSON.stringify({ error: errMessage }), { status: 500, headers });
+          // Registro interno (no expone el mensaje al cliente)
+          console.error(`[api/db:${internalId}] ${internalMessage}`);
+          return new Response(
+            JSON.stringify({
+              error: "internal_error",
+              traceId: `trc_${internalId}`,
+            }),
+            { status: 500, headers },
+          );
         }
       },
     },

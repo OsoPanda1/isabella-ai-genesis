@@ -43,12 +43,10 @@ export interface PipelineResult {
   denialReason?: string;
 }
 
-export function createSovereignPipeline(
-  opts?: {
-    memoryRepository?: MemoryRepository;
-    auditRepository?: AuditRepository;
-  },
-) {
+export function createSovereignPipeline(opts?: {
+  memoryRepository?: MemoryRepository;
+  auditRepository?: AuditRepository;
+}) {
   const memoryEngine = createMemoryEngine(opts?.memoryRepository);
   const toolRegistry = createToolRegistry();
 
@@ -71,12 +69,7 @@ export function createSovereignPipeline(
       });
 
       // ── FASE 2: CONSTITUTIONAL GATE ──────────────────────────
-      const gate = evaluateConstitutionalGate(
-        context,
-        input.identity,
-        input.evidence,
-        intent,
-      );
+      const gate = evaluateConstitutionalGate(context, input.identity, input.evidence, intent);
 
       if (!gate.passed) {
         const auditEvent = opts?.auditRepository?.append({
@@ -110,12 +103,11 @@ export function createSovereignPipeline(
 
       // ── FASE 3: REMEMBER ─────────────────────────────────────
       const allowedScopes = CROWN.resolveAllowedMemoryScopes(intent, input.identity);
-      const actorRole: MemoryActorRole =
-        input.identity.roles.includes("SovereignOwner")
-          ? "SovereignOwner"
-          : input.identity.roles.includes("operator")
-            ? "Operator"
-            : "Guest";
+      const actorRole: MemoryActorRole = input.identity.roles.includes("SovereignOwner")
+        ? "SovereignOwner"
+        : input.identity.roles.includes("operator")
+          ? "Operator"
+          : "Guest";
 
       const memoryResult = memoryEngine.retrieve({
         tenantId: input.tenantId,
@@ -200,7 +192,12 @@ export function createSovereignPipeline(
     },
 
     verifyAuditChain() {
-      return opts?.auditRepository?.verifyChain() ?? { success: true, error: "Sin repositorio de auditoría." };
+      return (
+        opts?.auditRepository?.verifyChain() ?? {
+          success: true,
+          error: "Sin repositorio de auditoría.",
+        }
+      );
     },
   };
 }

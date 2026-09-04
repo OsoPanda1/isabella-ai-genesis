@@ -1,17 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  FolderOpen,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, FolderOpen } from "lucide-react";
 import { CinematicIntro } from "@/components/isabella/CinematicIntro";
 import { CommandLine } from "@/components/isabella/CommandLine";
 import { MessageStream } from "@/components/isabella/MessageStream";
 import { RightRails } from "@/components/isabella/RightRails";
 import { Starfield } from "@/components/isabella/Starfield";
-import { CrystalNavigation, NAV_GROUPS, type NavTabId } from "@/components/isabella/CrystalNavigation";
+import {
+  CrystalNavigation,
+  NAV_GROUPS,
+  type NavTabId,
+} from "@/components/isabella/CrystalNavigation";
 import { ApiCatalogExplorer } from "@/components/isabella/ApiCatalogExplorer";
 import { TerminalView } from "@/components/isabella/TerminalView";
 import { MonetizationDashboard } from "@/components/isabella/MonetizationDashboard";
@@ -92,7 +91,9 @@ function IsabellaInterface() {
     // deep-link hash para trazabilidad y bookmark
     try {
       window.history.replaceState(null, "", `#monetization-${subTab}`);
-    } catch {}
+    } catch (e) {
+      void e;
+    }
   };
 
   // Sidebar State for 3-part retractable accordions
@@ -117,7 +118,6 @@ function IsabellaInterface() {
     lastInput.current = text;
     void isabella.send(text);
   };
-
 
   return (
     <div className="relative min-h-screen flex bg-background text-foreground transition-all duration-300">

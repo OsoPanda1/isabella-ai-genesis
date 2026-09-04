@@ -776,9 +776,13 @@ function tokenizeExpression(input: string): SandboxToken[] {
       i += 1;
       continue;
     }
-    if ((ch >= "0" && ch <= "9") || (ch === "." && (input[i + 1] ?? "") >= "0" && (input[i + 1] ?? "") <= "9")) {
+    if (
+      (ch >= "0" && ch <= "9") ||
+      (ch === "." && (input[i + 1] ?? "") >= "0" && (input[i + 1] ?? "") <= "9")
+    ) {
       let j = i + 1;
-      while (j < input.length && ((input[j]! >= "0" && input[j]! <= "9") || input[j] === ".")) j += 1;
+      while (j < input.length && ((input[j]! >= "0" && input[j]! <= "9") || input[j] === "."))
+        j += 1;
       const raw = input.slice(i, j);
       if (!Number.isFinite(Number(raw))) {
         throw new Error(`Literal numérico inválido [${raw}].`);
@@ -787,12 +791,7 @@ function tokenizeExpression(input: string): SandboxToken[] {
       i = j;
       continue;
     }
-    if (
-      (ch >= "a" && ch <= "z") ||
-      (ch >= "A" && ch <= "Z") ||
-      ch === "_" ||
-      ch === "$"
-    ) {
+    if ((ch >= "a" && ch <= "z") || (ch >= "A" && ch <= "Z") || ch === "_" || ch === "$") {
       let j = i + 1;
       while (
         j < input.length &&
@@ -810,7 +809,14 @@ function tokenizeExpression(input: string): SandboxToken[] {
     }
     if (".+-*/%^(),<>=".includes(ch)) {
       const two = input.slice(i, i + 2);
-      if (two === "<=" || two === ">=" || two === "==" || two === "!=" || two === "&&" || two === "||") {
+      if (
+        two === "<=" ||
+        two === ">=" ||
+        two === "==" ||
+        two === "!=" ||
+        two === "&&" ||
+        two === "||"
+      ) {
         tokens.push({ kind: "op", value: two });
         i += 2;
         continue;
@@ -901,12 +907,30 @@ class ExpressionEvaluator {
     const left = this.parseSum(depth, variables);
     const t = this.peek();
     if (t?.kind === "op") {
-      if (t.value === "<") { this.pos += 1; return this.toNumber(left) < this.toNumber(this.parseSum(depth, variables)); }
-      if (t.value === "<=") { this.pos += 1; return this.toNumber(left) <= this.toNumber(this.parseSum(depth, variables)); }
-      if (t.value === ">") { this.pos += 1; return this.toNumber(left) > this.toNumber(this.parseSum(depth, variables)); }
-      if (t.value === ">=") { this.pos += 1; return this.toNumber(left) >= this.toNumber(this.parseSum(depth, variables)); }
-      if (t.value === "==") { this.pos += 1; return this.toNumber(left) === this.toNumber(this.parseSum(depth, variables)); }
-      if (t.value === "!=") { this.pos += 1; return this.toNumber(left) !== this.toNumber(this.parseSum(depth, variables)); }
+      if (t.value === "<") {
+        this.pos += 1;
+        return this.toNumber(left) < this.toNumber(this.parseSum(depth, variables));
+      }
+      if (t.value === "<=") {
+        this.pos += 1;
+        return this.toNumber(left) <= this.toNumber(this.parseSum(depth, variables));
+      }
+      if (t.value === ">") {
+        this.pos += 1;
+        return this.toNumber(left) > this.toNumber(this.parseSum(depth, variables));
+      }
+      if (t.value === ">=") {
+        this.pos += 1;
+        return this.toNumber(left) >= this.toNumber(this.parseSum(depth, variables));
+      }
+      if (t.value === "==") {
+        this.pos += 1;
+        return this.toNumber(left) === this.toNumber(this.parseSum(depth, variables));
+      }
+      if (t.value === "!=") {
+        this.pos += 1;
+        return this.toNumber(left) !== this.toNumber(this.parseSum(depth, variables));
+      }
     }
     return left;
   }
@@ -1000,7 +1024,11 @@ class ExpressionEvaluator {
     throw new Error(`Identificador no autorizado [${name}].`);
   }
 
-  private callFunction(name: string, depth: number, variables: Record<string, number>): SandboxValue {
+  private callFunction(
+    name: string,
+    depth: number,
+    variables: Record<string, number>,
+  ): SandboxValue {
     this.expectOp("(");
     const args: number[] = [];
     if (!this.matchOp(")")) {
@@ -1017,16 +1045,26 @@ class ExpressionEvaluator {
       return args[0]!;
     };
     switch (name) {
-      case "abs": return Math.abs(single());
-      case "round": return Math.round(single());
-      case "floor": return Math.floor(single());
-      case "ceil": return Math.ceil(single());
-      case "sqrt": return Math.sqrt(single());
-      case "log": return Math.log(single());
-      case "exp": return Math.exp(single());
-      case "sin": return Math.sin(single());
-      case "cos": return Math.cos(single());
-      case "tan": return Math.tan(single());
+      case "abs":
+        return Math.abs(single());
+      case "round":
+        return Math.round(single());
+      case "floor":
+        return Math.floor(single());
+      case "ceil":
+        return Math.ceil(single());
+      case "sqrt":
+        return Math.sqrt(single());
+      case "log":
+        return Math.log(single());
+      case "exp":
+        return Math.exp(single());
+      case "sin":
+        return Math.sin(single());
+      case "cos":
+        return Math.cos(single());
+      case "tan":
+        return Math.tan(single());
       case "min":
         if (args.length < 1) throw new Error(`Función [${name}] requiere al menos 1 argumento.`);
         return Math.min(...args);
@@ -1034,7 +1072,8 @@ class ExpressionEvaluator {
         if (args.length < 1) throw new Error(`Función [${name}] requiere al menos 1 argumento.`);
         return Math.max(...args);
       case "pow":
-        if (args.length !== 2) throw new Error(`Función [${name}] requiere exactamente 2 argumentos.`);
+        if (args.length !== 2)
+          throw new Error(`Función [${name}] requiere exactamente 2 argumentos.`);
         return Math.pow(args[0]!, args[1]!);
       default:
         throw new Error(`Función no autorizada [${name}].`);

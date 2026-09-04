@@ -10,7 +10,8 @@ function isSandboxEnabled(): boolean {
       return process.env.SANDBOX_ENABLED === "true";
     }
   } catch {
-    if (process.env.NODE_ENV === "production" && process.env.SANDBOX_ENABLED !== "true") return false;
+    if (process.env.NODE_ENV === "production" && process.env.SANDBOX_ENABLED !== "true")
+      return false;
   }
   return true;
 }
@@ -172,7 +173,15 @@ export class SovereignSandboxService {
     const startTime = Date.now();
 
     if (!isSandboxEnabled()) {
-      return this.generateResult(false, "Capability unavailable: sandbox disabled in production (fail-closed).", startTime, 503, 0, 0, 0);
+      return this.generateResult(
+        false,
+        "Capability unavailable: sandbox disabled in production (fail-closed).",
+        startTime,
+        503,
+        0,
+        0,
+        0,
+      );
     }
 
     if (!this.activeBinary) {
@@ -281,7 +290,15 @@ export class SovereignSandboxService {
     const startTime = Date.now();
 
     if (!isSandboxEnabled()) {
-      return this.generateResult(false, "Capability unavailable: sandbox disabled in production (fail-closed).", startTime, 503, 0, 0, 0);
+      return this.generateResult(
+        false,
+        "Capability unavailable: sandbox disabled in production (fail-closed).",
+        startTime,
+        503,
+        0,
+        0,
+        0,
+      );
     }
 
     if (!this.isProvisioned) {

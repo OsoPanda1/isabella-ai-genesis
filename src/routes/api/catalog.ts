@@ -154,8 +154,13 @@ export const Route = createFileRoute("/api/catalog")({
           const expectedMethod = entry.method.toUpperCase();
           const expectedPath = entry.path;
           if (method.toUpperCase() !== expectedMethod || path !== expectedPath) {
-            const headers = SecuritySystem.injectSecureHeaders(new Headers({ "content-type": "application/json" }));
-            return new Response(JSON.stringify({ error: "El método o path no coincide con el contrato registrado." }), { status: 409, headers });
+            const headers = SecuritySystem.injectSecureHeaders(
+              new Headers({ "content-type": "application/json" }),
+            );
+            return new Response(
+              JSON.stringify({ error: "El método o path no coincide con el contrato registrado." }),
+              { status: 409, headers },
+            );
           }
 
           const policyInput = `Invocación nativa del contrato ${id} [${method} ${path}] con parámetros: ${checkParams.clean}`;
@@ -190,7 +195,11 @@ export const Route = createFileRoute("/api/catalog")({
               allowedTools: decision.allowedTools,
               latencyMs,
               auditTrail: auditEvents,
-              responsePayload: { status: "authorized_contract", resource: id, execution: "delegated_to_registered_handler" },
+              responsePayload: {
+                status: "authorized_contract",
+                resource: id,
+                execution: "delegated_to_registered_handler",
+              },
             }),
             { headers },
           );

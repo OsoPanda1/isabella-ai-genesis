@@ -28,21 +28,36 @@ const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute window
 const rateLimitCache = new Map<string, { count: number; windowStart: number }>();
 
 // Upstash Redis client lazy — only instantiated if REDIS_URL/KV_URL present
-let redisClient: { incr: (key: string) => Promise<number>; expire: (key: string, sec: number) => Promise<number>; ttl: (key: string) => Promise<number> } | null = null;
+let redisClient: {
+  incr: (key: string) => Promise<number>;
+  expire: (key: string, sec: number) => Promise<number>;
+  ttl: (key: string) => Promise<number>;
+} | null = null;
 async function getRedis(): Promise<typeof redisClient> {
   if (redisClient) return redisClient;
-  const url = config().REDIS_URL || (config() as unknown as Record<string, unknown>).KV_URL as string | undefined || process.env.REDIS_URL || process.env.KV_URL;
+  const url =
+    config().REDIS_URL ||
+    ((config() as unknown as Record<string, unknown>).KV_URL as string | undefined) ||
+    process.env.REDIS_URL ||
+    process.env.KV_URL;
   if (!url) return null;
   try {
     // Dynamic import to avoid hard dependency in dev without Redis
-    const mod = await import("@upstash/redis").catch(() => null) as unknown as { Redis?: new (opts: { url: string; token?: string }) => unknown } | null;
+    const mod = (await import("@upstash/redis").catch(() => null)) as unknown as {
+      Redis?: new (opts: { url: string; token?: string }) => unknown;
+    } | null;
     if (!mod?.Redis) {
       // Fallback to simple fetch-based incr if @upstash/redis not installed — use memory
       return null;
     }
-    const token = (config() as unknown as Record<string, unknown>).KV_REST_API_TOKEN as string | undefined || process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_TOKEN;
-    // @ts-ignore — Upstash Redis constructor
-    redisClient = new (mod.Redis as unknown as new (opts: Record<string, unknown>) => typeof redisClient)({ url, token } as Record<string, unknown>) as typeof redisClient;
+    const token =
+      ((config() as unknown as Record<string, unknown>).KV_REST_API_TOKEN as string | undefined) ||
+      process.env.KV_REST_API_TOKEN ||
+      process.env.UPSTASH_REDIS_TOKEN;
+    // Upstash Redis constructor (casteado explícitamente; no requiere supresión de tipos)
+    redisClient = new (
+      mod.Redis as unknown as new (opts: Record<string, unknown>) => typeof redisClient
+    )({ url, token } as Record<string, unknown>) as typeof redisClient;
     return redisClient;
   } catch {
     return null;
@@ -66,6 +81,7 @@ export interface TokenClaims {
   tenantId: string;
   role: string;
   scope: string;
+  jti?: string;
 }
 
 export const SecuritySystem = {
@@ -73,7 +89,10 @@ export const SecuritySystem = {
   resolveClientIp(request: Request): string {
     const trustedMode = ((): boolean => {
       try {
-        return (config() as unknown as Record<string, unknown>).TRUSTED_PROXY_MODE === "true" || process.env.TRUSTED_PROXY_MODE === "true";
+        return (
+          (config() as unknown as Record<string, unknown>).TRUSTED_PROXY_MODE === "true" ||
+          process.env.TRUSTED_PROXY_MODE === "true"
+        );
       } catch {
         return process.env.TRUSTED_PROXY_MODE === "true";
       }
@@ -132,7 +151,10 @@ export const SecuritySystem = {
   },
 
   // Distributed rate limit — uses Upstash Redis when available, falls back to memory
-  async checkRateLimitDistributed(ip: string, limit: number = 30): Promise<{ allowed: boolean; remaining: number }> {
+  async checkRateLimitDistributed(
+    ip: string,
+    limit: number = 30,
+  ): Promise<{ allowed: boolean; remaining: number }> {
     const redis = await getRedis();
     if (!redis) return this.checkRateLimit(ip, limit);
     try {
@@ -153,6 +175,7 @@ export const SecuritySystem = {
       sub: userId,
       aud: "Isabella S0 Gateway",
       exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiration
+      jti: crypto.randomUUID(), // P0-02: identificador único para validación de sesión
       tenantId,
       role,
       scope,
@@ -206,7 +229,7 @@ export const SecuritySystem = {
 
     const claims = verification.claims!;
     const scopesList = claims.scope.split(" ");
-    if (!scopesList.includes(requiredScope) && claims.role !== "SovereignOwner") {
+    if (!scopesList.includes(requiredScope)) {
       return {
         allowed: false,
         reason: `Ámbito insuficiente (Scope violation): Requiere '${requiredScope}'.`,

@@ -528,9 +528,7 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
     // Los roles NO pueden cambiarse acuñando tokens por cuenta propia: la
     // identidad la emite únicamente el servidor mediante flujos autorizados
     // (provision-owner con token de bootstrap o IDP OIDC/Supabase).
-    toast.info(
-      "El cambio de identidad requiere un flujo autorizado (OIDC o provisionamiento).",
-    );
+    toast.info("El cambio de identidad requiere un flujo autorizado (OIDC o provisionamiento).");
   };
 
   const handleExecuteSandbox = async () => {
@@ -1603,11 +1601,7 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       ].map((cat) => (
                         <button
                           key={cat.id}
-                          onClick={() =>
-                            setPlanCategory(
-                              cat.id as "inference" | "skills" | "apis",
-                            )
-                          }
+                          onClick={() => setPlanCategory(cat.id as "inference" | "skills" | "apis")}
                           className={`font-mono text-[10px] py-1.5 rounded-lg transition-all cursor-pointer ${
                             planCategory === cat.id
                               ? "bg-electric text-platinum font-semibold"

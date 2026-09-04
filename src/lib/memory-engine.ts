@@ -52,10 +52,7 @@ export function canAccessScope(request: MemoryAccessRequest): MemoryDecision {
 }
 
 /** Comprueba si el actor puede leer un registro según sensibilidad y tenant. */
-export function canReadRecord(
-  request: MemoryAccessRequest,
-  record: MemoryRecord,
-): MemoryDecision {
+export function canReadRecord(request: MemoryAccessRequest, record: MemoryRecord): MemoryDecision {
   if (record.tenantId !== request.tenantId) {
     if (!GLOBAL_SCOPE_ROLES.includes(request.role)) {
       return { allowed: false, reason: "Frontera de tenant violada al leer memoria." };
@@ -65,7 +62,8 @@ export function canReadRecord(
   if (record.sensitivity === "personal" || record.sensitivity === "restricted") {
     const isOwner = record.ownerId === request.actorId;
     if (record.sensitivity === "restricted") {
-      if (request.role === "SovereignOwner") return { allowed: true, reason: "Propietario soberano." };
+      if (request.role === "SovereignOwner")
+        return { allowed: true, reason: "Propietario soberano." };
       if (request.role === "Auditor") return { allowed: true, reason: "Auditoría autorizada." };
       return isOwner
         ? { allowed: true, reason: "Propietario del registro restringido." }

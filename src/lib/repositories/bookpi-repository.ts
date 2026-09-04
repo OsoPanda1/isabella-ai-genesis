@@ -66,8 +66,13 @@ function toCents(value: number): string {
  */
 export function createBookpiRepository(storePath: string = STORE_PATH) {
   const runtime = config();
-  if (runtime.ISABELLA_RUNTIME_MODE === "production" || runtime.ISABELLA_RUNTIME_MODE === "staging") {
-    throw new Error("JSON BookPI persistence is disabled in staging and production. Use createBookpiPostgresRepository().");
+  if (
+    runtime.ISABELLA_RUNTIME_MODE === "production" ||
+    runtime.ISABELLA_RUNTIME_MODE === "staging"
+  ) {
+    throw new Error(
+      "JSON BookPI persistence is disabled in staging and production. Use createBookpiPostgresRepository().",
+    );
   }
 
   function loadStore(): BookPIStoreFile {

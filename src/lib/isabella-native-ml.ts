@@ -75,11 +75,36 @@ const TERRITORIAL_KEYWORDS = [
   "pulque",
 ];
 
-const IDENTITY_KEYWORDS = ["quien eres", "quién eres", "isabella", "villaseñor", "eres tu", "tu nombre"];
+const IDENTITY_KEYWORDS = [
+  "quien eres",
+  "quién eres",
+  "isabella",
+  "villaseñor",
+  "eres tu",
+  "tu nombre",
+];
 const MEMORY_KEYWORDS = ["recuerdas", "memoria", "olvidaste", "guardaste", "historial"];
 const SECURITY_KEYWORDS = ["seguridad", "argus", "riesgo", "permiso", "auditoria", "auditoría"];
-const ECONOMIA_KEYWORDS = ["dinero", "pago", "costo", "credito", "crédito", "ledger", "bookpi", "factura"];
-const TECNICA_KEYWORDS = ["código", "codigo", "api", "error", "deploy", "vercel", "supabase", "postgres"];
+const ECONOMIA_KEYWORDS = [
+  "dinero",
+  "pago",
+  "costo",
+  "credito",
+  "crédito",
+  "ledger",
+  "bookpi",
+  "factura",
+];
+const TECNICA_KEYWORDS = [
+  "código",
+  "codigo",
+  "api",
+  "error",
+  "deploy",
+  "vercel",
+  "supabase",
+  "postgres",
+];
 
 function normalize(text: string): string {
   return text
@@ -93,27 +118,42 @@ function normalize(text: string): string {
 
 function classifyIntent(text: string): { intent: NativeIntent; confidence: number } {
   const n = normalize(text);
-  if (LATAM_GREETINGS.has(n) || (n.startsWith("hola") && n.length < 20)) return { intent: "saludo", confidence: 0.97 };
-  if (n.includes("adios") || n.includes("hasta luego") || n.includes("nos vemos")) return { intent: "despedida", confidence: 0.95 };
-  if (TERRITORIAL_KEYWORDS.some((k) => n.includes(normalize(k)))) return { intent: "territorio", confidence: 0.92 };
-  if (IDENTITY_KEYWORDS.some((k) => n.includes(normalize(k)))) return { intent: "identidad", confidence: 0.9 };
-  if (MEMORY_KEYWORDS.some((k) => n.includes(normalize(k)))) return { intent: "memoria", confidence: 0.88 };
-  if (SECURITY_KEYWORDS.some((k) => n.includes(normalize(k)))) return { intent: "seguridad", confidence: 0.87 };
-  if (ECONOMIA_KEYWORDS.some((k) => n.includes(normalize(k)))) return { intent: "economia", confidence: 0.86 };
-  if (TECNICA_KEYWORDS.some((k) => n.includes(normalize(k)))) return { intent: "tecnica", confidence: 0.85 };
-  if (n.includes("por que") || n.includes("que es") || n.includes("como funciona") || n.includes("explícame")) return { intent: "filosofia", confidence: 0.8 };
+  if (LATAM_GREETINGS.has(n) || (n.startsWith("hola") && n.length < 20))
+    return { intent: "saludo", confidence: 0.97 };
+  if (n.includes("adios") || n.includes("hasta luego") || n.includes("nos vemos"))
+    return { intent: "despedida", confidence: 0.95 };
+  if (TERRITORIAL_KEYWORDS.some((k) => n.includes(normalize(k))))
+    return { intent: "territorio", confidence: 0.92 };
+  if (IDENTITY_KEYWORDS.some((k) => n.includes(normalize(k))))
+    return { intent: "identidad", confidence: 0.9 };
+  if (MEMORY_KEYWORDS.some((k) => n.includes(normalize(k))))
+    return { intent: "memoria", confidence: 0.88 };
+  if (SECURITY_KEYWORDS.some((k) => n.includes(normalize(k))))
+    return { intent: "seguridad", confidence: 0.87 };
+  if (ECONOMIA_KEYWORDS.some((k) => n.includes(normalize(k))))
+    return { intent: "economia", confidence: 0.86 };
+  if (TECNICA_KEYWORDS.some((k) => n.includes(normalize(k))))
+    return { intent: "tecnica", confidence: 0.85 };
+  if (
+    n.includes("por que") ||
+    n.includes("que es") ||
+    n.includes("como funciona") ||
+    n.includes("explícame")
+  )
+    return { intent: "filosofia", confidence: 0.8 };
   return { intent: "general", confidence: 0.72 };
 }
 
 const RESPONSES: Record<NativeIntent, Array<(ctx: NativeMLRequest) => string>> = {
   saludo: [
-    (ctx) =>
+    () =>
       `¡Hola! Soy **Isabella Villaseñor AI**, tu guía inteligente de Real del Monte — Nodo Cero. Estoy conectada y lista para ayudarte en español latinoamericano, con soberanía y propósito humano. ¿En qué te apoyo hoy?`,
     () =>
       `¡Qué gusto saludarte! Aquí Isabella, desde el territorio, con memoria y gobernanza. Puedo ayudarte con turismo, patrimonio, código, investigación o lo que necesites. ¡Dime!`,
   ],
   despedida: [
-    () => `¡Hasta luego! Quedo atenta en el Nodo Cero. Cuando gustes, aquí estaré — con trazabilidad y respeto por tu tiempo. ¡Que tengas un excelente día!`,
+    () =>
+      `¡Hasta luego! Quedo atenta en el Nodo Cero. Cuando gustes, aquí estaré — con trazabilidad y respeto por tu tiempo. ¡Que tengas un excelente día!`,
   ],
   territorio: [
     () =>
@@ -180,13 +220,32 @@ export function nativeInference(request: NativeMLRequest): NativeMLResponse {
 
 // Open Science / Open Source free models bridge — provider-agnostic
 export const OPEN_SCIENCE_MODELS = [
-  { id: "beto-spanish", provider: "dccuchile/bert-base-spanish-wwm-cased", license: "Apache-2.0", use: "embeddings" },
-  { id: "roberta-bne", provider: "PlanTL-GOB-ES/roberta-base-bne", license: "Apache-2.0", use: "embeddings" },
+  {
+    id: "beto-spanish",
+    provider: "dccuchile/bert-base-spanish-wwm-cased",
+    license: "Apache-2.0",
+    use: "embeddings",
+  },
+  {
+    id: "roberta-bne",
+    provider: "PlanTL-GOB-ES/roberta-base-bne",
+    license: "Apache-2.0",
+    use: "embeddings",
+  },
   { id: "m2m100-418M", provider: "facebook/m2m100_418M", license: "MIT", use: "traducción" },
   { id: "whisper-small-es", provider: "openai/whisper-small", license: "MIT", use: "STT es-MX" },
-  { id: "coqui-tts-es-mx", provider: "coqui/XTTS-v2", license: "MPL-2.0", use: "TTS es-MX soberano" },
+  {
+    id: "coqui-tts-es-mx",
+    provider: "coqui/XTTS-v2",
+    license: "MPL-2.0",
+    use: "TTS es-MX soberano",
+  },
 ] as const;
 
 export function listOpenScienceModels() {
-  return OPEN_SCIENCE_MODELS.map((m) => ({ ...m, status: "contract" as const, integratedVia: "isabella-native-ml" }));
+  return OPEN_SCIENCE_MODELS.map((m) => ({
+    ...m,
+    status: "contract" as const,
+    integratedVia: "isabella-native-ml",
+  }));
 }

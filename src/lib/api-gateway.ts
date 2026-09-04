@@ -2,6 +2,7 @@ import { SecuritySystem } from "./security";
 import { PrincipalContext } from "./principal-context";
 import { authorize, type AuthorizationRequest } from "./authorization";
 import type { Resource, Action } from "./permission-matrix";
+import { runWithIdentity } from "./identity-context";
 
 /**
  * SOVEREIGN API GATEWAY (src/lib/api-gateway.ts)
@@ -96,7 +97,7 @@ export class ApiGateway {
       }
     }
 
-    // 4. Delegación a la lógica de negocio final
-    return handler(context, parsedData);
+    // 4. Delegación a la lógica de negocio final (con identidad en request-context)
+    return runWithIdentity(context.toRequestIdentity(), () => handler(context, parsedData));
   }
 }

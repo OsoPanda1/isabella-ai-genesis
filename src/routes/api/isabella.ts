@@ -21,11 +21,24 @@ const bodySchema = z.object({
         role: z.enum(["user", "assistant"]),
         content: z.union([
           z.string().min(1).max(12000),
-          z.array(z.discriminatedUnion("type", [
-            z.object({ type: z.literal("text"), text: z.string().min(1).max(12000) }),
-            z.object({ type: z.literal("image_url"), image_url: z.object({ url: z.string().max(11_000_000) }) }),
-            z.object({ type: z.literal("input_audio"), input_audio: z.object({ data: z.string().max(11_000_000), format: z.enum(["m4a", "ogg", "wav", "mp3", "webm"]) }) }),
-          ])).max(10),
+          z
+            .array(
+              z.discriminatedUnion("type", [
+                z.object({ type: z.literal("text"), text: z.string().min(1).max(12000) }),
+                z.object({
+                  type: z.literal("image_url"),
+                  image_url: z.object({ url: z.string().max(11_000_000) }),
+                }),
+                z.object({
+                  type: z.literal("input_audio"),
+                  input_audio: z.object({
+                    data: z.string().max(11_000_000),
+                    format: z.enum(["m4a", "ogg", "wav", "mp3", "webm"]),
+                  }),
+                }),
+              ]),
+            )
+            .max(10),
         ]),
       }),
     )
@@ -108,7 +121,12 @@ export const Route = createFileRoute("/api/isabella")({
         }
 
         for (const msg of messages) {
-          const contentText = typeof msg.content === "string" ? msg.content : msg.content.map((block) => block.type === "text" ? block.text : `[${block.type}]`).join(" ");
+          const contentText =
+            typeof msg.content === "string"
+              ? msg.content
+              : msg.content
+                  .map((block) => (block.type === "text" ? block.text : `[${block.type}]`))
+                  .join(" ");
           const sanitizedMsg = SecuritySystem.sanitizePayload(contentText);
           if (sanitizedMsg.flagged) {
             const headers = SecuritySystem.injectSecureHeaders(
@@ -139,7 +157,12 @@ export const Route = createFileRoute("/api/isabella")({
 
         // --- LATAM-AEGIS-X FIREWALL INTERCEPTOR ---
         const lastContent = messages[messages.length - 1]?.content;
-        const lastUserMessage = typeof lastContent === "string" ? lastContent : lastContent?.map((block) => block.type === "text" ? block.text : `[${block.type}]`).join(" ") || "";
+        const lastUserMessage =
+          typeof lastContent === "string"
+            ? lastContent
+            : lastContent
+                ?.map((block) => (block.type === "text" ? block.text : `[${block.type}]`))
+                .join(" ") || "";
         const interceptResult = LatamAegisXFirewall.interceptRequest(
           lastUserMessage,
           { qecErrorRate: 0.02 },
@@ -202,15 +225,23 @@ export const Route = createFileRoute("/api/isabella")({
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );
-          return new Response(JSON.stringify({ error: governance.denialReason, traceId: telemetry.traceId }), {
-            status: 403,
-            headers,
-          });
+          return new Response(
+            JSON.stringify({ error: governance.denialReason, traceId: telemetry.traceId }),
+            {
+              status: 403,
+              headers,
+            },
+          );
         }
 
         // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker — Gemini o Nativo es-MX ---
         if (useNativeOnly) {
-          const native = nativeInference({ text: lastUserMessage, locale: "es-MX", tenantId: context.tenantId, history: messages as Array<{ role: "user" | "assistant"; content: string }> });
+          const native = nativeInference({
+            text: lastUserMessage,
+            locale: "es-MX",
+            tenantId: context.tenantId,
+            history: messages as Array<{ role: "user" | "assistant"; content: string }>,
+          });
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({
               "content-type": "text/event-stream",
@@ -238,7 +269,11 @@ export const Route = createFileRoute("/api/isabella")({
                   { role: "user", parts: [{ text: sanitizedSystem.clean }] },
                   ...messages.map((m) => ({
                     role: m.role === "assistant" ? "model" : "user",
-                    parts: [{ text: typeof m.content === "string" ? m.content : JSON.stringify(m.content) }],
+                    parts: [
+                      {
+                        text: typeof m.content === "string" ? m.content : JSON.stringify(m.content),
+                      },
+                    ],
                   })),
                 ],
                 generationConfig: { temperature, maxOutputTokens: 8192 },
@@ -250,7 +285,12 @@ export const Route = createFileRoute("/api/isabella")({
             const detail = await upstream.text().catch(() => "");
             console.error(`Isabella gateway error [${upstream.status}]: ${detail}`);
             // Fallback soberano nativo 100% español LATAM — garantiza respuesta incluso sin Gemini
-            const native = nativeInference({ text: lastUserMessage, locale: "es-MX", tenantId: context.tenantId, history: messages as Array<{ role: "user" | "assistant"; content: string }> });
+            const native = nativeInference({
+              text: lastUserMessage,
+              locale: "es-MX",
+              tenantId: context.tenantId,
+              history: messages as Array<{ role: "user" | "assistant"; content: string }>,
+            });
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({
                 "content-type": "text/event-stream",
@@ -317,7 +357,9 @@ export const Route = createFileRoute("/api/isabella")({
                         const gem = JSON.parse(jsonStr);
                         const text: string | undefined =
                           gem.candidates?.[0]?.content?.parts?.[0]?.text ??
-                          gem.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text).join("") ??
+                          gem.candidates?.[0]?.content?.parts
+                            ?.map((p: { text?: string }) => p.text)
+                            .join("") ??
                           gem.text ??
                           undefined;
                         if (text) {
@@ -333,13 +375,18 @@ export const Route = createFileRoute("/api/isabella")({
                   const remaining = buffer.trim();
                   if (remaining) {
                     try {
-                      const gem = JSON.parse(remaining.startsWith("data:") ? remaining.slice(5).trim() : remaining);
-                      const text: string | undefined = gem.candidates?.[0]?.content?.parts?.[0]?.text;
+                      const gem = JSON.parse(
+                        remaining.startsWith("data:") ? remaining.slice(5).trim() : remaining,
+                      );
+                      const text: string | undefined =
+                        gem.candidates?.[0]?.content?.parts?.[0]?.text;
                       if (text) {
                         const openAIChunk = `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`;
                         controller.enqueue(new TextEncoder().encode(openAIChunk));
                       }
-                    } catch {}
+                    } catch (e) {
+                      void e;
+                    }
                   }
                   controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
                   controller.close();
@@ -376,7 +423,12 @@ export const Route = createFileRoute("/api/isabella")({
               "x-isabella-correlation-id": telemetry.correlationId,
             }),
           );
-          const native = nativeInference({ text: lastUserMessage, locale: "es-MX", tenantId: context.tenantId, history: messages as Array<{ role: "user" | "assistant"; content: string }> });
+          const native = nativeInference({
+            text: lastUserMessage,
+            locale: "es-MX",
+            tenantId: context.tenantId,
+            history: messages as Array<{ role: "user" | "assistant"; content: string }>,
+          });
           const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: native.text } }] })}\n\ndata: [DONE]\n\n`;
           return new Response(sseBody, { headers });
         }

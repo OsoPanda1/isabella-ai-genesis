@@ -131,16 +131,30 @@ export function useIsabella() {
 
       const skillResolution = resolveSkillInvocation(text);
       if (skillResolution && "error" in skillResolution) {
-        setMessages((prev) => [...prev, { id: uid(), role: "system", content: `ARGUS :: ${skillResolution.error}`, timestamp: now(), error: true }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: uid(),
+            role: "system",
+            content: `ARGUS :: ${skillResolution.error}`,
+            timestamp: now(),
+            error: true,
+          },
+        ]);
         return;
       }
-      const skillContext = skillResolution && "skill" in skillResolution ? `\n\n[SKILL AUTORIZADO: ${skillResolution.skill.id}]\n${skillResolution.skill.description}` : "";
-      const effectiveText = skillResolution && "skill" in skillResolution ? skillResolution.prompt : text;
+      const skillContext =
+        skillResolution && "skill" in skillResolution
+          ? `\n\n[SKILL AUTORIZADO: ${skillResolution.skill.id}]\n${skillResolution.skill.description}`
+          : "";
+      const effectiveText =
+        skillResolution && "skill" in skillResolution ? skillResolution.prompt : text;
       const routing = route(effectiveText || "material adjunto", preset);
       setDecision(routing);
       setTelemetry((prev) => [...prev, toTelemetryRecord(routing, preset.id)]);
 
-      const { getSessionToken, ensureSessionToken, setSessionToken } = await import("@/lib/auth-client");
+      const { getSessionToken, ensureSessionToken, setSessionToken } =
+        await import("@/lib/auth-client");
       let token = getSessionToken();
       if (!token) {
         // Dev fallback: intenta sesión soberana sin OAuth (solo development + ALLOW_DEV_AUTH_FALLBACK)
@@ -158,7 +172,9 @@ export function useIsabella() {
               token = devData.token;
             }
           }
-        } catch {}
+        } catch (e) {
+          void e;
+        }
       }
       if (!token) {
         try {
@@ -258,12 +274,15 @@ export function useIsabella() {
 
         buffer += decoder.decode();
         for (const line of buffer.split(/\r?\n/)) {
-          if (!line.trim().startsWith("data:") || line.trim().slice(5).trim() === "[DONE]") continue;
+          if (!line.trim().startsWith("data:") || line.trim().slice(5).trim() === "[DONE]")
+            continue;
           try {
             const json = JSON.parse(line.trim().slice(5).trim());
             const delta: string | undefined = json.choices?.[0]?.delta?.content;
             if (delta) acc += delta;
-          } catch { /* final incomplete event is safely ignored */ }
+          } catch {
+            /* final incomplete event is safely ignored */
+          }
         }
 
         setMessages((prev) =>

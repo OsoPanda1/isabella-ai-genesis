@@ -2,20 +2,20 @@
 
 ## Isabella Villaseñor AI v4.2.0
 
-| Dimensión de Decisión | Módulo de Autoridad Principal | Archivos Fuertemente Gobernados |
-| :--- | :--- | :--- |
-| **Identidad del Actor** | `PrincipalContext` | `src/lib/principal-context.ts`, `src/lib/credential-types.ts` |
+| Dimensión de Decisión            | Módulo de Autoridad Principal | Archivos Fuertemente Gobernados                               |
+| :------------------------------- | :---------------------------- | :------------------------------------------------------------ |
+| **Identidad del Actor**          | `PrincipalContext`            | `src/lib/principal-context.ts`, `src/lib/credential-types.ts` |
 | **Autenticación (Verification)** | `CredentialVerifier` / `OIDC` | `src/lib/jwt-verifier.ts`, `src/lib/api-key-authenticator.ts` |
-| **Aislamiento Multitenant** | `Tenant Guard` | `src/lib/tenant-guard.ts`, `src/lib/tenant-context.ts` |
-| **Matrices de Permisos** | `Authorization Plane` | `src/lib/authorization.ts`, `src/lib/permission-matrix.ts` |
-| **Control de Acceso (RBAC)** | `RBAC Engine` | `src/lib/rbac.ts` |
-| **Políticas de Atributo (ABAC)** | `ABAC Engine` | `src/lib/abac.ts` |
-| **Gobernanza de Modelos** | `CROWN Core` | `src/lib/crown.ts` |
-| **Defensa Perimetral & Threat** | `LATAM Aegis-X Firewall` | `src/lib/latam-aegis-x.ts` |
-| **Aislamiento de Cómputo** | `Sandbox Broker` | `src/lib/sovereign-sandbox.ts` |
-| **Registro de Eventos Críticos** | `Sovereign Ledger (BookPI)` | `src/lib/sovereign-engine.ts` |
-| **Acceso a Secretos y Llaves** | `Secrets Provider` | `src/lib/secrets.ts` |
-| **Lectura de Configuración** | `Config Service` | `src/lib/config.ts`, `src/lib/env-schema.ts` |
+| **Aislamiento Multitenant**      | `Tenant Guard`                | `src/lib/tenant-guard.ts`, `src/lib/tenant-context.ts`        |
+| **Matrices de Permisos**         | `Authorization Plane`         | `src/lib/authorization.ts`, `src/lib/permission-matrix.ts`    |
+| **Control de Acceso (RBAC)**     | `RBAC Engine`                 | `src/lib/rbac.ts`                                             |
+| **Políticas de Atributo (ABAC)** | `ABAC Engine`                 | `src/lib/abac.ts`                                             |
+| **Gobernanza de Modelos**        | `CROWN Core`                  | `src/lib/crown.ts`                                            |
+| **Defensa Perimetral & Threat**  | `LATAM Aegis-X Firewall`      | `src/lib/latam-aegis-x.ts`                                    |
+| **Aislamiento de Cómputo**       | `Sandbox Broker`              | `src/lib/sovereign-sandbox.ts`                                |
+| **Registro de Eventos Críticos** | `Sovereign Ledger (BookPI)`   | `src/lib/sovereign-engine.ts`                                 |
+| **Acceso a Secretos y Llaves**   | `Secrets Provider`            | `src/lib/secrets.ts`                                          |
+| **Lectura de Configuración**     | `Config Service`              | `src/lib/config.ts`, `src/lib/env-schema.ts`                  |
 
 ---
 

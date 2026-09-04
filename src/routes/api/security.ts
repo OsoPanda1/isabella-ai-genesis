@@ -9,7 +9,13 @@ import * as path from "node:path";
 import * as crypto from "node:crypto";
 import { repositoryFactory } from "@/lib/persistence/repository-factory";
 
-async function auditSecurity(traceId: string, tenantId: string, action: string, severity: "S0" | "S1" | "S2" | "S3", details: string): Promise<void> {
+async function auditSecurity(
+  traceId: string,
+  tenantId: string,
+  action: string,
+  severity: "S0" | "S1" | "S2" | "S3",
+  details: string,
+): Promise<void> {
   try {
     await repositoryFactory.getAuditRepository().audit({
       id: crypto.randomUUID(),
@@ -23,7 +29,9 @@ async function auditSecurity(traceId: string, tenantId: string, action: string, 
       result: severity === "S1" || severity === "S0" ? "failure" : "success",
       details: { details },
     });
-  } catch {}
+  } catch (e) {
+    void e;
+  }
 }
 
 // Enum matching Python domain
@@ -167,7 +175,11 @@ export const Route = createFileRoute("/api/security")({
           });
         }
 
-        const event = { ...validation.data, metadata: validation.data.metadata ?? {}, features: validation.data.features ?? {} };
+        const event = {
+          ...validation.data,
+          metadata: validation.data.metadata ?? {},
+          features: validation.data.features ?? {},
+        };
 
         // Try Python run pipeline via shell bridge with PYTHONPATH configured
         return new Promise<Response>((resolve) => {
@@ -210,7 +222,12 @@ export const Route = createFileRoute("/api/security")({
           };
           const timer = setTimeout(() => {
             child.kill("SIGKILL");
-            finish(new Response(JSON.stringify({ error: "AEGIS runtime timeout." }), { status: 504, headers }));
+            finish(
+              new Response(JSON.stringify({ error: "AEGIS runtime timeout." }), {
+                status: 504,
+                headers,
+              }),
+            );
           }, maxRuntimeMs);
 
           child.stdout.on("data", (chunk: Buffer) => {
@@ -221,21 +238,34 @@ export const Route = createFileRoute("/api/security")({
             stdout += chunk.toString();
           });
           child.stderr.on("data", (chunk: Buffer) => {
-            if (Buffer.byteLength(stderr) + chunk.byteLength <= maxStderrBytes) stderr += chunk.toString();
+            if (Buffer.byteLength(stderr) + chunk.byteLength <= maxStderrBytes)
+              stderr += chunk.toString();
           });
 
           child.on("error", () => {
             clearTimeout(timer);
             const tsResult = calculateTsAegisResponse(event);
-            void auditSecurity(context.traceId, context.tenantId, "aegis.fallback", tsResult.aegis_level >= 2 ? "S1" : "S3", `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}.`);
-              clearTimeout(timer);
-              finish(new Response(JSON.stringify(tsResult), { headers }));
+            void auditSecurity(
+              context.traceId,
+              context.tenantId,
+              "aegis.fallback",
+              tsResult.aegis_level >= 2 ? "S1" : "S3",
+              `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}.`,
+            );
+            clearTimeout(timer);
+            finish(new Response(JSON.stringify(tsResult), { headers }));
           });
 
           child.on("close", (code) => {
             if (code !== 0) {
               const tsResult = calculateTsAegisResponse(event);
-              void auditSecurity(context.traceId, context.tenantId, "aegis.fallback", tsResult.aegis_level >= 2 ? "S1" : "S3", `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}. Stderr: ${stderr.slice(0, 200)}`);
+              void auditSecurity(
+                context.traceId,
+                context.tenantId,
+                "aegis.fallback",
+                tsResult.aegis_level >= 2 ? "S1" : "S3",
+                `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}. Stderr: ${stderr.slice(0, 200)}`,
+              );
               clearTimeout(timer);
               return finish(new Response(JSON.stringify(tsResult), { headers }));
             }
@@ -247,7 +277,13 @@ export const Route = createFileRoute("/api/security")({
                 sanitizedSource: `hash_src_${pyResult.source || "hashed"}`,
                 redactedMetadata: { ...event.metadata, original_resource: event.resource_class },
               };
-              void auditSecurity(context.traceId, context.tenantId, "aegis.python_core", finalResult.aegis_level >= 2 ? "S1" : "S3", `Análisis exitoso mediante motor nativo Python. Decisión: ${finalResult.decision.toUpperCase()}. Score: ${finalResult.score}.`);
+              void auditSecurity(
+                context.traceId,
+                context.tenantId,
+                "aegis.python_core",
+                finalResult.aegis_level >= 2 ? "S1" : "S3",
+                `Análisis exitoso mediante motor nativo Python. Decisión: ${finalResult.decision.toUpperCase()}. Score: ${finalResult.score}.`,
+              );
               clearTimeout(timer);
               return finish(new Response(JSON.stringify(finalResult), { headers }));
             } catch {

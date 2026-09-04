@@ -26,13 +26,7 @@ import {
  */
 
 export type NavTabId =
-  | "terminal"
-  | "cli"
-  | "catalog"
-  | "monetization"
-  | "quantum"
-  | "interfaces"
-  | "aegis";
+  "terminal" | "cli" | "catalog" | "monetization" | "quantum" | "interfaces" | "aegis";
 
 export interface NavGroupItem {
   id: NavTabId;
@@ -133,9 +127,8 @@ function AccordionGroup({
                 onKeyDown={(e) => {
                   if (e.key === "ArrowDown" || e.key === "ArrowUp") {
                     e.preventDefault();
-                    const all = listRef.current?.querySelectorAll<HTMLButtonElement>(
-                      "[data-nav-item]",
-                    );
+                    const all =
+                      listRef.current?.querySelectorAll<HTMLButtonElement>("[data-nav-item]");
                     if (!all || all.length === 0) return;
                     let next = index;
                     if (e.key === "ArrowDown") next = (index + 1) % group.items.length;

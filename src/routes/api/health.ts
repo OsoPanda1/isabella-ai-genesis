@@ -40,7 +40,6 @@ async function readiness(): Promise<Response> {
 
   // Repository health
   try {
-    const start = performance.now();
     const repoHealth = await repositoryFactory.getTenantRepository().health();
     checks.repository = { ok: repoHealth.ok, latencyMs: repoHealth.latencyMs };
     if (!repoHealth.ok) overallOk = false;

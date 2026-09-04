@@ -41,7 +41,11 @@ export function createBookpiEngine(repository: BookpiRepository = createBookpiRe
       return repository.list(tenantId);
     },
 
-    record(request: BookpiWriteRequest): { success: boolean; error?: string; block?: BlockPIBlock } {
+    record(request: BookpiWriteRequest): {
+      success: boolean;
+      error?: string;
+      block?: BlockPIBlock;
+    } {
       if (!request.tenantId) return { success: false, error: "Tenant requerido." };
       if (!request.userId) return { success: false, error: "Usuario requerido." };
       if (request.cost < 0) return { success: false, error: "Costo negativo no admitido." };

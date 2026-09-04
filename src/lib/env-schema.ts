@@ -77,20 +77,26 @@ export const envSchema = z.object({
   // Solo desarrollo: habilita el login OIDC/OAuth manual de pruebas y la acción
   // `authenticate` (NUNCA en staging/production). Fail-closed por defecto.
   AUTH_DEV_SESSION_ENABLED: z
-    .preprocess((val) => {
-      if (typeof val !== "string") return undefined;
-      const trimmed = val.trim().toLowerCase();
-      if (trimmed === "" || trimmed === "undefined" || trimmed === "null") return undefined;
-      return trimmed;
-    }, z.enum(["true", "false"]).default("false"))
+    .preprocess(
+      (val) => {
+        if (typeof val !== "string") return undefined;
+        const trimmed = val.trim().toLowerCase();
+        if (trimmed === "" || trimmed === "undefined" || trimmed === "null") return undefined;
+        return trimmed;
+      },
+      z.enum(["true", "false"]).default("false"),
+    )
     .transform((val) => val === "true"),
   ALLOW_GUEST_CHAT: z
-    .preprocess((val) => {
-      if (typeof val !== "string") return undefined;
-      const t = val.trim().toLowerCase();
-      if (t === "" || t === "undefined" || t === "null") return undefined;
-      return t;
-    }, z.enum(["true", "false"]).default("false"))
+    .preprocess(
+      (val) => {
+        if (typeof val !== "string") return undefined;
+        const t = val.trim().toLowerCase();
+        if (t === "" || t === "undefined" || t === "null") return undefined;
+        return t;
+      },
+      z.enum(["true", "false"]).default("false"),
+    )
     .transform((val) => val === "true"),
   // Token de aprovisionamiento soberano del primer tenant/owner (bootstrap).
   // Sin este token, `provision-owner` niega la operación (fail-closed).
@@ -148,18 +154,17 @@ export const envSchema = z.object({
 
   // --- PERSISTENCE ---
   DURABLE_JSON_ALLOWED: z
-    .preprocess(
-      (val) => {
-        if (typeof val === "boolean") return val;
-        if (typeof val !== "string") return undefined;
-        const t = val.trim().toLowerCase();
-        if (t === "true") return true;
-        if (t === "false") return false;
-        return undefined;
-      },
-      z.boolean().default(false),
-    )
-    .describe("Allow JSON file persistence in production — must be false in prod, true only for dev/test"),
+    .preprocess((val) => {
+      if (typeof val === "boolean") return val;
+      if (typeof val !== "string") return undefined;
+      const t = val.trim().toLowerCase();
+      if (t === "true") return true;
+      if (t === "false") return false;
+      return undefined;
+    }, z.boolean().default(false))
+    .describe(
+      "Allow JSON file persistence in production — must be false in prod, true only for dev/test",
+    ),
 });
 
 export type Env = z.infer<typeof envSchema>;

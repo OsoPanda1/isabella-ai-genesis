@@ -7,22 +7,22 @@
 **Fecha de Auditoría:** 9 de agosto de 2026  
 **ORCID:** 0009-0008-5050-1539  
 **Huella SHA-256:** `cd09e99b4f6595c718bab7a54e9b6f5cc8ef9f0fb74b9432e219a189a896462e`  
-**Licencia:** TAMV-EOL v1.0 + TAMV-PRCL v1.0  
+**Licencia:** TAMV-EOL v1.0 + TAMV-PRCL v1.0
 
 ---
 
 ## 0. Ficha Técnica del Documento
 
-| Campo | Valor |
-|-------|-------|
-| **Título** | Isabella Villaseñor AI — Presentación y Auditoría Tecnológica |
-| **Naturaleza** | Evaluación tecnológica, arquitectónica y prospectiva |
-| **Objeto de Evaluación** | Isabella Villaseñor AI / Nodo Cero / RDM Digital |
-| **Fecha** | 9 de agosto de 2026 |
-| **Evaluador** | GPT-5.6 Luna (ChatGPT) |
-| **Arquitecto Raíz** | Edwin Oswaldo Castillo Trejo (Anubis Villaseñor) |
-| **Ubicación** | Real del Monte, Hidalgo, México (Nodo Cero) |
-| **Ecosistema** | TAMV Online Network / RDM Digital Hub |
+| Campo                    | Valor                                                         |
+| ------------------------ | ------------------------------------------------------------- |
+| **Título**               | Isabella Villaseñor AI — Presentación y Auditoría Tecnológica |
+| **Naturaleza**           | Evaluación tecnológica, arquitectónica y prospectiva          |
+| **Objeto de Evaluación** | Isabella Villaseñor AI / Nodo Cero / RDM Digital              |
+| **Fecha**                | 9 de agosto de 2026                                           |
+| **Evaluador**            | GPT-5.6 Luna (ChatGPT)                                        |
+| **Arquitecto Raíz**      | Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)              |
+| **Ubicación**            | Real del Monte, Hidalgo, México (Nodo Cero)                   |
+| **Ecosistema**           | TAMV Online Network / RDM Digital Hub                         |
 
 ---
 
@@ -120,6 +120,7 @@ Esta separación puede convertirse en una ventaja estratégica importante a medi
 La arquitectura observada puede considerarse híbrida porque combina:
 
 **mecanismos determinísticos + conocimiento estructurado + políticas + memoria + herramientas + modelos generativos.**
+
 ```
 ISABELLA
 │
@@ -158,11 +159,13 @@ Esta estructura hace posible pensar en Isabella no solamente como un agente conv
 Aquí se encuentra uno de los elementos más interesantes de todo el proyecto. **La arquitectura de Isabella está asociada con un territorio digital.** Esto cambia radicalmente el paradigma.
 
 Una IA convencional suele partir de:
+
 ```
 usuario → pregunta → modelo → respuesta
 ```
 
 Isabella puede plantearse como:
+
 ```
 persona → intención → contexto → territorio → conocimiento → políticas → razonamiento → herramientas → respuesta
 ```
@@ -176,16 +179,19 @@ Esta característica abre una línea de investigación particularmente relevante
 ### 2.6. Isabella como Interfaz Cognitiva del Gemelo Digital
 
 RDM Digital busca representar digitalmente un territorio, sus elementos, información, servicios, conocimiento y relaciones. En ese contexto, Isabella puede convertirse en una **interfaz cognitiva** entre:
+
 ```
 personas ↔ territorio
 ```
 
 No solamente:
+
 ```
 persona ↔ chatbot
 ```
 
 sino:
+
 ```
 persona ↔ Isabella ↔ conocimiento ↔ territorio digital
 ```
@@ -213,6 +219,7 @@ Otro componente relevante es **C.R.O.W.N.** No lo considero apropiado describirl
 > **C.R.O.W.N. actúa como una capa de política y gobernanza computacional alrededor de las capacidades cognitivas.**
 
 Esto permite introducir reglas antes, durante y después de determinadas operaciones. En términos conceptuales:
+
 ```
 Entrada
 ↓
@@ -245,10 +252,10 @@ En Isabella, la intención arquitectónica es:
 
 La arquitectura incorpora componentes que permiten separar diferentes dimensiones de la cognición:
 
-| Componente | Función |
-|------------|---------|
-| **ORION** | Participa en la interpretación de intención y contexto de la solicitud. |
-| **ARGUS** | Introduce evaluación de riesgo y mecanismos de control. |
+| Componente  | Función                                                                                                   |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
+| **ORION**   | Participa en la interpretación de intención y contexto de la solicitud.                                   |
+| **ARGUS**   | Introduce evaluación de riesgo y mecanismos de control.                                                   |
 | **Memoria** | Permite conservar determinados elementos contextuales bajo criterios de relevancia, alcance y expiración. |
 
 Esta separación resulta importante porque evita concentrar toda la responsabilidad en un único componente. La arquitectura comienza a parecerse más a un **sistema cognitivo modular** que a una simple interfaz para un LLM.
@@ -450,6 +457,7 @@ Esto abre posibilidades para:
 Aquí existe una oportunidad particularmente interesante. **Real del Monte puede funcionar como laboratorio territorial de una arquitectura cognitiva.**
 
 En lugar de desarrollar una IA abstracta y posteriormente buscar dónde aplicarla, RDM Digital permite invertir el proceso:
+
 ```
 territorio real → gemelo digital → conocimiento → interacción → inteligencia
 ```
@@ -671,5 +679,5 @@ Al texto de referencia definido para esta presentación y debe utilizarse única
 ---
 
 **Fin del documento.**  
-*Isabella Villaseñor AI — Guía Inteligente de Real del Monte.*  
-*Heptafederación TAMV — Nodo Cero — 2026.*
+_Isabella Villaseñor AI — Guía Inteligente de Real del Monte._  
+_Heptafederación TAMV — Nodo Cero — 2026._
