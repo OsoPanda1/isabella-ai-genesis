@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Cpu, RotateCcw, Play, CheckCircle2, ListCollapse, Clock, Percent } from "lucide-react";
+import { Cpu, Play, ListCollapse, Clock, Percent } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { toast } from "sonner";
 
@@ -60,79 +60,29 @@ export function QuantumJobMonitor() {
 
   const [isSimulating, setIsSimulating] = useState(false);
 
-  // Background interval simulation to slowly transition the queued/executing jobs to completed
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setJobs((prevJobs) => {
-        let stateChanged = false;
-        const next = prevJobs.map((job) => {
-          if (job.status === "Executing") {
-            stateChanged = true;
-            return {
-              ...job,
-              status: "Completed" as const,
-              fidelity: parseFloat((93 + Math.random() * 5.8).toFixed(1)),
-              durationMs: Math.floor(600 + Math.random() * 900),
-              timestamp: "Hace unos instantes",
-            };
-          }
-          if (job.status === "Queued" && !stateChanged) {
-            stateChanged = true;
-            return {
-              ...job,
-              status: "Transpiling" as const,
-              timestamp: "Transpilando...",
-            };
-          }
-          if (job.status === "Transpiling") {
-            stateChanged = true;
-            return {
-              ...job,
-              status: "Executing" as const,
-              timestamp: "Ejecutando QPU...",
-            };
-          }
-          return job;
-        });
-
-        if (stateChanged) {
-          // Send occasional status notification toast to simulate active queues
-          const completedJob = next.find(
-            (j, idx) => j.status === "Completed" && prevJobs[idx].status !== "Completed",
-          );
-          if (completedJob) {
-            toast.success(
-              `Trabajo cuántico ${completedJob.id} completado con fidelidad: ${completedJob.fidelity}%`,
-            );
-          }
-        }
-        return next;
-      });
-    }, 6000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleSimulateNewJob = () => {
+  const handleSimulateNewJob = async () => {
     setIsSimulating(true);
     const newId = `qup-job-${Math.random().toString(36).substring(2, 6)}`;
+    
     const randomObjectives = [
-      "Clasificación QML Híbrido",
-      "Cálculo Hamiltonian VQE",
-      "Estado Bell (2 Qubits)",
-      "Ansatz QAOA de Espín",
-    ];
-    const randomBackends = ["aer_simulator_local", "aws_braket_dm1", "ibm_sherbrooke_qpu"];
-    const randomObjective = randomObjectives[Math.floor(Math.random() * randomObjectives.length)];
-    const randomBackend = randomBackends[Math.floor(Math.random() * randomBackends.length)];
-    const randomQubit = Math.floor(Math.random() * 10) + 2;
+      { obj: "qml_classification", label: "Clasificación QML Híbrido" },
+      { obj: "hamiltonian_spectrum", label: "Cálculo Hamiltonian VQE" },
+      { obj: "quantum_simulation", label: "Estado Bell (2 Qubits)" },
+      { obj: "hamiltonian_spectrum", label: "Ansatz QAOA de Espín" },
+    ] as const;
+
+    const randomBackends = ["aer_simulator_local", "aws_braket_dm1", "ibm_sherbrooke_qpu"] as const;
+    
+    const choice = randomObjectives[Math.floor(Math.random() * randomObjectives.length)];
+    const backend = randomBackends[Math.floor(Math.random() * randomBackends.length)];
+    const qubits = Math.floor(Math.random() * 8) + 2;
 
     const newJob: QuantumJob = {
       id: newId,
-      objective: randomObjective,
-      backend: randomBackend,
+      objective: choice.label,
+      backend: backend,
       status: "Queued",
-      qubits: randomQubit,
+      qubits: qubits,
       fidelity: 0,
       durationMs: 0,
       timestamp: "Recién adicionado",
@@ -141,9 +91,68 @@ export function QuantumJobMonitor() {
     setJobs((prev) => [newJob, ...prev]);
     toast.info(`Trabajo ${newId} enviado a la cola del transpilador QUP.`);
 
-    setTimeout(() => {
+    try {
+      const { getSessionToken, ensureSessionToken } = await import("@/lib/auth-client");
+      let token = getSessionToken();
+      if (!token) {
+        try {
+          token = await ensureSessionToken();
+        } catch {
+          const devRes = await fetch("/api/db?action=dev-session", { method: "POST" });
+          if (devRes.ok) {
+            token = (await devRes.json()).token;
+          }
+        }
+      }
+
+      if (!token) throw new Error("No token disponible");
+
+      const payload = {
+        dataset: {
+          name: "random-job-dataset",
+          features: [{ x: 1, y: 0 }],
+        },
+        backend: backend,
+        config: {
+          qubitCount: qubits,
+          circuitDepth: 15,
+          objective: choice.obj,
+          errorMitigation: [],
+          errorCorrection: "none",
+          classicalBaseline: "xgboost",
+        },
+      };
+
+      setJobs((prev) => prev.map(j => j.id === newId ? { ...j, status: "Transpiling", timestamp: "Transpilando..." } : j));
+
+      const res = await fetch("/api/db?action=qup-run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Error en API cuántica");
+      }
+      
+      const { result } = await res.json();
+      
+      setJobs((prev) => prev.map(j => j.id === newId ? { 
+        ...j, 
+        status: "Completed", 
+        fidelity: parseFloat((result.runtime.quantumFidelity * 100).toFixed(1)), 
+        durationMs: result.compilation.latencyMs,
+        timestamp: "Hace unos instantes" 
+      } : j));
+      toast.success(`Trabajo cuántico ${newId} completado con fidelidad: ${(result.runtime.quantumFidelity * 100).toFixed(1)}%`);
+      
+    } catch (e) {
+      setJobs((prev) => prev.map(j => j.id === newId ? { ...j, status: "Failed", timestamp: "Falló" } : j));
+      toast.error(`Error ejecutando job: ${e instanceof Error ? e.message : "Desconocido"}`);
+    } finally {
       setIsSimulating(false);
-    }, 1000);
+    }
   };
 
   // Compile data for Recharts chart

@@ -53,10 +53,10 @@ export function resolveTenantContext(input: TenantGuardInput): TenantGuardResult
     };
   }
 
-  // P1: tenantId DEBE provenir exclusivamente de la identidad canónica. 
+  // P1: tenantId DEBE provenir exclusivamente de la identidad canónica.
   // Nunca usar requestedTenantId como fallback si la identidad carece de tenant.
   const canonicalTenantId = input.tenantId || "system";
-  
+
   const context: TenantContext = {
     subject: input.subject || "unknown",
     username: input.username || input.subject || "unknown",
@@ -68,11 +68,11 @@ export function resolveTenantContext(input: TenantGuardInput): TenantGuardResult
 
   if (input.requestedTenantId !== undefined) {
     if (input.requestedTenantId !== canonicalTenantId) {
-       return {
-         context: ANONYMOUS_TENANT_CONTEXT,
-         boundaryOk: false,
-         reason: `Violación de frontera de tenant: requestedTenantId (${input.requestedTenantId}) difiere del tenant canónico (${canonicalTenantId}).`,
-       };
+      return {
+        context: ANONYMOUS_TENANT_CONTEXT,
+        boundaryOk: false,
+        reason: `Violación de frontera de tenant: requestedTenantId (${input.requestedTenantId}) difiere del tenant canónico (${canonicalTenantId}).`,
+      };
     }
     const boundary = assertTenantBoundary(context, input.requestedTenantId);
     if (!boundary.allowed) {
