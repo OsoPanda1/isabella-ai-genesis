@@ -449,7 +449,13 @@ export class QupOrchestrator {
           },
         ],
       },
-      { actorId: userId, federation: "SOVEREIGNTY", requestId: traceId, locale: "es-MX", intent: "QUANTUM_SIMULATION" },
+      {
+        actorId: userId,
+        federation: "SOVEREIGNTY",
+        requestId: traceId,
+        locale: "es-MX",
+        intent: "QUANTUM_SIMULATION",
+      },
     );
 
     // 3.2 ANUBIS: SHA3-512 Integrity Check
@@ -462,7 +468,13 @@ export class QupOrchestrator {
           compiledDepth: compilation.compiledDepth,
         }),
       },
-      { actorId: userId, federation: "SOVEREIGNTY", requestId: traceId, locale: "es-MX", intent: "QUANTUM_SIMULATION" },
+      {
+        actorId: userId,
+        federation: "SOVEREIGNTY",
+        requestId: traceId,
+        locale: "es-MX",
+        intent: "QUANTUM_SIMULATION",
+      },
     );
 
     // 3.3 THEMIS: Generate Legal Explanable Expediente
@@ -503,7 +515,13 @@ export class QupOrchestrator {
           },
         ],
       },
-      { actorId: userId, federation: "SOVEREIGNTY", requestId: traceId, locale: "es-MX", intent: "QUANTUM_SIMULATION" },
+      {
+        actorId: userId,
+        federation: "SOVEREIGNTY",
+        requestId: traceId,
+        locale: "es-MX",
+        intent: "QUANTUM_SIMULATION",
+      },
     );
 
     // 3.4 VIGIA: Ethical Multi-Lock Verification gate
@@ -511,7 +529,13 @@ export class QupOrchestrator {
       {
         text: `quantum:execute:${input.backend} risk:HIGH user:${userId}`,
       },
-      { actorId: userId, federation: "SOVEREIGNTY", requestId: traceId, locale: "es-MX", intent: "QUANTUM_SIMULATION" },
+      {
+        actorId: userId,
+        federation: "SOVEREIGNTY",
+        requestId: traceId,
+        locale: "es-MX",
+        intent: "QUANTUM_SIMULATION",
+      },
     );
 
     // --- PHASE 4: POST-QUANTUM CRYPTOGRAPHIC AUDIT ---

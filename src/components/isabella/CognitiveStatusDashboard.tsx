@@ -267,7 +267,10 @@ export function CognitiveStatusDashboard() {
           const modHistory = prev[modId] || [];
           return {
             ...prev,
-            [modId]: [{ timestamp: finalTimestamp, latency: finalLatency }, ...modHistory].slice(0, 5),
+            [modId]: [{ timestamp: finalTimestamp, latency: finalLatency }, ...modHistory].slice(
+              0,
+              5,
+            ),
           };
         });
         toast.success(
@@ -446,8 +449,8 @@ export function CognitiveStatusDashboard() {
           </h2>
           <div className="flex items-center gap-3 mt-1.5">
             <span className="text-muted-foreground text-sm max-w-2xl">
-              Visualización interactiva y monitoreo criptográfico de los módulos cognitivos definidos
-              en <span className="font-mono text-electric text-xs">metadata.json</span>.
+              Visualización interactiva y monitoreo criptográfico de los módulos cognitivos
+              definidos en <span className="font-mono text-electric text-xs">metadata.json</span>.
             </span>
             <span className="text-[10px] font-mono font-bold tracking-wider uppercase px-2 py-1 rounded bg-electric/10 border border-electric/20 text-electric">
               Integridad: {systemIntegrity}%

@@ -9,6 +9,7 @@ jobs:
   release_build:
     name: Build & Package Production Release
     runs-on: ubuntu-latest
+    needs: []
     permissions:
       contents: write
 

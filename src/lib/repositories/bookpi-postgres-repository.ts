@@ -74,34 +74,41 @@ export function createBookpiPostgresRepository() {
         return { success: false as const, error: "Costo inválido." };
       if (!Number.isInteger(input.tokens) || input.tokens < 0)
         return { success: false as const, error: "Tokens inválidos." };
-      const previous =
-        await sql`SELECT * FROM public.bookpi_ledger WHERE tenant_id = ${input.tenantId} ORDER BY index DESC LIMIT 1`;
-      const previousBlock = previous[0] ? mapRow(previous[0]) : null;
-      const index = previousBlock ? previousBlock.index + 1 : 0;
-      const timestamp = new Date().toISOString();
-      const costDecimal = input.cost.toFixed(2);
-      const status: LedgerStatus = input.status ?? "settled";
-      const base: Omit<BlockPIBlock, "blockHash"> = {
-        index,
-        timestamp,
-        tenantId: input.tenantId,
-        userId: input.userId,
-        operation: input.operation.slice(0, 200),
-        category: input.category,
-        costDecimal,
-        tokensConsumed: input.tokens,
-        previousHash: previousBlock?.blockHash ?? GENESIS_PREVIOUS_HASH,
-        pqcSignature: null,
-        signatureAlgorithm: "SHA-256",
-        status,
-        nonce: randomUUID(),
-      };
-      const blockHash = hashBlock(base);
-      const rows = await sql`INSERT INTO public.bookpi_ledger
+
+      // P1: Concurrency and Transactionality fix using Postgres Transactions
+      return sql.begin(async (tx) => {
+        // SELECT FOR UPDATE avoids race conditions for previous block
+        const previous =
+          await tx`SELECT * FROM public.bookpi_ledger WHERE tenant_id = ${input.tenantId} ORDER BY index DESC LIMIT 1 FOR UPDATE`;
+        const previousBlock = previous[0] ? mapRow(previous[0]) : null;
+
+        const index = previousBlock ? previousBlock.index + 1 : 0;
+        const timestamp = new Date().toISOString();
+        const costDecimal = input.cost.toFixed(2);
+        const status: LedgerStatus = input.status ?? "settled";
+
+        const base: Omit<BlockPIBlock, "blockHash"> = {
+          index,
+          timestamp,
+          tenantId: input.tenantId,
+          userId: input.userId,
+          operation: input.operation.slice(0, 200),
+          category: input.category,
+          costDecimal,
+          tokensConsumed: input.tokens,
+          previousHash: previousBlock?.blockHash ?? GENESIS_PREVIOUS_HASH,
+          pqcSignature: null,
+          signatureAlgorithm: "SHA-256",
+          status,
+          nonce: randomUUID(),
+        };
+        const blockHash = hashBlock(base);
+        const rows = await tx`INSERT INTO public.bookpi_ledger
         (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed, previous_hash, block_hash, status)
         VALUES (${base.index}, ${base.tenantId}, ${base.userId}, ${base.operation}, ${base.category}, ${base.costDecimal}, ${base.tokensConsumed}, ${base.previousHash}, ${blockHash}, ${status})
         RETURNING *`;
-      return { success: true as const, block: mapRow(rows[0]!) };
+        return { success: true as const, block: mapRow(rows[0]!) };
+      });
     },
     async refund(
       originalEventId: string,

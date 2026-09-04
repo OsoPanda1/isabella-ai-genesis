@@ -56,19 +56,28 @@ export function createRedactor(extraValues: string[] = []): Redactor {
     .filter(Boolean);
 
   const dynamicValues: string[] = [];
-  
+
   // Refactor para evitar vulnerabilidad de inyección de objetos (Object Injection)
   const secureEnvLookup = (key: string): string | undefined => {
     switch (key) {
-      case "GEMINI_API_KEY": return process.env.GEMINI_API_KEY;
-      case "AUTH_JWT_SECRET": return process.env.AUTH_JWT_SECRET;
-      case "SUPABASE_SERVICE_ROLE_KEY": return process.env.SUPABASE_SERVICE_ROLE_KEY;
-      case "SUPABASE_ANON_KEY": return process.env.SUPABASE_ANON_KEY;
-      case "SUPABASE_JWT_SECRET": return process.env.SUPABASE_JWT_SECRET;
-      case "ENCRYPTION_MASTER_KEY": return process.env.ENCRYPTION_MASTER_KEY;
-      case "BOOKPI_SIGNING_KEY": return process.env.BOOKPI_SIGNING_KEY;
-      case "CROWN_POLICY_SIGNING_KEY": return process.env.CROWN_POLICY_SIGNING_KEY;
-      default: return undefined;
+      case "GEMINI_API_KEY":
+        return process.env.GEMINI_API_KEY;
+      case "AUTH_JWT_SECRET":
+        return process.env.AUTH_JWT_SECRET;
+      case "SUPABASE_SERVICE_ROLE_KEY":
+        return process.env.SUPABASE_SERVICE_ROLE_KEY;
+      case "SUPABASE_ANON_KEY":
+        return process.env.SUPABASE_ANON_KEY;
+      case "SUPABASE_JWT_SECRET":
+        return process.env.SUPABASE_JWT_SECRET;
+      case "ENCRYPTION_MASTER_KEY":
+        return process.env.ENCRYPTION_MASTER_KEY;
+      case "BOOKPI_SIGNING_KEY":
+        return process.env.BOOKPI_SIGNING_KEY;
+      case "CROWN_POLICY_SIGNING_KEY":
+        return process.env.CROWN_POLICY_SIGNING_KEY;
+      default:
+        return undefined;
     }
   };
 

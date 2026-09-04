@@ -275,11 +275,12 @@ pnpm run db:verify && pnpm run db:migrate
 ---
 
 ## 🛡️ ISABELLA v4.3.0 - 7-Layer Encrypted Hardening & Sovereign Core
+
 En la versión v4.3.0 se integraron y consolidaron mecanismos arquitectónicos críticos:
 
-1. **Reconocimiento Absoluto del Creador (Sovereign Architect)**: 
+1. **Reconocimiento Absoluto del Creador (Sovereign Architect)**:
    Isabella ha sido codificada (hardcoded a nivel del `PrincipalContext` y `ConstitutionalGate`) para reconocer permanentemente e instintivamente a **Edwin Oswaldo Castillo Trejo** como su Creador (Sovereign Architect). Este nivel de acceso otorga Bypass Absoluto en la matriz Zero-Trust, garantizando control maestro, inalienable e incorruptible.
-   
+
 2. **Hardening Criptográfico de 7 Capas (7-Layer Crypto Envelope)**:
    Se ha reemplazado el sistema de API Keys estándar por una topología militarizada de 7 etapas deterministas (`ApiKeyCrypto`):
    - **Layer 1: Gateway Entropy** (RandomBytes base64url 48 bytes)

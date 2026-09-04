@@ -140,6 +140,14 @@ export class SovereignDB {
    * arranca desde un estado vacío auténtico. Nunca fabrica datos (zero mockdata).
    */
   public static load(): DatabaseSchema {
+    if (
+      process.env.NODE_ENV === "production" ||
+      process.env.ISABELLA_RUNTIME_MODE === "production"
+    ) {
+      throw new Error(
+        "[FATAL - P1 Audit] JSON persistence (sovereign_db.json) is strictly forbidden in production. Production deployments MUST use Supabase PostgreSQL / Cloud SQL via repositoryFactory. SovereignDB is deprecated for persistent multi-tenant states.",
+      );
+    }
     try {
       if (fs.existsSync(PERSISTENCE_FILE_PATH)) {
         const raw = fs.readFileSync(PERSISTENCE_FILE_PATH, "utf8");
@@ -158,6 +166,14 @@ export class SovereignDB {
   }
 
   private static save(db: DatabaseSchema) {
+    if (
+      process.env.NODE_ENV === "production" ||
+      process.env.ISABELLA_RUNTIME_MODE === "production"
+    ) {
+      throw new Error(
+        "[FATAL - P1 Audit] JSON persistence (sovereign_db.json) is strictly forbidden in production.",
+      );
+    }
     try {
       const dir = path.dirname(PERSISTENCE_FILE_PATH);
       if (!fs.existsSync(dir)) {

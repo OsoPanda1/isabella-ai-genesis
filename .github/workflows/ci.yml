@@ -45,7 +45,7 @@ jobs:
         run: pnpm run test:security
 
       - name: Dependency Vulnerability Audit
-        run: pnpm audit || echo "Audit finished"
+        run: pnpm audit --audit-level=high
 
       - name: Secret Scan & Security Analysis
         run: pnpm run security:scan

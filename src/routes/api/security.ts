@@ -271,10 +271,25 @@ export const Route = createFileRoute("/api/security")({
             }
             try {
               const pyResult = JSON.parse(stdout);
+
+              // P1: Validación de esquema estricto de la salida de Python.
+              // No confiar ciegamente en stdout.
+              const pyResultSchema = z.object({
+                decision: z.enum(["allowed", "denied", "flagged"]),
+                score: z.number().min(0).max(100),
+                aegis_level: z.number().min(0).max(4),
+                actor: z.string().optional(),
+                source: z.string().optional(),
+                audit_hash: z.string().optional(),
+                reason: z.string().optional(),
+              });
+
+              const validatedResult = pyResultSchema.parse(pyResult);
+
               const finalResult = {
-                ...pyResult,
-                sanitizedActor: `hash_actor_${pyResult.actor || "hashed"}`,
-                sanitizedSource: `hash_src_${pyResult.source || "hashed"}`,
+                ...validatedResult,
+                sanitizedActor: `hash_actor_${validatedResult.actor || "hashed"}`,
+                sanitizedSource: `hash_src_${validatedResult.source || "hashed"}`,
                 redactedMetadata: { ...event.metadata, original_resource: event.resource_class },
               };
               void auditSecurity(

@@ -58,13 +58,9 @@ export function createSecrets(cfg = config): Secrets {
       return cfg().CROWN_POLICY_SIGNING_KEY;
     },
     apiKeyHashSecret() {
-      // Fail-closed: nunca usar un valor por defecto hardcodeado. Si no hay
-      // clave huésped para el hash de API keys, el sistema niega la operación.
-      return requireSecret(
-        "jwt",
-        cfg().API_KEY_HASH_SECRET || cfg().AUTH_JWT_SECRET,
-        "API_KEY_HASH_SECRET o AUTH_JWT_SECRET",
-      );
+      // P1: Desacoplamiento de dominios criptográficos.
+      // API_KEY_HASH_SECRET debe ser explícito. No hacer fallback a AUTH_JWT_SECRET.
+      return requireSecret("jwt", cfg().API_KEY_HASH_SECRET, "API_KEY_HASH_SECRET");
     },
   };
 }

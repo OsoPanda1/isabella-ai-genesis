@@ -39,7 +39,9 @@ export class ApiKeyCrypto {
     const salt = crypto.randomBytes(16).toString("hex");
     const masterKey = secrets.apiKeyHashSecret();
     const boundSecret = crypto.createHmac("sha512", masterKey).update(secret).digest("hex");
-    const derivedKey = crypto.pbkdf2Sync(boundSecret, salt, this.ITERATIONS, this.KEYLEN, this.DIGEST).toString("hex");
+    const derivedKey = crypto
+      .pbkdf2Sync(boundSecret, salt, this.ITERATIONS, this.KEYLEN, this.DIGEST)
+      .toString("hex");
     return `${this.FORMAT_VERSION}.${salt}.${derivedKey}`;
   }
 
@@ -53,12 +55,14 @@ export class ApiKeyCrypto {
     }
     const [version, salt, storedDerivedKey] = parts;
     if (version !== this.FORMAT_VERSION) {
-      return false; 
+      return false;
     }
     const masterKey = secrets.apiKeyHashSecret();
     const boundSecret = crypto.createHmac("sha512", masterKey).update(secret).digest("hex");
-    const computedDerivedKey = crypto.pbkdf2Sync(boundSecret, salt, this.ITERATIONS, this.KEYLEN, this.DIGEST).toString("hex");
-    
+    const computedDerivedKey = crypto
+      .pbkdf2Sync(boundSecret, salt, this.ITERATIONS, this.KEYLEN, this.DIGEST)
+      .toString("hex");
+
     const computedBuf = Buffer.from(computedDerivedKey, "hex");
     const storedBuf = Buffer.from(storedDerivedKey, "hex");
     if (computedBuf.length !== storedBuf.length) {

@@ -151,7 +151,7 @@ export function SovereignCompliancePanel() {
               ) : (
                 filteredLogs.map((log) => (
                   <div
-                    key={`${log.traceId}-${log.timestamp}-${log.signature.slice(0,8)}`}
+                    key={`${log.traceId}-${log.timestamp}-${log.signature.slice(0, 8)}`}
                     className="p-3.5 rounded-xl bg-black/45 border border-border/10 hover:border-border/20 transition-all font-mono text-[10.5px]"
                   >
                     <div className="flex justify-between items-center pb-2 border-b border-white/5 mb-2">
@@ -161,19 +161,27 @@ export function SovereignCompliancePanel() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-muted-foreground">
                       <div>
                         <span>Trace:</span>{" "}
-                        <span className="text-platinum font-semibold truncate block">{log.traceId}</span>
+                        <span className="text-platinum font-semibold truncate block">
+                          {log.traceId}
+                        </span>
                       </div>
                       <div>
                         <span>Core:</span>{" "}
-                        <span className="text-platinum font-semibold truncate block">{log.coreId}</span>
+                        <span className="text-platinum font-semibold truncate block">
+                          {log.coreId}
+                        </span>
                       </div>
                       <div>
                         <span>Origen:</span>{" "}
-                        <span className="text-platinum font-semibold truncate block">{log.moduleId}</span>
+                        <span className="text-platinum font-semibold truncate block">
+                          {log.moduleId}
+                        </span>
                       </div>
                       <div>
                         <span>Nivel:</span>{" "}
-                        <span className="text-platinum font-semibold truncate block">{log.level}</span>
+                        <span className="text-platinum font-semibold truncate block">
+                          {log.level}
+                        </span>
                       </div>
                     </div>
                   </div>
