@@ -3,8 +3,6 @@ import Lenis from "lenis";
 import { ChevronDown, Sparkles, Volume2, VolumeX } from "lucide-react";
 
 const ISABELLA_VERSION = "4.2.0";
-const ISABELLA_MEDALLION_IMAGE = "/src/assets/logo-isabella.jpeg";
-
 interface CinematicIntroProps {
   onComplete: () => void;
 }
@@ -22,19 +20,18 @@ interface CinematicIntroProps {
  * frame-perfect al hacer scroll, con parallax y audio reactivo.
  */
 
+const CINEMATIC_DURATION_SECONDS = 59;
 const FRAME_COUNTS = {
   heroSpin: 180,
   territorialFly: 180,
   crystalExplode: 180,
 };
-
 function useLenis(enabled: boolean) {
   const lenisRef = useRef<Lenis | null>(null);
   useEffect(() => {
     if (!enabled) return;
     const lenis = new Lenis({ lerp: 0.085, smoothWheel: true, gestureOrientation: "vertical" });
     lenisRef.current = lenis;
-    // @ts-ignore — expose for debugging
     (window as unknown as Record<string, unknown>).__lenis = lenis;
     let raf = 0;
     const loop = (t: number) => {
@@ -119,7 +116,6 @@ function useScrubCanvas(
       window.removeEventListener("resize", resize);
       window.removeEventListener("scroll", onScroll);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [frameCount, ...deps]);
 }
 
@@ -276,7 +272,23 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
   const explodeRef = useRef<HTMLCanvasElement | null>(null);
   const [muted, setMuted] = useState(true);
   const [showGate, setShowGate] = useState(true);
+  const [elapsed, setElapsed] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const startedAtRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (showGate) return;
+    startedAtRef.current = performance.now();
+    let frame = 0;
+    const tick = (now: number) => {
+      const next = Math.min(CINEMATIC_DURATION_SECONDS, (now - (startedAtRef.current ?? now)) / 1000);
+      setElapsed(next);
+      if (next >= CINEMATIC_DURATION_SECONDS) onComplete();
+      else frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [showGate, onComplete]);
 
   useLenis(true);
 
@@ -344,6 +356,12 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
 
       {/* Hidden audio element — local bg-audio.mp3, plays only after gesture */}
       <audio ref={audioRef} src="/assets/background-audio.mp3" loop preload="auto" className="hidden" />
+
+      {/* Timeline: 59 seconds, with scroll remaining available for exploration. */}
+      {!showGate && <div className="pointer-events-none fixed left-6 right-6 top-5 z-30" aria-label={`Intro ${Math.floor(elapsed)} de ${CINEMATIC_DURATION_SECONDS} segundos`}>
+        <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.2em] text-white/55"><span>Isabella cinematic sequence</span><span>{Math.floor(elapsed).toString().padStart(2, "0")} / {CINEMATIC_DURATION_SECONDS}s</span></div>
+        <div className="mt-2 h-px overflow-hidden bg-white/15"><div className="h-full bg-[#e0bb5d] transition-[width] duration-200" style={{ width: `${(elapsed / CINEMATIC_DURATION_SECONDS) * 100}%` }} /></div>
+      </div>}
 
       {/* Scroll hint */}
       <div className="scroll-hint pointer-events-none fixed bottom-6 left-1/2 z-30 -translate-x-1/2 flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-4 py-2 backdrop-blur-md transition-opacity duration-300">

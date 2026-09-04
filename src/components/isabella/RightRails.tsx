@@ -78,10 +78,10 @@ export function RightRails({
   isProcessing: boolean;
   onMonetizationNavigate?: (subTab: string) => void;
 }) {
-  const [presetOpen, setPresetOpen] = useState(true);
-  const [argusOpen, setArgusOpen] = useState(true);
+  const [presetOpen, setPresetOpen] = useState(false);
+  const [argusOpen, setArgusOpen] = useState(false);
   const [skillsOpen, setSkillsOpen] = useState(false);
-  const [monetizationOpen, setMonetizationOpen] = useState(true);
+  const [monetizationOpen, setMonetizationOpen] = useState(false);
   const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({ Orquestación: true });
   const [openMonetizationGroups, setOpenMonetizationGroups] = useState<Record<string, boolean>>({
     Economía: true,
