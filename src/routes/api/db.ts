@@ -1258,6 +1258,57 @@ export const Route = createFileRoute("/api/db")({
             })({ request });
           }
 
+          if (action === "qup-run") {
+            return withSovereignAuth("sandbox", "execute", async (context, _req, body: unknown) => {
+              const qupRunSchema = z.object({
+                dataset: z.object({
+                  name: z.string().min(1).max(100),
+                  features: z.array(z.record(z.unknown())).min(1),
+                }),
+                backend: z.enum(["ibm_sherbrooke_qpu", "aer_simulator_local", "aws_braket_dm1"]),
+                config: z.object({
+                  qubitCount: z.number().min(2).max(100),
+                  circuitDepth: z.number().min(5).max(500),
+                  objective: z.enum([
+                    "hamiltonian_spectrum",
+                    "qml_classification",
+                    "qec_syndrome",
+                    "quantum_simulation",
+                  ]),
+                  errorMitigation: z.array(z.enum(["ZNE", "PEC", "TREX"])).default([]),
+                  errorCorrection: z
+                    .enum(["toric_code_L3", "toric_code_L5", "none"])
+                    .default("none"),
+                  classicalBaseline: z
+                    .enum(["xgboost", "pytorch_mlp", "jax_ode"])
+                    .default("xgboost"),
+                }),
+              });
+
+              const val = qupRunSchema.safeParse(body);
+              if (!val.success) {
+                return new Response(
+                  JSON.stringify({
+                    error:
+                      "Parámetros de configuración de experimento cuántico corruptos o faltantes.",
+                    details: val.error.format(),
+                  }),
+                  { status: 400, headers },
+                );
+              }
+
+              const { QupOrchestrator } = await import("@/lib/qup-v3-engine");
+              const result = await QupOrchestrator.executeExperiment(
+                context.tenantId,
+                context.userId,
+                context.traceId,
+                val.data,
+              );
+
+              return new Response(JSON.stringify({ success: true, result }), { headers });
+            })({ request });
+          }
+
           return new Response(JSON.stringify({ error: "Acción de escritura desconocida." }), {
             status: 400,
             headers,
