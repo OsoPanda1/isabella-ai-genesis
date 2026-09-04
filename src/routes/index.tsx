@@ -146,7 +146,7 @@ function IsabellaInterface() {
               {/* Outer logo glowing ring */}
               <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-electric via-iris to-pearl opacity-40 blur-md group-hover:opacity-75 transition-all duration-500" />
               <img
-                src="/logo-isabella.jpeg"
+                src="/assets/logo-isabella.jpeg"
                 alt="Isabella Logo"
                 className={`relative rounded-xl border border-border/40 object-cover transition-all duration-300 ${
                   isSidebarOpen ? "size-18" : "size-10"

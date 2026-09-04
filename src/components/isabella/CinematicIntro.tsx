@@ -277,14 +277,23 @@ export function CinematicIntroContent({
 
   // Inicialización del pipeline Web Audio API
   const initAudioPipeline = useCallback(() => {
-    if (!audioCtxRef.current) {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      audioCtxRef.current = new AudioCtx();
-    }
-    if (audioCtxRef.current.state === "suspended") {
-      void audioCtxRef.current.resume();
+    try {
+      if (!audioCtxRef.current) {
+        const AudioCtx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtx) {
+          audioCtxRef.current = new AudioCtx();
+        }
+      }
+      if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+        void audioCtxRef.current.resume();
+      }
+    } catch (e) {
+      console.warn(
+        "Sovereign Audio Pipeline blocked or unsupported in this browser environment:",
+        e,
+      );
     }
   }, []);
 
