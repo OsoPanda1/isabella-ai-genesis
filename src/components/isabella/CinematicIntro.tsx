@@ -1,13 +1,6 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  Suspense,
-  lazy,
-} from "react";
+import { useCallback, useEffect, useRef, useState, lazy, Suspense } from "react";
 import * as THREE from "three";
-import { Volume2, VolumeX, SkipForward, Play, Activity, Cpu } from "lucide-react";
+import { Volume2, VolumeX, SkipForward, Play, Activity } from "lucide-react";
 
 const TARGET_FPS = 60;
 const DURATION = 59; // Duración total en segundos
@@ -211,7 +204,7 @@ function CrystalWorldEngine({
 }
 
 // -----------------------------------------------------------------------------
-// 2. COMPONENTE PRINCIPAL MFE (Micro Frontend Base)
+// 2. COMPONENTE PRINCIPAL (Orquestador Cinematográfico Local)
 // -----------------------------------------------------------------------------
 export function CinematicIntroContent({
   onComplete,
@@ -222,7 +215,7 @@ export function CinematicIntroContent({
   const [muted, setMuted] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [bitrateTelemetry, setBitrateTelemetry] = useState({
-    fps: 60,
+    fps: TARGET_FPS,
     droppedFrames: 0,
   });
 
@@ -339,10 +332,10 @@ export function CinematicIntroContent({
 
   const sceneStage =
     elapsed < 19
-      ? "STAGE 01 · ORIGIN FIELD (MFE Remote / AV1)"
+      ? "STAGE 01 · ORIGIN FIELD (WEBGL)"
       : elapsed < 39
-      ? "STAGE 02 · TERRITORIAL MEMORY (MFE Remote / Spatial)"
-      : "STAGE 03 · SOVEREIGN CRYSTAL (RAW Federated Stream)";
+      ? "STAGE 02 · TERRITORIAL MEMORY (WEBGL)"
+      : "STAGE 03 · SOVEREIGN CRYSTAL (WEBGL)";
 
   const progress = elapsed / DURATION;
 
@@ -356,7 +349,7 @@ export function CinematicIntroContent({
 
       {!showGate && (
         <>
-          {/* Header de Telemetría MFE */}
+          {/* Header de Telemetría */}
           <header className="absolute inset-x-6 top-6 z-20 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em] text-platinum/70">
             <div className="flex items-center gap-3">
               <span className="inline-block size-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -365,9 +358,6 @@ export function CinematicIntroContent({
 
             <div className="flex items-center gap-6">
               <div className="hidden sm:flex items-center gap-3 text-platinum/40">
-                <Cpu className="size-3.5 text-electric" />
-                <span>FEDERATED MFE</span>
-                <span>·</span>
                 <Activity className="size-3.5 text-electric" />
                 <span>{bitrateTelemetry.fps} FPS</span>
                 <span>·</span>
@@ -402,7 +392,7 @@ export function CinematicIntroContent({
         </>
       )}
 
-      {/* Fuente de Audio Federada */}
+      {/* Fuente de Audio */}
       <audio
         ref={audioRef}
         src={remoteAudioUrl}
@@ -423,16 +413,12 @@ export function CinematicIntroContent({
               />
             </div>
 
-            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-electric">
-              Module Federation · Webpack 5 / Vite
-            </span>
-
             <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-pearl sm:text-4xl">
               Isabella <span className="text-iridescent italic">Villaseñor</span>
             </h1>
 
             <p className="mx-auto mt-3 max-w-sm font-mono text-[11px] leading-relaxed text-muted-foreground">
-              Micro Frontend desacoplado con renderizado WebGL multihilo y bus de telemetría distribuida.
+              Inmersión audiovisual interactiva con renderizado WebGL multihilo y bus de telemetría del sistema.
             </p>
 
             <button
@@ -440,7 +426,7 @@ export function CinematicIntroContent({
               className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-electric/90 to-purple-600/90 px-6 py-4 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-pearl shadow-lg transition-all hover:scale-[1.02] hover:shadow-electric/30 active:scale-[0.98]"
             >
               <Play className="size-4 fill-pearl" />
-              INICIAR MFE STREAM
+              INICIAR INMERSIÓN
             </button>
 
             <div className="mt-4 flex items-center justify-center">
@@ -464,27 +450,10 @@ export function CinematicIntroContent({
 }
 
 // -----------------------------------------------------------------------------
-// 3. CARGADOR DIVERGENTE FEDERADO (Fallback y Carga Remota Dynamically)
+// 3. EXPORTACIÓN POR DEFECTO (Orquestador Autónomo)
 // -----------------------------------------------------------------------------
-// Intentamos cargar el componente desde una URL remota si existe Module Federation habilitado,
-// de lo contrario cae suavemente en el componente local.
-const RemoteCinematicModule = lazy(() =>
-  import(/* webpackIgnore: true */ "isabellaRemote/CinematicIntro")
-    .catch(() => ({
-      default: CinematicIntroContent,
-    }))
-);
-
-export function CinematicIntro(props: CinematicIntroProps) {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex h-dvh w-full items-center justify-center bg-[#04060a] font-mono text-xs text-electric">
-          CARGANDO MÓDULO FEDERADO...
-        </div>
-      }
-    >
-      <RemoteCinematicModule {...props} />
-    </Suspense>
-  );
+// Se exporta como el componente por defecto que utilizará la aplicación host,
+// asegurando que sea local y no requiera federación externa para compilar.
+export default function CinematicIntro(props: CinematicIntroProps) {
+  return <CinematicIntroContent {...props} />;
 }
