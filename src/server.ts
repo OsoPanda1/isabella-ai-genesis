@@ -66,8 +66,8 @@ function withSecurityHeaders(response: Response): Response {
     [
       "default-src 'self'",
       "img-src 'self' data: blob:",
-      "style-src 'self' 'unsafe-inline'",
-      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self'",
+      "script-src 'self'",
       "connect-src 'self' https:",
       "frame-ancestors 'none'",
     ].join("; "),

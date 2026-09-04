@@ -197,27 +197,47 @@ export const Route = createFileRoute("/api/security")({
             stdio: ["pipe", "pipe", "pipe"],
           });
 
+          const maxStdoutBytes = 1_048_576;
+          const maxStderrBytes = 262_144;
+          const maxRuntimeMs = 8_000;
           let stdout = "";
           let stderr = "";
+          let settled = false;
+          const finish = (response: Response) => {
+            if (settled) return;
+            settled = true;
+            resolve(response);
+          };
+          const timer = setTimeout(() => {
+            child.kill("SIGKILL");
+            finish(new Response(JSON.stringify({ error: "AEGIS runtime timeout." }), { status: 504, headers }));
+          }, maxRuntimeMs);
 
           child.stdout.on("data", (chunk: Buffer) => {
+            if (Buffer.byteLength(stdout) + chunk.byteLength > maxStdoutBytes) {
+              child.kill("SIGKILL");
+              return;
+            }
             stdout += chunk.toString();
           });
           child.stderr.on("data", (chunk: Buffer) => {
-            stderr += chunk.toString();
+            if (Buffer.byteLength(stderr) + chunk.byteLength <= maxStderrBytes) stderr += chunk.toString();
           });
 
           child.on("error", () => {
+            clearTimeout(timer);
             const tsResult = calculateTsAegisResponse(event);
             void auditSecurity(context.traceId, context.tenantId, "aegis.fallback", tsResult.aegis_level >= 2 ? "S1" : "S3", `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}.`);
-            resolve(new Response(JSON.stringify(tsResult), { headers }));
+              clearTimeout(timer);
+              finish(new Response(JSON.stringify(tsResult), { headers }));
           });
 
           child.on("close", (code) => {
             if (code !== 0) {
               const tsResult = calculateTsAegisResponse(event);
               void auditSecurity(context.traceId, context.tenantId, "aegis.fallback", tsResult.aegis_level >= 2 ? "S1" : "S3", `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}. Stderr: ${stderr.slice(0, 200)}`);
-              return resolve(new Response(JSON.stringify(tsResult), { headers }));
+              clearTimeout(timer);
+              return finish(new Response(JSON.stringify(tsResult), { headers }));
             }
             try {
               const pyResult = JSON.parse(stdout);
@@ -228,10 +248,12 @@ export const Route = createFileRoute("/api/security")({
                 redactedMetadata: { ...event.metadata, original_resource: event.resource_class },
               };
               void auditSecurity(context.traceId, context.tenantId, "aegis.python_core", finalResult.aegis_level >= 2 ? "S1" : "S3", `Análisis exitoso mediante motor nativo Python. Decisión: ${finalResult.decision.toUpperCase()}. Score: ${finalResult.score}.`);
-              return resolve(new Response(JSON.stringify(finalResult), { headers }));
+              clearTimeout(timer);
+              return finish(new Response(JSON.stringify(finalResult), { headers }));
             } catch {
               const tsResult = calculateTsAegisResponse(event);
-              return resolve(new Response(JSON.stringify(tsResult), { headers }));
+              clearTimeout(timer);
+              return finish(new Response(JSON.stringify(tsResult), { headers }));
             }
           });
 

@@ -57,7 +57,8 @@ export const envSchema = z.object({
   ISABELLA_RUNTIME_MODE: runtimeModeSchema.default("development"),
   PUBLIC_URL: z.string().url().default("http://localhost:3000"),
 
-  // --- SUPABASE ---
+  // --- POSTGRES / SUPABASE ---
+  DATABASE_URL: optionalString(),
   SUPABASE_URL: optionalUrl(),
   SUPABASE_ANON_KEY: optionalString(),
   SUPABASE_SERVICE_ROLE_KEY: optionalString(),
@@ -89,7 +90,7 @@ export const envSchema = z.object({
       const t = val.trim().toLowerCase();
       if (t === "" || t === "undefined" || t === "null") return undefined;
       return t;
-    }, z.enum(["true", "false"]).default("true"))
+    }, z.enum(["true", "false"]).default("false"))
     .transform((val) => val === "true"),
   // Token de aprovisionamiento soberano del primer tenant/owner (bootstrap).
   // Sin este token, `provision-owner` niega la operación (fail-closed).
@@ -121,6 +122,7 @@ export const envSchema = z.object({
   GEMINI_API_KEY: optionalString(),
   LLM_DEFAULT_MODEL: z.string().default("google/gemini-3.6-flash"),
   LLM_VOICE_MODEL: z.string().default("openai/gpt-4o-mini-tts"),
+  VOICE_API_URL: optionalUrl(),
   LLM_UPSTREAM_TIMEOUT_MS: coercedInt(8500),
 
   // --- TELEMETRY ---

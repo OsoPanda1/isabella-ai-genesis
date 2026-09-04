@@ -16,6 +16,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as crypto from "node:crypto";
+import { config } from "../config";
 
 export type LedgerCategory = "inference" | "processing" | "apis" | "skills" | "other";
 export type LedgerStatus = "settled" | "pending" | "refunded";
@@ -64,6 +65,11 @@ function toCents(value: number): string {
  * Análisis-estructura: expose métodos puros y capa de persistencia real.
  */
 export function createBookpiRepository(storePath: string = STORE_PATH) {
+  const runtime = config();
+  if (runtime.ISABELLA_RUNTIME_MODE === "production" || runtime.ISABELLA_RUNTIME_MODE === "staging") {
+    throw new Error("JSON BookPI persistence is disabled in staging and production. Use createBookpiPostgresRepository().");
+  }
+
   function loadStore(): BookPIStoreFile {
     if (!fs.existsSync(storePath)) {
       return { blocks: [], genesisPreviousHash: GENESIS_PREVIOUS_HASH };
@@ -159,22 +165,17 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
       if (target.tenantId !== tenantId) return { success: false, error: "Frontera de tenant." };
       if (target.status === "refunded") return { success: false, error: "Ya refundido." };
 
-      const cloned = store.blocks.map((b) => ({ ...b }));
-      const t = cloned[index];
-      if (!t) return { success: false, error: "Bloque no encontrado." };
-      t.status = "refunded";
-
-      const prev = cloned[cloned.length - 1];
+      const prev = store.blocks[store.blocks.length - 1];
       const previousHash = prev?.blockHash ?? store.genesisPreviousHash;
       const nonce = crypto.randomUUID();
       const base: Omit<BlockPIBlock, "blockHash"> = {
-        index: cloned.length,
+        index: store.blocks.length,
         timestamp: new Date().toISOString(),
         tenantId,
-        userId: t.userId,
-        operation: `refund_of_${t.index}`,
-        category: t.category,
-        costDecimal: t.costDecimal,
+        userId: target.userId,
+        operation: `refund_of_${target.index}`,
+        category: target.category,
+        costDecimal: target.costDecimal,
         tokensConsumed: 0,
         previousHash,
         pqcSignature: null,
@@ -183,8 +184,8 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
         nonce,
       };
       const block: BlockPIBlock = { ...base, blockHash: computeBlockHash(base) };
-      cloned.push(block);
-      saveStore({ blocks: cloned, genesisPreviousHash: store.genesisPreviousHash });
+      store.blocks.push(block);
+      saveStore(store);
       return { success: true };
     },
 
