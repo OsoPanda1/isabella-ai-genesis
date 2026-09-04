@@ -11,6 +11,8 @@ import {
   HardDrive,
   Play,
   Sparkles,
+  Download,
+  Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 import metadata from "@/../metadata.json";
@@ -43,7 +45,12 @@ export function CognitiveStatusDashboard() {
   const [diagnosticProgress, setDiagnosticProgress] = useState<Record<string, number>>({});
   const [diagnosticLatency, setDiagnosticLatency] = useState<Record<string, number>>({});
   const [isDiagnosing, setIsDiagnosing] = useState<Record<string, boolean>>({});
+  const [diagnosticStream, setDiagnosticStream] = useState<Record<string, string[]>>({});
+  const [diagnosticHistory, setDiagnosticHistory] = useState<
+    Record<string, { timestamp: string; latency: number }[]>
+  >({});
   const [selectedLogModule, setSelectedLogModule] = useState<string | null>(null);
+  const [logFilterQuery, setLogFilterQuery] = useState("");
 
   // Live status states for cognitive modules
   const [modules, setModules] = useState<CognitiveModule[]>([
@@ -210,16 +217,59 @@ export function CognitiveStatusDashboard() {
     if (isDiagnosing[modId]) return;
     setIsDiagnosing((prev) => ({ ...prev, [modId]: true }));
     setDiagnosticProgress((prev) => ({ ...prev, [modId]: 0 }));
+    setDiagnosticStream((prev) => ({
+      ...prev,
+      [modId]: [
+        `[${new Date().toLocaleTimeString()}] INICIANDO DIAGNÓSTICO EN ${modId.toUpperCase()}...`,
+      ],
+    }));
+
+    const diagnosticSteps = [
+      "Estableciendo enlace seguro TLS 1.3...",
+      "Calculando latencia de puente de transporte...",
+      "Analizando fragmentación de memoria en V8...",
+      "Alineando tensores cognitivos locales...",
+      "Resolviendo dependencias de clúster...",
+      "Verificando políticas Zero-Trust (ARGUS)...",
+      "Consolidando métricas de inferencia...",
+      "Finalizando operaciones de I/O...",
+    ];
 
     let current = 0;
     const interval = setInterval(() => {
       current += 10;
       setDiagnosticProgress((prev) => ({ ...prev, [modId]: current }));
+
+      // Simulate real-time stream logs
+      if (current % 20 === 0 && current < 100) {
+        const stepIndex = current / 20 - 1;
+        const msg = diagnosticSteps[stepIndex] || "Procesando...";
+        setDiagnosticStream((prev) => ({
+          ...prev,
+          [modId]: [...(prev[modId] || []), `[${new Date().toLocaleTimeString()}] > ${msg}`],
+        }));
+      }
+
       if (current >= 100) {
         clearInterval(interval);
         const finalLatency = Math.floor(Math.random() * 25) + 3;
+        const finalTimestamp = new Date().toLocaleTimeString();
         setDiagnosticLatency((prev) => ({ ...prev, [modId]: finalLatency }));
         setIsDiagnosing((prev) => ({ ...prev, [modId]: false }));
+        setDiagnosticStream((prev) => ({
+          ...prev,
+          [modId]: [
+            ...(prev[modId] || []),
+            `[${finalTimestamp}] DIAGNÓSTICO COMPLETADO: ${finalLatency}ms`,
+          ],
+        }));
+        setDiagnosticHistory((prev) => {
+          const modHistory = prev[modId] || [];
+          return {
+            ...prev,
+            [modId]: [{ timestamp: finalTimestamp, latency: finalLatency }, ...modHistory].slice(0, 5),
+          };
+        });
         toast.success(
           `Diagnóstico completado para ${modId.toUpperCase()}. Latencia: ${finalLatency}ms`,
         );
@@ -355,6 +405,33 @@ export function CognitiveStatusDashboard() {
     }
   };
 
+  const handleExportLogs = () => {
+    if (!selectedLogModule || !moduleLogs[selectedLogModule]) return;
+    const logs = moduleLogs[selectedLogModule];
+    const blob = new Blob([JSON.stringify({ module: selectedLogModule, logs }, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `isabella-logs-${selectedLogModule}-${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("Logs exportados satisfactoriamente");
+  };
+
+  const filteredLogs = selectedLogModule
+    ? moduleLogs[selectedLogModule]?.filter((log) =>
+        log.toLowerCase().includes(logFilterQuery.toLowerCase()),
+      )
+    : [];
+
+  const systemIntegrity = Math.round(
+    (modules.filter((m) => m.status === "active").length / modules.length) * 100,
+  );
+
   return (
     <div
       id="cognitive-status-dashboard"
@@ -367,10 +444,15 @@ export function CognitiveStatusDashboard() {
             <Layers className="size-8 text-electric" />
             Consola de Gobernanza y Salud
           </h2>
-          <p className="text-muted-foreground text-sm max-w-2xl mt-1">
-            Visualización interactiva y monitoreo criptográfico de los módulos cognitivos definidos
-            en <span className="font-mono text-electric text-xs">metadata.json</span>.
-          </p>
+          <div className="flex items-center gap-3 mt-1.5">
+            <span className="text-muted-foreground text-sm max-w-2xl">
+              Visualización interactiva y monitoreo criptográfico de los módulos cognitivos definidos
+              en <span className="font-mono text-electric text-xs">metadata.json</span>.
+            </span>
+            <span className="text-[10px] font-mono font-bold tracking-wider uppercase px-2 py-1 rounded bg-electric/10 border border-electric/20 text-electric">
+              Integridad: {systemIntegrity}%
+            </span>
+          </div>
         </div>
 
         {/* Tab Controls */}
@@ -510,6 +592,39 @@ export function CognitiveStatusDashboard() {
                           <span className="font-bold">{diagnosticLatency[mod.id]} ms</span>
                         </div>
                       )}
+
+                      {/* Real-time Diagnostic Stream Panel */}
+                      {diagnosticStream[mod.id] && (
+                        <div className="mt-2 h-[80px] overflow-y-auto font-mono text-[8.5px] leading-relaxed text-electric bg-black/60 rounded-lg p-2.5 border border-white/5 shadow-glass scrollbar flex flex-col justify-end">
+                          <div className="space-y-1">
+                            {diagnosticStream[mod.id].map((log, i) => (
+                              <div key={i} className="whitespace-pre-wrap animate-fade-in">
+                                {log}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Diagnostic History */}
+                  {diagnosticHistory[mod.id] && diagnosticHistory[mod.id].length > 0 && (
+                    <div className="mt-3 pt-2 border-t border-border/10">
+                      <div className="text-[9px] text-muted-foreground font-mono mb-1.5 font-semibold">
+                        ÚLTIMOS DIAGNÓSTICOS:
+                      </div>
+                      <div className="space-y-1">
+                        {diagnosticHistory[mod.id].map((entry, idx) => (
+                          <div
+                            key={idx}
+                            className="flex justify-between items-center text-[8.5px] font-mono text-platinum/70 bg-secondary/10 px-1.5 py-0.5 rounded border border-white/5"
+                          >
+                            <span>[{entry.timestamp}]</span>
+                            <span className="text-emerald-400 font-bold">{entry.latency}ms</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -520,26 +635,54 @@ export function CognitiveStatusDashboard() {
           {/* Scrollable log viewer with glass effect */}
           {selectedLogModule && (
             <div className="glass rounded-3xl p-5 border border-border/30 shadow-glass animate-rise">
-              <div className="flex items-center justify-between border-b border-border/20 pb-3 mb-3">
+              <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-border/20 pb-3 mb-3 gap-3">
                 <div className="flex items-center gap-2">
                   <span className="size-2 rounded-full bg-electric animate-ping" />
                   <h4 className="font-mono text-xs font-bold text-pearl uppercase">
                     REGISTRO DE OPERACIÓN: {modules.find((m) => m.id === selectedLogModule)?.name}
                   </h4>
                 </div>
-                <button
-                  onClick={() => setSelectedLogModule(null)}
-                  className="text-muted-foreground hover:text-pearl text-[10px] font-mono uppercase border border-border/20 px-2.5 py-1 rounded hover:bg-secondary/20 transition-all cursor-pointer"
-                >
-                  Cerrar
-                </button>
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                  <div className="relative w-full md:w-48">
+                    <Filter className="absolute left-2.5 top-1.5 size-3.5 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Filtrar registro..."
+                      value={logFilterQuery}
+                      onChange={(e) => setLogFilterQuery(e.target.value)}
+                      className="w-full bg-secondary/30 border border-border/20 rounded-md py-1 pl-8 pr-3 text-[10px] font-mono text-pearl focus:outline-none focus:border-electric/50 transition-colors placeholder:text-muted-foreground"
+                    />
+                  </div>
+                  <button
+                    onClick={handleExportLogs}
+                    className="flex items-center justify-center p-1.5 border border-border/20 rounded-md hover:bg-secondary/20 transition-all text-electric cursor-pointer"
+                    title="Exportar registros a JSON"
+                  >
+                    <Download className="size-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedLogModule(null);
+                      setLogFilterQuery("");
+                    }}
+                    className="text-muted-foreground hover:text-pearl text-[10px] font-mono uppercase border border-border/20 px-2.5 py-1.5 rounded-md hover:bg-secondary/20 transition-all cursor-pointer"
+                  >
+                    Cerrar
+                  </button>
+                </div>
               </div>
               <div className="max-h-[160px] overflow-y-auto space-y-1.5 font-mono text-[11px] text-emerald-400 bg-background/60 p-4 rounded-xl border border-border/10 scrollbar">
-                {moduleLogs[selectedLogModule]?.map((log, idx) => (
-                  <div key={idx} className="whitespace-pre-wrap break-all leading-relaxed">
-                    {log}
+                {filteredLogs && filteredLogs.length > 0 ? (
+                  filteredLogs.map((log, idx) => (
+                    <div key={idx} className="whitespace-pre-wrap break-all leading-relaxed">
+                      {log}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-muted-foreground text-center italic py-4">
+                    No se encontraron registros para el filtro aplicado.
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}

@@ -1,0 +1,99 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Authenticated user profile in the ecosystem.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "User email address"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["citizen", "admin"],
+          "description": "RBAC role of the user"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of creation"
+        }
+      },
+      "required": ["email", "role", "createdAt"]
+    },
+    "Memory": {
+      "title": "Memory",
+      "description": "Sovereign memory context chunk.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Owner UID of the memory"
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 5000,
+          "description": "Content of the memory"
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["immediate", "session", "project", "territorial", "historical"],
+          "description": "Memory scope as defined in AGENTS.md"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp"
+        }
+      },
+      "required": ["ownerId", "content", "scope", "createdAt"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable audit log entry for C.R.O.W.N governance.",
+      "type": "object",
+      "properties": {
+        "traceId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Trace ID of the operation"
+        },
+        "actorId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "User UID who performed the action"
+        },
+        "action": {
+          "type": "string",
+          "maxLength": 255,
+          "description": "Action performed"
+        },
+        "decision": {
+          "type": "string",
+          "enum": ["allowed", "requires_approval", "denied"],
+          "description": "Policy decision"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "ISO timestamp"
+        }
+      },
+      "required": ["traceId", "actorId", "action", "decision", "timestamp"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles. Strictly isolated."
+    },
+    "memories/{memoryId}": {
+      "schema": "Memory",
+      "description": "Sovereign memory chunks for the cognitive engine."
+    },
+    "audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Immutable audit trails. Append only."
+    }
+  }
+}

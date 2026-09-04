@@ -1,0 +1,131 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // -------------------------------------------------------------------------
+    // 1. GLOBAL SAFETY NET
+    // -------------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. GLOBAL HELPERS
+    // -------------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      // Admin verification against a trusted source or specific admin bootstrapper.
+      // E.g., Bootstrapped admin email (replace with real secure implementation if needed)
+      return isVerified() && request.auth.token.email == 'metaversotamv.online@gmail.com';
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. ENTITY VALIDATORS
+    // -------------------------------------------------------------------------
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'role', 'createdAt']) &&
+             data.keys().size() == 3 &&
+             data.email is string && data.email.size() <= 100 &&
+             data.role in ['citizen', 'admin'] &&
+             data.createdAt == request.time;
+    }
+
+    function isValidMemory(data) {
+      return data.keys().hasAll(['ownerId', 'content', 'scope', 'createdAt']) &&
+             data.keys().size() == 4 &&
+             data.ownerId is string && data.ownerId == request.auth.uid &&
+             data.content is string && data.content.size() <= 5000 &&
+             data.scope in ['immediate', 'session', 'project', 'territorial', 'historical'] &&
+             data.createdAt == request.time;
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll(['traceId', 'actorId', 'action', 'decision', 'timestamp']) &&
+             data.keys().size() == 5 &&
+             data.traceId is string && data.traceId.size() <= 128 &&
+             data.actorId is string && data.actorId == request.auth.uid &&
+             data.action is string && data.action.size() <= 255 &&
+             data.decision in ['allowed', 'requires_approval', 'denied'] &&
+             data.timestamp == request.time;
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. PATH RULES
+    // -------------------------------------------------------------------------
+
+    match /users/{userId} {
+      allow get: if isVerified() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      
+      allow create: if isVerified() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       isValidUser(incoming()) &&
+                       incoming().role == 'citizen' && // Prevents self-escalation
+                       incoming().email == request.auth.token.email;
+
+      allow update: if isVerified() &&
+                       isValidId(userId) &&
+                       (request.auth.uid == userId || isAdmin()) &&
+                       (
+                         // Citizen updating their own non-role fields
+                         (request.auth.uid == userId && !isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly([])) ||
+                         // Admin updating anything
+                         (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['role']))
+                       );
+      
+      allow delete: if isAdmin();
+    }
+
+    match /memories/{memoryId} {
+      allow get: if isVerified() && isValidId(memoryId) && (existing().ownerId == request.auth.uid || isAdmin());
+      // Enforce query boundaries on list
+      allow list: if isVerified() && resource.data.ownerId == request.auth.uid;
+
+      allow create: if isVerified() &&
+                       isValidId(memoryId) &&
+                       isValidMemory(incoming());
+
+      allow update: if isVerified() &&
+                       isValidId(memoryId) &&
+                       existing().ownerId == request.auth.uid &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['content', 'scope']) &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().content is string && incoming().content.size() <= 5000 &&
+                       incoming().scope in ['immediate', 'session', 'project', 'territorial', 'historical'];
+
+      allow delete: if isVerified() && isValidId(memoryId) && existing().ownerId == request.auth.uid;
+    }
+
+    match /audit_logs/{logId} {
+      allow get, list: if isAdmin();
+      
+      allow create: if isVerified() &&
+                       isValidId(logId) &&
+                       isValidAuditLog(incoming());
+      
+      // Immutable! No updates or deletes allowed.
+      allow update, delete: if false;
+    }
+  }
+}
