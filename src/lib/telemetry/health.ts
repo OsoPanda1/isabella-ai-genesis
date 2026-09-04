@@ -10,9 +10,23 @@ export interface HealthEvent {
   severity: "low" | "medium" | "high" | "critical";
 }
 
+export interface RecoveryLog {
+  id: string;
+  timestamp: string;
+  coreId: IsabellaCoreId;
+  type: "stack_overflow_resolved" | "memory_leak_resolved";
+  message: string;
+  reclaimedMemoryBytes: number;
+  initialStackDepth: number;
+}
+
+type RecoveryListener = (event: RecoveryLog) => void;
+
 class HealthHeartbeatMonitor {
   private activeInterval: NodeJS.Timeout | null = null;
   private logs: HealthEvent[] = [];
+  private recoveryLogs: RecoveryLog[] = [];
+  private recoveryListeners: Set<RecoveryListener> = new Set();
   private readonly STACK_OVERFLOW_THRESHOLD = 160; // Max recursion depth
   private readonly MEMORY_LEAK_LIMIT_BYTES = 120 * 1024 * 1024; // 120MB threshold
   private readonly MAX_LOG_SIZE = 100;
@@ -47,6 +61,9 @@ class HealthHeartbeatMonitor {
     for (const coreId of Object.keys(snapshot.cores) as IsabellaCoreId[]) {
       const core = snapshot.cores[coreId];
       let hasAnomaly = false;
+      let anomalyType: "stack_overflow_resolved" | "memory_leak_resolved" = "stack_overflow_resolved";
+      const initialStackDepth = core.stackDepth;
+      const initialMemory = core.memoryUsageBytes;
 
       // 1. Check for stack overflow (exceeds safe depth limit)
       if (core.stackDepth > this.STACK_OVERFLOW_THRESHOLD) {
@@ -58,6 +75,7 @@ class HealthHeartbeatMonitor {
           severity: "critical",
         });
         hasAnomaly = true;
+        anomalyType = "stack_overflow_resolved";
       }
 
       // 2. Check for memory leak (growth exceeding memory allocation budget)
@@ -70,6 +88,7 @@ class HealthHeartbeatMonitor {
           severity: "high",
         });
         hasAnomaly = true;
+        anomalyType = "memory_leak_resolved";
       }
 
       // 3. Trigger auto-restart if anomaly was flagged
@@ -98,6 +117,45 @@ class HealthHeartbeatMonitor {
           message: `Self-healing protocol triggered. Clean-restarted core ${coreId} safely.`,
           severity: "high",
         });
+
+        // Add recovery log entry
+        const reclaimedMemoryBytes = Math.max(0, initialMemory - 12 * 1024 * 1024);
+        const recoveryMessage = anomalyType === "stack_overflow_resolved"
+          ? `Recursion stack overflow resolved. Reset core ${coreId} to base state (Depth 1).`
+          : `Heap allocation cleaned. Reclaimed ${(reclaimedMemoryBytes / (1024 * 1024)).toFixed(2)} MB memory leak for core ${coreId}.`;
+
+        const recoveryEvent: RecoveryLog = {
+          id: crypto.randomUUID(),
+          timestamp,
+          coreId,
+          type: anomalyType,
+          message: recoveryMessage,
+          reclaimedMemoryBytes,
+          initialStackDepth,
+        };
+
+        this.recoveryLogs.unshift(recoveryEvent);
+        if (this.recoveryLogs.length > this.MAX_LOG_SIZE) {
+          this.recoveryLogs.pop();
+        }
+
+        // Notify custom subscribers
+        this.recoveryListeners.forEach(listener => {
+          try {
+            listener(recoveryEvent);
+          } catch (e) {
+            console.error("Error dispatching recovery listener:", e);
+          }
+        });
+
+        // Dispatch a custom DOM event for toast notification systems
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("core-recovery-toast", {
+              detail: recoveryEvent,
+            })
+          );
+        }
       }
     }
   }
@@ -116,6 +174,17 @@ class HealthHeartbeatMonitor {
 
   public getLogs(): HealthEvent[] {
     return [...this.logs];
+  }
+
+  public getRecoveryLogs(): RecoveryLog[] {
+    return [...this.recoveryLogs];
+  }
+
+  public subscribeToRecovery(listener: RecoveryListener): () => void {
+    this.recoveryListeners.add(listener);
+    return () => {
+      this.recoveryListeners.delete(listener);
+    };
   }
 
   /**

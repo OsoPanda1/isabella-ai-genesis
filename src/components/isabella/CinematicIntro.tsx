@@ -501,16 +501,61 @@ export function CinematicIntroContent({
           )}
 
           {/* PHASE 4: Elegant Floating Cinematic Legends during regular show (12s to 30s) */}
-          {elapsed >= 12 && elapsed < 28 && (
-            <div className="absolute bottom-20 left-6 z-15 max-w-sm font-mono text-[10px] space-y-1.5 text-platinum/60 bg-black/30 p-4 rounded-xl border border-white/5 backdrop-blur-sm pointer-events-none animate-fade-in">
-              <div className="flex items-center gap-2 text-amber-400 font-bold">
-                <Activity className="size-3" />
-                <span>MONITOR COGNITIVO ACTIVO</span>
+          {elapsed >= 12 && elapsed < 35 && (
+            <>
+              {/* Left Side: General status */}
+              <div className="absolute bottom-24 left-6 z-15 max-w-sm font-mono text-[10px] space-y-2 text-platinum/70 bg-black/45 p-5 rounded-2xl border border-rose-500/15 backdrop-blur-md pointer-events-none animate-fade-in shadow-[0_0_25px_rgba(225,29,72,0.1)]">
+                <div className="flex items-center gap-2 text-amber-400 font-bold tracking-widest uppercase pb-1.5 border-b border-rose-500/10">
+                  <span className="size-2 rounded-full bg-emerald-500 animate-ping mr-0.5" />
+                  <span>MONITOR COGNITIVO ACTIVO</span>
+                </div>
+                <div className="space-y-1">
+                  <p className="flex justify-between"><span>[FIREWALL] LATAM AEGIS-X:</span> <span className="text-emerald-400 font-semibold">ARMADO</span></p>
+                  <p className="flex justify-between"><span>[ENTROPY] C.R.O.W.N. SEED:</span> <span className="text-amber-400 font-semibold font-mono">OK (NON-DET)</span></p>
+                  <p className="flex justify-between"><span>[PERSISTENCE] PENTACAPA SECURE:</span> <span className="text-emerald-400 font-semibold">ACTIVE</span></p>
+                  <p className="flex justify-between"><span>[INTEGRITY] BOOKPI BLOCKS:</span> <span className="text-emerald-400 font-semibold">VERIFIED</span></p>
+                </div>
               </div>
-              <p>Muro LATAM AEGIS-X: Armado.</p>
-              <p>Validador de Entropía C.R.O.W.N. calibrado.</p>
-              <p>Memoria Segmentada Pentacapa en vigencia.</p>
-            </div>
+
+              {/* Right Side: High-fidelity boot-up terminal overlay */}
+              <div className="absolute top-24 right-6 bottom-24 z-15 w-80 font-mono text-[9px] flex flex-col justify-between bg-black/55 p-5 rounded-2xl border border-amber-500/15 backdrop-blur-md pointer-events-none animate-fade-in shadow-[0_0_25px_rgba(245,158,11,0.08)]">
+                <div>
+                  <div className="flex items-center gap-1.5 text-amber-400 font-bold uppercase tracking-wider pb-2 border-b border-white/5">
+                    <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span>Sovereign Boot Sequence</span>
+                  </div>
+                  <div className="space-y-1.5 pt-3 text-platinum/60">
+                    <p className="text-amber-300 font-semibold">&gt; Loading 24 execution cores...</p>
+                    <div className="grid grid-cols-6 gap-1 py-1">
+                      {Array.from({ length: 24 }).map((_, i) => {
+                        const state = Math.floor((elapsed * 3 + i) % 11);
+                        const col = state > 8 ? "bg-rose-500" : state > 7 ? "bg-amber-400" : "bg-emerald-500";
+                        return (
+                          <div
+                            key={i}
+                            className={`h-2 rounded-sm ${col} opacity-75 animate-pulse`}
+                            style={{ animationDelay: `${i * 100}ms` }}
+                            title={`Core ${i + 1}`}
+                          />
+                        );
+                      })}
+                    </div>
+                    <p className="text-muted-foreground flex justify-between"><span>Cores ready:</span> <span className="text-emerald-400 font-bold">24 / 24</span></p>
+                    <div className="h-px bg-white/5 my-2" />
+                    <p className="text-emerald-400 font-semibold">&gt; Initializing CROWN policies...</p>
+                    <p className="truncate">Policy ID: CROWN-V2-GOV-ZERO-TRUST</p>
+                    <p className="truncate">Provenance Anchor: CC BY 4.0 TAMV</p>
+                    <p className="truncate">DOI: 10.5281/zenodo.isabella-rdm</p>
+                    <p className="text-emerald-400 font-semibold">&gt; Mounting Sovereign Handshake...</p>
+                    <p className="text-emerald-400 font-mono">[Handshake] OK: OIDC JWT</p>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-white/5 text-muted-foreground text-[8px] flex justify-between">
+                  <span>SEC_LEVEL: LOCK_M3</span>
+                  <span className="animate-pulse">RUNNING...</span>
+                </div>
+              </div>
+            </>
           )}
 
           {/* Timeline progress line */}

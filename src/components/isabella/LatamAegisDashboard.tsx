@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getSessionToken } from "@/lib/auth-client";
 import { ObservabilityPanel } from "./ObservabilityPanel";
+import { SovereignCompliancePanel } from "./SovereignCompliancePanel";
+import { SovereignSkillsPanel } from "./SovereignSkillsPanel";
 import {
   Shield,
   ShieldAlert,
@@ -142,7 +144,25 @@ export function LatamAegisDashboard() {
     "idle",
   );
   const [corruptedIndex, setCorruptedIndex] = useState<number | null>(null);
-  const [subTab, setSubTab] = useState<"firewall" | "observability">("firewall");
+  const [subTab, setSubTab] = useState<"firewall" | "observability" | "compliance" | "skills">("firewall");
+  const [toasts, setToasts] = useState<{ id: string; message: string; timestamp: string }[]>([]);
+
+  // Listen for self-healing core recovery toasts from backend
+  useEffect(() => {
+    const handleRecoveryToast = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const recoveryLog = customEvent.detail;
+      const newToast = {
+        id: recoveryLog.id,
+        message: recoveryLog.message,
+        timestamp: new Date(recoveryLog.timestamp).toLocaleTimeString(),
+      };
+      setToasts((prev) => [newToast, ...prev].slice(0, 5));
+    };
+
+    window.addEventListener("core-recovery-toast", handleRecoveryToast);
+    return () => window.removeEventListener("core-recovery-toast", handleRecoveryToast);
+  }, []);
 
   // Custom Event Creator state
   const [customActor, setCustomActor] = useState("anubis@villasenor.ai");
@@ -548,10 +568,10 @@ export function LatamAegisDashboard() {
       </div>
 
       {/* TABS SELECTOR BAR */}
-      <div className="flex border-b border-border/15 pb-1 gap-2">
+      <div className="flex border-b border-border/15 pb-1 gap-2 overflow-x-auto">
         <button
           onClick={() => setSubTab("firewall")}
-          className={`px-4 py-2 text-xs font-mono font-bold tracking-wider uppercase transition-all border-b-2 rounded-t-xl cursor-pointer ${
+          className={`px-4 py-2 text-xs font-mono font-bold tracking-wider uppercase transition-all border-b-2 rounded-t-xl cursor-pointer shrink-0 ${
             subTab === "firewall"
               ? "border-red-500 text-red-400 bg-red-500/5"
               : "border-transparent text-muted-foreground hover:text-platinum hover:bg-secondary/10"
@@ -561,7 +581,7 @@ export function LatamAegisDashboard() {
         </button>
         <button
           onClick={() => setSubTab("observability")}
-          className={`px-4 py-2 text-xs font-mono font-bold tracking-wider uppercase transition-all border-b-2 rounded-t-xl cursor-pointer ${
+          className={`px-4 py-2 text-xs font-mono font-bold tracking-wider uppercase transition-all border-b-2 rounded-t-xl cursor-pointer shrink-0 ${
             subTab === "observability"
               ? "border-electric text-electric bg-electric/5"
               : "border-transparent text-muted-foreground hover:text-platinum hover:bg-secondary/10"
@@ -569,10 +589,34 @@ export function LatamAegisDashboard() {
         >
           Telemetría & Observabilidad (24 Núcleos)
         </button>
+        <button
+          onClick={() => setSubTab("compliance")}
+          className={`px-4 py-2 text-xs font-mono font-bold tracking-wider uppercase transition-all border-b-2 rounded-t-xl cursor-pointer shrink-0 ${
+            subTab === "compliance"
+              ? "border-emerald-500 text-emerald-400 bg-emerald-500/5"
+              : "border-transparent text-muted-foreground hover:text-platinum hover:bg-secondary/10"
+          }`}
+        >
+          Auditoría & Compliance
+        </button>
+        <button
+          onClick={() => setSubTab("skills")}
+          className={`px-4 py-2 text-xs font-mono font-bold tracking-wider uppercase transition-all border-b-2 rounded-t-xl cursor-pointer shrink-0 ${
+            subTab === "skills"
+              ? "border-indigo-500 text-indigo-400 bg-indigo-500/5"
+              : "border-transparent text-muted-foreground hover:text-platinum hover:bg-secondary/10"
+          }`}
+        >
+          Matriz de Skills (DOI)
+        </button>
       </div>
 
       {subTab === "observability" ? (
         <ObservabilityPanel />
+      ) : subTab === "compliance" ? (
+        <SovereignCompliancePanel />
+      ) : subTab === "skills" ? (
+        <SovereignSkillsPanel />
       ) : (
         <>
           {/* Main Grid split */}
@@ -1081,6 +1125,31 @@ export function LatamAegisDashboard() {
           </div>
         </>
       )}
+
+      {/* Floating Toast notification system for self-healing recovery logs */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className="pointer-events-auto p-4 rounded-xl bg-black/90 border border-emerald-500/30 text-emerald-400 shadow-2xl backdrop-blur-xl flex flex-col gap-1 font-mono text-[10.5px] animate-rise"
+          >
+            <div className="flex justify-between items-center pb-1 border-b border-white/5">
+              <span className="font-bold flex items-center gap-1 uppercase tracking-wider text-emerald-400">
+                <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
+                S0 AUTOREPARACIÓN COMPLETADA
+              </span>
+              <span className="text-[9px] text-muted-foreground">{toast.timestamp}</span>
+            </div>
+            <p className="text-white leading-relaxed pt-1">{toast.message}</p>
+            <button
+              onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
+              className="text-[9px] text-muted-foreground hover:text-white self-end font-semibold pt-1 cursor-pointer"
+            >
+              Cerrar (Close)
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
