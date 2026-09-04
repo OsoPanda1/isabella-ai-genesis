@@ -5,48 +5,150 @@ on:
     tags:
       - "v*"
 
-jobs:
-  release_build:
-    name: Build & Package Production Release
-    runs-on: ubuntu-latest
-    needs: []
-    permissions:
-      contents: write
+permissions:
+  contents: write
+  issues: write
+  security-events: write
+  packages: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================
+  # JOB 1: Environment Validation
+  # ============================================================
+  env-check:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Validate required env vars
+        run: |
+          REQUIRED_VARS=(APP_URL PUBLIC_URL SUPABASE_URL SUPABASE_ANON_KEY AUTH_JWT_SECRET SUPABASE_JWT_SECRET GEMINI_API_KEY ENCRYPTION_MASTER_KEY)
+          for VAR in "${REQUIRED_VARS[@]}"; do
+            if [ -z "${!VAR}" ]; then
+              echo "❌ Missing $VAR"
+              exit 1
+            fi
+          done
+
+  # ============================================================
+  # JOB 2: Build & Package Release
+  # ============================================================
+  release_build:
+    runs-on: ubuntu-latest
+    needs: env-check
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 11
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Compile and Bundle Production Build
+      - name: Lint & Typecheck
+        run: pnpm run lint && pnpm run typecheck
+
+      - name: Run Tests
+        run: pnpm run test --if-present
+
+      - name: Build Project
         run: pnpm run build
 
-      - name: Create Production Release Bundle
+      - name: Create Release Bundle
         run: |
+          mkdir -p artifacts
           if [ -d ".output" ]; then
-            tar -czf isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz .output/ dist/ package.json
+            tar -czf artifacts/isabella-gateway-${{ github.ref_name }}.tar.gz .output/ dist/ package.json
           else
-            tar -czf isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz dist/ package.json
+            tar -czf artifacts/isabella-gateway-${{ github.ref_name }}.tar.gz dist/ package.json
           fi
 
-      - name: Publish GitHub Release Artifacts
-        uses: softprops/action-gh-release@v2
+      - name: Generate SBOM
+        run: pnpm exec cyclonedx-bom -o artifacts/sbom-${{ github.ref_name }}.json
+
+      - name: Sign Artifacts
+        run: cosign sign-blob --key ${{ secrets.COSIGN_KEY }} artifacts/isabella-gateway-${{ github.ref_name }}.tar.gz > artifacts/signature-${{ github.ref_name }}.sig
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          files: |
-            isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz
-          draft: false
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: release-artifacts
+          path: artifacts/
+          retention-days: 14
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================
+  # JOB 3: Security Scans
+  # ============================================================
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: release_build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secret Scan (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trivy Vulnerability Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  # ============================================================
+  # JOB 4: StackQL Policy Enforcement
+  # ============================================================
+  stackql:
+    runs-on: ubuntu-latest
+    needs: release_build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install StackQL
+        run: curl -s https://stackql.io/install.sh | bash
+      - name: Run StackQL Policies
+        run: stackql exec --file .stackql/policies.sql
+
+  # ============================================================
+  # JOB 5: Close Stale Issues
+  # ============================================================
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: "⚠️ Este issue está inactivo. Se cerrará automáticamente si no hay actividad."
+          days-before-stale: 30
+          days-before-close: 7
