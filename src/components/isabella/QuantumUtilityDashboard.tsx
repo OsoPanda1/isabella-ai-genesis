@@ -35,6 +35,10 @@ import {
 import { toast } from "sonner";
 import { getSessionToken, ensureSessionToken } from "@/lib/auth-client";
 import type { QupExperimentResult } from "@/lib/qup-v3-engine";
+import { SystemMonitor } from "./SystemMonitor";
+import { CertificateVerification } from "./CertificateVerification";
+import { GobernanzaVigia } from "./GobernanzaVigia";
+import { QuantumJobMonitor } from "./QuantumJobMonitor";
 
 const REGISTERED_ADDONS = [
   {
@@ -135,7 +139,7 @@ export function QuantumUtilityDashboard() {
 
   // Execution Flow states
   const [isExecuting, setIsExecuting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"compiler" | "result">("compiler");
+  const [activeTab, setActiveTab] = useState<"compiler" | "result" | "monitor" | "certificates" | "governance">("compiler");
   const [resultData, setResultData] = useState<QupExperimentResult | null>(null);
   const [systemLogs, setSystemLogs] = useState<string[]>([
     "[SISTEMA] Motor QUP v3.0 Sovereign Edition cargado correctamente.",
@@ -313,6 +317,9 @@ export function QuantumUtilityDashboard() {
           </div>
         </div>
       </div>
+
+      {/* COMPACT KUBERNETES SYSTEM MONITOR */}
+      <SystemMonitor />
 
       {/* PRIMARY CONTROLLER GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -507,16 +514,16 @@ export function QuantumUtilityDashboard() {
         <div className="lg:col-span-7 space-y-6">
           
           {/* TAB SELECTION CARDS */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setActiveTab("compiler")}
-              className={`flex-1 py-3 px-4 rounded-xl border font-mono text-xs font-bold uppercase transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 min-w-[120px] py-2.5 px-3 rounded-xl border font-mono text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1.5 ${
                 activeTab === "compiler"
                   ? "bg-crown/10 border-crown text-crown shadow-[0_0_12px_-3px_rgba(180,112,249,0.25)]"
                   : "bg-[#13151f]/60 border-border/10 text-muted-foreground hover:bg-[#13151f]"
               }`}
             >
-              <Binary className="size-4" /> Disposición e Inspector de Circuitos
+              <Binary className="size-3.5" /> Compilador
             </button>
             <button
               onClick={() => {
@@ -526,13 +533,43 @@ export function QuantumUtilityDashboard() {
                   toast.error("Ejecuta primero el flujo para ver los resultados.");
                 }
               }}
-              className={`flex-1 py-3 px-4 rounded-xl border font-mono text-xs font-bold uppercase transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 min-w-[120px] py-2.5 px-3 rounded-xl border font-mono text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1.5 ${
                 activeTab === "result"
                   ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-400 shadow-[0_0_12px_-3px_rgba(16,185,129,0.25)]"
                   : "bg-[#13151f]/60 border-border/10 text-muted-foreground hover:bg-[#13151f]"
               } ${!resultData ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              <CheckCircle2 className="size-4" /> Certificados y Resultados (QUP)
+              <CheckCircle2 className="size-3.5" /> Resultados
+            </button>
+            <button
+              onClick={() => setActiveTab("monitor")}
+              className={`flex-1 min-w-[120px] py-2.5 px-3 rounded-xl border font-mono text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1.5 ${
+                activeTab === "monitor"
+                  ? "bg-blue-500/10 border-blue-500/40 text-blue-400 shadow-[0_0_12px_-3px_rgba(59,130,246,0.25)]"
+                  : "bg-[#13151f]/60 border-border/10 text-muted-foreground hover:bg-[#13151f]"
+              }`}
+            >
+              <Activity className="size-3.5" /> Monitor Jobs
+            </button>
+            <button
+              onClick={() => setActiveTab("certificates")}
+              className={`flex-1 min-w-[120px] py-2.5 px-3 rounded-xl border font-mono text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1.5 ${
+                activeTab === "certificates"
+                  ? "bg-purple-500/10 border-purple-500/40 text-purple-400 shadow-[0_0_12px_-3px_rgba(168,85,247,0.25)]"
+                  : "bg-[#13151f]/60 border-border/10 text-muted-foreground hover:bg-[#13151f]"
+              }`}
+            >
+              <ShieldCheck className="size-3.5" /> Verificar PQC
+            </button>
+            <button
+              onClick={() => setActiveTab("governance")}
+              className={`flex-1 min-w-[120px] py-2.5 px-3 rounded-xl border font-mono text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1.5 ${
+                activeTab === "governance"
+                  ? "bg-amber-500/10 border-amber-500/40 text-amber-400 shadow-[0_0_12px_-3px_rgba(245,158,11,0.25)]"
+                  : "bg-[#13151f]/60 border-border/10 text-muted-foreground hover:bg-[#13151f]"
+              }`}
+            >
+              <ShieldAlert className="size-3.5" /> VIGIA Ética
             </button>
           </div>
 
@@ -967,6 +1004,12 @@ export function QuantumUtilityDashboard() {
 
             </div>
           )}
+
+          {activeTab === "monitor" && <QuantumJobMonitor />}
+
+          {activeTab === "certificates" && <CertificateVerification />}
+
+          {activeTab === "governance" && <GobernanzaVigia />}
 
           {/* PERFORMANCE CHART CONTAINER */}
           <div className="p-5 rounded-2xl bg-[#13151f] border border-border/10 space-y-4">
