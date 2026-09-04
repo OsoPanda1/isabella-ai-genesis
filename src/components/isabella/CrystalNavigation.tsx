@@ -26,7 +26,14 @@ import {
  */
 
 export type NavTabId =
-  "terminal" | "cli" | "catalog" | "monetization" | "quantum" | "interfaces" | "aegis";
+  | "terminal"
+  | "cli"
+  | "governance"
+  | "catalog"
+  | "monetization"
+  | "quantum"
+  | "interfaces"
+  | "aegis";
 
 export interface NavGroupItem {
   id: NavTabId;
@@ -183,6 +190,14 @@ export const NAV_GROUPS = (
         id: "cli",
         label: "Consola Retro CLI",
         icon: <TerminalIcon className="size-4" />,
+        glow: "crystal-glow-electric",
+        activeClass:
+          "bg-electric/15 text-electric border border-electric/30 shadow-[0_0_15px_-4px_rgba(112,102,249,0.3)]",
+      },
+      {
+        id: "governance",
+        label: "Gobernanza y Salud",
+        icon: <Layers className="size-4" />,
         glow: "crystal-glow-electric",
         activeClass:
           "bg-electric/15 text-electric border border-electric/30 shadow-[0_0_15px_-4px_rgba(112,102,249,0.3)]",

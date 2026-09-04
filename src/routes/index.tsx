@@ -17,6 +17,7 @@ import { MonetizationDashboard } from "@/components/isabella/MonetizationDashboa
 import { QuantumUtilityDashboard } from "@/components/isabella/QuantumUtilityDashboard";
 import { AiInterfacesHub } from "@/components/isabella/AiInterfacesHub";
 import { LatamAegisDashboard } from "@/components/isabella/LatamAegisDashboard";
+import { CognitiveStatusDashboard } from "@/components/isabella/CognitiveStatusDashboard";
 import { useIsabella } from "@/lib/useIsabella";
 
 const TITLE = "Isabella Villaseñor AI — Terminal Cognitivo C.R.O.W.N.";
@@ -221,6 +222,7 @@ function IsabellaInterface() {
                 <p className="text-[9.5px] text-muted-foreground font-mono mt-0.5 uppercase tracking-widest">
                   {activeTab === "terminal" && `Conexión Activa: ${isabella.preset.name}`}
                   {activeTab === "cli" && "Consola Retro Directa"}
+                  {activeTab === "governance" && "Gobernanza y Salud de Módulos Cognitivos"}
                   {activeTab === "catalog" && "Gobernanza de APIs e Invocaciones"}
                   {activeTab === "monetization" && "Tablero de Consumo Soberano"}
                   {activeTab === "quantum" && "Optimización y Transpilación Cuántica (qup)"}
@@ -306,6 +308,12 @@ function IsabellaInterface() {
           {activeTab === "cli" && (
             <div className="animate-rise max-w-[1300px] mx-auto crystal-glow-electric rounded-3xl overflow-hidden">
               <TerminalView />
+            </div>
+          )}
+
+          {activeTab === "governance" && (
+            <div className="animate-rise max-w-[1300px] mx-auto">
+              <CognitiveStatusDashboard />
             </div>
           )}
 
