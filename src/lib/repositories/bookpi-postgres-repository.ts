@@ -8,7 +8,18 @@ const GENESIS_PREVIOUS_HASH = "0".repeat(64);
 let pool: Pool | null = null;
 function getPool(url: string) {
   if (!pool) {
-    pool = new Pool({ connectionString: url });
+    try {
+      pool = new Pool({ connectionString: url });
+    } catch {
+      console.warn('[AI Studio] DB not connected — mock active');
+      pool = {
+        query: async () => ({ rows: [] }),
+        connect: async () => ({
+          query: async () => ({ rows: [] }),
+          release: () => {}
+        })
+      } as unknown as Pool;
+    }
   }
   return pool;
 }

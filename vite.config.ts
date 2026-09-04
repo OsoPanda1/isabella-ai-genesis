@@ -6,7 +6,7 @@ export default defineConfig({
     server: { entry: "server" },
   },
   nitro: {
-    preset: process.env.VERCEL ? "vercel" : undefined,
+    preset: "node-server",
   },
   vite: {
     resolve: {
