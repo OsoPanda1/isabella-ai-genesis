@@ -22,13 +22,7 @@ interface CinematicIntroProps {
 // -----------------------------------------------------------------------------
 // 1. MOTOR GRÁFICO WEBGL (Crystal World Engine)
 // -----------------------------------------------------------------------------
-function CrystalWorldEngine({
-  progress,
-  masterClock,
-}: {
-  progress: number;
-  masterClock: number;
-}) {
+function CrystalWorldEngine({ progress, masterClock }: { progress: number; masterClock: number }) {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -44,7 +38,7 @@ function CrystalWorldEngine({
       34,
       mount.clientWidth / mount.clientHeight,
       0.1,
-      1600
+      1600,
     );
     camera.position.set(0, 0, 260);
 
@@ -120,7 +114,7 @@ function CrystalWorldEngine({
       const color = new THREE.Color().setHSL(
         0.55 + Math.random() * 0.18,
         0.7,
-        0.6 + Math.random() * 0.25
+        0.6 + Math.random() * 0.25,
       );
       colors.set([color.r, color.g, color.b], i * 3);
     }
@@ -256,10 +250,7 @@ export function CinematicIntroContent({
 
     const tick = (now: number) => {
       const delta = (now - lastTime) / 1000;
-      const currentElapsed = Math.min(
-        DURATION,
-        (now - clockStartRef.current) / 1000
-      );
+      const currentElapsed = Math.min(DURATION, (now - clockStartRef.current) / 1000);
 
       setElapsed(currentElapsed);
 
@@ -277,8 +268,8 @@ export function CinematicIntroContent({
           currentElapsed < 19
             ? "STAGE 01 · ORIGIN FIELD"
             : currentElapsed < 39
-            ? "STAGE 02 · TERRITORIAL MEMORY"
-            : "STAGE 03 · SOVEREIGN CRYSTAL";
+              ? "STAGE 02 · TERRITORIAL MEMORY"
+              : "STAGE 03 · SOVEREIGN CRYSTAL";
 
         const payload: TelemetryPayload = {
           elapsed: currentElapsed,
@@ -290,9 +281,7 @@ export function CinematicIntroContent({
 
         onTelemetryUpdate?.(payload);
 
-        window.dispatchEvent(
-          new CustomEvent("IsabellaTelemetryEvent", { detail: payload })
-        );
+        window.dispatchEvent(new CustomEvent("IsabellaTelemetryEvent", { detail: payload }));
 
         frameCounter = 0;
         lastTime = now;
@@ -334,8 +323,8 @@ export function CinematicIntroContent({
     elapsed < 19
       ? "STAGE 01 · ORIGIN FIELD (WEBGL)"
       : elapsed < 39
-      ? "STAGE 02 · TERRITORIAL MEMORY (WEBGL)"
-      : "STAGE 03 · SOVEREIGN CRYSTAL (WEBGL)";
+        ? "STAGE 02 · TERRITORIAL MEMORY (WEBGL)"
+        : "STAGE 03 · SOVEREIGN CRYSTAL (WEBGL)";
 
   const progress = elapsed / DURATION;
 
@@ -366,7 +355,9 @@ export function CinematicIntroContent({
 
               <span>
                 {Math.floor(elapsed).toString().padStart(2, "0")}:
-                {Math.floor((elapsed % 1) * 100).toString().padStart(2, "0")}{" "}
+                {Math.floor((elapsed % 1) * 100)
+                  .toString()
+                  .padStart(2, "0")}{" "}
                 / {DURATION}:00
               </span>
 
@@ -393,13 +384,7 @@ export function CinematicIntroContent({
       )}
 
       {/* Fuente de Audio */}
-      <audio
-        ref={audioRef}
-        src={remoteAudioUrl}
-        loop
-        preload="auto"
-        className="hidden"
-      />
+      <audio ref={audioRef} src={remoteAudioUrl} loop preload="auto" className="hidden" />
 
       {/* Landing Gate */}
       {showGate && (
@@ -418,7 +403,8 @@ export function CinematicIntroContent({
             </h1>
 
             <p className="mx-auto mt-3 max-w-sm font-mono text-[11px] leading-relaxed text-muted-foreground">
-              Inmersión audiovisual interactiva con renderizado WebGL multihilo y bus de telemetría del sistema.
+              Inmersión audiovisual interactiva con renderizado WebGL multihilo y bus de telemetría
+              del sistema.
             </p>
 
             <button
@@ -434,11 +420,7 @@ export function CinematicIntroContent({
                 onClick={() => setMuted((prev) => !prev)}
                 className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-[10px] text-muted-foreground hover:text-pearl transition-colors"
               >
-                {muted ? (
-                  <VolumeX className="size-3.5" />
-                ) : (
-                  <Volume2 className="size-3.5" />
-                )}
+                {muted ? <VolumeX className="size-3.5" /> : <Volume2 className="size-3.5" />}
                 {muted ? "Audio Desactivado" : "Audio Activado"}
               </button>
             </div>
@@ -457,7 +439,7 @@ const remoteModuleUrl = "isabellaRemote/CinematicIntro";
 const RemoteCinematicModule = lazy(() =>
   import(/* @vite-ignore */ remoteModuleUrl).catch(() => ({
     default: CinematicIntroContent,
-  }))
+  })),
 );
 
 export default function CinematicIntro(props: CinematicIntroProps) {

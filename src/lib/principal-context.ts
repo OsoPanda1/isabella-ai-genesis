@@ -395,7 +395,8 @@ export class PrincipalContext {
           success: false,
           response: new Response(
             JSON.stringify({
-              error: "Aislamiento de Tenant Violado: El Tenant asignado al token no está registrado.",
+              error:
+                "Aislamiento de Tenant Violado: El Tenant asignado al token no está registrado.",
               traceId: telemetry.traceId,
             }),
             { status: 403, headers },
@@ -510,8 +511,6 @@ export function withSovereignAuth(
       }
     }
 
-    return runWithIdentity(context.toRequestIdentity(), () =>
-      handler(context, request, body),
-    );
+    return runWithIdentity(context.toRequestIdentity(), () => handler(context, request, body));
   };
 }
