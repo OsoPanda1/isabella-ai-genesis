@@ -4,9 +4,9 @@ import {
   Fingerprint,
   Lock,
   RotateCcw,
-  HelpCircle,
+  
   Check,
-  AlertCircle,
+  
 } from "lucide-react";
 import { toast } from "sonner";
 

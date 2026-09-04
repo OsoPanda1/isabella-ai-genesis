@@ -9,16 +9,17 @@ import {
   CheckCircle2,
   Gauge,
   Clock,
+  Shield,
   ShieldCheck,
   Binary,
   Lock,
-  DollarSign,
+  
   Fingerprint,
-  ChevronRight,
+  
   ShieldAlert,
   ListFilter,
-  Check,
-  AlertTriangle,
+  
+  
 } from "lucide-react";
 import {
   ResponsiveContainer,

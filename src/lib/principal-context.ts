@@ -511,12 +511,24 @@ export function withSovereignAuth(
     }
 
     let body: unknown = null;
-    if (request.method === "POST" || request.method === "PUT") {
+    if (request.method === "POST" || request.method === "PUT" || request.method === "PATCH") {
+      const contentLength = parseInt(request.headers.get("content-length") || "0", 10);
+      if (contentLength > 5 * 1024 * 1024) { // 5MB limit
+        const headers = SecuritySystem.injectSecureHeaders(
+          new Headers({ "content-type": "application/json" })
+        );
+        return new Response(JSON.stringify({ error: "Payload too large. Max size is 5MB." }), {
+          status: 413,
+          headers,
+        });
+      }
       try {
-        const cloned = request.clone();
-        body = await cloned.json();
+        if (request.headers.get("content-type")?.includes("application/json")) {
+          const cloned = request.clone();
+          body = await cloned.json();
+        }
       } catch {
-        // Ignore parsing error, handler can handle it
+        // Ignore parsing error, handler can handle it or request may be non-json
       }
     }
 

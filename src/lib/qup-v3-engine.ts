@@ -1,7 +1,7 @@
 import * as crypto from "node:crypto";
 import { SovereignDB } from "./sovereign-engine";
 import { isabellaSkills } from "./skills/registry";
-import { config } from "./config";
+import { } from "./config";
 
 // ============================================================================
 // TYPES & INTERFACES FOR QUP v3.0 — SOVEREIGN EDITION

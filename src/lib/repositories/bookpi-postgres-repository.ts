@@ -1,9 +1,17 @@
-import { neon } from "@neondatabase/serverless";
+import { Pool } from "pg";
 import { createHash, randomUUID } from "node:crypto";
 import { config } from "../config";
 import type { BlockPIBlock, LedgerCategory, LedgerStatus } from "./bookpi-repository";
 
 const GENESIS_PREVIOUS_HASH = "0".repeat(64);
+
+let pool: Pool | null = null;
+function getPool(url: string) {
+  if (!pool) {
+    pool = new Pool({ connectionString: url });
+  }
+  return pool;
+}
 
 function hashBlock(block: Omit<BlockPIBlock, "blockHash">): string {
   return createHash("sha256")
@@ -52,12 +60,11 @@ function mapRow(row: Record<string, unknown>): BlockPIBlock {
  */
 export function createBookpiPostgresRepository() {
   const cfg = config();
-  const sql = neon(cfg.DATABASE_URL as string);
+  const pool = getPool(cfg.DATABASE_URL as string);
 
   return {
     async list(tenantId: string): Promise<BlockPIBlock[]> {
-      const rows =
-        await sql`SELECT * FROM public.bookpi_ledger WHERE tenant_id = ${tenantId} ORDER BY index ASC`;
+      const { rows } = await pool.query("SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index ASC", [tenantId]);
       return rows.map(mapRow);
     },
     async append(input: {
@@ -76,10 +83,14 @@ export function createBookpiPostgresRepository() {
         return { success: false as const, error: "Tokens inválidos." };
 
       // P1: Concurrency and Transactionality fix using Postgres Transactions
-      return sql.begin(async (tx) => {
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
         // SELECT FOR UPDATE avoids race conditions for previous block
-        const previous =
-          await tx`SELECT * FROM public.bookpi_ledger WHERE tenant_id = ${input.tenantId} ORDER BY index DESC LIMIT 1 FOR UPDATE`;
+        const { rows: previous } = await client.query(
+          "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index DESC LIMIT 1 FOR UPDATE",
+          [input.tenantId]
+        );
         const previousBlock = previous[0] ? mapRow(previous[0]) : null;
 
         const index = previousBlock ? previousBlock.index + 1 : 0;
@@ -103,12 +114,21 @@ export function createBookpiPostgresRepository() {
           nonce: randomUUID(),
         };
         const blockHash = hashBlock(base);
-        const rows = await tx`INSERT INTO public.bookpi_ledger
-        (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed, previous_hash, block_hash, status)
-        VALUES (${base.index}, ${base.tenantId}, ${base.userId}, ${base.operation}, ${base.category}, ${base.costDecimal}, ${base.tokensConsumed}, ${base.previousHash}, ${blockHash}, ${status})
-        RETURNING *`;
+        const { rows } = await client.query(`
+          INSERT INTO public.bookpi_ledger
+          (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed, previous_hash, block_hash, status, nonce, signature_algorithm)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          RETURNING *`,
+          [base.index, base.tenantId, base.userId, base.operation, base.category, base.costDecimal, base.tokensConsumed, base.previousHash, blockHash, status, base.nonce, base.signatureAlgorithm]
+        );
+        await client.query("COMMIT");
         return { success: true as const, block: mapRow(rows[0]!) };
-      });
+      } catch (err) {
+        await client.query("ROLLBACK");
+        return { success: false as const, error: "Fallo transaccional" };
+      } finally {
+        client.release();
+      }
     },
     async refund(
       originalEventId: string,
@@ -116,8 +136,10 @@ export function createBookpiPostgresRepository() {
       reason: string,
     ) {
       // FASE 3: refunds como nuevo evento, nunca UPDATE del original.
-      const byId =
-        await sql`SELECT * FROM public.bookpi_ledger WHERE tenant_id = ${requestor.tenantId} AND id = ${originalEventId} LIMIT 1`;
+      const { rows: byId } = await pool.query(
+        "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 AND id = $2 LIMIT 1",
+        [requestor.tenantId, originalEventId]
+      );
       const original = byId[0] ? mapRow(byId[0]) : null;
       if (!original) return { success: false as const, error: "Evento original no encontrado." };
       if (original.status === "refunded")
@@ -133,9 +155,14 @@ export function createBookpiPostgresRepository() {
       });
     },
     async verifyIntegrity(tenantId?: string) {
-      const rows = tenantId
-        ? await sql`SELECT * FROM public.bookpi_ledger WHERE tenant_id = ${tenantId} ORDER BY index ASC`
-        : await sql`SELECT * FROM public.bookpi_ledger ORDER BY tenant_id ASC, index ASC`;
+      let rows;
+      if (tenantId) {
+        const res = await pool.query("SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index ASC", [tenantId]);
+        rows = res.rows;
+      } else {
+        const res = await pool.query("SELECT * FROM public.bookpi_ledger ORDER BY tenant_id ASC, index ASC");
+        rows = res.rows;
+      }
       let previousTenant = "";
       let previousHash = GENESIS_PREVIOUS_HASH;
       for (const row of rows) {

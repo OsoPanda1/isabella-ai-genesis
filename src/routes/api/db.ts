@@ -706,6 +706,14 @@ export const Route = createFileRoute("/api/db")({
               });
             }
 
+            const contentLength = parseInt(request.headers.get("content-length") || "0", 10);
+            if (contentLength > 512 * 1024) { // 512KB limit for provision owner
+              return new Response(JSON.stringify({ error: "Payload too large." }), {
+                status: 413,
+                headers,
+              });
+            }
+
             let provBody: unknown;
             try {
               provBody = await request.json();
