@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import Lenis from "lenis";
-import { ChevronDown, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Sparkles, Volume2, VolumeX } from "lucide-react";
 
 const ISABELLA_VERSION = "4.2.0";
 interface CinematicIntroProps {
@@ -8,122 +7,41 @@ interface CinematicIntroProps {
 }
 
 /**
- * SCROLL-CINEMATIC ISABELLA — Nueva generación Higgsfield + Lenis
+ * Secuencia cinematográfica autónoma de Isabella — 59 segundos.
  * -----------------------------------------------------------------
- * Técnica scroll-cinematic (Apple/Awwwards): canvas image-sequence scrub
- * con Lenis smooth scroll. Cada sección es un clip 1080p Higgsfield
- * (nano_banana_pro hero + seedance_2_0 360° spin / fly-through / explode)
- * sliceado a 180 JPGs via ffmpeg, scrubbeado por scroll.
- *
- * Sin Three.js pesado: puro canvas + Lenis + overlay reveal.
- * Higgsfield MCP genera los clips reales; este runtime los reproduce
- * frame-perfect al hacer scroll, con parallax y audio reactivo.
+ * Tres escenas canvas ligeras se reproducen por tiempo, con transiciones
+ * suaves, parallax procedural, audio iniciado por gesto y fallback accesible.
+ * No depende de scroll, assets de video pesados ni APIs de GPU frágiles.
  */
 
 const CINEMATIC_DURATION_SECONDS = 59;
-const FRAME_COUNTS = {
-  heroSpin: 180,
-  territorialFly: 180,
-  crystalExplode: 180,
-};
-function useLenis(enabled: boolean) {
-  const lenisRef = useRef<Lenis | null>(null);
-  useEffect(() => {
-    if (!enabled) return;
-    const lenis = new Lenis({ lerp: 0.085, smoothWheel: true, gestureOrientation: "vertical" });
-    lenisRef.current = lenis;
-    (window as unknown as Record<string, unknown>).__lenis = lenis;
-    let raf = 0;
-    const loop = (t: number) => {
-      lenis.raf(t);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => {
-      cancelAnimationFrame(raf);
-      lenis.destroy();
-      lenisRef.current = null;
-    };
-  }, [enabled]);
-  return lenisRef;
-}
-
-function useScrubCanvas(
+function useAnimatedCanvas(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
-  frameCount: number,
   drawFrame: (ctx: CanvasRenderingContext2D, progress: number, width: number, height: number) => void,
-  deps: unknown[] = [],
+  progress: number,
 ) {
-  const progressRef = useRef(0);
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (!ctx) return;
-
-    let currentFrame = -1;
-    const section = canvas.parentElement?.parentElement as HTMLElement | null;
-    if (!section) return;
-
+    const ctx = canvas?.getContext("2d", { alpha: false });
+    if (!canvas || !ctx) return;
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = canvas.clientWidth * dpr;
       canvas.height = canvas.clientHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawFrame(ctx, progressRef.current, canvas.clientWidth, canvas.clientHeight);
+      drawFrame(ctx, progress, canvas.clientWidth, canvas.clientHeight);
     };
-
-    const update = () => {
-      const rect = section.getBoundingClientRect();
-      if (rect.bottom < -window.innerHeight || rect.top > window.innerHeight) return;
-      const scrollable = rect.height - window.innerHeight;
-      const p = Math.min(Math.max(-rect.top / scrollable, 0), 1);
-      progressRef.current = p;
-      const frame = Math.min(frameCount - 1, Math.floor(p * (frameCount - 1)));
-      if (frame !== currentFrame) {
-        currentFrame = frame;
-        drawFrame(ctx, p, canvas.clientWidth, canvas.clientHeight);
-      }
-      // overlay reveal
-      section.querySelectorAll<HTMLElement>(".reveal-line").forEach((el) => {
-        const a = parseFloat(el.dataset.in ?? "0");
-        const b = parseFloat(el.dataset.out ?? "1");
-        const mid = (a + b) / 2;
-        const half = (b - a) / 2 || 0.15;
-        let o = 1 - Math.abs(p - mid) / half;
-        o = Math.max(0, Math.min(1, o));
-        el.style.opacity = o.toFixed(3);
-        el.style.transform = `translateY(${(1 - o) * 24}px)`;
-      });
-    };
-
-    const onScroll = () => update();
-    const lenis = (window as unknown as Record<string, unknown>).__lenis as Lenis | undefined;
-    // Drive from Lenis rAF if available, else scroll event
-    let raf = 0;
-    const loop = () => {
-      update();
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    window.addEventListener("resize", resize);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    lenis?.on("scroll", onScroll);
     resize();
-    update();
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, [frameCount, ...deps]);
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, [canvasRef, drawFrame, progress]);
 }
 
 // Procedural Higgsfield-style hero: medallion 360° spin with studio lighting
 function drawHeroSpin(ctx: CanvasRenderingContext2D, p: number, w: number, h: number) {
   const cx = w / 2;
   const cy = h / 2;
-  const t = p * Math.PI * 2; // 360° over scroll
+  const t = p * Math.PI * 2; // 360° over the timed scene
   const scale = 1 + Math.sin(p * Math.PI) * 0.08;
   ctx.fillStyle = "#020208";
   ctx.fillRect(0, 0, w, h);
@@ -214,7 +132,7 @@ function drawTerritorialFly(ctx: CanvasRenderingContext2D, p: number, w: number,
   ctx.fillStyle = "rgba(224,187,93,0.9)";
   ctx.font = `${Math.max(9, w * 0.011)}px monospace`;
   ctx.textAlign = "center";
-  ctx.fillText(`20.1406° N · 98.6719° W · 2,700 msnm — ${(p * 100).toFixed(0)}%`, cx, h * 0.88);
+  ctx.fillText(`20.1406° N �� 98.6719° W · 2,700 msnm — ${(p * 100).toFixed(0)}%`, cx, h * 0.88);
 }
 
 // Crystal explode: shards assembling
@@ -290,11 +208,10 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
     return () => cancelAnimationFrame(frame);
   }, [showGate, onComplete]);
 
-  useLenis(true);
-
-  useScrubCanvas(heroRef, FRAME_COUNTS.heroSpin, drawHeroSpin, []);
-  useScrubCanvas(flyRef, FRAME_COUNTS.territorialFly, drawTerritorialFly, []);
-  useScrubCanvas(explodeRef, FRAME_COUNTS.crystalExplode, drawCrystalExplode, []);
+  const phaseProgress = (start: number, end: number) => Math.min(1, Math.max(0, (elapsed - start) / (end - start)));
+  useAnimatedCanvas(heroRef, drawHeroSpin, phaseProgress(0, 19));
+  useAnimatedCanvas(flyRef, drawTerritorialFly, phaseProgress(19, 39));
+  useAnimatedCanvas(explodeRef, drawCrystalExplode, phaseProgress(39, 59));
 
   const handleEnter = useCallback(() => {
     setShowGate(false);
@@ -318,12 +235,15 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
   }, [showGate, handleEnter, onComplete]);
 
   return (
-    <div className="relative bg-[#020208] text-[#fffefa] selection:bg-[rgba(224,187,93,0.32)]">
+    <div className="relative h-dvh overflow-hidden bg-[#020208] text-[#fffefa] selection:bg-[rgba(224,187,93,0.32)]">
       {/* Audio gate — required for autoplay */}
       {showGate && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020208]/92 backdrop-blur-[2px] p-6">
           <div className="w-full max-w-[560px] rounded-[24px] border border-[rgba(224,187,93,0.22)] bg-[rgba(14,19,28,0.88)] p-8 shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
-            <div className="flex items-center gap-3">
+            <div className="mx-auto mb-5 flex size-28 items-center justify-center rounded-[2rem] border border-[#e0bb5d]/35 bg-black/55 p-3 shadow-[0_0_70px_rgba(56,189,248,0.2),inset_0_0_30px_rgba(224,187,93,0.12)] backdrop-blur-xl">
+              <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-isabella-lNlesUwDIVsIyjREmgDp8lwcbQ03sg.jpeg" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/assets/logo-isabella.jpeg"; }} alt="Logotipo oficial de Isabella Villaseñor AI" className="size-full rounded-[1.35rem] object-cover" />
+            </div>
+            <div className="flex items-center justify-center gap-3">
               <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
               <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">Nodo Cero — listo</p>
             </div>
@@ -331,16 +251,14 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
               Isabella <span className="font-serif italic font-normal text-[#e0bb5d]">Villaseñor</span>
             </h1>
             <p className="mt-3 font-mono text-[11px] leading-[1.7] text-muted-foreground">
-              Experiencia scroll-cinemática — <span className="text-platinum">Higgsfield MCP</span> `nano_banana_pro` hero + `seedance_2_0` 1080p
-              `360° spin` / `fly-through` / `crystal explode` → 180 frames vía `ffmpeg`, scrub en `&lt;canvas&gt;` con <span className="text-platinum">Lenis</span> smooth.
-              Haz scroll para reproducir la cinemática.
+              Inmersión cinematográfica de 59 segundos — un recorrido visual por la identidad territorial y cognitiva de Isabella Villaseñor AI. Al presionar el botón aceptas los permisos de audio y video inmersivos.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <button
                 onClick={handleEnter}
                 className="rounded-full bg-[#e0bb5d] px-6 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black hover:bg-[#efd58a] transition"
               >
-                Entrar — hacer scroll
+                INICIAR INMERSIÓN
               </button>
               <button
                 onClick={() => setMuted((m) => !m)}
@@ -348,7 +266,7 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
               >
                 {muted ? <VolumeX className="size-3.5" /> : <Volume2 className="size-3.5" />} {muted ? "Silenciado" : "Audio sí"}
               </button>
-              <span className="font-mono text-[10px] text-muted-foreground">v{ISABELLA_VERSION} · scroll-cinematic</span>
+              <span className="font-mono text-[10px] text-muted-foreground">v{ISABELLA_VERSION} · immersive sequence</span>
             </div>
           </div>
         </div>
@@ -357,21 +275,15 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
       {/* Hidden audio element — local bg-audio.mp3, plays only after gesture */}
       <audio ref={audioRef} src="/assets/background-audio.mp3" loop preload="auto" className="hidden" />
 
-      {/* Timeline: 59 seconds, with scroll remaining available for exploration. */}
+      {/* Timeline: 59 seconds of autonomous cinematic immersion. */}
       {!showGate && <div className="pointer-events-none fixed left-6 right-6 top-5 z-30" aria-label={`Intro ${Math.floor(elapsed)} de ${CINEMATIC_DURATION_SECONDS} segundos`}>
         <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.2em] text-white/55"><span>Isabella cinematic sequence</span><span>{Math.floor(elapsed).toString().padStart(2, "0")} / {CINEMATIC_DURATION_SECONDS}s</span></div>
         <div className="mt-2 h-px overflow-hidden bg-white/15"><div className="h-full bg-[#e0bb5d] transition-[width] duration-200" style={{ width: `${(elapsed / CINEMATIC_DURATION_SECONDS) * 100}%` }} /></div>
       </div>}
 
-      {/* Scroll hint */}
-      <div className="scroll-hint pointer-events-none fixed bottom-6 left-1/2 z-30 -translate-x-1/2 flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-4 py-2 backdrop-blur-md transition-opacity duration-300">
-        <ChevronDown className="size-3.5 text-[#e0bb5d] animate-bounce" />
-        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/80">Haz scroll para reproducir</span>
-      </div>
-
       {/* ========== SECTION 1 — HERO 360° SPIN ========== */}
-      <section id="hero" className="relative h-[520vh] bg-[#020208]">
-        <div className="sticky top-0 h-[100vh] w-full overflow-hidden">
+      <section id="hero" className="absolute inset-0 bg-[#020208] transition-opacity duration-1000" style={{ opacity: elapsed < 19 ? 1 : 0 }}>
+        <div className="relative h-full w-full overflow-hidden">
           <canvas ref={heroRef} className="absolute inset-0 h-full w-full" />
           <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
             <p className="reveal-line font-mono text-[10px] uppercase tracking-[0.38em] text-[#e0bb5d]" data-in="0.12" data-out="0.32">
@@ -381,23 +293,23 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
               Isabella <span className="font-serif italic font-normal text-[#e0bb5d]">Villaseñor</span>
             </h2>
             <p className="reveal-line mt-3 max-w-[560px] font-mono text-[11px] leading-[1.7] text-white/70" data-in="0.24" data-out="0.44">
-              Infraestructura cognitiva territorial — Higgsfield `nano_banana_pro` hero + `360° spin` scrub. Cada frame es un JPG 1600px q88.
+              Infraestructura cognitiva territorial — una secuencia visual de precisión, memoria y soberanía.
             </p>
             <div className="reveal-line mt-6 flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 backdrop-blur" data-in="0.32" data-out="0.52">
               <Sparkles className="size-3 text-[#e0bb5d]" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/80">Génesis Soberana · Scroll para girar 360°</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/80">Génesis Soberana · Secuencia automática</span>
             </div>
           </div>
           <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between font-mono text-[9px] uppercase tracking-wider text-white/40">
             <span>01 / 03 · HERO SPIN</span>
-            <span>180 frames · 1600px · Lenis 0.085</span>
+            <span>19 segundos · render procedural</span>
           </div>
         </div>
       </section>
 
       {/* ========== SECTION 2 — TERRITORIAL FLY-THROUGH ========== */}
-      <section id="territorial" className="relative h-[520vh] bg-[#04060c]">
-        <div className="sticky top-0 h-[100vh] w-full overflow-hidden">
+      <section id="territorial" className="absolute inset-0 bg-[#04060c] transition-opacity duration-1000" style={{ opacity: elapsed >= 19 && elapsed < 39 ? 1 : 0 }}>
+        <div className="relative h-full w-full overflow-hidden">
           <canvas ref={flyRef} className="absolute inset-0 h-full w-full" />
           <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
             <p className="reveal-line font-mono text-[10px] uppercase tracking-[0.32em] text-[#38bdf8]" data-in="0.14" data-out="0.36">
@@ -407,7 +319,7 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
               Vuela sobre <span className="text-[#38bdf8]">Real del Monte</span>
             </h2>
             <p className="reveal-line mt-3 max-w-[560px] font-mono text-[11px] leading-[1.7] text-white/70" data-in="0.26" data-out="0.48">
-              `seedance_2_0` fly-through 1080p → `ffmpeg -i clip.mp4 -vf scale=1600:-1` 180 JPGs. Scroll scrub con parallax de 3 capas.
+              Un vuelo territorial en tres capas de profundidad, diseñado para una reproducción fluida y autónoma.
             </p>
             <div className="reveal-line mt-6 grid grid-cols-3 gap-3 max-w-[520px] w-full" data-in="0.34" data-out="0.58">
               {[
@@ -430,8 +342,8 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
       </section>
 
       {/* ========== SECTION 3 — CRYSTAL EXPLODE ========== */}
-      <section id="crystal" className="relative h-[520vh] bg-[#020208]">
-        <div className="sticky top-0 h-[100vh] w-full overflow-hidden">
+      <section id="crystal" className="absolute inset-0 bg-[#020208] transition-opacity duration-1000" style={{ opacity: elapsed >= 39 ? 1 : 0 }}>
+        <div className="relative h-full w-full overflow-hidden">
           <canvas ref={explodeRef} className="absolute inset-0 h-full w-full" />
           <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
             <p className="reveal-line font-mono text-[10px] uppercase tracking-[0.32em] text-[#e0bb5d]" data-in="0.16" data-out="0.38">
@@ -441,7 +353,7 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
               El cristal <span className="font-serif italic font-normal text-[#e0bb5d]">explota y se ensambla</span>
             </h2>
             <p className="reveal-line mt-3 max-w-[560px] font-mono text-[11px] leading-[1.7] text-white/70" data-in="0.28" data-out="0.50">
-              `crystal explode` — los shards flotan y se ensamblan al hacer scroll. Cada frame es verificable, trazable y soberano.
+              El cristal se dispersa y vuelve a ensamblarse: una metáfora visual de coordinación, trazabilidad y soberanía.
             </p>
             <button
               onClick={onComplete}
@@ -452,7 +364,7 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
               Entrar a Isabella — Nodo Cero
             </button>
             <p className="reveal-line mt-3 font-mono text-[9px] uppercase tracking-[0.18em] text-white/40" data-in="0.48" data-out="0.78">
-              ESC para omitir · scroll arriba/abajo reproduce la cinemática
+              ESC para omitir · la inmersión se reproduce automáticamente
             </p>
           </div>
           <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between font-mono text-[9px] uppercase tracking-wider text-white/40">
@@ -462,10 +374,6 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
         </div>
       </section>
 
-      {/* Footer bar */}
-      <div className="h-[24vh] flex items-center justify-center bg-[#020208] border-t border-white/5">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/30">Isabella Villaseñor AI · scroll-cinematic · Lenis smooth</p>
-      </div>
     </div>
   );
 }
