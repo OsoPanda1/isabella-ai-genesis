@@ -2,18 +2,26 @@ name: Isabella Genesis CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  packages: write
 
 jobs:
+  # ============================================================
+  # JOB 1: Environment Validation
+  # ============================================================
   env-check:
     runs-on: ubuntu-latest
     steps:
       - name: Validate env vars presence
         run: |
-          REQUIRED_VARS=(APP_URL PUBLIC_URL SUPABASE_URL SUPABASE_ANON_KEY AUTH_JWT_SECRET SUPABASE_JWT_SECRET GEMINI_API_KEY ENCRYPTION_MASTER_KEY)
-          for VAR in "${REQUIRED_VARS[@]}"; do
+          for VAR in APP_URL PUBLIC_URL SUPABASE_URL SUPABASE_ANON_KEY AUTH_JWT_SECRET SUPABASE_JWT_SECRET GEMINI_API_KEY ENCRYPTION_MASTER_KEY; do
             if [ -z "${!VAR}" ]; then
               echo "❌ Missing $VAR"
               exit 1
@@ -29,6 +37,9 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ENCRYPTION_MASTER_KEY: ${{ secrets.ENCRYPTION_MASTER_KEY }}
 
+  # ============================================================
+  # JOB 2: Build & Tests
+  # ============================================================
   build:
     runs-on: ubuntu-latest
     needs: env-check
@@ -48,6 +59,9 @@ jobs:
           name: build-artifacts
           path: .next/
 
+  # ============================================================
+  # JOB 3: Security & Supply Chain
+  # ============================================================
   security:
     runs-on: ubuntu-latest
     needs: build
@@ -61,13 +75,51 @@ jobs:
           head: HEAD
           extra_args: --only-verified
       - run: pnpm exec cyclonedx-bom -o sbom.json
+      - run: cosign sign-blob --key ${{ secrets.COSIGN_KEY }} sbom.json > sbom.sig
       - uses: actions/upload-artifact@v4
         with:
-          name: sbom
-          path: sbom.json
+          name: security-artifacts
+          path: |
+            sbom.json
+            sbom.sig
 
+  # ============================================================
+  # JOB 4: SAST (CodeQL)
+  # ============================================================
+  codeql:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          config-file: ./.github/codeql-config.yml
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: github/codeql-action/analyze@v3
+
+  # ============================================================
+  # JOB 5: Release Gate
+  # ============================================================
   release-gate:
     runs-on: ubuntu-latest
-    needs: [build, security]
+    needs: [build, security, codeql]
     steps:
-      - run: echo "✅ All gates passed. Ready for release."
+      - uses: actions/download-artifact@v4
+        with:
+          name: security-artifacts
+          path: ./reports
+      - run: |
+          sha256sum ./reports/sbom.json > ./reports/sbom.checksum
+          echo "✅ All gates passed. Ready for release."
