@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, lazy, Suspense } from "react";
 import * as THREE from "three";
-import { Volume2, VolumeX, SkipForward, Play, Activity } from "lucide-react";
+import { Volume3, VolumeX, SkipForward, Play, Activity } from "lucide-react";
 
 const TARGET_FPS = 60;
 const DURATION = 59; // Duración total en segundos
@@ -74,7 +74,6 @@ function CrystalWorldEngine({
       roughness: 0.12,
       transmission: 0.3,
       transparent: true,
-      opacity: 0.95,
       clearcoat: 1.0,
       clearcoatRoughness: 0.1,
     });
