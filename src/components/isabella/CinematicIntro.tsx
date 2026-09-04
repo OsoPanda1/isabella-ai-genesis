@@ -618,20 +618,8 @@ export function CinematicIntroContent({
 }
 
 // -----------------------------------------------------------------------------
-// 3. EXPORTACIÓN CON CARGA DINÁMICA DE MODULE FEDERATION (A prueba de Vite)
+// 3. EXPORTACIÓN DIRECTA Y ESTABLE
 // -----------------------------------------------------------------------------
-const remoteModuleUrl = "isabellaRemote/CinematicIntro";
-
-const RemoteCinematicModule = lazy(() =>
-  import(/* @vite-ignore */ remoteModuleUrl).catch(() => ({
-    default: CinematicIntroContent,
-  })),
-);
-
 export default function CinematicIntro(props: CinematicIntroProps) {
-  return (
-    <Suspense fallback={<CinematicIntroContent {...props} />}>
-      <RemoteCinematicModule {...props} />
-    </Suspense>
-  );
+  return <CinematicIntroContent {...props} />;
 }

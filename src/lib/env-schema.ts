@@ -117,7 +117,12 @@ export const envSchema = z.object({
 
   // --- REDIS ---
   REDIS_URL: optionalString(),
+  REDIS_TOKEN: optionalString(),
   REDIS_PREFIX: z.string().default("isabella"),
+  KV_URL: optionalString(),
+  KV_REST_API_TOKEN: optionalString(),
+  UPSTASH_REDIS_TOKEN: optionalString(),
+  TRUSTED_PROXY_MODE: optionalString(),
 
   // --- RATE LIMIT ---
   RATE_LIMIT_DEFAULT_PER_MINUTE: coercedInt(120),

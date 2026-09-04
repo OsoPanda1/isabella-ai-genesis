@@ -35,11 +35,7 @@ let redisClient: {
 } | null = null;
 async function getRedis(): Promise<typeof redisClient> {
   if (redisClient) return redisClient;
-  const url =
-    config().REDIS_URL ||
-    ((config() as unknown as Record<string, unknown>).KV_URL as string | undefined) ||
-    process.env.REDIS_URL ||
-    process.env.KV_URL;
+  const url = config().REDIS_URL || config().KV_URL;
   if (!url) return null;
   try {
     // Dynamic import to avoid hard dependency in dev without Redis
@@ -51,9 +47,7 @@ async function getRedis(): Promise<typeof redisClient> {
       return null;
     }
     const token =
-      ((config() as unknown as Record<string, unknown>).KV_REST_API_TOKEN as string | undefined) ||
-      process.env.KV_REST_API_TOKEN ||
-      process.env.UPSTASH_REDIS_TOKEN;
+      config().KV_REST_API_TOKEN || config().UPSTASH_REDIS_TOKEN || config().REDIS_TOKEN;
     // Upstash Redis constructor (casteado explícitamente; no requiere supresión de tipos)
     redisClient = new (
       mod.Redis as unknown as new (opts: Record<string, unknown>) => typeof redisClient
@@ -87,16 +81,7 @@ export interface TokenClaims {
 export const SecuritySystem = {
   // --- LAYER 0: Secure IP Resolver (Trusted Proxy Guard) ---
   resolveClientIp(request: Request): string {
-    const trustedMode = ((): boolean => {
-      try {
-        return (
-          (config() as unknown as Record<string, unknown>).TRUSTED_PROXY_MODE === "true" ||
-          process.env.TRUSTED_PROXY_MODE === "true"
-        );
-      } catch {
-        return process.env.TRUSTED_PROXY_MODE === "true";
-      }
-    })();
+    const trustedMode = config().TRUSTED_PROXY_MODE === "true";
     // Only trust x-forwarded-for/cf-connecting-ip when behind trusted proxy (Vercel/Cloudflare)
     if (trustedMode) {
       const cfIp = request.headers.get("cf-connecting-ip");

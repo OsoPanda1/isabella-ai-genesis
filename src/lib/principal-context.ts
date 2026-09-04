@@ -7,6 +7,19 @@ import { repositoryFactory } from "./persistence/repository-factory";
 import { config } from "./config";
 import { runWithIdentity, type RequestIdentity } from "./identity-context";
 
+function assertDevelopmentOnly(): void {
+  const cfg = config();
+  const nodeEnv = cfg.NODE_ENV;
+  const runtimeMode = cfg.ISABELLA_RUNTIME_MODE;
+  const devSessionEnabled = cfg.AUTH_DEV_SESSION_ENABLED;
+
+  if (nodeEnv !== "development" || runtimeMode !== "development" || devSessionEnabled !== true) {
+    throw new Error(
+      "[SovereignGuard Violation] Intento ilícito de activar fallback de desarrollo en entorno de producción/producción-crítica.",
+    );
+  }
+}
+
 export class PrincipalContext {
   public readonly userId: string;
   public readonly username: string;
@@ -181,12 +194,7 @@ export class PrincipalContext {
           );
         }
       })();
-      const canGuest =
-        isGuestAllowed &&
-        (!requiredScope ||
-          requiredScope === "isabella:chat" ||
-          requiredScope === "isabella:voice" ||
-          requiredScope === "isabella:tools");
+      const canGuest = isGuestAllowed && (!requiredScope || requiredScope === "isabella:chat");
       if (canGuest) {
         const guestClaims: TokenClaims = {
           iss: "isabella.guest",
@@ -230,6 +238,7 @@ export class PrincipalContext {
         }
       })();
       if (isDevFallback) {
+        assertDevelopmentOnly();
         const mockClaims: TokenClaims = {
           iss: "isabella.dev",
           sub: "dev_user",
@@ -274,10 +283,7 @@ export class PrincipalContext {
           return process.env.ALLOW_GUEST_CHAT === "true";
         }
       })();
-      if (
-        isGuestAllowed &&
-        (!requiredScope || requiredScope === "isabella:chat" || requiredScope === "isabella:voice")
-      ) {
+      if (isGuestAllowed && (!requiredScope || requiredScope === "isabella:chat")) {
         const guestClaims: TokenClaims = {
           iss: "isabella.guest",
           sub: "guest_user",
@@ -320,6 +326,7 @@ export class PrincipalContext {
         }
       })();
       if (isDevFallback) {
+        assertDevelopmentOnly();
         const mockClaims: TokenClaims = {
           iss: "isabella.dev",
           sub: "dev_user",
