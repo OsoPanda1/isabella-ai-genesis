@@ -1,10 +1,4 @@
-import {
-  createAuditEvent,
-  Evidence,
-  IsabellaSkill,
-  SkillResult,
-  normalizeText,
-} from "./contracts";
+import { createAuditEvent, Evidence, IsabellaSkill, SkillResult, normalizeText } from "./contracts";
 
 // ============================================================================
 // 1. ORION (Cognitive Archaeology Engine)
@@ -47,7 +41,8 @@ export const ORION: IsabellaSkill<OrionInput, OrionOutput> = {
 
     const findings = input.artifacts
       .map((artifact) => {
-        const searchable = `${artifact.title} ${artifact.content} ${(artifact.tags ?? []).join(" ")}`.toLowerCase();
+        const searchable =
+          `${artifact.title} ${artifact.content} ${(artifact.tags ?? []).join(" ")}`.toLowerCase();
         const matched = tokens.filter((token) => searchable.includes(token));
         const score = tokens.length ? matched.length / tokens.length : 0;
         const relationships = [...(artifact.tags ?? []), context.federation, artifact.source];
@@ -141,7 +136,8 @@ export const SOPHIA: IsabellaSkill<SophiaInput, SophiaOutput> = {
   version: "v.GENESIS",
   federation: "EDUCATION",
   risk: "HIGH",
-  description: "Construye síntesis verificables, distingue evidencia de hipótesis y detecta vacíos.",
+  description:
+    "Construye síntesis verificables, distingue evidencia de hipótesis y detecta vacíos.",
   canRun: (input) => Boolean(input.question?.trim()),
   async run(input, context): Promise<SkillResult<SophiaOutput>> {
     const minimumEvidence = input.minimumEvidence ?? 2;
@@ -285,7 +281,10 @@ export const ARGUS: IsabellaSkill<ArgusInput, ArgusOutput> = {
             "Escalar al responsable técnico y a guardianía humana.",
           ]
         : health === "DEGRADED"
-          ? ["Investigar origen de la degradación.", "Revisar trazas, dependencias y consumo de recursos."]
+          ? [
+              "Investigar origen de la degradación.",
+              "Revisar trazas, dependencias y consumo de recursos.",
+            ]
           : ["Mantener monitoreo continuo."];
 
     return {
@@ -299,14 +298,7 @@ export const ARGUS: IsabellaSkill<ArgusInput, ArgusOutput> = {
       auditEvents: [
         createAuditEvent("SKILL_INVOKED", "ARGUS", { metrics }, context.actorId),
         ...(health === "CRITICAL"
-          ? [
-              createAuditEvent(
-                "HUMAN_REVIEW_REQUIRED",
-                "ARGUS",
-                { anomalies },
-                context.actorId,
-              ),
-            ]
+          ? [createAuditEvent("HUMAN_REVIEW_REQUIRED", "ARGUS", { anomalies }, context.actorId)]
           : []),
         createAuditEvent(
           "SKILL_COMPLETED",
@@ -373,7 +365,12 @@ export const HERMES: IsabellaSkill<HermesInput, HermesOutput> = {
       evidence: context.evidence ?? [],
       warnings: [],
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "HERMES", { audience: input.audience, tone }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "HERMES",
+          { audience: input.audience, tone },
+          context.actorId,
+        ),
         createAuditEvent("SKILL_COMPLETED", "HERMES", { title }, context.actorId),
       ],
     };
@@ -407,7 +404,8 @@ export const ATLAS: IsabellaSkill<AtlasInput, AtlasOutput> = {
   version: "v.GENESIS",
   federation: "TERRITORY",
   risk: "HIGH",
-  description: "Simula impactos territoriales y detecta puntos de palanca para decisiones responsables.",
+  description:
+    "Simula impactos territoriales y detecta puntos de palanca para decisiones responsables.",
   canRun: (input) => Boolean(input.scenario?.trim() && input.variables?.length),
   async run(input, context): Promise<SkillResult<AtlasOutput>> {
     const territorialImpact = input.variables.reduce(
@@ -419,7 +417,9 @@ export const ATLAS: IsabellaSkill<AtlasInput, AtlasOutput> = {
       territorialImpact > 0.1 ? "POSITIVE" : territorialImpact < -0.1 ? "NEGATIVE" : "NEUTRAL";
 
     const leveragePoints = [...input.variables]
-      .sort((a, b) => Math.abs(b.projectedChange * b.weight) - Math.abs(a.projectedChange * a.weight))
+      .sort(
+        (a, b) => Math.abs(b.projectedChange * b.weight) - Math.abs(a.projectedChange * a.weight),
+      )
       .slice(0, 3)
       .map((item) => item.label);
 
@@ -441,7 +441,12 @@ export const ATLAS: IsabellaSkill<AtlasInput, AtlasOutput> = {
       requiresHumanReview: interpretation === "NEGATIVE",
       auditEvents: [
         createAuditEvent("SKILL_INVOKED", "ATLAS", { scenario: input.scenario }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "ATLAS", { territorialImpact, interpretation }, context.actorId),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "ATLAS",
+          { territorialImpact, interpretation },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -517,7 +522,12 @@ export const ANUBIS: IsabellaSkill<AnubisInput, AnubisOutput> = {
         : [],
       requiresHumanReview: isMismatch,
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "ANUBIS", { artifactId: input.artifactId }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "ANUBIS",
+          { artifactId: input.artifactId },
+          context.actorId,
+        ),
         createAuditEvent(
           isMismatch ? "POLICY_VIOLATION" : "SKILL_COMPLETED",
           "ANUBIS",
@@ -554,7 +564,8 @@ export const GEMET: IsabellaSkill<GemetInput, GemetOutput> = {
   version: "v.GENESIS",
   federation: "ETHICS_CULTURE",
   risk: "CRITICAL",
-  description: "Evalúa decisiones y acciones contra principios de dignidad, consentimiento, equidad y soberanía.",
+  description:
+    "Evalúa decisiones y acciones contra principios de dignidad, consentimiento, equidad y soberanía.",
   canRun: (input) => Boolean(input.action?.trim() && input.purpose?.trim()),
   async run(input, context): Promise<SkillResult<GemetOutput>> {
     const text = normalizeText(`${input.action} ${input.purpose}`);
@@ -564,17 +575,21 @@ export const GEMET: IsabellaSkill<GemetInput, GemetOutput> = {
       {
         name: "Dignidad humana",
         passed: !/(humillar|discriminar|explotar|acosar)/.test(text),
-        reason: "No se permiten acciones que degraden, discriminen o exploten a personas o comunidades.",
+        reason:
+          "No se permiten acciones que degraden, discriminen o exploten a personas o comunidades.",
       },
       {
         name: "Privacidad y minimización",
-        passed: !data.some((item) => /biometr|salud|ubicacion exacta|menor/.test(normalizeText(item))),
+        passed: !data.some((item) =>
+          /biometr|salud|ubicacion exacta|menor/.test(normalizeText(item)),
+        ),
         reason: "Los datos sensibles requieren base legal, consentimiento y revisión humana.",
       },
       {
         name: "Soberanía territorial",
         passed: !/(extraer datos|vender datos|vigilancia masiva)/.test(text),
-        reason: "No se permite capturar valor o datos territoriales sin garantías de soberanía y consentimiento.",
+        reason:
+          "No se permite capturar valor o datos territoriales sin garantías de soberanía y consentimiento.",
       },
     ];
 

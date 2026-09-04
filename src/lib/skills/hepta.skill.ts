@@ -81,7 +81,12 @@ export const HEPTA: IsabellaSkill<HeptaInput, HeptaOutput> = {
       warnings: [],
       auditEvents: [
         createAuditEvent("SKILL_INVOKED", "HEPTA", { request: input.request }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "HEPTA", { dominantFederation, recommendedSkills }, context.actorId),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "HEPTA",
+          { dominantFederation, recommendedSkills },
+          context.actorId,
+        ),
       ],
     };
   },

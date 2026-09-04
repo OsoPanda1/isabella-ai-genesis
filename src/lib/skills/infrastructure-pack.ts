@@ -1,8 +1,4 @@
-import {
-  createAuditEvent,
-  IsabellaSkill,
-  SkillResult,
-} from "./contracts";
+import { createAuditEvent, IsabellaSkill, SkillResult } from "./contracts";
 
 // ============================================================================
 // 9. CITEMESH (Federated Mesh Coordination)
@@ -41,7 +37,8 @@ export const CITEMESH: IsabellaSkill<CiteMeshInput, CiteMeshOutput> = {
       (node) => node.critical && (node.meshHealth < 0.5 || !node.synchronized),
     ).length;
 
-    const networkHealth = criticalFailures > 0 ? "PARTITIONED" : unhealthyNodes.length ? "DEGRADED" : "HEALTHY";
+    const networkHealth =
+      criticalFailures > 0 ? "PARTITIONED" : unhealthyNodes.length ? "DEGRADED" : "HEALTHY";
 
     const resilienceActions =
       networkHealth === "PARTITIONED"
@@ -63,8 +60,18 @@ export const CITEMESH: IsabellaSkill<CiteMeshInput, CiteMeshOutput> = {
       warnings: unhealthyNodes.map((id) => `Nodo degradado: ${id}`),
       requiresHumanReview: networkHealth === "PARTITIONED",
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "CITEMESH", { nodeCount: input.nodes.length }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "CITEMESH", { networkHealth, unhealthyNodes }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "CITEMESH",
+          { nodeCount: input.nodes.length },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "CITEMESH",
+          { networkHealth, unhealthyNodes },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -94,7 +101,8 @@ export const HEPHAESTUS: IsabellaSkill<HephaestusInput, HephaestusOutput> = {
   version: "v.GENESIS",
   federation: "INFRASTRUCTURE",
   risk: "HIGH",
-  description: "Deriva artefactos técnicos y criterios de aceptación a partir de requerimientos gobernados.",
+  description:
+    "Deriva artefactos técnicos y criterios de aceptación a partir de requerimientos gobernados.",
   canRun: (input) => Boolean(input.feature?.trim() && input.requirements?.length),
   async run(input, context): Promise<SkillResult<HephaestusOutput>> {
     const slug = input.feature
@@ -139,7 +147,12 @@ export const HEPHAESTUS: IsabellaSkill<HephaestusInput, HephaestusOutput> = {
       evidence: [],
       warnings: [],
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "HEPHAESTUS", { feature: input.feature, target: input.target }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "HEPHAESTUS",
+          { feature: input.feature, target: input.target },
+          context.actorId,
+        ),
         createAuditEvent("SKILL_COMPLETED", "HEPHAESTUS", { artifactName: slug }, context.actorId),
       ],
     };

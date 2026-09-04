@@ -1,9 +1,4 @@
-import {
-  createAuditEvent,
-  IsabellaSkill,
-  SkillResult,
-  normalizeText,
-} from "./contracts";
+import { createAuditEvent, IsabellaSkill, SkillResult, normalizeText } from "./contracts";
 
 export type LockLevel = "ONTOLOGIC_LOCK" | "SEMANTIC_LOCK" | "BEHAVIORAL_LOCK";
 
@@ -127,7 +122,8 @@ export const LYRA: IsabellaSkill<LyraInput, LyraOutput> = {
   version: "v.GENESIS",
   federation: "ETHICS_CULTURE",
   risk: "MEDIUM",
-  description: "Evalúa coherencia estética, respeto cultural, accesibilidad y calidad de experiencia.",
+  description:
+    "Evalúa coherencia estética, respeto cultural, accesibilidad y calidad de experiencia.",
   canRun: (input) => Boolean(input.proposal?.trim()),
   async run(input, context): Promise<SkillResult<LyraOutput>> {
     const text = normalizeText(input.proposal);
@@ -186,7 +182,8 @@ export const EIRENE: IsabellaSkill<EireneInput, EireneOutput> = {
   version: "v.GENESIS",
   federation: "ETHICS_CULTURE",
   risk: "HIGH",
-  description: "Facilita diálogo básico y deriva situaciones de riesgo hacia atención humana adecuada.",
+  description:
+    "Facilita diálogo básico y deriva situaciones de riesgo hacia atención humana adecuada.",
   canRun: (input) => Boolean(input.situation?.trim() && input.parties?.length >= 2),
   async run(input, context): Promise<SkillResult<EireneOutput>> {
     const text = normalizeText(`${input.situation} ${(input.riskSignals ?? []).join(" ")}`);
@@ -219,8 +216,18 @@ export const EIRENE: IsabellaSkill<EireneInput, EireneOutput> = {
       warnings: risky ? ["Se detectaron señales de riesgo; requiere intervención humana."] : [],
       requiresHumanReview: risky,
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "EIRENE", { partyCount: input.parties.length }, context.actorId),
-        createAuditEvent(risky ? "HUMAN_REVIEW_REQUIRED" : "SKILL_COMPLETED", "EIRENE", { mode }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "EIRENE",
+          { partyCount: input.parties.length },
+          context.actorId,
+        ),
+        createAuditEvent(
+          risky ? "HUMAN_REVIEW_REQUIRED" : "SKILL_COMPLETED",
+          "EIRENE",
+          { mode },
+          context.actorId,
+        ),
       ],
     };
   },

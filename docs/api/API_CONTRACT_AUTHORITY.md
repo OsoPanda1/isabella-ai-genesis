@@ -53,12 +53,12 @@
 
 ### 1.2. Artefactos Canónicos
 
-| Tipo | Ubicación | Propósito | Herramientas |
-|------|-----------|-----------|--------------|
-| **Código de contratos** | `src/lib/api-contracts.ts` | Definición ejecutable de esquemas de entrada/salida | Zod, io-ts, JSON Schema |
-| **Validadores runtime** | Mismo módulo o `src/lib/validators/` | Validación en tiempo de ejecución de requests/responses | Zod, Joi, Yup |
-| **Esquemas generados** | `dist/openapi.yaml`, `sdk/` | Documentación y SDKs para consumidores | openapi-generator, swagger-codegen |
-| **Metadatos de generación** | `dist/manifest.json` | Trazabilidad de artefactos generados | Custom CI script |
+| Tipo                        | Ubicación                            | Propósito                                               | Herramientas                       |
+| --------------------------- | ------------------------------------ | ------------------------------------------------------- | ---------------------------------- |
+| **Código de contratos**     | `src/lib/api-contracts.ts`           | Definición ejecutable de esquemas de entrada/salida     | Zod, io-ts, JSON Schema            |
+| **Validadores runtime**     | Mismo módulo o `src/lib/validators/` | Validación en tiempo de ejecución de requests/responses | Zod, Joi, Yup                      |
+| **Esquemas generados**      | `dist/openapi.yaml`, `sdk/`          | Documentación y SDKs para consumidores                  | openapi-generator, swagger-codegen |
+| **Metadatos de generación** | `dist/manifest.json`                 | Trazabilidad de artefactos generados                    | Custom CI script                   |
 
 **Estructura de metadatos generados:**
 
@@ -68,11 +68,7 @@
   "source_commit": "git:abc123def456...",
   "generation_timestamp": "2026-09-04T01:35:00Z",
   "generator_version": "isa-api-gen@2.0.0",
-  "artifacts": [
-    "openapi.yaml",
-    "sdk-typescript.tgz",
-    "sdk-python.tgz"
-  ]
+  "artifacts": ["openapi.yaml", "sdk-typescript.tgz", "sdk-python.tgz"]
 }
 ```
 
@@ -140,31 +136,31 @@ Cada petición HTTP atraviesa, **en este orden exacto**, las siguientes 10 etapa
 
 ### 2.2. Responsabilidades por Capa
 
-| Etapa | Componente | Responsabilidad | Métricas Clave |
-|-------|------------|-----------------|----------------|
-| **1. Normalización** | API Gateway / PEP | Canonicalizar headers, body, fechas (ISO 8601), números (decimales como strings si aplica), encoding (UTF-8). | `normalization_latency_ms`, `normalization_errors` |
-| **2. Correlación** | Correlation Service | Asignar `request_id` (UUID v4), `trace_id` (propagar si viene en headers), `idempotency_key` (si aplica). | `correlation_latency_ms` |
-| **3. Autenticación** | Identity Service | Verificar token (JWT, OAuth2, mTLS), validar expiración, revocación, issuer, audience. Extraer `subject_id`, `tenant_id` (si viene en token). | `auth_latency_ms`, `auth_failures`, `token_validation_errors` |
-| **4. Resolución de Tenant** | Tenant Service | Validar `tenant_id` contra fuente de verdad (DB), verificar estado (activo/suspendido), resolver configuración específica (quotas, políticas). | `tenant_resolution_latency_ms`, `tenant_not_found_errors` |
-| **5. Validación de Entrada** | Schema Validator | Validar payload contra esquema Zod/runtime schema. Rechazar si hay campos extra no permitidos o tipos incorrectos. | `validation_latency_ms`, `validation_errors` |
+| Etapa                                | Componente            | Responsabilidad                                                                                                                                           | Métricas Clave                                                  |
+| ------------------------------------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **1. Normalización**                 | API Gateway / PEP     | Canonicalizar headers, body, fechas (ISO 8601), números (decimales como strings si aplica), encoding (UTF-8).                                             | `normalization_latency_ms`, `normalization_errors`              |
+| **2. Correlación**                   | Correlation Service   | Asignar `request_id` (UUID v4), `trace_id` (propagar si viene en headers), `idempotency_key` (si aplica).                                                 | `correlation_latency_ms`                                        |
+| **3. Autenticación**                 | Identity Service      | Verificar token (JWT, OAuth2, mTLS), validar expiración, revocación, issuer, audience. Extraer `subject_id`, `tenant_id` (si viene en token).             | `auth_latency_ms`, `auth_failures`, `token_validation_errors`   |
+| **4. Resolución de Tenant**          | Tenant Service        | Validar `tenant_id` contra fuente de verdad (DB), verificar estado (activo/suspendido), resolver configuración específica (quotas, políticas).            | `tenant_resolution_latency_ms`, `tenant_not_found_errors`       |
+| **5. Validación de Entrada**         | Schema Validator      | Validar payload contra esquema Zod/runtime schema. Rechazar si hay campos extra no permitidos o tipos incorrectos.                                        | `validation_latency_ms`, `validation_errors`                    |
 | **6. Evaluación de Políticas (PDP)** | C.R.O.W.N./A.R.G.U.S. | Evaluar políticas de acceso con atributos: `subject_id`, `tenant_id`, `action`, `resource`, `context`. Emitir `decision_id`, `allow/deny`, `obligations`. | `pdp_decision_latency_ms`, `policy_cache_hit_rate`, `deny_rate` |
-| **7. Chequeo de Capacidades** | Entitlement Service | Verificar que el sujeto tiene `capability_flags` necesarios para la acción (ej. `can_create_api_keys`, `can_access_audit_logs`). | `entitlement_check_latency_ms`, `capability_denials` |
-| **8. Operación de Dominio** | Domain Service | Ejecutar lógica de negocio (crear recurso, consultar datos, procesar pago). Aplicar obligaciones del PDP (enmascarado, redacción). | `domain_operation_latency_ms`, `domain_errors` |
-| **9. Validación de Salida** | Schema Validator | Validar respuesta contra esquema de salida. Asegurar que no se filtran campos sensibles no autorizados. | `output_validation_latency_ms`, `output_validation_errors` |
-| **10. Auditoría** | Audit Service | Registrar en almacén inmutable: `request_id`, `trace_id`, `decision_id`, `tenant_id`, `subject_id`, `action`, `outcome`, `timestamp`. | `audit_write_latency_ms`, `audit_write_errors` |
+| **7. Chequeo de Capacidades**        | Entitlement Service   | Verificar que el sujeto tiene `capability_flags` necesarios para la acción (ej. `can_create_api_keys`, `can_access_audit_logs`).                          | `entitlement_check_latency_ms`, `capability_denials`            |
+| **8. Operación de Dominio**          | Domain Service        | Ejecutar lógica de negocio (crear recurso, consultar datos, procesar pago). Aplicar obligaciones del PDP (enmascarado, redacción).                        | `domain_operation_latency_ms`, `domain_errors`                  |
+| **9. Validación de Salida**          | Schema Validator      | Validar respuesta contra esquema de salida. Asegurar que no se filtran campos sensibles no autorizados.                                                   | `output_validation_latency_ms`, `output_validation_errors`      |
+| **10. Auditoría**                    | Audit Service         | Registrar en almacén inmutable: `request_id`, `trace_id`, `decision_id`, `tenant_id`, `subject_id`, `action`, `outcome`, `timestamp`.                     | `audit_write_latency_ms`, `audit_write_errors`                  |
 
 ### 2.3. Telemetría por Etapa
 
 **Métricas obligatorias** (deben exponerse en Prometheus/Datadog/New Relic):
 
-| Métrica | Tipo | Dimensiones | Descripción |
-|---------|------|-------------|-------------|
-| `request_latency_ms` | Histogram | `endpoint`, `tenant_id`, `outcome` | Latencia total de la petición (desde normalización hasta auditoría). |
-| `stage_latency_ms` | Histogram | `stage`, `endpoint`, `tenant_id` | Latencia por etapa del pipeline (ej. `stage=auth`, `stage=pdp`). |
-| `policy_decision_time_ms` | Histogram | `policy_id`, `tenant_id` | Tiempo que tarda el PDP en emitir una decisión. |
-| `deny_rate` | Counter | `endpoint`, `tenant_id`, `reason` | Tasa de denegaciones por política o capacidades. |
-| `cache_hit_rate` | Gauge | `cache_type` (policy, entitlement, tenant) | Porcentaje de hits en caché vs. consultas a DB. |
-| `error_rate` | Counter | `error_code`, `endpoint`, `tenant_id` | Tasa de errores por código (ej. `ISB_AUTH_INVALID_TOKEN`). |
+| Métrica                   | Tipo      | Dimensiones                                | Descripción                                                          |
+| ------------------------- | --------- | ------------------------------------------ | -------------------------------------------------------------------- |
+| `request_latency_ms`      | Histogram | `endpoint`, `tenant_id`, `outcome`         | Latencia total de la petición (desde normalización hasta auditoría). |
+| `stage_latency_ms`        | Histogram | `stage`, `endpoint`, `tenant_id`           | Latencia por etapa del pipeline (ej. `stage=auth`, `stage=pdp`).     |
+| `policy_decision_time_ms` | Histogram | `policy_id`, `tenant_id`                   | Tiempo que tarda el PDP en emitir una decisión.                      |
+| `deny_rate`               | Counter   | `endpoint`, `tenant_id`, `reason`          | Tasa de denegaciones por política o capacidades.                     |
+| `cache_hit_rate`          | Gauge     | `cache_type` (policy, entitlement, tenant) | Porcentaje de hits en caché vs. consultas a DB.                      |
+| `error_rate`              | Counter   | `error_code`, `endpoint`, `tenant_id`      | Tasa de errores por código (ej. `ISB_AUTH_INVALID_TOKEN`).           |
 
 **Tracing distribuido:**
 
@@ -237,11 +233,11 @@ Idempotency-Key: idem_20260904_001
 
 ### 3.1. Principios de Confianza
 
-| Principio | Descripción | Implicación |
-|-----------|-------------|-------------|
-| **No confiar en el cliente** | `tenant_id`, `scopes`, `precios`, `balances`, `risk_scores` y cualquier dato provisto por el cliente son **untrusted**. | Validar siempre contra fuentes internas (DB, PDP, servicios verificados). |
-| **Modelos como señales** | ML y proveedores externos solo aportan **advice** (recomendaciones, scores). La decisión final la emite el PDP interno. | Un score de riesgo de un modelo externo no puede denegar acceso por sí solo; debe ser corroborado por políticas internas. |
-| **Decision as data** | Cada decisión de política debe producir: `decision_id`, `decision_version`, `allow/deny`, `obligations`. | Toda decisión es rastreable, auditable y versionada. |
+| Principio                    | Descripción                                                                                                             | Implicación                                                                                                               |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **No confiar en el cliente** | `tenant_id`, `scopes`, `precios`, `balances`, `risk_scores` y cualquier dato provisto por el cliente son **untrusted**. | Validar siempre contra fuentes internas (DB, PDP, servicios verificados).                                                 |
+| **Modelos como señales**     | ML y proveedores externos solo aportan **advice** (recomendaciones, scores). La decisión final la emite el PDP interno. | Un score de riesgo de un modelo externo no puede denegar acceso por sí solo; debe ser corroborado por políticas internas. |
+| **Decision as data**         | Cada decisión de política debe producir: `decision_id`, `decision_version`, `allow/deny`, `obligations`.                | Toda decisión es rastreable, auditable y versionada.                                                                      |
 
 ### 3.2. Arquitectura Recomendada
 
@@ -305,25 +301,25 @@ Idempotency-Key: idem_20260904_001
 
 **Obligaciones** son acciones que el PEP debe aplicar antes/durante/después de la operación de dominio:
 
-| Tipo de obligación | Ejemplo | Implementación |
-|--------------------|---------|----------------|
-| **Enmascarado de campos** | Redactar `email`, `phone` en respuestas para sujetos sin `can_view_pii`. | Middleware que filtra campos basado en `decision.obligations.redact_fields`. |
-| **Throttling** | Limitar a 10 requests/minuto para sujetos con `risk_score > 80`. | Rate limiter configurado dinámicamente desde `decision.obligations.rate_limit`. |
-| **Logging adicional** | Registrar payload completo para decisiones con `audit_level=verbose`. | Audit Service escribe log estructurado con payload cifrado. |
-| **Rechazo con motivo** | Denegar acceso a recurso con `reason=insufficient_quota`. | PEP devuelve error `CROWN_POLICY_DENY` con `details.reason`. |
+| Tipo de obligación        | Ejemplo                                                                  | Implementación                                                                  |
+| ------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| **Enmascarado de campos** | Redactar `email`, `phone` en respuestas para sujetos sin `can_view_pii`. | Middleware que filtra campos basado en `decision.obligations.redact_fields`.    |
+| **Throttling**            | Limitar a 10 requests/minuto para sujetos con `risk_score > 80`.         | Rate limiter configurado dinámicamente desde `decision.obligations.rate_limit`. |
+| **Logging adicional**     | Registrar payload completo para decisiones con `audit_level=verbose`.    | Audit Service escribe log estructurado con payload cifrado.                     |
+| **Rechazo con motivo**    | Denegar acceso a recurso con `reason=insufficient_quota`.                | PEP devuelve error `CROWN_POLICY_DENY` con `details.reason`.                    |
 
 **Enforcement:** El PEP **debe** aplicar todas las obligaciones antes de ejecutar la operación de dominio. Si una obligación no puede aplicarse (ej. fallo de enmascarado), la petición se deniega con `SYSTEM_ENFORCEMENT_FAILURE`.
 
 ### 3.4. Matriz de Atributos para Decisiones
 
-| Atributo | Fuente de verdad | Usos |
-|----------|------------------|------|
-| `subject_id` | Identity Service | Autorización (quién es el sujeto). |
-| `tenant_id` | Tenant Service | Aislamiento (a qué tenant pertenece). |
-| `capability_flags` | Entitlement Service | Chequeo de capacidades (qué puede hacer). |
-| `risk_score` | Risk Service (interno) | Contexto de política (nivel de riesgo). |
-| `resource_attributes` | Domain Service | Contexto adicional (ej. `resource.sensitivity`, `resource.owner_id`). |
-| `context` | PEP (validado) | Contexto de la petición (ej. `action=create`, `ip_address`, `user_agent`). |
+| Atributo              | Fuente de verdad       | Usos                                                                       |
+| --------------------- | ---------------------- | -------------------------------------------------------------------------- |
+| `subject_id`          | Identity Service       | Autorización (quién es el sujeto).                                         |
+| `tenant_id`           | Tenant Service         | Aislamiento (a qué tenant pertenece).                                      |
+| `capability_flags`    | Entitlement Service    | Chequeo de capacidades (qué puede hacer).                                  |
+| `risk_score`          | Risk Service (interno) | Contexto de política (nivel de riesgo).                                    |
+| `resource_attributes` | Domain Service         | Contexto adicional (ej. `resource.sensitivity`, `resource.owner_id`).      |
+| `context`             | PEP (validado)         | Contexto de la petición (ej. `action=create`, `ip_address`, `user_agent`). |
 
 ### 3.5. Reglas Clave
 
@@ -337,13 +333,13 @@ Idempotency-Key: idem_20260904_001
 
 ### 4.1. Campos Públicos Permitidos
 
-| Campo | Tipo | Descripción | Ejemplo |
-|-------|------|-------------|---------|
-| `request_id` | UUID | Identificador único de la petición (correlacionable). | `req_abc123` |
-| `trace_id` | UUID | Identificador de traza distribuida (para debugging). | `trace_xyz789` |
-| `decision_id` | String | Identificador de la decisión de política emitida por PDP. | `dec_20260904_01` |
-| `api_version` | String | Versión de la API (semver o fecha). | `v2.1` |
-| `deprecation_notice` | String (opcional) | Aviso de deprecación de campo/endpoint. | `fieldX deprecated; sunset=2027-01-01` |
+| Campo                | Tipo              | Descripción                                               | Ejemplo                                |
+| -------------------- | ----------------- | --------------------------------------------------------- | -------------------------------------- |
+| `request_id`         | UUID              | Identificador único de la petición (correlacionable).     | `req_abc123`                           |
+| `trace_id`           | UUID              | Identificador de traza distribuida (para debugging).      | `trace_xyz789`                         |
+| `decision_id`        | String            | Identificador de la decisión de política emitida por PDP. | `dec_20260904_01`                      |
+| `api_version`        | String            | Versión de la API (semver o fecha).                       | `v2.1`                                 |
+| `deprecation_notice` | String (opcional) | Aviso de deprecación de campo/endpoint.                   | `fieldX deprecated; sunset=2027-01-01` |
 
 ### 4.2. Prohibiciones Estrictas
 
@@ -375,7 +371,7 @@ Idempotency-Key: idem_20260904_001
     "user": {
       "id": "u_1",
       "name": "Edwin",
-      "email": "e***@example.com"  // enmascarado por obligación
+      "email": "e***@example.com" // enmascarado por obligación
     }
   },
   "error": null
@@ -407,14 +403,14 @@ Idempotency-Key: idem_20260904_001
 
 ### 4.4. Headers Recomendados
 
-| Header | Descripción | Ejemplo |
-|--------|-------------|---------|
-| `X-Request-Id` | ID único de la petición (igual que `meta.request_id`). | `req_abc123` |
-| `X-Trace-Id` | ID de traza distribuida (igual que `meta.trace_id`). | `trace_xyz789` |
-| `X-API-Version` | Versión de la API usada. | `v2.1` |
-| `X-Decision-Id` | ID de la decisión de política (igual que `meta.decision_id`). | `dec_20260904_01` |
-| `Deprecation-Notice` | Aviso de deprecación (si aplica). | `fieldX deprecated; sunset=2027-01-01` |
-| `Retry-After` | Segundos para reintentar (si `retryable=true`). | `60` |
+| Header               | Descripción                                                   | Ejemplo                                |
+| -------------------- | ------------------------------------------------------------- | -------------------------------------- |
+| `X-Request-Id`       | ID único de la petición (igual que `meta.request_id`).        | `req_abc123`                           |
+| `X-Trace-Id`         | ID de traza distribuida (igual que `meta.trace_id`).          | `trace_xyz789`                         |
+| `X-API-Version`      | Versión de la API usada.                                      | `v2.1`                                 |
+| `X-Decision-Id`      | ID de la decisión de política (igual que `meta.decision_id`). | `dec_20260904_01`                      |
+| `Deprecation-Notice` | Aviso de deprecación (si aplica).                             | `fieldX deprecated; sunset=2027-01-01` |
+| `Retry-After`        | Segundos para reintentar (si `retryable=true`).               | `60`                                   |
 
 ### 4.5. Formato y Estructura
 
@@ -428,16 +424,16 @@ Idempotency-Key: idem_20260904_001
 
 ### 5.1. Prefijos Estandarizados
 
-| Prefijo | Responsabilidad | Ejemplos |
-|---------|-----------------|----------|
-| `ISB_AUTH_` | Autenticación (Identity Service) | `ISB_AUTH_INVALID_TOKEN`, `ISB_AUTH_TOKEN_EXPIRED`, `ISB_AUTH_TOKEN_REVOKED` |
-| `ISB_TENANT_` | Tenant (Tenant Service) | `ISB_TENANT_NOT_FOUND`, `ISB_TENANT_SUSPENDED`, `ISB_TENANT_QUOTA_EXCEEDED` |
-| `CROWN_` | Políticas (C.R.O.W.N./A.R.G.U.S.) | `CROWN_POLICY_DENY`, `CROWN_OBLIGATION_FAILURE`, `CROWN_POLICY_NOT_FOUND` |
-| `MEMORY_` | Memoria (Memory Service) | `MEMORY_NOT_FOUND`, `MEMORY_CONSENT_DENIED`, `MEMORY_EXPIRED` |
-| `TOOL_` | Herramientas (Tool Service) | `TOOL_NOT_FOUND`, `TOOL_EXECUTION_FAILED`, `TOOL_TIMEOUT` |
-| `ECONOMY_` | Economía (BookPI, Ledger) | `ECONOMY_INSUFFICIENT_BALANCE`, `ECONOMY_TRANSACTION_FAILED`, `ECONOMY_REFUND_NOT_ALLOWED` |
-| `AUDIT_` | Auditoría (Audit Service) | `AUDIT_WRITE_FAILED`, `AUDIT_TAMPER_DETECTED`, `AUDIT_RETENTION_EXCEEDED` |
-| `SYSTEM_` | Sistema (infraestructura) | `SYSTEM_INTERNAL_ERROR`, `SYSTEM_UNAVAILABLE`, `SYSTEM_RATE_LIMITED` |
+| Prefijo       | Responsabilidad                   | Ejemplos                                                                                   |
+| ------------- | --------------------------------- | ------------------------------------------------------------------------------------------ |
+| `ISB_AUTH_`   | Autenticación (Identity Service)  | `ISB_AUTH_INVALID_TOKEN`, `ISB_AUTH_TOKEN_EXPIRED`, `ISB_AUTH_TOKEN_REVOKED`               |
+| `ISB_TENANT_` | Tenant (Tenant Service)           | `ISB_TENANT_NOT_FOUND`, `ISB_TENANT_SUSPENDED`, `ISB_TENANT_QUOTA_EXCEEDED`                |
+| `CROWN_`      | Políticas (C.R.O.W.N./A.R.G.U.S.) | `CROWN_POLICY_DENY`, `CROWN_OBLIGATION_FAILURE`, `CROWN_POLICY_NOT_FOUND`                  |
+| `MEMORY_`     | Memoria (Memory Service)          | `MEMORY_NOT_FOUND`, `MEMORY_CONSENT_DENIED`, `MEMORY_EXPIRED`                              |
+| `TOOL_`       | Herramientas (Tool Service)       | `TOOL_NOT_FOUND`, `TOOL_EXECUTION_FAILED`, `TOOL_TIMEOUT`                                  |
+| `ECONOMY_`    | Economía (BookPI, Ledger)         | `ECONOMY_INSUFFICIENT_BALANCE`, `ECONOMY_TRANSACTION_FAILED`, `ECONOMY_REFUND_NOT_ALLOWED` |
+| `AUDIT_`      | Auditoría (Audit Service)         | `AUDIT_WRITE_FAILED`, `AUDIT_TAMPER_DETECTED`, `AUDIT_RETENTION_EXCEEDED`                  |
+| `SYSTEM_`     | Sistema (infraestructura)         | `SYSTEM_INTERNAL_ERROR`, `SYSTEM_UNAVAILABLE`, `SYSTEM_RATE_LIMITED`                       |
 
 ### 5.2. Formato Público de Error
 
@@ -466,17 +462,17 @@ Idempotency-Key: idem_20260904_001
 
 ### 5.3. Tabla de Ejemplos
 
-| Código | Retryable | Mensaje Público | Escenario |
-|--------|-----------|-----------------|-----------|
-| `ISB_AUTH_INVALID_TOKEN` | false | Autenticación fallida. Proporcione credenciales válidas. | Token JWT inválido o mal formado. |
-| `ISB_AUTH_TOKEN_EXPIRED` | false | Token expirado. Renueve sus credenciales. | Token JWT con `exp` en el pasado. |
-| `ISB_TENANT_NOT_FOUND` | false | Tenant no encontrado. Contacte a soporte. | `tenant_id` no existe en DB. |
-| `ISB_TENANT_SUSPENDED` | false | Tenant suspendido. Contacte a soporte. | Tenant marcado como `status=suspended`. |
-| `CROWN_POLICY_DENY` | false | Acceso denegado por políticas. | PDP evalúa política y devuelve `deny`. |
-| `MEMORY_CONSENT_DENIED` | false | Acceso a memoria denegado por falta de consentimiento. | Usuario no dio `consent=true` para el `purpose` solicitado. |
-| `ECONOMY_INSUFFICIENT_BALANCE` | false | Saldo insuficiente para completar la operación. | `balance < amount` en BookPI. |
-| `SYSTEM_RATE_LIMITED` | true | Límite de peticiones excedido. Reintente después de X segundos. | Rate limiter activado por exceso de requests. |
-| `SYSTEM_INTERNAL_ERROR` | true | Error interno del servidor. Reintente más tarde. | Error no esperado en dominio (5xx). |
+| Código                         | Retryable | Mensaje Público                                                 | Escenario                                                   |
+| ------------------------------ | --------- | --------------------------------------------------------------- | ----------------------------------------------------------- |
+| `ISB_AUTH_INVALID_TOKEN`       | false     | Autenticación fallida. Proporcione credenciales válidas.        | Token JWT inválido o mal formado.                           |
+| `ISB_AUTH_TOKEN_EXPIRED`       | false     | Token expirado. Renueve sus credenciales.                       | Token JWT con `exp` en el pasado.                           |
+| `ISB_TENANT_NOT_FOUND`         | false     | Tenant no encontrado. Contacte a soporte.                       | `tenant_id` no existe en DB.                                |
+| `ISB_TENANT_SUSPENDED`         | false     | Tenant suspendido. Contacte a soporte.                          | Tenant marcado como `status=suspended`.                     |
+| `CROWN_POLICY_DENY`            | false     | Acceso denegado por políticas.                                  | PDP evalúa política y devuelve `deny`.                      |
+| `MEMORY_CONSENT_DENIED`        | false     | Acceso a memoria denegado por falta de consentimiento.          | Usuario no dio `consent=true` para el `purpose` solicitado. |
+| `ECONOMY_INSUFFICIENT_BALANCE` | false     | Saldo insuficiente para completar la operación.                 | `balance < amount` en BookPI.                               |
+| `SYSTEM_RATE_LIMITED`          | true      | Límite de peticiones excedido. Reintente después de X segundos. | Rate limiter activado por exceso de requests.               |
+| `SYSTEM_INTERNAL_ERROR`        | true      | Error interno del servidor. Reintente más tarde.                | Error no esperado en dominio (5xx).                         |
 
 ### 5.4. Reglas de Mensajes
 
@@ -490,13 +486,13 @@ Idempotency-Key: idem_20260904_001
 
 ### 6.1. Reglas de Compatibilidad
 
-| Tipo de cambio | Compatibilidad | Acción requerida |
-|----------------|----------------|------------------|
-| **Campos aditivos** (añadir campo opcional) | ✅ Compatible | No requiere nueva versión. Documentar en changelog. |
-| **Campos obligatorios nuevos** | ❌ Breaking | Nueva versión mayor (`v2.0`). Guía de migración obligatoria. |
-| **Eliminación de campos** | ❌ Breaking | Nueva versión mayor. Deprecación previa con `sunset_date`. |
-| **Cambio de tipo** (ej. `string` → `number`) | ❌ Breaking | Nueva versión mayor. Migración de datos requerida. |
-| **Cambio de semántica** (ej. campo `status` cambia valores permitidos) | ❌ Breaking | Nueva versión mayor. Validación de migración obligatoria. |
+| Tipo de cambio                                                         | Compatibilidad | Acción requerida                                             |
+| ---------------------------------------------------------------------- | -------------- | ------------------------------------------------------------ |
+| **Campos aditivos** (añadir campo opcional)                            | ✅ Compatible  | No requiere nueva versión. Documentar en changelog.          |
+| **Campos obligatorios nuevos**                                         | ❌ Breaking    | Nueva versión mayor (`v2.0`). Guía de migración obligatoria. |
+| **Eliminación de campos**                                              | ❌ Breaking    | Nueva versión mayor. Deprecación previa con `sunset_date`.   |
+| **Cambio de tipo** (ej. `string` → `number`)                           | ❌ Breaking    | Nueva versión mayor. Migración de datos requerida.           |
+| **Cambio de semántica** (ej. campo `status` cambia valores permitidos) | ❌ Breaking    | Nueva versión mayor. Validación de migración obligatoria.    |
 
 ### 6.2. Prácticas CI/CD
 
@@ -526,14 +522,14 @@ Deprecation-Notice: fieldX deprecated; sunset=2027-01-01
 
 ### 7.1. Métricas Clave
 
-| Métrica | Tipo | Dimensiones | SLO Objetivo | Alerta |
-|---------|------|-------------|--------------|--------|
-| `request_latency_ms` | Histogram | `endpoint`, `tenant_id`, `outcome` | p99 < 500ms | p99 > 1000ms por 5min |
-| `stage_latency_ms` | Histogram | `stage`, `endpoint`, `tenant_id` | p99 por etapa < 100ms | p99 auth > 200ms |
-| `policy_decision_time_ms` | Histogram | `policy_id`, `tenant_id` | p99 < 50ms | p99 > 100ms |
-| `deny_rate` | Counter | `endpoint`, `tenant_id`, `reason` | < 5% de requests | > 20% por 10min |
-| `error_rate` | Counter | `error_code`, `endpoint`, `tenant_id` | < 1% de requests | > 5% por 5min |
-| `cache_hit_rate` | Gauge | `cache_type` | > 80% | < 50% por 10min |
+| Métrica                   | Tipo      | Dimensiones                           | SLO Objetivo          | Alerta                |
+| ------------------------- | --------- | ------------------------------------- | --------------------- | --------------------- |
+| `request_latency_ms`      | Histogram | `endpoint`, `tenant_id`, `outcome`    | p99 < 500ms           | p99 > 1000ms por 5min |
+| `stage_latency_ms`        | Histogram | `stage`, `endpoint`, `tenant_id`      | p99 por etapa < 100ms | p99 auth > 200ms      |
+| `policy_decision_time_ms` | Histogram | `policy_id`, `tenant_id`              | p99 < 50ms            | p99 > 100ms           |
+| `deny_rate`               | Counter   | `endpoint`, `tenant_id`, `reason`     | < 5% de requests      | > 20% por 10min       |
+| `error_rate`              | Counter   | `error_code`, `endpoint`, `tenant_id` | < 1% de requests      | > 5% por 5min         |
+| `cache_hit_rate`          | Gauge     | `cache_type`                          | > 80%                 | < 50% por 10min       |
 
 ### 7.2. Tracing y Logs
 
@@ -559,8 +555,8 @@ Deprecation-Notice: fieldX deprecated; sunset=2027-01-01
   "latency_ms": 45,
   "capabilities_checked": ["can_create_api_keys", "can_access_tenant_data"],
   "policy_version": "v2.1.0",
-  "ip_address": "192.168.1.1",  // cifrado en logs de auditoría
-  "user_agent": "Mozilla/5.0..."  // truncado a 256 chars
+  "ip_address": "192.168.1.1", // cifrado en logs de auditoría
+  "user_agent": "Mozilla/5.0..." // truncado a 256 chars
 }
 ```
 
@@ -637,12 +633,12 @@ Deprecation-Notice: fieldX deprecated; sunset=2027-01-01
 
 ### 8.4. Cifrado y Protección de Datos
 
-| Tipo | Estándar | Implementación |
-|------|----------|----------------|
-| **En tránsito** | TLS 1.3 (mínimo 1.2) | Ciphers modernos (AES-256-GCM, ChaCha20-Poly1305). HSTS habilitado. |
-| **En reposo** | AES-256 | Cifrado en DB (Supabase, Neon), almacenamiento de logs, backups. Claves gestionadas por KMS. |
-| **PII** | Tokenización/enmascarado | Enmascarar emails, teléfonos en logs y respuestas. Tokenizar IDs sensibles (ej. `user_id` → `tok_abc123`). |
-| **Secretos** | Cifrado con KMS | Claves de firma de JWT, API keys de terceros, credenciales de DB. |
+| Tipo            | Estándar                 | Implementación                                                                                             |
+| --------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| **En tránsito** | TLS 1.3 (mínimo 1.2)     | Ciphers modernos (AES-256-GCM, ChaCha20-Poly1305). HSTS habilitado.                                        |
+| **En reposo**   | AES-256                  | Cifrado en DB (Supabase, Neon), almacenamiento de logs, backups. Claves gestionadas por KMS.               |
+| **PII**         | Tokenización/enmascarado | Enmascarar emails, teléfonos en logs y respuestas. Tokenizar IDs sensibles (ej. `user_id` → `tok_abc123`). |
+| **Secretos**    | Cifrado con KMS          | Claves de firma de JWT, API keys de terceros, credenciales de DB.                                          |
 
 ### 8.5. Hardening y Pruebas
 
@@ -658,13 +654,13 @@ Deprecation-Notice: fieldX deprecated; sunset=2027-01-01
 
 ### 9.1. Roles y Responsabilidades
 
-| Rol | Responsabilidades | Contacto (ejemplo) |
-|-----|-------------------|-------------------|
-| **Policy Owner (C.R.O.W.N./A.R.G.U.S.)** | Autoriza cambios en políticas, revisa decisiones de PDP, garantiza consistencia de políticas. | `policy-owner@example.com` |
-| **API Owner** | Cambios en esquemas ejecutables, versionado de APIs, documentación OpenAPI. | `api-owner@example.com` |
-| **Security Owner** | Revisiones de seguridad (SAST/DAST), aprobación de cambios que afectan seguridad, respuesta a incidentes. | `security@example.com` |
-| **SRE/Platform** | Despliegue, observabilidad (métricas, logs, tracing), runbooks, respuesta a incidentes de infraestructura. | `sre@example.com` |
-| **Domain Owner** | Lógica de negocio, validación de salida, garantías de consistencia de datos. | `domain-owner@example.com` |
+| Rol                                      | Responsabilidades                                                                                          | Contacto (ejemplo)         |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------- |
+| **Policy Owner (C.R.O.W.N./A.R.G.U.S.)** | Autoriza cambios en políticas, revisa decisiones de PDP, garantiza consistencia de políticas.              | `policy-owner@example.com` |
+| **API Owner**                            | Cambios en esquemas ejecutables, versionado de APIs, documentación OpenAPI.                                | `api-owner@example.com`    |
+| **Security Owner**                       | Revisiones de seguridad (SAST/DAST), aprobación de cambios que afectan seguridad, respuesta a incidentes.  | `security@example.com`     |
+| **SRE/Platform**                         | Despliegue, observabilidad (métricas, logs, tracing), runbooks, respuesta a incidentes de infraestructura. | `sre@example.com`          |
+| **Domain Owner**                         | Lógica de negocio, validación de salida, garantías de consistencia de datos.                               | `domain-owner@example.com` |
 
 ### 9.2. Proceso de Cambio
 
@@ -690,27 +686,27 @@ Deprecation-Notice: fieldX deprecated; sunset=2027-01-01
 
 ### 10.1. Matriz Mínima de Pruebas
 
-| Tipo | Cobertura | Herramientas | Frecuencia |
-|------|-----------|--------------|------------|
-| **Unit tests** | Validación de esquemas (Zod), funciones de utilidad. | Jest, Vitest | Cada commit |
-| **Contract tests** | Request/response shape, validación de entrada/salida. | Pact, custom tests | Cada PR |
-| **Auth tests** | Tenant isolation, scope escalation, capability denial. | Supertest, custom mocks | Cada PR |
-| **Idempotency tests** | Mutaciones con `Idempotency-Key` (repetir request, verificar misma respuesta). | Custom tests | Cada PR |
-| **Integration tests** | C.R.O.W.N./A.R.G.U.S. en staging, flujos completos (auth → policy → domain). | Playwright, custom tests | Cada PR a `main` |
-| **Security tests** | SAST, DAST, pruebas de inyección (SQL, XSS), rate limiting. | SonarQube, OWASP ZAP | Cada PR (SAST), pre-deploy (DAST) |
+| Tipo                  | Cobertura                                                                      | Herramientas             | Frecuencia                        |
+| --------------------- | ------------------------------------------------------------------------------ | ------------------------ | --------------------------------- |
+| **Unit tests**        | Validación de esquemas (Zod), funciones de utilidad.                           | Jest, Vitest             | Cada commit                       |
+| **Contract tests**    | Request/response shape, validación de entrada/salida.                          | Pact, custom tests       | Cada PR                           |
+| **Auth tests**        | Tenant isolation, scope escalation, capability denial.                         | Supertest, custom mocks  | Cada PR                           |
+| **Idempotency tests** | Mutaciones con `Idempotency-Key` (repetir request, verificar misma respuesta). | Custom tests             | Cada PR                           |
+| **Integration tests** | C.R.O.W.N./A.R.G.U.S. en staging, flujos completos (auth → policy → domain).   | Playwright, custom tests | Cada PR a `main`                  |
+| **Security tests**    | SAST, DAST, pruebas de inyección (SQL, XSS), rate limiting.                    | SonarQube, OWASP ZAP     | Cada PR (SAST), pre-deploy (DAST) |
 
 ### 10.2. Checklist de PR
 
 ```yaml
 pr_checklist:
-  - schemas_executable_updated: true  # Esquemas en src/lib/api-contracts.ts actualizados
-  - contract_tests_passed: true       # Tests de forma de request/response verdes
-  - policy_owner_approval: true       # Aprobación de Policy Owner si afecta políticas
-  - security_review: true             # Revisión de Security Owner (SAST/DAST)
-  - changelog_added: true             # Changelog actualizado con impacto
-  - telemetry_enabled: true           # Métricas y logs añadidos para nuevos endpoints
-  - migration_guide_added: true       # Guía de migración si es breaking change
-  - rollback_plan: true               # Plan de rollback documentado
+  - schemas_executable_updated: true # Esquemas en src/lib/api-contracts.ts actualizados
+  - contract_tests_passed: true # Tests de forma de request/response verdes
+  - policy_owner_approval: true # Aprobación de Policy Owner si afecta políticas
+  - security_review: true # Revisión de Security Owner (SAST/DAST)
+  - changelog_added: true # Changelog actualizado con impacto
+  - telemetry_enabled: true # Métricas y logs añadidos para nuevos endpoints
+  - migration_guide_added: true # Guía de migración si es breaking change
+  - rollback_plan: true # Plan de rollback documentado
 ```
 
 ### 10.3. Contract Tests
@@ -812,7 +808,7 @@ pr_checklist:
     "user": {
       "id": "u_1",
       "name": "Edwin",
-      "email": "e***@example.com"  // enmascarado por obligación
+      "email": "e***@example.com" // enmascarado por obligación
     }
   },
   "error": null
@@ -880,9 +876,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateTenantRequest'
+              $ref: "#/components/schemas/CreateTenantRequest"
       responses:
-        '201':
+        "201":
           description: Tenant creado exitosamente.
           headers:
             X-Request-Id:
@@ -896,25 +892,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateTenantResponse'
-        '400':
+                $ref: "#/components/schemas/CreateTenantResponse"
+        "400":
           description: Error de validación.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '401':
+                $ref: "#/components/schemas/Error"
+        "401":
           description: Autenticación fallida.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Acceso denegado por políticas.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
 components:
   securitySchemes:
@@ -978,7 +974,7 @@ components:
       type: object
       properties:
         meta:
-          $ref: '#/components/schemas/Meta'
+          $ref: "#/components/schemas/Meta"
         data:
           type: object
           properties:
@@ -1019,15 +1015,15 @@ components:
 
 ### 13.1. Controles Mínimos por Nivel
 
-| Control | Desarrollo | Staging | Producción |
-|---------|------------|---------|------------|
-| **SAST** | Requerido en cada PR | Requerido en cada deploy | Periódico (semanal) |
-| **DAST** | Opcional | Requerido antes de deploy | Periódico (mensual) |
-| **Contract tests** | Requerido en cada PR | Requerido en cada deploy | Requerido en cada deploy |
-| **PDP integration** | Mock (simular C.R.O.W.N.) | Staging (C.R.O.W.N. real) | Producción (C.R.O.W.N. real) |
-| **Auditoría** | Logs locales (no inmutable) | Logs en DB (inmutable) | Logs en almacén inmutable (hash chaining) |
-| **Cifrado en reposo** | Opcional (dev DB) | Requerido | Requerido (KMS gestionado) |
-| **Rotación de secretos** | Manual (cada 6 meses) | Automática (cada 90 días) | Automática (cada 90 días) |
+| Control                  | Desarrollo                  | Staging                   | Producción                                |
+| ------------------------ | --------------------------- | ------------------------- | ----------------------------------------- |
+| **SAST**                 | Requerido en cada PR        | Requerido en cada deploy  | Periódico (semanal)                       |
+| **DAST**                 | Opcional                    | Requerido antes de deploy | Periódico (mensual)                       |
+| **Contract tests**       | Requerido en cada PR        | Requerido en cada deploy  | Requerido en cada deploy                  |
+| **PDP integration**      | Mock (simular C.R.O.W.N.)   | Staging (C.R.O.W.N. real) | Producción (C.R.O.W.N. real)              |
+| **Auditoría**            | Logs locales (no inmutable) | Logs en DB (inmutable)    | Logs en almacén inmutable (hash chaining) |
+| **Cifrado en reposo**    | Opcional (dev DB)           | Requerido                 | Requerido (KMS gestionado)                |
+| **Rotación de secretos** | Manual (cada 6 meses)       | Automática (cada 90 días) | Automática (cada 90 días)                 |
 
 ### 13.2. Retención y Acceso a Auditoría
 
@@ -1039,17 +1035,17 @@ components:
 
 ## 14. Glosario de Términos
 
-| Término | Definición |
-|---------|------------|
-| **PDP** | Policy Decision Point (C.R.O.W.N./A.R.G.U.S.). Servicio que evalúa políticas y emite decisiones de autorización. |
-| **PEP** | Policy Enforcement Point (API Gateway / borde). Punto que consulta al PDP y aplica obligaciones. |
-| **Decision_id** | Identificador único de la decisión de política emitida por PDP. Rastreable en auditoría. |
-| **Tenant** | Entidad aislada de clientes/organizaciones. Cada tenant tiene sus propios datos, políticas, quotas. |
-| **Idempotency-Key** | Clave única (UUID) enviada por el cliente para garantizar idempotencia en mutaciones (evitar duplicados). |
-| **Audit Service** | Almacén inmutable de decisiones y metadatos. Usa hash chaining para detectar tampering. |
-| **Capability_flags** | Permisos granulares del sujeto (ej. `can_create_api_keys`, `can_access_audit_logs`). |
-| **Obligations** | Acciones que el PEP debe aplicar (enmascarado, throttling, logging adicional) antes/durante/después de la operación. |
-| **Schema_hash** | Hash SHA-256 del esquema ejecutable. Usado para verificar consistencia de artefactos generados. |
+| Término              | Definición                                                                                                           |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **PDP**              | Policy Decision Point (C.R.O.W.N./A.R.G.U.S.). Servicio que evalúa políticas y emite decisiones de autorización.     |
+| **PEP**              | Policy Enforcement Point (API Gateway / borde). Punto que consulta al PDP y aplica obligaciones.                     |
+| **Decision_id**      | Identificador único de la decisión de política emitida por PDP. Rastreable en auditoría.                             |
+| **Tenant**           | Entidad aislada de clientes/organizaciones. Cada tenant tiene sus propios datos, políticas, quotas.                  |
+| **Idempotency-Key**  | Clave única (UUID) enviada por el cliente para garantizar idempotencia en mutaciones (evitar duplicados).            |
+| **Audit Service**    | Almacén inmutable de decisiones y metadatos. Usa hash chaining para detectar tampering.                              |
+| **Capability_flags** | Permisos granulares del sujeto (ej. `can_create_api_keys`, `can_access_audit_logs`).                                 |
+| **Obligations**      | Acciones que el PEP debe aplicar (enmascarado, throttling, logging adicional) antes/durante/después de la operación. |
+| **Schema_hash**      | Hash SHA-256 del esquema ejecutable. Usado para verificar consistencia de artefactos generados.                      |
 
 ---
 
@@ -1060,16 +1056,16 @@ components:
 ```yaml
 # .github/workflows/pr-checklist.yaml
 pr_checklist:
-  schemas_executable_updated: true  # Esquemas en src/lib/api-contracts.ts actualizados y versionados
-  contract_tests_passed: true       # Tests de forma de request/response verdes
-  policy_owner_approval: true       # Aprobación de Policy Owner si afecta políticas (C.R.O.W.N.)
-  security_review: true             # Revisión de Security Owner (SAST/DAST, rotación de secretos)
-  changelog_added: true             # Changelog actualizado con impacto (breaking changes, deprecaciones)
-  telemetry_enabled: true           # Métricas y logs añadidos para nuevos endpoints (latencia, errores)
-  migration_guide_added: true       # Guía de migración si es breaking change (nueva versión mayor)
-  rollback_plan: true               # Plan de rollback documentado (cómo revertir si hay problema)
-  idempotency_tests_passed: true    # Tests de idempotencia para mutaciones (POST, PUT, DELETE)
-  tenant_isolation_tests_passed: true  # Tests de aislamiento por tenant (tenant A no accede a datos de tenant B)
+  schemas_executable_updated: true # Esquemas en src/lib/api-contracts.ts actualizados y versionados
+  contract_tests_passed: true # Tests de forma de request/response verdes
+  policy_owner_approval: true # Aprobación de Policy Owner si afecta políticas (C.R.O.W.N.)
+  security_review: true # Revisión de Security Owner (SAST/DAST, rotación de secretos)
+  changelog_added: true # Changelog actualizado con impacto (breaking changes, deprecaciones)
+  telemetry_enabled: true # Métricas y logs añadidos para nuevos endpoints (latencia, errores)
+  migration_guide_added: true # Guía de migración si es breaking change (nueva versión mayor)
+  rollback_plan: true # Plan de rollback documentado (cómo revertir si hay problema)
+  idempotency_tests_passed: true # Tests de idempotencia para mutaciones (POST, PUT, DELETE)
+  tenant_isolation_tests_passed: true # Tests de aislamiento por tenant (tenant A no accede a datos de tenant B)
 ```
 
 ### 15.2. Runbook de Incidentes (Plantilla Markdown)
@@ -1078,37 +1074,44 @@ pr_checklist:
 # Runbook: [Nombre del Incidente]
 
 ## Título
+
 [Incidente breve: ej. "PDP no responde", "Fuga de datos en logs"]
 
 ## Detección
+
 - **Cómo se detectó:** [Alertas de latencia, reporte de usuario, scanner de seguridad]
 - **Cuándo:** [Fecha/hora UTC]
 - **Impacto inicial:** [Endpoints afectados, tenants afectados, error_rate]
 
 ## Impacto
+
 - **Tenants afectados:** [Lista de tenant_ids o "todos"]
 - **Endpoints afectados:** [Lista de endpoints: /api/v2/tenants, /api/v2/api-keys]
 - **Duración:** [Desde detección hasta resolución]
 - **Severidad:** [P0, P1, P2]
 
 ## Mitigación Inmediata
+
 1. [Paso 1: ej. "Activar modo degradado con políticas de fallback"]
 2. [Paso 2: ej. "Rechazar operaciones mutativas sensibles"]
 3. [Paso 3: ej. "Rotar claves de cifrado de logs"]
 
 ## Escalada
+
 - **Policy Owner:** [Nombre, email, Slack]
 - **Security Owner:** [Nombre, email, Slack]
 - **SRE:** [Nombre, email, Slack]
 - **Comunicación a clientes:** [Plantilla de mensaje, canal: email, status page]
 
 ## Remediación
+
 1. [Paso 1: ej. "Reproducir en staging con fixtures"]
 2. [Paso 2: ej. "Aplicar parche en rama hotfix"]
 3. [Paso 3: ej. "Desplegar con canary: 10% → 50% → 100%"]
 4. [Paso 4: ej. "Ejecutar pruebas de contrato y autorización"]
 
 ## Post-Mortem
+
 - **Causa raíz:** [Descripción detallada]
 - **Acciones correctivas:** [Lista de acciones: parche, ajuste de políticas, capacitación]
 - **Prevención futura:** [Mejoras: más tests, monitoreo adicional, documentación]
@@ -1207,24 +1210,24 @@ components:
 
 ## 17. Registro de Cambios (Changelog Inicial)
 
-| Versión | Fecha | Cambios |
-|---------|-------|---------|
-| **v1.0** | 2026-09-01 | Especificación inicial: pipeline inmutable, PDP centralizado, metadatos `meta`, vocabulario de errores, runbooks y checklist de PR. |
-| **v1.1** | 2026-09-02 | Añadida telemetría por etapa, matrices de pruebas y plantillas OpenAPI. |
-| **v1.2** | 2026-09-03 | Incorporación de controles de seguridad, cifrado y gobernanza de roles. |
+| Versión  | Fecha      | Cambios                                                                                                                                                                                                                                                       |
+| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **v1.0** | 2026-09-01 | Especificación inicial: pipeline inmutable, PDP centralizado, metadatos `meta`, vocabulario de errores, runbooks y checklist de PR.                                                                                                                           |
+| **v1.1** | 2026-09-02 | Añadida telemetría por etapa, matrices de pruebas y plantillas OpenAPI.                                                                                                                                                                                       |
+| **v1.2** | 2026-09-03 | Incorporación de controles de seguridad, cifrado y gobernanza de roles.                                                                                                                                                                                       |
 | **v2.0** | 2026-09-04 | **Especificación ampliada:** gobernanza detallada, matrices de control por entorno, runbooks operativos completos, plantillas integrables (YAML, OpenAPI), controles de seguridad avanzados (SAST/DAST, rotación de secretos), telemetría con SLOs y alertas. |
 
 ---
 
 ## 18. Contactos y Gobernanza Operativa
 
-| Rol | Contacto (ejemplo) | Responsabilidades |
-|-----|-------------------|-------------------|
-| **Policy Owner (C.R.O.W.N./A.R.G.U.S.)** | `policy-owner@example.com` | Autoriza cambios en políticas, revisa decisiones de PDP, garantiza consistencia de políticas. |
-| **API Owner** | `api-owner@example.com` | Cambios en esquemas ejecutables, versionado de APIs, documentación OpenAPI. |
-| **Security Owner** | `security@example.com` | Revisiones de seguridad (SAST/DAST), aprobación de cambios que afectan seguridad, respuesta a incidentes. |
-| **SRE/Platform** | `sre@example.com` | Despliegue, observabilidad (métricas, logs, tracing), runbooks, respuesta a incidentes de infraestructura. |
-| **Domain Owner** | `domain-owner@example.com` | Lógica de negocio, validación de salida, garantías de consistencia de datos. |
+| Rol                                      | Contacto (ejemplo)         | Responsabilidades                                                                                          |
+| ---------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Policy Owner (C.R.O.W.N./A.R.G.U.S.)** | `policy-owner@example.com` | Autoriza cambios en políticas, revisa decisiones de PDP, garantiza consistencia de políticas.              |
+| **API Owner**                            | `api-owner@example.com`    | Cambios en esquemas ejecutables, versionado de APIs, documentación OpenAPI.                                |
+| **Security Owner**                       | `security@example.com`     | Revisiones de seguridad (SAST/DAST), aprobación de cambios que afectan seguridad, respuesta a incidentes.  |
+| **SRE/Platform**                         | `sre@example.com`          | Despliegue, observabilidad (métricas, logs, tracing), runbooks, respuesta a incidentes de infraestructura. |
+| **Domain Owner**                         | `domain-owner@example.com` | Lógica de negocio, validación de salida, garantías de consistencia de datos.                               |
 
 ---
 

@@ -304,7 +304,6 @@ export function ObservabilityPanel() {
             </span>
             <div className="grid grid-cols-4 sm:grid-cols-8 md:grid-cols-12 gap-2 pb-1">
               {Object.values(snapshot.cores).map((core) => {
-                const isActive = core.status === "active";
                 const isWarning = core.status === "warning";
                 const isError = core.status === "error";
                 const isRestarting = core.status === "restarting";
@@ -320,7 +319,13 @@ export function ObservabilityPanel() {
                 return (
                   <button
                     key={core.id}
-                    onClick={() => setActiveCoreFilter(core.status.toUpperCase() === activeCoreFilter ? "ALL" : core.status.toUpperCase())}
+                    onClick={() =>
+                      setActiveCoreFilter(
+                        core.status.toUpperCase() === activeCoreFilter
+                          ? "ALL"
+                          : core.status.toUpperCase(),
+                      )
+                    }
                     className="p-1.5 rounded-lg bg-secondary/10 border border-border/10 hover:border-border/30 hover:bg-secondary/20 transition-all flex flex-col items-center gap-1 cursor-pointer select-none shrink-0"
                     title={`${core.id}: ${core.status.toUpperCase()} (${core.loadPercentage.toFixed(0)}% Load, ${core.temperatureCelsius.toFixed(1)}°C)`}
                   >
@@ -333,10 +338,21 @@ export function ObservabilityPanel() {
               })}
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[8.5px] font-mono text-muted-foreground border-t border-white/5 pt-2">
-              <span className="flex items-center gap-1"><span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" /> Activo (Sano)</span>
-              <span className="flex items-center gap-1"><span className="size-1.5 rounded-full bg-amber-400" /> Advertencia (Estrés Térmico)</span>
-              <span className="flex items-center gap-1"><span className="size-1.5 rounded-full bg-rose-500 animate-pulse" /> Crítico (Desbordamiento)</span>
-              <span className="flex items-center gap-1"><span className="size-1.5 rounded-full bg-blue-400 animate-ping" /> Reiniciando (Auto-Heal)</span>
+              <span className="flex items-center gap-1">
+                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" /> Activo
+                (Sano)
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="size-1.5 rounded-full bg-amber-400" /> Advertencia (Estrés Térmico)
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="size-1.5 rounded-full bg-rose-500 animate-pulse" /> Crítico
+                (Desbordamiento)
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="size-1.5 rounded-full bg-blue-400 animate-ping" /> Reiniciando
+                (Auto-Heal)
+              </span>
             </div>
           </div>
 
@@ -504,11 +520,14 @@ export function ObservabilityPanel() {
               {/* Entropy Source State & Non-Deterministic Benchmark Validator */}
               <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-1.5 font-mono text-[9.5px]">
                 <div className="flex items-center justify-between">
-                  <span className="text-emerald-400 font-bold uppercase tracking-wider">Estado de Fuente de Entropía:</span>
+                  <span className="text-emerald-400 font-bold uppercase tracking-wider">
+                    Estado de Fuente de Entropía:
+                  </span>
                   <span className="text-emerald-300 font-bold">100% NON-DET</span>
                 </div>
                 <p className="text-platinum/70 leading-relaxed">
-                  Validador de Benchmark: Fuente física de deriva térmica multihilo + HRTime de precisión nanométrica verificada.
+                  Validador de Benchmark: Fuente física de deriva térmica multihilo + HRTime de
+                  precisión nanométrica verificada.
                 </p>
                 <div className="flex items-center gap-1 text-[8px] text-emerald-500 font-bold bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10 self-start w-fit">
                   ✓ BENCHMARK PASSED (NIST-SP-800-22)

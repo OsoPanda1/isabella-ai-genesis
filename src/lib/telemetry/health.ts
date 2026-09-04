@@ -61,7 +61,8 @@ class HealthHeartbeatMonitor {
     for (const coreId of Object.keys(snapshot.cores) as IsabellaCoreId[]) {
       const core = snapshot.cores[coreId];
       let hasAnomaly = false;
-      let anomalyType: "stack_overflow_resolved" | "memory_leak_resolved" = "stack_overflow_resolved";
+      let anomalyType: "stack_overflow_resolved" | "memory_leak_resolved" =
+        "stack_overflow_resolved";
       const initialStackDepth = core.stackDepth;
       const initialMemory = core.memoryUsageBytes;
 
@@ -120,9 +121,10 @@ class HealthHeartbeatMonitor {
 
         // Add recovery log entry
         const reclaimedMemoryBytes = Math.max(0, initialMemory - 12 * 1024 * 1024);
-        const recoveryMessage = anomalyType === "stack_overflow_resolved"
-          ? `Recursion stack overflow resolved. Reset core ${coreId} to base state (Depth 1).`
-          : `Heap allocation cleaned. Reclaimed ${(reclaimedMemoryBytes / (1024 * 1024)).toFixed(2)} MB memory leak for core ${coreId}.`;
+        const recoveryMessage =
+          anomalyType === "stack_overflow_resolved"
+            ? `Recursion stack overflow resolved. Reset core ${coreId} to base state (Depth 1).`
+            : `Heap allocation cleaned. Reclaimed ${(reclaimedMemoryBytes / (1024 * 1024)).toFixed(2)} MB memory leak for core ${coreId}.`;
 
         const recoveryEvent: RecoveryLog = {
           id: crypto.randomUUID(),
@@ -140,7 +142,7 @@ class HealthHeartbeatMonitor {
         }
 
         // Notify custom subscribers
-        this.recoveryListeners.forEach(listener => {
+        this.recoveryListeners.forEach((listener) => {
           try {
             listener(recoveryEvent);
           } catch (e) {
@@ -153,7 +155,7 @@ class HealthHeartbeatMonitor {
           window.dispatchEvent(
             new CustomEvent("core-recovery-toast", {
               detail: recoveryEvent,
-            })
+            }),
           );
         }
       }

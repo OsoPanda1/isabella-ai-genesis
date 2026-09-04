@@ -1,4 +1,5 @@
 # ADR-001: Centralized Authorization Plane Integration — Versión Endurecida y Hardened (Isabella-Enhanced v3.0)
+
 **Estado:** `verified` → `hardened`  
 **Owner:** Security & Policy Team (C.R.O.W.N./A.R.G.U.S.) + Isabella Architecture Board + External Security Auditors  
 **Fecha de evolución:** 2026-09-04  
@@ -134,12 +135,13 @@ Se establece un **Authorization Plane v3.0 (Isabella-Enhanced Hardened)** que in
 ### 2.3. Telemetría con Correlación de Amenazas
 
 - **Nuevas métricas de correlación**:
-  | Métrica | Descripción | Dimensiones | Alerta |
-  |---------|-------------|-------------|--------|
-  | `cross_subject_anomaly` | Anomalía correlacionada entre sujetos del mismo tenant | `tenant_id`, `subject_ids[]` | > 3 sujetos con score > 70 por 10min |
-  | `ip_cluster_anomaly` | Múltiples sujetos desde misma IP con comportamiento anómalo | `ip_address`, `subject_ids[]` | > 5 sujetos por hora |
-  | `geo_velocity_anomaly` | Sujeto accede desde dos países en menos de 1 hora | `subject_id`, `country_from`, `country_to` | Cualquier ocurrencia |
-  | `policy_evaluation_divergence` | Diferencia en decisiones para mismos atributos entre PDP instances | `pdp_instance_id`, `policy_id` | > 1% de divergencia |
+
+  | Métrica                        | Descripción                                                        | Dimensiones                                | Alerta                               |
+  | ------------------------------ | ------------------------------------------------------------------ | ------------------------------------------ | ------------------------------------ |
+  | `cross_subject_anomaly`        | Anomalía correlacionada entre sujetos del mismo tenant             | `tenant_id`, `subject_ids[]`               | > 3 sujetos con score > 70 por 10min |
+  | `ip_cluster_anomaly`           | Múltiples sujetos desde misma IP con comportamiento anómalo        | `ip_address`, `subject_ids[]`              | > 5 sujetos por hora                 |
+  | `geo_velocity_anomaly`         | Sujeto accede desde dos países en menos de 1 hora                  | `subject_id`, `country_from`, `country_to` | Cualquier ocurrencia                 |
+  | `policy_evaluation_divergence` | Diferencia en decisiones para mismos atributos entre PDP instances | `pdp_instance_id`, `policy_id`             | > 1% de divergencia                  |
 
 - **Correlación en tiempo real**:
   - Stream de eventos de autorización se envía a motor de correlación (Apache Flink / Kafka Streams).
@@ -244,7 +246,7 @@ Se establece un **Authorization Plane v3.0 (Isabella-Enhanced Hardened)** que in
 
 ```ts
 interface AuthorizationDecision {
-  decision_id: string;          // UUID v7 (timestamp-ordered)
+  decision_id: string; // UUID v7 (timestamp-ordered)
   tenant_id: string;
   subject_id: string;
   action: string;
@@ -252,7 +254,7 @@ interface AuthorizationDecision {
   allow: boolean;
   obligations?: string[];
   policy_version: string;
-  policy_id: string;            // ID de política evaluada
+  policy_id: string; // ID de política evaluada
   context: {
     geo_ip?: GeoIP;
     device_fingerprint?: string;
@@ -263,11 +265,11 @@ interface AuthorizationDecision {
     timestamp: Date;
   };
   issued_at: Date;
-  expires_at: Date;             // TTL dinámico
-  signature: string;            // Firma ML-DSA-87
-  signature_chain: string;      // Hash de todas las firmas anteriores (cadena de custodia)
+  expires_at: Date; // TTL dinámico
+  signature: string; // Firma ML-DSA-87
+  signature_chain: string; // Hash de todas las firmas anteriores (cadena de custodia)
   previous_decision_hash: string; // Hash SHA3-512 de decisión anterior
-  cache_signature?: string;     // Firma de entrada de cache (si cache hit)
+  cache_signature?: string; // Firma de entrada de cache (si cache hit)
 }
 
 interface AuthorizationContext {
@@ -291,7 +293,7 @@ interface AuthorizationContext {
 interface AuthorizationResult {
   decision: AuthorizationDecision;
   cache_hit: boolean;
-  cache_verified: boolean;      // true si firma de cache verificada
+  cache_verified: boolean; // true si firma de cache verificada
   latency_ms: number;
   pdp_latency_ms: number;
   cache_latency_ms: number;
@@ -300,8 +302,8 @@ interface AuthorizationResult {
 
 interface AuthorizationConfig {
   crypto: {
-    signature_algorithm: 'ML-DSA-87' | 'ECDSA-P256';
-    hash_algorithm: 'SHA3-512';
+    signature_algorithm: "ML-DSA-87" | "ECDSA-P256";
+    hash_algorithm: "SHA3-512";
     key_rotation_days: number;
     key_backup_regions: string[];
   };
@@ -365,7 +367,7 @@ const decision = await pdp.evaluate(context);
 
 // Audit Worker procesa en segundo plano
 await auditQueue.publish({
-  type: 'authorization_decision',
+  type: "authorization_decision",
   decision_id: decision.decision_id,
   decision,
   previous_hash: await auditState.getLastHash(),
@@ -374,28 +376,28 @@ await auditQueue.publish({
 
 // BookPI replica en 3 regiones con consenso Raft
 async function appendToLedger(decision: AuthorizationDecision, previousHash: string) {
-  const regions = ['us-east-1', 'eu-west-1', 'sa-east-1'];
-  
+  const regions = ["us-east-1", "eu-west-1", "sa-east-1"];
+
   // Escribir en las 3 regiones con consenso Raft
-  const writePromises = regions.map(region => 
+  const writePromises = regions.map((region) =>
     bookpiClient(region).append({
-      type: 'authorization_decision',
+      type: "authorization_decision",
       data: decision,
       hash: await calculateHash(decision, previousHash),
       previous_hash: previousHash,
       signature: decision.signature,
       signature_chain: decision.signature_chain,
-    })
+    }),
   );
-  
+
   // Esperar a que al menos 2 de 3 regiones confirmen (quorum)
   const results = await Promise.allSettled(writePromises);
-  const successfulWrites = results.filter(r => r.status === 'fulfilled').length;
-  
+  const successfulWrites = results.filter((r) => r.status === "fulfilled").length;
+
   if (successfulWrites < 2) {
-    throw new LedgerWriteError('Failed to achieve quorum for ledger write');
+    throw new LedgerWriteError("Failed to achieve quorum for ledger write");
   }
-  
+
   // Verificar integridad cruzada entre regiones
   await verifyCrossRegionIntegrity(decision.decision_id);
 }
@@ -414,7 +416,7 @@ const anomalyScore = await anomalyDetector.score({
   behavior_score: context.context.behavior_score,
 });
 
-metrics.histogram('authorization_anomaly_score', anomalyScore, {
+metrics.histogram("authorization_anomaly_score", anomalyScore, {
   tenant_id: context.tenant_id,
   subject_id: context.subject_id,
 });
@@ -426,9 +428,9 @@ if (config.telemetry.cross_subject_correlation_enabled) {
     subject_id: context.subject_id,
     anomaly_score: anomalyScore,
   });
-  
+
   if (crossSubjectAnomaly.detected) {
-    alerts.trigger('cross_subject_anomaly_detected', {
+    alerts.trigger("cross_subject_anomaly_detected", {
       tenant_id: context.tenant_id,
       subject_ids: crossSubjectAnomaly.subject_ids,
       anomaly_scores: crossSubjectAnomaly.scores,
@@ -444,9 +446,9 @@ if (config.telemetry.geo_velocity_check_enabled) {
     current_geo: context.context.geo_ip,
     timestamp: new Date(),
   });
-  
+
   if (geoVelocity.impossible_travel) {
-    alerts.trigger('geo_velocity_anomaly_detected', {
+    alerts.trigger("geo_velocity_anomaly_detected", {
       subject_id: context.subject_id,
       country_from: geoVelocity.previous_country,
       country_to: geoVelocity.current_country,
@@ -472,8 +474,8 @@ interface CachedDecision {
   issued_at: Date;
   expires_at: Date;
   invalidation_keys: string[];
-  signature: string;            // Firma ML-DSA-87 de la decisión
-  cache_signature: string;      // Firma de entrada de cache
+  signature: string; // Firma ML-DSA-87 de la decisión
+  cache_signature: string; // Firma de entrada de cache
 }
 
 async function writeToCache(decision: AuthorizationDecision, ttlSeconds: number) {
@@ -482,48 +484,48 @@ async function writeToCache(decision: AuthorizationDecision, ttlSeconds: number)
     expires_at: new Date(Date.now() + ttlSeconds * 1000),
     cache_signature: await signWithCacheKey(decision),
   };
-  
+
   // Escribir en primary y secondary cache (dual cache)
   const writePromises = [
-    cacheClient('primary').set(decision.decision_id, JSON.stringify(cachedDecision)),
-    cacheClient('secondary').set(decision.decision_id, JSON.stringify(cachedDecision)),
+    cacheClient("primary").set(decision.decision_id, JSON.stringify(cachedDecision)),
+    cacheClient("secondary").set(decision.decision_id, JSON.stringify(cachedDecision)),
   ];
-  
+
   await Promise.all(writePromises);
-  
+
   // Verificar que ambas instancias tengan mismo hash
   await verifyDualCacheIntegrity(decision.decision_id);
 }
 
 async function readFromCache(decisionId: string): Promise<CachedDecision | null> {
   const [primaryData, secondaryData] = await Promise.all([
-    cacheClient('primary').get(decisionId),
-    cacheClient('secondary').get(decisionId),
+    cacheClient("primary").get(decisionId),
+    cacheClient("secondary").get(decisionId),
   ]);
-  
+
   if (!primaryData || !secondaryData) {
     return null;
   }
-  
+
   // Verificar que hashes coincidan
-  if (await calculateHash(primaryData) !== await calculateHash(secondaryData)) {
+  if ((await calculateHash(primaryData)) !== (await calculateHash(secondaryData))) {
     // Discrepancia detectada, invalidar cache y alertar
     await invalidateDualCache(decisionId);
-    alerts.trigger('cache_integrity_mismatch', { decision_id: decisionId });
+    alerts.trigger("cache_integrity_mismatch", { decision_id: decisionId });
     return null;
   }
-  
+
   const cachedDecision = JSON.parse(primaryData) as CachedDecision;
-  
+
   // Verificar firma de cache
   const signatureValid = await verifyCacheSignature(cachedDecision);
   if (!signatureValid) {
     // Firma inválida, posible envenenamiento de cache
     await invalidateDualCache(decisionId);
-    alerts.trigger('cache_signature_invalid', { decision_id: decisionId });
+    alerts.trigger("cache_signature_invalid", { decision_id: decisionId });
     return null;
   }
-  
+
   return cachedDecision;
 }
 ```
@@ -561,17 +563,17 @@ async function readFromCache(decisionId: string): Promise<CachedDecision | null>
 
 ### 4.4. Telemetría y Observabilidad
 
-| Métrica | Descripción | Dimensiones | SLO | Alerta |
-|---------|-------------|-------------|-----|--------|
-| `authorization_latency_ms` | Latencia total del plano de autorización | `endpoint`, `tenant`, `cache_hit` | p95 < 5 ms (hit), < 15 ms (miss) | p95 > 20 ms por 5min |
-| `policy_decision_time_ms` | Tiempo de evaluación PDP | `policy_id`, `tenant` | p95 < 10 ms | p95 > 25 ms por 5min |
-| `deny_rate` | Tasa de denegaciones | `endpoint`, `tenant`, `reason` | < 5% de requests | > 20% por 10min |
-| `audit_write_latency_ms` | Latencia de escritura en Ledger | `tenant`, `outcome` | p95 < 50 ms | p95 > 200 ms por 5min |
-| `authorization_anomaly_score` | Score de anomalía (0-100) | `tenant`, `subject` | < 50 promedio | > 70 por 5min (P1), > 90 por 2min (P0) |
-| `cross_subject_anomaly` | Anomalía correlacionada entre sujetos | `tenant`, `subject_ids[]` | < 3 sujetos con score > 70 | > 3 sujetos por 10min |
-| `geo_velocity_anomaly` | Sujeto accede desde 2 países en < 1h | `subject`, `country_from`, `country_to` | 0 ocurrencias | Cualquier ocurrencia (P0) |
-| `cache_signature_invalid_rate` | Tasa de firmas de cache inválidas | `cache_instance` | 0% | > 0.1% por 10min (P1) |
-| `ledger_cross_region_divergence` | Discrepancia de hashes entre regiones | `region_from`, `region_to` | 0 ocurrencias | Cualquier ocurrencia (P0) |
+| Métrica                          | Descripción                              | Dimensiones                             | SLO                              | Alerta                                 |
+| -------------------------------- | ---------------------------------------- | --------------------------------------- | -------------------------------- | -------------------------------------- |
+| `authorization_latency_ms`       | Latencia total del plano de autorización | `endpoint`, `tenant`, `cache_hit`       | p95 < 5 ms (hit), < 15 ms (miss) | p95 > 20 ms por 5min                   |
+| `policy_decision_time_ms`        | Tiempo de evaluación PDP                 | `policy_id`, `tenant`                   | p95 < 10 ms                      | p95 > 25 ms por 5min                   |
+| `deny_rate`                      | Tasa de denegaciones                     | `endpoint`, `tenant`, `reason`          | < 5% de requests                 | > 20% por 10min                        |
+| `audit_write_latency_ms`         | Latencia de escritura en Ledger          | `tenant`, `outcome`                     | p95 < 50 ms                      | p95 > 200 ms por 5min                  |
+| `authorization_anomaly_score`    | Score de anomalía (0-100)                | `tenant`, `subject`                     | < 50 promedio                    | > 70 por 5min (P1), > 90 por 2min (P0) |
+| `cross_subject_anomaly`          | Anomalía correlacionada entre sujetos    | `tenant`, `subject_ids[]`               | < 3 sujetos con score > 70       | > 3 sujetos por 10min                  |
+| `geo_velocity_anomaly`           | Sujeto accede desde 2 países en < 1h     | `subject`, `country_from`, `country_to` | 0 ocurrencias                    | Cualquier ocurrencia (P0)              |
+| `cache_signature_invalid_rate`   | Tasa de firmas de cache inválidas        | `cache_instance`                        | 0%                               | > 0.1% por 10min (P1)                  |
+| `ledger_cross_region_divergence` | Discrepancia de hashes entre regiones    | `region_from`, `region_to`              | 0 ocurrencias                    | Cualquier ocurrencia (P0)              |
 
 - **Tracing distribuido**: Propagar `trace_id`, `decision_id` y `signature_chain` en todas las llamadas internas.
 - **Alertas**:
@@ -772,13 +774,13 @@ async function readFromCache(decisionId: string): Promise<CachedDecision | null>
 
 ## 6. Estado de Producción
 
-| Estado | Descripción |
-|--------|-------------|
-| `implemented` | Código desplegado y operativo. |
-| `verified` | Evidencia automatizada y auditoría completada. |
-| `hardened` | Endurecimiento criptográfico, de red y de telemetría completado. |
-| `experimental` | Comportamiento acotado, no aprobado para producción. |
-| `planned` | Diseño documentado, sin implementación. |
+| Estado         | Descripción                                                      |
+| -------------- | ---------------------------------------------------------------- |
+| `implemented`  | Código desplegado y operativo.                                   |
+| `verified`     | Evidencia automatizada y auditoría completada.                   |
+| `hardened`     | Endurecimiento criptográfico, de red y de telemetría completado. |
+| `experimental` | Comportamiento acotado, no aprobado para producción.             |
+| `planned`      | Diseño documentado, sin implementación.                          |
 
 **Estado actual:** `hardened` (desde 2026-09-04)
 
@@ -805,40 +807,40 @@ Un release se bloquea si:
 
 ## 8. Referencias Técnicas
 
-| Módulo | Ubicación | Propósito |
-|--------|-----------|-----------|
-| **Authorization Plane** | `src/lib/authorization.ts` | Evaluación de políticas, emisión de decisiones firmadas (ML-DSA-87). |
-| **Ledger BookPI** | `src/lib/ledger/bookpi.ts` | Registro inmutable geodistribuido (3 regiones) con hash chaining y consenso Raft. |
-| **Políticas C.R.O.W.N.** | `src/lib/policies/crown.ts` | Evaluación de políticas RBAC/ABAC con contexto dinámico y correlación de amenazas. |
-| **Auditoría** | `src/lib/audit/decision-log.ts` | Verificación de hash chaining, signature_chain y escritura en BookPI. |
-| **Cache de Decisiones** | `src/lib/cache/authorization-cache.ts` | Cache dual (primary + secondary) con firma de entradas y verificación de integridad. |
-| **Detector de Anomalías** | `src/lib/anomaly/detector.ts` | ML para detección de anomalías en tiempo real con correlación cruzada. |
-| **Telemetría** | `src/lib/telemetry/authorization-metrics.ts` | Métricas, tracing y alertas del Authorization Plane con correlación de amenazas. |
-| **Gestor de Claves** | `src/lib/crypto/key-manager.ts` | Rotación de claves ML-DSA-87, backup en HSM geodistribuido, validación de continuidad. |
-| **Verificador de Integridad** | `src/lib/crypto/integrity-verifier.ts` | Verificación periódica de firmas, hashes y signature_chain de decisiones históricas. |
-| **Motor de Correlación** | `src/lib/correlation/engine.ts` | Correlación de amenazas en tiempo real (cross_subject_anomaly, ip_cluster_anomaly, geo_velocity). |
+| Módulo                        | Ubicación                                    | Propósito                                                                                         |
+| ----------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Authorization Plane**       | `src/lib/authorization.ts`                   | Evaluación de políticas, emisión de decisiones firmadas (ML-DSA-87).                              |
+| **Ledger BookPI**             | `src/lib/ledger/bookpi.ts`                   | Registro inmutable geodistribuido (3 regiones) con hash chaining y consenso Raft.                 |
+| **Políticas C.R.O.W.N.**      | `src/lib/policies/crown.ts`                  | Evaluación de políticas RBAC/ABAC con contexto dinámico y correlación de amenazas.                |
+| **Auditoría**                 | `src/lib/audit/decision-log.ts`              | Verificación de hash chaining, signature_chain y escritura en BookPI.                             |
+| **Cache de Decisiones**       | `src/lib/cache/authorization-cache.ts`       | Cache dual (primary + secondary) con firma de entradas y verificación de integridad.              |
+| **Detector de Anomalías**     | `src/lib/anomaly/detector.ts`                | ML para detección de anomalías en tiempo real con correlación cruzada.                            |
+| **Telemetría**                | `src/lib/telemetry/authorization-metrics.ts` | Métricas, tracing y alertas del Authorization Plane con correlación de amenazas.                  |
+| **Gestor de Claves**          | `src/lib/crypto/key-manager.ts`              | Rotación de claves ML-DSA-87, backup en HSM geodistribuido, validación de continuidad.            |
+| **Verificador de Integridad** | `src/lib/crypto/integrity-verifier.ts`       | Verificación periódica de firmas, hashes y signature_chain de decisiones históricas.              |
+| **Motor de Correlación**      | `src/lib/correlation/engine.ts`              | Correlación de amenazas en tiempo real (cross_subject_anomaly, ip_cluster_anomaly, geo_velocity). |
 
 ---
 
 ## 9. Apéndice A: Matriz de Controles de Seguridad
 
-| Control | Implementación | Frecuencia de Verificación | Owner |
-|---------|----------------|---------------------------|-------|
-| **Firma de decisiones** | ML-DSA-87, 448 bytes | Cada decisión | Security Team |
-| **Hash chaining** | SHA3-512 con salt por tenant | Cada decisión | Security Team |
-| **Signature chain** | Hash de todas las firmas anteriores | Cada decisión | Security Team |
-| **Validación de firmas** | Verificación cada 24h de últimas 24h | Diaria | Audit Worker |
-| **Validación de cadena completa** | Verificación cada 7 días desde inicio del ledger | Semanal | Audit Worker |
-| **Rotación de claves** | ML-DSA-87, cada 90 días | Trimestral | Key Manager |
-| **Backup de claves** | HSM geodistribuido (3 regiones), Shamir's Secret Sharing (3 de 5) | Continuo | Security Team |
-| **mTLS entre componentes** | Certificados rotados cada 24h | Diario | SRE |
-| **Segmentación de red** | Subredes aisladas para PDP, Cache, Ledger | Continuo | SRE |
-| **Protección DDoS** | Rate limiting por IP y tenant, WAF | Continuo | SRE |
-| **Cache dual** | Primary + secondary con verificación de integridad | Cada lectura | Cache Service |
-| **Ledger geodistribuido** | 3 regiones con consenso Raft | Continuo | Ledger Service |
-| **Validación cruzada de regiones** | Comparación de hashes cada 24h | Diaria | Audit Worker |
-| **Detección de anomalías** | ML con correlación cruzada | Cada decisión | Anomaly Detector |
-| **Pruebas de resistencia** | DDoS + inyección + compromiso de cache | Trimestral | Security Team + External Auditors |
+| Control                            | Implementación                                                    | Frecuencia de Verificación | Owner                             |
+| ---------------------------------- | ----------------------------------------------------------------- | -------------------------- | --------------------------------- |
+| **Firma de decisiones**            | ML-DSA-87, 448 bytes                                              | Cada decisión              | Security Team                     |
+| **Hash chaining**                  | SHA3-512 con salt por tenant                                      | Cada decisión              | Security Team                     |
+| **Signature chain**                | Hash de todas las firmas anteriores                               | Cada decisión              | Security Team                     |
+| **Validación de firmas**           | Verificación cada 24h de últimas 24h                              | Diaria                     | Audit Worker                      |
+| **Validación de cadena completa**  | Verificación cada 7 días desde inicio del ledger                  | Semanal                    | Audit Worker                      |
+| **Rotación de claves**             | ML-DSA-87, cada 90 días                                           | Trimestral                 | Key Manager                       |
+| **Backup de claves**               | HSM geodistribuido (3 regiones), Shamir's Secret Sharing (3 de 5) | Continuo                   | Security Team                     |
+| **mTLS entre componentes**         | Certificados rotados cada 24h                                     | Diario                     | SRE                               |
+| **Segmentación de red**            | Subredes aisladas para PDP, Cache, Ledger                         | Continuo                   | SRE                               |
+| **Protección DDoS**                | Rate limiting por IP y tenant, WAF                                | Continuo                   | SRE                               |
+| **Cache dual**                     | Primary + secondary con verificación de integridad                | Cada lectura               | Cache Service                     |
+| **Ledger geodistribuido**          | 3 regiones con consenso Raft                                      | Continuo                   | Ledger Service                    |
+| **Validación cruzada de regiones** | Comparación de hashes cada 24h                                    | Diaria                     | Audit Worker                      |
+| **Detección de anomalías**         | ML con correlación cruzada                                        | Cada decisión              | Anomaly Detector                  |
+| **Pruebas de resistencia**         | DDoS + inyección + compromiso de cache                            | Trimestral                 | Security Team + External Auditors |
 
 ---
 
@@ -897,24 +899,24 @@ Un release se bloquea si:
 
 ## 11. Apéndice C: Glosario de Términos
 
-| Término | Definición |
-|---------|------------|
-| **PDP** | Policy Decision Point (C.R.O.W.N./A.R.G.U.S.). Servicio que evalúa políticas y emite decisiones de autorización. |
-| **PEP** | Policy Enforcement Point (API Gateway / borde). Punto que consulta al PDP y aplica obligaciones. |
-| **Decision_id** | Identificador único de la decisión de política emitida por PDP. Rastreable en auditoría. |
-| **Tenant** | Entidad aislada de clientes/organizaciones. Cada tenant tiene sus propios datos, políticas, quotas. |
-| **Idempotency-Key** | Clave única (UUID) enviada por el cliente para garantizar idempotencia en mutaciones (evitar duplicados). |
-| **Audit Service** | Almacén inmutable de decisiones y metadatos. Usa hash chaining para detectar tampering. |
-| **Capability_flags** | Permisos granulares del sujeto (ej. `can_create_api_keys`, `can_access_audit_logs`). |
-| **Obligations** | Acciones que el PEP debe aplicar (enmascarado, throttling, logging adicional) antes/durante/después de la operación. |
-| **Schema_hash** | Hash SHA-256 del esquema ejecutable. Usado para verificar consistencia de artefactos generados. |
-| **ML-DSA-87** | Algoritmo de firma digital post-quantum estandarizado por NIST (448 bytes). |
-| **SHA3-512** | Algoritmo de hash criptográfico de 512 bits, resistente a colisiones. |
-| **Signature_chain** | Hash de todas las firmas anteriores en la cadena de decisiones, para verificación de integridad histórica. |
-| **Cross_subject_anomaly** | Detección de anomalías correlacionadas entre múltiples sujetos del mismo tenant. |
-| **Geo_velocity** | Detección de impossible travel (sujeto accede desde 2 países en < 1h). |
-| **Cache dual** | Dos instancias de cache (primary + secondary) con verificación de integridad cruzada. |
-| **Ledger geodistribuido** | Ledger replicado en 3 regiones con consenso Raft para alta disponibilidad y soberanía de datos. |
+| Término                   | Definición                                                                                                           |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **PDP**                   | Policy Decision Point (C.R.O.W.N./A.R.G.U.S.). Servicio que evalúa políticas y emite decisiones de autorización.     |
+| **PEP**                   | Policy Enforcement Point (API Gateway / borde). Punto que consulta al PDP y aplica obligaciones.                     |
+| **Decision_id**           | Identificador único de la decisión de política emitida por PDP. Rastreable en auditoría.                             |
+| **Tenant**                | Entidad aislada de clientes/organizaciones. Cada tenant tiene sus propios datos, políticas, quotas.                  |
+| **Idempotency-Key**       | Clave única (UUID) enviada por el cliente para garantizar idempotencia en mutaciones (evitar duplicados).            |
+| **Audit Service**         | Almacén inmutable de decisiones y metadatos. Usa hash chaining para detectar tampering.                              |
+| **Capability_flags**      | Permisos granulares del sujeto (ej. `can_create_api_keys`, `can_access_audit_logs`).                                 |
+| **Obligations**           | Acciones que el PEP debe aplicar (enmascarado, throttling, logging adicional) antes/durante/después de la operación. |
+| **Schema_hash**           | Hash SHA-256 del esquema ejecutable. Usado para verificar consistencia de artefactos generados.                      |
+| **ML-DSA-87**             | Algoritmo de firma digital post-quantum estandarizado por NIST (448 bytes).                                          |
+| **SHA3-512**              | Algoritmo de hash criptográfico de 512 bits, resistente a colisiones.                                                |
+| **Signature_chain**       | Hash de todas las firmas anteriores en la cadena de decisiones, para verificación de integridad histórica.           |
+| **Cross_subject_anomaly** | Detección de anomalías correlacionadas entre múltiples sujetos del mismo tenant.                                     |
+| **Geo_velocity**          | Detección de impossible travel (sujeto accede desde 2 países en < 1h).                                               |
+| **Cache dual**            | Dos instancias de cache (primary + secondary) con verificación de integridad cruzada.                                |
+| **Ledger geodistribuido** | Ledger replicado en 3 regiones con consenso Raft para alta disponibilidad y soberanía de datos.                      |
 
 ---
 

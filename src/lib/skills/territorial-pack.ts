@@ -1,9 +1,4 @@
-import {
-  createAuditEvent,
-  IsabellaSkill,
-  SkillResult,
-  normalizeText,
-} from "./contracts";
+import { createAuditEvent, IsabellaSkill, SkillResult, normalizeText } from "./contracts";
 
 // ============================================================================
 // 8. AURORA (Contextual Orientation Layer)
@@ -35,7 +30,8 @@ export const AURORA: IsabellaSkill<AuroraInput, AuroraOutput> = {
   version: "v.GENESIS",
   federation: "TERRITORY",
   risk: "MEDIUM",
-  description: "Orienta a usuarios dentro de RDM Digital con recomendaciones contextuales y responsables.",
+  description:
+    "Orienta a usuarios dentro de RDM Digital con recomendaciones contextuales y responsables.",
   canRun: (input) => Boolean(input.request?.trim()),
   async run(input, context): Promise<SkillResult<AuroraOutput>> {
     const text = normalizeText(input.request);
@@ -89,7 +85,12 @@ export const AURORA: IsabellaSkill<AuroraInput, AuroraOutput> = {
       warnings: escalationMessage ? [escalationMessage] : [],
       requiresHumanReview: requiresEscalation,
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "AURORA", { userType: input.userType, intent }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "AURORA",
+          { userType: input.userType, intent },
+          context.actorId,
+        ),
         ...(requiresEscalation
           ? [
               createAuditEvent(
@@ -141,9 +142,12 @@ export const GAIA: IsabellaSkill<GaiaInput, GaiaOutput> = {
   canRun: (input) => Boolean(input.initiative?.trim() && input.impacts),
   async run(input, context): Promise<SkillResult<GaiaOutput>> {
     const values = Object.entries(input.impacts);
-    const sustainabilityScore = values.reduce((total, [, value]) => total + value, 0) / values.length;
+    const sustainabilityScore =
+      values.reduce((total, [, value]) => total + value, 0) / values.length;
 
-    const criticalDimensions = values.filter(([, value]) => value < 0).map(([dimension]) => dimension);
+    const criticalDimensions = values
+      .filter(([, value]) => value < 0)
+      .map(([dimension]) => dimension);
 
     const verdict =
       sustainabilityScore >= 0.65 && !criticalDimensions.length
@@ -164,11 +168,23 @@ export const GAIA: IsabellaSkill<GaiaInput, GaiaOutput> = {
         criticalDimensions,
       },
       evidence: context.evidence ?? [],
-      warnings: criticalDimensions.map((dimension) => `Impacto negativo identificado en: ${dimension}.`),
+      warnings: criticalDimensions.map(
+        (dimension) => `Impacto negativo identificado en: ${dimension}.`,
+      ),
       requiresHumanReview: verdict === "REVIEW" || verdict === "HARMFUL",
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "GAIA", { initiative: input.initiative }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "GAIA", { sustainabilityScore, verdict }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "GAIA",
+          { initiative: input.initiative },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "GAIA",
+          { sustainabilityScore, verdict },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -211,7 +227,10 @@ export const NODO_CERO: IsabellaSkill<NodoCeroInput, NodoCeroOutput> = {
             "Definir fecha de revisión y evidencia necesaria.",
           ]
         : status === "REVIEW"
-          ? ["Validar impacto territorial antes de escalar.", "Solicitar revisión comunitaria y técnica."]
+          ? [
+              "Validar impacto territorial antes de escalar.",
+              "Solicitar revisión comunitaria y técnica.",
+            ]
           : [
               `Avanzar la iniciativa desde la etapa ${input.stage}.`,
               "Actualizar métricas y ledger de operación.",
@@ -231,7 +250,12 @@ export const NODO_CERO: IsabellaSkill<NodoCeroInput, NodoCeroOutput> = {
       warnings: blockers,
       requiresHumanReview: status !== "READY",
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "NODO_CERO", { initiative: input.initiative, stage: input.stage }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "NODO_CERO",
+          { initiative: input.initiative, stage: input.stage },
+          context.actorId,
+        ),
         createAuditEvent("SKILL_COMPLETED", "NODO_CERO", { status, blockers }, context.actorId),
       ],
     };
@@ -268,7 +292,8 @@ export const PHAROS: IsabellaSkill<PharosInput, PharosOutput> = {
   version: "v.GENESIS",
   federation: "TERRITORY",
   risk: "MEDIUM",
-  description: "Recomienda experiencias territoriales con criterios culturales, comunitarios y de accesibilidad.",
+  description:
+    "Recomienda experiencias territoriales con criterios culturales, comunitarios y de accesibilidad.",
   canRun: (input) => Boolean(input.places?.length),
   async run(input, context): Promise<SkillResult<PharosOutput>> {
     const interests = input.interests.map(normalizeText);
@@ -280,7 +305,8 @@ export const PHAROS: IsabellaSkill<PharosInput, PharosOutput> = {
           .map(normalizeText)
           .filter((category) => interests.includes(category)).length;
 
-        const score = categoryMatches * 2 + place.sustainabilityScore + (place.accessibility ? 0.5 : 0);
+        const score =
+          categoryMatches * 2 + place.sustainabilityScore + (place.accessibility ? 0.5 : 0);
 
         return {
           id: place.id,
@@ -300,8 +326,18 @@ export const PHAROS: IsabellaSkill<PharosInput, PharosOutput> = {
       evidence: [],
       warnings: [],
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "PHAROS", { interests: input.interests }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "PHAROS", { recommendationCount: recommendations.length }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "PHAROS",
+          { interests: input.interests },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "PHAROS",
+          { recommendationCount: recommendations.length },
+          context.actorId,
+        ),
       ],
     };
   },

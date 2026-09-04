@@ -1,9 +1,4 @@
-import {
-  createAuditEvent,
-  IsabellaSkill,
-  SkillResult,
-  unique,
-} from "./contracts";
+import { createAuditEvent, IsabellaSkill, SkillResult, unique } from "./contracts";
 
 // ============================================================================
 // 10. MNEMOSYNE (Living Institutional Memory)
@@ -37,7 +32,8 @@ export const MNEMOSYNE: IsabellaSkill<MnemosyneInput, MnemosyneOutput> = {
   federation: "CIVILIZATIONAL_ARCHIVE",
   risk: "MEDIUM",
   description: "Indexa, resume, etiqueta y versiona artefactos para la memoria del ecosistema.",
-  canRun: (input) => Boolean(input.artifact?.id && input.artifact?.title && input.artifact?.content),
+  canRun: (input) =>
+    Boolean(input.artifact?.id && input.artifact?.title && input.artifact?.content),
   async run(input, context): Promise<SkillResult<MnemosyneOutput>> {
     const words = input.artifact.content.trim().split(/\s+/);
     const summary = words.slice(0, 80).join(" ").trim();
@@ -73,8 +69,18 @@ export const MNEMOSYNE: IsabellaSkill<MnemosyneInput, MnemosyneOutput> = {
       ],
       warnings: [],
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "MNEMOSYNE", { artifactId: input.artifact.id }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "MNEMOSYNE", { tags, version: record.version }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "MNEMOSYNE",
+          { artifactId: input.artifact.id },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "MNEMOSYNE",
+          { tags, version: record.version },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -108,7 +114,8 @@ export const CHRONOS: IsabellaSkill<ChronosInput, ChronosOutput> = {
   version: "v.GENESIS",
   federation: "CIVILIZATIONAL_ARCHIVE",
   risk: "MEDIUM",
-  description: "Ordena eventos, preserva trazabilidad temporal y señala inconsistencias cronológicas.",
+  description:
+    "Ordena eventos, preserva trazabilidad temporal y señala inconsistencias cronológicas.",
   canRun: (input) => Boolean(input.events?.length),
   async run(input, context): Promise<SkillResult<ChronosOutput>> {
     const timeline = [...input.events].sort(
@@ -127,8 +134,18 @@ export const CHRONOS: IsabellaSkill<ChronosInput, ChronosOutput> = {
       evidence: [],
       warnings: temporalWarnings,
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "CHRONOS", { eventCount: input.events.length }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "CHRONOS", { temporalWarnings: temporalWarnings.length }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "CHRONOS",
+          { eventCount: input.events.length },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "CHRONOS",
+          { temporalWarnings: temporalWarnings.length },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -163,10 +180,14 @@ export const PROMETEO: IsabellaSkill<PrometeoInput, PrometeoOutput> = {
   version: "v.GENESIS",
   federation: "CIVILIZATIONAL_ARCHIVE",
   risk: "HIGH",
-  description: "Convierte documentos y repositorios en blueprints, contratos y unidades implementables.",
+  description:
+    "Convierte documentos y repositorios en blueprints, contratos y unidades implementables.",
   canRun: (input) => Boolean(input.documents?.length && input.target),
   async run(input, context): Promise<SkillResult<PrometeoOutput>> {
-    const corpus = input.documents.map((doc) => `${doc.title} ${doc.content}`).join(" ").toLowerCase();
+    const corpus = input.documents
+      .map((doc) => `${doc.title} ${doc.content}`)
+      .join(" ")
+      .toLowerCase();
 
     const inferredDomains = unique(
       [
@@ -187,7 +208,10 @@ export const PROMETEO: IsabellaSkill<PrometeoInput, PrometeoOutput> = {
 
     const gaps =
       inferredDomains.length === 0
-        ? ["No se detectaron dominios suficientes.", "Se requiere documentación estructurada adicional."]
+        ? [
+            "No se detectaron dominios suficientes.",
+            "Se requiere documentación estructurada adicional.",
+          ]
         : [];
 
     return {
@@ -207,7 +231,12 @@ export const PROMETEO: IsabellaSkill<PrometeoInput, PrometeoOutput> = {
       })),
       warnings: gaps,
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "PROMETEO", { target: input.target, documentCount: input.documents.length }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "PROMETEO",
+          { target: input.target, documentCount: input.documents.length },
+          context.actorId,
+        ),
         createAuditEvent("SKILL_COMPLETED", "PROMETEO", { inferredDomains }, context.actorId),
       ],
     };

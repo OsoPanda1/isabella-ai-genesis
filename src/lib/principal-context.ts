@@ -360,7 +360,7 @@ export class PrincipalContext {
     }
 
     const claims = { ...verification.claims } as TokenClaims;
-    if (claims.role === "Guest" || claims.role === ("guest" as any)) {
+    if (claims.role === "Guest" || (claims.role as string) === "guest") {
       claims.scope = "isabella:chat";
     }
 

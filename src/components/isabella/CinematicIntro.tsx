@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, lazy, Suspense } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { Volume2, VolumeX, SkipForward, Play, Activity } from "lucide-react";
 
@@ -510,10 +510,22 @@ export function CinematicIntroContent({
                   <span>MONITOR COGNITIVO ACTIVO</span>
                 </div>
                 <div className="space-y-1">
-                  <p className="flex justify-between"><span>[FIREWALL] LATAM AEGIS-X:</span> <span className="text-emerald-400 font-semibold">ARMADO</span></p>
-                  <p className="flex justify-between"><span>[ENTROPY] C.R.O.W.N. SEED:</span> <span className="text-amber-400 font-semibold font-mono">OK (NON-DET)</span></p>
-                  <p className="flex justify-between"><span>[PERSISTENCE] PENTACAPA SECURE:</span> <span className="text-emerald-400 font-semibold">ACTIVE</span></p>
-                  <p className="flex justify-between"><span>[INTEGRITY] BOOKPI BLOCKS:</span> <span className="text-emerald-400 font-semibold">VERIFIED</span></p>
+                  <p className="flex justify-between">
+                    <span>[FIREWALL] LATAM AEGIS-X:</span>{" "}
+                    <span className="text-emerald-400 font-semibold">ARMADO</span>
+                  </p>
+                  <p className="flex justify-between">
+                    <span>[ENTROPY] C.R.O.W.N. SEED:</span>{" "}
+                    <span className="text-amber-400 font-semibold font-mono">OK (NON-DET)</span>
+                  </p>
+                  <p className="flex justify-between">
+                    <span>[PERSISTENCE] PENTACAPA SECURE:</span>{" "}
+                    <span className="text-emerald-400 font-semibold">ACTIVE</span>
+                  </p>
+                  <p className="flex justify-between">
+                    <span>[INTEGRITY] BOOKPI BLOCKS:</span>{" "}
+                    <span className="text-emerald-400 font-semibold">VERIFIED</span>
+                  </p>
                 </div>
               </div>
 
@@ -525,11 +537,14 @@ export function CinematicIntroContent({
                     <span>Sovereign Boot Sequence</span>
                   </div>
                   <div className="space-y-1.5 pt-3 text-platinum/60">
-                    <p className="text-amber-300 font-semibold">&gt; Loading 24 execution cores...</p>
+                    <p className="text-amber-300 font-semibold">
+                      &gt; Loading 24 execution cores...
+                    </p>
                     <div className="grid grid-cols-6 gap-1 py-1">
                       {Array.from({ length: 24 }).map((_, i) => {
                         const state = Math.floor((elapsed * 3 + i) % 11);
-                        const col = state > 8 ? "bg-rose-500" : state > 7 ? "bg-amber-400" : "bg-emerald-500";
+                        const col =
+                          state > 8 ? "bg-rose-500" : state > 7 ? "bg-amber-400" : "bg-emerald-500";
                         return (
                           <div
                             key={i}
@@ -540,13 +555,20 @@ export function CinematicIntroContent({
                         );
                       })}
                     </div>
-                    <p className="text-muted-foreground flex justify-between"><span>Cores ready:</span> <span className="text-emerald-400 font-bold">24 / 24</span></p>
+                    <p className="text-muted-foreground flex justify-between">
+                      <span>Cores ready:</span>{" "}
+                      <span className="text-emerald-400 font-bold">24 / 24</span>
+                    </p>
                     <div className="h-px bg-white/5 my-2" />
-                    <p className="text-emerald-400 font-semibold">&gt; Initializing CROWN policies...</p>
+                    <p className="text-emerald-400 font-semibold">
+                      &gt; Initializing CROWN policies...
+                    </p>
                     <p className="truncate">Policy ID: CROWN-V2-GOV-ZERO-TRUST</p>
                     <p className="truncate">Provenance Anchor: CC BY 4.0 TAMV</p>
                     <p className="truncate">DOI: 10.5281/zenodo.isabella-rdm</p>
-                    <p className="text-emerald-400 font-semibold">&gt; Mounting Sovereign Handshake...</p>
+                    <p className="text-emerald-400 font-semibold">
+                      &gt; Mounting Sovereign Handshake...
+                    </p>
                     <p className="text-emerald-400 font-mono">[Handshake] OK: OIDC JWT</p>
                   </div>
                 </div>

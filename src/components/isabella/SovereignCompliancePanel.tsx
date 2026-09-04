@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   ShieldCheck,
-  ShieldAlert,
   FileText,
   Binary,
   Cpu,
@@ -73,7 +72,7 @@ export function SovereignCompliancePanel() {
             message: "El hash provisto no coincide con la referencia esperada.",
           });
         }
-      } catch (err) {
+      } catch {
         setVerifyResult({
           status: "mismatch",
           message: "Error ejecutando verificación criptográfica ANUBIS.",
@@ -262,13 +261,15 @@ export function SovereignCompliancePanel() {
             </div>
             <div className="space-y-2.5 font-mono text-[10px] text-muted-foreground leading-relaxed">
               <p>
-                La arquitectura cognitiva de Isabella está registrada oficialmente en el índice global
-                de Open Science de forma auditable.
+                La arquitectura cognitiva de Isabella está registrada oficialmente en el índice
+                global de Open Science de forma auditable.
               </p>
               <div className="p-3 bg-black/45 rounded-xl border border-border/5 text-[9.5px] text-platinum space-y-1">
                 <p>
                   <span className="text-muted-foreground">DOI:</span>{" "}
-                  <span className="font-bold underline text-indigo-400">10.5281/zenodo.isabella</span>
+                  <span className="font-bold underline text-indigo-400">
+                    10.5281/zenodo.isabella
+                  </span>
                 </p>
                 <p>
                   <span className="text-muted-foreground">Licencia:</span>{" "}

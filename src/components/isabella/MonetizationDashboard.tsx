@@ -314,7 +314,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
   const [planHdrMultiplier, setPlanHdrMultiplier] = useState(1.0); // 1.0 for local node, 1.4 for cloud redundancy
 
   // --- REINFORCED MONETIZATION STATE ---
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [monetizationAccount, setMonetizationAccount] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [eligibilityInfo, setEligibilityInfo] = useState<any>(null);
   const [earnedBalance, setEarnedBalance] = useState(12.45);
   const [simulationLogs, setSimulationLogs] = useState<string[]>([
@@ -427,7 +429,7 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
     }
   }, [sessionToken]);
 
-  const handleUpdateMonetizationProfile = async (updates: any) => {
+  const handleUpdateMonetizationProfile = async (updates: Record<string, unknown>) => {
     try {
       const res = await fetch(`/api/db?action=monetization-update-profile`, {
         method: "POST",
@@ -482,11 +484,15 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success(`¡Retiro de $${(earnedBalance * 0.85).toFixed(2)} USD procesado con éxito (85/15)!`);
+        toast.success(
+          `¡Retiro de $${(earnedBalance * 0.85).toFixed(2)} USD procesado con éxito (85/15)!`,
+        );
         void fetchDbState();
       } else {
         if (data.code === "WITHDRAWAL_UNDER_REVIEW") {
-          toast.warning("Fallo en la revisión: Retiro bajo retención preventiva por sospecha de fraude.");
+          toast.warning(
+            "Fallo en la revisión: Retiro bajo retención preventiva por sospecha de fraude.",
+          );
         } else if (data.code === "MINIMUM_WITHDRAWAL_NOT_REACHED") {
           toast.error("El saldo de retiro no alcanza el mínimo de $50.00 USD.");
         } else {
@@ -1934,7 +1940,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                   1. Canales de Monetización Activos
                 </h4>
                 <p className="text-[11.5px] text-muted-foreground mt-0.5">
-                  Simule actividades de provisión real y verifique el flujo de caja acreditado e inmutable.
+                  Simule actividades de provisión real y verifique el flujo de caja acreditado e
+                  inmutable.
                 </p>
               </div>
 
@@ -1952,7 +1959,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       Provisión de Mapas GIS
                     </h5>
                     <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                      Cobre micro-transacciones catastrales por consultas espaciales en tiempo real en Real del Monte.
+                      Cobre micro-transacciones catastrales por consultas espaciales en tiempo real
+                      en Real del Monte.
                     </p>
                   </div>
                   {activeProvisionedKey && (
@@ -1989,12 +1997,17 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       Nodo de Cómputo Compartido
                     </h5>
                     <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                      Sincronice potencia de hardware local para computar inferencias de token de SOPHIA.
+                      Sincronice potencia de hardware local para computar inferencias de token de
+                      SOPHIA.
                     </p>
                   </div>
                   <div className="flex items-center justify-between p-2.5 rounded-lg bg-black/40 border border-border/30 font-mono text-[10px]">
                     <span className="text-muted-foreground">Estado del Daemon:</span>
-                    <span className={activeComputeNode ? "text-emerald-400 font-bold" : "text-amber-500"}>
+                    <span
+                      className={
+                        activeComputeNode ? "text-emerald-400 font-bold" : "text-amber-500"
+                      }
+                    >
                       {activeComputeNode ? "● ACTIVO (85.4%)" : "○ DESCONECTADO"}
                     </span>
                   </div>
@@ -2009,10 +2022,7 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                         ]);
                         await handleExecuteMonetizationTask("compute");
                       } else {
-                        setSimulationLogs((prev) => [
-                          "[COMPUTE] Daemon desconectado.",
-                          ...prev,
-                        ]);
+                        setSimulationLogs((prev) => ["[COMPUTE] Daemon desconectado.", ...prev]);
                       }
                     }}
                     className="w-full py-2 bg-secondary/40 hover:bg-secondary/60 text-platinum border border-border/30 font-mono text-[11px] font-semibold rounded-xl transition-all cursor-pointer"
@@ -2071,7 +2081,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       Optimizador Quántico
                     </h5>
                     <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                      Resuelva códigos correctores de errores cuánticos (QEC) para reducir ruido neural.
+                      Resuelva códigos correctores de errores cuánticos (QEC) para reducir ruido
+                      neural.
                     </p>
                   </div>
                   <button
@@ -2101,7 +2112,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       Validación de Patrimonio
                     </h5>
                     <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                      Firme digitalmente e inmutabilice archivos de bienes históricos de Real del Monte en el Libro Mayor.
+                      Firme digitalmente e inmutabilice archivos de bienes históricos de Real del
+                      Monte en el Libro Mayor.
                     </p>
                   </div>
                   <button
@@ -2154,38 +2166,72 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                   <div className="space-y-2 pt-2 border-t border-border/10 font-mono text-[11px]">
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">1. Identidad OIDC:</span>
-                      <span className={monetizationAccount.identityVerified ? "text-emerald-400" : "text-rose-400"}>
+                      <span
+                        className={
+                          monetizationAccount.identityVerified
+                            ? "text-emerald-400"
+                            : "text-rose-400"
+                        }
+                      >
                         {monetizationAccount.identityVerified ? "Verificada" : "Pendiente"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">2. Cuenta de Pago:</span>
-                      <span className={monetizationAccount.paymentAccountVerified ? "text-emerald-400" : "text-rose-400"}>
-                        {monetizationAccount.paymentAccountVerified ? "Vinculada" : "Falta Vincular"}
+                      <span
+                        className={
+                          monetizationAccount.paymentAccountVerified
+                            ? "text-emerald-400"
+                            : "text-rose-400"
+                        }
+                      >
+                        {monetizationAccount.paymentAccountVerified
+                          ? "Vinculada"
+                          : "Falta Vincular"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">3. Capacitación Antifraude:</span>
-                      <span className={monetizationAccount.trainingCompleted ? "text-emerald-400" : "text-rose-400"}>
+                      <span
+                        className={
+                          monetizationAccount.trainingCompleted
+                            ? "text-emerald-400"
+                            : "text-rose-400"
+                        }
+                      >
                         {monetizationAccount.trainingCompleted ? "Completada" : "Pendiente"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">4. Perfil de Operador:</span>
-                      <span className={monetizationAccount.profileComplete ? "text-emerald-400" : "text-rose-400"}>
+                      <span
+                        className={
+                          monetizationAccount.profileComplete ? "text-emerald-400" : "text-rose-400"
+                        }
+                      >
                         {monetizationAccount.profileComplete ? "Completo" : "Incompleto"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">5. Retención de Seguridad (Fraud):</span>
-                      <span className={monetizationAccount.underFraudReview ? "text-rose-400 font-bold" : "text-emerald-400"}>
+                      <span className="text-muted-foreground">
+                        5. Retención de Seguridad (Fraud):
+                      </span>
+                      <span
+                        className={
+                          monetizationAccount.underFraudReview
+                            ? "text-rose-400 font-bold"
+                            : "text-emerald-400"
+                        }
+                      >
                         {monetizationAccount.underFraudReview ? "REVISIÓN ACTIVA" : "Sin Alertas"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">6. Saldo Mínimo ($50.00):</span>
                       <span className={earnedBalance >= 50 ? "text-emerald-400" : "text-amber-400"}>
-                        {earnedBalance >= 50 ? "Satisfecho" : `Faltan $${(50 - earnedBalance).toFixed(2)} USD`}
+                        {earnedBalance >= 50
+                          ? "Satisfecho"
+                          : `Faltan $${(50 - earnedBalance).toFixed(2)} USD`}
                       </span>
                     </div>
                   </div>
@@ -2199,14 +2245,25 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       <ul className="list-disc list-inside text-[10px] text-muted-foreground font-mono space-y-1">
                         {eligibilityInfo.blockedReasons.map((reason: string) => {
                           let label = reason;
-                          if (reason === "IDENTITY_UNVERIFIED") label = "Falta de Consentimiento OIDC";
-                          else if (reason === "PAYMENT_ACCOUNT_UNVERIFIED") label = "Cuenta de pagos no vinculada";
-                          else if (reason === "TRAINING_INCOMPLETE") label = "Capacitación de Cumplimiento faltante";
-                          else if (reason === "PROFILE_INCOMPLETE") label = "Perfil de Operador incompleto";
-                          else if (reason === "UNDER_FRAUD_REVIEW") label = "Sujeto a hold preventivo de seguridad";
-                          else if (reason === "MINIMUM_BALANCE_NOT_MET") label = "Saldo menor al mínimo de retiro ($50.00)";
-                          else if (reason === "NO_RECENT_ACTIVITY") label = "Sin actividad reciente de provisión";
-                          return <li key={reason} className="truncate">{label}</li>;
+                          if (reason === "IDENTITY_UNVERIFIED")
+                            label = "Falta de Consentimiento OIDC";
+                          else if (reason === "PAYMENT_ACCOUNT_UNVERIFIED")
+                            label = "Cuenta de pagos no vinculada";
+                          else if (reason === "TRAINING_INCOMPLETE")
+                            label = "Capacitación de Cumplimiento faltante";
+                          else if (reason === "PROFILE_INCOMPLETE")
+                            label = "Perfil de Operador incompleto";
+                          else if (reason === "UNDER_FRAUD_REVIEW")
+                            label = "Sujeto a hold preventivo de seguridad";
+                          else if (reason === "MINIMUM_BALANCE_NOT_MET")
+                            label = "Saldo menor al mínimo de retiro ($50.00)";
+                          else if (reason === "NO_RECENT_ACTIVITY")
+                            label = "Sin actividad reciente de provisión";
+                          return (
+                            <li key={reason} className="truncate">
+                              {label}
+                            </li>
+                          );
                         })}
                       </ul>
                     </div>
@@ -2226,7 +2283,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       <input
                         type="checkbox"
                         checked={monetizationAccount.identityVerified}
-                        onChange={(e) => handleUpdateMonetizationProfile({ identityVerified: e.target.checked })}
+                        onChange={(e) =>
+                          handleUpdateMonetizationProfile({ identityVerified: e.target.checked })
+                        }
                         className="rounded border-border/40 text-electric bg-secondary/30 focus:ring-0 size-3.5 cursor-pointer"
                       />
                       <span>Consentimiento e Identidad OIDC</span>
@@ -2236,7 +2295,11 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       <input
                         type="checkbox"
                         checked={monetizationAccount.paymentAccountVerified}
-                        onChange={(e) => handleUpdateMonetizationProfile({ paymentAccountVerified: e.target.checked })}
+                        onChange={(e) =>
+                          handleUpdateMonetizationProfile({
+                            paymentAccountVerified: e.target.checked,
+                          })
+                        }
                         className="rounded border-border/40 text-electric bg-secondary/30 focus:ring-0 size-3.5 cursor-pointer"
                       />
                       <span>Vincular Cuenta de Pago (Wallet)</span>
@@ -2246,7 +2309,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       <input
                         type="checkbox"
                         checked={monetizationAccount.trainingCompleted}
-                        onChange={(e) => handleUpdateMonetizationProfile({ trainingCompleted: e.target.checked })}
+                        onChange={(e) =>
+                          handleUpdateMonetizationProfile({ trainingCompleted: e.target.checked })
+                        }
                         className="rounded border-border/40 text-electric bg-secondary/30 focus:ring-0 size-3.5 cursor-pointer"
                       />
                       <span>Completar Capacitación Antifraude</span>
@@ -2256,7 +2321,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       <input
                         type="checkbox"
                         checked={monetizationAccount.profileComplete}
-                        onChange={(e) => handleUpdateMonetizationProfile({ profileComplete: e.target.checked })}
+                        onChange={(e) =>
+                          handleUpdateMonetizationProfile({ profileComplete: e.target.checked })
+                        }
                         className="rounded border-border/40 text-electric bg-secondary/30 focus:ring-0 size-3.5 cursor-pointer"
                       />
                       <span>Llenar Perfil de Operador</span>
@@ -2266,7 +2333,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       <input
                         type="checkbox"
                         checked={monetizationAccount.underFraudReview}
-                        onChange={(e) => handleUpdateMonetizationProfile({ underFraudReview: e.target.checked })}
+                        onChange={(e) =>
+                          handleUpdateMonetizationProfile({ underFraudReview: e.target.checked })
+                        }
                         className="rounded border-border/40 text-rose-500 bg-secondary/30 focus:ring-0 size-3.5 cursor-pointer"
                       />
                       <span>Simular Retención por Fraude (Hold)</span>
@@ -2289,13 +2358,16 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                     <span className="text-[12px] text-muted-foreground font-normal">USD</span>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    División Canónica del Fideicomiso Contable: 85% para el Operador del Nodo, 15% de comisión para reinversión en el Nodo Cero de Hidalgo.
+                    División Canónica del Fideicomiso Contable: 85% para el Operador del Nodo, 15%
+                    de comisión para reinversión en el Nodo Cero de Hidalgo.
                   </p>
                 </div>
                 <button
                   onClick={async () => {
                     if (activeRole !== "SovereignOwner") {
-                      toast.error("ERROR DE AUTORIZACIÓN: Solo el rol 'SovereignOwner' puede liquidar fondos.");
+                      toast.error(
+                        "ERROR DE AUTORIZACIÓN: Solo el rol 'SovereignOwner' puede liquidar fondos.",
+                      );
                       setSimulationLogs((prev) => [
                         `[ADVERTENCIA_AUTH] Intento de retiro fallido. Rol actual '${activeRole}' carece de privilegios.`,
                         ...prev,

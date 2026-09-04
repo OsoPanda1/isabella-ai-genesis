@@ -144,7 +144,9 @@ export function LatamAegisDashboard() {
     "idle",
   );
   const [corruptedIndex, setCorruptedIndex] = useState<number | null>(null);
-  const [subTab, setSubTab] = useState<"firewall" | "observability" | "compliance" | "skills">("firewall");
+  const [subTab, setSubTab] = useState<"firewall" | "observability" | "compliance" | "skills">(
+    "firewall",
+  );
   const [toasts, setToasts] = useState<{ id: string; message: string; timestamp: string }[]>([]);
 
   // Listen for self-healing core recovery toasts from backend

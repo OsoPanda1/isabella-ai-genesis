@@ -81,25 +81,28 @@ export interface DatabaseSchema {
   ledger: BookPILedgerBlock[];
   auditLogs: AuditLog[];
   apiKeys: ApiKeyRecord[];
-  monetization?: Record<string, {
-    userId: string;
-    earnedBalanceCents: number;
-    qualifiedUses: number;
-    approvedContributions: number;
-    trainingCompleted: boolean;
-    identityVerified: boolean;
-    paymentAccountVerified: boolean;
-    profileComplete: boolean;
-    sanctioned: boolean;
-    underFraudReview: boolean;
-    withdrawals: {
-      payoutId: string;
-      amountCents: number;
-      status: "scheduled" | "processed" | "held" | "rejected";
-      idempotencyKey: string;
-      createdAt: string;
-    }[];
-  }>;
+  monetization?: Record<
+    string,
+    {
+      userId: string;
+      earnedBalanceCents: number;
+      qualifiedUses: number;
+      approvedContributions: number;
+      trainingCompleted: boolean;
+      identityVerified: boolean;
+      paymentAccountVerified: boolean;
+      profileComplete: boolean;
+      sanctioned: boolean;
+      underFraudReview: boolean;
+      withdrawals: {
+        payoutId: string;
+        amountCents: number;
+        status: "scheduled" | "processed" | "held" | "rejected";
+        idempotencyKey: string;
+        createdAt: string;
+      }[];
+    }
+  >;
   settings: Record<string, unknown>;
 }
 
@@ -575,7 +578,7 @@ export class SovereignDB {
     return db.monetization[userId];
   }
 
-  public static updateMonetizationAccount(userId: string, update: Partial<any>) {
+  public static updateMonetizationAccount(userId: string, update: Record<string, unknown>) {
     const db = this.load();
     db.monetization = db.monetization || {};
     const account = this.getMonetizationAccount(userId);

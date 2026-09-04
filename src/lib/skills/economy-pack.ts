@@ -1,8 +1,4 @@
-import {
-  createAuditEvent,
-  IsabellaSkill,
-  SkillResult,
-} from "./contracts";
+import { createAuditEvent, IsabellaSkill, SkillResult } from "./contracts";
 
 // ============================================================================
 // 11. HELIOS (Systemic Analytics Engine)
@@ -60,8 +56,18 @@ export const HELIOS: IsabellaSkill<HeliosInput, HeliosOutput> = {
       evidence: [],
       warnings: [],
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "HELIOS", { seriesCount: input.series.length }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "HELIOS", { trendCount: trends.length }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "HELIOS",
+          { seriesCount: input.series.length },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "HELIOS",
+          { trendCount: trends.length },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -97,7 +103,8 @@ export const KAIROS: IsabellaSkill<KairosInput, KairosOutput> = {
   version: "v.GENESIS",
   federation: "ECONOMY",
   risk: "MEDIUM",
-  description: "Prioriza iniciativas con métricas explícitas de impacto, urgencia, riesgo y viabilidad.",
+  description:
+    "Prioriza iniciativas con métricas explícitas de impacto, urgencia, riesgo y viabilidad.",
   canRun: (input) => Boolean(input.initiatives?.length),
   async run(input, context): Promise<SkillResult<KairosOutput>> {
     const ranked = input.initiatives
@@ -125,8 +132,18 @@ export const KAIROS: IsabellaSkill<KairosInput, KairosOutput> = {
       evidence: [],
       warnings: [],
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "KAIROS", { initiativeCount: input.initiatives.length }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "KAIROS", { topInitiative: ranked[0]?.id }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "KAIROS",
+          { initiativeCount: input.initiatives.length },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "KAIROS",
+          { topInitiative: ranked[0]?.id },
+          context.actorId,
+        ),
       ],
     };
   },

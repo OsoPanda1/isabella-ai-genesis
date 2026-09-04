@@ -1,8 +1,4 @@
-import {
-  createAuditEvent,
-  IsabellaSkill,
-  SkillResult,
-} from "./contracts";
+import { createAuditEvent, IsabellaSkill, SkillResult } from "./contracts";
 
 // ============================================================================
 // 24. UTAMV (University-OS Learning Path Engine)
@@ -63,8 +59,18 @@ export const UTAMV: IsabellaSkill<UtamvInput, UtamvOutput> = {
       evidence: [],
       warnings: [],
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "UTAMV", { currentLevel: input.currentLevel }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "UTAMV", { learningPathLength: learningPath.length }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "UTAMV",
+          { currentLevel: input.currentLevel },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "UTAMV",
+          { learningPathLength: learningPath.length },
+          context.actorId,
+        ),
       ],
     };
   },

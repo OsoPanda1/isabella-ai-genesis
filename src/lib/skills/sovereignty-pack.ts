@@ -1,10 +1,4 @@
-import {
-  createAuditEvent,
-  Evidence,
-  IsabellaSkill,
-  SkillResult,
-  AuditEvent,
-} from "./contracts";
+import { createAuditEvent, Evidence, IsabellaSkill, SkillResult, AuditEvent } from "./contracts";
 
 // ============================================================================
 // 18. THEMIS (Explainable Audit Engine)
@@ -61,8 +55,18 @@ export const THEMIS: IsabellaSkill<ThemisInput, ThemisOutput> = {
           ? ["No hay evidencia suficiente para defender esta decisión de forma auditable."]
           : [],
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "THEMIS", { decisionId: input.decisionId }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "THEMIS", { auditability, evidenceWeight }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "THEMIS",
+          { decisionId: input.decisionId },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "THEMIS",
+          { auditability, evidenceWeight },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -90,11 +94,14 @@ export const SENTINEL: IsabellaSkill<SentinelInput, SentinelOutput> = {
   version: "v.GENESIS",
   federation: "SOVEREIGNTY",
   risk: "CRITICAL",
-  description: "Detecta abuso de interacción y recomienda control de tasa o bloqueo temporal auditable.",
+  description:
+    "Detecta abuso de interacción y recomienda control de tasa o bloqueo temporal auditable.",
   canRun: (input) => Boolean(input.actorId),
   async run(input, context): Promise<SkillResult<SentinelOutput>> {
-    const severe = input.requestsLastMinute > 120 || input.failedAttempts > 15 || input.previousBlocks >= 3;
-    const moderate = input.requestsLastMinute > 45 || input.failedAttempts > 5 || input.previousBlocks >= 1;
+    const severe =
+      input.requestsLastMinute > 120 || input.failedAttempts > 15 || input.previousBlocks >= 3;
+    const moderate =
+      input.requestsLastMinute > 45 || input.failedAttempts > 5 || input.previousBlocks >= 1;
 
     const output: SentinelOutput = severe
       ? {
