@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, FolderOpen } from "lucide-react";
 import CinematicIntro from "@/components/isabella/CinematicIntro";
 import { CommandLine } from "@/components/isabella/CommandLine";
@@ -47,9 +47,11 @@ export const Route = createFileRoute("/")({
 const INTRO_SEEN_KEY = "isabella.entry.intro.v1";
 
 function Index() {
+  const [isHydrated, setIsHydrated] = useState(false);
   const [introDone, setIntroDone] = useState(false);
 
   useEffect(() => {
+    setIsHydrated(true);
     if (typeof window === "undefined") return;
     let seen = false;
     try {
@@ -60,18 +62,22 @@ function Index() {
     if (seen) setIntroDone(true);
   }, []);
 
-  const handleIntroComplete = () => {
+  const handleIntroComplete = useCallback(() => {
     try {
       window.sessionStorage.setItem(INTRO_SEEN_KEY, "1");
     } catch {
       /* almacenamiento no disponible: la intro se re-muestra en la próxima carga */
     }
     setIntroDone(true);
-  };
+  }, []);
+
+  // Renderizar un lienzo oscuro limpio durante la hidratación para evitar destellos
+  if (!isHydrated) {
+    return <div className="h-screen w-full bg-[#020306]" />;
+  }
 
   // Durante la intro no se monta la interfaz de Isabella (evita llamadas/APIs
-  // bajo el splash). En SSR no existe sesión de cliente: se muestra la intro,
-  // lo que mantiene consistente el primer render con la hidratación.
+  // bajo el splash).
   if (!introDone) {
     return <CinematicIntro onComplete={handleIntroComplete} />;
   }

@@ -97,9 +97,13 @@ export function QuantumJobMonitor() {
 
         if (stateChanged) {
           // Send occasional status notification toast to simulate active queues
-          const completedJob = next.find((j, idx) => j.status === "Completed" && prevJobs[idx].status !== "Completed");
+          const completedJob = next.find(
+            (j, idx) => j.status === "Completed" && prevJobs[idx].status !== "Completed",
+          );
           if (completedJob) {
-            toast.success(`Trabajo cuántico ${completedJob.id} completado con fidelidad: ${completedJob.fidelity}%`);
+            toast.success(
+              `Trabajo cuántico ${completedJob.id} completado con fidelidad: ${completedJob.fidelity}%`,
+            );
           }
         }
         return next;
@@ -136,7 +140,7 @@ export function QuantumJobMonitor() {
 
     setJobs((prev) => [newJob, ...prev]);
     toast.info(`Trabajo ${newId} enviado a la cola del transpilador QUP.`);
-    
+
     setTimeout(() => {
       setIsSimulating(false);
     }, 1000);
@@ -153,7 +157,10 @@ export function QuantumJobMonitor() {
     .reverse();
 
   return (
-    <div className="p-5 rounded-2xl bg-[#13151f] border border-border/10 space-y-4 text-muted-foreground text-xs" id="quantum-job-monitor-module">
+    <div
+      className="p-5 rounded-2xl bg-[#13151f] border border-border/10 space-y-4 text-muted-foreground text-xs"
+      id="quantum-job-monitor-module"
+    >
       <div className="flex items-center justify-between pb-2 border-b border-border/5">
         <div className="flex items-center gap-2">
           <Cpu className="size-4 text-emerald-400" />
@@ -172,7 +179,6 @@ export function QuantumJobMonitor() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        
         {/* JOBS LIST TABLE */}
         <div className="lg:col-span-7 space-y-2.5">
           <span className="block text-[10px] uppercase font-bold text-white font-mono flex items-center gap-1">
@@ -195,15 +201,34 @@ export function QuantumJobMonitor() {
                     {job.id}
                   </div>
                   <div className="col-span-4 text-muted-foreground truncate" title={job.objective}>
-                    {job.objective} <span className="text-[9px] text-crown font-semibold block">({job.qubits} qubits)</span>
+                    {job.objective}{" "}
+                    <span className="text-[9px] text-crown font-semibold block">
+                      ({job.qubits} qubits)
+                    </span>
                   </div>
                   <div className="col-span-3 flex items-center gap-1.5">
-                    <span className={`size-1.5 rounded-full ${
-                      job.status === "Completed" ? "bg-emerald-400" : job.status === "Executing" ? "bg-purple-400 animate-pulse" : job.status === "Transpiling" ? "bg-amber-400 animate-spin" : "bg-blue-400 animate-pulse"
-                    }`} />
-                    <span className={`capitalize font-bold text-[9px] ${
-                      job.status === "Completed" ? "text-emerald-400" : job.status === "Executing" ? "text-purple-400" : job.status === "Transpiling" ? "text-amber-400" : "text-blue-400"
-                    }`}>
+                    <span
+                      className={`size-1.5 rounded-full ${
+                        job.status === "Completed"
+                          ? "bg-emerald-400"
+                          : job.status === "Executing"
+                            ? "bg-purple-400 animate-pulse"
+                            : job.status === "Transpiling"
+                              ? "bg-amber-400 animate-spin"
+                              : "bg-blue-400 animate-pulse"
+                      }`}
+                    />
+                    <span
+                      className={`capitalize font-bold text-[9px] ${
+                        job.status === "Completed"
+                          ? "text-emerald-400"
+                          : job.status === "Executing"
+                            ? "text-purple-400"
+                            : job.status === "Transpiling"
+                              ? "text-amber-400"
+                              : "text-blue-400"
+                      }`}
+                    >
                       {job.status}
                     </span>
                   </div>
@@ -235,7 +260,12 @@ export function QuantumJobMonitor() {
                     <Tooltip
                       contentStyle={{ backgroundColor: "#13151f", borderColor: "#2d2f3d" }}
                     />
-                    <Bar dataKey="fidelity" fill="#10b981" radius={[3, 3, 0, 0]} name="Fidelidad (%)" />
+                    <Bar
+                      dataKey="fidelity"
+                      fill="#10b981"
+                      radius={[3, 3, 0, 0]}
+                      name="Fidelidad (%)"
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -253,7 +283,6 @@ export function QuantumJobMonitor() {
             <strong className="text-white font-bold">1.12 seg / Corrida</strong>
           </div>
         </div>
-
       </div>
     </div>
   );

@@ -244,6 +244,15 @@ export function CinematicIntroContent({
     droppedFrames: 0,
   });
 
+  // Estabilizar callbacks con referencias mutables para evitar que reconstruyan el render loop
+  const onCompleteRef = useRef(onComplete);
+  const onTelemetryUpdateRef = useRef(onTelemetryUpdate);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+    onTelemetryUpdateRef.current = onTelemetryUpdate;
+  }, [onComplete, onTelemetryUpdate]);
+
   // Flicker State for Marvel style panels
   const [flickerIndex, setFlickerIndex] = useState(0);
   const [flickerTrigger, setFlickerTrigger] = useState(false);
@@ -322,7 +331,7 @@ export function CinematicIntroContent({
           droppedFrames: dropped,
         };
 
-        onTelemetryUpdate?.(payload);
+        onTelemetryUpdateRef.current?.(payload);
 
         window.dispatchEvent(new CustomEvent("IsabellaTelemetryEvent", { detail: payload }));
 
@@ -331,7 +340,7 @@ export function CinematicIntroContent({
       }
 
       if (currentElapsed >= DURATION) {
-        onComplete();
+        onCompleteRef.current();
       } else {
         animFrame = requestAnimationFrame(tick);
       }
@@ -339,7 +348,7 @@ export function CinematicIntroContent({
 
     animFrame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animFrame);
-  }, [showGate, onComplete, onTelemetryUpdate]);
+  }, [showGate]);
 
   // Teclas de acceso rápido
   useEffect(() => {
@@ -348,13 +357,13 @@ export function CinematicIntroContent({
         e.preventDefault();
         enter();
       } else if (!showGate) {
-        if (e.key === "Escape") onComplete();
+        if (e.key === "Escape") onCompleteRef.current();
         if (e.key === "m" || e.key === "M") setMuted((prev) => !prev);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [enter, onComplete, showGate]);
+  }, [enter, showGate]);
 
   useEffect(() => {
     if (audioRef.current) {

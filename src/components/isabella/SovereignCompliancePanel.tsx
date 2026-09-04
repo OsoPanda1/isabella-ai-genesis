@@ -9,12 +9,12 @@ import {
   CheckCircle,
   AlertTriangle,
 } from "lucide-react";
-import { CentralizedTelemetryService, SecurityEvent } from "@/lib/latam-aegis-x";
+import { CentralizedTelemetryService, TelemetryLog } from "@/lib/latam-aegis-x";
 import { exportSecurityCompliancePdf } from "@/lib/audit-export";
 import { runIsabellaSkill } from "@/lib/skills/run-skill";
 
 export function SovereignCompliancePanel() {
-  const [logs, setLogs] = useState<SecurityEvent[]>([]);
+  const [logs, setLogs] = useState<TelemetryLog[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [targetHash, setTargetHash] = useState("");
   const [verifyResult, setVerifyResult] = useState<{
@@ -83,9 +83,9 @@ export function SovereignCompliancePanel() {
 
   const filteredLogs = logs.filter(
     (log) =>
-      log.event_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.actor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.action.toLowerCase().includes(searchQuery.toLowerCase()),
+      log.eventName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.coreId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.moduleId.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -130,7 +130,7 @@ export function SovereignCompliancePanel() {
             </div>
           </div>
 
-          {/* Security Log Finder */}
+          {/* Quick Find */}
           <div className="space-y-3">
             <div className="relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -151,29 +151,29 @@ export function SovereignCompliancePanel() {
               ) : (
                 filteredLogs.map((log) => (
                   <div
-                    key={log.event_id}
+                    key={`${log.traceId}-${log.timestamp}-${log.signature.slice(0,8)}`}
                     className="p-3.5 rounded-xl bg-black/45 border border-border/10 hover:border-border/20 transition-all font-mono text-[10.5px]"
                   >
                     <div className="flex justify-between items-center pb-2 border-b border-white/5 mb-2">
-                      <span className="font-bold text-emerald-400">[{log.event_type}]</span>
+                      <span className="font-bold text-emerald-400">[{log.eventName}]</span>
                       <span className="text-[9.5px] text-muted-foreground">{log.timestamp}</span>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-muted-foreground">
                       <div>
-                        <span>ID:</span>{" "}
-                        <span className="text-platinum font-semibold">{log.event_id}</span>
+                        <span>Trace:</span>{" "}
+                        <span className="text-platinum font-semibold truncate block">{log.traceId}</span>
                       </div>
                       <div>
-                        <span>Actor:</span>{" "}
-                        <span className="text-platinum font-semibold truncate">{log.actor}</span>
+                        <span>Core:</span>{" "}
+                        <span className="text-platinum font-semibold truncate block">{log.coreId}</span>
                       </div>
                       <div>
-                        <span>Orígenes:</span>{" "}
-                        <span className="text-platinum font-semibold truncate">{log.source}</span>
+                        <span>Origen:</span>{" "}
+                        <span className="text-platinum font-semibold truncate block">{log.moduleId}</span>
                       </div>
                       <div>
-                        <span>Acción:</span>{" "}
-                        <span className="text-platinum font-semibold truncate">{log.action}</span>
+                        <span>Nivel:</span>{" "}
+                        <span className="text-platinum font-semibold truncate block">{log.level}</span>
                       </div>
                     </div>
                   </div>

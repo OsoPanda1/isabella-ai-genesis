@@ -126,20 +126,33 @@ const INITIAL_DEPTH_EFFICIENCY_DATA = [
 
 export function QuantumUtilityDashboard() {
   // Config States
-  const [objective, setObjective] = useState<"hamiltonian_spectrum" | "qml_classification" | "qec_syndrome" | "quantum_simulation">("qml_classification");
+  const [objective, setObjective] = useState<
+    "hamiltonian_spectrum" | "qml_classification" | "qec_syndrome" | "quantum_simulation"
+  >("qml_classification");
   const [circuitDepth, setCircuitDepth] = useState(85);
   const [qubitCount, setQubitCount] = useState(4);
-  const [backend, setBackend] = useState<"ibm_sherbrooke_qpu" | "aer_simulator_local" | "aws_braket_dm1">("aer_simulator_local");
-  const [errorMitigation, setErrorMitigation] = useState<("ZNE" | "PEC" | "TREX")[]>(["ZNE", "TREX"]);
-  const [errorCorrection, setErrorCorrection] = useState<"toric_code_L3" | "toric_code_L5" | "none">("toric_code_L3");
-  const [classicalBaseline, setClassicalBaseline] = useState<"xgboost" | "pytorch_mlp" | "jax_ode">("xgboost");
+  const [backend, setBackend] = useState<
+    "ibm_sherbrooke_qpu" | "aer_simulator_local" | "aws_braket_dm1"
+  >("aer_simulator_local");
+  const [errorMitigation, setErrorMitigation] = useState<("ZNE" | "PEC" | "TREX")[]>([
+    "ZNE",
+    "TREX",
+  ]);
+  const [errorCorrection, setErrorCorrection] = useState<
+    "toric_code_L3" | "toric_code_L5" | "none"
+  >("toric_code_L3");
+  const [classicalBaseline, setClassicalBaseline] = useState<"xgboost" | "pytorch_mlp" | "jax_ode">(
+    "xgboost",
+  );
 
   // Selection Template state
   const [selectedTemplate, setSelectedTemplate] = useState<keyof typeof CIRCUIT_TEMPLATES>("qml");
 
   // Execution Flow states
   const [isExecuting, setIsExecuting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"compiler" | "result" | "monitor" | "certificates" | "governance">("compiler");
+  const [activeTab, setActiveTab] = useState<
+    "compiler" | "result" | "monitor" | "certificates" | "governance"
+  >("compiler");
   const [resultData, setResultData] = useState<QupExperimentResult | null>(null);
   const [systemLogs, setSystemLogs] = useState<string[]>([
     "[SISTEMA] Motor QUP v3.0 Sovereign Edition cargado correctamente.",
@@ -205,7 +218,14 @@ export function QuantumUtilityDashboard() {
 
       // 2. Generate custom sample dataset features for validation
       addLog("Generando dataset sintético y aplicando filtros PII en el Feature Plane...");
-      const recordCount = selectedTemplate === "bell" ? 10 : selectedTemplate === "ghz" ? 15 : selectedTemplate === "qml" ? 20 : 30;
+      const recordCount =
+        selectedTemplate === "bell"
+          ? 10
+          : selectedTemplate === "ghz"
+            ? 15
+            : selectedTemplate === "qml"
+              ? 20
+              : 30;
       const sampleFeatures = Array.from({ length: recordCount }, (_, i) => ({
         id: `rec_${i}`,
         x: [Math.random() * 0.9, Math.random() * 0.8, Math.random() * 0.55],
@@ -251,8 +271,12 @@ export function QuantumUtilityDashboard() {
 
       setResultData(runResult);
       setActiveTab("result");
-      addLog(`Éxito: Fidelidad del ${Math.round(runResult.runtime.quantumFidelity * 100)}% alcanzada con mitigación.`);
-      addLog(`Firmado de firmware ML-DSA validado. Bloque Ledger index: ${runResult.audit.ledgerBlockIndex}`);
+      addLog(
+        `Éxito: Fidelidad del ${Math.round(runResult.runtime.quantumFidelity * 100)}% alcanzada con mitigación.`,
+      );
+      addLog(
+        `Firmado de firmware ML-DSA validado. Bloque Ledger index: ${runResult.audit.ledgerBlockIndex}`,
+      );
       toast.success("Experimento cuántico finalizado con éxito.");
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : "Error desconocido en el motor cuántico.";
@@ -279,17 +303,41 @@ export function QuantumUtilityDashboard() {
   const currentCircuit = CIRCUIT_TEMPLATES[selectedTemplate];
 
   // Dynamic chart structures
-  const dynamicMetrics = resultData ? [
-    { run: "Clásica Baseline", compilerLatency: 5, executionLatency: 120, fidelity: Math.round(resultData.runtime.classicalAccuracy * 1000) / 10, noiseLevel: Math.round(resultData.runtime.classicalLoss * 1000) / 10 },
-    { run: "QUP v3 (ISA)", compilerLatency: resultData.compilation.latencyMs, executionLatency: 800, fidelity: Math.round(resultData.runtime.quantumFidelity * 1000) / 10, noiseLevel: Math.round(resultData.runtime.rawErrorRate * 1000) / 10 },
-  ] : INITIAL_EXECUTION_METRICS;
+  const dynamicMetrics = resultData
+    ? [
+        {
+          run: "Clásica Baseline",
+          compilerLatency: 5,
+          executionLatency: 120,
+          fidelity: Math.round(resultData.runtime.classicalAccuracy * 1000) / 10,
+          noiseLevel: Math.round(resultData.runtime.classicalLoss * 1000) / 10,
+        },
+        {
+          run: "QUP v3 (ISA)",
+          compilerLatency: resultData.compilation.latencyMs,
+          executionLatency: 800,
+          fidelity: Math.round(resultData.runtime.quantumFidelity * 1000) / 10,
+          noiseLevel: Math.round(resultData.runtime.rawErrorRate * 1000) / 10,
+        },
+      ]
+    : INITIAL_EXECUTION_METRICS;
 
-  const dynamicDepth = resultData ? [
-    { name: currentCircuit.name.split(" ")[0], level1: resultData.compilation.originalDepth, level2: Math.round(resultData.compilation.originalDepth * 0.8), level3: resultData.compilation.compiledDepth }
-  ] : INITIAL_DEPTH_EFFICIENCY_DATA;
+  const dynamicDepth = resultData
+    ? [
+        {
+          name: currentCircuit.name.split(" ")[0],
+          level1: resultData.compilation.originalDepth,
+          level2: Math.round(resultData.compilation.originalDepth * 0.8),
+          level3: resultData.compilation.compiledDepth,
+        },
+      ]
+    : INITIAL_DEPTH_EFFICIENCY_DATA;
 
   return (
-    <div className="space-y-6 text-foreground p-6 bg-[#0c0d12] rounded-3xl border border-border/10 shadow-2xl max-w-7xl mx-auto" id="qup-quantum-container">
+    <div
+      className="space-y-6 text-foreground p-6 bg-[#0c0d12] rounded-3xl border border-border/10 shadow-2xl max-w-7xl mx-auto"
+      id="qup-quantum-container"
+    >
       {/* HEADER: Sovereign Enterprise Title */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-border/10">
         <div className="flex items-center gap-3">
@@ -323,7 +371,6 @@ export function QuantumUtilityDashboard() {
 
       {/* PRIMARY CONTROLLER GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
         {/* LEFT COLUMN: Deep Config Controls */}
         <div className="lg:col-span-5 space-y-6">
           <div className="p-5 rounded-2xl bg-[#13151f] border border-border/10 space-y-5">
@@ -394,9 +441,15 @@ export function QuantumUtilityDashboard() {
                 onChange={(e) => setBackend(e.target.value as typeof backend)}
                 className="w-full bg-[#181a26] border border-border/15 rounded-xl p-2.5 text-xs font-mono text-white outline-none focus:border-crown"
               >
-                <option value="aer_simulator_local">Aer Simulator (Local de Alta Fidelidad - 🟢 Listo)</option>
-                <option value="ibm_sherbrooke_qpu">IBM Sherbrooke (Hardware QPU real - 🟡 Cola: 3m)</option>
-                <option value="aws_braket_dm1">AWS Braket DM1 (Simulador Densidad - 🟢 Conectado)</option>
+                <option value="aer_simulator_local">
+                  Aer Simulator (Local de Alta Fidelidad - 🟢 Listo)
+                </option>
+                <option value="ibm_sherbrooke_qpu">
+                  IBM Sherbrooke (Hardware QPU real - 🟡 Cola: 3m)
+                </option>
+                <option value="aws_braket_dm1">
+                  AWS Braket DM1 (Simulador Densidad - 🟢 Conectado)
+                </option>
               </select>
             </div>
 
@@ -485,9 +538,7 @@ export function QuantumUtilityDashboard() {
                   <div
                     key={addon.id}
                     className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
-                      isAuto
-                        ? "bg-crown/5 border-crown/25"
-                        : "bg-black/20 border-transparent"
+                      isAuto ? "bg-crown/5 border-crown/25" : "bg-black/20 border-transparent"
                     }`}
                   >
                     <div className="flex flex-col max-w-[70%]">
@@ -512,7 +563,6 @@ export function QuantumUtilityDashboard() {
 
         {/* RIGHT COLUMN: Execution & Render Portal */}
         <div className="lg:col-span-7 space-y-6">
-          
           {/* TAB SELECTION CARDS */}
           <div className="flex flex-wrap gap-2">
             <button
@@ -587,7 +637,9 @@ export function QuantumUtilityDashboard() {
                   <span className="text-xs font-mono text-muted-foreground">Compuerta base:</span>
                   <select
                     value={selectedTemplate}
-                    onChange={(e) => setSelectedTemplate(e.target.value as keyof typeof CIRCUIT_TEMPLATES)}
+                    onChange={(e) =>
+                      setSelectedTemplate(e.target.value as keyof typeof CIRCUIT_TEMPLATES)
+                    }
                     className="bg-black/40 border border-border/15 rounded-xl px-2 py-1.5 text-xs font-mono text-white outline-none"
                   >
                     <option value="bell">Estado Bell (2 Qubits)</option>
@@ -621,7 +673,9 @@ export function QuantumUtilityDashboard() {
                     <div className="p-1.5 bg-black/30 rounded">
                       <div className="text-muted-foreground">CX Gates</div>
                       <div className="text-white font-bold text-xs">
-                        {"cx" in currentCircuit.gates ? (currentCircuit.gates as Record<string, number>).cx : 0}
+                        {"cx" in currentCircuit.gates
+                          ? (currentCircuit.gates as Record<string, number>).cx
+                          : 0}
                       </div>
                     </div>
                   </div>
@@ -636,7 +690,9 @@ export function QuantumUtilityDashboard() {
                       {isExecuting ? (
                         <div className="flex flex-col items-center gap-1.5">
                           <RotateCcw className="size-5 text-crown animate-spin" />
-                          <span className="text-[9px] text-muted-foreground">Mapeando layout físico...</span>
+                          <span className="text-[9px] text-muted-foreground">
+                            Mapeando layout físico...
+                          </span>
                         </div>
                       ) : resultData ? (
                         <pre className="text-left w-full text-crown leading-tight">
@@ -665,7 +721,12 @@ export function QuantumUtilityDashboard() {
                     <div className="p-1.5 bg-crown/10 rounded">
                       <div className="text-muted-foreground">Gates</div>
                       <div className="text-white font-bold text-xs">
-                        {resultData ? Object.values(resultData.compilation.gateCount).reduce((a, b) => a + b, 0) : "-"}
+                        {resultData
+                          ? Object.values(resultData.compilation.gateCount).reduce(
+                              (a, b) => a + b,
+                              0,
+                            )
+                          : "-"}
                       </div>
                     </div>
                   </div>
@@ -701,7 +762,6 @@ export function QuantumUtilityDashboard() {
           {/* TAB 2: RICH RESULTS & BENTO CERTIFICATES */}
           {activeTab === "result" && resultData && (
             <div className="space-y-6">
-              
               {/* BENTO ROW 1: FEATURE & DATASET PLANE */}
               <div className="p-5 rounded-2xl bg-[#13151f] border border-border/10 space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-border/5">
@@ -715,11 +775,15 @@ export function QuantumUtilityDashboard() {
                   <div className="space-y-2 text-xs font-mono">
                     <div className="flex justify-between p-2 rounded-lg bg-black/20">
                       <span className="text-muted-foreground">Dataset Original:</span>
-                      <span className="text-white font-bold">{resultData.datasetMetrics.originalSize} registros</span>
+                      <span className="text-white font-bold">
+                        {resultData.datasetMetrics.originalSize} registros
+                      </span>
                     </div>
                     <div className="flex justify-between p-2 rounded-lg bg-black/20">
                       <span className="text-muted-foreground">Registros Anonimizados:</span>
-                      <span className="text-emerald-400 font-bold">{resultData.datasetMetrics.anonymizedRecordsCount} (PII Scrubbed)</span>
+                      <span className="text-emerald-400 font-bold">
+                        {resultData.datasetMetrics.anonymizedRecordsCount} (PII Scrubbed)
+                      </span>
                     </div>
                     <div className="flex justify-between p-2 rounded-lg bg-black/20">
                       <span className="text-muted-foreground">Verificación de Esquema:</span>
@@ -729,7 +793,9 @@ export function QuantumUtilityDashboard() {
 
                   <div className="p-3.5 rounded-xl bg-black/35 border border-border/5 space-y-2.5 text-xs font-mono">
                     <div className="space-y-1">
-                      <span className="text-[10px] text-muted-foreground block">SHA3-512 Merkle Root Certificate:</span>
+                      <span className="text-[10px] text-muted-foreground block">
+                        SHA3-512 Merkle Root Certificate:
+                      </span>
                       <span className="text-crown font-mono text-[10.5px] break-all font-semibold select-all">
                         {resultData.datasetMetrics.merkleRootSHA3}
                       </span>
@@ -761,7 +827,6 @@ export function QuantumUtilityDashboard() {
 
               {/* BENTO ROW 2: ML RUNTIME & TORIC DECODER */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                
                 {/* Toric syndrome extraction */}
                 <div className="md:col-span-7 p-5 rounded-2xl bg-[#13151f] border border-border/10 space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b border-border/5">
@@ -773,19 +838,25 @@ export function QuantumUtilityDashboard() {
 
                   <div className="grid grid-cols-3 gap-2.5">
                     <div className="p-3 rounded-xl bg-black/30 border border-border/5 text-center font-mono">
-                      <span className="block text-[9px] text-muted-foreground uppercase">Fidelidad de Qubits</span>
+                      <span className="block text-[9px] text-muted-foreground uppercase">
+                        Fidelidad de Qubits
+                      </span>
                       <span className="block text-lg font-bold text-emerald-400 mt-1">
                         {Math.round(resultData.runtime.quantumFidelity * 1000) / 10}%
                       </span>
                     </div>
                     <div className="p-3 rounded-xl bg-black/30 border border-border/5 text-center font-mono">
-                      <span className="block text-[9px] text-muted-foreground uppercase">Tasa de Error Cruda</span>
+                      <span className="block text-[9px] text-muted-foreground uppercase">
+                        Tasa de Error Cruda
+                      </span>
                       <span className="block text-lg font-bold text-red-400 mt-1">
                         {Math.round(resultData.runtime.rawErrorRate * 1000) / 10}%
                       </span>
                     </div>
                     <div className="p-3 rounded-xl bg-black/30 border border-border/5 text-center font-mono">
-                      <span className="block text-[9px] text-muted-foreground uppercase">Tasa Mitigada</span>
+                      <span className="block text-[9px] text-muted-foreground uppercase">
+                        Tasa Mitigada
+                      </span>
                       <span className="block text-lg font-bold text-crown mt-1">
                         {Math.round(resultData.runtime.mitigatedErrorRate * 100) / 100}%
                       </span>
@@ -811,7 +882,8 @@ export function QuantumUtilityDashboard() {
                         <div className="flex justify-between text-muted-foreground">
                           <span>Síndromes de error detectados:</span>
                           <span className="text-white font-semibold">
-                            {resultData.runtime.qecStatus.syndromesCount} celdas {errorCorrection === "toric_code_L5" ? "Lattice 5x5" : "Lattice 3x3"}
+                            {resultData.runtime.qecStatus.syndromesCount} celdas{" "}
+                            {errorCorrection === "toric_code_L5" ? "Lattice 5x5" : "Lattice 3x3"}
                           </span>
                         </div>
                         <div className="flex justify-between text-muted-foreground">
@@ -850,7 +922,10 @@ export function QuantumUtilityDashboard() {
                           </span>
                         </div>
                         <div className="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-                          <div className="bg-red-500 h-full" style={{ width: `${resultData.runtime.classicalLoss * 100}%` }} />
+                          <div
+                            className="bg-red-500 h-full"
+                            style={{ width: `${resultData.runtime.classicalLoss * 100}%` }}
+                          />
                         </div>
                       </div>
 
@@ -862,7 +937,10 @@ export function QuantumUtilityDashboard() {
                           </span>
                         </div>
                         <div className="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-                          <div className="bg-blue-400 h-full" style={{ width: `${resultData.runtime.classicalAccuracy * 100}%` }} />
+                          <div
+                            className="bg-blue-400 h-full"
+                            style={{ width: `${resultData.runtime.classicalAccuracy * 100}%` }}
+                          />
                         </div>
                       </div>
 
@@ -874,7 +952,10 @@ export function QuantumUtilityDashboard() {
                           </span>
                         </div>
                         <div className="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-                          <div className="bg-emerald-400 h-full" style={{ width: `${resultData.runtime.quantumFidelity * 100}%` }} />
+                          <div
+                            className="bg-emerald-400 h-full"
+                            style={{ width: `${resultData.runtime.quantumFidelity * 100}%` }}
+                          />
                         </div>
                       </div>
                     </div>
@@ -922,22 +1003,31 @@ export function QuantumUtilityDashboard() {
                     <div className="space-y-2">
                       <div className="flex justify-between p-1.5 rounded bg-black/20">
                         <span className="text-muted-foreground">Índice en Libro Mayor BookPI:</span>
-                        <span className="text-white font-bold font-mono">Bloque #{resultData.audit.ledgerBlockIndex}</span>
+                        <span className="text-white font-bold font-mono">
+                          Bloque #{resultData.audit.ledgerBlockIndex}
+                        </span>
                       </div>
                       <div className="flex justify-between p-1.5 rounded bg-black/20">
-                        <span className="text-muted-foreground">Validación de Firma de firmware:</span>
+                        <span className="text-muted-foreground">
+                          Validación de Firma de firmware:
+                        </span>
                         <span className="text-emerald-400 font-bold">🟢 VERIFICADO (PQC)</span>
                       </div>
                       <div className="flex justify-between p-1.5 rounded bg-black/20">
-                        <span className="text-muted-foreground">Costo de procesamiento (QPU+Decod):</span>
-                        <span className="text-crown font-bold">${(resultData.audit.costCents / 100).toFixed(2)} USD</span>
+                        <span className="text-muted-foreground">
+                          Costo de procesamiento (QPU+Decod):
+                        </span>
+                        <span className="text-crown font-bold">
+                          ${(resultData.audit.costCents / 100).toFixed(2)} USD
+                        </span>
                       </div>
                     </div>
 
                     <div className="p-2.5 bg-crown/10 border border-crown/20 rounded-lg text-[10.5px] leading-tight text-white flex gap-1.5 items-start">
                       <Lock className="size-4 shrink-0 text-crown" />
                       <div>
-                        El costo fue debitado correctamente de su cuota aislada de organización. Registro inmutable auditado.
+                        El costo fue debitado correctamente de su cuota aislada de organización.
+                        Registro inmutable auditado.
                       </div>
                     </div>
                   </div>
@@ -956,52 +1046,71 @@ export function QuantumUtilityDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-mono">
                   {/* ATLAS checklist card */}
                   <div className="p-3 bg-black/30 rounded-xl border border-border/5 space-y-1 text-center">
-                    <span className="text-[10px] text-muted-foreground uppercase block font-bold">ATLAS Impact</span>
-                    <span className={`block text-xs font-bold font-mono mt-1 ${resultData.governance.atlasInterpretation === "POSITIVE" ? "text-emerald-400" : "text-amber-400"}`}>
-                      {resultData.governance.atlasInterpretation} ({resultData.governance.atlasImpact.toFixed(2)})
+                    <span className="text-[10px] text-muted-foreground uppercase block font-bold">
+                      ATLAS Impact
                     </span>
-                    <span className="text-[9px] text-muted-foreground block mt-1">Simulación Territorial</span>
+                    <span
+                      className={`block text-xs font-bold font-mono mt-1 ${resultData.governance.atlasInterpretation === "POSITIVE" ? "text-emerald-400" : "text-amber-400"}`}
+                    >
+                      {resultData.governance.atlasInterpretation} (
+                      {resultData.governance.atlasImpact.toFixed(2)})
+                    </span>
+                    <span className="text-[9px] text-muted-foreground block mt-1">
+                      Simulación Territorial
+                    </span>
                   </div>
 
                   {/* ANUBIS checklist card */}
                   <div className="p-3 bg-black/30 rounded-xl border border-border/5 space-y-1 text-center">
-                    <span className="text-[10px] text-muted-foreground uppercase block font-bold">ANUBIS Hash</span>
+                    <span className="text-[10px] text-muted-foreground uppercase block font-bold">
+                      ANUBIS Hash
+                    </span>
                     <span className="block text-xs font-bold text-emerald-400 mt-1">
                       {resultData.governance.anubisIntegrity}
                     </span>
-                    <span className="text-[9px] text-muted-foreground block mt-1">Integridad de Artefacto</span>
+                    <span className="text-[9px] text-muted-foreground block mt-1">
+                      Integridad de Artefacto
+                    </span>
                   </div>
 
                   {/* THEMIS checklist card */}
                   <div className="p-3 bg-black/30 rounded-xl border border-border/5 space-y-1 text-center">
-                    <span className="text-[10px] text-muted-foreground uppercase block font-bold">THEMIS Explain</span>
+                    <span className="text-[10px] text-muted-foreground uppercase block font-bold">
+                      THEMIS Explain
+                    </span>
                     <span className="block text-xs font-bold text-emerald-400 mt-1">
                       {resultData.governance.themisAuditability}
                     </span>
-                    <span className="text-[9px] text-muted-foreground block mt-1">Auditabilidad de Ruta</span>
+                    <span className="text-[9px] text-muted-foreground block mt-1">
+                      Auditabilidad de Ruta
+                    </span>
                   </div>
 
                   {/* VIGIA checklist card */}
                   <div className="p-3 bg-black/30 rounded-xl border border-border/5 space-y-1 text-center">
-                    <span className="text-[10px] text-muted-foreground uppercase block font-bold">VIGIA Policy Gate</span>
+                    <span className="text-[10px] text-muted-foreground uppercase block font-bold">
+                      VIGIA Policy Gate
+                    </span>
                     <span className="block text-xs font-bold text-emerald-400 mt-1">
                       {resultData.governance.vigiaAction} (ALLOWED)
                     </span>
-                    <span className="text-[9px] text-muted-foreground block mt-1">Gate de Restricciones</span>
+                    <span className="text-[9px] text-muted-foreground block mt-1">
+                      Gate de Restricciones
+                    </span>
                   </div>
                 </div>
 
                 {/* Audit expediente text */}
                 <div className="p-3.5 bg-[#13151f] rounded-xl border border-border/10 space-y-1.5 text-xs font-mono">
                   <div className="text-[11px] font-bold text-white uppercase tracking-wider flex items-center gap-1">
-                    <ListFilter className="size-3.5 text-crown" /> Expediente de Decisión Auditable (THEMIS summary):
+                    <ListFilter className="size-3.5 text-crown" /> Expediente de Decisión Auditable
+                    (THEMIS summary):
                   </div>
                   <p className="text-muted-foreground leading-relaxed text-[11px]">
                     {resultData.governance.expedienteSummary}
                   </p>
                 </div>
               </div>
-
             </div>
           )}
 
@@ -1106,7 +1215,6 @@ export function QuantumUtilityDashboard() {
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -1129,9 +1237,7 @@ export function QuantumUtilityDashboard() {
             <span className="block text-[10px] font-mono text-muted-foreground uppercase">
               Core Quantum Framework
             </span>
-            <span className="block text-xs font-bold text-white font-mono">
-              Qiskit SDK v1.4.0
-            </span>
+            <span className="block text-xs font-bold text-white font-mono">Qiskit SDK v1.4.0</span>
             <span className="text-[9.5px] font-mono text-emerald-400 flex items-center gap-1">
               🟢 Nativo Completo
             </span>
@@ -1151,9 +1257,7 @@ export function QuantumUtilityDashboard() {
             <span className="block text-[10px] font-mono text-muted-foreground uppercase">
               Auditoría Ledger
             </span>
-            <span className="block text-xs font-bold text-white font-mono">
-              BookPI Ledger Gate
-            </span>
+            <span className="block text-xs font-bold text-white font-mono">BookPI Ledger Gate</span>
             <span className="text-[9.5px] font-mono text-purple-400 flex items-center gap-1">
               🟢 Enlazado C.R.O.W.N.
             </span>
@@ -1174,7 +1278,16 @@ export function QuantumUtilityDashboard() {
         {/* Detailed diagnostic logs console */}
         <div className="p-3 bg-black/50 border border-border/5 rounded-xl font-mono text-[9.5px] text-muted-foreground space-y-1 max-h-[110px] overflow-auto select-all scrollbar-thin">
           {systemLogs.map((log, idx) => (
-            <div key={idx} className={log.includes("ERROR") ? "text-red-400" : log.includes("Éxito") || log.includes("finalizado") ? "text-emerald-400 font-semibold" : ""}>
+            <div
+              key={idx}
+              className={
+                log.includes("ERROR")
+                  ? "text-red-400"
+                  : log.includes("Éxito") || log.includes("finalizado")
+                    ? "text-emerald-400 font-semibold"
+                    : ""
+              }
+            >
               {log}
             </div>
           ))}

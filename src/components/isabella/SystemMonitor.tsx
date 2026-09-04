@@ -60,7 +60,7 @@ export function SystemMonitor() {
             cpu: Math.max(5, Math.min(98, n.cpu + cpuDelta)),
             memory: Math.max(10, Math.min(95, n.memory + memDelta)),
           };
-        })
+        }),
       );
     }, 4500);
 
@@ -91,7 +91,10 @@ export function SystemMonitor() {
   };
 
   return (
-    <div className="p-5 rounded-2xl bg-[#13151f] border border-border/10 space-y-4 font-mono text-xs text-muted-foreground" id="system-k8s-monitor">
+    <div
+      className="p-5 rounded-2xl bg-[#13151f] border border-border/10 space-y-4 font-mono text-xs text-muted-foreground"
+      id="system-k8s-monitor"
+    >
       <div className="flex items-center justify-between pb-2 border-b border-border/5">
         <div className="flex items-center gap-2">
           <Server className="size-4 text-emerald-400" />
@@ -99,11 +102,25 @@ export function SystemMonitor() {
             Consola K8s y Monitoreo del Entorno
           </h3>
         </div>
-        <div className="flex items-center gap-1.5 font-bold uppercase text-[9px] px-2.5 py-0.5 rounded-full border" style={{
-          borderColor: envMode === "production" ? "rgba(16, 185, 129, 0.3)" : envMode === "staging" ? "rgba(234, 179, 8, 0.3)" : "rgba(180, 112, 249, 0.3)",
-          color: envMode === "production" ? "#10b981" : envMode === "staging" ? "#eab308" : "#b470f9",
-          backgroundColor: envMode === "production" ? "rgba(16, 185, 129, 0.05)" : envMode === "staging" ? "rgba(234, 179, 8, 0.05)" : "rgba(180, 112, 249, 0.05)",
-        }}>
+        <div
+          className="flex items-center gap-1.5 font-bold uppercase text-[9px] px-2.5 py-0.5 rounded-full border"
+          style={{
+            borderColor:
+              envMode === "production"
+                ? "rgba(16, 185, 129, 0.3)"
+                : envMode === "staging"
+                  ? "rgba(234, 179, 8, 0.3)"
+                  : "rgba(180, 112, 249, 0.3)",
+            color:
+              envMode === "production" ? "#10b981" : envMode === "staging" ? "#eab308" : "#b470f9",
+            backgroundColor:
+              envMode === "production"
+                ? "rgba(16, 185, 129, 0.05)"
+                : envMode === "staging"
+                  ? "rgba(234, 179, 8, 0.05)"
+                  : "rgba(180, 112, 249, 0.05)",
+          }}
+        >
           ENTORNO: {envMode}
         </div>
       </div>
@@ -119,7 +136,10 @@ export function SystemMonitor() {
             <span className="font-bold text-emerald-400">{globalCpu}%</span>
           </div>
           <div className="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-emerald-400 h-full transition-all duration-1000" style={{ width: `${globalCpu}%` }} />
+            <div
+              className="bg-emerald-400 h-full transition-all duration-1000"
+              style={{ width: `${globalCpu}%` }}
+            />
           </div>
         </div>
 
@@ -132,7 +152,10 @@ export function SystemMonitor() {
             <span className="font-bold text-blue-400">{globalMem}%</span>
           </div>
           <div className="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-blue-400 h-full transition-all duration-1000" style={{ width: `${globalMem}%` }} />
+            <div
+              className="bg-blue-400 h-full transition-all duration-1000"
+              style={{ width: `${globalMem}%` }}
+            />
           </div>
         </div>
 
@@ -150,11 +173,7 @@ export function SystemMonitor() {
             disabled={isScaling}
             className="px-2.5 py-1.5 rounded-lg bg-crown/15 hover:bg-crown/25 text-crown border border-crown/20 text-[9.5px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all"
           >
-            {isScaling ? (
-              <RefreshCw className="size-3 animate-spin" />
-            ) : (
-              <span>Escalar K8s</span>
-            )}
+            {isScaling ? <RefreshCw className="size-3 animate-spin" /> : <span>Escalar K8s</span>}
           </button>
         </div>
       </div>
@@ -178,8 +197,12 @@ export function SystemMonitor() {
                 </span>
               </div>
               <div className="flex gap-4 font-mono text-[10px]">
-                <span>CPU: <strong className="text-white">{node.cpu}%</strong></span>
-                <span>MEM: <strong className="text-white">{node.memory}%</strong></span>
+                <span>
+                  CPU: <strong className="text-white">{node.cpu}%</strong>
+                </span>
+                <span>
+                  MEM: <strong className="text-white">{node.memory}%</strong>
+                </span>
                 <span className="text-emerald-400 font-bold uppercase">Ready</span>
               </div>
             </div>

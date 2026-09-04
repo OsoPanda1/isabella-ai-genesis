@@ -16,7 +16,8 @@ export interface QupExperimentInput {
   config: {
     qubitCount: number;
     circuitDepth: number;
-    objective: "hamiltonian_spectrum" | "qml_classification" | "qec_syndrome" | "quantum_simulation";
+    objective:
+      "hamiltonian_spectrum" | "qml_classification" | "qec_syndrome" | "quantum_simulation";
     errorMitigation: ("ZNE" | "PEC" | "TREX")[];
     errorCorrection: "toric_code_L3" | "toric_code_L5" | "none";
     classicalBaseline: "xgboost" | "pytorch_mlp" | "jax_ode";
@@ -137,10 +138,10 @@ export class FeaturePlane {
     getProof: (index: number) => string[];
   } {
     const leaves = data.map((item) =>
-      crypto.createHash("sha3-512").update(JSON.stringify(item)).digest("hex")
+      crypto.createHash("sha3-512").update(JSON.stringify(item)).digest("hex"),
     );
 
-    let tree: string[][] = [leaves];
+    const tree: string[][] = [leaves];
     while (tree[tree.length - 1].length > 1) {
       const currentLevel = tree[tree.length - 1];
       const nextLevel: string[] = [];
@@ -156,7 +157,8 @@ export class FeaturePlane {
       tree.push(nextLevel);
     }
 
-    const root = tree[tree.length - 1][0] || crypto.createHash("sha3-512").update("empty").digest("hex");
+    const root =
+      tree[tree.length - 1][0] || crypto.createHash("sha3-512").update("empty").digest("hex");
 
     const getProof = (index: number): string[] => {
       const proof: string[] = [];
@@ -206,7 +208,7 @@ export class QupMlRuntime {
     qubitCount: number,
     depth: number,
     errorMitigation: ("ZNE" | "PEC" | "TREX")[],
-    errorCorrection: "toric_code_L3" | "toric_code_L5" | "none"
+    errorCorrection: "toric_code_L3" | "toric_code_L5" | "none",
   ) {
     // 1. Raw hardware error rates based on layout parameters
     const baseDepolarizingError = 0.015; // 1.5% 2-qubit gate error
@@ -225,20 +227,22 @@ export class QupMlRuntime {
     const hasQec = errorCorrection !== "none";
     const L = errorCorrection === "toric_code_L5" ? 5 : errorCorrection === "toric_code_L3" ? 3 : 0;
     const syndromeDetected = hasQec && Math.random() < 0.45;
-    const syndromesCount = syndromeDetected ? Math.floor(Math.random() * (L * L) / 2) + 1 : 0;
-    
+    const syndromesCount = syndromeDetected ? Math.floor((Math.random() * (L * L)) / 2) + 1 : 0;
+
     // Simulating Minimum Weight Perfect Matching (MWPM) Decoder Steps
     const decoderSteps = syndromeDetected ? syndromesCount * 2 + Math.floor(Math.random() * L) : 0;
-    const recoverySuccessful = hasQec ? (Math.random() > (rawErrorRate / L)) : false;
+    const recoverySuccessful = hasQec ? Math.random() > rawErrorRate / L : false;
 
     // Quantum Fidelity
-    const quantumFidelity = hasQec 
-      ? (recoverySuccessful ? Math.max(0.985, 1 - mitigatedErrorRate * 0.05) : Math.max(0.85, 1 - mitigatedErrorRate * 0.5))
-      : Math.max(0.70, 1 - mitigatedErrorRate);
+    const quantumFidelity = hasQec
+      ? recoverySuccessful
+        ? Math.max(0.985, 1 - mitigatedErrorRate * 0.05)
+        : Math.max(0.85, 1 - mitigatedErrorRate * 0.5)
+      : Math.max(0.7, 1 - mitigatedErrorRate);
 
     // 4. Classical MLP / XGBoost comparisons
     const classicalLoss = 0.05 + Math.random() * 0.15;
-    const classicalAccuracy = 1.0 - classicalLoss - (Math.random() * 0.02);
+    const classicalAccuracy = 1.0 - classicalLoss - Math.random() * 0.02;
 
     return {
       quantumFidelity,
@@ -265,11 +269,14 @@ export class QupCompilationPlane {
    */
   public static compileCircuit(originalDepth: number, qubitCount: number) {
     const isBigCircuit = originalDepth > 100;
-    
+
     // Simulate PassManager compilation optimizations
-    const mappingStrategy = qubitCount > 25 ? "SabreMap (Dense Layout)" : "TrivialMap (Direct coupling)";
+    const mappingStrategy =
+      qubitCount > 25 ? "SabreMap (Dense Layout)" : "TrivialMap (Direct coupling)";
     const routingStrategy = qubitCount > 25 ? "StochasticSWAP Router" : "LookaheadSWAP Router";
-    const optimizationLevel = isBigCircuit ? "PassManager Level 3 (Heavy Synthesis)" : "PassManager Level 2 (Local Simplify)";
+    const optimizationLevel = isBigCircuit
+      ? "PassManager Level 3 (Heavy Synthesis)"
+      : "PassManager Level 2 (Local Simplify)";
     const translationStrategy = "BasisTranslator ([rx, ry, rz, cx, id] -> ISA)";
 
     // Compile-time compression
@@ -280,7 +287,7 @@ export class QupCompilationPlane {
     const gateCount = {
       rx: Math.round(totalGateCount * 0.35),
       ry: Math.round(totalGateCount * 0.25),
-      rz: Math.round(totalGateCount * 0.20),
+      rz: Math.round(totalGateCount * 0.2),
       cx: Math.round(totalGateCount * 0.15),
       measure: qubitCount,
     };
@@ -321,15 +328,30 @@ export class PqcCryptography {
     const payloadHash = crypto.createHash("sha3-512").update(payload).digest();
 
     // ML-DSA-87 (FIPS 204) parameter set modeling
-    const mlDsaPrivateKey = crypto.createHash("sha3-512").update("ML-DSA-87-PRIVATE-KEY-SOVEREIGN").digest();
-    const mlDsaPublicKeyHex = crypto.createHash("sha3-512").update("ML-DSA-87-PUBLIC-KEY-SOVEREIGN").digest("hex");
-    
+    const mlDsaPrivateKey = crypto
+      .createHash("sha3-512")
+      .update("ML-DSA-87-PRIVATE-KEY-SOVEREIGN")
+      .digest();
+    const mlDsaPublicKeyHex = crypto
+      .createHash("sha3-512")
+      .update("ML-DSA-87-PUBLIC-KEY-SOVEREIGN")
+      .digest("hex");
+
     // ML-DSA deterministic signing algorithm
-    const mlDsaSig = crypto.createHmac("sha3-512", mlDsaPrivateKey).update(payloadHash).digest("hex");
+    const mlDsaSig = crypto
+      .createHmac("sha3-512", mlDsaPrivateKey)
+      .update(payloadHash)
+      .digest("hex");
 
     // SLH-DSA-SHA2-256s (FIPS 205) Sphincs+ parameter set modeling
-    const slhDsaPrivateKey = crypto.createHash("sha3-512").update("SLH-DSA-256S-PRIVATE-KEY-SOVEREIGN").digest();
-    const slhDsaPublicKeyHex = crypto.createHash("sha3-512").update("SLH-DSA-256S-PUBLIC-KEY-SOVEREIGN").digest("hex");
+    const slhDsaPrivateKey = crypto
+      .createHash("sha3-512")
+      .update("SLH-DSA-256S-PRIVATE-KEY-SOVEREIGN")
+      .digest();
+    const slhDsaPublicKeyHex = crypto
+      .createHash("sha3-512")
+      .update("SLH-DSA-256S-PUBLIC-KEY-SOVEREIGN")
+      .digest("hex");
 
     // SLH-DSA multi-tree hash and randomized salt signature signature step
     const slhSalt = crypto.randomBytes(16);
@@ -361,7 +383,7 @@ export class QupOrchestrator {
     tenantId: string,
     userId: string,
     traceId: string,
-    input: QupExperimentInput
+    input: QupExperimentInput,
   ): Promise<QupExperimentResult> {
     const correlationId = `corr_qup_${crypto.randomUUID().slice(0, 8)}`;
     const ip = "127.0.0.1";
@@ -369,37 +391,65 @@ export class QupOrchestrator {
     // --- PHASE 1: FEATURE & DATASET PLANE ---
     const schemaValid = FeaturePlane.validateSchema(input.dataset.features);
     if (!schemaValid) {
-      throw new Error("Dataset features failed validation schema check. 'x' and 'y' columns are required.");
+      throw new Error(
+        "Dataset features failed validation schema check. 'x' and 'y' columns are required.",
+      );
     }
     const anonymizedFeatures = FeaturePlane.scrubPII(input.dataset.features);
     const merkleTree = FeaturePlane.buildMerkleTree(anonymizedFeatures);
     const leafIndex = Math.floor(anonymizedFeatures.length / 2); // proof of the middle leaf
     const proofLeaf = merkleTree.leaves[leafIndex];
     const merkleProof = merkleTree.getProof(leafIndex);
-    const proofVerified = FeaturePlane.verifyProof(proofLeaf, merkleProof, merkleTree.root, leafIndex);
+    const proofVerified = FeaturePlane.verifyProof(
+      proofLeaf,
+      merkleProof,
+      merkleTree.root,
+      leafIndex,
+    );
 
     // --- PHASE 2: COMPILATION & EXECUTION PLANE ---
-    const compilation = QupCompilationPlane.compileCircuit(input.config.circuitDepth, input.config.qubitCount);
+    const compilation = QupCompilationPlane.compileCircuit(
+      input.config.circuitDepth,
+      input.config.qubitCount,
+    );
     const runtime = QupMlRuntime.simulateExecution(
       input.config.qubitCount,
       compilation.compiledDepth,
       input.config.errorMitigation,
-      input.config.errorCorrection
+      input.config.errorCorrection,
     );
 
     // --- PHASE 3: ETHICAL GOVERNANCE (ATLAS, ANUBIS, THEMIS, VIGIA) ---
-    
+
     // 3.1 ATLAS: Scenario Territorial Impact Evaluation
     const atlasRun = await isabellaSkills.ATLAS.run(
       {
         scenario: `Evaluación de impacto de corrida cuántica '${input.dataset.name}' en Nodo de Cómputo Territorial.`,
         variables: [
-          { id: "v1", label: "Consumo Eléctrico de Compilación", currentValue: 1, projectedChange: 0.05, weight: 0.3 },
-          { id: "v2", label: "Eficiencia del Algoritmo (Fidelidad)", currentValue: runtime.quantumFidelity, projectedChange: 0.12, weight: 0.4 },
-          { id: "v3", label: "Trazabilidad Criptográfica Post-Cuántica", currentValue: 1, projectedChange: 0.25, weight: 0.3 },
+          {
+            id: "v1",
+            label: "Consumo Eléctrico de Compilación",
+            currentValue: 1,
+            projectedChange: 0.05,
+            weight: 0.3,
+          },
+          {
+            id: "v2",
+            label: "Eficiencia del Algoritmo (Fidelidad)",
+            currentValue: runtime.quantumFidelity,
+            projectedChange: 0.12,
+            weight: 0.4,
+          },
+          {
+            id: "v3",
+            label: "Trazabilidad Criptográfica Post-Cuántica",
+            currentValue: 1,
+            projectedChange: 0.25,
+            weight: 0.3,
+          },
         ],
       },
-      { actorId: userId, federation: "SOVEREIGNTY", requestId: traceId, traceId }
+      { actorId: userId, federation: "SOVEREIGNTY", requestId: traceId, locale: "es-MX", intent: "QUANTUM_SIMULATION" },
     );
 
     // 3.2 ANUBIS: SHA3-512 Integrity Check
@@ -412,7 +462,7 @@ export class QupOrchestrator {
           compiledDepth: compilation.compiledDepth,
         }),
       },
-      { actorId: userId, federation: "SOVEREIGNTY", requestId: traceId, traceId }
+      { actorId: userId, federation: "SOVEREIGNTY", requestId: traceId, locale: "es-MX", intent: "QUANTUM_SIMULATION" },
     );
 
     // 3.3 THEMIS: Generate Legal Explanable Expediente
@@ -421,26 +471,47 @@ export class QupOrchestrator {
         decisionId: `dec_qup_${traceId.slice(0, 8)}`,
         decision: `Aprobación y firma de ejecución cuántica QUP v3.0 con fidelidad del ${Math.round(runtime.quantumFidelity * 100)}%`,
         evidence: [
-          { id: "merkle_root", source: "QUP Feature Plane", excerpt: `Merkle Root: ${merkleTree.root}`, score: 1.0 },
-          { id: "fidelity", source: "QUP ML Runtime", excerpt: `Fidelity output achieved: ${runtime.quantumFidelity}`, score: 0.95 },
+          {
+            id: "merkle_root",
+            source: "QUP Feature Plane",
+            excerpt: `Merkle Root: ${merkleTree.root}`,
+            score: 1.0,
+          },
+          {
+            id: "fidelity",
+            source: "QUP ML Runtime",
+            excerpt: `Fidelity output achieved: ${runtime.quantumFidelity}`,
+            score: 0.95,
+          },
         ],
         events: [
-          { id: "ev1", type: "DATASET_VALIDATED", timestamp: new Date().toISOString(), actorId: userId, data: {} },
-          { id: "ev2", type: "CIRCUIT_COMPILED", timestamp: new Date().toISOString(), actorId: userId, data: {} },
+          {
+            id: "ev1",
+            type: "SKILL_COMPLETED",
+            skillId: "QUP",
+            timestamp: new Date().toISOString(),
+            actorId: userId,
+            payload: {},
+          },
+          {
+            id: "ev2",
+            type: "SKILL_COMPLETED",
+            skillId: "QUP",
+            timestamp: new Date().toISOString(),
+            actorId: userId,
+            payload: {},
+          },
         ],
       },
-      { actorId: userId, federation: "SOVEREIGNTY", requestId: traceId, traceId }
+      { actorId: userId, federation: "SOVEREIGNTY", requestId: traceId, locale: "es-MX", intent: "QUANTUM_SIMULATION" },
     );
 
     // 3.4 VIGIA: Ethical Multi-Lock Verification gate
     const vigiaRun = await isabellaSkills.VIGIA.run(
       {
-        actorId: userId,
-        action: `quantum:execute:${input.backend}`,
-        riskLevel: "HIGH",
-        justification: "Cómputo cuántico soberano evaluado para el desarrollo local.",
+        text: `quantum:execute:${input.backend} risk:HIGH user:${userId}`,
       },
-      { actorId: userId, federation: "SOVEREIGNTY", requestId: traceId, traceId }
+      { actorId: userId, federation: "SOVEREIGNTY", requestId: traceId, locale: "es-MX", intent: "QUANTUM_SIMULATION" },
     );
 
     // --- PHASE 4: POST-QUANTUM CRYPTOGRAPHIC AUDIT ---
@@ -448,22 +519,24 @@ export class QupOrchestrator {
       root: merkleTree.root,
       compiledDepth: compilation.compiledDepth,
       fidelity: runtime.quantumFidelity,
-      vigiaAction: vigiaRun.data?.action,
+      vigiaAllowed: vigiaRun.data?.allowed,
     });
     const pqcSignatures = PqcCryptography.generateSignatures(payloadToSign);
 
     // --- PHASE 5: SOVEREIGN LEDGER & BOOKPI INTEGRITY ---
     // Deduct cost based on resources
-    const costCents = Math.round(50 + compilation.latencyMs * 0.1 + (input.config.errorCorrection !== "none" ? 250 : 0));
-    
+    const costCents = Math.round(
+      50 + compilation.latencyMs * 0.1 + (input.config.errorCorrection !== "none" ? 250 : 0),
+    );
+
     // Register the quantum calculation block on the Sovereign BookPI ledger
     const block = SovereignDB.appendLedgerBlock(
       tenantId,
       userId,
       `QUP v3.0 Compilación + Simulación: ${input.config.objective}. Qubits: ${input.config.qubitCount}. Fidelidad: ${Math.round(runtime.quantumFidelity * 100)}%. ML-DSA Firmware Firmado.`,
       "inference",
-      costCents,
-      compilation.compiledDepth
+      costCents / 100,
+      compilation.compiledDepth,
     );
 
     // Append Audit record in SovereignDB
@@ -473,7 +546,7 @@ export class QupOrchestrator {
       ip,
       "QUP v3.0 Workflow Executed Successfully",
       "S3",
-      `Ejecutado con éxito en ${input.backend}. Costo: $${(costCents / 100).toFixed(2)}. PQC ML-DSA validado. Merkle root: ${merkleTree.root.slice(0, 16)}...`
+      `Ejecutado con éxito en ${input.backend}. Costo: $${(costCents / 100).toFixed(2)}. PQC ML-DSA validado. Merkle root: ${merkleTree.root.slice(0, 16)}...`,
     );
 
     return {
@@ -504,7 +577,7 @@ export class QupOrchestrator {
         atlasInterpretation: atlasRun.data?.interpretation ?? "NEUTRAL",
         anubisIntegrity: anubisRun.status === "SUCCESS" ? "VERIFIED" : "MISMATCH",
         themisAuditability: themisRun.data?.auditability ?? "PARTIAL",
-        vigiaAction: vigiaRun.data?.action ?? "ALLOW",
+        vigiaAction: vigiaRun.data?.allowed ? "ALLOW" : "TEMPORARY_BLOCK",
         expedienteSummary: themisRun.summary,
       },
     };

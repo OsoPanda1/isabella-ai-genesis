@@ -556,6 +556,13 @@ export class SovereignDB {
     this.save(db);
   }
 
+  public static saveMarketplaceListings(listings: unknown[]): void {
+    const db = this.load();
+    db.settings = db.settings || {};
+    db.settings.marketplaceListings = listings;
+    this.save(db);
+  }
+
   public static getMonetizationAccount(userId: string) {
     const db = this.load();
     db.monetization = db.monetization || {};
