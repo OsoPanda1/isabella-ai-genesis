@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, FolderOpen } from "lucide-react";
-import { CinematicIntro } from "@/components/isabella/CinematicIntro";
+import CinematicIntro from "@/components/isabella/CinematicIntro";
 import { CommandLine } from "@/components/isabella/CommandLine";
 import { MessageStream } from "@/components/isabella/MessageStream";
 import { RightRails } from "@/components/isabella/RightRails";

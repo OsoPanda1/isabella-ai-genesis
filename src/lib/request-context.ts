@@ -36,10 +36,10 @@ export function createRequestContext(
     correlationId: genId(),
     requestId: genId(),
     startedAt,
-    clientIp: opts.clientIp,
-    method: opts.method,
-    path: opts.path,
-    route: opts.route,
+    ...(opts.clientIp !== undefined ? { clientIp: opts.clientIp } : {}),
+    ...(opts.method !== undefined ? { method: opts.method } : {}),
+    ...(opts.path !== undefined ? { path: opts.path } : {}),
+    ...(opts.route !== undefined ? { route: opts.route } : {}),
   };
 }
 

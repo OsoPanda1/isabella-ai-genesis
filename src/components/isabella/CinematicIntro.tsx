@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, lazy, Suspense } from "react";
 import * as THREE from "three";
-import { Volume3, VolumeX, SkipForward, Play, Activity } from "lucide-react";
+import { Volume2, VolumeX, SkipForward, Play, Activity } from "lucide-react";
 
 const TARGET_FPS = 60;
 const DURATION = 59; // Duración total en segundos
@@ -437,7 +437,7 @@ export function CinematicIntroContent({
                 {muted ? (
                   <VolumeX className="size-3.5" />
                 ) : (
-                  <Volume3 className="size-3.5" />
+                  <Volume2 className="size-3.5" />
                 )}
                 {muted ? "Audio Desactivado" : "Audio Activado"}
               </button>

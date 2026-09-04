@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { Activity, ShieldAlert, Cpu, Terminal, Radio, Volume2, VolumeX, Play } from "lucide-react";
+import { Activity, ShieldAlert, Cpu, Terminal, Radio, Volume2, VolumeX } from "lucide-react";
 
 export interface IsabellaRemoteTelemetryPayload {
   elapsed: number;
