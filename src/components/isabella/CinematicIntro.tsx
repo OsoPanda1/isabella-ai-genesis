@@ -74,6 +74,7 @@ function CrystalWorldEngine({
       roughness: 0.12,
       transmission: 0.3,
       transparent: true,
+      opacity: 0.95,
       clearcoat: 1.0,
       clearcoatRoughness: 0.1,
     });
@@ -436,7 +437,7 @@ export function CinematicIntroContent({
                 {muted ? (
                   <VolumeX className="size-3.5" />
                 ) : (
-                  <Volume2 className="size-3.5" />
+                  <Volume3 className="size-3.5" />
                 )}
                 {muted ? "Audio Desactivado" : "Audio Activado"}
               </button>
@@ -449,10 +450,20 @@ export function CinematicIntroContent({
 }
 
 // -----------------------------------------------------------------------------
-// 3. EXPORTACIÓN POR DEFECTO (Orquestador Autónomo)
+// 3. EXPORTACIÓN CON CARGA DINÁMICA DE MODULE FEDERATION (A prueba de Vite)
 // -----------------------------------------------------------------------------
-// Se exporta como el componente por defecto que utilizará la aplicación host,
-// asegurando que sea local y no requiera federación externa para compilar.
+const remoteModuleUrl = "isabellaRemote/CinematicIntro";
+
+const RemoteCinematicModule = lazy(() =>
+  import(/* @vite-ignore */ remoteModuleUrl).catch(() => ({
+    default: CinematicIntroContent,
+  }))
+);
+
 export default function CinematicIntro(props: CinematicIntroProps) {
-  return <CinematicIntroContent {...props} />;
+  return (
+    <Suspense fallback={<CinematicIntroContent {...props} />}>
+      <RemoteCinematicModule {...props} />
+    </Suspense>
+  );
 }
