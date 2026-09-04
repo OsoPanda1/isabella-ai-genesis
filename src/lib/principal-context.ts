@@ -23,12 +23,11 @@ export class PrincipalContext {
   public readonly userId: string;
   public readonly username: string;
   public readonly tenantId: string;
-  public readonly role: Role | "sovereign_architect"; // Added architect override role
+  public readonly role: Role;
   public readonly scope: string;
   public readonly ip: string;
   public readonly traceId: string;
   public readonly correlationId: string;
-  public readonly isCreator: boolean;
   public readonly tenant: { id: string; slug: string; tier: string; quotaBalance: number };
 
   private constructor(
@@ -40,14 +39,9 @@ export class PrincipalContext {
     correlationId: string,
   ) {
     this.userId = claims.sub;
-    
-    // Sovereign Creator Recognition
-    const creatorEmails = ["metaversotamv.online@gmail.com", "anubis.villasenor@gmail.com"];
-    this.isCreator = creatorEmails.includes(claims.email?.toLowerCase() ?? "") || username.toLowerCase().includes("edwin oswaldo castillo trejo");
-    
-    this.username = this.isCreator ? "Edwin Oswaldo Castillo Trejo (Sovereign Architect)" : username;
+    this.username = username;
     this.tenantId = claims.tenantId;
-    this.role = this.isCreator ? "sovereign_architect" : (claims.role as Role);
+    this.role = claims.role as Role;
     this.scope = claims.scope;
     this.ip = ip;
     this.traceId = traceId;
@@ -59,7 +53,7 @@ export class PrincipalContext {
   public toRequestIdentity(): RequestIdentity {
     return {
       userId: this.userId,
-      role: this.role as Role, // Type casting for downstream strict interfaces
+      role: this.role,
       tenantId: this.tenantId,
       scope: this.scope,
     };

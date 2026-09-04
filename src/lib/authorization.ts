@@ -56,17 +56,6 @@ export function authorize(request: AuthorizationRequest): AuthorizationResult {
   const { identity, resource, action, tenant } = request;
   const reasons: string[] = [];
 
-  // OVERRIDE: Sovereign Architect Creator Recognition (Edwin Oswaldo Castillo Trejo)
-  if (identity.role === "sovereign_architect") {
-    return {
-      decision: "allowed",
-      resource,
-      action,
-      permission: "sovereign.bypass",
-      reasons: ["Sovereign Architect Absolute Authority Bypass - Creator Verified."],
-    };
-  }
-
   // 1. Frontera de tenant.
   if (!tenant.boundaryOk) {
     return fail(resource, action, [tenant.reason, "Rechazado por frontera de tenant."]);
