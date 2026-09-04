@@ -16,6 +16,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as crypto from "node:crypto";
+import { config } from "../config";
 
 export type LedgerCategory = "inference" | "processing" | "apis" | "skills" | "other";
 export type LedgerStatus = "settled" | "pending" | "refunded";
@@ -64,6 +65,11 @@ function toCents(value: number): string {
  * Análisis-estructura: expose métodos puros y capa de persistencia real.
  */
 export function createBookpiRepository(storePath: string = STORE_PATH) {
+  const runtime = config();
+  if (runtime.ISABELLA_RUNTIME_MODE === "production" || runtime.ISABELLA_RUNTIME_MODE === "staging") {
+    throw new Error("JSON BookPI persistence is disabled in staging and production. Use createBookpiPostgresRepository().");
+  }
+
   function loadStore(): BookPIStoreFile {
     if (!fs.existsSync(storePath)) {
       return { blocks: [], genesisPreviousHash: GENESIS_PREVIOUS_HASH };

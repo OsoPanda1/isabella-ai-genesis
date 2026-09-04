@@ -57,7 +57,8 @@ export const envSchema = z.object({
   ISABELLA_RUNTIME_MODE: runtimeModeSchema.default("development"),
   PUBLIC_URL: z.string().url().default("http://localhost:3000"),
 
-  // --- SUPABASE ---
+  // --- POSTGRES / SUPABASE ---
+  DATABASE_URL: optionalString(),
   SUPABASE_URL: optionalUrl(),
   SUPABASE_ANON_KEY: optionalString(),
   SUPABASE_SERVICE_ROLE_KEY: optionalString(),
