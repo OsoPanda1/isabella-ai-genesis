@@ -278,7 +278,9 @@ export class SovereignSandboxService {
         "No existe un executor de contenedores real conectado.",
       );
 
-      throw new Error("Capacidad unavailable: no existe ejecutor de contenedores real conectado.");
+      throw new Error(
+        "Container executor is not defined: ephemeral sandbox container cannot be provisioned.",
+      );
     }
 
     await this.containerExecutor.provision(traceId);

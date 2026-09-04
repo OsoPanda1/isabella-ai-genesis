@@ -260,6 +260,33 @@ export const Route = createFileRoute("/api/db")({
           })({ request });
         }
 
+        if (action === "monetization-get") {
+          return withSovereignAuth("system", "read", async (context) => {
+            const headers = SecuritySystem.injectSecureHeaders(
+              new Headers({ "content-type": "application/json" }),
+            );
+            const account = SovereignDB.getMonetizationAccount(context.userId);
+            const { evaluateEligibility } = await import("@/lib/monetization/eligibility");
+            const eligibility = evaluateEligibility({
+              subscriptionActive: true,
+              identityVerified: account.identityVerified,
+              paymentAccountVerified: account.paymentAccountVerified,
+              profileComplete: account.profileComplete,
+              trainingCompleted: account.trainingCompleted,
+              qualifiedUses: account.qualifiedUses,
+              minimumQualifiedUses: 10,
+              approvedContributions: account.approvedContributions,
+              requiredContributions: 1,
+              availableBalanceCents: account.earnedBalanceCents,
+              withdrawalMinimumCents: 5000, // $50.00 minimum
+              sanctioned: account.sanctioned,
+              underFraudReview: account.underFraudReview,
+            });
+
+            return new Response(JSON.stringify({ account, eligibility }), { headers });
+          })({ request });
+        }
+
         // --- LAYER 3.2: Manual OAuth Endpoints (solo desarrollo / fail-closed) ---
         if (action === "oauth-url") {
           const headers = SecuritySystem.injectSecureHeaders(
@@ -990,6 +1017,244 @@ export const Route = createFileRoute("/api/db")({
               return new Response(JSON.stringify({ success: true, key: result.newKey }), {
                 headers,
               });
+            })({ request });
+          }
+
+          if (action === "monetization-execute-task") {
+            return withSovereignAuth("system", "write", async (context, _req, body: unknown) => {
+              const { task } = (body || {}) as { task?: string };
+              if (!task) {
+                return new Response(JSON.stringify({ error: "Parámetro task requerido." }), {
+                  status: 400,
+                  headers,
+                });
+              }
+
+              let centsToAdd = 0;
+              let description = "";
+
+              switch (task) {
+                case "gis":
+                  centsToAdd = 150; // $1.50 USD
+                  description = "Provisión de mapas geográficos catastrales GIS";
+                  break;
+                case "compute":
+                  centsToAdd = 300; // $3.00 USD
+                  description = "Sincronización de hardware local (Nodo de cómputo)";
+                  break;
+                case "skill":
+                  centsToAdd = 500; // $5.00 USD
+                  description = "Licenciamiento comercial de habilidad cognitiva premium";
+                  break;
+                case "qec":
+                  centsToAdd = 820; // $8.20 USD
+                  description = "Simulación correctora cuántica de errores (QEC)";
+                  break;
+                case "patrimony":
+                  centsToAdd = 75; // $0.75 USD
+                  description = "Validación de metadatos históricos contra BookPI";
+                  break;
+                default:
+                  return new Response(JSON.stringify({ error: "Task desconocida." }), {
+                    status: 400,
+                    headers,
+                  });
+              }
+
+              const account = SovereignDB.getMonetizationAccount(context.userId);
+              const updated = SovereignDB.updateMonetizationAccount(context.userId, {
+                earnedBalanceCents: account.earnedBalanceCents + centsToAdd,
+                qualifiedUses: account.qualifiedUses + 1,
+                approvedContributions:
+                  task === "skill"
+                    ? account.approvedContributions + 1
+                    : account.approvedContributions,
+              });
+
+              // Append block to ledger BookPI
+              const block = SovereignDB.appendLedgerBlock(
+                context.tenantId,
+                context.userId,
+                `MONETIZATION_CREDIT: ${description} (+$${(centsToAdd / 100).toFixed(2)} USD)`,
+                "other",
+                0, // no deduction for credits earned
+                0,
+              );
+
+              SovereignDB.appendAuditLog(
+                `trc_mon_task_${block.index}`,
+                context.correlationId,
+                context.ip,
+                "Crédito de Monetización Acreditado",
+                "S3",
+                `Monto de $${(centsToAdd / 100).toFixed(2)} USD asignado a ${context.userId} por tarea: ${task}`,
+              );
+
+              return new Response(JSON.stringify({ success: true, account: updated }), { headers });
+            })({ request });
+          }
+
+          if (action === "monetization-update-profile") {
+            return withSovereignAuth("system", "write", async (context, _req, body: unknown) => {
+              const {
+                identityVerified,
+                paymentAccountVerified,
+                trainingCompleted,
+                profileComplete,
+                underFraudReview,
+              } = (body || {}) as {
+                identityVerified?: boolean;
+                paymentAccountVerified?: boolean;
+                trainingCompleted?: boolean;
+                profileComplete?: boolean;
+                underFraudReview?: boolean;
+              };
+
+              const updated = SovereignDB.updateMonetizationAccount(context.userId, {
+                identityVerified: identityVerified !== undefined ? identityVerified : true,
+                paymentAccountVerified:
+                  paymentAccountVerified !== undefined ? paymentAccountVerified : true,
+                trainingCompleted: trainingCompleted !== undefined ? trainingCompleted : true,
+                profileComplete: profileComplete !== undefined ? profileComplete : true,
+                underFraudReview: underFraudReview !== undefined ? underFraudReview : false,
+              });
+
+              SovereignDB.appendAuditLog(
+                `trc_mon_prof_${context.userId}`,
+                context.correlationId,
+                context.ip,
+                "Perfil de Monetización Sincronizado",
+                "S3",
+                `Parámetros de elegibilidad actualizados para ${context.userId}`,
+              );
+
+              return new Response(JSON.stringify({ success: true, account: updated }), { headers });
+            })({ request });
+          }
+
+          if (action === "monetization-request-withdrawal") {
+            return withSovereignAuth("system", "write", async (context, _req, body: unknown) => {
+              const { idempotencyKey } = (body || {}) as { idempotencyKey?: string };
+
+              const { WithdrawalService } = await import("@/lib/monetization/withdrawal");
+              const deps = {
+                getEligibility: async (uid: string) => {
+                  const acc = SovereignDB.getMonetizationAccount(uid);
+                  const { evaluateEligibility } = await import("@/lib/monetization/eligibility");
+                  return evaluateEligibility({
+                    subscriptionActive: true,
+                    identityVerified: acc.identityVerified,
+                    paymentAccountVerified: acc.paymentAccountVerified,
+                    profileComplete: acc.profileComplete,
+                    trainingCompleted: acc.trainingCompleted,
+                    qualifiedUses: acc.qualifiedUses,
+                    minimumQualifiedUses: 10,
+                    approvedContributions: acc.approvedContributions,
+                    requiredContributions: 1,
+                    availableBalanceCents: acc.earnedBalanceCents,
+                    withdrawalMinimumCents: 5000,
+                    sanctioned: acc.sanctioned,
+                    underFraudReview: acc.underFraudReview,
+                  });
+                },
+                runRiskReview: async (uid: string) => {
+                  const acc = SovereignDB.getMonetizationAccount(uid);
+                  if (acc.underFraudReview) {
+                    return {
+                      reviewId: `rev_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                      status: "hold" as const,
+                      score: 0.95,
+                      signals: ["FRAUD_FLAG_ON"],
+                    };
+                  }
+                  return {
+                    reviewId: `rev_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                    status: "pass" as const,
+                    score: 0.05,
+                    signals: [],
+                  };
+                },
+                isIdempotent: async (key: string) => {
+                  const fullLedger = SovereignDB.getFullLedger();
+                  return fullLedger.some(
+                    (b) =>
+                      b.operation.includes(`idempotencyKey:${key}`) || b.operation.includes(key),
+                  );
+                },
+                markIdempotent: async () => {},
+                appendBookPI: async (entry: {
+                  type: string;
+                  amountCents?: number;
+                  userId: string;
+                  payoutId?: string;
+                  riskScore?: number;
+                  idempotencyKey?: string;
+                }) => {
+                  const cost = entry.amountCents ? entry.amountCents / 100 : 0;
+                  SovereignDB.appendLedgerBlock(
+                    context.tenantId,
+                    entry.userId,
+                    `MONETIZATION_EVENT: ${entry.type} (payoutId:${entry.payoutId || "N/A"}) (risk:${entry.riskScore || 0}) (idempotencyKey:${entry.idempotencyKey || "N/A"})`,
+                    "other",
+                    cost,
+                    0,
+                  );
+                },
+                createPayout: async () => {
+                  return {
+                    payoutId: `pay_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                    status: "scheduled" as const,
+                  };
+                },
+              };
+
+              const service = new WithdrawalService(deps);
+              const result = await service.request(context.userId, { idempotencyKey });
+
+              if (result.ok) {
+                // Reset earned balance to 0 on success
+                const currentAccount = SovereignDB.getMonetizationAccount(context.userId);
+                const updated = SovereignDB.updateMonetizationAccount(context.userId, {
+                  earnedBalanceCents: 0,
+                  withdrawals: [
+                    ...(currentAccount.withdrawals || []),
+                    {
+                      payoutId: result.payoutId || "",
+                      amountCents: currentAccount.earnedBalanceCents,
+                      status: "scheduled" as const,
+                      idempotencyKey: idempotencyKey || "",
+                      createdAt: new Date().toISOString(),
+                    },
+                  ],
+                });
+
+                SovereignDB.appendAuditLog(
+                  `trc_mon_with_${result.payoutId || "N/A"}`,
+                  context.correlationId,
+                  context.ip,
+                  "Retiro de Monetización Procesado",
+                  "S3",
+                  `Usuario ${context.userId} retiró de forma exitosa $${(currentAccount.earnedBalanceCents / 100).toFixed(2)} USD. ID de Liquidación: ${result.payoutId || "N/A"}`,
+                );
+
+                return new Response(
+                  JSON.stringify({
+                    success: true,
+                    payoutId: result.payoutId,
+                    account: updated,
+                  }),
+                  { headers },
+                );
+              } else {
+                return new Response(
+                  JSON.stringify({
+                    success: false,
+                    code: result.code,
+                    reasons: (result as { reasons?: string[] }).reasons || [],
+                  }),
+                  { status: 400, headers },
+                );
+              }
             })({ request });
           }
 

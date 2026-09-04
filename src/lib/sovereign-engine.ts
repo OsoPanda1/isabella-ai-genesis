@@ -81,6 +81,25 @@ export interface DatabaseSchema {
   ledger: BookPILedgerBlock[];
   auditLogs: AuditLog[];
   apiKeys: ApiKeyRecord[];
+  monetization?: Record<string, {
+    userId: string;
+    earnedBalanceCents: number;
+    qualifiedUses: number;
+    approvedContributions: number;
+    trainingCompleted: boolean;
+    identityVerified: boolean;
+    paymentAccountVerified: boolean;
+    profileComplete: boolean;
+    sanctioned: boolean;
+    underFraudReview: boolean;
+    withdrawals: {
+      payoutId: string;
+      amountCents: number;
+      status: "scheduled" | "processed" | "held" | "rejected";
+      idempotencyKey: string;
+      createdAt: string;
+    }[];
+  }>;
   settings: Record<string, unknown>;
 }
 
@@ -96,6 +115,7 @@ function emptyDatabase(): DatabaseSchema {
     ledger: [],
     auditLogs: [],
     apiKeys: [],
+    monetization: {},
     settings: {
       pqcEnabled: false,
       activeHeadCount: 12,
@@ -531,6 +551,40 @@ export class SovereignDB {
     const db = this.load();
     db.apiKeys = keys;
     this.save(db);
+  }
+
+  public static getMonetizationAccount(userId: string) {
+    const db = this.load();
+    db.monetization = db.monetization || {};
+    if (!db.monetization[userId]) {
+      db.monetization[userId] = {
+        userId,
+        earnedBalanceCents: 1245, // Default starting simulated balance ($12.45 USD)
+        qualifiedUses: 15,
+        approvedContributions: 2,
+        trainingCompleted: true,
+        identityVerified: true,
+        paymentAccountVerified: true,
+        profileComplete: true,
+        sanctioned: false,
+        underFraudReview: false,
+        withdrawals: [],
+      };
+      this.save(db);
+    }
+    return db.monetization[userId];
+  }
+
+  public static updateMonetizationAccount(userId: string, update: Partial<any>) {
+    const db = this.load();
+    db.monetization = db.monetization || {};
+    const account = this.getMonetizationAccount(userId);
+    db.monetization[userId] = {
+      ...account,
+      ...update,
+    };
+    this.save(db);
+    return db.monetization[userId];
   }
 }
 

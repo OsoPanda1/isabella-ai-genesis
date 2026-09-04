@@ -359,7 +359,10 @@ export class PrincipalContext {
       };
     }
 
-    const claims = verification.claims;
+    const claims = { ...verification.claims } as TokenClaims;
+    if (claims.role === "Guest" || claims.role === ("guest" as any)) {
+      claims.scope = "isabella:chat";
+    }
 
     if (requiredScope) {
       const scopeCheck = SecuritySystem.verifyApiScope(token, requiredScope);
