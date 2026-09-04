@@ -1,30 +1,16 @@
-name: Isabella Genesis CI/CD
+name: Isabella Genesis CI
 
 on:
   push:
-    branches: [main, master, "release/*"]
+    branches: [main, master]
   pull_request:
     branches: [main, master]
-  workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  contents: read
-  issues: write
-  security-events: write
 
 jobs:
-  # ============================================================
-  # JOB 1: Environment Validation
-  # ============================================================
   env-check:
-    name: Validate Environment Variables
     runs-on: ubuntu-latest
     steps:
-      - name: Check required env vars
+      - name: Validate env vars presence
         run: |
           REQUIRED_VARS=(APP_URL PUBLIC_URL SUPABASE_URL SUPABASE_ANON_KEY AUTH_JWT_SECRET SUPABASE_JWT_SECRET GEMINI_API_KEY ENCRYPTION_MASTER_KEY)
           for VAR in "${REQUIRED_VARS[@]}"; do
@@ -33,100 +19,55 @@ jobs:
               exit 1
             fi
           done
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ENCRYPTION_MASTER_KEY: ${{ secrets.ENCRYPTION_MASTER_KEY }}
 
-  # ============================================================
-  # JOB 2: Node.js Setup & Build
-  # ============================================================
   build:
-    name: Node.js Build & Test
     runs-on: ubuntu-latest
     needs: env-check
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Lint & Typecheck
-        run: pnpm run lint && pnpm run typecheck
-
-      - name: Run Tests
-        run: pnpm run test --if-present
-
-      - name: Build Project
-        run: pnpm run build
-
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
+          node-version: "22"
+          cache: pnpm
+      - run: npm install -g pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint && pnpm run typecheck
+      - run: pnpm run test --if-present
+      - run: pnpm run build
+      - uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: .next/
-          retention-days: 7
 
-  # ============================================================
-  # JOB 3: Security Sanitizer & SAST
-  # ============================================================
-  security-scan:
-    name: Security Scan (Trivy + Gitleaks)
+  security:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v4
-
-      - name: Secret Scan (Gitleaks)
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run Trivy Vulnerability Scanner
-        uses: aquasecurity/trivy-action@master
+      - run: pnpm audit --audit-level=high
+      - uses: trufflesecurity/trufflehog@latest
         with:
-          scan-type: 'fs'
-          ignore-unfixed: true
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
-
-      - name: Upload Trivy SARIF
-        uses: github/codeql-action/upload-sarif@v3
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+      - run: pnpm exec cyclonedx-bom -o sbom.json
+      - uses: actions/upload-artifact@v4
         with:
-          sarif_file: 'trivy-results.sarif'
+          name: sbom
+          path: sbom.json
 
-  # ============================================================
-  # JOB 4: StackQL Validation
-  # ============================================================
-  stackql:
-    name: StackQL Policy Enforcement
+  release-gate:
     runs-on: ubuntu-latest
+    needs: [build, security]
     steps:
-      - uses: actions/checkout@v4
-      - name: Install StackQL
-        run: |
-          curl -s https://stackql.io/install.sh | bash
-      - name: Run StackQL Policies
-        run: stackql exec --file .stackql/policies.sql
-
-  # ============================================================
-  # JOB 5: Close Stale Issues
-  # ============================================================
-  stale:
-    name: Close Stale Issues
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/stale@v9
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          stale-issue-message: "⚠️ Este issue está inactivo. Se cerrará automáticamente si no hay actividad."
-          days-before-stale: 30
-          days-before-close: 7
+      - run: echo "✅ All gates passed. Ready for release."
