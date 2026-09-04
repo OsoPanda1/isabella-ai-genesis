@@ -131,18 +131,17 @@ export function createSovereignPipeline(
       if (input.toolRequest) {
         const toolMeta = toolRegistry.lookup(input.toolRequest);
         if (toolMeta) {
-          const riskThreshold: "low" | "medium" | "high" | "critical" =
-            input.identity.roles.includes("SovereignOwner")
-              ? "critical"
-              : "medium";
+          // Human authority never turns off ARGUS. Even the sovereign owner
+          // can only approve high/critical operations explicitly.
+          const riskThreshold: "low" | "medium" = "medium";
 
           policyResult = evaluatePolicy({
             tool: toolMeta,
-            territorialBoundaryEnforced: false,
+            territorialBoundaryEnforced: Boolean(input.tenantId),
             humanInTheLoop: input.identity.authenticated,
             approvalThreshold: riskThreshold,
-            consentRequired: false,
-            consentGranted: true,
+            consentRequired: toolMeta.requiresApproval,
+            consentGranted: false,
           });
 
           if (policyResult.decision === "denied") {

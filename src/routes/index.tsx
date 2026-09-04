@@ -96,10 +96,10 @@ function IsabellaInterface() {
   };
 
   // Sidebar State for 3-part retractable accordions
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [upperOpen, setUpperOpen] = useState(true);
-  const [middleOpen, setMiddleOpen] = useState(true);
-  const [lowerOpen, setLowerOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [upperOpen, setUpperOpen] = useState(false);
+  const [middleOpen, setMiddleOpen] = useState(false);
+  const [lowerOpen, setLowerOpen] = useState(false);
 
   const navGroups = NAV_GROUPS(
     { cognition: upperOpen, catalog: middleOpen, sovereignty: lowerOpen },
@@ -140,7 +140,7 @@ function IsabellaInterface() {
               {/* Outer logo glowing ring */}
               <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-electric via-iris to-pearl opacity-40 blur-md group-hover:opacity-75 transition-all duration-500" />
               <img
-                src="/src/assets/logo-isabella.jpeg"
+                src="/logo-isabella.jpeg"
                 alt="Isabella Logo"
                 className={`relative rounded-xl border border-border/40 object-cover transition-all duration-300 ${
                   isSidebarOpen ? "size-18" : "size-10"
