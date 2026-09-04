@@ -159,22 +159,17 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
       if (target.tenantId !== tenantId) return { success: false, error: "Frontera de tenant." };
       if (target.status === "refunded") return { success: false, error: "Ya refundido." };
 
-      const cloned = store.blocks.map((b) => ({ ...b }));
-      const t = cloned[index];
-      if (!t) return { success: false, error: "Bloque no encontrado." };
-      t.status = "refunded";
-
-      const prev = cloned[cloned.length - 1];
+      const prev = store.blocks[store.blocks.length - 1];
       const previousHash = prev?.blockHash ?? store.genesisPreviousHash;
       const nonce = crypto.randomUUID();
       const base: Omit<BlockPIBlock, "blockHash"> = {
-        index: cloned.length,
+        index: store.blocks.length,
         timestamp: new Date().toISOString(),
         tenantId,
-        userId: t.userId,
-        operation: `refund_of_${t.index}`,
-        category: t.category,
-        costDecimal: t.costDecimal,
+        userId: target.userId,
+        operation: `refund_of_${target.index}`,
+        category: target.category,
+        costDecimal: target.costDecimal,
         tokensConsumed: 0,
         previousHash,
         pqcSignature: null,
@@ -183,8 +178,8 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
         nonce,
       };
       const block: BlockPIBlock = { ...base, blockHash: computeBlockHash(base) };
-      cloned.push(block);
-      saveStore({ blocks: cloned, genesisPreviousHash: store.genesisPreviousHash });
+      store.blocks.push(block);
+      saveStore(store);
       return { success: true };
     },
 

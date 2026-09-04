@@ -3,6 +3,7 @@ import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
 import { secrets } from "@/lib/secrets";
 import { withSovereignAuth } from "@/lib/principal-context";
+import { config } from "@/lib/config";
 
 const bodySchema = z.object({
   text: z.string().min(1).max(4000),
@@ -89,7 +90,10 @@ export const Route = createFileRoute("/api/isabella-voice")({
 
         // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker — edge-tts soberano (Lovable eliminado) ---
         try {
-          const voiceApiUrl = process.env.VOICE_API_URL || "http://localhost:8001";
+          const voiceApiUrl = config().VOICE_API_URL;
+          if (!voiceApiUrl) {
+            throw new Error("VOICE_API_URL is not configured");
+          }
           const upstream = await SecuritySystem.fetchSafeUpstream(
             `${voiceApiUrl.replace(/\/$/, "")}/v1/audio/speech`,
             {

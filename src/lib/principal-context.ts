@@ -290,7 +290,7 @@ export class PrincipalContext {
       };
     }
 
-    const { items: sessions } = await repositoryFactory.getSessionRepository().list(claims.sub, { userId: claims.sub });
+    const { items: sessions } = await repositoryFactory.getSessionRepository().list(claims.tenantId, { userId: claims.sub });
     const session = sessions.find((s: { id: string }) => s.id === token || (s as unknown as Record<string, unknown>).id === token);
     if (!session) {
       return {
