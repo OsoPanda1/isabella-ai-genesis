@@ -510,6 +510,37 @@ export function withSovereignAuth(
       );
     }
 
+    // P0-04: CROWN MANDATORY POLICY ENGINE
+    // Asegurar que TODA operación de db/estado pase por CROWN, incluso para el SovereignOwner.
+    const { CROWN, assessIntent, evaluatePolicy, createDefaultContext } = await import("./crown");
+    const intent = assessIntent(`API Operation: ${resource}:${action}`);
+    const identityAssessment = {
+      authenticated: true,
+      roles: [context.role],
+      permissions: context.scope ? context.scope.split(" ") : [],
+      dataScopes: ["territorial"] as any
+    };
+    const reqContext = createDefaultContext(`API Operation: ${resource}:${action}`, { 
+      actorId: context.userId, 
+      sessionId: context.traceId 
+    });
+    
+    const policyResult = evaluatePolicy(reqContext, intent, identityAssessment);
+    
+    if (policyResult.status === "denied") {
+      const headers = SecuritySystem.injectSecureHeaders(
+        new Headers({ "content-type": "application/json" }),
+      );
+      return new Response(
+        JSON.stringify({
+          error: `Acceso Denegado por CROWN (Constitutional Gate): Operación bloqueada por riesgo estructural.`,
+          reasons: policyResult.reasons,
+          traceId: context.traceId,
+        }),
+        { status: 403, headers },
+      );
+    }
+
     let body: unknown = null;
     if (request.method === "POST" || request.method === "PUT" || request.method === "PATCH") {
       const contentLength = parseInt(request.headers.get("content-length") || "0", 10);

@@ -11,6 +11,8 @@ import {
 import { nativeInference } from "@/lib/isabella-native-ml";
 import { createSovereignPipeline } from "@/lib/sovereign-pipeline";
 
+import { parseSafeJsonBody } from "@/lib/input-limits";
+
 const bodySchema = z.object({
   // The client may provide presentation metadata, never an authoritative prompt.
   system: z.string().max(8000).optional(),
@@ -72,11 +74,11 @@ export const Route = createFileRoute("/api/isabella")({
         // Si no hay GEMINI_API_KEY en Vercel, no bloquear chat: usar ML nativo es-MX directamente
         const useNativeOnly = !apiKey;
 
-        // Parse Request Body safely
+        // Parse Request Body safely with byte counter and hard limit aborts (P15)
         let rawBody;
         try {
-          rawBody = await request.json();
-        } catch {
+          rawBody = await parseSafeJsonBody(request);
+        } catch (e: any) {
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );

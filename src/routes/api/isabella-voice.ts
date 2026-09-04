@@ -7,7 +7,7 @@ import { config } from "@/lib/config";
 
 const bodySchema = z.object({
   text: z.string().min(1).max(4000),
-  voice: z.string().min(1).max(40).default("alloy"),
+  voice: z.string().min(1).max(40).default("nova"),
 });
 
 export const Route = createFileRoute("/api/isabella-voice")({
@@ -48,8 +48,9 @@ export const Route = createFileRoute("/api/isabella-voice")({
         // Parse Request Body safely
         let rawBody;
         try {
-          rawBody = await request.json();
-        } catch {
+          const { parseSafeJsonBody } = await import("@/lib/input-limits");
+          rawBody = await parseSafeJsonBody(request);
+        } catch (e: any) {
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );

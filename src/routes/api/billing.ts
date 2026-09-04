@@ -415,21 +415,31 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              // Calcular coste exacto: $0.10 por shot + $1.00 por qpu_second
+              // Calculate exact cost
               const costUSD = parsed.data.shots * 0.1 + parsed.data.qpu_seconds * 1.0;
               const opText =
                 parsed.data.operation ||
                 `QUANTUM_JOB: ${parsed.data.jobId} (Shots: ${parsed.data.shots}, Segundos QPU: ${parsed.data.qpu_seconds})`;
 
-              // Append to ledger and deduct tenant credits
-              const block = SovereignDB.appendLedgerBlock(
-                context.tenantId,
-                context.userId,
-                opText,
-                "processing",
-                costUSD,
-                parsed.data.shots, // Guardar shots como tokens consumidos
-              );
+              // P6: Use PostgreSQL canonical ledger instead of JSON
+              const { createBookpiPostgresRepository } = await import("@/lib/repositories/bookpi-postgres-repository");
+              const bookpiRepo = createBookpiPostgresRepository();
+              const blockResult = await bookpiRepo.append({
+                tenantId: context.tenantId,
+                userId: context.userId,
+                operation: opText,
+                category: "processing",
+                cost: costUSD,
+                tokens: parsed.data.shots
+              });
+
+              if (!blockResult.success) {
+                return new Response(JSON.stringify({ error: blockResult.error }), {
+                  status: 500,
+                  headers,
+                });
+              }
+              const block = blockResult.block;
 
               SovereignDB.appendAuditLog(
                 `trc_charge_${block.index}`,
@@ -598,10 +608,10 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              const result = SovereignDB.appendRefundEvent(
-                parsed.data.ledgerIndex,
-                context.tenantId,
-              );
+              const { createBookpiPostgresRepository } = await import("@/lib/repositories/bookpi-postgres-repository");
+              const bookpiRepo = createBookpiPostgresRepository();
+              
+              const result = await bookpiRepo.refund(String(parsed.data.ledgerIndex), { tenantId: context.tenantId, userId: context.userId }, "Reembolso de sistema");
 
               if (result.success) {
                 SovereignDB.appendAuditLog(
