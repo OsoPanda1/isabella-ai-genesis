@@ -11,5 +11,26 @@ export default defineConfig({
         "server-only": "vite/client",
       },
     },
+    // Excluir dependencias pesadas del bundle SSR de Nitro para prevenir errores Node/Client
+    ssr: {
+      noExternal: [],
+      external: ["three"],
+    },
+    build: {
+      target: "esnext",
+      // Separación de chunks para aislamiento de rendimiento
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes("node_modules/three")) {
+              return "vendor-three";
+            }
+            if (id.includes("node_modules/lucide-react")) {
+              return "vendor-icons";
+            }
+          },
+        },
+      },
+    },
   },
 });
