@@ -43,17 +43,25 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
     camera.position.set(0, 0, 260);
 
     // Renderer Optimizado
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: false,
-      powerPreference: "high-performance",
-      stencil: false,
-      depth: true,
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(mount.clientWidth, mount.clientHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    mount.appendChild(renderer.domElement);
+    let renderer: THREE.WebGLRenderer | null = null;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: false,
+        powerPreference: "high-performance",
+        stencil: false,
+        depth: true,
+      });
+    } catch (e) {
+      console.warn("WebGL Renderer creation failed, falling back to clean CSS engine:", e);
+    }
+
+    if (renderer) {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(mount.clientWidth, mount.clientHeight);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      mount.appendChild(renderer.domElement);
+    }
 
     const world = new THREE.Group();
     scene.add(world);
@@ -153,7 +161,9 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
       if (!width || !height) return;
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
+      if (renderer) {
+        renderer.setSize(width, height);
+      }
     };
 
     const observer = new ResizeObserver(handleResize);
@@ -176,7 +186,9 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
       // Pulse emissive core with time
       coreMat.emissiveIntensity = 2.0 + Math.sin(t * 3) * 1.2;
 
-      renderer.render(scene, camera);
+      if (renderer) {
+        renderer.render(scene, camera);
+      }
       animId = requestAnimationFrame(renderFrame);
     };
 
@@ -196,9 +208,11 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
       particleGeo.dispose();
       particleMat.dispose();
 
-      renderer.dispose();
-      if (mount.contains(renderer.domElement)) {
-        mount.removeChild(renderer.domElement);
+      if (renderer) {
+        renderer.dispose();
+        if (mount.contains(renderer.domElement)) {
+          mount.removeChild(renderer.domElement);
+        }
       }
     };
   }, [progress, masterClock]);
