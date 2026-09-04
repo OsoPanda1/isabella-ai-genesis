@@ -31,8 +31,8 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
 
     // Escena y Cámara
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#04060a");
-    scene.fog = new THREE.FogExp2("#04060a", 0.0015);
+    scene.background = new THREE.Color("#020306");
+    scene.fog = new THREE.FogExp2("#020306", 0.0018);
 
     const camera = new THREE.PerspectiveCamera(
       34,
@@ -61,49 +61,49 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
     // Geometrías Complejas
     const coreGeo = new THREE.IcosahedronGeometry(54, 4);
     const coreMat = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color("#a3c7ff"),
-      emissive: new THREE.Color("#1e3b66"),
-      emissiveIntensity: 2.1,
-      metalness: 0.8,
-      roughness: 0.12,
-      transmission: 0.3,
+      color: new THREE.Color("#d4af37"), // Elegant Gold Core
+      emissive: new THREE.Color("#991b1b"), // Majestic Crimson Glow
+      emissiveIntensity: 3.2,
+      metalness: 0.9,
+      roughness: 0.08,
+      transmission: 0.25,
       transparent: true,
-      opacity: 0.95,
+      opacity: 0.98,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
+      clearcoatRoughness: 0.05,
     });
     const core = new THREE.Mesh(coreGeo, coreMat);
     world.add(core);
 
     const shellGeo = new THREE.IcosahedronGeometry(78, 2);
     const shellMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color("#5eb3ff"),
+      color: new THREE.Color("#e11d48"), // Crimson Lattice
       wireframe: true,
       transparent: true,
-      opacity: 0.25,
+      opacity: 0.35,
       blending: THREE.AdditiveBlending,
     });
     const shell = new THREE.Mesh(shellGeo, shellMat);
     world.add(shell);
 
-    const haloGeo = new THREE.TorusGeometry(95, 1.2, 16, 180);
+    const haloGeo = new THREE.TorusGeometry(95, 1.4, 16, 180);
     const haloMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color("#b28dff"),
+      color: new THREE.Color("#f59e0b"), // Golden Ring
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.8,
       blending: THREE.AdditiveBlending,
     });
     const halo = new THREE.Mesh(haloGeo, haloMat);
     halo.rotation.x = Math.PI / 2.6;
     world.add(halo);
 
-    // Sistema de Partículas Volumétricas
-    const particleCount = 2400;
+    // Sistema de Partículas Volumétricas (Vortex de Energía)
+    const particleCount = 3600;
     const positions = new Float32Array(particleCount * 3);
     const colors = new Float32Array(particleCount * 3);
 
     for (let i = 0; i < particleCount; i++) {
-      const radius = 100 + Math.random() * 500;
+      const radius = 100 + Math.random() * 600;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
 
@@ -111,11 +111,13 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
       positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
       positions[i * 3 + 2] = radius * Math.cos(phi);
 
-      const color = new THREE.Color().setHSL(
-        0.55 + Math.random() * 0.18,
-        0.7,
-        0.6 + Math.random() * 0.25,
-      );
+      // Gold to Crimson fire aesthetic
+      const color = new THREE.Color();
+      if (Math.random() > 0.4) {
+        color.setHSL(0.08 + Math.random() * 0.06, 0.95, 0.5 + Math.random() * 0.3); // Gold/Orange
+      } else {
+        color.setHSL(0.98 + Math.random() * 0.03, 0.95, 0.5 + Math.random() * 0.2); // Red/Rose
+      }
       colors.set([color.r, color.g, color.b], i * 3);
     }
 
@@ -124,23 +126,23 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
     particleGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
     const particleMat = new THREE.PointsMaterial({
-      size: 2.0,
+      size: 2.4,
       vertexColors: true,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.85,
       blending: THREE.AdditiveBlending,
       sizeAttenuation: true,
     });
     const particles = new THREE.Points(particleGeo, particleMat);
     scene.add(particles);
 
-    // Iluminación Dinámica
-    scene.add(new THREE.AmbientLight("#8caed6", 1.2));
-    const keyLight = new THREE.PointLight("#62b0ff", 220, 800);
+    // Iluminación Dinámica estilo Cinema
+    scene.add(new THREE.AmbientLight("#450a0a", 1.5));
+    const keyLight = new THREE.PointLight("#fbbf24", 350, 900); // Amber Flashlight
     keyLight.position.set(-200, 150, 250);
     scene.add(keyLight);
 
-    const rimLight = new THREE.PointLight("#9b73ff", 240, 700);
+    const rimLight = new THREE.PointLight("#e11d48", 380, 800); // Deep Rose rim
     rimLight.position.set(200, -120, 180);
     scene.add(rimLight);
 
@@ -157,15 +159,22 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
     const observer = new ResizeObserver(handleResize);
     observer.observe(mount);
 
-    // Render Loop vinculado al Master Clock
+    // Render Loop con velocidad de warp en la intro
     let animId: number;
     const renderFrame = () => {
       const t = masterClock;
-      world.rotation.y = t * 0.25 + progress * Math.PI * 2;
+
+      // Speed up rotation during trailer sequence
+      const speedMultiplier = t < 12 ? 4.5 - t * 0.25 : 1.0;
+
+      world.rotation.y = t * 0.25 * speedMultiplier + progress * Math.PI * 2;
       world.rotation.x = Math.sin(t * 0.3) * 0.15;
-      shell.rotation.y = -t * 0.15;
-      halo.rotation.z = t * 0.2;
-      particles.rotation.y = -t * 0.05;
+      shell.rotation.y = -t * 0.15 * speedMultiplier;
+      halo.rotation.z = t * 0.2 * speedMultiplier;
+      particles.rotation.y = -t * 0.05 * speedMultiplier;
+
+      // Pulse emissive core with time
+      coreMat.emissiveIntensity = 2.0 + Math.sin(t * 3) * 1.2;
 
       renderer.render(scene, camera);
       animId = requestAnimationFrame(renderFrame);
@@ -173,7 +182,7 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
 
     animId = requestAnimationFrame(renderFrame);
 
-    // Garbage Collection / Disposición de Memoria GPU
+    // Disposición de memoria GPU
     return () => {
       cancelAnimationFrame(animId);
       observer.disconnect();
@@ -197,6 +206,28 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
   return <div ref={mountRef} className="absolute inset-0" aria-hidden="true" />;
 }
 
+// SCHEMA SCHEMATICS FOR REPETITIVE CELLS FLICKERING
+const SCHEMATIC_FRAGMENTS = [
+  "CROWN_ROUTER_MODULE",
+  "ISA_EMPATHY_CORE = 1",
+  "SOPHIA_RIGOR_ACTIVE",
+  "ARGUS_POLICY_VETO",
+  "LATAM_AEGIS_X_FIREWALL",
+  "SOVEREIGN_LEDGER_LEDG",
+  "OIDC_HANDSHAKE_JWT",
+  "NODO_CERO_REAL_DEL_MONTE",
+  "COGNITION_S0 = READY",
+  "SYS_CORES_COUNT = 24",
+  "SYS_MODULES_COUNT = 12",
+  "PENTACAPA_MEM_ACTIVE",
+  "CRYPTO_SEED_GENERATOR",
+  "HMAC_SHA256_VERIFIED",
+  "ZERO_TRUST_WHITELIST",
+  "BOOKPI_MUTATION_BLOCK",
+  "AUDIT_RECORD_APPEND",
+  "SOVEREIGNTY_GATE_OK",
+];
+
 // -----------------------------------------------------------------------------
 // 2. COMPONENTE PRINCIPAL (Orquestador Cinematográfico Local)
 // -----------------------------------------------------------------------------
@@ -212,6 +243,10 @@ export function CinematicIntroContent({
     fps: TARGET_FPS,
     droppedFrames: 0,
   });
+
+  // Flicker State for Marvel style panels
+  const [flickerIndex, setFlickerIndex] = useState(0);
+  const [flickerTrigger, setFlickerTrigger] = useState(false);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -240,12 +275,13 @@ export function CinematicIntroContent({
     }
   }, [initAudioPipeline, muted]);
 
-  // Loop principal de animación + Telemetría Federada
+  // Loop principal de animación + Telemetría Federada + Flicker Loop
   useEffect(() => {
     if (showGate) return;
 
     let animFrame: number;
     let lastTime = performance.now();
+    let lastFlicker = performance.now();
     let frameCounter = 0;
 
     const tick = (now: number) => {
@@ -253,6 +289,13 @@ export function CinematicIntroContent({
       const currentElapsed = Math.min(DURATION, (now - clockStartRef.current) / 1000);
 
       setElapsed(currentElapsed);
+
+      // 10Hz Comic cells flickers
+      if (now - lastFlicker > 95) {
+        setFlickerIndex((prev) => (prev + 1) % SCHEMATIC_FRAGMENTS.length);
+        setFlickerTrigger((p) => !p);
+        lastFlicker = now;
+      }
 
       frameCounter++;
       if (delta >= 1.0) {
@@ -266,10 +309,10 @@ export function CinematicIntroContent({
         const progressVal = currentElapsed / DURATION;
         const currentStage =
           currentElapsed < 19
-            ? "STAGE 01 · ORIGIN FIELD"
+            ? "STAGE 01 · MARVEL THEATRICAL SEQUENCE"
             : currentElapsed < 39
-              ? "STAGE 02 · TERRITORIAL MEMORY"
-              : "STAGE 03 · SOVEREIGN CRYSTAL";
+              ? "STAGE 02 · COGNITIVE ARCHITECTURE S0"
+              : "STAGE 03 · SOVEREIGN SOBERANÍA REVEAL";
 
         const payload: TelemetryPayload = {
           elapsed: currentElapsed,
@@ -320,34 +363,34 @@ export function CinematicIntroContent({
   }, [muted]);
 
   const sceneStage =
-    elapsed < 19
-      ? "STAGE 01 · ORIGIN FIELD (WEBGL)"
-      : elapsed < 39
-        ? "STAGE 02 · TERRITORIAL MEMORY (WEBGL)"
-        : "STAGE 03 · SOVEREIGN CRYSTAL (WEBGL)";
+    elapsed < 12
+      ? "THEATRICAL CINEMATIC SEQUENCE (MARVEL-FLIP)"
+      : elapsed < 30
+        ? "STAGE 02 · COGNITIVE LANDSCAPE"
+        : "STAGE 03 · SOVEREIGN CRYSTAL (REAL DEL MONTE)";
 
   const progress = elapsed / DURATION;
 
   return (
-    <main className="relative h-dvh w-full overflow-hidden bg-[#04060a] text-platinum select-none font-sans">
+    <main className="relative h-dvh w-full overflow-hidden bg-[#020306] text-platinum select-none font-sans">
       <CrystalWorldEngine progress={progress} masterClock={elapsed} />
 
-      {/* Degradados de capa */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(4,6,10,0.3)_50%,rgba(4,6,10,0.92)_100%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(94,179,255,0.05),transparent_40%,rgba(178,141,255,0.06))]" />
+      {/* Golden & Crimson Vignette Background Blends */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,3,6,0.35)_55%,rgba(2,3,6,0.95)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(225,29,72,0.06),transparent_50%,rgba(245,158,11,0.08))]" />
 
       {!showGate && (
         <>
           {/* Header de Telemetría */}
           <header className="absolute inset-x-6 top-6 z-20 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em] text-platinum/70">
             <div className="flex items-center gap-3">
-              <span className="inline-block size-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="inline-block size-2 rounded-full bg-rose-500 animate-pulse" />
               <span>{sceneStage}</span>
             </div>
 
             <div className="flex items-center gap-6">
               <div className="hidden sm:flex items-center gap-3 text-platinum/40">
-                <Activity className="size-3.5 text-electric" />
+                <Activity className="size-3.5 text-rose-500" />
                 <span>{bitrateTelemetry.fps} FPS</span>
                 <span>·</span>
                 <span>{bitrateTelemetry.droppedFrames} DROP</span>
@@ -371,11 +414,110 @@ export function CinematicIntroContent({
             </div>
           </header>
 
-          {/* Timeline */}
+          {/* ================================================================= */}
+          {/* MARVEL INTRO TRAILER DYNAMIC TIMELINE REVEALS                    */}
+          {/* ================================================================= */}
+
+          {/* PHASE 1: Marvel Studio Comic Cell Grid Flicker (0s to 4s) */}
+          {elapsed < 4 && (
+            <div className="absolute inset-0 z-15 flex items-center justify-center bg-black/45 pointer-events-none">
+              <div className="grid grid-cols-3 md:grid-cols-4 gap-2 w-full h-full p-4 opacity-75">
+                {Array.from({ length: 12 }).map((_, i) => {
+                  const fragmentIndex = (flickerIndex + i) % SCHEMATIC_FRAGMENTS.length;
+                  const fragment = SCHEMATIC_FRAGMENTS[fragmentIndex];
+                  return (
+                    <div
+                      key={i}
+                      className="border border-rose-500/15 rounded bg-[#110101]/25 p-3 flex flex-col justify-between font-mono text-[8px] text-rose-500 overflow-hidden"
+                      style={{ opacity: (flickerTrigger ? 1 : 0.4) + Math.random() * 0.3 }}
+                    >
+                      <div>
+                        <div className="text-[7px] text-amber-500 font-bold mb-1">
+                          // CORE_SEC_LOG_M{i + 1}
+                        </div>
+                        <div className="text-white font-semibold">{fragment}</div>
+                        <div className="text-rose-600/60 mt-1 truncate">
+                          0x00A39C{fragmentIndex}F019BE24B
+                        </div>
+                      </div>
+                      <div className="flex justify-between border-t border-rose-500/10 pt-1.5 mt-2">
+                        <span className="text-[6.5px]">HS256_OK</span>
+                        <span className="text-[6.5px] text-amber-400">98.1% ACC</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Rhythmic giant center card */}
+              <div className="absolute inset-x-4 py-8 bg-rose-600/90 border-y-4 border-amber-500 text-center flex flex-col items-center justify-center shadow-[0_0_80px_rgba(225,29,72,0.8)] animate-scale">
+                <h1 className="font-display font-extrabold text-4xl sm:text-6xl md:text-7xl tracking-[0.18em] text-white uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+                  TAMV NETWORK
+                </h1>
+                <p className="font-mono text-[10px] sm:text-[12px] uppercase tracking-[0.4em] text-amber-300 mt-2 font-bold">
+                  Soberanía Tecnológica Territorial
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* PHASE 2: Epic Cinematic Credits Fade-In (4s to 8s) */}
+          {elapsed >= 4 && elapsed < 8 && (
+            <div className="absolute inset-0 z-15 flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-transparent via-[#020306]/85 to-transparent pointer-events-none animate-fade-in">
+              <div className="space-y-4 max-w-2xl">
+                <span className="font-mono text-[11px] font-extrabold uppercase tracking-[0.4em] text-rose-500 block">
+                  PRESENTA UNA PRODUCCIÓN COGNITIVA S0
+                </span>
+                <h2 className="font-display text-4xl sm:text-6xl font-black tracking-wider text-pearl bg-gradient-to-r from-amber-400 via-orange-300 to-yellow-200 bg-clip-text text-transparent drop-shadow-[0_2px_15px_rgba(245,158,11,0.2)]">
+                  ARQUITECTURA MULTIHILO
+                </h2>
+                <p className="font-mono text-[11px] sm:text-[13px] leading-relaxed text-platinum/70 uppercase tracking-[0.25em] max-w-lg mx-auto">
+                  Sincronización digital gobernada de 12 Módulos canónicos y 24 Núcleos de
+                  procesamiento.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* PHASE 3: Isabella Theatrical Logo Reveal with cosmic lens flare (8s to 12s) */}
+          {elapsed >= 8 && elapsed < 12 && (
+            <div className="absolute inset-0 z-15 flex flex-col items-center justify-center p-6 text-center pointer-events-none animate-reveal">
+              {/* Dynamic Lens Flare Overlay */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[450px] bg-[radial-gradient(circle,rgba(251,191,36,0.3)_0%,rgba(225,29,72,0.1)_40%,transparent_70%)] rounded-full blur-2xl animate-pulse" />
+
+              <div className="space-y-3 z-10">
+                <h1 className="font-display text-6xl sm:text-8xl md:text-9xl font-black tracking-widest text-white drop-shadow-[0_8px_30px_rgba(225,29,72,0.7)]">
+                  ISABELLA
+                </h1>
+                <p className="font-mono text-[12px] sm:text-[14px] font-bold text-amber-400 uppercase tracking-[0.5em]">
+                  V4.2.0 · GEMELO COGNITIVO
+                </p>
+                <div className="h-0.5 w-48 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-4" />
+                <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-widest pt-2">
+                  Nodo Cero · Real del Monte, Hidalgo, México
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* PHASE 4: Elegant Floating Cinematic Legends during regular show (12s to 30s) */}
+          {elapsed >= 12 && elapsed < 28 && (
+            <div className="absolute bottom-20 left-6 z-15 max-w-sm font-mono text-[10px] space-y-1.5 text-platinum/60 bg-black/30 p-4 rounded-xl border border-white/5 backdrop-blur-sm pointer-events-none animate-fade-in">
+              <div className="flex items-center gap-2 text-amber-400 font-bold">
+                <Activity className="size-3" />
+                <span>MONITOR COGNITIVO ACTIVO</span>
+              </div>
+              <p>Muro LATAM AEGIS-X: Armado.</p>
+              <p>Validador de Entropía C.R.O.W.N. calibrado.</p>
+              <p>Memoria Segmentada Pentacapa en vigencia.</p>
+            </div>
+          )}
+
+          {/* Timeline progress line */}
           <footer className="absolute inset-x-6 bottom-6 z-20 space-y-2">
-            <div className="relative h-1 w-full bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
+            <div className="relative h-1.5 w-full bg-white/5 rounded-full overflow-hidden backdrop-blur-sm">
               <div
-                className="h-full bg-gradient-to-r from-electric to-purple-400 shadow-[0_0_12px_rgba(94,179,255,0.8)] transition-all duration-100 ease-linear"
+                className="h-full bg-gradient-to-r from-red-600 via-orange-500 to-amber-400 shadow-[0_0_15px_rgba(239,68,68,0.9)] transition-all duration-100 ease-linear"
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
@@ -388,9 +530,9 @@ export function CinematicIntroContent({
 
       {/* Landing Gate */}
       {showGate && (
-        <section className="absolute inset-0 z-30 flex items-center justify-center bg-[#04060a]/90 p-6 backdrop-blur-xl">
-          <div className="w-full max-w-[500px] rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-center shadow-2xl backdrop-blur-2xl sm:p-10">
-            <div className="mx-auto mb-6 flex size-28 items-center justify-center rounded-2xl border border-white/20 bg-black/40 p-2 shadow-[0_0_50px_rgba(94,179,255,0.25)]">
+        <section className="absolute inset-0 z-30 flex items-center justify-center bg-[#020306]/95 p-6 backdrop-blur-xl">
+          <div className="w-full max-w-[500px] rounded-3xl border border-white/10 bg-white/[0.02] p-8 text-center shadow-2xl backdrop-blur-2xl sm:p-10">
+            <div className="mx-auto mb-6 flex size-28 items-center justify-center rounded-2xl border border-white/20 bg-black/50 p-2 shadow-[0_0_60px_rgba(225,29,72,0.35)] animate-pulse">
               <img
                 src="/assets/logo-isabella.jpeg"
                 alt="Isabella Villaseñor Logo"
@@ -399,26 +541,25 @@ export function CinematicIntroContent({
             </div>
 
             <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-pearl sm:text-4xl">
-              Isabella <span className="text-iridescent italic">Villaseñor</span>
+              Isabella <span className="text-amber-400 italic">Villaseñor</span>
             </h1>
 
             <p className="mx-auto mt-3 max-w-sm font-mono text-[11px] leading-relaxed text-muted-foreground">
-              Inmersión audiovisual interactiva con renderizado WebGL multihilo y bus de telemetría
-              del sistema.
+              Trailer cinematográfico y visualizador de telemetría WebGL de alto rendimiento.
             </p>
 
             <button
               onClick={enter}
-              className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-electric/90 to-purple-600/90 px-6 py-4 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-pearl shadow-lg transition-all hover:scale-[1.02] hover:shadow-electric/30 active:scale-[0.98]"
+              className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 px-6 py-4 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-pearl shadow-lg transition-all hover:scale-[1.02] hover:shadow-red-500/20 active:scale-[0.98] cursor-pointer"
             >
               <Play className="size-4 fill-pearl" />
-              INICIAR INMERSIÓN
+              VER INTRO CINEMATOGRÁFICA
             </button>
 
             <div className="mt-4 flex items-center justify-center">
               <button
                 onClick={() => setMuted((prev) => !prev)}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-[10px] text-muted-foreground hover:text-pearl transition-colors"
+                className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-[10px] text-muted-foreground hover:text-pearl transition-colors cursor-pointer"
               >
                 {muted ? <VolumeX className="size-3.5" /> : <Volume2 className="size-3.5" />}
                 {muted ? "Audio Desactivado" : "Audio Activado"}

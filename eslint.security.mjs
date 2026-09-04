@@ -20,6 +20,10 @@ export default tseslint.config(
       "src/tests/**/*",
       "**/*.js",
       "**/*.mjs",
+      "latam-aegis-x",
+      "latam-aegis-x/**/*",
+      "quantum_utility_platform",
+      "quantum_utility_platform/**/*",
     ],
   },
   {
