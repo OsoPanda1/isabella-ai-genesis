@@ -107,13 +107,19 @@ export const envSchema = z.object({
   ENCRYPTION_ALGORITHM: z.string().default("aes-256-gcm"),
 
   // --- CROWN ---
-  CROWN_CONSTITUTION_VERSION: z.string().default("v4.2.0"),
+  CROWN_CONSTITUTION_VERSION: z.string().min(1).default("v4.2.0-sovereign"),
   CROWN_POLICY_SIGNING_KEY: optionalString(),
-  CROWN_ENFORCEMENT_MODE: z.enum(["enforce", "warn", "dry-run"]).default("enforce"),
+  CROWN_ENFORCEMENT_MODE: z.enum(["enforce", "dry-run"]).default("enforce"),
 
-  // --- BOOKPI ---
-  BOOKPI_SIGNATURE_ALGORITHM: z.string().default("NOT_IMPLEMENTED"),
+  // --- BOOKPI (Sovereign Ledger) ---
+  BOOKPI_SIGNATURE_ALGORITHM: z.enum(["ML-DSA-87", "ECDSA-P384"]).default("ML-DSA-87"),
   BOOKPI_SIGNING_KEY: optionalString(),
+
+  // --- QUP SOVEREIGN RUNTIME (New v3.0 Configs) ---
+  QUP_ZNE_LEVEL: coercedInt(3),
+  QUP_PEC_ENABLED: z.boolean().default(true),
+  QUP_QEC_DECODER: z.enum(["mwpm", "uf", "tensor-network", "neural-network"]).default("tensor-network"),
+  QUP_STRICT_ISOLATION: z.boolean().default(true),
 
   // --- REDIS ---
   REDIS_URL: optionalString(),
@@ -196,6 +202,8 @@ export function requiredEnvKeys(mode: RuntimeMode): (keyof Env)[] {
         "AUTH_JWT_SECRET",
         "GEMINI_API_KEY",
         "ENCRYPTION_MASTER_KEY",
+        "CROWN_POLICY_SIGNING_KEY",
+        "BOOKPI_SIGNING_KEY",
       ];
     case "emergency":
     case "maintenance":

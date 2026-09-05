@@ -44,8 +44,6 @@ export function createSecrets(cfg = config): Secrets {
       );
     },
     bookpiSigningKey() {
-      const alg = cfg().BOOKPI_SIGNATURE_ALGORITHM;
-      if (alg === "NOT_IMPLEMENTED") return "";
       return requireSecret("bookpi", cfg().BOOKPI_SIGNING_KEY, "BOOKPI_SIGNING_KEY");
     },
     aiGatewayKey() {
