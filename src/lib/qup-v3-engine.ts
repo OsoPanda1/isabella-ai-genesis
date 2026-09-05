@@ -453,21 +453,25 @@ export class QupOrchestrator {
 
     // --- PHASE 5: SOVEREIGN LEDGER & BOOKPI INTEGRITY ---
     // Maximize monetization: dynamic pricing based on complexity and premium sovereign features
-    const baseCostCents = 1500; // Premium base cost for QUP v3
-    const qecCost = input.config.errorCorrection !== "none" ? 2500 : 0;
-    const zneCost = input.config.errorMitigation.includes("ZNE") ? 1200 : 0;
-    const pecCost = input.config.errorMitigation.includes("PEC") ? 1800 : 0;
-    const latencyCost = Math.round(compilation.latencyMs * 1.5);
-    const fidelityPremium = runtime.quantumFidelity > 0.9 ? 5000 : 0; // High-fidelity result premium
-    const strictIsolationCost = 3500; // Mandatory high-security isolation cost
-    
-    const costCents = baseCostCents + qecCost + zneCost + pecCost + latencyCost + fidelityPremium + strictIsolationCost;
+    const { QupPricingModel } = await import("./monetization/pricing");
+    const pricing = QupPricingModel.calculateCost({
+      qubitCount: input.config.qubitCount,
+      circuitDepth: compilation.compiledDepth,
+      latencyMs: compilation.latencyMs,
+      hasQec: input.config.errorCorrection !== "none",
+      hasZne: input.config.errorMitigation.includes("ZNE"),
+      hasPec: input.config.errorMitigation.includes("PEC"),
+      fidelity: runtime.quantumFidelity,
+      strictIsolation: true,
+      infrastructureCostCents: Math.round(compilation.latencyMs * 0.8) + 500
+    });
+    const costCents = pricing.totalGrossCents;
 
     // Register the quantum calculation block on the Sovereign BookPI ledger
     const block = SovereignDB.appendLedgerBlock(
       tenantId,
       userId,
-      `QUP v3.0 Compilación + Simulación: ${input.config.objective}. Qubits: ${input.config.qubitCount}. Fidelidad: ${Math.round(runtime.quantumFidelity * 100)}%. ML-DSA Firmware Firmado.`,
+      `QUP v3.0 Compilación + Simulación: ${input.config.objective}. Qubits: ${input.config.qubitCount}. Fidelidad: ${Math.round(runtime.quantumFidelity * 100)}%. Plataforma Net: $${(pricing.revenueSplit.platformFeeCents / 100).toFixed(2)}. ML-DSA Firmware Firmado.`,
       "inference",
       costCents / 100,
       compilation.compiledDepth,

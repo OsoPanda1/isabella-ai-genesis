@@ -245,6 +245,9 @@ export const Route = createFileRoute("/api/billing")({
               }
 
               const stripe = getStripe();
+              if (!stripe) {
+                return new Response(JSON.stringify({ error: "Stripe no configurado en el servidor." }), { status: 500, headers });
+              }
               const sessionId = `sess_${nodeCrypto.randomUUID().slice(0, 12)}`;
               let checkoutUrl = "";
 
@@ -281,9 +284,8 @@ export const Route = createFileRoute("/api/billing")({
                 }
               }
 
-              // Fallback o simulador explícito
               if (!checkoutUrl) {
-                checkoutUrl = `/billing-success?session_id=${sessionId}&simulated=true&planId=${planId}&userId=${context.userId}&tenantId=${context.tenantId}`;
+                return new Response(JSON.stringify({ error: "Fallo al crear sesión de checkout." }), { status: 500, headers });
               }
 
               SovereignDB.appendAuditLog(
@@ -300,49 +302,53 @@ export const Route = createFileRoute("/api/billing")({
                   success: true,
                   sessionId,
                   checkoutUrl,
-                  simulated: !stripe,
+                  
                 }),
                 { headers },
               );
             })({ request });
           }
 
-          // 2. WEBHOOK (REAL STRIPE / INTERNO DE VERIFICACIÓN)
+          // 2. WEBHOOK (REAL STRIPE)
           if (action === "webhook") {
             const stripe = getStripe();
-            let eventType = body?.type || "checkout.session.completed";
-            let metadata = body?.metadata || {};
-            let clientReferenceId = body?.client_reference_id || "";
-
-            // Si Stripe está activo y recibimos firmas reales, verificamos
             const signature = request.headers.get("stripe-signature");
-            if (stripe && signature) {
-              try {
-                const endpointSecret =
-                  (config() as unknown as Record<string, string>).STRIPE_WEBHOOK_SECRET || "";
-                const verifiedEvent = stripe.webhooks.constructEvent(
-                  bodyText,
-                  signature,
-                  endpointSecret,
-                );
-                eventType = verifiedEvent.type;
-                const sessionObject = verifiedEvent.data.object as unknown as Record<
-                  string,
-                  unknown
-                >;
-                metadata = (sessionObject.metadata as Record<string, string>) || {};
-                clientReferenceId = (sessionObject.client_reference_id as string) || "";
-              } catch (verificationError: unknown) {
-                const errorMsg =
-                  verificationError instanceof Error
-                    ? verificationError.message
-                    : String(verificationError);
-                console.error("Firma Webhook Stripe inválida:", errorMsg);
-                return new Response(JSON.stringify({ error: "Fallo de validación de firma." }), {
+            
+            if (!stripe || !signature) {
+              return new Response(JSON.stringify({ error: "Webhook requires Stripe configuration and signature." }), {
                   status: 400,
                   headers,
-                });
-              }
+              });
+            }
+
+            let eventType;
+            let metadata: Record<string, string> = {};
+            let clientReferenceId = "";
+
+            try {
+              const endpointSecret = (config() as unknown as Record<string, string>).STRIPE_WEBHOOK_SECRET || "";
+              const verifiedEvent = stripe.webhooks.constructEvent(
+                bodyText,
+                signature,
+                endpointSecret,
+              );
+              eventType = verifiedEvent.type;
+              const sessionObject = verifiedEvent.data.object as unknown as Record<
+                string,
+                unknown
+              >;
+              metadata = (sessionObject.metadata as Record<string, string>) || {};
+              clientReferenceId = (sessionObject.client_reference_id as string) || "";
+            } catch (verificationError: unknown) {
+              const errorMsg =
+                verificationError instanceof Error
+                  ? verificationError.message
+                  : String(verificationError);
+              console.error("Firma Webhook Stripe inválida:", errorMsg);
+              return new Response(JSON.stringify({ error: "Fallo de validación de firma." }), {
+                status: 400,
+                headers,
+              });
             }
 
             // Procesar el evento

@@ -1254,6 +1254,7 @@ export const Route = createFileRoute("/api/db")({
                 tokens: 0,
               });
                 },
+                checkLiquidityPool: async () => true,
                 createPayout: async () => {
                   return {
                     payoutId: `pay_${nodeCrypto.randomUUID().slice(0, 8)}`,
@@ -1263,7 +1264,7 @@ export const Route = createFileRoute("/api/db")({
               };
 
               const service = new WithdrawalService(deps);
-              const result = await service.request(context.userId, { idempotencyKey });
+              const result = await service.request(context.userId, "default-territory", { idempotencyKey });
 
               if (result.ok) {
                 // Reset earned balance to 0 on success
