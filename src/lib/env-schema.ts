@@ -59,6 +59,8 @@ export const envSchema = z.object({
 
   // --- POSTGRES / SUPABASE ---
   DATABASE_URL: optionalString(),
+  DATABASE_DIRECT_URL: optionalString(),
+  INTERNAL_ORIGIN: optionalUrl(),
   SUPABASE_URL: optionalUrl(),
   SUPABASE_ANON_KEY: optionalString(),
   SUPABASE_SERVICE_ROLE_KEY: optionalString(),
@@ -66,6 +68,7 @@ export const envSchema = z.object({
 
   // --- JWT / OIDC ---
   AUTH_JWT_SECRET: optionalMinString(16),
+  SESSION_SECRET: optionalMinString(32),
   AUTH_ISSUER: optionalUrl(),
   AUTH_AUDIENCE: z.string().default("isabella"),
   AUTH_ACCESS_TOKEN_TTL: coercedInt(3600),
@@ -109,11 +112,16 @@ export const envSchema = z.object({
   // --- CROWN ---
   CROWN_CONSTITUTION_VERSION: z.string().min(1).default("v4.2.0-sovereign"),
   CROWN_POLICY_SIGNING_KEY: optionalString(),
+  AEGIS_AUDIT_SECRET: optionalMinString(32),
   CROWN_ENFORCEMENT_MODE: z.enum(["enforce", "dry-run"]).default("enforce"),
 
   // --- BOOKPI (Sovereign Ledger) ---
-  BOOKPI_SIGNATURE_ALGORITHM: z.enum(["ML-DSA-87", "ECDSA-P384"]).default("ML-DSA-87"),
-  BOOKPI_SIGNING_KEY: optionalString(),
+  BOOKPI_SIGNATURE_ALGORITHM: z.enum(["ML-DSA-87", "ECDSA-P384"]).default("ECDSA-P384"),
+  BOOKPI_SIGNING_KEY: optionalMinString(32),
+
+  // --- PAYMENTS ---
+  STRIPE_SECRET_KEY: optionalMinString(16),
+  STRIPE_WEBHOOK_SECRET: optionalMinString(16),
 
   // --- QUP SOVEREIGN RUNTIME (New v3.0 Configs) ---
   QUP_ZNE_LEVEL: coercedInt(3),
@@ -203,7 +211,10 @@ export function requiredEnvKeys(mode: RuntimeMode): (keyof Env)[] {
         "GEMINI_API_KEY",
         "ENCRYPTION_MASTER_KEY",
         "CROWN_POLICY_SIGNING_KEY",
+        "AEGIS_AUDIT_SECRET",
         "BOOKPI_SIGNING_KEY",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
       ];
     case "emergency":
     case "maintenance":

@@ -199,7 +199,7 @@ export const Route = createFileRoute("/api/security")({
             LC_ALL: process.env.LC_ALL ?? "C.UTF-8",
             PYTHONPATH: pythonPath,
             AEGIS_HASH_SECRET: config().API_KEY_HASH_SECRET || secrets.apiKeyHashSecret(),
-            AEGIS_AUDIT_SECRET: config().CROWN_POLICY_SIGNING_KEY || secrets.jwtSecret(),
+            AEGIS_AUDIT_SECRET: secrets.aegisAuditSecret(),
           };
 
           const inputJson = JSON.stringify(event);
