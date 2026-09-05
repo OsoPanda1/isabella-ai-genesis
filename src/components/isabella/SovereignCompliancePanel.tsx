@@ -59,7 +59,7 @@ export function SovereignCompliancePanel() {
           },
         );
 
-        if (result.status === "SUCCESS") {
+        if (!result.error) {
           setVerifyResult({
             status: "success",
             sha256: (result.data as { sha256: string }).sha256,

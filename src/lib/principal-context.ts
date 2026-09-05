@@ -1,5 +1,5 @@
 import { SecuritySystem, TokenClaims } from "./security";
-import { authorize, type AuthorizationRequest } from "./authorization";
+import { evaluateAuthorization, type AuthorizationContext } from "./authorization";
 import { type Resource, type Action } from "./permission-matrix";
 import { type Role } from "./rbac";
 import { ApiKeyAuthenticator } from "./api-key-authenticator";
@@ -470,40 +470,26 @@ export function withSovereignAuth(
 
     const { context } = authResult;
 
-    const authReq: AuthorizationRequest = {
-      identity: {
-        subject: context.userId,
-        username: context.username,
-        tenantId: context.tenantId,
-        role: context.role,
-        scopes: context.scope ? context.scope.split(" ") : [],
-        authenticated: true,
-      },
-      resource,
-      action,
-      tenant: {
-        context: {
-          subject: context.userId,
-          username: context.username,
-          tenantId: context.tenantId,
-          resolvedBy: "bearer",
-          authenticated: true,
-          resolvedAt: new Date().toISOString(),
-        },
-        boundaryOk: true,
-        reason: "ok",
-      },
+    const authReq: AuthorizationContext = {
+      tenant_id: context.tenantId,
+      subject_id: context.userId,
+      action: action,
+      resource: resource,
+      context: {
+        ip_address: request.headers.get("x-forwarded-for") ?? "127.0.0.1",
+        user_agent: request.headers.get("user-agent") ?? "unknown",
+        timestamp: new Date(),
+      }
     };
 
-    const decisionResult = authorize(authReq);
-    if (decisionResult.decision === "denied") {
+    const decisionResult = await evaluateAuthorization(authReq);
+    if (!decisionResult.allow) {
       const headers = SecuritySystem.injectSecureHeaders(
         new Headers({ "content-type": "application/json" }),
       );
       return new Response(
         JSON.stringify({
           error: `Acceso Denegado por Política Centralizada: Privilegios insuficientes para la operación (${resource}:${action}).`,
-          reasons: decisionResult.reasons,
           traceId: context.traceId,
         }),
         { status: 403, headers },

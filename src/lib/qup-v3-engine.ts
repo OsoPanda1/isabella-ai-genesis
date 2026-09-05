@@ -1,6 +1,6 @@
 import * as crypto from "node:crypto";
 import { SovereignDB } from "./sovereign-engine";
-import { isabellaSkills } from "./skills/registry";
+import { runIsabellaSkill } from "./skills/run-skill";
 import { } from "./config";
 
 // ============================================================================
@@ -422,7 +422,8 @@ export class QupOrchestrator {
     // --- PHASE 3: ETHICAL GOVERNANCE (ATLAS, ANUBIS, THEMIS, VIGIA) ---
 
     // 3.1 ATLAS: Scenario Territorial Impact Evaluation
-    const atlasRun = await isabellaSkills.ATLAS.run(
+    const atlasRes = await runIsabellaSkill(
+      "ATLAS",
       {
         scenario: `Evaluación de impacto de corrida cuántica '${input.dataset.name}' en Nodo de Cómputo Territorial.`,
         variables: [
@@ -457,9 +458,11 @@ export class QupOrchestrator {
         intent: "QUANTUM_SIMULATION",
       },
     );
+    const atlasRun = atlasRes.data as any;
 
     // 3.2 ANUBIS: SHA3-512 Integrity Check
-    const anubisRun = await isabellaSkills.ANUBIS.run(
+    const anubisRes = await runIsabellaSkill(
+      "ANUBIS",
       {
         artifactId: `qup_run_merkle_${merkleTree.root.slice(0, 12)}`,
         content: JSON.stringify({
@@ -476,9 +479,11 @@ export class QupOrchestrator {
         intent: "QUANTUM_SIMULATION",
       },
     );
+    const anubisRun = anubisRes.data as any;
 
     // 3.3 THEMIS: Generate Legal Explanable Expediente
-    const themisRun = await isabellaSkills.THEMIS.run(
+    const themisRes = await runIsabellaSkill(
+      "THEMIS",
       {
         decisionId: `dec_qup_${traceId.slice(0, 8)}`,
         decision: `Aprobación y firma de ejecución cuántica QUP v3.0 con fidelidad del ${Math.round(runtime.quantumFidelity * 100)}%`,
@@ -523,9 +528,11 @@ export class QupOrchestrator {
         intent: "QUANTUM_SIMULATION",
       },
     );
+    const themisRun = themisRes.data as any;
 
     // 3.4 VIGIA: Ethical Multi-Lock Verification gate
-    const vigiaRun = await isabellaSkills.VIGIA.run(
+    const vigiaRes = await runIsabellaSkill(
+      "VIGIA",
       {
         text: `quantum:execute:${input.backend} risk:HIGH user:${userId}`,
       },
@@ -537,6 +544,7 @@ export class QupOrchestrator {
         intent: "QUANTUM_SIMULATION",
       },
     );
+    const vigiaRun = vigiaRes.data as any;
 
     // --- PHASE 4: POST-QUANTUM CRYPTOGRAPHIC AUDIT ---
     const payloadToSign = JSON.stringify({
