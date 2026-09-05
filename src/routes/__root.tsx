@@ -132,7 +132,7 @@ class ClientErrorBoundary extends Component<
   { children: ReactNode },
   { hasError: boolean; message: string }
 > {
-  state = { hasError: false, message: "" };
+  override state = { hasError: false, message: "" };
 
   static getDerivedStateFromError(error: unknown) {
     return {
@@ -141,11 +141,11 @@ class ClientErrorBoundary extends Component<
     };
   }
 
-  componentDidCatch(error: unknown, info: ErrorInfo) {
+  override componentDidCatch(error: unknown, info: ErrorInfo) {
     console.error("[Isabella] client render failure", { error, componentStack: info.componentStack });
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return (
         <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
