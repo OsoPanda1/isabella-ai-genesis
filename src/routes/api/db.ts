@@ -291,7 +291,11 @@ export const Route = createFileRoute("/api/db")({
             }
             const { evaluateEligibility } = await import("@/lib/monetization/eligibility");
             const eligibility = evaluateEligibility({
-              subscriptionActive: true,
+              subscriptionActive: (() => {
+                      const dbInst = SovereignDB.load();
+                      const tenant = dbInst.tenants.find(t => t.id === (context.tenantId || ""));
+                      return tenant ? (tenant.tier === "Sovereign" || tenant.tier === "Enterprise") : false;
+                    })(), // TODO: Replace with real SovereignDB/Prisma check when merged
               identityVerified: account.identityVerified,
               paymentAccountVerified: account.paymentAccountVerified,
               profileComplete: account.profileComplete,
@@ -1193,7 +1197,11 @@ export const Route = createFileRoute("/api/db")({
                   const acc = await prisma.monetizationAccount.findUnique({ where: { userId: uid } }); if (!acc) throw new Error("No account");
                   const { evaluateEligibility } = await import("@/lib/monetization/eligibility");
                   return evaluateEligibility({
-                    subscriptionActive: true,
+                    subscriptionActive: (() => {
+                      const dbInst = SovereignDB.load();
+                      const tenant = dbInst.tenants.find(t => t.id === (context.tenantId || ""));
+                      return tenant ? (tenant.tier === "Sovereign" || tenant.tier === "Enterprise") : false;
+                    })(),
                     identityVerified: acc.identityVerified,
                     paymentAccountVerified: acc.paymentAccountVerified,
                     profileComplete: acc.profileComplete,

@@ -8,18 +8,14 @@ const GENESIS_PREVIOUS_HASH = "0".repeat(64);
 let pool: Pool | null = null;
 function getPool(url: string) {
   if (!pool) {
-    try {
-      pool = new Pool({ connectionString: url });
-    } catch {
-      console.warn('[AI Studio] DB not connected — mock active');
-      pool = {
-        query: async () => ({ rows: [] }),
-        connect: async () => ({
-          query: async () => ({ rows: [] }),
-          release: () => {}
-        })
-      } as unknown as Pool;
+    if (!url) {
+      throw new Error("CRITICAL: DATABASE_URL is missing. BookPI Ledger requires a valid PostgreSQL connection.");
     }
+    pool = new Pool({ connectionString: url });
+    pool.on('error', (err) => {
+      console.error('Unexpected error on idle BookPI database client', err);
+      process.exit(-1);
+    });
   }
   return pool;
 }
@@ -138,18 +134,17 @@ export function createBookpiPostgresRepository() {
         
         // FASE 5: FIRMA REAL DEL BLOQUE (Implementar firma real de BookPI)
         const signKey = (cfg as unknown as Record<string,string>).BOOKPI_SIGNING_KEY;
-        if (signKey) {
-          try {
-             // In a real post-quantum scenario, this would use ML-DSA via sovereign-audit. 
-             // Using RSA/ECDSA placeholder to satisfy strict mode.
-             const signer = require("node:crypto").createSign("SHA256");
-             signer.update(blockHash);
-             signer.end();
-             (base as any).pqcSignature = signer.sign(signKey, "base64");
-             base.signatureAlgorithm = "RSA-SHA256";
-          } catch(e) {
-             console.warn("Fallo al firmar BookPI (llave incorrecta?), continuando sin firma real.");
-          }
+        if (!signKey) {
+          throw new Error("CRITICAL_SECURITY_ERROR: BOOKPI_SIGNING_KEY is missing. The Sovereign BookPI Ledger requires a valid signing key to ensure integrity.");
+        }
+        try {
+           const signer = require("node:crypto").createSign("SHA256");
+           signer.update(blockHash);
+           signer.end();
+           (base as any).pqcSignature = signer.sign(signKey, "base64");
+           base.signatureAlgorithm = "RSA-SHA256";
+        } catch(e) {
+           throw new Error("CRITICAL_SECURITY_ERROR: Failed to sign BookPI block. Execution aborted to prevent unverified ledger entries.");
         }
         const { rows } = await client.query(`
           INSERT INTO public.bookpi_ledger
