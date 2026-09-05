@@ -97,17 +97,27 @@ export const Route = createFileRoute("/api/billing")({
             });
           }
 
-          return withSovereignAuth("system", "read", async () => {
-            const fullLedger = SovereignDB.getFullLedger();
-            // Buscar por index o por coincidencia en el operation
-            const block = fullLedger.find(
-              (b) =>
-                b.index === parseInt(invoiceId, 10) ||
-                b.blockHash.startsWith(invoiceId) ||
-                b.operation.includes(invoiceId),
-            );
+          return withSovereignAuth("system", "read", async (context) => {
+            const invoiceIndex = parseInt(invoiceId, 10);
+            if (!Number.isInteger(invoiceIndex) || invoiceIndex < 0) {
+              return new Response(
+                JSON.stringify({ error: "invoiceId debe ser un índice numérico válido." }),
+                { status: 400, headers },
+              );
+            }
+            // Aislamiento multi-tenant: solo se consultan los bloques del tenant actual.
+            const tenantLedger = SovereignDB.getLedger(context.tenantId);
+            const block = tenantLedger.find((b) => b.index === invoiceIndex);
 
             if (!block) {
+              return new Response(JSON.stringify({ error: "Invoice/Transacción no encontrada." }), {
+                status: 404,
+                headers,
+              });
+            }
+
+            // Verificación de aislamiento reforzada: nunca devolver bloques de otro tenant.
+            if (block.tenantId !== context.tenantId) {
               return new Response(JSON.stringify({ error: "Invoice/Transacción no encontrada." }), {
                 status: 404,
                 headers,
@@ -322,6 +332,7 @@ export const Route = createFileRoute("/api/billing")({
             let eventType;
             let metadata: Record<string, string> = {};
             let clientReferenceId = "";
+            let eventId = "";
 
             try {
               const endpointSecret = config().STRIPE_WEBHOOK_SECRET || "";
@@ -337,6 +348,7 @@ export const Route = createFileRoute("/api/billing")({
               >;
               metadata = (sessionObject.metadata as Record<string, string>) || {};
               clientReferenceId = (sessionObject.client_reference_id as string) || "";
+              eventId = verifiedEvent.id;
             } catch (verificationError: unknown) {
               const errorMsg =
                 verificationError instanceof Error
@@ -365,6 +377,22 @@ export const Route = createFileRoute("/api/billing")({
                 });
               }
 
+              // IDEMPOTENCIA: Stripe puede reintentar el mismo evento. Nunca acreditar
+              // créditos de bono dos veces por el mismo `eventId`.
+              if (eventId) {
+                const marker = `STRIPE_EVENT:${eventId}`;
+                const alreadyProcessed = SovereignDB.getFullLedger().some(
+                  (b) => b.operation && b.operation.includes(marker),
+                );
+                if (alreadyProcessed) {
+                  return new Response(
+                    JSON.stringify({ success: true, processed: true, duplicate: true }),
+                    { headers },
+                  );
+                }
+                metadata.marker = marker;
+              }
+
               if (targetTenantId) {
                 const db = SovereignDB.load();
                 const tenant = db.tenants.find((t) => t.id === targetTenantId);
@@ -384,7 +412,7 @@ export const Route = createFileRoute("/api/billing")({
                   const block = SovereignDB.appendLedgerBlock(
                     targetTenantId,
                     targetUserId || "system",
-                    `ACTIVATE_SUBSCRIPTION: Plan ${planId.toUpperCase()} activado exitosamente (Créditos de bono: +$100.00 USD)`,
+                    `ACTIVATE_SUBSCRIPTION: Plan ${planId.toUpperCase()} activado exitosamente (Créditos de bono: +$100.00 USD) ${metadata?.marker || ""}`,
                     "other",
                     0, // no deduction for subscriptions
                     0,
@@ -432,6 +460,20 @@ export const Route = createFileRoute("/api/billing")({
                 parsed.data.operation ||
                 `QUANTUM_JOB: ${parsed.data.jobId} (Shots: ${parsed.data.shots}, Segundos QPU: ${parsed.data.qpu_seconds})`;
 
+              // P0: nunca permitir saldo negativo — gate de balance explícito.
+              const tenant = SovereignDB.getTenant(context.tenantId);
+              const currentBalance = tenant?.quotaBalance ?? 0;
+              if (currentBalance < costUSD) {
+                return new Response(
+                  JSON.stringify({
+                    error: "Saldo insuficiente para consumir recursos dedicados.",
+                    quotaBalance: currentBalance,
+                    required: costUSD,
+                  }),
+                  { status: 402, headers },
+                );
+              }
+
               // P6: Use PostgreSQL canonical ledger instead of JSON
               const { createBookpiPostgresRepository } = await import("@/lib/repositories/bookpi-postgres-repository");
               const bookpiRepo = createBookpiPostgresRepository();
@@ -451,6 +493,20 @@ export const Route = createFileRoute("/api/billing")({
                 });
               }
               const block = blockResult.block;
+
+              // P0: debitar el saldo operativo de forma coherente con el ledger.
+              // Re-leer para evitar sobreescribir cambios concurrentes del snapshot.
+              const freshTenant = SovereignDB.getTenant(context.tenantId);
+              if (freshTenant) {
+                if (freshTenant.quotaBalance < costUSD) {
+                  return new Response(
+                    JSON.stringify({ error: "Saldo insuficiente para consumir recursos dedicados." }),
+                    { status: 402, headers },
+                  );
+                }
+                freshTenant.quotaBalance = Math.round((freshTenant.quotaBalance - costUSD) * 1e9) / 1e9;
+                SovereignDB.upsertTenant(freshTenant);
+              }
 
               SovereignDB.appendAuditLog(
                 `trc_charge_${block.index}`,
@@ -478,6 +534,7 @@ export const Route = createFileRoute("/api/billing")({
             return withSovereignAuth("system", "write", async (context) => {
               const topupSchema = z.object({
                 amountUSD: z.number().positive().max(5000),
+                stripePaymentIntentId: z.string().min(1).max(128),
               });
 
               const parsed = topupSchema.safeParse(body);
@@ -486,6 +543,57 @@ export const Route = createFileRoute("/api/billing")({
                   status: 400,
                   headers,
                 });
+              }
+
+              // IDEMPOTENCIA: un PaymentIntent solo puede acreditar créditos una vez.
+              const piMarker = `STRIPE_PI:${parsed.data.stripePaymentIntentId}`;
+              const alreadyCredited = SovereignDB.getFullLedger().some(
+                (b) => b.operation && b.operation.includes(piMarker),
+              );
+              if (alreadyCredited) {
+                return new Response(
+                  JSON.stringify({
+                    error: "Este PaymentIntent ya fue aplicado a una recarga previa.",
+                    duplicate: true,
+                  }),
+                  { status: 409, headers },
+                );
+              }
+
+              // P0: el saldo solo se acredita tras verificar un pago real en Stripe.
+              const stripe = getStripe();
+              if (!stripe) {
+                return new Response(
+                  JSON.stringify({ error: "Stripe no configurado en el servidor." }),
+                  { status: 500, headers },
+                );
+              }
+              let paymentIntent;
+              try {
+                paymentIntent = await stripe.paymentIntents.retrieve(
+                  parsed.data.stripePaymentIntentId,
+                );
+              } catch (err) {
+                console.error("[billing:topup] PaymentIntent inválido:", err);
+                return new Response(
+                  JSON.stringify({ error: "PaymentIntent inválido." }),
+                  { status: 422, headers },
+                );
+              }
+              if (paymentIntent.status !== "succeeded") {
+                return new Response(
+                  JSON.stringify({
+                    error: `El pago no ha sido confirmado (estado: ${paymentIntent.status}).`,
+                  }),
+                  { status: 422, headers },
+                );
+              }
+              const expectedCents = Math.round(parsed.data.amountUSD * 100);
+              if (paymentIntent.amount !== expectedCents) {
+                return new Response(
+                  JSON.stringify({ error: "El monto del pago no coincide con la recarga." }),
+                  { status: 422, headers },
+                );
               }
 
               const db = SovereignDB.load();
@@ -503,7 +611,7 @@ export const Route = createFileRoute("/api/billing")({
               const block = SovereignDB.appendLedgerBlock(
                 context.tenantId,
                 context.userId,
-                `QUOTA_TOPUP: Recarga manual de saldo comercial (+$${parsed.data.amountUSD.toFixed(2)} USD)`,
+                `QUOTA_TOPUP: Recarga manual de saldo comercial (+$${parsed.data.amountUSD.toFixed(2)} USD) ${piMarker}`,
                 "other",
                 0, // no deduction
                 0,
@@ -515,7 +623,7 @@ export const Route = createFileRoute("/api/billing")({
                 context.ip,
                 "Recarga de Saldo Procesada",
                 "S3",
-                `Monto de $${parsed.data.amountUSD.toFixed(2)} USD recargado a ${context.tenantId}.`,
+                `Monto de $${parsed.data.amountUSD.toFixed(2)} USD recargado a ${context.tenantId}. PI: ${parsed.data.stripePaymentIntentId}`,
               );
 
               return new Response(
@@ -651,10 +759,14 @@ export const Route = createFileRoute("/api/billing")({
           if (action === "marketplace-listing") {
             return withSovereignAuth("system", "write", async (context) => {
               const listingSchema = z.object({
-                skillId: z.string().min(3),
-                title: z.string().min(3),
-                costCents: z.number().positive().int(),
-                description: z.string().min(10),
+                skillId: z
+                  .string()
+                  .min(3)
+                  .max(64)
+                  .regex(/^[a-z0-9-]+$/, "skillId solo admite minúsculas, números y guiones."),
+                title: z.string().min(3).max(120),
+                costCents: z.number().positive().int().max(100_000), // máx $1,000 USD
+                description: z.string().min(10).max(2000),
               });
 
               const parsed = listingSchema.safeParse(body);
@@ -730,6 +842,18 @@ export const Route = createFileRoute("/api/billing")({
               const tenant = SovereignDB.getTenant(context.tenantId);
               const costUSD = listing.costCents / 100;
 
+              // P0: IDEMPOTENCIA + RE-validación de saldo tras lecturas concurrentes.
+              const purchaseMarker = `MARKETPLACE_PURCHASE:${parsed.data.skillId}:${listing.costCents}`;
+              const alreadyOwned = SovereignDB.getLedger(context.tenantId).some(
+                (b) => b.operation && b.operation.includes(purchaseMarker),
+              );
+              if (alreadyOwned) {
+                return new Response(
+                  JSON.stringify({ error: "Este skill ya fue adquirido por el tenant." }),
+                  { status: 409, headers },
+                );
+              }
+
               if (!tenant || tenant.quotaBalance < costUSD) {
                 return new Response(
                   JSON.stringify({
@@ -745,9 +869,20 @@ export const Route = createFileRoute("/api/billing")({
               const platformFeeCents = Math.round(listing.costCents * 0.15);
               const userNetCents = listing.costCents - platformFeeCents;
 
-              // Descontar saldo al comprador
-              tenant.quotaBalance -= costUSD;
-              SovereignDB.upsertTenant(tenant);
+              // Descontar saldo al comprador (re-leer: evitar carreras)
+              const freshBuyer = SovereignDB.getTenant(context.tenantId);
+              if (!freshBuyer || freshBuyer.quotaBalance < costUSD) {
+                return new Response(
+                  JSON.stringify({
+                    error: "Saldo insuficiente.",
+                    quotaBalance: freshBuyer?.quotaBalance ?? 0,
+                    required: costUSD,
+                  }),
+                  { status: 400, headers },
+                );
+              }
+              freshBuyer.quotaBalance = Math.round((freshBuyer.quotaBalance - costUSD) * 1e9) / 1e9;
+              SovereignDB.upsertTenant(freshBuyer);
 
               // Acreditar saldo madurado al vendedor (owner del skill)
               const ownerAccount = SovereignDB.getMonetizationAccount(listing.ownerId);
@@ -760,7 +895,7 @@ export const Route = createFileRoute("/api/billing")({
               const block = SovereignDB.appendLedgerBlock(
                 context.tenantId,
                 context.userId,
-                `MARKETPLACE_PURCHASE: Compra del skill '${listing.title}' por $${costUSD.toFixed(2)} USD (Reparto: Vendedor +$${(userNetCents / 100).toFixed(2)}, Plataforma +$${(platformFeeCents / 100).toFixed(2)})`,
+                `MARKETPLACE_PURCHASE: Compra del skill '${listing.title}' por $${costUSD.toFixed(2)} USD (Reparto: Vendedor +$${(userNetCents / 100).toFixed(2)}, Plataforma +$${(platformFeeCents / 100).toFixed(2)}) ${purchaseMarker}`,
                 "skills",
                 costUSD,
                 0,
@@ -781,7 +916,7 @@ export const Route = createFileRoute("/api/billing")({
                   blockIndex: block.index,
                   costUSD,
                   sellerEarnedBalanceCents: userNetCents,
-                  buyerRemainingCredits: tenant.quotaBalance,
+                  buyerRemainingCredits: freshBuyer.quotaBalance,
                 }),
                 { headers },
               );
@@ -798,15 +933,20 @@ export const Route = createFileRoute("/api/billing")({
         } catch (e: unknown) {
           const internalId = nodeCrypto.randomUUID().slice(0, 8);
           console.error(`[api/billing:${internalId}]`, e);
-          return new Response(
-            JSON.stringify({
-              error: "internal_error",
-              traceId: `trc_${internalId}`,
-              message:
-                e instanceof Error ? e.message : "Error desconocido de backend de facturación.",
-            }),
-            { status: 500, headers },
-          );
+          const isDev = config().NODE_ENV === "development";
+          const payload: Record<string, string> = {
+            error: "internal_error",
+            traceId: `trc_${internalId}`,
+          };
+          // Nunca exponer detalles internos en producción; solo en desarrollo local.
+          if (isDev) {
+            payload.message =
+              e instanceof Error ? e.message : "Error desconocido de backend de facturación.";
+          }
+          return new Response(JSON.stringify(payload), {
+            status: 500,
+            headers,
+          });
         }
       },
     },

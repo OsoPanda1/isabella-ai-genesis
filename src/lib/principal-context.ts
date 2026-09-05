@@ -208,7 +208,7 @@ export class PrincipalContext {
           id: "nodo_cero_rdm",
           slug: "nodo-cero",
           tier: "sovereign",
-          quotaBalance: 9999,
+          quotaBalance: 0,
         };
         const guestContext = new PrincipalContext(
           guestClaims,
@@ -296,7 +296,7 @@ export class PrincipalContext {
           id: "nodo_cero_rdm",
           slug: "nodo-cero",
           tier: "sovereign",
-          quotaBalance: 9999,
+          quotaBalance: 0,
         };
         const guestContext = new PrincipalContext(
           guestClaims,
@@ -469,6 +469,12 @@ export function withSovereignAuth(
     }
 
     const { context } = authResult;
+
+    // P0 deployment: in production, resynchronize the SovereignDB in-memory
+    // cache from durable PostgreSQL so every request observes the latest
+    // cross-instance state before any read-modify-write.
+    const { SovereignDB } = await import("./sovereign-engine");
+    await SovereignDB.hydrate();
 
     const authReq: AuthorizationContext = {
       tenant_id: context.tenantId,

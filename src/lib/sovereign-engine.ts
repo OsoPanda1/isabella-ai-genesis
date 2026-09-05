@@ -1,6 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as crypto from "node:crypto";
+import { Pool } from "pg";
+import { config } from "./config";
 import { SecuritySystem } from "./security";
 import type { ApiKeyRecord } from "./credential-types";
 
@@ -131,58 +133,200 @@ function emptyDatabase(): DatabaseSchema {
 const GENESIS_PREVIOUS_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
 
 // ============================================================================
-// HELPER METHODS: PERSISTENT STORAGE CONTROLLER (Atomic File I/O)
+// HELPER METHODS: PERSISTENT STORAGE CONTROLLER
+// Dev/test → Atomic File I/O. Staging/Production → PostgreSQL (sovereign_state).
 // ============================================================================
+
+let pgPool: Pool | null = null;
+function getPgPool(): Pool | null {
+  try {
+    const url = config().DATABASE_URL;
+    if (!url) return null;
+    if (!pgPool) {
+      pgPool = new Pool({ connectionString: url, max: 5 });
+      pgPool.on("error", (err) => {
+        console.error("Unexpected error on idle Sovereign State pool", err);
+      });
+    }
+    return pgPool;
+  } catch {
+    return null;
+  }
+}
+
+// In-memory cache for the hot path. In production, hydrated from Postgres at
+// the start of each request (see hydrate()) and persisted on every save().
+let memoryDb: DatabaseSchema | null = null;
+
+// Self-provisioning: creates the sovereign_state table once per process if it
+// does not exist yet, so the production DB does not need manual DDL setup.
+let stateTableReady = false;
+async function ensureStateTable(pool: Pool): Promise<void> {
+  if (stateTableReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS public.sovereign_state (
+      id varchar(32) primary key,
+      payload jsonb not null,
+      version varchar(32) not null default 'v1',
+      updated_at timestamptz not null default now()
+    )
+  `);
+  stateTableReady = true;
+}
+
+function isProductionRuntime(): boolean {
+  try {
+    const cfg = config();
+    return (
+      cfg.NODE_ENV === "production" ||
+      cfg.ISABELLA_RUNTIME_MODE === "production" ||
+      cfg.ISABELLA_RUNTIME_MODE === "staging"
+    );
+  } catch {
+    return (
+      process.env.NODE_ENV === "production" ||
+      process.env.ISABELLA_RUNTIME_MODE === "production"
+    );
+  }
+}
 
 export class SovereignDB {
   /**
-   * Carga el estado persistente real. Si no existe archivo o está corrupto,
-   * arranca desde un estado vacío auténtico. Nunca fabrica datos (zero mockdata).
+   * Resynchronizes the in-memory cache from durable PostgreSQL storage.
+   * Must be awaited before any production read-modify-write sequence so each
+   * request observes the latest cross-instance state. Idempotent and safe.
+   */
+  public static async hydrate(): Promise<DatabaseSchema> {
+    if (!isProductionRuntime()) {
+      if (!memoryDb) {
+        memoryDb = emptyDatabase();
+      }
+      return memoryDb;
+    }
+    const pool = getPgPool();
+    if (pool) {
+      try {
+        await ensureStateTable(pool);
+        const { rows } = await pool.query(
+          "SELECT payload FROM public.sovereign_state WHERE id = 'canonical' LIMIT 1",
+        );
+        if (rows[0]?.payload) {
+          memoryDb = rows[0].payload as DatabaseSchema;
+          return memoryDb;
+        }
+      } catch (e) {
+        console.error("[SovereignDB] hydrate failed, using in-memory state:", e);
+      }
+    } else {
+      console.error(
+        "[SovereignDB] No DATABASE_URL in production — Sovereign state is not durable.",
+      );
+    }
+    memoryDb = emptyDatabase();
+    return memoryDb;
+  }
+
+  // Resets the in-memory cache (used by tests).
+  public static resetMemoryCache(): void {
+    memoryDb = null;
+  }
+
+  /**
+   * Carga el estado persistente real (sincrónico, hot path). En dev/test usa el
+   * archivo JSON; en producción devuelve la caché de memoria hidratada desde
+   * PostgreSQL. Nunca fabrica datos (zero mockdata).
    */
   public static load(): DatabaseSchema {
-    if (
-      process.env.NODE_ENV === "production" ||
-      process.env.ISABELLA_RUNTIME_MODE === "production"
-    ) {
-      throw new Error(
-        "[FATAL - P1 Audit] JSON persistence (sovereign_db.json) is strictly forbidden in production. Production deployments MUST use Supabase PostgreSQL / Cloud SQL via repositoryFactory. SovereignDB is deprecated for persistent multi-tenant states.",
-      );
-    }
-    try {
-      if (fs.existsSync(PERSISTENCE_FILE_PATH)) {
-        const raw = fs.readFileSync(PERSISTENCE_FILE_PATH, "utf8");
-        const db = JSON.parse(raw) as DatabaseSchema;
-        return db;
+    const production = isProductionRuntime();
+
+    if (!production) {
+      try {
+        if (fs.existsSync(PERSISTENCE_FILE_PATH)) {
+          const raw = fs.readFileSync(PERSISTENCE_FILE_PATH, "utf8");
+          const db = JSON.parse(raw) as DatabaseSchema;
+          memoryDb = db;
+          return db;
+        }
+      } catch (e) {
+        console.error(
+          "No se pudo cargar la base de datos persistente. Restableciendo estado vacío:",
+          e,
+        );
       }
-    } catch (e) {
-      console.error(
-        "No se pudo cargar la base de datos persistente. Restableciendo estado vacío:",
-        e,
-      );
+      const db = emptyDatabase();
+      memoryDb = db;
+      this.save(db);
+      return db;
     }
-    const db = emptyDatabase();
-    this.save(db);
-    return db;
+
+    // Production: return in-memory cache (hydrate() must be awaited first).
+    if (!memoryDb) {
+      // Fallback: an empty state. A real hydrate() call will repopulate it.
+      memoryDb = emptyDatabase();
+    }
+    return memoryDb;
   }
 
   private static save(db: DatabaseSchema) {
-    if (
-      process.env.NODE_ENV === "production" ||
-      process.env.ISABELLA_RUNTIME_MODE === "production"
-    ) {
-      throw new Error(
-        "[FATAL - P1 Audit] JSON persistence (sovereign_db.json) is strictly forbidden in production.",
-      );
-    }
-    try {
-      const dir = path.dirname(PERSISTENCE_FILE_PATH);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+    memoryDb = db;
+    const production = isProductionRuntime();
+
+    if (!production) {
+      try {
+        const dir = path.dirname(PERSISTENCE_FILE_PATH);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        fs.writeFileSync(PERSISTENCE_FILE_PATH, JSON.stringify(db, null, 2), "utf8");
+      } catch (e) {
+        console.error("Fallo crítico al escribir en la base de datos persistente:", e);
       }
-      fs.writeFileSync(PERSISTENCE_FILE_PATH, JSON.stringify(db, null, 2), "utf8");
-    } catch (e) {
-      console.error("Fallo crítico al escribir en la base de datos persistente:", e);
+      return;
     }
+
+    // Production: persist to PostgreSQL async (fire-and-forget with error log).
+    const pool = getPgPool();
+    if (!pool) {
+      console.error(
+        "[SovereignDB] No DATABASE_URL in production — sovereign state write skipped (NOT durable).",
+      );
+      return;
+    }
+    const payload = JSON.stringify(db);
+    const persist = async () => {
+      await ensureStateTable(pool);
+      await pool.query(
+        `INSERT INTO public.sovereign_state (id, payload, version, updated_at)
+         VALUES ('canonical', $1::jsonb, 'v1', now())
+         ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload, version = 'v1', updated_at = now()`,
+        [payload],
+      );
+    };
+    persist()
+      .then(() => {
+        /* persisted */
+      })
+      .catch((e) => {
+        console.error("[SovereignDB] Failed to persist sovereign state to Postgres:", e);
+      });
+  }
+
+  /**
+   * Destructive overwrite of the entire durable state (used by tests / reset).
+   */
+  public static async replaceState(db: DatabaseSchema): Promise<void> {
+    memoryDb = db;
+    const pool = getPgPool();
+    if (!pool || !isProductionRuntime()) {
+      return this.save(db) as unknown as void;
+    }
+    await ensureStateTable(pool);
+    await pool.query(
+      `INSERT INTO public.sovereign_state (id, payload, version, updated_at)
+       VALUES ('canonical', $1::jsonb, 'v1', now())
+       ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload, version = 'v1', updated_at = now()`,
+      [JSON.stringify(db)],
+    );
   }
 
   // --- Provisioning de identidad (real, no mockdata) ---

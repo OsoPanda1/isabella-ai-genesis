@@ -217,7 +217,17 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
     };
   }, [progress, masterClock]);
 
-  return <div ref={mountRef} className="absolute inset-0" aria-hidden="true" />;
+  return (
+    <div
+      ref={mountRef}
+      className="absolute inset-0"
+      aria-hidden="true"
+      style={{
+        background:
+          "radial-gradient(circle at 50% 50%, rgba(25,4,6,0.9) 0%, rgba(2,3,6,0.4) 55%, #020306 100%)",
+      }}
+    />
+  );
 }
 
 // SCHEMA SCHEMATICS FOR REPETITIVE CELLS FLICKERING

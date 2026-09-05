@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
-import { secrets } from "@/lib/secrets";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { config } from "@/lib/config";
 
@@ -28,14 +27,9 @@ export const Route = createFileRoute("/api/isabella-voice")({
           );
         }
 
-        // --- LAYER 3: Sovereign API Key check ---
-        let apiKey: string;
-        try {
-          apiKey = secrets.aiGatewayKey();
-        } catch {
-          apiKey = "";
-        }
-        if (!apiKey) {
+        // --- LAYER 3: Upstream voice endpoint availability check ---
+        const voiceApiUrl = config().VOICE_API_URL;
+        if (!voiceApiUrl) {
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );

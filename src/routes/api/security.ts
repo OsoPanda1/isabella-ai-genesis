@@ -57,6 +57,31 @@ const securityEventSchema = z.object({
 });
 
 // TypeScript equivalent scoring and level mapping matching python's pipeline.py
+// Allowlist de claves de metadata seguras de exponer al cliente. Nunca se
+// devuelven secretos, PII, detecciones ni indicadores internos no sanitizados.
+const REDACT_METADATA_ALLOWLIST = new Set([
+  "resource_date",
+  "bucket",
+  "filename",
+  "size_bytes",
+  "object_id",
+  "tenant_ref",
+]);
+
+function redactMetadata(metadata: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const key of Object.keys(metadata)) {
+    if (REDACT_METADATA_ALLOWLIST.has(key)) {
+      // Sanitiza el valor: solo strings/numbers primitivos, nunca objetos anidados
+      const value = metadata[key];
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        out[key] = value;
+      }
+    }
+  }
+  return out;
+}
+
 function calculateTsAegisResponse(event: z.infer<typeof securityEventSchema>) {
   const hashSecret = secrets.apiKeyHashSecret(); // Resolved safely from secret provider
 
@@ -129,7 +154,7 @@ function calculateTsAegisResponse(event: z.infer<typeof securityEventSchema>) {
     learning_mode: aegis_level >= 2 ? "incident_memory" : "normal",
     sanitizedActor,
     sanitizedSource,
-    redactedMetadata: { ...event.metadata, original_resource: event.resource_class },
+    redactedMetadata: { ...redactMetadata(event.metadata), original_resource: event.resource_class },
   };
 }
 
@@ -152,15 +177,20 @@ export const Route = createFileRoute("/api/security")({
           );
         }
 
-        // Parse Request Body safely
+        // Parse Request Body safely (byte-counted against INPUT_MAX_BODY_BYTES)
         let rawBody;
         try {
-          rawBody = await request.json();
-        } catch {
+          const { parseSafeJsonBody } = await import("@/lib/input-limits");
+          rawBody = await parseSafeJsonBody(request);
+        } catch (e: unknown) {
+          const limitError =
+            typeof e === "object" && e !== null && "code" in e && (e as { code: string }).code === "BODY_TOO_LARGE";
           return new Response(
-            JSON.stringify({ error: "Inyección o payload corrupto detectado." }),
+            JSON.stringify({
+              error: limitError ? "Cuerpo de solicitud excede el límite permitido." : "Inyección o payload corrupto detectado.",
+            }),
             {
-              status: 400,
+              status: limitError ? 413 : 400,
               headers,
             },
           );
@@ -290,7 +320,7 @@ export const Route = createFileRoute("/api/security")({
                 ...validatedResult,
                 sanitizedActor: `hash_actor_${validatedResult.actor || "hashed"}`,
                 sanitizedSource: `hash_src_${validatedResult.source || "hashed"}`,
-                redactedMetadata: { ...event.metadata, original_resource: event.resource_class },
+                redactedMetadata: { ...redactMetadata(event.metadata), original_resource: event.resource_class },
               };
               void auditSecurity(
                 context.traceId,

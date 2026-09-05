@@ -117,6 +117,11 @@ async function fetchWithRequestChain(
     // Verifica integridad del runtime (no aborta en desarrollo, solo informa)
     void ensureRuntimeReady(false);
 
+    // P0 deployment: refresh the SovereignDB in-memory cache from durable
+    // PostgreSQL at the start of every request (production cross-instance sync).
+    const { SovereignDB } = await import("./lib/sovereign-engine");
+    await SovereignDB.hydrate();
+
     // 3. HANDLER — delega al router SSR
     const handler = await getServerEntry();
     const response = await handler.fetch(request, env, ctx);

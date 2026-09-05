@@ -253,6 +253,7 @@ export const Route = createFileRoute("/api/isabella")({
               "x-isabella-correlation-id": telemetry.correlationId,
               "x-isabella-native-intent": native.intent,
               "x-isabella-native-confidence": String(native.confidence),
+              "x-isabella-degraded-mode": "native_fallback",
             }),
           );
           const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: native.text } }] })}\n\ndata: [DONE]\n\n`;
@@ -260,11 +261,12 @@ export const Route = createFileRoute("/api/isabella")({
         }
         try {
           const upstream = await SecuritySystem.fetchSafeUpstream(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:streamGenerateContent?key=${encodeURIComponent(apiKey)}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:streamGenerateContent`,
             {
               method: "POST",
               headers: {
                 "content-type": "application/json",
+                "x-goog-api-key": apiKey,
               },
               body: JSON.stringify({
                 contents: [
@@ -303,6 +305,7 @@ export const Route = createFileRoute("/api/isabella")({
                 "x-isabella-rate-remaining": rateLimit.remaining.toString(),
                 "x-isabella-native-intent": native.intent,
                 "x-isabella-native-confidence": String(native.confidence),
+                "x-isabella-degraded-mode": "upstream_failed",
               }),
             );
             const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: native.text } }] })}\n\ndata: [DONE]\n\n`;
