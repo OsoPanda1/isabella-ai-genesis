@@ -169,12 +169,16 @@ export function createBookpiPostgresRepository() {
     ) {
       // FASE 3: refunds como nuevo evento, nunca UPDATE del original.
       const { rows: byId } = await pool.query(
-        "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 AND id = $2 LIMIT 1",
-        [requestor.tenantId, originalEventId]
+        "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 AND (id::text = $2 OR block_index::text = $2) LIMIT 1",
+        [requestor.tenantId, originalEventId],
       );
       const original = byId[0] ? mapRow(byId[0]) : null;
       if (!original) return { success: false as const, error: "Evento original no encontrado." };
-      if (original.status === "refunded")
+      const { rowCount } = await pool.query(
+        "SELECT 1 FROM public.bookpi_ledger WHERE tenant_id = $1 AND operation LIKE $2 LIMIT 1",
+        [requestor.tenantId, `refund_of_${original.index}_%`],
+      );
+      if (original.status === "refunded" || (rowCount ?? 0) > 0)
         return { success: false as const, error: "Evento ya refundido." };
       return this.append({
         tenantId: requestor.tenantId,

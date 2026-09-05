@@ -11,9 +11,7 @@ import Stripe from "stripe";
 let stripeInstance: Stripe | null = null;
 function getStripe(): Stripe | null {
   if (!stripeInstance) {
-    const key =
-      (config() as unknown as Record<string, string>).STRIPE_SECRET_KEY ||
-      process.env.STRIPE_SECRET_KEY;
+    const key = config().STRIPE_SECRET_KEY;
     if (key) {
       try {
         stripeInstance = new Stripe(key, {
@@ -326,7 +324,7 @@ export const Route = createFileRoute("/api/billing")({
             let clientReferenceId = "";
 
             try {
-              const endpointSecret = (config() as unknown as Record<string, string>).STRIPE_WEBHOOK_SECRET || "";
+              const endpointSecret = config().STRIPE_WEBHOOK_SECRET || "";
               const verifiedEvent = stripe.webhooks.constructEvent(
                 bodyText,
                 signature,
@@ -356,9 +354,16 @@ export const Route = createFileRoute("/api/billing")({
               eventType === "checkout.session.completed" ||
               eventType === "invoice.payment_succeeded"
             ) {
-              const planId = metadata?.planId || body?.planId || "pro";
-              const targetTenantId = metadata?.tenantId || body?.tenantId;
-              const targetUserId = clientReferenceId || body?.userId;
+              const planId = metadata?.planId;
+              const targetTenantId = metadata?.tenantId;
+              const targetUserId = clientReferenceId; 
+
+              if (!planId || !targetTenantId || !targetUserId) {
+                return new Response(JSON.stringify({ error: "Webhook metadata incompleta." }), {
+                  status: 422,
+                  headers,
+                });
+              }
 
               if (targetTenantId) {
                 const db = SovereignDB.load();

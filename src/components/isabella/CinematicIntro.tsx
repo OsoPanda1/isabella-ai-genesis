@@ -461,7 +461,7 @@ export function CinematicIntroContent({
                     <div
                       key={i}
                       className="border border-rose-500/15 rounded bg-[#110101]/25 p-3 flex flex-col justify-between font-mono text-[8px] text-rose-500 overflow-hidden"
-                      style={{ opacity: (flickerTrigger ? 1 : 0.4) + Math.random() * 0.3 }}
+                      style={{ opacity: flickerTrigger ? 1 : 0.55 }}
                     >
                       <div>
                         <div className="text-[7px] text-amber-500 font-bold mb-1">

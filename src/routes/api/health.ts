@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { repositoryFactory } from "@/lib/persistence/repository-factory";
 import { config } from "@/lib/config";
+import { isProductionLike, resolveRuntimeMode } from "@/lib/runtime-mode";
 
 export const Route = createFileRoute("/api/health")({
   server: {
@@ -44,21 +45,21 @@ async function readiness(): Promise<Response> {
     checks.repository = { ok: repoHealth.ok, latencyMs: repoHealth.latencyMs };
     if (!repoHealth.ok) overallOk = false;
   } catch (e) {
-    checks.repository = { ok: false, error: e instanceof Error ? e.message : String(e) };
+    checks.repository = { ok: false, error: "repository_unavailable" };
     overallOk = false;
   }
 
   // Config health
   try {
     const cfg = config();
-    checks.config = { ok: !!cfg.SUPABASE_URL && !!cfg.AUTH_JWT_SECRET };
-    if (!checks.config.ok) {
-      // In development, missing Supabase is ok if JSON allowed
-      const isProd = cfg.NODE_ENV === "production";
-      if (isProd) overallOk = false;
-    }
+    const mode = resolveRuntimeMode(cfg.ISABELLA_RUNTIME_MODE);
+    const hasDurableAuthority = Boolean(
+      (cfg.SUPABASE_URL && cfg.AUTH_JWT_SECRET) || cfg.DATABASE_URL,
+    );
+    checks.config = { ok: hasDurableAuthority };
+    if (!hasDurableAuthority && isProductionLike(mode)) overallOk = false;
   } catch (e) {
-    checks.config = { ok: false, error: e instanceof Error ? e.message : String(e) };
+    checks.config = { ok: false, error: "configuration_unavailable" };
     overallOk = false;
   }
 
@@ -67,7 +68,7 @@ async function readiness(): Promise<Response> {
     const auditHealth = await repositoryFactory.getAuditRepository().health();
     checks.audit = { ok: auditHealth.ok, latencyMs: auditHealth.latencyMs };
   } catch (e) {
-    checks.audit = { ok: false, error: e instanceof Error ? e.message : String(e) };
+    checks.audit = { ok: false, error: "audit_unavailable" };
   }
 
   const status = overallOk ? 200 : 503;

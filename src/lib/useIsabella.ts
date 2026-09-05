@@ -45,7 +45,7 @@ const BOOT: TerminalMessage = {
   role: "system",
   content:
     "Núcleo C.R.O.W.N. sincronizado · ISA · SOPHIA · ORION · ARGUS en línea · Nodo Cero, Real del Monte, Hidalgo. Presencia establecida.",
-  timestamp: now(),
+  timestamp: "--:--:--",
 };
 
 function loadSession(): TerminalMessage[] | null {
@@ -327,7 +327,7 @@ export function useIsabella() {
         id: uid(),
         role: "system",
         content:
-          "Sesión purgada. Memoria inmediata y de sesión reiniciadas (mensajes y adjuntos) · telemetría auditable preservada.",
+          "Sesión purgada. Memoria inmediata y de sesión reiniciada · telemetría auditable preservada.",
         timestamp: now(),
       },
     ]);
@@ -356,7 +356,7 @@ export function useIsabella() {
     URL.revokeObjectURL(url);
   }, [messages, presetId, telemetry, runId]);
 
-  /** Reabre una conversación exportada previamente. */
+  /** Reabre la conversación exportada previamente. */
   const openConversation = useCallback(async (file: File) => {
     const raw = await file.text();
     const parsed = JSON.parse(raw) as { messages?: TerminalMessage[]; presetId?: PresetId };

@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 import {
   Outlet,
   Link,
@@ -71,7 +71,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -121,13 +121,6 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <div id="isabella-boot-fallback" className="fixed inset-0 z-[100] flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
-          <div className="glass-strong w-full max-w-xl rounded-3xl p-8 text-center">
-            <p className="font-mono text-xs uppercase tracking-[0.24em] text-electric">C.R.O.W.N. Terminal</p>
-            <h1 className="mt-4 text-2xl font-semibold">Inicializando Isabella Villaseñor AI</h1>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">Sincronizando el terminal cognitivo y verificando el canal seguro.</p>
-          </div>
-        </div>
         {children}
         <Scripts />
       </body>
@@ -158,33 +151,22 @@ class ClientErrorBoundary extends Component<
         <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
           <section className="glass-strong w-full max-w-xl rounded-3xl p-8 text-center">
             <p className="font-mono text-xs uppercase tracking-[0.24em] text-electric">C.R.O.W.N. Recovery</p>
-            <h1 className="mt-4 text-2xl font-semibold">La interfaz encontró un error de hidratación</h1>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">El backend permanece protegido. Recarga la interfaz para reintentar el montaje del terminal.</p>
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="mt-6 rounded-xl bg-primary px-5 py-3 font-mono text-xs uppercase tracking-wider text-primary-foreground"
-            >
-              Reintentar interfaz
-            </button>
+            <h1 className="mt-4 text-2xl font-semibold">La interfaz encontró un error</h1>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">El backend permanece protegido. Recarga la interfaz para reintentar el montaje.</p>
+            <button type="button" onClick={() => window.location.reload()} className="mt-6 rounded-xl bg-primary px-5 py-3 font-mono text-xs uppercase tracking-wider text-primary-foreground">Reintentar interfaz</button>
             <p className="mt-4 break-words font-mono text-[10px] text-muted-foreground">{this.state.message}</p>
           </section>
         </main>
       );
     }
-
     return this.props.children;
   }
 }
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <ClientErrorBoundary>
-        <Outlet />
-      </ClientErrorBoundary>
-    </QueryClientProvider>
+    <ClientErrorBoundary>
+      <Outlet />
+    </ClientErrorBoundary>
   );
 }
