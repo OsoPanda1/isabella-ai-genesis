@@ -48,19 +48,14 @@ export const Route = createFileRoute("/")({
 const INTRO_SEEN_KEY = "isabella.entry.intro.v1";
 
 function Index() {
-  const [isHydrated, setIsHydrated] = useState(false);
   const [introDone, setIntroDone] = useState(false);
 
   useEffect(() => {
-    setIsHydrated(true);
-    if (typeof window === "undefined") return;
-    let seen = false;
     try {
-      seen = window.sessionStorage.getItem(INTRO_SEEN_KEY) === "1";
+      setIntroDone(window.sessionStorage.getItem(INTRO_SEEN_KEY) === "1");
     } catch {
-      seen = false;
+      setIntroDone(false);
     }
-    if (seen) setIntroDone(true);
   }, []);
 
   const handleIntroComplete = useCallback(() => {
@@ -72,17 +67,7 @@ function Index() {
     setIntroDone(true);
   }, []);
 
-  // Renderizar un lienzo oscuro limpio durante la hidratación para evitar destellos
-  if (!isHydrated) {
-    return <div className="h-screen w-full bg-[#020306]" />;
-  }
-
-  // Durante la intro no se monta la interfaz de Isabella (evita llamadas/APIs
-  // bajo el splash).
-  if (!introDone) {
-    return <CinematicIntro onComplete={handleIntroComplete} />;
-  }
-
+  if (!introDone) return <CinematicIntro onComplete={handleIntroComplete} />;
   return <IsabellaInterface />;
 }
 

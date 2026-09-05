@@ -27,6 +27,7 @@ export interface Secrets {
   aiGatewayKey(): string;
   supabaseJwtSecret(): string | undefined;
   policySigningKey(): string | undefined;
+  aegisAuditSecret(): string;
   apiKeyHashSecret(): string;
 }
 
@@ -54,6 +55,9 @@ export function createSecrets(cfg = config): Secrets {
     },
     policySigningKey() {
       return cfg().CROWN_POLICY_SIGNING_KEY;
+    },
+    aegisAuditSecret() {
+      return requireSecret("policy-signing", cfg().AEGIS_AUDIT_SECRET, "AEGIS_AUDIT_SECRET");
     },
     apiKeyHashSecret() {
       // P1: Desacoplamiento de dominios criptográficos.

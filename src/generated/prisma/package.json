@@ -1,0 +1,6 @@
+{
+  "name": "generated-prisma-client",
+  "type": "commonjs",
+  "main": "index.js",
+  "types": "index.d.ts"
+}
