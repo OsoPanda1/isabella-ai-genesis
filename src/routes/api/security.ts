@@ -154,7 +154,7 @@ function calculateTsAegisResponse(event: z.infer<typeof securityEventSchema>) {
     learning_mode: aegis_level >= 2 ? "incident_memory" : "normal",
     sanitizedActor,
     sanitizedSource,
-    redactedMetadata: { ...redactMetadata(event.metadata), original_resource: event.resource_class },
+    redactedMetadata: redactMetadata(event.metadata),
   };
 }
 
@@ -320,7 +320,7 @@ export const Route = createFileRoute("/api/security")({
                 ...validatedResult,
                 sanitizedActor: `hash_actor_${validatedResult.actor || "hashed"}`,
                 sanitizedSource: `hash_src_${validatedResult.source || "hashed"}`,
-                redactedMetadata: { ...redactMetadata(event.metadata), original_resource: event.resource_class },
+                redactedMetadata: redactMetadata(event.metadata),
               };
               void auditSecurity(
                 context.traceId,

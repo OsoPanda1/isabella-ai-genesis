@@ -1,4 +1,3 @@
-import { jsPDF } from "jspdf";
 import type { RoutingDecision } from "./crown-ui";
 import type { TelemetryLog } from "./latam-aegis-x";
 
@@ -88,7 +87,8 @@ export function exportTelemetryCsv(records: TelemetryRecord[], runId: string) {
   );
 }
 
-export function exportTelemetryPdf(records: TelemetryRecord[], runId: string, presetName: string) {
+export async function exportTelemetryPdf(records: TelemetryRecord[], runId: string, presetName: string) {
+  const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -148,7 +148,8 @@ export function exportTelemetryPdf(records: TelemetryRecord[], runId: string, pr
   doc.save(`isabella-auditoria-${stamp()}.pdf`);
 }
 
-export function exportSecurityCompliancePdf(logs: TelemetryLog[], runId: string) {
+export async function exportSecurityCompliancePdf(logs: TelemetryLog[], runId: string) {
+  const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();

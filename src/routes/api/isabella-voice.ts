@@ -44,7 +44,7 @@ export const Route = createFileRoute("/api/isabella-voice")({
         try {
           const { parseSafeJsonBody } = await import("@/lib/input-limits");
           rawBody = await parseSafeJsonBody(request);
-        } catch (e: any) {
+        } catch {
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );
