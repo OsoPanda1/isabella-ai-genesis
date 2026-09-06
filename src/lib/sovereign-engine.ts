@@ -154,9 +154,11 @@ function getPgPool(): Pool | null {
   }
 }
 
-// In-memory cache for the hot path. In production, hydrated from Postgres at
-// the start of each request (see hydrate()) and persisted on every save().
+// In-memory cache for the hot path. In production it is refreshed from
+// PostgreSQL through a bounded, de-duplicated refresh window (see hydrate()).
 let memoryDb: DatabaseSchema | null = null;
+let lastHydratedAt = 0;
+let hydrationInFlight: Promise<DatabaseSchema> | null = null;
 
 // Self-provisioning: creates the sovereign_state table once per process if it
 // does not exist yet, so the production DB does not need manual DDL setup.
@@ -191,15 +193,32 @@ function isProductionRuntime(): boolean {
 
 export class SovereignDB {
   /**
-   * Resynchronizes the in-memory cache from durable PostgreSQL storage.
-   * Must be awaited before any production read-modify-write sequence so each
-   * request observes the latest cross-instance state. Idempotent and safe.
+   * Refreshes the in-memory cache from durable PostgreSQL storage.
+   *
+   * `maxAgeMs` prevents a database read on every request; concurrent callers
+   * share one refresh. Mutating paths must request a fresh read (`maxAgeMs: 0`)
+   * before a read-modify-write sequence.
    */
-  public static async hydrate(): Promise<DatabaseSchema> {
+  public static async hydrate({ maxAgeMs = 0 }: { maxAgeMs?: number } = {}): Promise<DatabaseSchema> {
+    if (memoryDb && maxAgeMs > 0 && Date.now() - lastHydratedAt < maxAgeMs) {
+      return memoryDb;
+    }
+    if (hydrationInFlight) return hydrationInFlight;
+
+    hydrationInFlight = this.hydrateFresh();
+    try {
+      return await hydrationInFlight;
+    } finally {
+      hydrationInFlight = null;
+    }
+  }
+
+  private static async hydrateFresh(): Promise<DatabaseSchema> {
     if (!isProductionRuntime()) {
       if (!memoryDb) {
         memoryDb = emptyDatabase();
       }
+      lastHydratedAt = Date.now();
       return memoryDb;
     }
     const pool = getPgPool();
@@ -211,6 +230,7 @@ export class SovereignDB {
         );
         if (rows[0]?.payload) {
           memoryDb = rows[0].payload as DatabaseSchema;
+          lastHydratedAt = Date.now();
           return memoryDb;
         }
       } catch (e) {
@@ -222,12 +242,15 @@ export class SovereignDB {
       );
     }
     memoryDb = emptyDatabase();
+    lastHydratedAt = Date.now();
     return memoryDb;
   }
 
   // Resets the in-memory cache (used by tests).
   public static resetMemoryCache(): void {
     memoryDb = null;
+    lastHydratedAt = 0;
+    hydrationInFlight = null;
   }
 
   /**
@@ -268,6 +291,7 @@ export class SovereignDB {
 
   private static save(db: DatabaseSchema) {
     memoryDb = db;
+    lastHydratedAt = Date.now();
     const production = isProductionRuntime();
 
     if (!production) {
@@ -315,6 +339,7 @@ export class SovereignDB {
    */
   public static async replaceState(db: DatabaseSchema): Promise<void> {
     memoryDb = db;
+    lastHydratedAt = Date.now();
     const pool = getPgPool();
     if (!pool || !isProductionRuntime()) {
       return this.save(db) as unknown as void;

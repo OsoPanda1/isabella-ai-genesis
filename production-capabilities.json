@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "environment": "staging",
+  "capabilities": [
+    {
+      "name": "ai_inference",
+      "status": "verified",
+      "provider": "gemini",
+      "version": "recorded-at-runtime",
+      "last_verified": "2026-09-06T00:00:00Z",
+      "verification_method": "staging-integration-test"
+    },
+    {
+      "name": "post_quantum_signatures",
+      "status": "simulated",
+      "provider": "internal",
+      "version": "simulation-only",
+      "last_verified": null,
+      "verification_method": "not-production-authoritative"
+    },
+    {
+      "name": "live_payments",
+      "status": "unavailable",
+      "provider": "stripe",
+      "version": "not-enabled",
+      "last_verified": null,
+      "verification_method": "requires-financial-concurrency-and-reconciliation-evidence"
+    },
+    {
+      "name": "destructive_tools",
+      "status": "unavailable",
+      "provider": "internal",
+      "version": "disabled-for-closed-beta",
+      "last_verified": null,
+      "verification_method": "requires-human-approval-and-closed-beta-authorization"
+    }
+  ]
+}

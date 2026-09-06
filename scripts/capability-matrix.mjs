@@ -11,11 +11,83 @@
  *   --check  → exit 1 si falta algún archivo declarado.
  */
 
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+
+const PRODUCTION_CAPABILITIES_PATH = resolve(root, "production-capabilities.json");
+const CAPABILITY_STATUSES = new Set([
+  "verified",
+  "experimental",
+  "simulated",
+  "shadow",
+  "planned",
+  "unavailable",
+]);
+
+function validateProductionCapabilities() {
+  const errors = [];
+
+  if (!existsSync(PRODUCTION_CAPABILITIES_PATH)) {
+    return ["Falta production-capabilities.json."];
+  }
+
+  let manifest;
+  try {
+    manifest = JSON.parse(readFileSync(PRODUCTION_CAPABILITIES_PATH, "utf8"));
+  } catch (error) {
+    return [`production-capabilities.json no contiene JSON válido: ${error.message}`];
+  }
+
+  if (typeof manifest.version !== "string" || !/^\d+\.\d+\.\d+$/.test(manifest.version)) {
+    errors.push("El manifiesto debe declarar version semántica.");
+  }
+  if (!["development", "staging", "production"].includes(manifest.environment)) {
+    errors.push("El manifiesto debe declarar un environment permitido.");
+  }
+  if (!Array.isArray(manifest.capabilities) || manifest.capabilities.length === 0) {
+    errors.push("El manifiesto debe declarar al menos una capability.");
+    return errors;
+  }
+
+  const names = new Set();
+  for (const [index, capability] of manifest.capabilities.entries()) {
+    const label = `capabilities[${index}]`;
+    if (!capability || typeof capability !== "object") {
+      errors.push(`${label} debe ser un objeto.`);
+      continue;
+    }
+    if (typeof capability.name !== "string" || !/^[a-z0-9_]+$/.test(capability.name)) {
+      errors.push(`${label}.name debe usar minúsculas, números y guiones bajos.`);
+    } else if (names.has(capability.name)) {
+      errors.push(`${label}.name está duplicado: ${capability.name}.`);
+    } else {
+      names.add(capability.name);
+    }
+    if (!CAPABILITY_STATUSES.has(capability.status)) {
+      errors.push(`${label}.status no pertenece a la taxonomía permitida.`);
+    }
+    for (const field of ["provider", "version", "verification_method"]) {
+      if (typeof capability[field] !== "string" || capability[field].trim() === "") {
+        errors.push(`${label}.${field} debe ser texto no vacío.`);
+      }
+    }
+    if (capability.status === "verified") {
+      if (
+        typeof capability.last_verified !== "string" ||
+        Number.isNaN(Date.parse(capability.last_verified))
+      ) {
+        errors.push(`${label}.last_verified debe ser una fecha ISO válida para estado verified.`);
+      }
+    } else if (capability.last_verified !== null) {
+      errors.push(`${label}.last_verified debe ser null cuando el estado no es verified.`);
+    }
+  }
+
+  return errors;
+}
 
 const CAPABILITIES = [
   {
@@ -135,6 +207,7 @@ const CAPABILITIES = [
 ];
 
 let missing = [];
+const manifestErrors = validateProductionCapabilities();
 const rows = CAPABILITIES.map((capability) => {
   const absent = [...capability.sources, ...capability.tests].filter(
     (file) => !existsSync(resolve(root, file)),
@@ -160,8 +233,14 @@ console.log(
 );
 
 const check = process.argv.includes("--check");
-if (check && missing.length > 0) {
-  console.error(`Archivos declarados ausentes:\n${missing.join("\n")}`);
+if (check && (missing.length > 0 || manifestErrors.length > 0)) {
+  const errors = [
+    ...missing.map((file) => `Archivo declarado ausente: ${file}`),
+    ...manifestErrors,
+  ];
+  console.error(`Matriz de capabilities inválida:\n${errors.join("\n")}`);
   process.exit(1);
 }
-if (check) console.log("Matriz verificada: todos los archivos declarados existen.");
+if (check) {
+  console.log("Matriz verificada: archivos declarados y manifiesto de producción válidos.");
+}

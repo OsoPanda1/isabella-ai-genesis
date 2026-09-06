@@ -251,21 +251,29 @@ export const SecuritySystem = {
     return { allowed: true, claims };
   },
 
-  // --- LAYER 4: Hardened OWASP Secure Headers (No unsafe-eval, minimal unsafe-inline) ---
+  // --- LAYER 4: Hardened OWASP Secure Headers (No unsafe-eval, migration to nonce CSP) ---
   injectSecureHeaders(headers: Headers = new Headers()): Headers {
-    // Note: 'unsafe-inline' for script/style is required by Vite/TanStack hydration in dev; in prod consider nonce/hash with strict CSP.
-    // connect-src no longer includes Lovable — uses Gemini + self + Supabase.
+    // TanStack hydration still requires inline bootstrap. The enforced policy is
+    // deliberately transitional and the nonce policy is Report-Only until the
+    // framework emits matching per-request nonces.
     headers.set(
       "Content-Security-Policy",
       "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' blob:; connect-src 'self' https://generativelanguage.googleapis.com https://*.supabase.co https://*.neon.tech; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
     );
     headers.set("X-Content-Type-Options", "nosniff");
-    headers.set("X-Frame-Options", "SAMEORIGIN");
+    headers.set("X-Frame-Options", "DENY");
     // Modern secure browsers ignore X-XSS-Protection or suffer from filter bypasses; 0 disables the legacy auditor safely
     headers.set("X-XSS-Protection", "0");
     headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-    headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+    headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
     headers.set("X-Permitted-Cross-Domain-Policies", "none");
+    headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    headers.set("Cross-Origin-Opener-Policy", "same-origin");
+    headers.set("Cross-Origin-Resource-Policy", "same-origin");
+    headers.set(
+      "Content-Security-Policy-Report-Only",
+      "default-src 'self'; script-src 'self' 'nonce-{REQUEST_NONCE}'; style-src 'self' 'nonce-{STYLE_NONCE}'; img-src 'self' data: blob:; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests;",
+    );
     return headers;
   },
 

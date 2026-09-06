@@ -76,4 +76,14 @@ describe("SovereignDB Production Persistence Adapter (P0 deployment blocker)", (
       expect(queryLog.some((q) => q.text.includes("sovereign_state"))).toBe(false);
     }
   });
+
+  it("reutiliza la caché durante la ventana de refresco", async () => {
+    const first = await SovereignDB.hydrate({ maxAgeMs: 5_000 });
+    const second = await SovereignDB.hydrate({ maxAgeMs: 5_000 });
+
+    expect(second).toBe(first);
+    if (!process.env.NODE_ENV || process.env.NODE_ENV === "test") {
+      expect(queryLog.some((q) => q.text.includes("sovereign_state"))).toBe(false);
+    }
+  });
 });

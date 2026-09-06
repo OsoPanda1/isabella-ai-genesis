@@ -47,6 +47,9 @@ jobs:
       - name: Tests
         run: pnpm run test --if-present
 
+      - name: Verify production capability classifications
+        run: pnpm run capabilities
+
       - name: Migration verification
         run: node scripts/db-verify.mjs
 
