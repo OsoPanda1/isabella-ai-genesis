@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { CinematicIntro } from "@/components/isabella/CinematicIntro";
+import type { Attachment } from "@/lib/attachments";
 import { CommandLine } from "@/components/isabella/CommandLine";
 import { MessageStream } from "@/components/isabella/MessageStream";
 import { TelemetryPanel } from "@/components/isabella/TelemetryPanel";
