@@ -20,9 +20,9 @@ interface CinematicIntroProps {
 }
 
 // -----------------------------------------------------------------------------
-// 1. MOTOR GRÁFICO WEBGL – SOVEREIGN SOLAR ENGINE
+// 1. MOTOR GRÁFICO WEBGL – SOVEREIGN CRYSTAL ENGINE
 // -----------------------------------------------------------------------------
-function SovereignSolarEngine({
+function SovereignCrystalEngine({
   progress,
   masterClock,
 }: {
@@ -67,7 +67,7 @@ function SovereignSolarEngine({
       renderer.setSize(mount.clientWidth, mount.clientHeight);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.2;
+      renderer.toneMappingExposure = 1.3;
       mount.appendChild(renderer.domElement);
     }
 
@@ -75,18 +75,20 @@ function SovereignSolarEngine({
     scene.add(world);
 
     // ---------------------------
-    // CAMPO ESTELAR REALISTA
+    // CAMPO ESTELAR REALISTA (CRYSTAL GLOW)
     // ---------------------------
-    const starCount = 12000;
+    const starCount = 16000;
     const starPositions = new Float32Array(starCount * 3);
     const starSizes = new Float32Array(starCount);
     const starColors = new Float32Array(starCount * 3);
 
     const starColorPalette = [
-      new THREE.Color("#ffffff"),
-      new THREE.Color("#dbeafe"), // azul claro
-      new THREE.Color("#fef3c7"), // ámbar suave
-      new THREE.Color("#fde68a"), // dorado tenue
+      new THREE.Color("#f8fafc"), // blanco perlado
+      new THREE.Color("#e2e8f0"), // marfil frío
+      new THREE.Color("#93c5fd"), // azul eléctrico suave
+      new THREE.Color("#fde68a"), // oro tenue
+      new THREE.Color("#f0abfc"), // rosa metálico suave
+      new THREE.Color("#c084fc"), // morado metálico
     ];
 
     for (let i = 0; i < starCount; i++) {
@@ -98,7 +100,7 @@ function SovereignSolarEngine({
       starPositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
       starPositions[i * 3 + 2] = radius * Math.cos(phi);
 
-      starSizes[i] = 0.6 + Math.random() * 1.8;
+      starSizes[i] = 0.5 + Math.random() * 2.2;
 
       const col = starColorPalette[Math.floor(Math.random() * starColorPalette.length)];
       starColors[i * 3] = col.r;
@@ -112,7 +114,7 @@ function SovereignSolarEngine({
     starGeo.setAttribute("color", new THREE.BufferAttribute(starColors, 3));
 
     const starMat = new THREE.PointsMaterial({
-      size: 1.2,
+      size: 1.4,
       vertexColors: true,
       transparent: true,
       opacity: 0.95,
@@ -124,19 +126,23 @@ function SovereignSolarEngine({
     scene.add(stars);
 
     // ---------------------------
-    // SOL CENTRAL (ESTILIZADO)
+    // SOL CENTRAL (ORO REALISTA BRILLANTE)
     // ---------------------------
     const sunGeo = new THREE.SphereGeometry(28, 64, 64);
-    const sunMat = new THREE.MeshBasicMaterial({
+    const sunMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color("#fbbf24"), // ámbar dorado
+      emissive: new THREE.Color("#f59e0b"), // oro brillante
+      emissiveIntensity: 2.8,
+      roughness: 0.15,
+      metalness: 0.9,
     });
     const sun = new THREE.Mesh(sunGeo, sunMat);
     world.add(sun);
 
-    // Glow del sol (simple sphere más grande con transparencia)
+    // Glow del sol (capa exterior con transparencia)
     const sunGlowGeo = new THREE.SphereGeometry(34, 32, 32);
     const sunGlowMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color("#f59e0b"),
+      color: new THREE.Color("#f59e0b"), // oro intenso
       transparent: true,
       opacity: 0.35,
       blending: THREE.AdditiveBlending,
@@ -145,7 +151,7 @@ function SovereignSolarEngine({
     world.add(sunGlow);
 
     // ---------------------------
-    // SISTEMA DE ÓRBITAS (ANILLOS)
+    // SISTEMA DE ÓRBITAS (PLATINO ELEGANTE)
     // ---------------------------
     const orbitRadii = [55, 85, 120, 160, 210, 270, 340, 420];
     const orbits: THREE.Mesh[] = [];
@@ -153,9 +159,9 @@ function SovereignSolarEngine({
     orbitRadii.forEach((radius) => {
       const orbitGeo = new THREE.RingGeometry(radius - 0.6, radius + 0.6, 128);
       const orbitMat = new THREE.MeshBasicMaterial({
-        color: new THREE.Color("#f59e0b"),
+        color: new THREE.Color("#e5e7eb"), // platino elegante
         transparent: true,
-        opacity: 0.12,
+        opacity: 0.15,
         side: THREE.DoubleSide,
       });
       const orbit = new THREE.Mesh(orbitGeo, orbitMat);
@@ -165,28 +171,31 @@ function SovereignSolarEngine({
     });
 
     // ---------------------------
-    // PLANETAS (ESFERAS SIMPLES CON COLOR)
+    // PLANETAS (COLORES SOFISTICADOS)
     // ---------------------------
     const planetColors = [
-      "#94a3b8", // Mercurio
-      "#fde68a", // Venus
-      "#60a5fa", // Tierra
-      "#f87171", // Marte
-      "#d4a373", // Júpiter
-      "#fcd34d", // Saturno
-      "#93c5fd", // Urano
-      "#60a5fa", // Neptuno
+      "#94a3b8", // Mercurio (gris platino)
+      "#fef3c7", // Venus (marfil dorado)
+      "#60a5fa", // Tierra (azul eléctrico)
+      "#f87171", // Marte (rosa metálico)
+      "#d4a373", // Júpiter (oro viejo)
+      "#fcd34d", // Saturno (oro realista)
+      "#93c5fd", // Urano (azul petróleo)
+      "#1e3a8a", // Neptuno (navy blue)
     ];
 
     const planetSizes = [3.2, 5.8, 6.2, 4.8, 14, 12, 9, 8.5];
     const planets: THREE.Mesh[] = [];
 
     orbitRadii.forEach((radius, i) => {
-      const planetGeo = new THREE.SphereGeometry(planetSizes[i], 32, 32);
-      const planetMat = new THREE.MeshStandardMaterial({
+      const planetGeo = new THREE.SphereGeometry(planetSizes[i], 48, 48);
+      const planetMat = new THREE.MeshPhysicalMaterial({
         color: new THREE.Color(planetColors[i]),
-        roughness: 0.7,
-        metalness: 0.2,
+        roughness: 0.4,
+        metalness: 0.6,
+        clearcoat: 0.8,
+        clearcoatRoughness: 0.2,
+        reflectivity: 0.7,
       });
       const planet = new THREE.Mesh(planetGeo, planetMat);
       planet.position.set(radius, 0, 0);
@@ -195,27 +204,28 @@ function SovereignSolarEngine({
     });
 
     // ---------------------------
-    // NÚCLEO CENTRAL (ISABELLA CORE)
+    // NÚCLEO CENTRAL (ISABELLA CRYSTAL CORE)
     // ---------------------------
     const coreGeo = new THREE.IcosahedronGeometry(18, 4);
     const coreMat = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color("#d4af37"), // Elegant Gold Core
-      emissive: new THREE.Color("#991b1b"), // Majestic Crimson Glow
-      emissiveIntensity: 2.8,
-      metalness: 0.9,
-      roughness: 0.08,
-      transmission: 0.25,
+      color: new THREE.Color("#fde68a"), // oro claro
+      emissive: new THREE.Color("#7c3aed"), // morado metálico
+      emissiveIntensity: 3.2,
+      metalness: 0.95,
+      roughness: 0.05,
+      transmission: 0.35,
       transparent: true,
       opacity: 0.98,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
+      clearcoatRoughness: 0.03,
+      reflectivity: 0.9,
     });
     const core = new THREE.Mesh(coreGeo, coreMat);
     world.add(core);
 
     const shellGeo = new THREE.IcosahedronGeometry(26, 2);
     const shellMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color("#e11d48"), // Crimson Lattice
+      color: new THREE.Color("#f0abfc"), // rosa metálico
       wireframe: true,
       transparent: true,
       opacity: 0.35,
@@ -226,9 +236,9 @@ function SovereignSolarEngine({
 
     const haloGeo = new THREE.TorusGeometry(38, 1.2, 16, 180);
     const haloMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color("#f59e0b"), // Golden Ring
+      color: new THREE.Color("#f59e0b"), // oro brillante
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.85,
       blending: THREE.AdditiveBlending,
     });
     const halo = new THREE.Mesh(haloGeo, haloMat);
@@ -238,14 +248,18 @@ function SovereignSolarEngine({
     // ---------------------------
     // ILUMINACIÓN CINEMATOGRÁFICA
     // ---------------------------
-    scene.add(new THREE.AmbientLight("#450a0a", 1.2));
-    const sunLight = new THREE.PointLight("#fbbf24", 450, 1200);
+    scene.add(new THREE.AmbientLight("#020306", 0.8));
+    const sunLight = new THREE.PointLight("#fbbf24", 550, 1400);
     sunLight.position.set(0, 0, 0);
     scene.add(sunLight);
 
-    const rimLight = new THREE.PointLight("#e11d48", 280, 900);
+    const rimLight = new THREE.PointLight("#7c3aed", 380, 1100); // morado metálico
     rimLight.position.set(200, -120, 180);
     scene.add(rimLight);
+
+    const fillLight = new THREE.PointLight("#60a5fa", 280, 1000); // azul eléctrico
+    fillLight.position.set(-180, 80, 140);
+    scene.add(fillLight);
 
     // ---------------------------
     // CÁMARA CINEMÁTICA (MOVIMIENTO SUAVE)
@@ -293,7 +307,7 @@ function SovereignSolarEngine({
       camera.lookAt(0, 0, 0);
 
       // Pulse emissive core
-      coreMat.emissiveIntensity = 2.0 + Math.sin(t * 2.2) * 0.9;
+      coreMat.emissiveIntensity = 2.5 + Math.sin(t * 2.2) * 1.2;
 
       // Rotación de planetas en sus órbitas
       planets.forEach((planet, i) => {
@@ -356,7 +370,7 @@ function SovereignSolarEngine({
       aria-hidden="true"
       style={{
         background:
-          "radial-gradient(circle at 50% 50%, rgba(25,4,6,0.9) 0%, rgba(2,3,6,0.4) 55%, #020306 100%)",
+          "radial-gradient(circle at 50% 50%, rgba(2,3,6,0.95) 0%, rgba(2,3,6,0.5) 55%, #020306 100%)",
       }}
     />
   );
@@ -518,24 +532,24 @@ export function CinematicIntroContent({
 
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-[#020306] text-platinum select-none font-sans">
-      <SovereignSolarEngine progress={progress} masterClock={elapsed} />
+      <SovereignCrystalEngine progress={progress} masterClock={elapsed} />
 
       {/* Vignette elegante */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,3,6,0.35)_55%,rgba(2,3,6,0.95)_100%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(225,29,72,0.06),transparent_50%,rgba(245,158,11,0.08))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(124,58,237,0.08),transparent_50%,rgba(96,165,250,0.08))]" />
 
       {!showGate && (
         <>
           {/* Header de Telemetría */}
           <header className="absolute inset-x-6 top-6 z-20 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em] text-platinum/70">
             <div className="flex items-center gap-3">
-              <span className="inline-block size-2 rounded-full bg-rose-500 animate-pulse" />
+              <span className="inline-block size-2 rounded-full bg-[#f0abfc] animate-pulse" />
               <span>{elapsed < 10 ? "ESCENA 1" : elapsed < 20 ? "ESCENA 2" : elapsed < 30 ? "ESCENA 3" : elapsed < 40 ? "ESCENA 4" : elapsed < 50 ? "ESCENA 5" : "ESCENA 6"}</span>
             </div>
 
             <div className="flex items-center gap-6">
               <div className="hidden sm:flex items-center gap-3 text-platinum/40">
-                <Activity className="size-3.5 text-rose-500" />
+                <Activity className="size-3.5 text-[#f0abfc]" />
                 <span>{bitrateTelemetry.fps} FPS</span>
                 <span>·</span>
                 <span>{bitrateTelemetry.droppedFrames} DROP</span>
@@ -562,7 +576,7 @@ export function CinematicIntroContent({
           {/* MENSAJE CENTRAL CINEMATOGRÁFICO */}
           <div className="absolute inset-0 z-15 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
             <div className="max-w-5xl space-y-6 animate-fade-in">
-              <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-black tracking-widest text-white drop-shadow-[0_8px_30px_rgba(225,29,72,0.7)]">
+              <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-black tracking-widest text-white drop-shadow-[0_8px_30px_rgba(124,58,237,0.8)]">
                 {currentMessage}
               </h1>
             </div>
@@ -572,7 +586,7 @@ export function CinematicIntroContent({
           <footer className="absolute inset-x-6 bottom-6 z-20 space-y-2">
             <div className="relative h-1.5 w-full bg-white/5 rounded-full overflow-hidden backdrop-blur-sm">
               <div
-                className="h-full bg-gradient-to-r from-red-600 via-orange-500 to-amber-400 shadow-[0_0_15px_rgba(239,68,68,0.9)] transition-all duration-100 ease-linear"
+                className="h-full bg-gradient-to-r from-[#7c3aed] via-[#f0abfc] to-[#fbbf24] shadow-[0_0_15px_rgba(124,58,237,0.9)] transition-all duration-100 ease-linear"
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
@@ -587,7 +601,7 @@ export function CinematicIntroContent({
       {showGate && (
         <section className="absolute inset-0 z-30 flex items-center justify-center bg-[#020306]/95 p-6 backdrop-blur-xl">
           <div className="w-full max-w-[500px] rounded-3xl border border-white/10 bg-white/[0.02] p-8 text-center shadow-2xl backdrop-blur-2xl sm:p-10">
-            <div className="mx-auto mb-6 flex size-28 items-center justify-center rounded-2xl border border-white/20 bg-black/50 p-2 shadow-[0_0_60px_rgba(225,29,72,0.35)] animate-pulse">
+            <div className="mx-auto mb-6 flex size-28 items-center justify-center rounded-2xl border border-white/20 bg-black/50 p-2 shadow-[0_0_60px_rgba(124,58,237,0.4)] animate-pulse">
               <img
                 src="/favicon.png"
                 alt="Isabella Villaseñor Logo"
@@ -596,7 +610,7 @@ export function CinematicIntroContent({
             </div>
 
             <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-pearl sm:text-4xl">
-              Isabella <span className="text-amber-400 italic">Villaseñor</span>
+              Isabella <span className="text-[#fbbf24] italic">Villaseñor</span>
             </h1>
 
             <p className="mx-auto mt-3 max-w-sm font-mono text-[11px] leading-relaxed text-muted-foreground">
@@ -605,7 +619,7 @@ export function CinematicIntroContent({
 
             <button
               onClick={enter}
-              className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 px-6 py-4 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-pearl shadow-lg transition-all hover:scale-[1.02] hover:shadow-red-500/20 active:scale-[0.98] cursor-pointer"
+              className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#fbbf24] px-6 py-4 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-pearl shadow-lg transition-all hover:scale-[1.02] hover:shadow-[#7c3aed]/30 active:scale-[0.98] cursor-pointer"
             >
               <Play className="size-4 fill-pearl" />
               VER INTRO CINEMATOGRÁFICA
