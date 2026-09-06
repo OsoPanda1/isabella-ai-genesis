@@ -643,7 +643,7 @@ export function CinematicIntroContent({
           <div className="w-full max-w-[500px] rounded-3xl border border-white/10 bg-white/[0.02] p-8 text-center shadow-2xl backdrop-blur-2xl sm:p-10">
             <div className="mx-auto mb-6 flex size-28 items-center justify-center rounded-2xl border border-white/20 bg-black/50 p-2 shadow-[0_0_60px_rgba(225,29,72,0.35)] animate-pulse">
               <img
-                src="/assets/logo-isabella.jpeg"
+                src="/favicon.png"
                 alt="Isabella Villaseñor Logo"
                 className="size-full rounded-xl object-cover"
               />

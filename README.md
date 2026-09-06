@@ -1,89 +1,155 @@
-# Isabella Villaseñor AI - QUP v3.0 Sovereign Edition
+# Isabella Villaseñor AI
 
-![Isabella AI](https://img.shields.io/badge/Isabella_AI-Sovereign_Edition-blue?style=for-the-badge)
-![Status: Production Ready](https://img.shields.io/badge/Status-98%25_Operational-success?style=for-the-badge)
-![Security: Hardened](https://img.shields.io/badge/Security-Zero_Trust_Hardened-red?style=for-the-badge)
-![TAMV Online Network](https://img.shields.io/badge/Ecosystem-TAMV_ONLINE_NETWORK-purple?style=for-the-badge)
-![Monetization: Zero-Loss](https://img.shields.io/badge/Monetization-Zero_Loss_Guarantee-gold?style=for-the-badge)
+## Terminal cognitivo gobernado para TAMV ONLINE NETWORK
 
-## 📌 Executive Summary
+Isabella Villaseñor AI es una arquitectura cognitiva híbrida para coordinar interpretación, memoria, gobernanza, herramientas y trazabilidad dentro de un marco de soberanía humana. El proyecto no es una AGI, un chatbot autónomo ni un sustituto de la decisión humana: los módulos sugieren, verifican y ejecutan únicamente dentro de políticas explícitas.
 
-**Isabella Villaseñor AI (QUP v3.0 Sovereign Edition)** is a hybrid, context-aware, and deeply governed cognitive architecture deployed for the TAMV Ecosystem (Real del Monte, Hidalgo, México). 
+> Estado del repositorio: prototipo operativo endurecido en evolución. Las integraciones productivas deben verificarse en cada entorno antes de autorizar usuarios, cobros o acciones sensibles.
 
-This is **not** a standard LLM wrapper. It is a strict, sovereign operational engine that enforces territorial governance, post-quantum cryptographic auditing, zero-trust orchestration, and an absolute **Zero-Loss Monetization Framework**. 
+## Principios
 
-Currently operating at **~98% operational readiness for production**, this branch guarantees total platform financial immunity, removes all legacy mock data, enforces rigid schemas (via Zod), and isolates runtime execution through immutable K8s security policies.
+- **Soberanía humana:** ninguna acción de alto riesgo se ejecuta sin aprobación.
+- **Zero Trust:** toda herramienta requiere identidad, tenant, alcance y política.
+- **Soberanía territorial:** el contexto de Real del Monte y la comunidad no se trata como un dato genérico.
+- **Trazabilidad:** las decisiones relevantes producen correlación, auditoría y evidencia.
+- **Incertidumbre honesta:** los fallos de proveedores y modos degradados se comunican, no se disfrazan.
 
----
+## Arquitectura
 
-## 🚀 Key Architectural Pillars
+- **CROWN Gateway:** ruteo, arbitraje, estado y composición de la respuesta.
+- **ISA:** presencia, tono y modulación contextual.
+- **SOPHIA:** razonamiento, consistencia y síntesis.
+- **ORION:** tareas técnicas, operativas y creativas.
+- **ARGUS / AEGIS:** seguridad, evaluación de riesgo, filtros y veto.
+- **BookPI:** registro de decisiones, consumo y evidencias.
+- **QUP:** utilidades de optimización y procesamiento con contratos tipados.
 
-### 1. Zero-Loss Sovereign Monetization Framework
-The core economic engine has been completely overhauled to guarantee the platform **never** incurs economic loss or funds payouts from its own capital:
-- **Cost-Recovery First:** Platform infrastructure costs (compute, network egress, storage) are deducted *before* any revenue split is calculated. The split only applies to Net Margin.
-- **Pre-Funded Ecosystem:** All QUP executions consume tokenized, pre-paid credits. The platform never extends unsecured debt.
-- **Escrow Maturation (Rolling 90 Days):** Revenue earned by users or territorial nodes is held in escrow for a strict 90-day window to outlast any credit card chargeback period.
-- **Chargeback Liability Shift:** If fraud occurs, the financial loss is clawed back exclusively from the user's pending escrow.
-- **Dynamic Liquidity Minimums:** Withdrawals are automatically blocked if the territorial node's real cash liquidity pool does not cover the payout, preventing platform capital exposure.
+El flujo canónico es:
 
-### 2. Zero-Trust Cognitive Gateway & Governance (C.R.O.W.N. / A.R.G.U.S.)
-All inputs and execution paths pass through a hardened pipeline governed by `src/lib/isabella-governance.ts`:
-- **ATLAS**: Enforces territorial impact bounds.
-- **VIGIA**: Multi-lock ethical verification.
-- **ANUBIS & THEMIS**: Integrity validation and legal record synthesis.
-- **Fail-Closed Default**: No tool, endpoint, or skill executes without explicitly validated identity, tenant isolation, and ABAC/RBAC clearance. Mock data is strictly prohibited in decision-making.
+```text
+Perceive → Remember → Policy Gate → Decide → Act → Audit
+```
 
-### 3. Quantum Utility Processing (QUP v3.0)
-A hardened pipeline for executing and auditing quantum jobs, completely free of mock data (`src/lib/quantum-types.ts` & `src/lib/qup-v3-engine.ts`):
-- **ZNE (Zero-Noise Extrapolation)**: Enforced Level 3 strict configuration via Zod validation.
-- **PEC (Probabilistic Error Cancellation)**: Overhead calculations enforced via structural execution complexity.
-- **QEC (Quantum Error Correction)**: Supports Tensor-Network and Minimum Weight Perfect Matching (MWPM) decoding over Surface/Toric codes.
-- **Pseudo-Deterministic Execution**: Employs structural complexity mapping (depth & qubit counts) to calculate true hardware fidelity metrics without stochastic (`Math.random()`) cheating.
+## Interfaz
 
-### 4. Immutable Post-Quantum Auditing (BookPI & Sovereign Audit)
-- **Merkle Tree Job Chains**: All execution parameters (Job ID, backend, dataset, territory) are hashed using `SHA3-512` into a deterministic Merkle Root (`src/lib/sovereign-audit.ts`).
-- **ML-DSA Signatures**: The infrastructure features a placeholder-ready interface for Module-Lattice-Based Digital Signature Algorithm (ML-DSA) to guarantee long-term post-quantum non-repudiation.
-- **Dynamic Monetization Ledger**: Quantum job pricing calculates base execution plus sovereign isolation, QEC overhead, error mitigation fees, and high-fidelity (>90%) premiums, pushing all records to the immutable BookPI ledger.
+La aplicación usa TanStack Start, React, Vite y Tailwind CSS. La terminal ofrece:
 
-### 5. Hardened Deployment Infrastructure (K8s)
-- **Restricted Pod Security**: Enforced via `k8s/qup-psp.yaml`, prohibiting privilege escalation, blocking host namespaces (HostPID, HostIPC, HostNetwork), dropping ALL capabilities, enforcing a read-only root filesystem, and mandating `MustRunAsNonRoot`.
-- **Environment Strictness**: Complete elimination of insecure defaults in `src/lib/env-schema.ts`. Production execution strictly demands real values for `CROWN_POLICY_SIGNING_KEY` and `BOOKPI_SIGNING_KEY`.
+- introducción cinemática accesible y recuperable;
+- navegación cognitiva, gobernanza, catálogo, monetización, QUP y AEGIS;
+- mensajes en streaming, adjuntos y reintentos;
+- telemetría exportable y persistencia local limitada al navegador;
+- paneles responsive para escritorio y pantallas estrechas;
+- recuperación ante errores de renderizado sin exponer mensajes internos.
 
----
+La interfaz es una superficie de operación y observación. La autoridad permanece en el servidor.
 
-## 🛡️ Production & Deployment Status (98% Ready)
+## Requisitos
 
-The system has successfully undergone a massive sanitization, hardening, and economic restructuring process. Current readiness metrics:
-- **Mock Data Elimination**: **100%** (All `Math.random()` heuristics replaced by deterministic models).
-- **Type Safety & Build Integrity**: **100%** (`npm run typecheck` and `npm run build` pass).
-- **Deployment Certifications**: **Ready**. K8s manifests adhere to standard CISO mandates for high-security isolation.
-- **Zero-Loss Monetization**: **100%** implemented and active.
-- **Remaining ~2%**: Final integration of an external HSM or KMS to replace the simulated `ML-DSA-87` cryptographic placeholder with physical or cloud-based quantum-safe hardware modules.
+- Node.js 22 o superior.
+- pnpm 10.15.0 o compatible con el lockfile.
+- Variables de entorno configuradas según el entorno.
+- PostgreSQL/Neon, Stripe, Supabase u otros proveedores únicamente cuando sus integraciones estén conectadas y validadas.
 
-## 📝 Usage & Developer Notes
+## Instalación
 
-Any new contributions must strictly adhere to `AGENTS.md`. No new tool can bypass the `evaluateAuthorization` loop. If an execution modifies state, it must be recorded in the `BookPI` ledger.
+```bash
+pnpm install --frozen-lockfile
+pnpm dev
+```
 
-### Installation & Deployment
+La aplicación local queda disponible en `http://localhost:3000`.
 
-1. **Environment Setup:**
-   Ensure `.env` matches `.env.example`. You **must** provide real cryptographic keys for `CROWN_POLICY_SIGNING_KEY` and `BOOKPI_SIGNING_KEY` in production.
-2. **Validate Code Integrity:**
-   ```bash
-   npm run typecheck
-   npm run security:scan
-   npm run test
-   ```
-3. **Compile for Production:**
-   ```bash
-   npm run build
-   ```
-4. **Kubernetes Deployment:**
-   Deploy the restricted PSP before spinning up pods:
-   ```bash
-   kubectl apply -f k8s/qup-psp.yaml
-   # Deploy remaining resources...
-   ```
+## Validación
 
----
-*Created under the Open Science / Sovereign Framework for TAMV ONLINE NETWORK.*
+Ejecuta antes de publicar:
+
+```bash
+pnpm typecheck
+pnpm test
+pnpm lint
+pnpm security:scan
+pnpm build
+```
+
+Para comprobar el artefacto de Vercel:
+
+```bash
+test -d .vercel/output
+```
+
+## Variables y secretos
+
+Nunca se deben incluir secretos en el repositorio, en `VITE_*`, en el cliente, en logs ni en URLs. Las claves de servidor se leen mediante el módulo de configuración y deben existir únicamente en el entorno de ejecución.
+
+Variables habituales del proyecto incluyen:
+
+- conexión PostgreSQL/Neon;
+- claves de firma CROWN y BookPI;
+- secretos OIDC/JWKS;
+- claves y webhook secret de Stripe;
+- configuración de voz y proveedores de IA;
+- secretos de AEGIS y límites de seguridad.
+
+Consulta `.env.example`, `src/lib/env-schema.ts` y la configuración del proyecto Vercel. Los valores reales nunca deben documentarse aquí.
+
+## Seguridad operativa
+
+Toda ruta sensible debe conservar:
+
+1. autenticación y autorización mediante `withSovereignAuth`;
+2. aislamiento por `tenantId` derivado de la identidad, nunca del cuerpo;
+3. validación Zod y límites de tamaño;
+4. rate limiting y cabeceras defensivas;
+5. idempotencia para pagos, webhooks y mutaciones;
+6. auditoría con `traceId` y `correlationId`;
+7. respuesta genérica ante errores internos.
+
+El acceso invitado y los atajos de desarrollo deben permanecer deshabilitados en producción. Un adapter determinista o fallback no debe presentarse como inferencia productiva.
+
+## Economía y BookPI
+
+Los créditos representan consumo prefinanciado. La recarga debe acreditarse únicamente después de confirmar el pago en Stripe, con deduplicación por `event.id` o `PaymentIntent`. Los débitos deben ser atómicos, impedir saldo negativo y quedar unidos a un registro BookPI verificable.
+
+Antes de operar pagos reales deben comprobarse transacciones concurrentes, reintentos, chargebacks, idempotencia y reconciliación. Un endpoint de demostración no es una garantía financiera.
+
+## Despliegue en Vercel
+
+1. Conecta el repositorio y selecciona la rama que se desea publicar.
+2. Configura las variables de entorno por entorno.
+3. Ejecuta las validaciones anteriores.
+4. Confirma que `vite.config.ts` usa el preset `vercel` de Nitro.
+5. Publica y revisa logs de compilación y runtime.
+6. Ejecuta smoke tests de inicio, autenticación, chat, error boundary y rutas críticas.
+
+No se deben publicar ramas con fallos de build, secretos, datos de prueba con apariencia real o afirmaciones no verificadas de preparación productiva.
+
+## Estructura principal
+
+```text
+src/
+├── components/isabella/   Interfaz, terminal y paneles
+├── lib/                   CROWN, seguridad, identidad, persistencia y contratos
+├── routes/                Rutas de aplicación y API
+├── styles.css             Tokens visuales y utilidades de cristal
+└── generated/prisma/      Cliente generado; no editar manualmente
+
+latam-aegis-x/             Motor auxiliar de evaluación AEGIS
+prisma/                    Esquema y migraciones
+supabase/                  Migraciones cuando aplique
+scripts/                   Verificación, migración y seguridad
+k8s/                       Referencias de despliegue restringido
+```
+
+## Contribución
+
+Lee `AGENTS.md` antes de modificar el proyecto. Mantén TypeScript estricto, contratos runtime, cambios pequeños y reversibles, pruebas para cada invariantes de seguridad y documentación sincronizada. No uses `any` sin justificación, no sustituyas una integración real por datos simulados y no promociones inferencias a hechos.
+
+## Limitaciones conocidas
+
+La preparación productiva depende de la configuración real de cada integración. Interfaces de firma post-cuántica, adapters cognitivos, almacenamiento de auditoría, aprobaciones humanas y observabilidad deben verificarse contra servicios reales antes de confiarles operaciones sensibles.
+
+## Licencia y autoría
+
+Arquitectura de dominio público bajo CC BY 4.0, atribuida a Edwin Oswaldo Castillo Trejo (Anubis Villaseñor), dentro del ecosistema TAMV ONLINE NETWORK / RDM Digital Hub / Nodo Cero.
+
+La licencia no elimina las obligaciones de privacidad, seguridad, protección de datos, pagos ni cumplimiento legal aplicables al despliegue.
