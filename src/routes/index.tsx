@@ -62,7 +62,7 @@ function Index() {
 
   return (
     <div className="min-h-screen">
-      {intro && <CinematicIntro onComplete={closeIntro} />
+      {intro && <CinematicIntro onComplete={closeIntro} />}
       <header className="hairline sticky top-0 z-20 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 py-4 sm:px-8">
           <div>
