@@ -5,8 +5,9 @@ import { resolve } from "node:path";
  * CONFIGURACIÓN DE TESTS (vitest.config.ts)
  * -----------------------------------------------------------------
  * Proyectos de test activos:
- *   unit      → tests rápidos y aislados (test/unit/**)
- *   security  → vectores de seguridad (test/security/**)
+ *   unit     → tests rápidos y aislados (test/unit/**)
+ *   security → vectores de seguridad (test/security/**)
+ *   bookpi   → invariantes criptográficas del ledger (test/bookpi/**)
  *
  * (En este repositorio no existen directorios test/integration ni
  * test/e2e: eliminados para no exponer proyectos/skripts muertos en CI.)
@@ -19,7 +20,6 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["test/**/*.test.ts"],
     globals: true,
     projects: [
       {
@@ -34,6 +34,13 @@ export default defineConfig({
         test: {
           name: "security",
           include: ["test/security/**/*.test.ts"],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "bookpi",
+          include: ["test/bookpi/**/*.test.ts"],
         },
       },
     ],

@@ -116,7 +116,14 @@ export const envSchema = z.object({
   CROWN_ENFORCEMENT_MODE: z.enum(["enforce", "dry-run"]).default("enforce"),
 
   // --- BOOKPI (Sovereign Ledger) ---
-  BOOKPI_SIGNATURE_ALGORITHM: z.enum(["ML-DSA-87", "ECDSA-P384"]).default("ECDSA-P384"),
+  // ML-DSA-87 está declarado solo por compatibilidad de contrato; en este
+  // runtime es SIMULATION-ONLY (telemetría/tests, nunca autoridad de firma en
+  // producción). ECDSA-P384 y RSA-SHA256 son firmas criptográficas reales.
+  // El runtime SIEMPRE respeta el algoritmo aquí configurado (ver
+  // src/lib/crypto/bookpi-signer.ts) — nunca ejecuta uno distinto al declarado.
+  BOOKPI_SIGNATURE_ALGORITHM: z
+    .enum(["ML-DSA-87", "ECDSA-P384", "RSA-SHA256"])
+    .default("ECDSA-P384"),
   BOOKPI_SIGNING_KEY: optionalMinString(32),
 
   // --- PAYMENTS ---
@@ -125,9 +132,27 @@ export const envSchema = z.object({
 
   // --- QUP SOVEREIGN RUNTIME (New v3.0 Configs) ---
   QUP_ZNE_LEVEL: coercedInt(3),
-  QUP_PEC_ENABLED: z.boolean().default(true),
+  // Coerción boolean explícita: los env vars llegan como strings ("true"/"false"),
+  // z.boolean() puro los rechazaría ("true" ≠ boolean) rompiendo el arranque.
+  QUP_PEC_ENABLED: z
+    .preprocess((val) => {
+      if (typeof val === "boolean") return val;
+      if (typeof val !== "string") return undefined;
+      const t = val.trim().toLowerCase();
+      if (t === "true") return true;
+      if (t === "false") return false;
+      return undefined;
+    }, z.boolean().default(true)),
   QUP_QEC_DECODER: z.enum(["mwpm", "uf", "tensor-network", "neural-network"]).default("tensor-network"),
-  QUP_STRICT_ISOLATION: z.boolean().default(true),
+  QUP_STRICT_ISOLATION: z
+    .preprocess((val) => {
+      if (typeof val === "boolean") return val;
+      if (typeof val !== "string") return undefined;
+      const t = val.trim().toLowerCase();
+      if (t === "true") return true;
+      if (t === "false") return false;
+      return undefined;
+    }, z.boolean().default(true)),
 
   // --- REDIS ---
   REDIS_URL: optionalString(),

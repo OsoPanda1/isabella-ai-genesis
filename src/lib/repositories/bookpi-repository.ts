@@ -8,6 +8,10 @@
  *  - Las refunds se registran como bloques de anulación, nunca se
  *    mutan/bloquean bloques ya asentados.
  *
+ * §6.1: el hash usa el MISMO payload canónico que los otros repositorios
+ * (`canonicalBookPiPayload`), aplicado en append() y verifyIntegrity().
+ * §6.5/§6.6: la firma del bloque usa `bookpi-signer` (nunca `null`).
+ *
  * La DECISIÓN de negocio (quién puede escribir/refund) la toma la capa
  * de autorización; este repositorio solo garantiza inmutabilidad,
  * integridad y persistencia real.
@@ -17,6 +21,13 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as crypto from "node:crypto";
 import { config } from "../config";
+import { canonicalBookPiPayload } from "../bookpi/canonical-payload";
+import {
+  getSigningAlgorithm,
+  isSimulatedAlgorithm,
+  signBlockHash,
+  verifyBlockSignature,
+} from "../crypto/bookpi-signer";
 
 export type LedgerCategory = "inference" | "processing" | "apis" | "skills" | "other";
 export type LedgerStatus = "settled" | "pending" | "refunded";
@@ -60,6 +71,11 @@ function toCents(value: number): string {
   return `${sign}${whole}.${String(frac).padStart(2, "0")}`;
 }
 
+/** Halla un bloque por índice dentro del tenant (frontera de tenant obligatoria). */
+function findTenantBlock(blocks: BlockPIBlock[], tenantId: string, index: number): BlockPIBlock | null {
+  return blocks.find((b) => b.tenantId === tenantId && b.index === index) ?? null;
+}
+
 /**
  * Crea un repositorio BookPI ligado a una ruta opcional (inyectable).
  * Análisis-estructura: expose métodos puros y capa de persistencia real.
@@ -98,22 +114,12 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
     fs.writeFileSync(storePath, JSON.stringify(store, null, 2), "utf-8");
   }
 
+  /**
+   * §6.1: hash canónico (mismo payload que el repositorio PostgreSQL).
+   * Excluye `blockHash`, `pqcSignature` y `signatureAlgorithm`.
+   */
   function computeBlockHash(block: Omit<BlockPIBlock, "blockHash">): string {
-    const payload = [
-      block.index,
-      block.timestamp,
-      block.tenantId,
-      block.userId,
-      block.operation,
-      block.category,
-      block.costDecimal,
-      block.tokensConsumed,
-      block.previousHash,
-      block.signatureAlgorithm,
-      block.status,
-      block.nonce,
-    ].join("|");
-    return sha256(payload);
+    return sha256(canonicalBookPiPayload(block));
   }
 
   return {
@@ -135,6 +141,7 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
       tokens: number;
     }): { success: true; block: BlockPIBlock } | { success: false; error: string } {
       if (input.cost < 0) return { success: false, error: "Costo negativo no admitido." };
+      if (isSimulatedAlgorithm()) return { success: false, error: "Algoritmo simulado no permitido." };
       const store = loadStore();
       const prev = store.blocks[store.blocks.length - 1];
       const index = store.blocks.length;
@@ -152,11 +159,14 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
         tokensConsumed: input.tokens,
         previousHash,
         pqcSignature: null,
-        signatureAlgorithm: "SHA-256",
+        signatureAlgorithm: getSigningAlgorithm(),
         status: "settled",
         nonce,
       };
-      const block: BlockPIBlock = { ...base, blockHash: computeBlockHash(base) };
+      const blockHash = computeBlockHash(base);
+      // Firma real del hash (nunca null, §6.6).
+      const pqcSignature = signBlockHash(blockHash);
+      const block: BlockPIBlock = { ...base, blockHash, pqcSignature };
       store.blocks.push(block);
       saveStore(store);
       return { success: true, block };
@@ -165,10 +175,15 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
     /** Marca un bloque como refundido con un bloque de anulación encadenado. */
     refund(index: number, tenantId: string): { success: boolean; error?: string } {
       const store = loadStore();
-      const target = store.blocks[index];
+      const target = findTenantBlock(store.blocks, tenantId, index);
       if (!target) return { success: false, error: "Bloque no encontrado." };
-      if (target.tenantId !== tenantId) return { success: false, error: "Frontera de tenant." };
       if (target.status === "refunded") return { success: false, error: "Ya refundido." };
+      // §6.7: idempotencia de refund — nunca dos anulaciones del mismo bloque.
+      const alreadyRefunded = store.blocks.some(
+        (b) => b.tenantId === tenantId && b.operation === `refund_of_${target.index}`,
+      );
+      if (alreadyRefunded) return { success: false, error: "Ya refundido." };
+      if (isSimulatedAlgorithm()) return { success: false, error: "Algoritmo simulado no permitido." };
 
       const prev = store.blocks[store.blocks.length - 1];
       const previousHash = prev?.blockHash ?? store.genesisPreviousHash;
@@ -184,11 +199,13 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
         tokensConsumed: 0,
         previousHash,
         pqcSignature: null,
-        signatureAlgorithm: "SHA-256",
+        signatureAlgorithm: getSigningAlgorithm(),
         status: "refunded",
         nonce,
       };
-      const block: BlockPIBlock = { ...base, blockHash: computeBlockHash(base) };
+      const blockHash = computeBlockHash(base);
+      const pqcSignature = signBlockHash(blockHash);
+      const block: BlockPIBlock = { ...base, blockHash, pqcSignature };
       store.blocks.push(block);
       saveStore(store);
       return { success: true };
@@ -204,10 +221,13 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
         if (block.previousHash !== prev) {
           return { success: false, error: "Cadena rota.", corruptedIndex: i };
         }
-        const { blockHash: _hash, ...rest } = block;
-        void _hash;
-        if (computeBlockHash(rest) !== block.blockHash) {
+        // §6.1: recomputa con el MISMO payload canónico que append().
+        if (computeBlockHash(block) !== block.blockHash) {
           return { success: false, error: "Bloque alterado.", corruptedIndex: i };
+        }
+        // §6.5: verifica la firma real (rechaza sin firma o firma inválida).
+        if (!verifyBlockSignature(block.blockHash, block.pqcSignature)) {
+          return { success: false, error: "Firma inválida o ausente.", corruptedIndex: i };
         }
         prev = block.blockHash;
       }

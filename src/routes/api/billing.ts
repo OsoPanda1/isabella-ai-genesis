@@ -5,6 +5,7 @@ import { SovereignDB } from "@/lib/sovereign-engine";
 import { SecuritySystem } from "@/lib/security";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { config } from "@/lib/config";
+import { claimWebhookEvent, recordEconomicEvent } from "@/lib/economic-events";
 import Stripe from "stripe";
 
 // Initialize Stripe gracefully
@@ -377,20 +378,28 @@ export const Route = createFileRoute("/api/billing")({
                 });
               }
 
-              // IDEMPOTENCIA: Stripe puede reintentar el mismo evento. Nunca acreditar
-              // créditos de bono dos veces por el mismo `eventId`.
-              if (eventId) {
-                const marker = `STRIPE_EVENT:${eventId}`;
-                const alreadyProcessed = SovereignDB.getFullLedger().some(
-                  (b) => b.operation && b.operation.includes(marker),
+              // IDEMPOTENCIA ATOMICA (§5): UNIQUE(provider, provider_event_id)
+              // en `webhook_events`. Dos entregas simultáneas → 1 procesado.
+              const claim = await claimWebhookEvent({
+                provider: "stripe",
+                providerEventId: eventId,
+                eventType,
+              });
+              if (claim.status === "duplicate") {
+                return new Response(
+                  JSON.stringify({ success: true, processed: true, duplicate: true }),
+                  { headers },
                 );
-                if (alreadyProcessed) {
+              }
+              if (claim.status === "error") {
+                console.error("[billing:webhook] claimWebhookEvent failed:", claim.message);
+                // Fail-closed (§16): ledger/economía no disponible → DENY.
+                if (config().NODE_ENV === "production") {
                   return new Response(
-                    JSON.stringify({ success: true, processed: true, duplicate: true }),
-                    { headers },
+                    JSON.stringify({ error: "Idempotencia de webhook no disponible." }),
+                    { status: 500, headers },
                   );
                 }
-                metadata.marker = marker;
               }
 
               if (targetTenantId) {
@@ -412,10 +421,27 @@ export const Route = createFileRoute("/api/billing")({
                   const block = SovereignDB.appendLedgerBlock(
                     targetTenantId,
                     targetUserId || "system",
-                    `ACTIVATE_SUBSCRIPTION: Plan ${planId.toUpperCase()} activado exitosamente (Créditos de bono: +$100.00 USD) ${metadata?.marker || ""}`,
+                    `ACTIVATE_SUBSCRIPTION: Plan ${planId.toUpperCase()} activado exitosamente (Créditos de bono: +$100.00 USD)`,
                     "other",
                     0, // no deduction for subscriptions
                     0,
+                  );
+
+                  // §4/§8: registrar el evento económico canónico (fuente de verdad
+                  // para reconciliación). Idempotente por UNIQUE(tenant, idempotency_key).
+                  void recordEconomicEvent({
+                    tenantId: targetTenantId,
+                    actorId: targetUserId || "system",
+                    eventType: `SUBSCRIPTION_ACTIVATED:${planId}`,
+                    amountMinor: 10_000,
+                    direction: "CREDIT",
+                    source: "stripe",
+                    provider: "stripe",
+                    providerEventId: eventId,
+                    idempotencyKey: eventId,
+                    metadata: { planId, blockIndex: block.index },
+                  }).catch((e) =>
+                    console.error("[billing:webhook] recordEconomicEvent failed:", e),
                   );
 
                   SovereignDB.appendAuditLog(
@@ -493,6 +519,21 @@ export const Route = createFileRoute("/api/billing")({
                 });
               }
               const block = blockResult.block;
+
+              // §4/§8: evento económico canónico del DEBIT (idempotente por bloque).
+              void recordEconomicEvent({
+                tenantId: context.tenantId,
+                actorId: context.userId,
+                eventType: "QUANTUM_CHARGE",
+                amountMinor: Math.round(costUSD * 100),
+                direction: "DEBIT",
+                source: "quantum",
+                idempotencyKey: `charge:${block.index}`,
+                correlationId: context.correlationId,
+                metadata: { jobId: parsed.data.jobId, blockIndex: block.index },
+              }).catch((e) =>
+                console.error("[billing:charge] recordEconomicEvent failed:", e),
+              );
 
               // P0: debitar el saldo operativo de forma coherente con el ledger.
               // Re-leer para evitar sobreescribir cambios concurrentes del snapshot.
