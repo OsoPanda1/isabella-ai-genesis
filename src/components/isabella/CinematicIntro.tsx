@@ -20,9 +20,15 @@ interface CinematicIntroProps {
 }
 
 // -----------------------------------------------------------------------------
-// 1. MOTOR GRÁFICO WEBGL (Crystal World Engine)
+// 1. MOTOR GRÁFICO WEBGL – SOVEREIGN SOLAR ENGINE
 // -----------------------------------------------------------------------------
-function CrystalWorldEngine({ progress, masterClock }: { progress: number; masterClock: number }) {
+function SovereignSolarEngine({
+  progress,
+  masterClock,
+}: {
+  progress: number;
+  masterClock: number;
+}) {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,15 +38,15 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
     // Escena y Cámara
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("#020306");
-    scene.fog = new THREE.FogExp2("#020306", 0.0018);
+    scene.fog = new THREE.FogExp2("#020306", 0.0012);
 
     const camera = new THREE.PerspectiveCamera(
-      34,
+      40,
       mount.clientWidth / mount.clientHeight,
       0.1,
-      1600,
+      2000,
     );
-    camera.position.set(0, 0, 260);
+    camera.position.set(0, 60, 280);
 
     // Renderer Optimizado
     let renderer: THREE.WebGLRenderer | null = null;
@@ -60,18 +66,142 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(mount.clientWidth, mount.clientHeight);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.2;
       mount.appendChild(renderer.domElement);
     }
 
     const world = new THREE.Group();
     scene.add(world);
 
-    // Geometrías Complejas
-    const coreGeo = new THREE.IcosahedronGeometry(54, 4);
+    // ---------------------------
+    // CAMPO ESTELAR REALISTA
+    // ---------------------------
+    const starCount = 12000;
+    const starPositions = new Float32Array(starCount * 3);
+    const starSizes = new Float32Array(starCount);
+    const starColors = new Float32Array(starCount * 3);
+
+    const starColorPalette = [
+      new THREE.Color("#ffffff"),
+      new THREE.Color("#dbeafe"), // azul claro
+      new THREE.Color("#fef3c7"), // ámbar suave
+      new THREE.Color("#fde68a"), // dorado tenue
+    ];
+
+    for (let i = 0; i < starCount; i++) {
+      const radius = 400 + Math.random() * 1400;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+
+      starPositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+      starPositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      starPositions[i * 3 + 2] = radius * Math.cos(phi);
+
+      starSizes[i] = 0.6 + Math.random() * 1.8;
+
+      const col = starColorPalette[Math.floor(Math.random() * starColorPalette.length)];
+      starColors[i * 3] = col.r;
+      starColors[i * 3 + 1] = col.g;
+      starColors[i * 3 + 2] = col.b;
+    }
+
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+    starGeo.setAttribute("size", new THREE.BufferAttribute(starSizes, 1));
+    starGeo.setAttribute("color", new THREE.BufferAttribute(starColors, 3));
+
+    const starMat = new THREE.PointsMaterial({
+      size: 1.2,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+      sizeAttenuation: true,
+    });
+
+    const stars = new THREE.Points(starGeo, starMat);
+    scene.add(stars);
+
+    // ---------------------------
+    // SOL CENTRAL (ESTILIZADO)
+    // ---------------------------
+    const sunGeo = new THREE.SphereGeometry(28, 64, 64);
+    const sunMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color("#fbbf24"), // ámbar dorado
+    });
+    const sun = new THREE.Mesh(sunGeo, sunMat);
+    world.add(sun);
+
+    // Glow del sol (simple sphere más grande con transparencia)
+    const sunGlowGeo = new THREE.SphereGeometry(34, 32, 32);
+    const sunGlowMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color("#f59e0b"),
+      transparent: true,
+      opacity: 0.35,
+      blending: THREE.AdditiveBlending,
+    });
+    const sunGlow = new THREE.Mesh(sunGlowGeo, sunGlowMat);
+    world.add(sunGlow);
+
+    // ---------------------------
+    // SISTEMA DE ÓRBITAS (ANILLOS)
+    // ---------------------------
+    const orbitRadii = [55, 85, 120, 160, 210, 270, 340, 420];
+    const orbits: THREE.Mesh[] = [];
+
+    orbitRadii.forEach((radius) => {
+      const orbitGeo = new THREE.RingGeometry(radius - 0.6, radius + 0.6, 128);
+      const orbitMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color("#f59e0b"),
+        transparent: true,
+        opacity: 0.12,
+        side: THREE.DoubleSide,
+      });
+      const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+      orbit.rotation.x = Math.PI / 2;
+      world.add(orbit);
+      orbits.push(orbit);
+    });
+
+    // ---------------------------
+    // PLANETAS (ESFERAS SIMPLES CON COLOR)
+    // ---------------------------
+    const planetColors = [
+      "#94a3b8", // Mercurio
+      "#fde68a", // Venus
+      "#60a5fa", // Tierra
+      "#f87171", // Marte
+      "#d4a373", // Júpiter
+      "#fcd34d", // Saturno
+      "#93c5fd", // Urano
+      "#60a5fa", // Neptuno
+    ];
+
+    const planetSizes = [3.2, 5.8, 6.2, 4.8, 14, 12, 9, 8.5];
+    const planets: THREE.Mesh[] = [];
+
+    orbitRadii.forEach((radius, i) => {
+      const planetGeo = new THREE.SphereGeometry(planetSizes[i], 32, 32);
+      const planetMat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(planetColors[i]),
+        roughness: 0.7,
+        metalness: 0.2,
+      });
+      const planet = new THREE.Mesh(planetGeo, planetMat);
+      planet.position.set(radius, 0, 0);
+      world.add(planet);
+      planets.push(planet);
+    });
+
+    // ---------------------------
+    // NÚCLEO CENTRAL (ISABELLA CORE)
+    // ---------------------------
+    const coreGeo = new THREE.IcosahedronGeometry(18, 4);
     const coreMat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color("#d4af37"), // Elegant Gold Core
       emissive: new THREE.Color("#991b1b"), // Majestic Crimson Glow
-      emissiveIntensity: 3.2,
+      emissiveIntensity: 2.8,
       metalness: 0.9,
       roughness: 0.08,
       transmission: 0.25,
@@ -83,7 +213,7 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
     const core = new THREE.Mesh(coreGeo, coreMat);
     world.add(core);
 
-    const shellGeo = new THREE.IcosahedronGeometry(78, 2);
+    const shellGeo = new THREE.IcosahedronGeometry(26, 2);
     const shellMat = new THREE.MeshBasicMaterial({
       color: new THREE.Color("#e11d48"), // Crimson Lattice
       wireframe: true,
@@ -94,7 +224,7 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
     const shell = new THREE.Mesh(shellGeo, shellMat);
     world.add(shell);
 
-    const haloGeo = new THREE.TorusGeometry(95, 1.4, 16, 180);
+    const haloGeo = new THREE.TorusGeometry(38, 1.2, 16, 180);
     const haloMat = new THREE.MeshBasicMaterial({
       color: new THREE.Color("#f59e0b"), // Golden Ring
       transparent: true,
@@ -105,54 +235,26 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
     halo.rotation.x = Math.PI / 2.6;
     world.add(halo);
 
-    // Sistema de Partículas Volumétricas (Vortex de Energía)
-    const particleCount = 3600;
-    const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
+    // ---------------------------
+    // ILUMINACIÓN CINEMATOGRÁFICA
+    // ---------------------------
+    scene.add(new THREE.AmbientLight("#450a0a", 1.2));
+    const sunLight = new THREE.PointLight("#fbbf24", 450, 1200);
+    sunLight.position.set(0, 0, 0);
+    scene.add(sunLight);
 
-    for (let i = 0; i < particleCount; i++) {
-      const radius = 100 + Math.random() * 600;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-
-      positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-      positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-      positions[i * 3 + 2] = radius * Math.cos(phi);
-
-      // Gold to Crimson fire aesthetic
-      const color = new THREE.Color();
-      if (Math.random() > 0.4) {
-        color.setHSL(0.08 + Math.random() * 0.06, 0.95, 0.5 + Math.random() * 0.3); // Gold/Orange
-      } else {
-        color.setHSL(0.98 + Math.random() * 0.03, 0.95, 0.5 + Math.random() * 0.2); // Red/Rose
-      }
-      colors.set([color.r, color.g, color.b], i * 3);
-    }
-
-    const particleGeo = new THREE.BufferGeometry();
-    particleGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    particleGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-
-    const particleMat = new THREE.PointsMaterial({
-      size: 2.4,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.85,
-      blending: THREE.AdditiveBlending,
-      sizeAttenuation: true,
-    });
-    const particles = new THREE.Points(particleGeo, particleMat);
-    scene.add(particles);
-
-    // Iluminación Dinámica estilo Cinema
-    scene.add(new THREE.AmbientLight("#450a0a", 1.5));
-    const keyLight = new THREE.PointLight("#fbbf24", 350, 900); // Amber Flashlight
-    keyLight.position.set(-200, 150, 250);
-    scene.add(keyLight);
-
-    const rimLight = new THREE.PointLight("#e11d48", 380, 800); // Deep Rose rim
+    const rimLight = new THREE.PointLight("#e11d48", 280, 900);
     rimLight.position.set(200, -120, 180);
     scene.add(rimLight);
+
+    // ---------------------------
+    // CÁMARA CINEMÁTICA (MOVIMIENTO SUAVE)
+    // ---------------------------
+    const cameraPath = {
+      radiusBase: 260,
+      heightBase: 50,
+      speed: 0.08,
+    };
 
     // Manejo de Redimensionamiento
     const handleResize = () => {
@@ -169,22 +271,38 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
     const observer = new ResizeObserver(handleResize);
     observer.observe(mount);
 
-    // Render Loop con velocidad de warp en la intro
+    // Render Loop
     let animId: number;
     const renderFrame = () => {
       const t = masterClock;
 
-      // Speed up rotation during trailer sequence
-      const speedMultiplier = t < 12 ? 4.5 - t * 0.25 : 1.0;
+      // Rotación del mundo (lenta, elegante)
+      world.rotation.y = t * 0.06;
+      shell.rotation.y = -t * 0.08;
+      halo.rotation.z = t * 0.1;
+      stars.rotation.y = -t * 0.008;
 
-      world.rotation.y = t * 0.25 * speedMultiplier + progress * Math.PI * 2;
-      world.rotation.x = Math.sin(t * 0.3) * 0.15;
-      shell.rotation.y = -t * 0.15 * speedMultiplier;
-      halo.rotation.z = t * 0.2 * speedMultiplier;
-      particles.rotation.y = -t * 0.05 * speedMultiplier;
+      // Movimiento de cámara cinematográfico
+      const cameraAngle = t * cameraPath.speed;
+      const camRadius = cameraPath.radiusBase + Math.sin(t * 0.04) * 40;
+      const camHeight = cameraPath.heightBase + Math.cos(t * 0.05) * 30;
 
-      // Pulse emissive core with time
-      coreMat.emissiveIntensity = 2.0 + Math.sin(t * 3) * 1.2;
+      camera.position.x = Math.cos(cameraAngle) * camRadius;
+      camera.position.z = Math.sin(cameraAngle) * camRadius;
+      camera.position.y = camHeight;
+      camera.lookAt(0, 0, 0);
+
+      // Pulse emissive core
+      coreMat.emissiveIntensity = 2.0 + Math.sin(t * 2.2) * 0.9;
+
+      // Rotación de planetas en sus órbitas
+      planets.forEach((planet, i) => {
+        const angle = t * (0.08 - i * 0.006);
+        const radius = orbitRadii[i];
+        planet.position.x = Math.cos(angle) * radius;
+        planet.position.z = Math.sin(angle) * radius;
+        planet.rotation.y += 0.01;
+      });
 
       if (renderer) {
         renderer.render(scene, camera);
@@ -205,8 +323,22 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
       shellMat.dispose();
       haloGeo.dispose();
       haloMat.dispose();
-      particleGeo.dispose();
-      particleMat.dispose();
+      starGeo.dispose();
+      starMat.dispose();
+      sunGeo.dispose();
+      sunMat.dispose();
+      sunGlowGeo.dispose();
+      sunGlowMat.dispose();
+
+      orbits.forEach((o) => {
+        o.geometry.dispose();
+        (o.material as THREE.Material).dispose();
+      });
+
+      planets.forEach((p) => {
+        p.geometry.dispose();
+        (p.material as THREE.Material).dispose();
+      });
 
       if (renderer) {
         renderer.dispose();
@@ -230,28 +362,6 @@ function CrystalWorldEngine({ progress, masterClock }: { progress: number; maste
   );
 }
 
-// SCHEMA SCHEMATICS FOR REPETITIVE CELLS FLICKERING
-const SCHEMATIC_FRAGMENTS = [
-  "CROWN_ROUTER_MODULE",
-  "ISA_EMPATHY_CORE = 1",
-  "SOPHIA_RIGOR_ACTIVE",
-  "ARGUS_POLICY_VETO",
-  "LATAM_AEGIS_X_FIREWALL",
-  "SOVEREIGN_LEDGER_LEDG",
-  "OIDC_HANDSHAKE_JWT",
-  "NODO_CERO_REAL_DEL_MONTE",
-  "COGNITION_S0 = READY",
-  "SYS_CORES_COUNT = 24",
-  "SYS_MODULES_COUNT = 12",
-  "PENTACAPA_MEM_ACTIVE",
-  "CRYPTO_SEED_GENERATOR",
-  "HMAC_SHA256_VERIFIED",
-  "ZERO_TRUST_WHITELIST",
-  "BOOKPI_MUTATION_BLOCK",
-  "AUDIT_RECORD_APPEND",
-  "SOVEREIGNTY_GATE_OK",
-];
-
 // -----------------------------------------------------------------------------
 // 2. COMPONENTE PRINCIPAL (Orquestador Cinematográfico Local)
 // -----------------------------------------------------------------------------
@@ -268,7 +378,6 @@ export function CinematicIntroContent({
     droppedFrames: 0,
   });
 
-  // Estabilizar callbacks con referencias mutables para evitar que reconstruyan el render loop
   const onCompleteRef = useRef(onComplete);
   const onTelemetryUpdateRef = useRef(onTelemetryUpdate);
 
@@ -277,15 +386,10 @@ export function CinematicIntroContent({
     onTelemetryUpdateRef.current = onTelemetryUpdate;
   }, [onComplete, onTelemetryUpdate]);
 
-  // Flicker State for Marvel style panels
-  const [flickerIndex, setFlickerIndex] = useState(0);
-  const [flickerTrigger, setFlickerTrigger] = useState(false);
-
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const clockStartRef = useRef<number>(0);
 
-  // Inicialización del pipeline Web Audio API
   const initAudioPipeline = useCallback(() => {
     try {
       if (!audioCtxRef.current) {
@@ -317,13 +421,12 @@ export function CinematicIntroContent({
     }
   }, [initAudioPipeline, muted]);
 
-  // Loop principal de animación + Telemetría Federada + Flicker Loop
+  // Loop principal de animación + Telemetría
   useEffect(() => {
     if (showGate) return;
 
     let animFrame: number;
     let lastTime = performance.now();
-    let lastFlicker = performance.now();
     let frameCounter = 0;
 
     const tick = (now: number) => {
@@ -331,13 +434,6 @@ export function CinematicIntroContent({
       const currentElapsed = Math.min(DURATION, (now - clockStartRef.current) / 1000);
 
       setElapsed(currentElapsed);
-
-      // 10Hz Comic cells flickers
-      if (now - lastFlicker > 95) {
-        setFlickerIndex((prev) => (prev + 1) % SCHEMATIC_FRAGMENTS.length);
-        setFlickerTrigger((p) => !p);
-        lastFlicker = now;
-      }
 
       frameCounter++;
       if (delta >= 1.0) {
@@ -347,14 +443,15 @@ export function CinematicIntroContent({
         const currentTelemetry = { fps: measuredFps, droppedFrames: dropped };
         setBitrateTelemetry(currentTelemetry);
 
-        // Notificación de Telemetría externa (Callback + Bus de Eventos Federado)
         const progressVal = currentElapsed / DURATION;
-        const currentStage =
-          currentElapsed < 19
-            ? "STAGE 01 · MARVEL THEATRICAL SEQUENCE"
-            : currentElapsed < 39
-              ? "STAGE 02 · COGNITIVE ARCHITECTURE S0"
-              : "STAGE 03 · SOVEREIGN SOBERANÍA REVEAL";
+
+        let currentStage = "";
+        if (currentElapsed < 10) currentStage = "ESCENA 1 · BIENVENIDA";
+        else if (currentElapsed < 20) currentStage = "ESCENA 2 · SISTEMA COGNITIVO";
+        else if (currentElapsed < 30) currentStage = "ESCENA 3 · PRESENTE, NO FUTURO";
+        else if (currentElapsed < 40) currentStage = "ESCENA 4 · GUÍA DEL PRESENTE";
+        else if (currentElapsed < 50) currentStage = "ESCENA 5 · LATINOAMÉRICA DESPIERTA";
+        else currentStage = "ESCENA 6 · ROMPER EL PARADIGMA";
 
         const payload: TelemetryPayload = {
           elapsed: currentElapsed,
@@ -365,7 +462,6 @@ export function CinematicIntroContent({
         };
 
         onTelemetryUpdateRef.current?.(payload);
-
         window.dispatchEvent(new CustomEvent("IsabellaTelemetryEvent", { detail: payload }));
 
         frameCounter = 0;
@@ -404,20 +500,27 @@ export function CinematicIntroContent({
     }
   }, [muted]);
 
-  const sceneStage =
-    elapsed < 12
-      ? "THEATRICAL CINEMATIC SEQUENCE (MARVEL-FLIP)"
-      : elapsed < 30
-        ? "STAGE 02 · COGNITIVE LANDSCAPE"
-        : "STAGE 03 · SOVEREIGN CRYSTAL (REAL DEL MONTE)";
-
   const progress = elapsed / DURATION;
+
+  // Escenas con mensajes
+  const currentMessage =
+    elapsed < 10
+      ? "BIENVENIDO A MI INTERFAZ, TE SALUDA ISABELLA VILLASEÑOR AI"
+      : elapsed < 20
+        ? "SISTEMA COGNITIVO CROWN ACTIVO"
+        : elapsed < 30
+          ? "NO SOMOS EL FUTURO, SOMOS PARTE DE TU PRESENTE"
+          : elapsed < 40
+            ? "SOMOS LA GUIA DEL PRESENTE, PARA LA CORRECTA CONSTRUCCION DEL FUTURO"
+            : elapsed < 50
+              ? "LATINOAMERICA A DESPERTADO Y ESTA PROPONIENDO"
+              : "ISABELLA VILLASEÑOR, NACIDA PARA ROMPER EL PARADIGMA";
 
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-[#020306] text-platinum select-none font-sans">
-      <CrystalWorldEngine progress={progress} masterClock={elapsed} />
+      <SovereignSolarEngine progress={progress} masterClock={elapsed} />
 
-      {/* Golden & Crimson Vignette Background Blends */}
+      {/* Vignette elegante */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,3,6,0.35)_55%,rgba(2,3,6,0.95)_100%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(225,29,72,0.06),transparent_50%,rgba(245,158,11,0.08))]" />
 
@@ -427,7 +530,7 @@ export function CinematicIntroContent({
           <header className="absolute inset-x-6 top-6 z-20 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em] text-platinum/70">
             <div className="flex items-center gap-3">
               <span className="inline-block size-2 rounded-full bg-rose-500 animate-pulse" />
-              <span>{sceneStage}</span>
+              <span>{elapsed < 10 ? "ESCENA 1" : elapsed < 20 ? "ESCENA 2" : elapsed < 30 ? "ESCENA 3" : elapsed < 40 ? "ESCENA 4" : elapsed < 50 ? "ESCENA 5" : "ESCENA 6"}</span>
             </div>
 
             <div className="flex items-center gap-6">
@@ -456,171 +559,14 @@ export function CinematicIntroContent({
             </div>
           </header>
 
-          {/* ================================================================= */}
-          {/* MARVEL INTRO TRAILER DYNAMIC TIMELINE REVEALS                    */}
-          {/* ================================================================= */}
-
-          {/* PHASE 1: Marvel Studio Comic Cell Grid Flicker (0s to 4s) */}
-          {elapsed < 4 && (
-            <div className="absolute inset-0 z-15 flex items-center justify-center bg-black/45 pointer-events-none">
-              <div className="grid grid-cols-3 md:grid-cols-4 gap-2 w-full h-full p-4 opacity-75">
-                {Array.from({ length: 12 }).map((_, i) => {
-                  const fragmentIndex = (flickerIndex + i) % SCHEMATIC_FRAGMENTS.length;
-                  const fragment = SCHEMATIC_FRAGMENTS[fragmentIndex];
-                  return (
-                    <div
-                      key={i}
-                      className="border border-rose-500/15 rounded bg-[#110101]/25 p-3 flex flex-col justify-between font-mono text-[8px] text-rose-500 overflow-hidden"
-                      style={{ opacity: flickerTrigger ? 1 : 0.55 }}
-                    >
-                      <div>
-                        <div className="text-[7px] text-amber-500 font-bold mb-1">
-                          // CORE_SEC_LOG_M{i + 1}
-                        </div>
-                        <div className="text-white font-semibold">{fragment}</div>
-                        <div className="text-rose-600/60 mt-1 truncate">
-                          0x00A39C{fragmentIndex}F019BE24B
-                        </div>
-                      </div>
-                      <div className="flex justify-between border-t border-rose-500/10 pt-1.5 mt-2">
-                        <span className="text-[6.5px]">HS256_OK</span>
-                        <span className="text-[6.5px] text-amber-400">98.1% ACC</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Rhythmic giant center card */}
-              <div className="absolute inset-x-4 py-8 bg-rose-600/90 border-y-4 border-amber-500 text-center flex flex-col items-center justify-center shadow-[0_0_80px_rgba(225,29,72,0.8)] animate-scale">
-                <h1 className="font-display font-extrabold text-4xl sm:text-6xl md:text-7xl tracking-[0.18em] text-white uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
-                  TAMV NETWORK
-                </h1>
-                <p className="font-mono text-[10px] sm:text-[12px] uppercase tracking-[0.4em] text-amber-300 mt-2 font-bold">
-                  Soberanía Tecnológica Territorial
-                </p>
-              </div>
+          {/* MENSAJE CENTRAL CINEMATOGRÁFICO */}
+          <div className="absolute inset-0 z-15 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
+            <div className="max-w-5xl space-y-6 animate-fade-in">
+              <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-black tracking-widest text-white drop-shadow-[0_8px_30px_rgba(225,29,72,0.7)]">
+                {currentMessage}
+              </h1>
             </div>
-          )}
-
-          {/* PHASE 2: Epic Cinematic Credits Fade-In (4s to 8s) */}
-          {elapsed >= 4 && elapsed < 8 && (
-            <div className="absolute inset-0 z-15 flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-transparent via-[#020306]/85 to-transparent pointer-events-none animate-fade-in">
-              <div className="space-y-4 max-w-2xl">
-                <span className="font-mono text-[11px] font-extrabold uppercase tracking-[0.4em] text-rose-500 block">
-                  PRESENTA UNA PRODUCCIÓN COGNITIVA S0
-                </span>
-                <h2 className="font-display text-4xl sm:text-6xl font-black tracking-wider text-pearl bg-gradient-to-r from-amber-400 via-orange-300 to-yellow-200 bg-clip-text text-transparent drop-shadow-[0_2px_15px_rgba(245,158,11,0.2)]">
-                  ARQUITECTURA MULTIHILO
-                </h2>
-                <p className="font-mono text-[11px] sm:text-[13px] leading-relaxed text-platinum/70 uppercase tracking-[0.25em] max-w-lg mx-auto">
-                  Sincronización digital gobernada de 12 Módulos canónicos y 24 Núcleos de
-                  procesamiento.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* PHASE 3: Isabella Theatrical Logo Reveal with cosmic lens flare (8s to 12s) */}
-          {elapsed >= 8 && elapsed < 12 && (
-            <div className="absolute inset-0 z-15 flex flex-col items-center justify-center p-6 text-center pointer-events-none animate-reveal">
-              {/* Dynamic Lens Flare Overlay */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[450px] bg-[radial-gradient(circle,rgba(251,191,36,0.3)_0%,rgba(225,29,72,0.1)_40%,transparent_70%)] rounded-full blur-2xl animate-pulse" />
-
-              <div className="space-y-3 z-10">
-                <h1 className="font-display text-6xl sm:text-8xl md:text-9xl font-black tracking-widest text-white drop-shadow-[0_8px_30px_rgba(225,29,72,0.7)]">
-                  ISABELLA
-                </h1>
-                <p className="font-mono text-[12px] sm:text-[14px] font-bold text-amber-400 uppercase tracking-[0.5em]">
-                  V4.2.0 · GEMELO COGNITIVO
-                </p>
-                <div className="h-0.5 w-48 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-4" />
-                <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-widest pt-2">
-                  Nodo Cero · Real del Monte, Hidalgo, México
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* PHASE 4: Elegant Floating Cinematic Legends during regular show (12s to 30s) */}
-          {elapsed >= 12 && elapsed < 35 && (
-            <>
-              {/* Left Side: General status */}
-              <div className="absolute bottom-24 left-6 z-15 max-w-sm font-mono text-[10px] space-y-2 text-platinum/70 bg-black/45 p-5 rounded-2xl border border-rose-500/15 backdrop-blur-md pointer-events-none animate-fade-in shadow-[0_0_25px_rgba(225,29,72,0.1)]">
-                <div className="flex items-center gap-2 text-amber-400 font-bold tracking-widest uppercase pb-1.5 border-b border-rose-500/10">
-                  <span className="size-2 rounded-full bg-emerald-500 animate-ping mr-0.5" />
-                  <span>MONITOR COGNITIVO ACTIVO</span>
-                </div>
-                <div className="space-y-1">
-                  <p className="flex justify-between">
-                    <span>[FIREWALL] LATAM AEGIS-X:</span>{" "}
-                    <span className="text-emerald-400 font-semibold">ARMADO</span>
-                  </p>
-                  <p className="flex justify-between">
-                    <span>[ENTROPY] C.R.O.W.N. SEED:</span>{" "}
-                    <span className="text-amber-400 font-semibold font-mono">OK (NON-DET)</span>
-                  </p>
-                  <p className="flex justify-between">
-                    <span>[PERSISTENCE] PENTACAPA SECURE:</span>{" "}
-                    <span className="text-emerald-400 font-semibold">ACTIVE</span>
-                  </p>
-                  <p className="flex justify-between">
-                    <span>[INTEGRITY] BOOKPI BLOCKS:</span>{" "}
-                    <span className="text-emerald-400 font-semibold">VERIFIED</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Right Side: High-fidelity boot-up terminal overlay */}
-              <div className="absolute top-24 right-6 bottom-24 z-15 w-80 font-mono text-[9px] flex flex-col justify-between bg-black/55 p-5 rounded-2xl border border-amber-500/15 backdrop-blur-md pointer-events-none animate-fade-in shadow-[0_0_25px_rgba(245,158,11,0.08)]">
-                <div>
-                  <div className="flex items-center gap-1.5 text-amber-400 font-bold uppercase tracking-wider pb-2 border-b border-white/5">
-                    <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
-                    <span>Sovereign Boot Sequence</span>
-                  </div>
-                  <div className="space-y-1.5 pt-3 text-platinum/60">
-                    <p className="text-amber-300 font-semibold">
-                      &gt; Loading 24 execution cores...
-                    </p>
-                    <div className="grid grid-cols-6 gap-1 py-1">
-                      {Array.from({ length: 24 }).map((_, i) => {
-                        const state = Math.floor((elapsed * 3 + i) % 11);
-                        const col =
-                          state > 8 ? "bg-rose-500" : state > 7 ? "bg-amber-400" : "bg-emerald-500";
-                        return (
-                          <div
-                            key={i}
-                            className={`h-2 rounded-sm ${col} opacity-75 animate-pulse`}
-                            style={{ animationDelay: `${i * 100}ms` }}
-                            title={`Core ${i + 1}`}
-                          />
-                        );
-                      })}
-                    </div>
-                    <p className="text-muted-foreground flex justify-between">
-                      <span>Cores ready:</span>{" "}
-                      <span className="text-emerald-400 font-bold">24 / 24</span>
-                    </p>
-                    <div className="h-px bg-white/5 my-2" />
-                    <p className="text-emerald-400 font-semibold">
-                      &gt; Initializing CROWN policies...
-                    </p>
-                    <p className="truncate">Policy ID: CROWN-V2-GOV-ZERO-TRUST</p>
-                    <p className="truncate">Provenance Anchor: CC BY 4.0 TAMV</p>
-                    <p className="truncate">DOI: 10.5281/zenodo.isabella-rdm</p>
-                    <p className="text-emerald-400 font-semibold">
-                      &gt; Mounting Sovereign Handshake...
-                    </p>
-                    <p className="text-emerald-400 font-mono">[Handshake] OK: OIDC JWT</p>
-                  </div>
-                </div>
-                <div className="pt-2 border-t border-white/5 text-muted-foreground text-[8px] flex justify-between">
-                  <span>SEC_LEVEL: LOCK_M3</span>
-                  <span className="animate-pulse">RUNNING...</span>
-                </div>
-              </div>
-            </>
-          )}
+          </div>
 
           {/* Timeline progress line */}
           <footer className="absolute inset-x-6 bottom-6 z-20 space-y-2">
@@ -654,7 +600,7 @@ export function CinematicIntroContent({
             </h1>
 
             <p className="mx-auto mt-3 max-w-sm font-mono text-[11px] leading-relaxed text-muted-foreground">
-              Trailer cinematográfico y visualizador de telemetría WebGL de alto rendimiento.
+              Trailer cinematográfico de 59 segundos con visualización de sistema solar soberano.
             </p>
 
             <button
