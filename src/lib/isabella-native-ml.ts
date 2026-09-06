@@ -1,13 +1,15 @@
 /* eslint-disable security/detect-object-injection, security/detect-non-literal-regexp */
 /**
- * ISABELLA NATIVE ML — 100% Español Latinoamericano (México)
+ * ISABELLA NATIVE ML — Clasificador determinista es-MX (NO generativo)
  * -----------------------------------------------------------------
- * Fallback soberano y primario para inferencia sin depender de
- * proveedores externos. Implementa clasificación de intención,
- * análisis de sentimiento local y memoria territorial con total soberanía.
+ * Complemento local EXPLÍCITAMENTE NO EQUIVALENTE a un LLM productivo:
+ * clasificación de intención por léxico, análisis de sentimiento por reglas
+ * y respuestas por plantilla. No genera, no razona, no sustituye inferencia.
  *
- * No es un wrapper de API: es un runtime cognitivo que garantiza
- * que Isabella pueda responder incluso sin Gemini, sin internet, y con latencia < 30ms.
+ * Política (README): un adapter determinista o fallback jamás se presenta
+ * como inferencia productiva. En producción el gateway exige proveedor
+ * cognitivo real o falla a mantenimiento explícito (503); este módulo solo
+ * opera en desarrollo y siempre declarado como `provider: native-fallback`.
  *
  * Arquitectura: Perceive → Sentiment Analysis → Weighted Core Classification → Response Generate
  */

@@ -23,9 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validate required env vars (strict for release tags)
+        # Conjunto canónico = requiredEnvKeys("production") de src/lib/env-schema.ts
+        # (menos NODE_ENV). Verificado por test/unit/ci-env-parity.test.ts.
         run: |
           MISSING=()
-          REQUIRED_VARS=(APP_URL PUBLIC_URL SUPABASE_URL SUPABASE_ANON_KEY AUTH_JWT_SECRET SUPABASE_JWT_SECRET GEMINI_API_KEY ENCRYPTION_MASTER_KEY)
+          REQUIRED_VARS=(PUBLIC_URL SUPABASE_URL SUPABASE_ANON_KEY AUTH_JWT_SECRET GEMINI_API_KEY ENCRYPTION_MASTER_KEY CROWN_POLICY_SIGNING_KEY AEGIS_AUDIT_SECRET BOOKPI_SIGNING_KEY STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET)
           for VAR in "${REQUIRED_VARS[@]}"; do
             if [ -z "${!VAR}" ]; then
               echo "❌ Missing $VAR"
@@ -38,14 +40,17 @@ jobs:
           fi
           echo "✅ All release secrets present."
         env:
-          APP_URL: ${{ secrets.APP_URL }}
           PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
-          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ENCRYPTION_MASTER_KEY: ${{ secrets.ENCRYPTION_MASTER_KEY }}
+          CROWN_POLICY_SIGNING_KEY: ${{ secrets.CROWN_POLICY_SIGNING_KEY }}
+          AEGIS_AUDIT_SECRET: ${{ secrets.AEGIS_AUDIT_SECRET }}
+          BOOKPI_SIGNING_KEY: ${{ secrets.BOOKPI_SIGNING_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
 
   # ============================================================
   # JOB 2: Build & Package Release
@@ -62,7 +67,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 11
+          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

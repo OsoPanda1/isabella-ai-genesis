@@ -20,9 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validate env vars presence (strict on push, warn-only on PRs)
+        # Conjunto canónico = requiredEnvKeys("production") de src/lib/env-schema.ts
+        # (menos NODE_ENV, que tiene default). Verificado por test/unit/ci-env-parity.test.ts.
+        # CI == Production Readiness: ni más (APP_URL) ni menos (CROWN/AEGIS/BookPI/Stripe).
         run: |
           MISSING=()
-          for VAR in APP_URL PUBLIC_URL SUPABASE_URL SUPABASE_ANON_KEY AUTH_JWT_SECRET SUPABASE_JWT_SECRET GEMINI_API_KEY ENCRYPTION_MASTER_KEY; do
+          for VAR in PUBLIC_URL SUPABASE_URL SUPABASE_ANON_KEY AUTH_JWT_SECRET GEMINI_API_KEY ENCRYPTION_MASTER_KEY CROWN_POLICY_SIGNING_KEY AEGIS_AUDIT_SECRET BOOKPI_SIGNING_KEY STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET; do
             if [ -z "${!VAR}" ]; then
               echo "⚠️ Missing $VAR"
               MISSING+=("$VAR")
@@ -39,14 +42,17 @@ jobs:
           fi
           echo "✅ All required secrets present."
         env:
-          APP_URL: ${{ secrets.APP_URL }}
           PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
-          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ENCRYPTION_MASTER_KEY: ${{ secrets.ENCRYPTION_MASTER_KEY }}
+          CROWN_POLICY_SIGNING_KEY: ${{ secrets.CROWN_POLICY_SIGNING_KEY }}
+          AEGIS_AUDIT_SECRET: ${{ secrets.AEGIS_AUDIT_SECRET }}
+          BOOKPI_SIGNING_KEY: ${{ secrets.BOOKPI_SIGNING_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
 
   # ============================================================
   # JOB 2: Build & Tests
@@ -155,11 +161,25 @@ jobs:
       - uses: github/codeql-action/analyze@v4
 
   # ============================================================
-  # JOB 5: Release Gate
+  # JOB 5: Migration Verification (real, estática sin DB)
   # ============================================================
-  release-gate:
+  migrate-check:
     runs-on: ubuntu-latest
-    needs: [build, security, codeql]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify migrations structure
+        run: node scripts/db-verify.mjs
+
+  # ============================================================
+  # JOB 6: Release Readiness (nombre honesto: NO es staging deploy,
+  # smoke test, payment test ni load test — ver release.yml y runbook)
+  # ============================================================
+  release-readiness:
+    runs-on: ubuntu-latest
+    needs: [build, security, codeql, migrate-check]
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -167,4 +187,5 @@ jobs:
           path: ./reports
       - run: |
           sha256sum ./reports/trivy-results.sarif > ./reports/trivy-results.checksum
-          echo "✅ All gates passed. Ready for release."
+          echo "✅ Static gates passed (build, security, codeql, migrations)."
+          echo "⚠️ NOT covered here: staging deploy, smoke test, payment test, rollback, load test."

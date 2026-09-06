@@ -24,6 +24,10 @@ export interface TerminalMessage {
   decision?: RoutingDecision;
   streaming?: boolean;
   error?: boolean;
+  /** Proveedor real de la respuesta; "native-fallback" = clasificador local, NO LLM. */
+  provider?: string;
+  /** True cuando la respuesta se generó en modo degradado declarado. */
+  degraded?: boolean;
   attachments?: Attachment[];
 }
 
@@ -235,9 +239,15 @@ export function useIsabella() {
         });
 
         if (!res.ok || !res.body) {
-          const detail = await res.json().catch(() => ({ error: "Fallo de percepción." }));
-          throw new Error(detail.error ?? "Fallo de percepción.");
+          const detail = await res
+            .json()
+            .catch(() => ({ error: "Fallo de percepción." }) as { error?: string; message?: string });
+          throw new Error(detail.message ?? detail.error ?? "Fallo de percepción.");
         }
+
+        // Modo degradado declarado por el servidor (header + payload).
+        const degradedHeader = res.headers.get("x-isabella-degraded-mode");
+        const degradedMode = degradedHeader && degradedHeader.length > 0 ? degradedHeader : null;
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -259,6 +269,16 @@ export function useIsabella() {
             try {
               const json = JSON.parse(payload);
               const delta: string | undefined = json.choices?.[0]?.delta?.content;
+              if (typeof json.provider === "string" || json.degraded === true) {
+                const provider = typeof json.provider === "string" ? json.provider : "unknown";
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === replyId
+                      ? { ...m, provider, degraded: json.degraded === true || degradedMode !== null }
+                      : m,
+                  ),
+                );
+              }
               if (delta) {
                 acc += delta;
                 setTokens((t) => t + 1);
@@ -291,6 +311,8 @@ export function useIsabella() {
               ? {
                   ...m,
                   streaming: false,
+                  degraded: m.degraded ?? degradedMode !== null,
+                  provider: m.provider ?? (degradedMode !== null ? "native-fallback" : "gemini"),
                   content:
                     acc || "Silencio cognitivo: el núcleo no emitió síntesis para esta percepción.",
                 }

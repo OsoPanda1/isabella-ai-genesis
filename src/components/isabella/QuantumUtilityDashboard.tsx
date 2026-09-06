@@ -894,9 +894,15 @@ export function QuantumUtilityDashboard() {
                         </div>
                         <div className="flex justify-between text-muted-foreground">
                           <span>Recuperación del estado lógico:</span>
-                          <span className="text-emerald-400 font-bold">
-                            🟢 100% exitosa (Zero logical error)
-                          </span>
+                          {resultData.runtime.qecStatus.recoverySuccessful ? (
+                            <span className="text-emerald-400 font-bold">
+                              🟢 Exitosa (según estimador)
+                            </span>
+                          ) : (
+                            <span className="text-red-400 font-bold">
+                              🔴 No recuperado (según estimador)
+                            </span>
+                          )}
                         </div>
                       </div>
                     )}

@@ -8,7 +8,7 @@
 |---|---|---|---|---|
 | BookPI Ledger (Postgres) | Neon/Supabase `DATABASE_URL` | No se pueden registrar créditos ni procesar consumos (§6.5) | Sí: `/api/health?stage=deep` = 503; charge = DENY | Único autor del estado económico (ADR-001) |
 | Auth (JWT) | `AUTH_JWT_SECRET` (Vercel env) | Todas las rutas protegidas caen 401/403 | Sí | El secret debe tener ≥32 chars |
-| Gemini (Generative AI) | `GEMINI_API_KEY` (Vercel env) | Chat principal indisponible; sistema opera en modo fallback | No (responde con error manejado) | API con límites de cuota; no fatal |
+| Gemini (Generative AI, federado) | `GEMINI_API_KEY` (Vercel env) | Producción: 503 `inference_unavailable` explícito (sin fallback generativo). Desarrollo: SSE declarado `provider: native-fallback, degraded: true` | Sí en prod (503 maintenance) | Substrato de inferencia externo: arquitectura de gobernanza soberana, inferencia federada |
 | Stripe (Facturación) | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (Vercel env) | No se procesan pagos, grants, ni topups | Sí: webhook sin secret válido = 400 | Webhook idempotente por `webhook_events` |
 | SovereignDB (engine) | In-memory + Postgres ledger (si DURABLE_JSON_ALLOWED=false) | Snapshot de tenants inaccesible → econ-deny | Parcial: heartbeat sigue (S3) | Postgres es fuente durable; refetch por request |
 | SecuritySystem | Crypto + config | No se inyectan cabeceras, no se valida admin | Sí: `/api/health` en deny | Raramente cae |

@@ -43,6 +43,13 @@ export default defineConfig({
           include: ["test/bookpi/**/*.test.ts"],
         },
       },
+      {
+        extends: true,
+        test: {
+          name: "integration",
+          include: ["test/integration/**/*.test.ts"],
+        },
+      },
     ],
   },
 });

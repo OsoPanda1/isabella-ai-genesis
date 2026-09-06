@@ -152,10 +152,10 @@ export async function evaluateAuthorization(
     denyReason = "unknown-role";
   } else {
     // Etapa 3: normalizar (recurso, acción) a la matriz canónica.
-    // Los skills (`skill:<id>`) son herramientas: requieren tool:execute.
+    // Los skills (`skill:<id>`) y herramientas (`tool:<id>`) requieren tool:execute.
     let resource: Resource | null = null;
     let action: Action | null = null;
-    if (ctx.resource.startsWith("skill:")) {
+    if (ctx.resource.startsWith("skill:") || ctx.resource.startsWith("tool:")) {
       resource = "tool";
       action = "execute";
     } else if (

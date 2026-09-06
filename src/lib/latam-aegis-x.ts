@@ -3,6 +3,7 @@ import { config } from "./config";
 import { SecuritySystem } from "./security";
 import { secrets } from "./secrets";
 import { analyzeAegisSemantic } from "./aegis-semantic";
+import { enqueueOtelLog } from "./otel-exporter";
 
 // ============================================================================
 // CANONICAL DEFINITIONS OF 12 MODULES & 24 CORES OF ISABELLA v4.2.0
@@ -227,6 +228,19 @@ class TelemetryService {
     if (this.logBuffer.length > this.maxBufferSize) {
       this.logBuffer.pop();
     }
+
+    // Pipeline durable: OTLP → Collector → backend/SIEM (fire-and-forget,
+    // fail-open). El buffer en memoria es solo fallback local, no auditoría.
+    enqueueOtelLog({
+      timestamp: finalLog.timestamp,
+      traceId: finalLog.traceId,
+      correlationId: finalLog.correlationId,
+      moduleId: finalLog.moduleId,
+      coreId: finalLog.coreId,
+      eventName: finalLog.eventName,
+      level: finalLog.level,
+      payload: sanitizedPayload,
+    });
 
     // Console logging for local developers and container monitoring
     if (level === "security_incident") {

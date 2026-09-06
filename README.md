@@ -106,6 +106,13 @@ Toda ruta sensible debe conservar:
 
 El acceso invitado y los atajos de desarrollo deben permanecer deshabilitados en producción. Un adapter determinista o fallback no debe presentarse como inferencia productiva.
 
+## Clasificación de soberanía (precisa)
+
+Isabella es una **IA cognitiva gobernada federada** (*Federated Governed Cognitive AI*), no un stack totalmente soberano:
+
+- **Soberano (propio, verificable):** identidad, gobernanza (CROWN), ruteo, seguridad (ARGUS/AEGIS), memoria, auditoría (BookPI), tenancy y políticas.
+- **Federado (externo, declarado):** el substrato de inferencia generativa es Gemini (`generativelanguage.googleapis.com`) vía `GEMINI_API_KEY`. Sin proveedor en producción, `/api/isabella` responde 503 `inference_unavailable` explícito; el clasificador local (`isabella-native-ml`) es determinista y no generativo, y solo opera en desarrollo declarado como `provider: native-fallback, degraded: true`.
+
 ## Economía y BookPI
 
 Los créditos representan consumo prefinanciado. La recarga debe acreditarse únicamente después de confirmar el pago en Stripe, con deduplicación por `event.id` o `PaymentIntent`. Los débitos deben ser atómicos, impedir saldo negativo y quedar unidos a un registro BookPI verificable.
