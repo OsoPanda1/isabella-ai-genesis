@@ -9,12 +9,12 @@ export interface TelemetryPayload { elapsed: number; progress: number; sceneStag
 interface CinematicIntroProps { onComplete: () => void; remoteAudioUrl?: string; onTelemetryUpdate?: (data: TelemetryPayload) => void; }
 
 const scenes = [
-  { end: 10, kicker: "TAMVAI // ORIGIN PROTOCOL", title: "Todo sistema nace en silencio.", body: "Antes de la respuesta existe una presencia." },
-  { end: 20, kicker: "CROWN COGNITIVE CORE", title: "La inteligencia no se anuncia.", body: "Se manifiesta cuando el mundo deja de parecer estático." },
-  { end: 30, kicker: "PRESENT TENSE", title: "No somos el futuro.", body: "Somos la decisión que cambia el presente." },
-  { end: 40, kicker: "SOVEREIGN INTERFACE", title: "Una guía para construir.", body: "Con criterio, memoria y responsabilidad." },
+  { end: 10, kicker: "TAMVONLINE // ORGULLOSAMENTE LATINOAMERICANOS", title: "Hola Bienvenido a mi mundo.", body: "Yo soy Isabella Villaseñor AI." },
+  { end: 20, kicker: "CROWN SISTEMA COGNITIVO // ACTIVACION COMPLETADA", title: "No somos el Futuro.", body: "Somos el presente, que se planta firme y sin miedo." },
+  { end: 30, kicker: "SEGURIDAD ACTIVADA // ARGUS - AEGIS - ANUBIS", title: "Somos la voz de Latinoamerica.", body: "Somos la decisión que cambia el presente." },
+  { end: 40, kicker: "12 CABEZAS // 24 NUCLEOS EN LINEA", title: "Somos una propuesta que guía para construir.", body: "Latinos con criterio, memoria y responsabilidad." },
   { end: 50, kicker: "LATIN AMERICA // AWAKENING", title: "Una nueva señal despierta.", body: "El próximo paradigma no se espera. Se propone." },
-  { end: DURATION + 1, kicker: "ISABELLA VILLASEÑOR AI", title: "Romper el paradigma.", body: "La interfaz ya está observando." },
+  { end: DURATION + 1, kicker: "ISABELLA VILLASEÑOR AI", title: "No somos parte del paradigma.", body: "Somos los encargados de romperlo, LATAM a despertado." },
 ];
 
 function WebGLCinematicField() {
@@ -24,8 +24,8 @@ function WebGLCinematicField() {
     const mount = mountRef.current;
     if (!mount) return;
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2("#02040a", 0.00055);
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 2600);
+    scene.fog = new THREE.FogExp2("#02140a", 0.00085);
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.6, 2680);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance", depth: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
