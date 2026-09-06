@@ -172,6 +172,11 @@ jobs:
           node-version: "22"
       - name: Verify migrations structure
         run: node scripts/db-verify.mjs
+      - name: Warn if pnpm-lock.yaml missing (builds no deterministas)
+        run: |
+          if [ ! -f pnpm-lock.yaml ]; then
+            echo "::warning::Falta pnpm-lock.yaml. Generar con pnpm@10 (canónico): pnpm import package-lock.json && pnpm install --lockfile-only"
+          fi
 
   # ============================================================
   # JOB 6: Release Readiness (nombre honesto: NO es staging deploy,

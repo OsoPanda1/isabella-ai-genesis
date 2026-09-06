@@ -109,6 +109,23 @@ const CAPABILITIES = [
     status: "real",
   },
   {
+    capability: "Backup/restore PG (snapshot + manifiesto)",
+    sources: ["scripts/db-backup.mjs", "scripts/db-restore.mjs", "scripts/db-snapshot-lib.mjs"],
+    tests: ["test/unit/db-snapshot.test.ts"],
+    runtime: "Manifiesto sha256 por tabla, restore aditivo ON CONFLICT DO NOTHING; 6 tests verdes.",
+    status: "real",
+  },
+  {
+    capability: "Approval ledger durable (consumo atómico)",
+    sources: [
+      "src/lib/repositories/approval-repository.ts",
+      "supabase/migrations/20260907090000_approval_ledger.sql",
+    ],
+    tests: ["test/bookpi/approval-evidence.test.ts"],
+    runtime: "Gateado por DB: SKIP LOCKED un ganador; grant idempotente. Corre con PG.",
+    status: "evidence-gated",
+  },
+  {
     capability: "Payment full-loop (payouts, chargebacks, fraud review)",
     sources: ["src/server-routes/api/billing.ts"],
     tests: [],

@@ -179,6 +179,19 @@ export function createExecutionAuthority(opts?: {
   identityResolve?: ToolExecutor;
   sandboxRun?: ToolExecutor;
   approvalLedger?: ApprovalLedger;
+  /**
+   * Store durable de approvals (PostgreSQL). Si se provee, tiene
+   * precedencia sobre el ledger en memoria (multi-instancia).
+   */
+  approvalStore?: {
+    has(traceId: string, tool: string, actorId: string, tenantId: string): Promise<boolean>;
+    consume(
+      traceId: string,
+      tool: string,
+      actorId: string,
+      tenantId: string,
+    ): Promise<ApprovalGrant | null>;
+  };
 }) {
   const registry = createToolRegistry();
   const approvals = opts?.approvalLedger ?? createApprovalLedger();
@@ -266,7 +279,14 @@ export function createExecutionAuthority(opts?: {
       // El consentimiento de la política DERIVA del approval humano vigente
       // (ledger o grants adjuntos): consentRequired nunca se satisface solo.
       const hasApproval =
-        approvals.has(request.traceId, request.tool, request.actorId, request.tenantId) ||
+        (opts?.approvalStore
+          ? await opts.approvalStore.has(
+              request.traceId,
+              request.tool,
+              request.actorId,
+              request.tenantId,
+            )
+          : approvals.has(request.traceId, request.tool, request.actorId, request.tenantId)) ||
         (request.approvals ?? []).some(
           (candidate) =>
             !candidate.consumed &&
@@ -292,7 +312,16 @@ export function createExecutionAuthority(opts?: {
         return { executed: false, reason: `Política denegó: ${policy.reason}.`, stage: "approval" };
       }
       if (policy.decision === "requires_approval" || tool.requiresApproval) {
+        const fromStore = opts?.approvalStore
+          ? await opts.approvalStore.consume(
+              request.traceId,
+              request.tool,
+              request.actorId,
+              request.tenantId,
+            )
+          : null;
         const grant =
+          fromStore ??
           approvals.consume(request.traceId, request.tool, request.actorId, request.tenantId) ??
           (request.approvals ?? []).find(
             (candidate) =>

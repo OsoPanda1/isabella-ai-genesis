@@ -28,6 +28,8 @@
     "test:security": "vitest run --project security",
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:verify": "node scripts/db-verify.mjs",
+    "db:backup": "node scripts/db-backup.mjs",
+    "db:restore": "node scripts/db-restore.mjs",
     "capabilities": "node scripts/capability-matrix.mjs --check",
     "security:scan": "eslint . --config eslint.security.mjs && node scripts/secret-scan.mjs",
     "postinstall": "prisma generate"

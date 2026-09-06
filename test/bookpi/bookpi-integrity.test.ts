@@ -10,12 +10,13 @@ import { resetConfigCache } from "../../src/lib/config";
 let storePath: string;
 
 beforeAll(() => {
+  // RSA-2048 bajo carga paralela puede superar el hookTimeout de 10s.
   const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   process.env.BOOKPI_SIGNATURE_ALGORITHM = "RSA-SHA256";
   process.env.BOOKPI_SIGNING_KEY = privateKey.export({ type: "pkcs8", format: "pem" }).toString();
   process.env.ISABELLA_RUNTIME_MODE = "development";
   resetConfigCache();
-});
+}, 30000);
 
 beforeEach(() => {
   storePath = path.join(
