@@ -78,7 +78,7 @@ export const Route = createFileRoute("/api/isabella")({
         let rawBody;
         try {
           rawBody = await parseSafeJsonBody(request);
-        } catch (e: any) {
+        } catch (_e: unknown) {
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );

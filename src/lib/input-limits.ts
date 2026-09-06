@@ -73,7 +73,7 @@ export class LimitError extends Error {
  */
 export async function parseSafeJsonBody(request: Request): Promise<unknown> {
   const maxBytes = getInputLimits().maxBodyBytes;
-  
+
   if (!request.body) {
     return {};
   }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ShieldCheck,    Sliders } from "lucide-react";
+import { ShieldCheck, Sliders } from "lucide-react";
 import { toast } from "sonner";
 
 interface GovModule {
