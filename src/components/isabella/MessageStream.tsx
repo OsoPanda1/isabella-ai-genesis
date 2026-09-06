@@ -172,6 +172,10 @@ export function MessageStream({
               }}
             >
               <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-b border-border/50 pb-3">
+                <IsabellaAvatar
+                  state={m.error ? "error" : m.streaming ? "thinking" : "ready"}
+                  color={m.error ? "var(--destructive)" : mod.color}
+                />
                 <span
                   className="font-mono text-[11px] tracking-[0.3em]"
                   style={{ color: m.error ? "var(--destructive)" : mod.color }}
