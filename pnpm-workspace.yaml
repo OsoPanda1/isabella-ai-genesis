@@ -1,8 +1,7 @@
-# Configuración de pnpm (v11): `onlyBuiltDependencies` fue eliminado y
-# reemplazado por `allowBuilds`. `strictDepBuilds` (default true) falla el
-# install si existe un build sin revisar; esta lista los aprueba explícitamente.
-# Mantener sincronizado con CI (pnpm/action-setup@v4, version: 11).
-allowBuilds:
+# Configuración canónica de pnpm 10.15.0. Los paquetes que ejecutan scripts
+# de instalación se revisan explícitamente; agregar uno nuevo requiere revisar
+# su cadena de suministro y actualizar esta lista.
+onlyBuiltDependencies:
   "@firebase/util": true
   "@prisma/client": true
   "@prisma/engines": true
