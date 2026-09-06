@@ -67,7 +67,9 @@ function withSecurityHeaders(response: Response): Response {
       "default-src 'self'",
       "img-src 'self' data: blob:",
       "style-src 'self'",
-      "script-src 'self'",
+      // TanStack Start emits the serialized hydration bootstrap inline; without it
+      // the browser cannot find window.$_TSR and the app remains blank.
+      "script-src 'self' 'unsafe-inline'",
       "connect-src 'self' https:",
       "frame-ancestors 'none'",
     ].join("; "),

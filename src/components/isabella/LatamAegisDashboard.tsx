@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { getSessionToken } from "@/lib/auth-client";
-import { ObservabilityPanel } from "./ObservabilityPanel";
-import { SovereignCompliancePanel } from "./SovereignCompliancePanel";
-import { SovereignSkillsPanel } from "./SovereignSkillsPanel";
+
+const ObservabilityPanel = lazy(() => import("./ObservabilityPanel").then((module) => ({ default: module.ObservabilityPanel })));
+const SovereignCompliancePanel = lazy(() => import("./SovereignCompliancePanel").then((module) => ({ default: module.SovereignCompliancePanel })));
+const SovereignSkillsPanel = lazy(() => import("./SovereignSkillsPanel").then((module) => ({ default: module.SovereignSkillsPanel })));
 import {
   Shield,
   ShieldAlert,
@@ -133,6 +134,14 @@ const INITIAL_LAYERS: HardeningLayer[] = [
     metric: "Prompt shield armed",
   },
 ];
+
+function PanelLoading() {
+  return (
+    <div className="flex min-h-64 items-center justify-center rounded-2xl border border-border/15 bg-secondary/10 text-muted-foreground">
+      <span className="font-mono text-xs uppercase tracking-[0.2em]">Cargando módulo soberano…</span>
+    </div>
+  );
+}
 
 export function LatamAegisDashboard() {
   const [level, setLevel] = useState<AegisLevel>(AegisLevel.OPEN);
@@ -614,11 +623,17 @@ export function LatamAegisDashboard() {
       </div>
 
       {subTab === "observability" ? (
-        <ObservabilityPanel />
+        <Suspense fallback={<PanelLoading />}>
+          <ObservabilityPanel />
+        </Suspense>
       ) : subTab === "compliance" ? (
-        <SovereignCompliancePanel />
+        <Suspense fallback={<PanelLoading />}>
+          <SovereignCompliancePanel />
+        </Suspense>
       ) : subTab === "skills" ? (
-        <SovereignSkillsPanel />
+        <Suspense fallback={<PanelLoading />}>
+          <SovereignSkillsPanel />
+        </Suspense>
       ) : (
         <>
           {/* Main Grid split */}
