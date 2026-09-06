@@ -197,9 +197,12 @@ export function MessageStream({
 
               <p className="whitespace-pre-wrap text-[15.5px] leading-[1.75] text-foreground/95">
                 {m.content}
-                {m.streaming && (
-                  <span className="animate-caret ml-0.5 inline-block h-4 w-[7px] translate-y-0.5 bg-electric" />
-                )}
+                {m.streaming &&
+                  (m.content ? (
+                    <span className="animate-caret ml-0.5 inline-block h-4 w-[7px] translate-y-0.5 bg-electric" />
+                  ) : (
+                    <TypingDots color={mod.color} />
+                  ))}
               </p>
 
               {m.decision && !m.error && (
