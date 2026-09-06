@@ -135,9 +135,27 @@ export function MessageStream({
                   <Meta label="OPERADOR" value="ANUBIS" />
                   <span className="font-mono text-[10px] text-muted-foreground">{m.timestamp}</span>
                 </div>
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">
-                  {m.content}
-                </p>
+                {m.content && (
+                  <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">
+                    {m.content}
+                  </p>
+                )}
+                {m.attachments && m.attachments.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {m.attachments.map((a) =>
+                      a.kind === "image" ? (
+                        <img
+                          key={a.id}
+                          src={a.dataUrl}
+                          alt={a.name}
+                          className="size-20 rounded-lg border border-border object-cover"
+                        />
+                      ) : (
+                        <audio key={a.id} controls src={a.dataUrl} className="h-9 max-w-[220px]" />
+                      ),
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           );
