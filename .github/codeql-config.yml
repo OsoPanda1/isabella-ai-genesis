@@ -1,70 +1,23 @@
+# Configuración oficial de CodeQL para isabella-ai-genesis.
+# Referencia: https://docs.github.com/en/code-security/code-scanning/using-codeql-code-scanning-with-your-existing-ci-system/using-codeql-runner-in-your-ci-system#using-a-custom-configuration-file
+# Solo se usan claves soportadas: name, disable-default-queries, queries,
+# packs, paths, paths-ignore y query-filters. La validación estricta de
+# secretos y runtime se mantiene en src/lib/env-schema.ts y en el job
+# env-check de CI (warn-only en PRs, estricto en push/tags).
 name: isabella-codeql
 
 queries:
-  # Paquete oficial de seguridad y calidad
   - uses: security-and-quality
 
-  # Queries adicionales de seguridad avanzada
-  - uses: github/codeql/javascript-queries@latest
-  - uses: github/codeql/javascript-experimental-queries@latest
-  - uses: github/codeql/javascript-security-extended@latest
-
-  # Queries de calidad de código y performance
-  - uses: github/codeql/javascript-performance-queries@latest
-  - uses: github/codeql/javascript-maintainability-queries@latest
-
-  # Queries de supply chain y dependencias
-  - uses: github/codeql/javascript-dependency-queries@latest
-
-paths:
-  # Código fuente principal
-  - src
-  - lib
-  - api
-  - components
-  - services
-  - utils
-
 paths-ignore:
-  # Archivos generados automáticamente
-  - src/routeTree.gen.ts
-  - src/components/ui
   - node_modules
   - dist
+  - .output
   - coverage
   - test
   - tests
   - __mocks__
   - __fixtures__
-
-# Configuración avanzada
-options:
-  # Nivel de severidad mínimo para reportar
-  severity: warning
-
-  # Habilitar queries experimentales
-  experimental: true
-
-  # Reportar duplicados y patrones de riesgo
-  duplicates: true
-
-  # Incluir análisis de dependencias externas
-  dependency-analysis: true
-
-  # Activar análisis de flujo de datos extendido
-  dataflow: extended
-
-  # Activar análisis de seguridad en frameworks (React/Next.js)
-  framework-security: true
-
-  # Activar análisis de APIs expuestas
-  api-surface-analysis: true
-
-# Extensiones de seguridad
-extensions:
-  - name: codeguru-security
-    enabled: true
-  - name: sauce-security
-    enabled: true
-  - name: actionolympix-security
-    enabled: true
+  - public
+  - src/components/ui
+  - "**/*.gen.ts"

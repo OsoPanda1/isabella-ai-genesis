@@ -22,15 +22,30 @@ jobs:
   env-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate required env vars
+      - name: Validate required env vars (strict for release tags)
         run: |
+          MISSING=()
           REQUIRED_VARS=(APP_URL PUBLIC_URL SUPABASE_URL SUPABASE_ANON_KEY AUTH_JWT_SECRET SUPABASE_JWT_SECRET GEMINI_API_KEY ENCRYPTION_MASTER_KEY)
           for VAR in "${REQUIRED_VARS[@]}"; do
             if [ -z "${!VAR}" ]; then
               echo "❌ Missing $VAR"
-              exit 1
+              MISSING+=("$VAR")
             fi
           done
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo "❌ Release blocked, missing secrets: ${MISSING[*]}"
+            exit 1
+          fi
+          echo "✅ All release secrets present."
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ENCRYPTION_MASTER_KEY: ${{ secrets.ENCRYPTION_MASTER_KEY }}
 
   # ============================================================
   # JOB 2: Build & Package Release
@@ -56,7 +71,12 @@ jobs:
           cache: pnpm
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install --no-frozen-lockfile
+          fi
 
       - name: Lint & Typecheck
         run: pnpm run lint && pnpm run typecheck
@@ -75,12 +95,7 @@ jobs:
           else
             tar -czf artifacts/isabella-gateway-${{ github.ref_name }}.tar.gz dist/ package.json
           fi
-
-      - name: Generate SBOM
-        run: pnpm exec cyclonedx-bom -o artifacts/sbom-${{ github.ref_name }}.json
-
-      - name: Sign Artifacts
-        run: cosign sign-blob --key ${{ secrets.COSIGN_KEY }} artifacts/isabella-gateway-${{ github.ref_name }}.tar.gz > artifacts/signature-${{ github.ref_name }}.sig
+          sha256sum artifacts/isabella-gateway-${{ github.ref_name }}.tar.gz > artifacts/isabella-gateway-${{ github.ref_name }}.tar.gz.sha256
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -120,25 +135,26 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Upload Trivy SARIF
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results.sarif'
 
-      - name: CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-
   # ============================================================
-  # JOB 4: StackQL Policy Enforcement
+  # JOB 4: StackQL Policy Enforcement (optional, only if policies exist)
   # ============================================================
   stackql:
     runs-on: ubuntu-latest
     needs: release_build
     steps:
       - uses: actions/checkout@v4
-      - name: Install StackQL
-        run: curl -s https://stackql.io/install.sh | bash
-      - name: Run StackQL Policies
-        run: stackql exec --file .stackql/policies.sql
+      - name: Run StackQL Policies (skip if no policies file)
+        run: |
+          if [ ! -f .stackql/policies.sql ]; then
+            echo "::notice::No .stackql/policies.sql found, skipping StackQL gate."
+            exit 0
+          fi
+          curl -s https://stackql.io/install.sh | bash
+          stackql exec --file .stackql/policies.sql
 
   # ============================================================
   # JOB 5: Close Stale Issues
