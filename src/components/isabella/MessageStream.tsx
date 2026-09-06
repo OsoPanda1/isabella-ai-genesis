@@ -2,6 +2,53 @@ import { useEffect, useRef, useState } from "react";
 import { MODULES } from "@/lib/crown-ui";
 import { speakIsabella, stopVoice } from "@/lib/voice";
 import type { TerminalMessage } from "@/lib/useIsabella";
+import thinkingAsset from "@/assets/isabella-thinking.jpeg.asset.json";
+import smileAsset from "@/assets/isabella-smile.jpeg.asset.json";
+import worriedAsset from "@/assets/isabella-worried.jpeg.asset.json";
+import crownAsset from "@/assets/isabella-crown.png.asset.json";
+
+/** Miniatura de identidad de Isabella junto al indicador de actividad. */
+function IsabellaAvatar({
+  state,
+  color,
+}: {
+  state: "thinking" | "ready" | "error";
+  color: string;
+}) {
+  const src =
+    state === "thinking"
+      ? thinkingAsset.url
+      : state === "error"
+        ? worriedAsset.url
+        : smileAsset.url;
+  return (
+    <span
+      className="relative inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border"
+      style={{ borderColor: color, boxShadow: `0 0 22px -8px ${color}` }}
+    >
+      <img
+        src={src}
+        alt="Isabella Villaseñor"
+        className={`size-full object-cover ${state === "thinking" ? "animate-breathe" : ""}`}
+      />
+    </span>
+  );
+}
+
+function TypingDots({ color }: { color: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5" role="status" aria-label="Isabella está generando una respuesta">
+      <img src={crownAsset.url} alt="" aria-hidden className="size-4 animate-breathe rounded-sm object-contain" />
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="size-1.5 animate-breathe rounded-full"
+          style={{ background: color, animationDelay: `${i * 0.18}s` }}
+        />
+      ))}
+    </span>
+  );
+}
 
 function VoiceButton({ text }: { text: string }) {
   const [state, setState] = useState<"idle" | "playing" | "error">("idle");
@@ -88,9 +135,27 @@ export function MessageStream({
                   <Meta label="OPERADOR" value="ANUBIS" />
                   <span className="font-mono text-[10px] text-muted-foreground">{m.timestamp}</span>
                 </div>
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">
-                  {m.content}
-                </p>
+                {m.content && (
+                  <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">
+                    {m.content}
+                  </p>
+                )}
+                {m.attachments && m.attachments.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {m.attachments.map((a) =>
+                      a.kind === "image" ? (
+                        <img
+                          key={a.id}
+                          src={a.dataUrl}
+                          alt={a.name}
+                          className="size-20 rounded-lg border border-border object-cover"
+                        />
+                      ) : (
+                        <audio key={a.id} controls src={a.dataUrl} className="h-9 max-w-[220px]" />
+                      ),
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -107,6 +172,10 @@ export function MessageStream({
               }}
             >
               <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-b border-border/50 pb-3">
+                <IsabellaAvatar
+                  state={m.error ? "error" : m.streaming ? "thinking" : "ready"}
+                  color={m.error ? "var(--destructive)" : mod.color}
+                />
                 <span
                   className="font-mono text-[11px] tracking-[0.3em]"
                   style={{ color: m.error ? "var(--destructive)" : mod.color }}
@@ -128,9 +197,12 @@ export function MessageStream({
 
               <p className="whitespace-pre-wrap text-[15.5px] leading-[1.75] text-foreground/95">
                 {m.content}
-                {m.streaming && (
-                  <span className="animate-caret ml-0.5 inline-block h-4 w-[7px] translate-y-0.5 bg-electric" />
-                )}
+                {m.streaming &&
+                  (m.content ? (
+                    <span className="animate-caret ml-0.5 inline-block h-4 w-[7px] translate-y-0.5 bg-electric" />
+                  ) : (
+                    <TypingDots color={mod.color} />
+                  ))}
               </p>
 
               {m.decision && !m.error && (

@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { CinematicIntro } from "@/components/isabella/CinematicIntro";
+import type { Attachment } from "@/lib/attachments";
 import { CommandLine } from "@/components/isabella/CommandLine";
 import { MessageStream } from "@/components/isabella/MessageStream";
 import { TelemetryPanel } from "@/components/isabella/TelemetryPanel";
@@ -29,15 +31,38 @@ function Index() {
   const lastInput = useRef("");
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  const send = (text: string) => {
+  const lastAttachments = useRef<Attachment[]>([]);
+  const [intro, setIntro] = useState(false);
+
+  // El intro cinematográfico se ejecuta una vez por sesión, sólo en el cliente.
+  useEffect(() => {
+    try {
+      if (!window.sessionStorage.getItem("isabella.intro.v1")) setIntro(true);
+    } catch {
+      /* almacenamiento no disponible */
+    }
+  }, []);
+
+  const closeIntro = () => {
+    setIntro(false);
+    try {
+      window.sessionStorage.setItem("isabella.intro.v1", "1");
+    } catch {
+      /* almacenamiento no disponible */
+    }
+  };
+
+  const send = (text: string, attachments: Attachment[] = []) => {
     lastInput.current = text;
-    void isabella.send(text);
+    lastAttachments.current = attachments;
+    void isabella.send(text, attachments);
   };
 
   const turns = isabella.messages.filter((m) => m.role === "user").length;
 
   return (
     <div className="min-h-screen">
+      {intro && <CinematicIntro onComplete={closeIntro} />}
       <header className="hairline sticky top-0 z-20 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 py-4 sm:px-8">
           <div>
@@ -75,6 +100,18 @@ function Index() {
             >
               Reabrir
             </button>
+            <button
+              onClick={isabella.exportCsv}
+              className="hidden rounded-lg border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-platinum md:inline-block"
+            >
+              CSV
+            </button>
+            <button
+              onClick={isabella.exportPdf}
+              className="hidden rounded-lg border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-platinum md:inline-block"
+            >
+              PDF
+            </button>
             <span
               className={`size-2 rounded-full bg-electric ${isabella.isProcessing ? "animate-breathe" : ""}`}
             />
@@ -93,7 +130,11 @@ function Index() {
           <div className="glass min-h-[52vh] flex-1 overflow-y-auto rounded-3xl">
             <MessageStream
               messages={isabella.messages}
-              onRetry={() => lastInput.current && send(lastInput.current)}
+              onRetry={() => {
+                if (lastInput.current || lastAttachments.current.length) {
+                  send(lastInput.current, lastAttachments.current);
+                }
+              }}
             />
           </div>
           <CommandLine
