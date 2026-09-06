@@ -9,10 +9,10 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "vite dev --host 0.0.0.0 --port 3000",
+    "dev": "node scripts/check-env.mjs && vite dev --host 0.0.0.0 --port 3000",
     "build": "vite build",
     "start": "node .output/server/index.mjs",
-    "build:dev": "vite build --mode development",
+    "build:dev": "node scripts/check-env.mjs && vite build --mode development",
     "build:production": "NODE_ENV=production vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",

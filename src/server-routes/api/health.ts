@@ -82,6 +82,21 @@ async function readiness(): Promise<Response> {
     checks.audit = { ok: false, error: "audit_unavailable" };
   }
 
+  // Isabella AI Genesis Service health
+  try {
+    const cfg = config();
+    // Simulate Isabella AI Genesis connectivity or configuration check
+    const isGenesisConfigured = Boolean(cfg.GEMINI_API_KEY && cfg.CROWN_POLICY_SIGNING_KEY);
+    checks.isabella_genesis = { ok: isGenesisConfigured };
+    if (!isGenesisConfigured && isProductionLike(resolveRuntimeMode(cfg.ISABELLA_RUNTIME_MODE))) {
+      checks.isabella_genesis.error = "genesis_service_unconfigured";
+      overallOk = false;
+    }
+  } catch {
+    checks.isabella_genesis = { ok: false, error: "genesis_service_unavailable" };
+    overallOk = false;
+  }
+
   const status = overallOk ? 200 : 503;
   return new Response(
     JSON.stringify({
