@@ -1,6 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
+const textBlock = z.object({ type: z.literal("text"), text: z.string().min(1).max(12000) });
+const imageBlock = z.object({
+  type: z.literal("image_url"),
+  image_url: z.object({ url: z.string().min(1) }),
+});
+const audioBlock = z.object({
+  type: z.literal("input_audio"),
+  input_audio: z.object({ data: z.string().min(1), format: z.string().min(1).max(8) }),
+});
+
 const bodySchema = z.object({
   system: z.string().min(1).max(8000),
   temperature: z.number().min(0).max(2).default(0.8),
@@ -8,7 +18,10 @@ const bodySchema = z.object({
     .array(
       z.object({
         role: z.enum(["user", "assistant"]),
-        content: z.string().min(1).max(12000),
+        content: z.union([
+          z.string().min(1).max(12000),
+          z.array(z.union([textBlock, imageBlock, audioBlock])).min(1).max(8),
+        ]),
       }),
     )
     .min(1)
