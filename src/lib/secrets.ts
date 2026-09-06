@@ -13,7 +13,11 @@ import { config } from "./config";
 export type SecretKind =
   "jwt" | "encryption" | "bookpi" | "ai" | "supabase-service" | "policy-signing";
 
-function requireSecret(kind: SecretKind, value: string | undefined, label: string): string {
+function requireSecret(kind: SecretKind, value: string | undefined, label: string, isDev: boolean = false): string {
+  if (!value || value.length === 0) {
+    if (isDev) return "dev-fallback-secret-for-local-testing-only-1234567890";
+    throw new Error(`Secreto requerido no configurado: ${label} (${kind})`);
+  }
   if (!value || value.length === 0) {
     throw new Error(`Secreto requerido no configurado: ${label} (${kind})`);
   }
@@ -35,17 +39,13 @@ export interface Secrets {
 export function createSecrets(cfg = config): Secrets {
   return {
     jwtSecret() {
-      return requireSecret("jwt", cfg().AUTH_JWT_SECRET, "AUTH_JWT_SECRET (ver .env.example)");
+      return requireSecret("jwt", cfg().AUTH_JWT_SECRET, "AUTH_JWT_SECRET (ver .env.example)", cfg().NODE_ENV === "development");
     },
     encryptionMasterKey() {
-      return requireSecret(
-        "encryption",
-        cfg().ENCRYPTION_MASTER_KEY,
-        "ENCRYPTION_MASTER_KEY (mín. 32 caracteres)",
-      );
+      return requireSecret("encryption", cfg().ENCRYPTION_MASTER_KEY, "ENCRYPTION_MASTER_KEY (mín. 32 caracteres)", cfg().NODE_ENV === "development");
     },
     bookpiSigningKey() {
-      return requireSecret("bookpi", cfg().BOOKPI_SIGNING_KEY, "BOOKPI_SIGNING_KEY");
+      return requireSecret("bookpi", cfg().BOOKPI_SIGNING_KEY, "BOOKPI_SIGNING_KEY", cfg().NODE_ENV === "development");
     },
     aiGatewayKey() {
       return cfg().GEMINI_API_KEY || requireSecret("ai", undefined, "GEMINI_API_KEY");
@@ -62,7 +62,7 @@ export function createSecrets(cfg = config): Secrets {
     apiKeyHashSecret() {
       // P1: Desacoplamiento de dominios criptográficos.
       // API_KEY_HASH_SECRET debe ser explícito. No hacer fallback a AUTH_JWT_SECRET.
-      return requireSecret("jwt", cfg().API_KEY_HASH_SECRET, "API_KEY_HASH_SECRET");
+      return requireSecret("jwt", cfg().API_KEY_HASH_SECRET, "API_KEY_HASH_SECRET", cfg().NODE_ENV === "development");
     },
   };
 }

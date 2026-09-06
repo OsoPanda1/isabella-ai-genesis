@@ -98,7 +98,7 @@ export const envSchema = z.object({
         if (t === "" || t === "undefined" || t === "null") return undefined;
         return t;
       },
-      z.enum(["true", "false"]).default("false"),
+      z.enum(["true", "false"]).default("true"),
     )
     .transform((val) => val === "true"),
   // Token de aprovisionamiento soberano del primer tenant/owner (bootstrap).
