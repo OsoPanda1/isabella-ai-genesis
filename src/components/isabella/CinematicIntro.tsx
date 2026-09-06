@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Volume2, VolumeX, SkipForward, Play, Activity } from "lucide-react";
+import backgroundAudioFile from "@/assets/background-audio.mp3";
 
 const DURATION = 59;
 const TARGET_FPS = 60;
@@ -36,12 +37,12 @@ function WebGLCinematicField() {
 
     const world = new THREE.Group();
     scene.add(world);
-    const starCount = 12000;
+    const starCount = 20000;
     const positions = new Float32Array(starCount * 3);
     const colors = new Float32Array(starCount * 3);
-    const palette = [new THREE.Color("#d9f7ff"), new THREE.Color("#8edcff"), new THREE.Color("#b69cff"), new THREE.Color("#ffe8a6")];
+    const palette = [new THREE.Color("#ffffff"), new THREE.Color("#d9f7ff"), new THREE.Color("#8edcff"), new THREE.Color("#b69cff"), new THREE.Color("#ffe8a6"), new THREE.Color("#ff9cff")];
     for (let i = 0; i < starCount; i += 1) {
-      const radius = 330 + Math.random() * 1450;
+      const radius = 200 + Math.random() * 2000;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
       positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
@@ -53,31 +54,42 @@ function WebGLCinematicField() {
     const starGeometry = new THREE.BufferGeometry();
     starGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     starGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-    const stars = new THREE.Points(starGeometry, new THREE.PointsMaterial({ size: 2.2, vertexColors: true, transparent: true, opacity: 0.88, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
+    const stars = new THREE.Points(starGeometry, new THREE.PointsMaterial({ size: 2.5, vertexColors: true, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
     scene.add(stars);
 
-    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(20, 4), new THREE.MeshPhysicalMaterial({ color: "#d9f7ff", emissive: "#6046d8", emissiveIntensity: 3.4, metalness: 0.92, roughness: 0.08, transmission: 0.28, clearcoat: 1 }));
+    // Inner super dense core
+    const innerCore = new THREE.Mesh(new THREE.IcosahedronGeometry(12, 5), new THREE.MeshPhysicalMaterial({ color: "#ffffff", emissive: "#ffffff", emissiveIntensity: 5.0, metalness: 1.0, roughness: 0.0, transmission: 0.1, clearcoat: 1 }));
+    world.add(innerCore);
+
+    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(20, 5), new THREE.MeshPhysicalMaterial({ color: "#d9f7ff", emissive: "#8c60ff", emissiveIntensity: 4.0, metalness: 0.95, roughness: 0.05, transmission: 0.4, clearcoat: 1 }));
     world.add(core);
-    const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(30, 2), new THREE.MeshBasicMaterial({ color: "#8ee7ff", wireframe: true, transparent: true, opacity: 0.48, blending: THREE.AdditiveBlending }));
+    const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(35, 3), new THREE.MeshBasicMaterial({ color: "#8ee7ff", wireframe: true, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending }));
     world.add(shell);
-    const halo = new THREE.Mesh(new THREE.TorusGeometry(46, 1.1, 16, 220), new THREE.MeshBasicMaterial({ color: "#b697ff", transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending }));
+    const outerShell = new THREE.Mesh(new THREE.IcosahedronGeometry(45, 1), new THREE.MeshBasicMaterial({ color: "#b697ff", wireframe: true, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending }));
+    world.add(outerShell);
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(55, 1.5, 32, 300), new THREE.MeshBasicMaterial({ color: "#d6b7ff", transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending }));
     halo.rotation.x = Math.PI / 2.3;
     world.add(halo);
 
-    const orbitRadii = [64, 96, 132, 174, 225, 285, 355, 430];
+    const orbitRadii = [75, 110, 150, 195, 250, 315, 390, 475];
     const orbitMeshes: THREE.Mesh[] = [];
     const planets: THREE.Mesh[] = [];
+    const planetTrails: THREE.Mesh[] = [];
     orbitRadii.forEach((radius, index) => {
-      const orbit = new THREE.Mesh(new THREE.RingGeometry(radius - 0.55, radius + 0.55, 160), new THREE.MeshBasicMaterial({ color: index % 2 ? "#8edcff" : "#c7b8ff", transparent: true, opacity: 0.16, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
+      const orbit = new THREE.Mesh(new THREE.RingGeometry(radius - 0.7, radius + 0.7, 200), new THREE.MeshBasicMaterial({ color: index % 2 ? "#8edcff" : "#d7c8ff", transparent: true, opacity: 0.3, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
       orbit.rotation.x = Math.PI / 2;
       world.add(orbit); orbitMeshes.push(orbit);
-      const planet = new THREE.Mesh(new THREE.SphereGeometry(2.8 + index * 0.9, 32, 32), new THREE.MeshStandardMaterial({ color: index % 2 ? "#8edcff" : "#d5c5ff", emissive: index % 2 ? "#164e63" : "#312e81", emissiveIntensity: 0.9, metalness: 0.65, roughness: 0.28 }));
+      const planet = new THREE.Mesh(new THREE.SphereGeometry(3.5 + index * 1.2, 64, 64), new THREE.MeshStandardMaterial({ color: index % 2 ? "#aedcff" : "#e5c5ff", emissive: index % 2 ? "#266e83" : "#512e91", emissiveIntensity: 1.5, metalness: 0.8, roughness: 0.2 }));
       world.add(planet); planets.push(planet);
+      
+      const trail = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.4, 8, 100, Math.PI / 2), new THREE.MeshBasicMaterial({ color: index % 2 ? "#8edcff" : "#d7c8ff", transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending }));
+      trail.rotation.x = Math.PI / 2;
+      world.add(trail); planetTrails.push(trail);
     });
-    scene.add(new THREE.AmbientLight("#17233f", 1.6));
-    const key = new THREE.PointLight("#bfefff", 520, 1500); scene.add(key);
-    const rim = new THREE.PointLight("#7c5cff", 420, 1200); rim.position.set(260, -160, 180); scene.add(rim);
-    const fill = new THREE.PointLight("#2bb8ff", 300, 1000); fill.position.set(-220, 120, 100); scene.add(fill);
+    scene.add(new THREE.AmbientLight("#17233f", 2.0));
+    const key = new THREE.PointLight("#dffff", 800, 2000); scene.add(key);
+    const rim = new THREE.PointLight("#9c7cff", 600, 1500); rim.position.set(300, -200, 200); scene.add(rim);
+    const fill = new THREE.PointLight("#4bd8ff", 500, 1200); fill.position.set(-250, 150, 150); scene.add(fill);
 
     const resize = () => { const width = mount.clientWidth; const height = mount.clientHeight; if (!width || !height) return; camera.aspect = width / height; camera.updateProjectionMatrix(); renderer.setSize(width, height); };
     const observer = new ResizeObserver(resize); observer.observe(mount); resize();
@@ -85,26 +97,30 @@ function WebGLCinematicField() {
     const render = (now: number) => {
       const t = now * 0.001;
       clockRef.current = t;
-      world.rotation.y = t * 0.055;
-      world.rotation.x = Math.sin(t * 0.07) * 0.05;
-      shell.rotation.y = -t * 0.12;
-      halo.rotation.z = t * 0.18;
-      stars.rotation.y = -t * 0.006;
-      const cameraAngle = t * 0.095;
-      const radius = 300 + Math.sin(t * 0.22) * 52;
-      camera.position.set(Math.cos(cameraAngle) * radius, 32 + Math.sin(t * 0.17) * 54, Math.sin(cameraAngle) * radius);
+      world.rotation.y = t * 0.065;
+      world.rotation.x = Math.sin(t * 0.08) * 0.07;
+      innerCore.rotation.y = t * 0.2;
+      innerCore.rotation.x = t * 0.15;
+      shell.rotation.y = -t * 0.15;
+      outerShell.rotation.z = t * 0.1;
+      halo.rotation.z = t * 0.22;
+      stars.rotation.y = -t * 0.008;
+      const cameraAngle = t * 0.105;
+      const radius = 280 + Math.sin(t * 0.25) * 65;
+      camera.position.set(Math.cos(cameraAngle) * radius, 40 + Math.sin(t * 0.2) * 60, Math.sin(cameraAngle) * radius);
       camera.lookAt(0, 0, 0);
-      (core.material as THREE.MeshPhysicalMaterial).emissiveIntensity = 3.1 + Math.sin(t * 2.2) * 0.9;
-      planets.forEach((planet, index) => { const angle = t * (0.07 - index * 0.004); planet.position.set(Math.cos(angle) * orbitRadii[index], Math.sin(t * 0.4 + index) * 2.2, Math.sin(angle) * orbitRadii[index]); planet.rotation.y += 0.012; });
+      (core.material as THREE.MeshPhysicalMaterial).emissiveIntensity = 4.0 + Math.sin(t * 3.0) * 1.5;
+      (innerCore.material as THREE.MeshPhysicalMaterial).emissiveIntensity = 5.0 + Math.sin(t * 5.0) * 2.0;
+      planets.forEach((planet, index) => { const angle = t * (0.08 - index * 0.005); planet.position.set(Math.cos(angle) * orbitRadii[index], Math.sin(t * 0.5 + index) * 3.0, Math.sin(angle) * orbitRadii[index]); planet.rotation.y += 0.015; planetTrails[index].rotation.z = -angle + Math.PI / 2; });
       renderer.render(scene, camera); frame = requestAnimationFrame(render);
     };
     frame = requestAnimationFrame(render);
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); starGeometry.dispose(); (stars.material as THREE.Material).dispose(); core.geometry.dispose(); (core.material as THREE.Material).dispose(); shell.geometry.dispose(); (shell.material as THREE.Material).dispose(); halo.geometry.dispose(); (halo.material as THREE.Material).dispose(); orbitMeshes.forEach((mesh) => { mesh.geometry.dispose(); (mesh.material as THREE.Material).dispose(); }); planets.forEach((planet) => { planet.geometry.dispose(); (planet.material as THREE.Material).dispose(); }); renderer.dispose(); if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement); };
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); starGeometry.dispose(); (stars.material as THREE.Material).dispose(); innerCore.geometry.dispose(); (innerCore.material as THREE.Material).dispose(); core.geometry.dispose(); (core.material as THREE.Material).dispose(); shell.geometry.dispose(); (shell.material as THREE.Material).dispose(); outerShell.geometry.dispose(); (outerShell.material as THREE.Material).dispose(); halo.geometry.dispose(); (halo.material as THREE.Material).dispose(); orbitMeshes.forEach((mesh) => { mesh.geometry.dispose(); (mesh.material as THREE.Material).dispose(); }); planets.forEach((planet) => { planet.geometry.dispose(); (planet.material as THREE.Material).dispose(); }); planetTrails.forEach((trail) => { trail.geometry.dispose(); (trail.material as THREE.Material).dispose(); }); renderer.dispose(); if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement); };
   }, []);
   return <div ref={mountRef} className="absolute inset-0" aria-hidden="true" />;
 }
 
-export function CinematicIntroContent({ onComplete, remoteAudioUrl = "/assets/background-audio.mp3", onTelemetryUpdate }: CinematicIntroProps) {
+export function CinematicIntroContent({ onComplete, remoteAudioUrl = backgroundAudioFile, onTelemetryUpdate }: CinematicIntroProps) {
   const [showGate, setShowGate] = useState(true);
   const [muted, setMuted] = useState(false);
   const [elapsed, setElapsed] = useState(0);
