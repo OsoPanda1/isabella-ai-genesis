@@ -116,7 +116,7 @@ export const Route = createRootRouteWithContext()({
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="es" className="bg-background">
       <head>
         <HeadContent />
       </head>
@@ -154,7 +154,7 @@ class ClientErrorBoundary extends Component<
             <h1 className="mt-4 text-2xl font-semibold">La interfaz encontró un error</h1>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">El backend permanece protegido. Recarga la interfaz para reintentar el montaje.</p>
             <button type="button" onClick={() => window.location.reload()} className="mt-6 rounded-xl bg-primary px-5 py-3 font-mono text-xs uppercase tracking-wider text-primary-foreground">Reintentar interfaz</button>
-            <p className="mt-4 break-words font-mono text-[10px] text-muted-foreground">{this.state.message}</p>
+            <p className="mt-4 font-mono text-[10px] text-muted-foreground">Código de recuperación: CROWN-RENDER-01</p>
           </section>
         </main>
       );

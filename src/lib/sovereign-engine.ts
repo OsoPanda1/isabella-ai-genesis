@@ -24,8 +24,8 @@ export interface BookPILedgerBlock {
   tokensConsumed: number;
   previousHash: string;
   blockHash: string;
-  pqcSignature: string | null; // Post-Quantum Cryptography placeholder (NOT_IMPLEMENTED)
-  signatureAlgorithm: string;
+  pqcSignature: string | null;
+  signatureAlgorithm: "ECDSA-P384" | "UNSIGNED_DEV";
   status: "settled" | "pending" | "refunded";
 }
 
@@ -184,8 +184,7 @@ function isProductionRuntime(): boolean {
     );
   } catch {
     return (
-      process.env.NODE_ENV === "production" ||
-      process.env.ISABELLA_RUNTIME_MODE === "production"
+      process.env.NODE_ENV === "production" || process.env.ISABELLA_RUNTIME_MODE === "production"
     );
   }
 }
@@ -429,6 +428,14 @@ export class SovereignDB {
     // Dynamic hash calculation (SHA-256 with real cryptographic integrity)
     const blockContent = `${index}-${timestamp}-${tenantId}-${userId}-${operation}-${category}-${costDecimal}-${tokens}-${prevHash}`;
     const blockHash = this.sha256(blockContent);
+    const signingKey = config().BOOKPI_SIGNING_KEY;
+    const isProduction = isProductionRuntime();
+    if (isProduction && !signingKey) {
+      throw new Error("BookPI requiere BOOKPI_SIGNING_KEY en producción.");
+    }
+    const pqcSignature = signingKey
+      ? crypto.sign("sha384", Buffer.from(blockContent), signingKey).toString("base64url")
+      : null;
 
     const newBlock: BookPILedgerBlock = {
       index,
@@ -441,8 +448,8 @@ export class SovereignDB {
       tokensConsumed: tokens,
       previousHash: prevHash,
       blockHash,
-      pqcSignature: null,
-      signatureAlgorithm: "NOT_IMPLEMENTED",
+      pqcSignature,
+      signatureAlgorithm: signingKey ? "ECDSA-P384" : "UNSIGNED_DEV",
       status: "settled",
     };
 
@@ -487,6 +494,14 @@ export class SovereignDB {
 
     const blockData = `${newIndex}-${timestamp}-${tenantId}-${block.userId}-REFUND_EVENT: Reembolso de transacción index ${index}-REFUND_EVENT-${costDecimal}-0-${prevHash}`;
     const blockHash = this.sha256(blockData);
+    const signingKey = config().BOOKPI_SIGNING_KEY;
+    const isProduction = isProductionRuntime();
+    if (isProduction && !signingKey) {
+      return { success: false, error: "BookPI requiere BOOKPI_SIGNING_KEY en producción." };
+    }
+    const pqcSignature = signingKey
+      ? crypto.sign("sha384", Buffer.from(blockData), signingKey).toString("base64url")
+      : null;
 
     const refundBlock: BookPILedgerBlock = {
       index: newIndex,
@@ -499,8 +514,8 @@ export class SovereignDB {
       tokensConsumed: 0,
       previousHash: prevHash,
       blockHash,
-      pqcSignature: null,
-      signatureAlgorithm: "SHA-256",
+      pqcSignature,
+      signatureAlgorithm: signingKey ? "ECDSA-P384" : "UNSIGNED_DEV",
       status: "settled",
     };
 
@@ -601,11 +616,37 @@ export class SovereignDB {
         };
       }
 
-      // 4. Validate Post-Quantum Cryptographic signature status
-      if (block.pqcSignature !== null || block.signatureAlgorithm !== "NOT_IMPLEMENTED") {
+      // 4. Validate signing policy. Production never accepts unsigned BookPI blocks.
+      if (block.signatureAlgorithm === "UNSIGNED_DEV" || block.pqcSignature === null) {
+        if (isProductionRuntime()) {
+          return {
+            success: false,
+            error: `Bloque ${i} sin firma BookPI válida en modo productivo.`,
+            corruptedIndex: i,
+          };
+        }
+        continue;
+      }
+
+      if (block.signatureAlgorithm !== "ECDSA-P384" || !config().BOOKPI_SIGNING_KEY) {
         return {
           success: false,
-          error: `Firma digital Post-Cuántica inconsistente en bloque ${i}. Algoritmo debe ser NOT_IMPLEMENTED.`,
+          error: `Algoritmo o clave BookPI inválidos en bloque ${i}.`,
+          corruptedIndex: i,
+        };
+      }
+
+      if (
+        !crypto.verify(
+          "sha384",
+          Buffer.from(blockContent),
+          config().BOOKPI_SIGNING_KEY,
+          Buffer.from(block.pqcSignature, "base64url"),
+        )
+      ) {
+        return {
+          success: false,
+          error: `Firma BookPI inválida en bloque ${i}.`,
           corruptedIndex: i,
         };
       }

@@ -381,7 +381,7 @@ export function useIsabella() {
 
   const exportCsv = useCallback(() => exportTelemetryCsv(telemetry, runId), [telemetry, runId]);
   const exportPdf = useCallback(
-    () => exportTelemetryPdf(telemetry, runId, preset.name),
+    () => void exportTelemetryPdf(telemetry, runId, preset.name),
     [telemetry, runId, preset.name],
   );
 

@@ -49,8 +49,10 @@ const INTRO_SEEN_KEY = "isabella.entry.intro.v1";
 
 function Index() {
   const [introDone, setIntroDone] = useState(false);
+  const [clientReady, setClientReady] = useState(false);
 
   useEffect(() => {
+    setClientReady(true);
     try {
       setIntroDone(window.sessionStorage.getItem(INTRO_SEEN_KEY) === "1");
     } catch {
@@ -66,6 +68,19 @@ function Index() {
     }
     setIntroDone(true);
   }, []);
+
+  if (!clientReady) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background text-foreground">
+        <div className="text-center" role="status" aria-live="polite">
+          <div className="mx-auto mb-4 size-10 animate-pulse rounded-full border border-electric/40 bg-electric/10" />
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+            Sincronizando núcleo C.R.O.W.N.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   if (!introDone) return <CinematicIntro onComplete={handleIntroComplete} />;
   return <IsabellaInterface />;
@@ -132,7 +147,7 @@ function IsabellaInterface() {
               {/* Outer logo glowing ring */}
               <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-electric via-iris to-pearl opacity-40 blur-md group-hover:opacity-75 transition-all duration-500" />
               <img
-                src="/assets/logo-isabella.jpeg"
+                src="/favicon.png"
                 alt="Isabella Logo"
                 className={`relative rounded-xl border border-border/40 object-cover transition-all duration-300 ${
                   isSidebarOpen ? "size-18" : "size-10"
