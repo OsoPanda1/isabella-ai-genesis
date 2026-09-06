@@ -1,12 +1,9 @@
-# Configuración canónica de pnpm 10.15.0. Los paquetes que ejecutan scripts
-# de instalación se revisan explícitamente; agregar uno nuevo requiere revisar
-# su cadena de suministro y actualizar esta lista.
 onlyBuiltDependencies:
-  "@firebase/util": true
-  "@prisma/client": true
-  "@prisma/engines": true
-  braintrust: true
-  core-js: true
-  esbuild: true
-  prisma: true
-  protobufjs: true
+  - "@firebase/util"
+  - "@prisma/client"
+  - "@prisma/engines"
+  - "braintrust"
+  - "core-js"
+  - "esbuild"
+  - "prisma"
+  - "protobufjs"

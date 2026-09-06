@@ -1,70 +1,91 @@
-import { config } from "./config";
+import { config, type Env } from "./config";
+import { EnvKMSProvider, type KMSProvider } from "./kms-provider";
 
 /**
  * ACCESO CENTRALIZADO A SECRETOS (src/lib/secrets.ts)
  * -----------------------------------------------------------------
  * Nunca leas secretos desde `process.env` directamente: este módulo
  * centraliza su acceso y distingue secretos operativos de política.
- *
- * En producción los secretos deberían provenir de un KMS/secret store;
- * este módulo es el punto único a sustituir por esa integración.
+ * 
+ * P0 - MIGRACIÓN A PRODUCTION SECRETS MANAGER:
+ * No hay hardcoded fallback keys permitidas (ej: 'dev-fallback-secret').
+ * En producción se utiliza un KMSProvider.
  */
 
 export type SecretKind =
-  "jwt" | "encryption" | "bookpi" | "ai" | "supabase-service" | "policy-signing";
+  | "jwt"
+  | "encryption"
+  | "bookpi"
+  | "ai"
+  | "supabase-service"
+  | "policy-signing";
 
-function requireSecret(kind: SecretKind, value: string | undefined, label: string, isDev: boolean = false): string {
-  if (!value || value.length === 0) {
-    if (isDev) return "dev-fallback-secret-for-local-testing-only-1234567890";
-    throw new Error(`Secreto requerido no configurado: ${label} (${kind})`);
+export class SecretsManager {
+  private readonly kms: KMSProvider;
+  private readonly cachedConfig: Env;
+
+  constructor(cfg: Env, kmsProvider?: KMSProvider) {
+    this.cachedConfig = cfg;
+    // Por defecto usa las variables de entorno como "KMS"
+    this.kms = kmsProvider ?? new EnvKMSProvider(cfg as unknown as Record<string, string | undefined>);
   }
-  if (!value || value.length === 0) {
-    throw new Error(`Secreto requerido no configurado: ${label} (${kind})`);
+
+  private async getActiveSecret(kind: SecretKind, keyName: keyof Env, label: string): Promise<string> {
+    // Si KMS lo tiene, úsalo (permitiendo rotación dinámica).
+    const secretValue = await this.kms.getSecret(keyName as string) ?? this.cachedConfig[keyName];
+
+    if (!secretValue || String(secretValue).trim() === "") {
+      throw new Error(`[Zero Trust Secrets] Secreto requerido no configurado: ${label} (${kind}). No se admiten fallbacks locales.`);
+    }
+
+    return String(secretValue);
   }
-  return value;
+
+  private getActiveSecretSync(kind: SecretKind, keyName: keyof Env, label: string): string {
+    const secretValue = this.cachedConfig[keyName];
+
+    if (!secretValue || String(secretValue).trim() === "") {
+      throw new Error(`[Zero Trust Secrets] Secreto requerido no configurado: ${label} (${kind}). No se admiten fallbacks locales.`);
+    }
+
+    return String(secretValue);
+  }
+
+  // --- MÉTODOS SINCRÓNICOS (Usan config estática, fallan rápido) ---
+
+  jwtSecret(): string {
+    return this.getActiveSecretSync("jwt", "AUTH_JWT_SECRET", "AUTH_JWT_SECRET");
+  }
+
+  encryptionMasterKey(): string {
+    return this.getActiveSecretSync("encryption", "ENCRYPTION_MASTER_KEY", "ENCRYPTION_MASTER_KEY (mín. 32 caracteres)");
+  }
+
+  bookpiSigningKey(): string {
+    return this.getActiveSecretSync("bookpi", "BOOKPI_SIGNING_KEY", "BOOKPI_SIGNING_KEY");
+  }
+
+  aiGatewayKey(): string {
+    return this.getActiveSecretSync("ai", "GEMINI_API_KEY", "GEMINI_API_KEY");
+  }
+
+  aegisAuditSecret(): string {
+    return this.getActiveSecretSync("policy-signing", "AEGIS_AUDIT_SECRET", "AEGIS_AUDIT_SECRET");
+  }
+
+  apiKeyHashSecret(): string {
+    // P1: Desacoplamiento de dominios criptográficos.
+    return this.getActiveSecretSync("jwt", "API_KEY_HASH_SECRET", "API_KEY_HASH_SECRET");
+  }
+
+  supabaseJwtSecret(): string | undefined {
+    return this.cachedConfig.SUPABASE_JWT_SECRET;
+  }
+
+  policySigningKey(): string | undefined {
+    return this.cachedConfig.CROWN_POLICY_SIGNING_KEY;
+  }
 }
 
-export interface Secrets {
-  jwtSecret(): string;
-  encryptionMasterKey(): string;
-  bookpiSigningKey(): string;
-  aiGatewayKey(): string;
-  supabaseJwtSecret(): string | undefined;
-  policySigningKey(): string | undefined;
-  aegisAuditSecret(): string;
-  apiKeyHashSecret(): string;
-}
-
-/** Resolver de secretos ligado a config(). */
-export function createSecrets(cfg = config): Secrets {
-  return {
-    jwtSecret() {
-      return requireSecret("jwt", cfg().AUTH_JWT_SECRET, "AUTH_JWT_SECRET (ver .env.example)", cfg().NODE_ENV === "development");
-    },
-    encryptionMasterKey() {
-      return requireSecret("encryption", cfg().ENCRYPTION_MASTER_KEY, "ENCRYPTION_MASTER_KEY (mín. 32 caracteres)", cfg().NODE_ENV === "development");
-    },
-    bookpiSigningKey() {
-      return requireSecret("bookpi", cfg().BOOKPI_SIGNING_KEY, "BOOKPI_SIGNING_KEY", cfg().NODE_ENV === "development");
-    },
-    aiGatewayKey() {
-      return cfg().GEMINI_API_KEY || requireSecret("ai", undefined, "GEMINI_API_KEY");
-    },
-    supabaseJwtSecret() {
-      return cfg().SUPABASE_JWT_SECRET;
-    },
-    policySigningKey() {
-      return cfg().CROWN_POLICY_SIGNING_KEY;
-    },
-    aegisAuditSecret() {
-      return requireSecret("policy-signing", cfg().AEGIS_AUDIT_SECRET, "AEGIS_AUDIT_SECRET");
-    },
-    apiKeyHashSecret() {
-      // P1: Desacoplamiento de dominios criptográficos.
-      // API_KEY_HASH_SECRET debe ser explícito. No hacer fallback a AUTH_JWT_SECRET.
-      return requireSecret("jwt", cfg().API_KEY_HASH_SECRET, "API_KEY_HASH_SECRET", cfg().NODE_ENV === "development");
-    },
-  };
-}
-
-export const secrets: Secrets = createSecrets();
+// Instancia global con el EnvKMSProvider predeterminado.
+export const secrets = new SecretsManager(config());

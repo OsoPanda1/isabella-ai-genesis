@@ -33,7 +33,7 @@ A continuación, los 15 tickets secuenciales que rigen el pase a producción:
 
 ### Fase 1: Estabilización y Criptografía
 - [x] **P0 — Fijar package manager + lockfile reproducible:** pnpm y node en versiones estrictas de producción, eliminando builds inestables (ej. nitro beta).
-- [ ] **P0 — Eliminar Nitro beta / fijar runtime:** Garantizar entorno de ejecución de Edge/Node determinista.
+- [x] **P0 — Eliminar Nitro beta / fijar runtime:** Garantizar entorno de ejecución de Edge/Node determinista.
 - [ ] **P0 — Production Secrets Manager + rotation:** Configurar KMS/Vault, eliminar hardcoded fallback keys, habilitar rotación (CROWN, AEGIS, BookPI, Stripe, Gemini).
 - [ ] **P0 — Completar OIDC/JWKS + MFA + session revocation:** Revocación en caliente, rotación de sesiones y MFA resistente a phishing (Zero Trust Auth).
 

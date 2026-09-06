@@ -626,7 +626,6 @@
     //   - false es necesario para compatibilidad con bundlers
     // ════════════════════════════════════════════════════════════════════════
     
-    "verbatimModuleSyntax": false,
 
     // ════════════════════════════════════════════════════════════════════════
     // ALLOW ARBITRARY MODULE EXTENSIONS (allowArbitraryExtensions)
