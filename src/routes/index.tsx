@@ -100,6 +100,18 @@ function Index() {
             >
               Reabrir
             </button>
+            <button
+              onClick={isabella.exportCsv}
+              className="hidden rounded-lg border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-platinum md:inline-block"
+            >
+              CSV
+            </button>
+            <button
+              onClick={isabella.exportPdf}
+              className="hidden rounded-lg border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-platinum md:inline-block"
+            >
+              PDF
+            </button>
             <span
               className={`size-2 rounded-full bg-electric ${isabella.isProcessing ? "animate-breathe" : ""}`}
             />
