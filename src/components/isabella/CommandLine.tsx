@@ -95,19 +95,16 @@ export function CommandLine({
           setNotice("La grabación excede 8 MB.");
           return;
         }
-        setAttachments((prev) =>
-          [
-            ...prev,
-            {
-              id: uid(),
-              kind: "audio" as const,
-              dataUrl: await fileToDataUrl(blob),
-              mime: recorder.mimeType || "audio/webm",
-              name: `nota-de-voz-${new Date().toISOString().slice(11, 19)}`,
-              size: blob.size,
-            },
-          ].slice(0, 6),
-        );
+        const dataUrl = await fileToDataUrl(blob);
+        const item: Attachment = {
+          id: uid(),
+          kind: "audio",
+          dataUrl,
+          mime: recorder.mimeType || "audio/webm",
+          name: `nota-de-voz-${new Date().toISOString().slice(11, 19)}`,
+          size: blob.size,
+        };
+        setAttachments((prev) => [...prev, item].slice(0, 6));
       };
       recorder.start();
       recorderRef.current = recorder;
