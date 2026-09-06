@@ -254,7 +254,10 @@ export const Route = createFileRoute("/api/billing")({
 
               const stripe = getStripe();
               if (!stripe) {
-                return new Response(JSON.stringify({ error: "Stripe no configurado en el servidor." }), { status: 500, headers });
+                return new Response(
+                  JSON.stringify({ error: "Stripe no configurado en el servidor." }),
+                  { status: 500, headers },
+                );
               }
               const sessionId = `sess_${nodeCrypto.randomUUID().slice(0, 12)}`;
               let checkoutUrl = "";
@@ -293,7 +296,10 @@ export const Route = createFileRoute("/api/billing")({
               }
 
               if (!checkoutUrl) {
-                return new Response(JSON.stringify({ error: "Fallo al crear sesión de checkout." }), { status: 500, headers });
+                return new Response(
+                  JSON.stringify({ error: "Fallo al crear sesión de checkout." }),
+                  { status: 500, headers },
+                );
               }
 
               SovereignDB.appendAuditLog(
@@ -310,7 +316,6 @@ export const Route = createFileRoute("/api/billing")({
                   success: true,
                   sessionId,
                   checkoutUrl,
-                  
                 }),
                 { headers },
               );
@@ -321,18 +326,22 @@ export const Route = createFileRoute("/api/billing")({
           if (action === "webhook") {
             const stripe = getStripe();
             const signature = request.headers.get("stripe-signature");
-            
+
             if (!stripe || !signature) {
-              return new Response(JSON.stringify({ error: "Webhook requires Stripe configuration and signature." }), {
+              return new Response(
+                JSON.stringify({ error: "Webhook requires Stripe configuration and signature." }),
+                {
                   status: 400,
                   headers,
-              });
+                },
+              );
             }
 
             let eventType;
             let metadata: Record<string, string> = {};
             let clientReferenceId = "";
             let eventId = "";
+            let disputeAmountMinor = 0;
 
             try {
               const endpointSecret = config().STRIPE_WEBHOOK_SECRET || "";
@@ -342,13 +351,12 @@ export const Route = createFileRoute("/api/billing")({
                 endpointSecret,
               );
               eventType = verifiedEvent.type;
-              const sessionObject = verifiedEvent.data.object as unknown as Record<
-                string,
-                unknown
-              >;
+              const sessionObject = verifiedEvent.data.object as unknown as Record<string, unknown>;
               metadata = (sessionObject.metadata as Record<string, string>) || {};
               clientReferenceId = (sessionObject.client_reference_id as string) || "";
               eventId = verifiedEvent.id;
+              disputeAmountMinor =
+                typeof sessionObject.amount === "number" ? sessionObject.amount : 0;
             } catch (verificationError: unknown) {
               const errorMsg =
                 verificationError instanceof Error
@@ -368,7 +376,7 @@ export const Route = createFileRoute("/api/billing")({
             ) {
               const planId = metadata?.planId;
               const targetTenantId = metadata?.tenantId;
-              const targetUserId = clientReferenceId; 
+              const targetUserId = clientReferenceId;
 
               if (!planId || !targetTenantId || !targetUserId) {
                 return new Response(JSON.stringify({ error: "Webhook metadata incompleta." }), {
@@ -430,6 +438,83 @@ export const Route = createFileRoute("/api/billing")({
               }
             }
 
+            // Disputas/chargebacks: NUNCA se descartan. Idempotencia por
+            // claimWebhookEvent + evento económico CHARGEBACK + auditoría.
+            // Congelan payouts del tenant hasta revisión humana (fraud-review).
+            if (
+              eventType === "charge.dispute.created" ||
+              eventType === "charge.dispute.funds_withdrawn"
+            ) {
+              const disputeTenant = metadata?.tenantId || "unresolved-dispute";
+              const disputeUser = clientReferenceId || "system";
+              const amountMinor = disputeAmountMinor;
+
+              const { claimWebhookEvent, recordEconomicEvent } =
+                await import("@/lib/economic-events");
+              const claim = await claimWebhookEvent({
+                provider: "stripe",
+                providerEventId: eventId,
+                eventType,
+              });
+              if (claim.status === "duplicate") {
+                return new Response(
+                  JSON.stringify({ success: true, processed: true, duplicate: true }),
+                  { headers },
+                );
+              }
+
+              if (disputeTenant !== "unresolved-dispute") {
+                void recordEconomicEvent({
+                  tenantId: disputeTenant,
+                  actorId: disputeUser,
+                  eventType: "CHARGEBACK_HOLD",
+                  amountMinor,
+                  direction: "DEBIT",
+                  source: "stripe",
+                  provider: "stripe",
+                  providerEventId: eventId,
+                  idempotencyKey: `chargeback:${eventId}`,
+                  metadata: { dispute: true },
+                }).catch((error) =>
+                  console.error("[billing:dispute] recordEconomicEvent failed:", error),
+                );
+              }
+
+              SovereignDB.appendAuditLog(
+                `trc_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                `corr_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                "127.0.0.1",
+                "Disputa de Pago Recibida",
+                "S1",
+                `Disputa ${eventId} por $${(amountMinor / 100).toFixed(2)} (tenant: ${disputeTenant}). Payouts congelados hasta revisión humana.`,
+              );
+
+              return new Response(
+                JSON.stringify({
+                  success: true,
+                  processed: true,
+                  dispute: true,
+                  tenantResolved: disputeTenant !== "unresolved-dispute",
+                }),
+                { headers },
+              );
+            }
+
+            if (eventType === "charge.dispute.closed") {
+              SovereignDB.appendAuditLog(
+                `trc_dispute_closed_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                `corr_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                "127.0.0.1",
+                "Disputa de Pago Cerrada",
+                "S3",
+                `Disputa ${eventId} cerrada (tenant: ${metadata?.tenantId || "unresolved-dispute"}). Revisar estado won/lost en Stripe Dashboard.`,
+              );
+              return new Response(
+                JSON.stringify({ success: true, processed: true, disputeClosed: true }),
+                { headers },
+              );
+            }
+
             return new Response(JSON.stringify({ success: true, processed: true }), { headers });
           }
 
@@ -475,7 +560,8 @@ export const Route = createFileRoute("/api/billing")({
               }
 
               // P6: Use PostgreSQL canonical ledger instead of JSON
-              const { createBookpiPostgresRepository } = await import("@/lib/repositories/bookpi-postgres-repository");
+              const { createBookpiPostgresRepository } =
+                await import("@/lib/repositories/bookpi-postgres-repository");
               const bookpiRepo = createBookpiPostgresRepository();
               const blockResult = await bookpiRepo.append({
                 tenantId: context.tenantId,
@@ -483,7 +569,7 @@ export const Route = createFileRoute("/api/billing")({
                 operation: opText,
                 category: "processing",
                 cost: costUSD,
-                tokens: parsed.data.shots
+                tokens: parsed.data.shots,
               });
 
               if (!blockResult.success) {
@@ -500,11 +586,14 @@ export const Route = createFileRoute("/api/billing")({
               if (freshTenant) {
                 if (freshTenant.quotaBalance < costUSD) {
                   return new Response(
-                    JSON.stringify({ error: "Saldo insuficiente para consumir recursos dedicados." }),
+                    JSON.stringify({
+                      error: "Saldo insuficiente para consumir recursos dedicados.",
+                    }),
                     { status: 402, headers },
                   );
                 }
-                freshTenant.quotaBalance = Math.round((freshTenant.quotaBalance - costUSD) * 1e9) / 1e9;
+                freshTenant.quotaBalance =
+                  Math.round((freshTenant.quotaBalance - costUSD) * 1e9) / 1e9;
                 SovereignDB.upsertTenant(freshTenant);
               }
 
@@ -575,10 +664,10 @@ export const Route = createFileRoute("/api/billing")({
                 );
               } catch (err) {
                 console.error("[billing:topup] PaymentIntent inválido:", err);
-                return new Response(
-                  JSON.stringify({ error: "PaymentIntent inválido." }),
-                  { status: 422, headers },
-                );
+                return new Response(JSON.stringify({ error: "PaymentIntent inválido." }), {
+                  status: 422,
+                  headers,
+                });
               }
               if (paymentIntent.status !== "succeeded") {
                 return new Response(
@@ -727,10 +816,15 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              const { createBookpiPostgresRepository } = await import("@/lib/repositories/bookpi-postgres-repository");
+              const { createBookpiPostgresRepository } =
+                await import("@/lib/repositories/bookpi-postgres-repository");
               const bookpiRepo = createBookpiPostgresRepository();
-              
-              const result = await bookpiRepo.refund(String(parsed.data.ledgerIndex), { tenantId: context.tenantId, userId: context.userId }, "Reembolso de sistema");
+
+              const result = await bookpiRepo.refund(
+                String(parsed.data.ledgerIndex),
+                { tenantId: context.tenantId, userId: context.userId },
+                "Reembolso de sistema",
+              );
 
               if (result.success) {
                 SovereignDB.appendAuditLog(

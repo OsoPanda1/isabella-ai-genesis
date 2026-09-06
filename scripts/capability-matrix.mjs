@@ -20,7 +20,12 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CAPABILITIES = [
   {
     capability: "PDP authorization (RBAC+ABAC)",
-    sources: ["src/lib/authorization.ts", "src/lib/rbac.ts", "src/lib/permission-matrix.ts", "src/lib/abac.ts"],
+    sources: [
+      "src/lib/authorization.ts",
+      "src/lib/rbac.ts",
+      "src/lib/permission-matrix.ts",
+      "src/lib/abac.ts",
+    ],
     tests: ["test/unit/pdp-real.test.ts"],
     runtime: "Decisiones firmadas ECDSA P-384 con motivo deny-*; 11 tests verdes.",
     status: "real",
@@ -96,6 +101,14 @@ const CAPABILITIES = [
     status: "evidence-gated",
   },
   {
+    capability: "Fraud review + payout guard + disputes",
+    sources: ["src/lib/monetization/fraud-review.ts", "src/server-routes/api/billing.ts"],
+    tests: ["test/unit/fraud-review.test.ts"],
+    runtime:
+      "Scoring, hold/decide un solo uso, doble aprobación, congelamiento por disputa; 12 tests verdes.",
+    status: "real",
+  },
+  {
     capability: "Payment full-loop (payouts, chargebacks, fraud review)",
     sources: ["src/server-routes/api/billing.ts"],
     tests: [],
@@ -125,7 +138,9 @@ ${rows.join("\n")}
 `;
 
 writeFileSync(resolve(root, "docs/operations/CAPABILITY_MATRIX.md"), `${markdown}`);
-console.log(`Capabilities: ${CAPABILITIES.length}, estados: ${CAPABILITIES.map((c) => c.status).join(",")}`);
+console.log(
+  `Capabilities: ${CAPABILITIES.length}, estados: ${CAPABILITIES.map((c) => c.status).join(",")}`,
+);
 
 const check = process.argv.includes("--check");
 if (check && missing.length > 0) {

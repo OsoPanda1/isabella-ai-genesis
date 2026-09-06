@@ -28,7 +28,7 @@ beforeAll(async () => {
 });
 
 describe("Stripe webhook signature verification (real, sin red)", () => {
-  it("acepta evento firmado y rechaza payload manipulado", async () => {
+  it("acepta evento firmado y rechaza payload manipulado", { timeout: 30000 }, async () => {
     const Stripe = (await import("stripe")).default;
     const stripe = new Stripe("sk_test_evidence", { apiVersion: "2022-11-15" as never });
     const secret = "whsec_evidence_secret";

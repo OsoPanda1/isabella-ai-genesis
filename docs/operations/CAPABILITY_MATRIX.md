@@ -17,4 +17,5 @@
 | Production authority (6 autoridades) | `src/lib/production-authority.ts` | `test/unit/inference-authority.test.ts` | Abort en prod incompleta; ok con env completo; 3 tests verdes. | real |
 | Stripe webhook signature | `src/server-routes/api/billing.ts` | `test/bookpi/financial-evidence.test.ts` | constructEvent real acepta/rechaza; sin red; 1 test verde. | real |
 | Financial concurrency (idempotencia, reconciliación, refund único) | `src/lib/economic-events.ts`<br>`src/lib/repositories/bookpi-postgres-repository.ts` | `test/bookpi/financial-evidence.test.ts` | Gateados por DB: se omiten sin TEST_DATABASE_URL; corren en staging/CI con PG. | evidence-gated |
+| Fraud review + payout guard + disputes | `src/lib/monetization/fraud-review.ts`<br>`src/server-routes/api/billing.ts` | `test/unit/fraud-review.test.ts` | Scoring, hold/decide un solo uso, doble aprobación, congelamiento por disputa; 12 tests verdes. | real |
 | Payment full-loop (payouts, chargebacks, fraud review) | `src/server-routes/api/billing.ts` | — | Sin evidencia automatizada: conteos pendientes, sin payouts automáticos. | manual |
