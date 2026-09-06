@@ -2,6 +2,53 @@ import { useEffect, useRef, useState } from "react";
 import { MODULES } from "@/lib/crown-ui";
 import { speakIsabella, stopVoice } from "@/lib/voice";
 import type { TerminalMessage } from "@/lib/useIsabella";
+import thinkingAsset from "@/assets/isabella-thinking.jpeg.asset.json";
+import smileAsset from "@/assets/isabella-smile.jpeg.asset.json";
+import worriedAsset from "@/assets/isabella-worried.jpeg.asset.json";
+import crownAsset from "@/assets/isabella-crown.png.asset.json";
+
+/** Miniatura de identidad de Isabella junto al indicador de actividad. */
+function IsabellaAvatar({
+  state,
+  color,
+}: {
+  state: "thinking" | "ready" | "error";
+  color: string;
+}) {
+  const src =
+    state === "thinking"
+      ? thinkingAsset.url
+      : state === "error"
+        ? worriedAsset.url
+        : smileAsset.url;
+  return (
+    <span
+      className="relative inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border"
+      style={{ borderColor: color, boxShadow: `0 0 22px -8px ${color}` }}
+    >
+      <img
+        src={src}
+        alt="Isabella Villaseñor"
+        className={`size-full object-cover ${state === "thinking" ? "animate-breathe" : ""}`}
+      />
+    </span>
+  );
+}
+
+function TypingDots({ color }: { color: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5" role="status" aria-label="Isabella está generando una respuesta">
+      <img src={crownAsset.url} alt="" aria-hidden className="size-4 animate-breathe rounded-sm object-contain" />
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="size-1.5 animate-breathe rounded-full"
+          style={{ background: color, animationDelay: `${i * 0.18}s` }}
+        />
+      ))}
+    </span>
+  );
+}
 
 function VoiceButton({ text }: { text: string }) {
   const [state, setState] = useState<"idle" | "playing" | "error">("idle");
