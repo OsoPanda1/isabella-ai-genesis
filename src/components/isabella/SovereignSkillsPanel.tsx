@@ -167,6 +167,13 @@ export function SovereignSkillsPanel() {
           locale: "es",
           federation: "CIVILIZATIONAL_ARCHIVE",
           intent: "Ejecutar skill desde panel interactivo",
+          // Consola interactiva sin sesión: identidad Guest explícita y no
+          // autenticada. El PDP evalúa de verdad (Guest carece de tool:execute)
+          // y el panel muestra la denegación firmada en lugar de inventar éxito.
+          actorId: "ui_interactive_console",
+          tenantId: "tenant_public_console",
+          role: "Guest",
+          authenticated: false,
         });
         setRunResult(result);
       } catch (err: unknown) {

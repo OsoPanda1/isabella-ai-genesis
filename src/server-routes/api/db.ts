@@ -271,9 +271,9 @@ export const Route = createFileRoute("/api/db")({
               new Headers({ "content-type": "application/json" }),
             );
             const { prisma } = await import("@/lib/db");
-            
+
             let account = await prisma.monetizationAccount.findUnique({
-              where: { userId: context.userId }
+              where: { userId: context.userId },
             });
             if (!account) {
               account = {
@@ -282,20 +282,20 @@ export const Route = createFileRoute("/api/db")({
                 qualifiedUses: 0,
                 approvedContributions: 0,
                 trainingCompleted: false, // P8: NO synthetic data
-                identityVerified: false,  // P8: NO synthetic data
+                identityVerified: false, // P8: NO synthetic data
                 paymentAccountVerified: false, // P8: NO synthetic data
                 profileComplete: false,
                 sanctioned: false,
-                underFraudReview: false
+                underFraudReview: false,
               };
             }
             const { evaluateEligibility } = await import("@/lib/monetization/eligibility");
             const eligibility = evaluateEligibility({
               subscriptionActive: (() => {
-                      const dbInst = SovereignDB.load();
-                      const tenant = dbInst.tenants.find(t => t.id === (context.tenantId || ""));
-                      return tenant ? (tenant.tier === "Sovereign" || tenant.tier === "Enterprise") : false;
-                    })(), // TODO: Replace with real SovereignDB/Prisma check when merged
+                const dbInst = SovereignDB.load();
+                const tenant = dbInst.tenants.find((t) => t.id === (context.tenantId || ""));
+                return tenant ? tenant.tier === "Sovereign" || tenant.tier === "Enterprise" : false;
+              })(), // TODO: Replace with real SovereignDB/Prisma check when merged
               identityVerified: account.identityVerified,
               paymentAccountVerified: account.paymentAccountVerified,
               profileComplete: account.profileComplete,
@@ -734,7 +734,8 @@ export const Route = createFileRoute("/api/db")({
             }
 
             const contentLength = parseInt(request.headers.get("content-length") || "0", 10);
-            if (contentLength > 512 * 1024) { // 512KB limit for provision owner
+            if (contentLength > 512 * 1024) {
+              // 512KB limit for provision owner
               return new Response(JSON.stringify({ error: "Payload too large." }), {
                 status: 413,
                 headers,
@@ -896,7 +897,11 @@ export const Route = createFileRoute("/api/db")({
               }
 
               const bookpi = createBookpiPostgresRepository();
-              const res = await bookpi.refund(String(index), { tenantId: context.tenantId, userId: context.userId }, "Refund requested");
+              const res = await bookpi.refund(
+                String(index),
+                { tenantId: context.tenantId, userId: context.userId },
+                "Refund requested",
+              );
               if (!res.success) {
                 return new Response(JSON.stringify({ error: res.error }), { status: 400, headers });
               }
@@ -1099,23 +1104,24 @@ export const Route = createFileRoute("/api/db")({
                   });
               }
 
-              
-              let account = await prisma.monetizationAccount.findUnique({ where: { userId: context.userId } });
+              let account = await prisma.monetizationAccount.findUnique({
+                where: { userId: context.userId },
+              });
               if (!account) {
-                 account = await prisma.monetizationAccount.create({ data: { userId: context.userId,  } });
+                account = await prisma.monetizationAccount.create({
+                  data: { userId: context.userId },
+                });
               }
               const updated = await prisma.monetizationAccount.update({
-                  where: { userId: context.userId },
-                  data: {
-                    
-                earnedBalanceCents: account.earnedBalanceCents + centsToAdd,
-                qualifiedUses: account.qualifiedUses + 1,
-                approvedContributions:
-                  task === "skill"
-                    ? account.approvedContributions + 1
-                    : account.approvedContributions,
-              
-                  }
+                where: { userId: context.userId },
+                data: {
+                  earnedBalanceCents: account.earnedBalanceCents + centsToAdd,
+                  qualifiedUses: account.qualifiedUses + 1,
+                  approvedContributions:
+                    task === "skill"
+                      ? account.approvedContributions + 1
+                      : account.approvedContributions,
+                },
               });
 
               // Append block to ledger BookPI
@@ -1126,8 +1132,8 @@ export const Route = createFileRoute("/api/db")({
                 operation: `MONETIZATION_CREDIT: ${description} (+$${(centsToAdd / 100).toFixed(2)} USD)`,
                 category: "other" as any,
                 cost: 0,
-                tokens: // no deduction for credits earned
-                0,
+                // no deduction for credits earned
+                tokens: 0,
               });
               const block = blockRes.success ? blockRes.block : { index: -1 };
 
@@ -1161,17 +1167,15 @@ export const Route = createFileRoute("/api/db")({
               };
 
               const updated = await prisma.monetizationAccount.update({
-                  where: { userId: context.userId },
-                  data: {
-                    
-                identityVerified: identityVerified !== undefined ? identityVerified : true,
-                paymentAccountVerified:
-                  paymentAccountVerified !== undefined ? paymentAccountVerified : true,
-                trainingCompleted: trainingCompleted !== undefined ? trainingCompleted : true,
-                profileComplete: profileComplete !== undefined ? profileComplete : true,
-                underFraudReview: underFraudReview !== undefined ? underFraudReview : false,
-              
-                  }
+                where: { userId: context.userId },
+                data: {
+                  identityVerified: identityVerified !== undefined ? identityVerified : true,
+                  paymentAccountVerified:
+                    paymentAccountVerified !== undefined ? paymentAccountVerified : true,
+                  trainingCompleted: trainingCompleted !== undefined ? trainingCompleted : true,
+                  profileComplete: profileComplete !== undefined ? profileComplete : true,
+                  underFraudReview: underFraudReview !== undefined ? underFraudReview : false,
+                },
               });
 
               SovereignDB.appendAuditLog(
@@ -1194,13 +1198,18 @@ export const Route = createFileRoute("/api/db")({
               const { WithdrawalService } = await import("@/lib/monetization/withdrawal");
               const deps = {
                 getEligibility: async (uid: string) => {
-                  const acc = await prisma.monetizationAccount.findUnique({ where: { userId: uid } }); if (!acc) throw new Error("No account");
+                  const acc = await prisma.monetizationAccount.findUnique({
+                    where: { userId: uid },
+                  });
+                  if (!acc) throw new Error("No account");
                   const { evaluateEligibility } = await import("@/lib/monetization/eligibility");
                   return evaluateEligibility({
                     subscriptionActive: (() => {
                       const dbInst = SovereignDB.load();
-                      const tenant = dbInst.tenants.find(t => t.id === (context.tenantId || ""));
-                      return tenant ? (tenant.tier === "Sovereign" || tenant.tier === "Enterprise") : false;
+                      const tenant = dbInst.tenants.find((t) => t.id === (context.tenantId || ""));
+                      return tenant
+                        ? tenant.tier === "Sovereign" || tenant.tier === "Enterprise"
+                        : false;
                     })(),
                     identityVerified: acc.identityVerified,
                     paymentAccountVerified: acc.paymentAccountVerified,
@@ -1217,7 +1226,10 @@ export const Route = createFileRoute("/api/db")({
                   });
                 },
                 runRiskReview: async (uid: string) => {
-                  const acc = await prisma.monetizationAccount.findUnique({ where: { userId: uid } }); if (!acc) throw new Error("No account");
+                  const acc = await prisma.monetizationAccount.findUnique({
+                    where: { userId: uid },
+                  });
+                  if (!acc) throw new Error("No account");
                   if (acc.underFraudReview) {
                     return {
                       reviewId: `rev_${nodeCrypto.randomUUID().slice(0, 8)}`,
@@ -1254,13 +1266,13 @@ export const Route = createFileRoute("/api/db")({
                   const cost = entry.amountCents ? entry.amountCents / 100 : 0;
                   const bookpi = createBookpiPostgresRepository();
                   await bookpi.append({
-                tenantId: context.tenantId,
-                userId: entry.userId,
-                operation: `MONETIZATION_EVENT: ${entry.type} (payoutId:${entry.payoutId || "N/A"}) (risk:${entry.riskScore || 0}) (idempotencyKey:${entry.idempotencyKey || "N/A"})`,
-                category: "other" as any,
-                cost: cost,
-                tokens: 0,
-              });
+                    tenantId: context.tenantId,
+                    userId: entry.userId,
+                    operation: `MONETIZATION_EVENT: ${entry.type} (payoutId:${entry.payoutId || "N/A"}) (risk:${entry.riskScore || 0}) (idempotencyKey:${entry.idempotencyKey || "N/A"})`,
+                    category: "other" as any,
+                    cost: cost,
+                    tokens: 0,
+                  });
                 },
                 checkLiquidityPool: async () => true,
                 createPayout: async () => {
@@ -1272,20 +1284,22 @@ export const Route = createFileRoute("/api/db")({
               };
 
               const service = new WithdrawalService(deps);
-              const result = await service.request(context.userId, "default-territory", { idempotencyKey });
+              const result = await service.request(context.userId, "default-territory", {
+                idempotencyKey,
+              });
 
               if (result.ok) {
                 // Reset earned balance to 0 on success
-                const currentAccount = await prisma.monetizationAccount.findUnique({ where: { userId: context.userId } }); if (!currentAccount) throw new Error("No account");
+                const currentAccount = await prisma.monetizationAccount.findUnique({
+                  where: { userId: context.userId },
+                });
+                if (!currentAccount) throw new Error("No account");
                 const updated = await prisma.monetizationAccount.update({
                   where: { userId: context.userId },
                   data: {
-                    
-                  earnedBalanceCents: 0,
-                  
-                
-                  }
-              });
+                    earnedBalanceCents: 0,
+                  },
+                });
 
                 SovereignDB.appendAuditLog(
                   `trc_mon_with_${result.payoutId || "N/A"}`,
@@ -1360,6 +1374,7 @@ export const Route = createFileRoute("/api/db")({
               const result = await QupOrchestrator.executeExperiment(
                 context.tenantId,
                 context.userId,
+                context.role,
                 context.traceId,
                 val.data,
               );

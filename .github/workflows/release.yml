@@ -55,7 +55,7 @@ jobs:
     needs: env-check
     strategy:
       matrix:
-        node-version: [20.x, 22.x]
+        node-version: [22.x]
     steps:
       - uses: actions/checkout@v4
 

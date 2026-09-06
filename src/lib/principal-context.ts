@@ -186,11 +186,9 @@ export class PrincipalContext {
             (cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true)
           );
         } catch {
-          return (
-            process.env.ALLOW_GUEST_CHAT === "true" ||
-            (process.env.NODE_ENV === "development" &&
-              process.env.AUTH_DEV_SESSION_ENABLED === "true")
-          );
+          // Sin fallback a process.env (§12: config() es la única vía).
+          // Si la configuración no carga, no hay invitados: fail-closed.
+          return false;
         }
       })();
       const canGuest = isGuestAllowed && (!requiredScope || requiredScope === "isabella:chat");
@@ -230,10 +228,8 @@ export class PrincipalContext {
           const cfg = config() as unknown as Record<string, unknown>;
           return cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true;
         } catch {
-          return (
-            process.env.NODE_ENV === "development" &&
-            process.env.AUTH_DEV_SESSION_ENABLED === "true"
-          );
+          // Sin fallback a process.env (§12). Config inválida = sin bypass de desarrollo.
+          return false;
         }
       })();
       if (isDevFallback) {
@@ -279,7 +275,8 @@ export class PrincipalContext {
           const cfg = config() as unknown as Record<string, unknown>;
           return cfg.ALLOW_GUEST_CHAT === true;
         } catch {
-          return process.env.ALLOW_GUEST_CHAT === "true";
+          // Sin fallback a process.env (§12): fail-closed.
+          return false;
         }
       })();
       if (isGuestAllowed && (!requiredScope || requiredScope === "isabella:chat")) {
@@ -318,10 +315,8 @@ export class PrincipalContext {
           const cfg = config() as unknown as Record<string, unknown>;
           return cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true;
         } catch {
-          return (
-            process.env.NODE_ENV === "development" &&
-            process.env.AUTH_DEV_SESSION_ENABLED === "true"
-          );
+          // Sin fallback a process.env (§12). Config inválida = sin bypass de desarrollo.
+          return false;
         }
       })();
       if (isDevFallback) {
@@ -481,11 +476,13 @@ export function withSovereignAuth(
       subject_id: context.userId,
       action: action,
       resource: resource,
+      role: context.role,
+      authenticated: true,
       context: {
         ip_address: request.headers.get("x-forwarded-for") ?? "127.0.0.1",
         user_agent: request.headers.get("user-agent") ?? "unknown",
         timestamp: new Date(),
-      }
+      },
     };
 
     const decisionResult = await evaluateAuthorization(authReq);
@@ -510,15 +507,15 @@ export function withSovereignAuth(
       authenticated: true,
       roles: [context.role],
       permissions: context.scope ? context.scope.split(" ") : [],
-      dataScopes: ["territorial"] as any
+      dataScopes: ["territorial"] as any,
     };
-    const reqContext = createDefaultContext(`API Operation: ${resource}:${action}`, { 
-      actorId: context.userId, 
-      sessionId: context.traceId 
+    const reqContext = createDefaultContext(`API Operation: ${resource}:${action}`, {
+      actorId: context.userId,
+      sessionId: context.traceId,
     });
-    
+
     const policyResult = evaluatePolicy(reqContext, intent, identityAssessment);
-    
+
     if (policyResult.status === "denied") {
       const headers = SecuritySystem.injectSecureHeaders(
         new Headers({ "content-type": "application/json" }),
@@ -536,9 +533,10 @@ export function withSovereignAuth(
     let body: unknown = null;
     if (request.method === "POST" || request.method === "PUT" || request.method === "PATCH") {
       const contentLength = parseInt(request.headers.get("content-length") || "0", 10);
-      if (contentLength > 5 * 1024 * 1024) { // 5MB limit
+      if (contentLength > 5 * 1024 * 1024) {
+        // 5MB limit
         const headers = SecuritySystem.injectSecureHeaders(
-          new Headers({ "content-type": "application/json" })
+          new Headers({ "content-type": "application/json" }),
         );
         return new Response(JSON.stringify({ error: "Payload too large. Max size is 5MB." }), {
           status: 413,

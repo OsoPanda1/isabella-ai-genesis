@@ -42,11 +42,13 @@ export class ApiGateway {
       subject_id: context.userId,
       action: action,
       resource: resource,
+      role: context.role,
+      authenticated: true,
       context: {
         ip_address: request.headers.get("x-forwarded-for") ?? "127.0.0.1",
         user_agent: request.headers.get("user-agent") ?? "unknown",
         timestamp: new Date(),
-      }
+      },
     };
 
     const decisionResult = await evaluateAuthorization(authReq);

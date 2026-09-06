@@ -4,6 +4,9 @@ import { SovereignAudit } from "./sovereign-audit";
 export interface GovernanceValidationRequest {
   jobId: string;
   userId: string;
+  tenantId: string;
+  role: string;
+  authenticated: boolean;
   datasetName: string;
   backend: string;
   territory: string;
@@ -20,7 +23,7 @@ export interface GovernanceValidationResult {
     vigiaLock: any;
   };
   merkleRoot: string;
-  mlDsaSignature: string;
+  auditSeal: string;
 }
 
 /**
@@ -31,22 +34,31 @@ export class IsabellaGovernance {
   /**
    * Validates a Quantum Job against sovereign and territorial constraints.
    */
-  public static async validateQuantumJob(req: GovernanceValidationRequest): Promise<GovernanceValidationResult> {
+  public static async validateQuantumJob(
+    req: GovernanceValidationRequest,
+  ): Promise<GovernanceValidationResult> {
     try {
       // 1. ATLAS: Territorial & Scenario Impact
-      const atlasRes = await runIsabellaSkill("ATLAS", {
-        scenario: `Evaluación de impacto de corrida cuántica '${req.datasetName}' en Nodo de Cómputo Territorial '${req.territory}'.`,
-        variables: [
-          { name: "backend", value: req.backend },
-          { name: "fidelity", value: req.fidelityTarget }
-        ]
-      }, {
-        actorId: req.userId,
-        federation: "TAMV",
-        requestId: req.jobId,
-        locale: "es",
-        intent: "QUANTUM_GOVERNANCE_CHECK",
-      });
+      const atlasRes = await runIsabellaSkill(
+        "ATLAS",
+        {
+          scenario: `Evaluación de impacto de corrida cuántica '${req.datasetName}' en Nodo de Cómputo Territorial '${req.territory}'.`,
+          variables: [
+            { name: "backend", value: req.backend },
+            { name: "fidelity", value: req.fidelityTarget },
+          ],
+        },
+        {
+          actorId: req.userId,
+          tenantId: req.tenantId,
+          role: req.role,
+          authenticated: req.authenticated,
+          federation: "TAMV",
+          requestId: req.jobId,
+          locale: "es",
+          intent: "QUANTUM_GOVERNANCE_CHECK",
+        },
+      );
       const atlasData = atlasRes.data as any;
 
       if (atlasData?.impactLevel === "CRITICAL" && !atlasData?.approved) {
@@ -54,15 +66,22 @@ export class IsabellaGovernance {
       }
 
       // 2. VIGIA: Ethical Multi-Lock Verification
-      const vigiaRes = await runIsabellaSkill("VIGIA", {
-        text: `quantum:execute:${req.backend} risk:HIGH user:${req.userId} territory:${req.territory}`
-      }, {
-        actorId: req.userId,
-        federation: "TAMV",
-        requestId: req.jobId,
-        locale: "es",
-        intent: "QUANTUM_GOVERNANCE_CHECK",
-      });
+      const vigiaRes = await runIsabellaSkill(
+        "VIGIA",
+        {
+          text: `quantum:execute:${req.backend} risk:HIGH user:${req.userId} territory:${req.territory}`,
+        },
+        {
+          actorId: req.userId,
+          tenantId: req.tenantId,
+          role: req.role,
+          authenticated: req.authenticated,
+          federation: "TAMV",
+          requestId: req.jobId,
+          locale: "es",
+          intent: "QUANTUM_GOVERNANCE_CHECK",
+        },
+      );
       const vigiaData = vigiaRes.data as any;
 
       if (vigiaData?.lockStatus === "LOCKED") {
@@ -75,46 +94,60 @@ export class IsabellaGovernance {
       const leaf2 = SovereignAudit.hashData(`backend:${req.backend}`);
       const leaf3 = SovereignAudit.hashData(`dataset:${req.datasetName}`);
       const leaf4 = SovereignAudit.hashData(`territory:${req.territory}`);
-      
+
       const merkleTree = SovereignAudit.buildMerkleTree([leaf1, leaf2, leaf3, leaf4]);
-      
-      const anubisRes = await runIsabellaSkill("ANUBIS", {
-        artifactId: `qup_job_merkle_${merkleTree.root.slice(0, 12)}`,
-        content: JSON.stringify({
-          tree: merkleTree,
-          fidelity: req.fidelityTarget
-        })
-      }, {
-        actorId: req.userId,
-        federation: "TAMV",
-        requestId: req.jobId,
-        locale: "es",
-        intent: "QUANTUM_GOVERNANCE_CHECK",
-      });
+
+      const anubisRes = await runIsabellaSkill(
+        "ANUBIS",
+        {
+          artifactId: `qup_job_merkle_${merkleTree.root.slice(0, 12)}`,
+          content: JSON.stringify({
+            tree: merkleTree,
+            fidelity: req.fidelityTarget,
+          }),
+        },
+        {
+          actorId: req.userId,
+          tenantId: req.tenantId,
+          role: req.role,
+          authenticated: req.authenticated,
+          federation: "TAMV",
+          requestId: req.jobId,
+          locale: "es",
+          intent: "QUANTUM_GOVERNANCE_CHECK",
+        },
+      );
       const anubisData = anubisRes.data as any;
 
       // 4. THEMIS: Legal Explanable Expediente
-      const themisRes = await runIsabellaSkill("THEMIS", {
-        decisionId: `dec_qup_${req.jobId.slice(0, 8)}`,
-        decision: `Aprobación de ejecución cuántica QUP v3.0 en ${req.territory} con backend ${req.backend}`,
-        context: `Usuario ${req.userId} solicitó ejecución. ATLAS y VIGIA aprobaron. Merkle Root: ${merkleTree.root}`
-      }, {
-        actorId: req.userId,
-        federation: "TAMV",
-        requestId: req.jobId,
-        locale: "es",
-        intent: "QUANTUM_GOVERNANCE_CHECK",
-      });
+      const themisRes = await runIsabellaSkill(
+        "THEMIS",
+        {
+          decisionId: `dec_qup_${req.jobId.slice(0, 8)}`,
+          decision: `Aprobación de ejecución cuántica QUP v3.0 en ${req.territory} con backend ${req.backend}`,
+          context: `Usuario ${req.userId} solicitó ejecución. ATLAS y VIGIA aprobaron. Merkle Root: ${merkleTree.root}`,
+        },
+        {
+          actorId: req.userId,
+          tenantId: req.tenantId,
+          role: req.role,
+          authenticated: req.authenticated,
+          federation: "TAMV",
+          requestId: req.jobId,
+          locale: "es",
+          intent: "QUANTUM_GOVERNANCE_CHECK",
+        },
+      );
       const themisData = themisRes.data as any;
 
-      // 5. Sign with ML-DSA (Post-Quantum Crypto)
+      // 5. Sello de auditoría soberana (HMAC-SHA3-512 verificable).
       const payloadToSign = JSON.stringify({
         jobId: req.jobId,
         merkleRoot: merkleTree.root,
-        themisId: themisData?.expedienteId || "unknown"
+        themisId: themisData?.expedienteId || "unknown",
       });
       const payloadHash = SovereignAudit.hashData(payloadToSign);
-      const signature = await SovereignAudit.signWithMLDSA(payloadHash, "system_private_key_ref");
+      const signature = await SovereignAudit.signAuditSeal(payloadHash);
 
       return {
         approved: true,
@@ -125,9 +158,8 @@ export class IsabellaGovernance {
           vigiaLock: vigiaData,
         },
         merkleRoot: merkleTree.root,
-        mlDsaSignature: signature
+        auditSeal: signature,
       };
-
     } catch (error: any) {
       return {
         approved: false,
@@ -139,7 +171,7 @@ export class IsabellaGovernance {
           vigiaLock: null,
         },
         merkleRoot: "",
-        mlDsaSignature: ""
+        auditSeal: "",
       };
     }
   }

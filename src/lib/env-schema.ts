@@ -134,25 +134,25 @@ export const envSchema = z.object({
   QUP_ZNE_LEVEL: coercedInt(3),
   // Coerción boolean explícita: los env vars llegan como strings ("true"/"false"),
   // z.boolean() puro los rechazaría ("true" ≠ boolean) rompiendo el arranque.
-  QUP_PEC_ENABLED: z
-    .preprocess((val) => {
-      if (typeof val === "boolean") return val;
-      if (typeof val !== "string") return undefined;
-      const t = val.trim().toLowerCase();
-      if (t === "true") return true;
-      if (t === "false") return false;
-      return undefined;
-    }, z.boolean().default(true)),
-  QUP_QEC_DECODER: z.enum(["mwpm", "uf", "tensor-network", "neural-network"]).default("tensor-network"),
-  QUP_STRICT_ISOLATION: z
-    .preprocess((val) => {
-      if (typeof val === "boolean") return val;
-      if (typeof val !== "string") return undefined;
-      const t = val.trim().toLowerCase();
-      if (t === "true") return true;
-      if (t === "false") return false;
-      return undefined;
-    }, z.boolean().default(true)),
+  QUP_PEC_ENABLED: z.preprocess((val) => {
+    if (typeof val === "boolean") return val;
+    if (typeof val !== "string") return undefined;
+    const t = val.trim().toLowerCase();
+    if (t === "true") return true;
+    if (t === "false") return false;
+    return undefined;
+  }, z.boolean().default(true)),
+  QUP_QEC_DECODER: z
+    .enum(["mwpm", "uf", "tensor-network", "neural-network"])
+    .default("tensor-network"),
+  QUP_STRICT_ISOLATION: z.preprocess((val) => {
+    if (typeof val === "boolean") return val;
+    if (typeof val !== "string") return undefined;
+    const t = val.trim().toLowerCase();
+    if (t === "true") return true;
+    if (t === "false") return false;
+    return undefined;
+  }, z.boolean().default(true)),
 
   // --- REDIS ---
   REDIS_URL: optionalString(),
@@ -178,6 +178,9 @@ export const envSchema = z.object({
   // --- TELEMETRY ---
   OTEL_EXPORTER_OTLP_ENDPOINT: optionalUrl(),
   OTEL_SERVICE_NAME: z.string().default("isabella-ai"),
+
+  // --- FEATURE FLAGS (server-curated, formato "clave=valor,clave=valor") ---
+  ISABELLA_FEATURE_FLAGS: z.string().default(""),
 
   // --- REDACTION ---
   REDACT_EXTRA_KEYS: z.string().default(""),

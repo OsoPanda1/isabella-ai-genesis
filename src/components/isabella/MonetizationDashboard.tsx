@@ -161,13 +161,13 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
     "bookpi:append",
   ]);
 
-  // Special Upgrade Items (5 new upgrades)
-  const [upgrades, setUpgrades] = useState<UpgradeItem[]>([
+  // Special Upgrade Items (roadmap: sin setter porque no hay compra ni activación)
+  const [upgrades] = useState<UpgradeItem[]>([
     {
       id: "pqc_dilithium",
       name: "Sello Contable Post-Cuántico (PQC)",
       description:
-        "Activa la firma de transacciones BookPI mediante un simulador de esquemas resistentes a computación cuántica (Dilithium/Kyber).",
+        "Objetivo roadmap: firma de transacciones BookPI con esquemas resistentes a computación cuántica (Dilithium/Kyber) cuando el runtime disponga de primitivas reales. Hoy el sello de autoridad es HMAC-SHA3-512.",
       cost: 45.0,
       category: "Criptografía",
       active: false,
@@ -187,7 +187,7 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
       id: "hallucination_filter",
       name: "Filtro Anti-Alucinaciones SOPHIA",
       description:
-        "Evalúa las respuestas de Isabella contra el canon territorial reduciendo las respuestas ambiguas u incorrectas en un 98.4%.",
+        "Objetivo roadmap: evaluar las respuestas de Isabella contra el canon territorial. Sin medición publicada: no se declara ningún porcentaje de efectividad.",
       cost: 30.0,
       category: "Alineación IA",
       active: true,
@@ -687,15 +687,38 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
     console.log("Onboarding complete for user:", data.username);
   };
 
-  const handleGenerateApiKey = () => {
+  const handleGenerateApiKey = async () => {
     if (!newKeyName.trim()) return;
-    const truncated = `isa_live_` + Math.random().toString(36).slice(2, 10) + `_key`;
-    setGeneratedKeys((prev) => [
-      { key: truncated, name: newKeyName, scopes: [...selectedScopes] },
-      ...prev,
-    ]);
-    setNewKeyName("");
-    toast.success(`Clave API empresarial '${newKeyName}' generada con éxito.`);
+    try {
+      // Emisión real: el servidor genera, hashea y persiste la credencial
+      // (ApiKeyService). Aquí nunca se inventa una clave.
+      const res = await fetch(`/api/db?action=create-api-key`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          name: newKeyName.trim(),
+          role: "Operator",
+          scopes: selectedScopes,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(`Emisión denegada: ${data.error ?? "sin respuesta del servidor"}`);
+        return;
+      }
+      const issued = typeof data.key === "string" ? data.key : (data.key?.apiKey ?? "");
+      setGeneratedKeys((prev) => [
+        { key: String(issued), name: newKeyName, scopes: [...selectedScopes] },
+        ...prev,
+      ]);
+      setNewKeyName("");
+      toast.success(`Clave API '${newKeyName}' emitida por el servidor.`);
+    } catch {
+      toast.error("Error emitiendo la clave API.");
+    }
   };
 
   const handleToggleScope = (scope: string) => {
@@ -704,36 +727,14 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
     );
   };
 
-  // Special Upgrade purchase simulator
+  // Mejoras en roadmap: no existe backend que las active ni cobro asociado.
+  // No se muta saldo ni se escribe en el ledger. El botón informa el estado.
   const handleToggleUpgrade = (upgradeId: string) => {
-    setUpgrades((prev) =>
-      prev.map((up) => {
-        if (up.id === upgradeId) {
-          const nextState = !up.active;
-          if (nextState) {
-            // Check if activeTenant has enough budget
-            if (activeTenant && activeTenant.quotaBalance >= up.cost) {
-              // Deduct balance simulated
-              activeTenant.quotaBalance -= up.cost;
-              toast.success(`¡Mejora '${up.name}' adquirida e integrada al orquestador!`);
-              // Register transaction in ledger
-              void handleSimulateCreditUsage(
-                `Mejora de Criptosistema: ${up.name}`,
-                "skills",
-                up.cost.toFixed(2),
-              );
-              return { ...up, active: true };
-            } else {
-              toast.error("Fondos insuficientes en la cuota del tenant para adquirir esta mejora.");
-              return up;
-            }
-          } else {
-            toast.info(`Mejora '${up.name}' desactivada del motor.`);
-            return { ...up, active: false };
-          }
-        }
-        return up;
-      }),
+    const up = upgrades.find((u) => u.id === upgradeId);
+    toast.info(
+      up
+        ? `'${up.name}' está en roadmap (requiere backend real; sin cobro ni activación).`
+        : "Mejora en roadmap (requiere backend real).",
     );
   };
 
@@ -800,44 +801,34 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
         routingPath: path,
       });
       setIsRoutingSimulating(false);
-      toast.success("¡Simulación de enrutamiento neural de 12 núcleos completada!");
+      toast.success("Simulación ilustrativa completada (no es enrutamiento real).");
     }, 1200);
   };
 
-  const usageStats = {
-    msgUsed:
-      activePlan === "personal"
-        ? 145
-        : activePlan === "pro"
-          ? 412
-          : activePlan === "enterprise"
-            ? 1890
-            : 14,
-    msgLimit:
+  // Uso real derivado del ledger del servidor: mensajes = bloques liquidados
+  // del tenant; tokens estimados con el mismo factor (×1200) que el servidor
+  // usa al escribir entradas. Límites = derechos del plan (constantes producto).
+  const usageStats = (() => {
+    const settled = ledger.filter((l) => l.status === "settled");
+    const msgUsed = settled.length;
+    const totalCost = settled.reduce((acc, l) => acc + (parseFloat(l.costDecimal) || 0), 0);
+    const tokensUsedEst = Math.round(totalCost * 1200);
+    const msgLimit =
       activePlan === "personal"
         ? 5000
         : activePlan === "pro"
           ? 20000
           : activePlan === "enterprise"
             ? 100000
-            : 50,
-    tokensRemaining:
-      activePlan === "personal"
-        ? 84320
-        : activePlan === "pro"
-          ? 421900
-          : activePlan === "enterprise"
-            ? 1850400
-            : 6850,
-    tokenLimit:
-      activePlan === "personal"
-        ? 100000
-        : activePlan === "pro"
-          ? 500000
-          : activePlan === "enterprise"
-            ? 2000000
-            : 100000,
-  };
+            : 50;
+    const tokenLimit = activePlan === "personal" ? 100000 : activePlan === "pro" ? 500000 : 2000000;
+    return {
+      msgUsed,
+      msgLimit,
+      tokensRemaining: Math.max(0, tokenLimit - tokensUsedEst),
+      tokenLimit,
+    };
+  })();
 
   const creditBalance = activeTenant ? activeTenant.quotaBalance.toFixed(2) : "0.00";
 
@@ -1438,9 +1429,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
               Integraciones de Seguridad y Mejoras Soberanas
             </h3>
             <p className="text-[12.5px] text-muted-foreground mt-1">
-              Desbloquee características de grado militar y soberanía de datos optimizadas para el
-              Nodo Cero. Cada mejora puede ser activada descontando su costo en USD de su cuota de
-              tenant actual.
+              Hoja de ruta de capacidades soberanas para el Nodo Cero. Ninguna está disponible para
+              compra o activación: requieren backend real. No se realiza ningún cobro.
             </p>
           </div>
 
@@ -1468,10 +1458,10 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded ${
                         up.active
                           ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                          : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                       }`}
                     >
-                      {up.active ? "ACTIVO" : `Coste: $${up.cost} USD`}
+                      {up.active ? "ACTIVO" : `ROADMAP · $${up.cost} USD est.`}
                     </span>
                   </div>
                   <p className="text-[11.5px] text-muted-foreground leading-relaxed mt-1">
@@ -1482,21 +1472,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 <div className="mt-4 pt-3 border-t border-border/20 flex justify-end">
                   <button
                     onClick={() => handleToggleUpgrade(up.id)}
-                    className={`font-mono text-[10px] uppercase tracking-wider px-4 py-1.5 rounded-xl border transition-all cursor-pointer font-semibold flex items-center gap-1.5 ${
-                      up.active
-                        ? "bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border-rose-500/30"
-                        : "bg-electric text-platinum border-electric hover:bg-electric-light"
-                    }`}
+                    className="font-mono text-[10px] uppercase tracking-wider px-4 py-1.5 rounded-xl border transition-all cursor-pointer font-semibold flex items-center gap-1.5 bg-secondary/20 text-muted-foreground hover:text-white border-border/30"
                   >
-                    {up.active ? (
-                      <>
-                        <XCircle className="size-3.5" /> Desactivar
-                      </>
-                    ) : (
-                      <>
-                        <Check className="size-3.5" /> Adquirir Mejora
-                      </>
-                    )}
+                    <Check className="size-3.5" /> Ver estado
                   </button>
                 </div>
               </div>
@@ -1515,8 +1493,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
               Característica Especial 1: Visualizador Interactivo de Enrutamiento Neural
             </h3>
             <p className="text-[12px] text-muted-foreground leading-relaxed mb-4">
-              Simule la transmisión cognitiva exacta de un prompt. Vea la ruta que recorre la señal,
-              el nivel de acuerdo del consenso y qué células Alpha/Beta se activan para procesarlo.
+              Simulación ilustrativa local por palabras clave (no es el enrutador real ni evidencia
+              de consenso). Muestra una ruta aproximada con fines didácticos.
             </p>
 
             <div className="grid gap-4 md:grid-cols-[1fr_320px]">
@@ -1755,11 +1733,10 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 <div className="border-t border-border/20 pt-3 mt-3">
                   <button
                     onClick={() => {
+                      // Sin mutación local: el saldo solo cambia cuando el servidor
+                      // registra el bloque y fetchDbState refresca el estado real.
                       if (activeTenant && activeTenant.quotaBalance >= parseFloat(estimatedUSD)) {
-                        activeTenant.quotaBalance -= parseFloat(estimatedUSD);
-                        toast.success(
-                          `Plan de cuotas de ${planTokens.toLocaleString()} tokens adquirido.`,
-                        );
+                        toast.info("Registrando plan en el ledger del servidor...");
                         void handleSimulateCreditUsage(
                           `Plan de Inferencia Proyectado (${planTokens.toLocaleString()} tokens)`,
                           planCategory as

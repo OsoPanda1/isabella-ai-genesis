@@ -1,88 +1,98 @@
 import { useState } from "react";
-import {
-  ShieldCheck,
-  Fingerprint,
-  Lock,
-  RotateCcw,
-  
-  Check,
-  
-} from "lucide-react";
+import { ShieldCheck, Fingerprint, Lock, RotateCcw, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface VerificationStep {
   label: string;
   status: "idle" | "loading" | "success" | "error";
+  detail?: string;
 }
 
+interface IntegrityResponse {
+  status: string;
+  checks: {
+    signerAvailable: boolean;
+    signatureSimulated: boolean;
+    bookpi: { available: boolean; chainValid: boolean };
+    projection: { available: boolean; rebuildable: boolean };
+  };
+}
+
+const INITIAL_STEPS: VerificationStep[] = [
+  { label: "Consultando estado de integridad económica (/api/economic-integrity)", status: "idle" },
+  { label: "Autoridad de firma del ledger disponible (no simulada)", status: "idle" },
+  { label: "Cadena BookPI válida en la base canónica", status: "idle" },
+  { label: "Proyección económica reconstruible (economic_events)", status: "idle" },
+];
+
+/**
+ * Verificador de integridad del ledger: consulta el endpoint real
+ * `/api/economic-integrity` y refleja su resultado sin inventar datos.
+ * Si algún chequeo falla, el certificado NO se emite (fail-closed).
+ */
 export function CertificateVerification() {
-  const [jobId, setJobId] = useState("qup-job-a81d-e087");
   const [isVerifying, setIsVerifying] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+  const [steps, setSteps] = useState<VerificationStep[]>(INITIAL_STEPS);
   const [showCertificate, setShowCertificate] = useState(false);
+  const [sealInfo, setSealInfo] = useState<string>("");
 
-  const [steps, setSteps] = useState<VerificationStep[]>([
-    { label: "Validando sintaxis e identificación del Job en el Nodo Cero", status: "idle" },
-    { label: "Buscando raíz Merkle SHA3-512 en el ledger BookPI inmutable", status: "idle" },
-    {
-      label: "Verificando consistencia del Leaf Path Merkle contra el bloque raíz",
-      status: "idle",
-    },
-    {
-      label: "Descifrando y validando firma digital post-cuántica ML-DSA (FIPS 204)",
-      status: "idle",
-    },
-    {
-      label: "Verificando firma esférica resistente SLH-DSA (FIPS 205) de respaldo",
-      status: "idle",
-    },
-    {
-      label: "Validando veto de gobernanza ética y estado del Policy Gate de VIGIA",
-      status: "idle",
-    },
-  ]);
+  const setStep = (idx: number, patch: Partial<VerificationStep>) =>
+    setSteps((prev) => prev.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
 
-  const handleVerify = () => {
-    if (!jobId.trim()) {
-      toast.error("Por favor ingrese un ID de Trabajo para comenzar la verificación.");
-      return;
-    }
-
+  const handleVerify = async () => {
     setIsVerifying(true);
     setShowCertificate(false);
-    setCurrentStep(0);
+    setSteps(INITIAL_STEPS.map((s) => ({ ...s, status: "loading" as const })));
 
-    // Reset steps
-    setSteps((prev) => prev.map((s) => ({ ...s, status: "idle" })));
+    try {
+      const res = await fetch("/api/economic-integrity");
+      const data = (await res.json()) as IntegrityResponse;
 
-    // Progress through steps simulation
-    const runStep = (idx: number) => {
-      if (idx >= steps.length) {
-        setIsVerifying(false);
-        setShowCertificate(true);
-        toast.success("Certificado cuántico verificado correctamente por el cibersistema.");
-        return;
-      }
+      const ok0 = res.ok && data.status === "ok";
+      setStep(0, {
+        status: ok0 ? "success" : "error",
+        detail: `HTTP ${res.status} · status=${data.status}`,
+      });
 
-      setSteps((prev) =>
-        prev.map((s, i) => {
-          if (i === idx) return { ...s, status: "loading" };
-          return s;
-        }),
-      );
+      const ok1 =
+        data.checks?.signerAvailable === true && data.checks?.signatureSimulated === false;
+      setStep(1, {
+        status: ok1 ? "success" : "error",
+        detail: `signerAvailable=${String(data.checks?.signerAvailable)} · simulated=${String(data.checks?.signatureSimulated)}`,
+      });
 
-      setTimeout(() => {
-        setSteps((prev) =>
-          prev.map((s, i) => {
-            if (i === idx) return { ...s, status: "success" };
-            return s;
-          }),
+      const ok2 =
+        data.checks?.bookpi?.available === true && data.checks?.bookpi?.chainValid === true;
+      setStep(2, {
+        status: ok2 ? "success" : "error",
+        detail: `available=${String(data.checks?.bookpi?.available)} · chainValid=${String(data.checks?.bookpi?.chainValid)}`,
+      });
+
+      const ok3 =
+        data.checks?.projection?.available === true &&
+        data.checks?.projection?.rebuildable === true;
+      setStep(3, {
+        status: ok3 ? "success" : "error",
+        detail: `available=${String(data.checks?.projection?.available)} · rebuildable=${String(data.checks?.projection?.rebuildable)}`,
+      });
+
+      if (ok0 && ok1 && ok2 && ok3) {
+        setSealInfo(
+          `Integridad verificada el ${new Date().toISOString()}: firmante real, cadena BookPI válida y proyección reconstruible.`,
         );
-        runStep(idx + 1);
-      }, 700);
-    };
-
-    runStep(0);
+        setShowCertificate(true);
+        toast.success("Integridad del ledger verificada contra el servidor.");
+      } else {
+        setShowCertificate(false);
+        toast.error("Integridad NO verificada: revisa los chequeos en rojo.");
+      }
+    } catch (err) {
+      setSteps(INITIAL_STEPS.map((s) => ({ ...s, status: "error" as const })));
+      setShowCertificate(false);
+      toast.error(err instanceof Error ? err.message : "Error consultando integridad.");
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   return (
@@ -93,41 +103,35 @@ export function CertificateVerification() {
       <div className="flex items-center gap-2 pb-2 border-b border-border/5">
         <ShieldCheck className="size-4 text-purple-400" />
         <h3 className="text-sm font-bold font-mono text-white uppercase tracking-wider">
-          Verificador de Certificados Criptográficos PQC
+          Verificador de Integridad del Ledger BookPI
         </h3>
       </div>
 
       <p className="text-[11px] leading-relaxed">
-        Verifique la autenticidad, integridad Merkle y firmas post-cuánticas de cualquier
-        experimento procesado en la infraestructura qup v3.0 contra el Libro Mayor inmutable BookPI
-        del Nodo Cero.
+        Consulta en vivo el estado de integridad económica del servidor (autoridad de firma, cadena
+        BookPI y proyección). No emite certificados si algún chequeo falla.
       </p>
 
       {/* INPUT CONTROL */}
       <div className="flex gap-2">
-        <div className="relative flex-1">
-          <input
-            type="text"
-            value={jobId}
-            onChange={(e) => setJobId(e.target.value)}
-            placeholder="Ingrese ID del Job cuántico..."
-            className="w-full bg-[#181a26] border border-border/15 rounded-xl p-2.5 pl-3 text-xs font-mono text-white outline-none focus:border-purple-400"
-          />
-        </div>
         <button
           type="button"
           onClick={handleVerify}
           disabled={isVerifying}
           className="px-4 py-2.5 rounded-xl bg-purple-600 text-white hover:bg-purple-500 font-mono font-bold uppercase text-[11px] flex items-center gap-1.5 transition-all shadow-lg shadow-purple-600/15 disabled:opacity-55"
         >
-          {isVerifying ? <RotateCcw className="size-3.5 animate-spin" /> : <span>Verificar</span>}
+          {isVerifying ? (
+            <RotateCcw className="size-3.5 animate-spin" />
+          ) : (
+            <span>Verificar integridad</span>
+          )}
         </button>
       </div>
 
       {/* VERIFICATION TRACKER */}
       <div className="p-3.5 bg-black/20 border border-border/5 rounded-xl space-y-2 font-mono text-[11px]">
         <div className="text-white font-bold uppercase pb-1 border-b border-border/5 flex justify-between">
-          <span>Proceso de Auditoría Criptográfica:</span>
+          <span>Chequeos del servidor:</span>
           {isVerifying && <span className="text-purple-400 animate-pulse">Analizando...</span>}
         </div>
 
@@ -140,12 +144,15 @@ export function CertificateVerification() {
                     ? "text-emerald-400"
                     : step.status === "loading"
                       ? "text-purple-400"
-                      : "text-muted-foreground"
+                      : step.status === "error"
+                        ? "text-red-400"
+                        : "text-muted-foreground"
                 }`}
               >
                 {idx + 1}. {step.label}
+                {step.detail && <span className="block text-[10px] opacity-80">{step.detail}</span>}
               </span>
-              <span className="font-bold uppercase text-[9.5px]">
+              <span className="font-bold uppercase text-[9.5px] shrink-0">
                 {step.status === "idle" && <span className="text-muted-foreground/50">Espera</span>}
                 {step.status === "loading" && (
                   <span className="text-purple-400 animate-pulse">Cargando</span>
@@ -155,58 +162,45 @@ export function CertificateVerification() {
                     <Check className="size-3" /> OK
                   </span>
                 )}
+                {step.status === "error" && (
+                  <span className="text-red-400 flex items-center gap-1">
+                    <X className="size-3" /> Falla
+                  </span>
+                )}
               </span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* CERTIFICATE PAYLOAD WATERMARK */}
+      {/* CERTIFICATE PAYLOAD */}
       {showCertificate && (
         <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/10 space-y-3 animate-rise font-mono text-[11.5px]">
           <div className="flex justify-between items-center pb-2 border-b border-purple-500/15">
             <span className="text-white font-bold uppercase flex items-center gap-1">
-              <Fingerprint className="size-4 text-purple-400" /> Certificado de Autenticidad
-              Cuántica
+              <Fingerprint className="size-4 text-purple-400" /> Integridad del ledger verificada
             </span>
             <span className="text-emerald-400 font-extrabold text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-              🟢 AUTÉNTICO
+              🟢 VERIFICADO
             </span>
           </div>
 
           <div className="space-y-2 leading-relaxed">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">ID del Job verificado:</span>
-              <strong className="text-white font-semibold">{jobId}</strong>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">Resultado:</span>
+              <strong className="text-white font-semibold text-right">{sealInfo}</strong>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Algoritmo de Firma Primario:</span>
-              <strong className="text-purple-400">ML-DSA-87 (FIPS 204 Compliant)</strong>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Esquema de Respaldo Esférico:</span>
-              <strong className="text-blue-400">SLH-DSA-SHA2-256s (FIPS 205 Compliant)</strong>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Raíz Merkle SHA3-512 Certificada:</span>
-              <span
-                className="text-white truncate max-w-[200px] hover:text-clip"
-                title="sha3_512_merkle_root_a8bc894cf9e31d"
-              >
-                sha3_512_merkle_root_a8bc894cf9e31d...
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Ledger Block index BookPI:</span>
-              <strong className="text-white">Bloque Registrado #142</strong>
+              <span className="text-muted-foreground">Algoritmo de sello:</span>
+              <strong className="text-purple-400">HMAC-SHA3-512 / audit-seal-v1</strong>
             </div>
           </div>
 
           <div className="p-2.5 bg-black/45 rounded-lg border border-border/5 text-[10.5px] text-muted-foreground flex items-start gap-1.5 leading-tight">
             <Lock className="size-3.5 shrink-0 text-purple-400" />
             <div>
-              Firmado por la clave privada HSM del Nodo Cero en Real del Monte, Hidalgo. Firma
-              verificada mediante claves públicas pre-compartidas ML-DSA/SLH-DSA.
+              Verificación en vivo contra el servidor. ML-DSA-87 no es autoridad de firma en este
+              runtime (SIMULATION-ONLY por contrato).
             </div>
           </div>
         </div>

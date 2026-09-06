@@ -1,7 +1,5 @@
 import * as crypto from "node:crypto";
 import { SovereignDB } from "./sovereign-engine";
-import { runIsabellaSkill } from "./skills/run-skill";
-import { } from "./config";
 
 // ============================================================================
 // TYPES & INTERFACES FOR QUP v3.0 — SOVEREIGN EDITION
@@ -67,10 +65,9 @@ export interface QupExperimentResult {
       verified: boolean;
     };
     pqcSignatures: {
-      mlDsaSignatureHex: string;
-      mlDsaPublicKeyHex: string;
-      slhDsaSignatureHex: string;
-      slhDsaPublicKeyHex: string;
+      algorithm: "HMAC-SHA3-512/audit-seal-v1";
+      payloadHash: string;
+      seal: string;
       verified: boolean;
     };
     hashChainIndex: number;
@@ -223,7 +220,7 @@ export class QupMlRuntime {
     const mitigatedErrorRate = rawErrorRate * mitigationFactor;
 
     // Pseudo-deterministic properties based on circuit complexity to avoid Math.random
-    const pseudoRandom = (qubitCount * depth) % 100 / 100; // Value between 0 and 0.99
+    const pseudoRandom = ((qubitCount * depth) % 100) / 100; // Value between 0 and 0.99
 
     // 3. Simulating Toric Code Quantum Error Correction (MWPM)
     const hasQec = errorCorrection !== "none";
@@ -244,7 +241,7 @@ export class QupMlRuntime {
 
     // 4. Classical MLP / XGBoost comparisons
     const classicalLoss = 0.05 + pseudoRandom * 0.15;
-    const classicalAccuracy = 1.0 - classicalLoss - (pseudoRandom * 0.02);
+    const classicalAccuracy = 1.0 - classicalLoss - pseudoRandom * 0.02;
 
     return {
       quantumFidelity,
@@ -313,62 +310,28 @@ export class QupCompilationPlane {
 }
 
 // ============================================================================
-// 4. POST-QUANTUM CRYPTOGRAPHIC AUDIT (FIPS 204 & FIPS 205 Compliance)
+// 4. SELLO DE AUDITORÍA SOBERANA (criptografía real verificable)
+// ----------------------------------------------------------------------------
+// El runtime Node 22/OpenSSL 3.0 no dispone de primitivas ML-DSA (FIPS 204)
+// ni SLH-DSA (FIPS 205); por eso NO se declaran firmas PQC. El sello es
+// HMAC-SHA3-512 con AEGIS_AUDIT_SECRET, emitido y verificado por
+// SovereignAudit. `verified` es siempre el resultado de una verificación
+// criptográfica real, jamás un literal.
 // ============================================================================
-export class PqcCryptography {
-  /**
-   * Real SHA3-512 based cryptographic hash chain & simulated ML-DSA / SLH-DSA signatures
-   */
-  public static generateSignatures(payload: string): {
-    mlDsaSignatureHex: string;
-    mlDsaPublicKeyHex: string;
-    slhDsaSignatureHex: string;
-    slhDsaPublicKeyHex: string;
-    verified: boolean;
-  } {
-    // Computes unique artifact hash with SHA3-512
-    const payloadHash = crypto.createHash("sha3-512").update(payload).digest();
+export interface QupAuditSeal {
+  algorithm: "HMAC-SHA3-512/audit-seal-v1";
+  payloadHash: string;
+  seal: string;
+  verified: boolean;
+}
 
-    // ML-DSA-87 (FIPS 204) parameter set modeling
-    const mlDsaPrivateKey = crypto
-      .createHash("sha3-512")
-      .update("ML-DSA-87-PRIVATE-KEY-SOVEREIGN")
-      .digest();
-    const mlDsaPublicKeyHex = crypto
-      .createHash("sha3-512")
-      .update("ML-DSA-87-PUBLIC-KEY-SOVEREIGN")
-      .digest("hex");
-
-    // ML-DSA deterministic signing algorithm
-    const mlDsaSig = crypto
-      .createHmac("sha3-512", mlDsaPrivateKey)
-      .update(payloadHash)
-      .digest("hex");
-
-    // SLH-DSA-SHA2-256s (FIPS 205) Sphincs+ parameter set modeling
-    const slhDsaPrivateKey = crypto
-      .createHash("sha3-512")
-      .update("SLH-DSA-256S-PRIVATE-KEY-SOVEREIGN")
-      .digest();
-    const slhDsaPublicKeyHex = crypto
-      .createHash("sha3-512")
-      .update("SLH-DSA-256S-PUBLIC-KEY-SOVEREIGN")
-      .digest("hex");
-
-    // SLH-DSA multi-tree hash and randomized salt signature signature step
-    const slhSalt = crypto.randomBytes(16);
-    const slhDsaSig = crypto
-      .createHmac("sha3-512", slhDsaPrivateKey)
-      .update(Buffer.concat([payloadHash, slhSalt]))
-      .digest("hex");
-
-    return {
-      mlDsaSignatureHex: mlDsaSig,
-      mlDsaPublicKeyHex,
-      slhDsaSignatureHex: slhDsaSig,
-      slhDsaPublicKeyHex,
-      verified: true, // Self-contained cryptographic audit correctness flag
-    };
+export class QupAuditSealer {
+  public static async sealPayload(payload: string): Promise<QupAuditSeal> {
+    const { SovereignAudit } = await import("./sovereign-audit");
+    const payloadHash = SovereignAudit.hashData(payload);
+    const seal = await SovereignAudit.signAuditSeal(payloadHash);
+    const verified = await SovereignAudit.verifyAuditSeal(payloadHash, seal);
+    return { algorithm: "HMAC-SHA3-512/audit-seal-v1", payloadHash, seal, verified };
   }
 }
 
@@ -384,6 +347,7 @@ export class QupOrchestrator {
   public static async executeExperiment(
     tenantId: string,
     userId: string,
+    role: string,
     traceId: string,
     input: QupExperimentInput,
   ): Promise<QupExperimentResult> {
@@ -428,10 +392,13 @@ export class QupOrchestrator {
     const governanceResult = await IsabellaGovernance.validateQuantumJob({
       jobId: traceId,
       userId: userId,
+      tenantId: tenantId,
+      role: role,
+      authenticated: true,
       datasetName: input.dataset.name,
       backend: input.backend,
       territory: "Nodo Cómputo Territorial TAMV",
-      fidelityTarget: runtime.quantumFidelity
+      fidelityTarget: runtime.quantumFidelity,
     });
 
     if (!governanceResult.approved) {
@@ -439,17 +406,32 @@ export class QupOrchestrator {
     }
 
     const atlasRun = governanceResult.auditTrail.atlasDecision;
-    const anubisRun = { result: { isAuthentic: true, matchingHash: governanceResult.auditTrail.anubisHash } };
+    // Autenticidad real: el hash de integridad de ANUBIS debe coincidir con
+    // el Merkle root calculado localmente; nada se asume verdadero.
+    const anubisRun = {
+      result: {
+        isAuthentic:
+          governanceResult.auditTrail.anubisHash !== "" &&
+          governanceResult.auditTrail.anubisHash === merkleTree.root,
+        matchingHash: governanceResult.auditTrail.anubisHash,
+      },
+    };
     const themisRun = governanceResult.auditTrail.themisExpediente;
     const vigiaRun = governanceResult.auditTrail.vigiaLock;
 
-    const pqcSignatures = {
-      mlDsaSignatureHex: governanceResult.mlDsaSignature,
-      mlDsaPublicKeyHex: "ML-DSA-PUBLIC-KEY-REF",
-      slhDsaSignatureHex: "slh-placeholder-signature",
-      slhDsaPublicKeyHex: "SLH-DSA-PUBLIC-KEY-REF",
-      verified: true, 
-    };
+    // Sello de auditoría real: se emite y se verifica criptográficamente.
+    // Si la verificación falla, el experimento se aborta (fail-closed).
+    const pqcSignatures = await QupAuditSealer.sealPayload(
+      JSON.stringify({
+        experiment: traceId,
+        tenant: tenantId,
+        merkleRoot: merkleTree.root,
+        governanceSeal: governanceResult.auditSeal,
+      }),
+    );
+    if (!pqcSignatures.verified) {
+      throw new Error("QUP audit seal verification failed (fail-closed).");
+    }
 
     // --- PHASE 5: SOVEREIGN LEDGER & BOOKPI INTEGRITY ---
     // Maximize monetization: dynamic pricing based on complexity and premium sovereign features
@@ -463,7 +445,7 @@ export class QupOrchestrator {
       hasPec: input.config.errorMitigation.includes("PEC"),
       fidelity: runtime.quantumFidelity,
       strictIsolation: true,
-      infrastructureCostCents: Math.round(compilation.latencyMs * 0.8) + 500
+      infrastructureCostCents: Math.round(compilation.latencyMs * 0.8) + 500,
     });
     const costCents = pricing.totalGrossCents;
 
@@ -471,7 +453,7 @@ export class QupOrchestrator {
     const block = SovereignDB.appendLedgerBlock(
       tenantId,
       userId,
-      `QUP v3.0 Compilación + Simulación: ${input.config.objective}. Qubits: ${input.config.qubitCount}. Fidelidad: ${Math.round(runtime.quantumFidelity * 100)}%. Plataforma Net: $${(pricing.revenueSplit.platformFeeCents / 100).toFixed(2)}. ML-DSA Firmware Firmado.`,
+      `QUP v3.0 Compilación + Estimación clásica: ${input.config.objective}. Qubits: ${input.config.qubitCount}. Fidelidad estimada: ${Math.round(runtime.quantumFidelity * 100)}%. Plataforma Net: $${(pricing.revenueSplit.platformFeeCents / 100).toFixed(2)}. Sello de auditoría verificado.`,
       "inference",
       costCents / 100,
       compilation.compiledDepth,
@@ -484,7 +466,7 @@ export class QupOrchestrator {
       ip,
       "QUP v3.0 Workflow Executed Successfully",
       "S3",
-      `Ejecutado con éxito en ${input.backend}. Costo: $${(costCents / 100).toFixed(2)}. PQC ML-DSA validado. Merkle root: ${merkleTree.root.slice(0, 16)}...`,
+      `Ejecutado con éxito en ${input.backend}. Costo: $${(costCents / 100).toFixed(2)}. Sello de auditoría verificado: ${pqcSignatures.verified}. Merkle root: ${merkleTree.root.slice(0, 16)}...`,
     );
 
     return {

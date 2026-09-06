@@ -33,7 +33,7 @@ export function SovereignCompliancePanel() {
 
   const handleExportPdf = () => {
     const runId = `GOV-RUN-${Math.floor(100000 + Math.random() * 900000)}`;
-    exportSecurityCompliancePdf(logs, runId);
+    void exportSecurityCompliancePdf(logs, runId);
   };
 
   const handleVerifyWithAnubis = async () => {
@@ -56,6 +56,12 @@ export function SovereignCompliancePanel() {
             locale: "es",
             federation: "SOVEREIGNTY",
             intent: "Verificar reporte de cumplimiento",
+            // Consola sin sesión: identidad Guest explícita. El PDP decide de
+            // verdad; sin tool:execute la respuesta es denegación firmada.
+            actorId: "ui_compliance_console",
+            tenantId: "tenant_public_console",
+            role: "Guest",
+            authenticated: false,
           },
         );
 

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiBillingRouteImport } from './routes/api/billing'
 import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiDbRouteImport } from './routes/api/db'
+import { Route as ApiEconomicIntegrityRouteImport } from './routes/api/economic-integrity'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiIsabellaRouteImport } from './routes/api/isabella'
 import { Route as ApiIsabellaVoiceRouteImport } from './routes/api/isabella-voice'
@@ -36,6 +37,11 @@ const ApiCatalogRoute = ApiCatalogRouteImport.update({
 const ApiDbRoute = ApiDbRouteImport.update({
   id: '/api/db',
   path: '/api/db',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEconomicIntegrityRoute = ApiEconomicIntegrityRouteImport.update({
+  id: '/api/economic-integrity',
+  path: '/api/economic-integrity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/api/billing': typeof ApiBillingRoute
   '/api/catalog': typeof ApiCatalogRoute
   '/api/db': typeof ApiDbRoute
+  '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
   '/api/health': typeof ApiHealthRoute
   '/api/isabella': typeof ApiIsabellaRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/api/billing': typeof ApiBillingRoute
   '/api/catalog': typeof ApiCatalogRoute
   '/api/db': typeof ApiDbRoute
+  '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
   '/api/health': typeof ApiHealthRoute
   '/api/isabella': typeof ApiIsabellaRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/api/billing': typeof ApiBillingRoute
   '/api/catalog': typeof ApiCatalogRoute
   '/api/db': typeof ApiDbRoute
+  '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
   '/api/health': typeof ApiHealthRoute
   '/api/isabella': typeof ApiIsabellaRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/api/billing'
     | '/api/catalog'
     | '/api/db'
+    | '/api/economic-integrity'
     | '/api/health'
     | '/api/isabella'
     | '/api/isabella-voice'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/api/billing'
     | '/api/catalog'
     | '/api/db'
+    | '/api/economic-integrity'
     | '/api/health'
     | '/api/isabella'
     | '/api/isabella-voice'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/api/billing'
     | '/api/catalog'
     | '/api/db'
+    | '/api/economic-integrity'
     | '/api/health'
     | '/api/isabella'
     | '/api/isabella-voice'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   ApiBillingRoute: typeof ApiBillingRoute
   ApiCatalogRoute: typeof ApiCatalogRoute
   ApiDbRoute: typeof ApiDbRoute
+  ApiEconomicIntegrityRoute: typeof ApiEconomicIntegrityRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiIsabellaRoute: typeof ApiIsabellaRoute
   ApiIsabellaVoiceRoute: typeof ApiIsabellaVoiceRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/api/db'
       fullPath: '/api/db'
       preLoaderRoute: typeof ApiDbRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/economic-integrity': {
+      id: '/api/economic-integrity'
+      path: '/api/economic-integrity'
+      fullPath: '/api/economic-integrity'
+      preLoaderRoute: typeof ApiEconomicIntegrityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBillingRoute: ApiBillingRoute,
   ApiCatalogRoute: ApiCatalogRoute,
   ApiDbRoute: ApiDbRoute,
+  ApiEconomicIntegrityRoute: ApiEconomicIntegrityRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiIsabellaRoute: ApiIsabellaRoute,
   ApiIsabellaVoiceRoute: ApiIsabellaVoiceRoute,

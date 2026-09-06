@@ -1,4 +1,5 @@
 import * as crypto from "node:crypto";
+import { config } from "./config";
 
 export interface MerkleNode {
   hash: string;
@@ -32,7 +33,7 @@ export class SovereignAudit {
       throw new Error("Cannot build Merkle tree from empty leaves");
     }
 
-    const leafHashes = dataLeaves.map(leaf => this.hashData(leaf));
+    const leafHashes = dataLeaves.map((leaf) => this.hashData(leaf));
     const rootHash = this.computeRoot(leafHashes);
 
     return {
@@ -57,25 +58,44 @@ export class SovereignAudit {
   }
 
   /**
-   * ML-DSA (Module-Lattice-Based Digital Signature Algorithm) placeholder.
-   * In a full QUP v3.0 PQC environment, this would integrate with a real PQC library
-   * like OQS (Open Quantum Safe) for post-quantum signatures.
+   * Sello de auditoría soberana (HMAC-SHA3-512 con `AEGIS_AUDIT_SECRET`).
+   *
+   * Criptografía real verificable por la misma autoridad que emite el
+   * sello (comparación en tiempo constante). ML-DSA-87 (FIPS 204) está
+   * declarado en el contrato SOLO como SIMULATION-ONLY porque el runtime
+   * Node 22/OpenSSL 3.0 no dispone de primitivas ML-DSA; ningún sello
+   * etiquetado ML-DSA se considera autoridad de firma (ver `env-schema.ts`).
+   * Fail-closed: sin secreto de auditoría no hay sello.
    */
-  public static async signWithMLDSA(payloadHash: string, privateKeyRef: string): Promise<string> {
-    // PLACEHOLDER: Simulate ML-DSA signature generation
-    // Real implementation would invoke C bindings or a WASM module for ML-DSA (CRYSTALS-Dilithium)
-    const simulatedSig = crypto.createHash("sha3-512").update(payloadHash + privateKeyRef + "mldsa-salt").digest("base64");
-    return `mldsa-sig-v1:${simulatedSig}`;
+  public static async signAuditSeal(payloadHash: string): Promise<string> {
+    const secret = config().AEGIS_AUDIT_SECRET;
+    if (!secret) {
+      throw new Error("[SovereignAudit] AEGIS_AUDIT_SECRET ausente: sello denegado (fail-closed).");
+    }
+    const mac = crypto
+      .createHmac("sha3-512", secret)
+      .update(payloadHash, "utf8")
+      .digest("base64url");
+    return `audit-seal-v1:${mac}`;
   }
 
   /**
-   * ML-DSA signature verification placeholder.
+   * Verificación real del sello: recomputa el HMAC y compara en tiempo
+   * constante. Nunca asume validez por prefijo.
    */
-  public static async verifyWithMLDSA(payloadHash: string, signature: string, publicKeyRef: string): Promise<boolean> {
-    // PLACEHOLDER: Simulate ML-DSA verification
-    if (!signature.startsWith("mldsa-sig-v1:")) {
+  public static async verifyAuditSeal(payloadHash: string, seal: string): Promise<boolean> {
+    const PREFIX = "audit-seal-v1:";
+    if (!seal.startsWith(PREFIX)) return false;
+    let secret: string | undefined;
+    try {
+      secret = config().AEGIS_AUDIT_SECRET;
+    } catch {
       return false;
     }
-    return true; // Assume valid for prototype
+    if (!secret) return false;
+    const expected = crypto.createHmac("sha3-512", secret).update(payloadHash, "utf8").digest();
+    const presented = Buffer.from(seal.slice(PREFIX.length), "base64url");
+    if (presented.length !== expected.length) return false;
+    return crypto.timingSafeEqual(presented, expected);
   }
 }

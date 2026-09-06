@@ -9,17 +9,12 @@ import {
   CheckCircle2,
   Gauge,
   Clock,
-  Shield,
   ShieldCheck,
   Binary,
   Lock,
-  
   Fingerprint,
-  
   ShieldAlert,
   ListFilter,
-  
-  
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -157,7 +152,7 @@ export function QuantumUtilityDashboard() {
   const [resultData, setResultData] = useState<QupExperimentResult | null>(null);
   const [systemLogs, setSystemLogs] = useState<string[]>([
     "[SISTEMA] Motor QUP v3.0 Sovereign Edition cargado correctamente.",
-    "[INFO] Conductores de hardware AerSimulator listos. Criptosistema FIPS 204 activo.",
+    "[INFO] Compilador de circuitos y estimador clásico listos. Sello de auditoría HMAC-SHA3-512 activo.",
   ]);
 
   // Merkle verification state
@@ -276,7 +271,7 @@ export function QuantumUtilityDashboard() {
         `Éxito: Fidelidad del ${Math.round(runResult.runtime.quantumFidelity * 100)}% alcanzada con mitigación.`,
       );
       addLog(
-        `Firmado de firmware ML-DSA validado. Bloque Ledger index: ${runResult.audit.ledgerBlockIndex}`,
+        `Sello de auditoría verificado: ${runResult.audit.pqcSignatures.verified ? "SÍ" : "NO"}. Bloque Ledger index: ${runResult.audit.ledgerBlockIndex}`,
       );
       toast.success("Experimento cuántico finalizado con éxito.");
     } catch (err: unknown) {
@@ -288,17 +283,21 @@ export function QuantumUtilityDashboard() {
     }
   };
 
-  // Offline verification of SHA3-512 Merkle Proof
+  // Muestra el resultado de la verificación Merkle calculada en el servidor
+  // (FeaturePlane.verifyProof). Sin teatro: sin temporizadores que inventan éxito.
   const handleVerifyMerkleProof = () => {
     if (!resultData) return;
     setIsVerifyingProof(true);
     setProofVerified(null);
 
-    setTimeout(() => {
-      setIsVerifyingProof(false);
-      setProofVerified(true);
-      toast.success("Certificado Merkle SHA3-512 verificado de forma criptográfica.");
-    }, 900);
+    const serverVerified = resultData.audit.merkleProof.verified === true;
+    setIsVerifyingProof(false);
+    setProofVerified(serverVerified);
+    if (serverVerified) {
+      toast.success("Prueba Merkle SHA3-512 verificada por el servidor.");
+    } else {
+      toast.error("La prueba Merkle NO verificó (fail-closed).");
+    }
   };
 
   const currentCircuit = CIRCUIT_TEMPLATES[selectedTemplate];
@@ -362,7 +361,7 @@ export function QuantumUtilityDashboard() {
             <CheckCircle2 className="size-3.5" /> Qiskit v1.4 + AerSimulator
           </div>
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-400 font-mono">
-            <ShieldCheck className="size-3.5" /> FIPS 204/205 Activo
+            <ShieldCheck className="size-3.5" /> Sello HMAC-SHA3-512 Activo
           </div>
         </div>
       </div>
@@ -973,28 +972,28 @@ export function QuantumUtilityDashboard() {
                 <div className="flex items-center gap-2 pb-2 border-b border-border/5">
                   <ShieldCheck className="size-4 text-purple-400" />
                   <h4 className="text-xs font-bold font-mono text-white uppercase tracking-wider">
-                    Post-Quantum Cryptographic Audit (FIPS 204 & FIPS 205 compliance)
+                    Sello de Auditoría Soberana (HMAC-SHA3-512 verificado)
                   </h4>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
-                  {/* PQC Signatures panel */}
+                  {/* Audit seal panel */}
                   <div className="p-4 rounded-xl bg-black/30 border border-border/5 space-y-3">
                     <div className="space-y-1">
                       <span className="text-[9.5px] text-muted-foreground block uppercase font-bold tracking-wider">
-                        Firma Digital ML-DSA-87 (FIPS 204):
+                        Sello de auditoría ({resultData.audit.pqcSignatures.algorithm}):
                       </span>
                       <span className="text-purple-400 font-mono text-[10px] break-all block leading-tight border border-purple-500/10 bg-purple-500/5 p-2 rounded-lg">
-                        {resultData.audit.pqcSignatures.mlDsaSignatureHex}
+                        {resultData.audit.pqcSignatures.seal}
                       </span>
                     </div>
 
                     <div className="space-y-1">
                       <span className="text-[9.5px] text-muted-foreground block uppercase font-bold tracking-wider">
-                        Firma Esférica SLH-DSA-SHA2-256s (FIPS 205):
+                        Hash auditado (SHA3-512):
                       </span>
                       <span className="text-blue-400 font-mono text-[10px] break-all block leading-tight border border-blue-500/10 bg-blue-500/5 p-2 rounded-lg">
-                        {resultData.audit.pqcSignatures.slhDsaSignatureHex}
+                        {resultData.audit.pqcSignatures.payloadHash}
                       </span>
                     </div>
                   </div>
@@ -1010,9 +1009,13 @@ export function QuantumUtilityDashboard() {
                       </div>
                       <div className="flex justify-between p-1.5 rounded bg-black/20">
                         <span className="text-muted-foreground">
-                          Validación de Firma de firmware:
+                          Validación del sello de auditoría:
                         </span>
-                        <span className="text-emerald-400 font-bold">🟢 VERIFICADO (PQC)</span>
+                        {resultData.audit.pqcSignatures.verified ? (
+                          <span className="text-emerald-400 font-bold">🟢 VERIFICADO</span>
+                        ) : (
+                          <span className="text-red-400 font-bold">🔴 NO VERIFICADO</span>
+                        )}
                       </div>
                       <div className="flex justify-between p-1.5 rounded bg-black/20">
                         <span className="text-muted-foreground">
@@ -1265,13 +1268,17 @@ export function QuantumUtilityDashboard() {
           </div>
           <div className="p-3 rounded-xl bg-black/20 border border-border/5 space-y-1">
             <span className="block text-[10px] font-mono text-muted-foreground uppercase">
-              Verificador PQC
+              Verificador de sellos
             </span>
             <span className="block text-xs font-bold text-white font-mono">
-              FIPS 204 & 205 Engine
+              Auditoría HMAC-SHA3-512
             </span>
             <span className="text-[9.5px] font-mono text-emerald-400 flex items-center gap-1">
-              🟢 Firmas verificadas
+              {resultData
+                ? resultData.audit.pqcSignatures.verified
+                  ? "🟢 Sello verificado"
+                  : "🔴 Sello no verificado"
+                : "⏳ Sin experimentos aún"}
             </span>
           </div>
         </div>

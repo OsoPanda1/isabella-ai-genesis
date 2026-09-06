@@ -21,9 +21,9 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Admin verification against a trusted source or specific admin bootstrapper.
-      // E.g., Bootstrapped admin email (replace with real secure implementation if needed)
-      return isVerified() && request.auth.token.email == 'metaversotamv.online@gmail.com';
+      // Administración por custom claim `admin: true` asignado server-side
+      // (Firebase Admin SDK). Nunca por email hardcodeado.
+      return isVerified() && request.auth.token.admin == true;
     }
 
     function incoming() {
@@ -97,9 +97,11 @@ service cloud.firestore {
     }
 
     match /memories/{memoryId} {
+      // Colección legada de nivel superior: sin listados (resource es nulo en
+      // list y no se puede acotar por owner). Lectura/escritura por documento
+      // con propiedad verificada; los listados viven en /users/{uid}/memories.
       allow get: if isVerified() && isValidId(memoryId) && (existing().ownerId == request.auth.uid || isAdmin());
-      // Enforce query boundaries on list
-      allow list: if isVerified() && resource.data.ownerId == request.auth.uid;
+      allow list: if false;
 
       allow create: if isVerified() &&
                        isValidId(memoryId) &&
@@ -115,6 +117,26 @@ service cloud.firestore {
                        incoming().scope in ['immediate', 'session', 'project', 'territorial', 'historical'];
 
       allow delete: if isVerified() && isValidId(memoryId) && existing().ownerId == request.auth.uid;
+    }
+
+    // Memorias por usuario: la propiedad se deriva del path, no de un campo.
+    match /users/{userId}/memories/{memoryId} {
+      allow get, list: if isVerified() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow create: if isVerified() &&
+                       isValidId(userId) && isValidId(memoryId) &&
+                       request.auth.uid == userId &&
+                       isValidMemory(incoming()) &&
+                       incoming().ownerId == userId;
+      allow update: if isVerified() &&
+                       isValidId(userId) && isValidId(memoryId) &&
+                       request.auth.uid == userId &&
+                       existing().ownerId == userId &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['content', 'scope']) &&
+                       incoming().ownerId == userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().content is string && incoming().content.size() <= 5000 &&
+                       incoming().scope in ['immediate', 'session', 'project', 'territorial', 'historical'];
+      allow delete: if isVerified() && isValidId(userId) && isValidId(memoryId) && request.auth.uid == userId;
     }
 
     match /audit_logs/{logId} {

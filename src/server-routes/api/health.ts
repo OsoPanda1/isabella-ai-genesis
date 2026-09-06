@@ -9,11 +9,22 @@ export const Route = createFileRoute("/api/health")({
       GET: async ({ request }) => {
         const url = new URL(request.url);
         const path = url.pathname;
+        const stage = url.searchParams.get("stage");
 
-        if (path.endsWith("/live")) {
+        // Liveness dedicado: sin dependencias externas, siempre 200 si el proceso vive.
+        // Accesible vía /api/health/live, /api/health?stage=live y ?health=live.
+        if (
+          path.endsWith("/live") ||
+          stage === "live" ||
+          url.searchParams.get("health") === "live"
+        ) {
           return liveness();
         }
-        if (path.endsWith("/ready")) {
+        if (
+          path.endsWith("/ready") ||
+          stage === "ready" ||
+          url.searchParams.get("health") === "ready"
+        ) {
           return readiness();
         }
         // Default health
@@ -44,7 +55,7 @@ async function readiness(): Promise<Response> {
     const repoHealth = await repositoryFactory.getTenantRepository().health();
     checks.repository = { ok: repoHealth.ok, latencyMs: repoHealth.latencyMs };
     if (!repoHealth.ok) overallOk = false;
-  } catch (e) {
+  } catch {
     checks.repository = { ok: false, error: "repository_unavailable" };
     overallOk = false;
   }
@@ -58,7 +69,7 @@ async function readiness(): Promise<Response> {
     );
     checks.config = { ok: hasDurableAuthority };
     if (!hasDurableAuthority && isProductionLike(mode)) overallOk = false;
-  } catch (e) {
+  } catch {
     checks.config = { ok: false, error: "configuration_unavailable" };
     overallOk = false;
   }
@@ -67,7 +78,7 @@ async function readiness(): Promise<Response> {
   try {
     const auditHealth = await repositoryFactory.getAuditRepository().health();
     checks.audit = { ok: auditHealth.ok, latencyMs: auditHealth.latencyMs };
-  } catch (e) {
+  } catch {
     checks.audit = { ok: false, error: "audit_unavailable" };
   }
 

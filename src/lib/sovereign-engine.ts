@@ -764,19 +764,25 @@ export class SovereignDB {
     this.save(db);
   }
 
+  /**
+   * Cuenta de monetización real: ceros hasta que existan eventos económicos
+   * verificados (compras marketplace, retiros). Sin saldos iniciales, sin
+   * identidad KYC inventada: todo flag de verificación inicia en `false` y
+   * solo un flujo de verificación real puede activarlo.
+   */
   public static getMonetizationAccount(userId: string) {
     const db = this.load();
     db.monetization = db.monetization || {};
     if (!db.monetization[userId]) {
       db.monetization[userId] = {
         userId,
-        earnedBalanceCents: 1245, // Default starting simulated balance ($12.45 USD)
-        qualifiedUses: 15,
-        approvedContributions: 2,
-        trainingCompleted: true,
-        identityVerified: true,
-        paymentAccountVerified: true,
-        profileComplete: true,
+        earnedBalanceCents: 0,
+        qualifiedUses: 0,
+        approvedContributions: 0,
+        trainingCompleted: false,
+        identityVerified: false,
+        paymentAccountVerified: false,
+        profileComplete: false,
         sanctioned: false,
         underFraudReview: false,
         withdrawals: [],
