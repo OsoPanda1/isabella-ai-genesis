@@ -3,476 +3,575 @@ name: prisma-composer-core-concepts
 metadata:
   library: "@prisma/composer"
   library_version: "0.17.0"
-  version: 2026.9.1
+  version: 2026.9.1-devin
+  agent: devin
+  difficulty: intermediate
+  estimated_execution_time: varies by task
+  use_case: autonomous-task-execution
+  triggers:
+    - "prisma composer"
+    - "@prisma/composer"
+    - "deploy prisma app"
+    - "create service"
+    - "setup prisma composer"
+    - "migrate database"
+    - "test prisma composer"
+    - "debug prisma composer"
+  related_skills:
+    - prisma-orm-fundamentals
+    - typescript-project-setup
+    - ci-cd-deployment
+  last_updated: 2026-09-06
 description: >-
-  Use when deploying or managing an app that uses Prisma Composer
-  (`@prisma/composer`): wiring its services and Modules, running it locally,
-  testing composed services, or standing up / tearing down an environment.
-  Triggers on "prisma composer", "@prisma/composer", "prisma app", the
-  `prisma-composer` CLI, `compute()`, `module()`, `contract()`,
-  `service.load()`, `mockService`, `bootstrapService`.
+  Autonomous task execution guide for Devin using Prisma Composer. Optimized for complete
+  task workflows: setup, create, deploy, test, debug. Includes verification steps and
+  failure recovery procedures.
 ---
 
-# Prisma Composer core concepts
+# Prisma Composer — Autonomous Execution Guide (Devin)
 
-A **Prisma App** is a tree of typed declarations composed in TypeScript and
-handed to the `prisma-composer` CLI. This file covers structures,
-hierarchies, relationships, and workflows: the concepts you cannot observe
-from the code or the CLI's help output. It is not a CLI reference; discover
-any individual command and its flags with `--help`. Commands named here
-belong to the `prisma-composer` CLI itself; a host CLI that embeds Composer
-may not carry every verb, so confirm a command exists via `--help` rather
-than inferring it. The Prisma platform moves fast, so treat this file as the
-stable conceptual core and find current, fuller documentation at
-<https://www.prisma.io/docs>. For working code, read `examples/` in the
-prisma/composer repo.
+> **🤖 Task Modes**: [Setup Project](#setup-project) | [Create Service](#create-service-task) | [Deploy App](#deploy-task) | [Migrate DB](#migrate-database-task) | [Debug](#debug-task)
 
-Two principles govern everything and are binding
-(`docs/design/01-principles/`):
+---
 
-1. **Your code never reads its environment.** Dependencies, configuration,
-   credentials, and the port all arrive through the service node, typed.
-   `process.env` is never the answer.
-2. **Composer never bundles or transforms your code.** You build with your own
-   bundler; the framework assembles the built output by deterministic steps
-   and hands it to the configured deploy target.
+## Execution Principles
 
-## Declarations are data
+**Before starting any task**:
+1. ✅ Verify `@prisma/composer` and `@prisma/composer-prisma-cloud` are installed
+2. ✅ Check `prisma-composer.config.ts` exists
+3. ✅ Confirm `effect` constellation is pinned in `package.json`
+4. ✅ Validate environment variables set (for deploy): `PRISMA_SERVICE_TOKEN`, `PRISMA_WORKSPACE_ID`
 
-Everything you author is a declaration: plain data describing a piece of the
-app, executing nothing when imported. Three node kinds exist:
+**Golden Rules**:
+1. ❌ Never use `process.env` → ✅ All config via `service.load()`, `service.input()`, `service.port()`
+2. ❌ Never deploy without building → ✅ Always `build` before `deploy` or `dev`
+3. ❌ Never skip migration plan → ✅ Always `prisma migration plan` before deploy
 
-| Kind     | Declared with               | Purpose                                                           |
-| -------- | --------------------------- | ----------------------------------------------------------------- |
-| Service  | `compute()`                 | A running unit of your code; atomic, Composer sees only its ports |
-| Resource | `rawPostgres()`, `bucket()` | A stateful managed dependency                                     |
-| Module   | `module()`                  | A grouping boundary; runs no code of its own, exposes typed ports |
+---
 
-Nodes connect through **ports**: `deps` declares what a node requires,
-`expose` declares what it offers. Wiring happens in a Module's builder via
-`provision()`, and the root Module, handed to the CLI, is the App:
+## Setup Project
 
-```ts
-// module.ts
-import { module } from "@prisma/composer";
+### Task: Initialize Prisma Composer Project
 
-export default module("store", ({ provision }) => {
-  const catalog = provision(catalogModule);
-  provision(storefrontService, { deps: { catalog: catalog.rpc } });
-});
+**Steps**:
+
+```bash
+# 1. Install dependencies
+npm install @prisma/composer @prisma/composer-prisma-cloud
+
+# 2. Install effect constellation (pin versions)
+npm install effect@3.10.0 @effect/sql-pg@0.15.0 @effect/vitest@0.15.0 @effect/platform-bun@0.15.0
+
+# 3. Add overrides to package.json
+cat >> package.json << 'EOF'
+{
+  "overrides": {
+    "effect": "3.10.0",
+    "@effect/sql-d1": "0.15.0",
+    "@effect/sql-pg": "0.15.0",
+    "@effect/vitest": "0.15.0",
+    "@effect/platform-bun": "0.15.0"
+  }
+}
+EOF
+
+# 4. Create deploy config
+cat > prisma-composer.config.ts << 'EOF'
+import { prismaCloud } from "@prisma/composer-prisma-cloud";
+
+export default {
+  targets: [prismaCloud()],
+};
+EOF
+
+# 5. Create tsconfig.json
+cat > tsconfig.json << 'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true
+  }
+}
+EOF
 ```
 
-Because ports are typed, **the compiler verifies every wire**. A dependency
-wired to the wrong producer, a missing RPC handler, a literal input value of
-the wrong shape: all of it fails `tsc`, not the deploy. Env-bound input is
-the exception: those values exist only at deploy, so secret-binding
-mismatches and missing platform variables surface as early deploy-time
-refusals instead (see Two channels below). Typecheck, then build, then
-deploy; don't use the cloud to find out whether the wiring is correct.
+**Verification**:
+```bash
+# Check config is valid
+prisma-composer --help
 
-Composer itself is target-agnostic: `@prisma/composer` carries authoring,
-testing, and the CLI, coupled to no platform. A deploy target is an extension
-registered in the deploy config; `@prisma/composer-prisma-cloud` is the
-Prisma Cloud target and the one this skill's deploy sections assume. Its
-root exports `compute`, `rawPostgres`, `bucket`, `envSecret`, and
-`envParam`; the ORM vocabulary (`postgres`, `dataContract`) lives under the
-`/orm` subpath, alongside the shared `/cron`, `/storage`, `/streams`,
-`/auth`, and `/email` modules. These are the only two Composer packages a
-basic Prisma Cloud app needs, and nothing installs them for you: a fresh
-project starts with neither, so add both as dependencies first. An
-extension adds its own `prisma-composer-*` package alongside them. Compose
-an existing Module before implementing a capability yourself; wiring one in
-is a couple of lines.
+# Should show help without errors
+```
 
-Within the entry graph (everything reachable from `module.ts`), write
-relative imports with explicit `.ts` extensions (`./service.ts`, with
-`allowImportingTsExtensions` in tsconfig): that form resolves everywhere.
-The `prisma-composer` CLI also maps `./service.js` and extensionless
-`./service` to the `.ts` source, but other hosts may not.
+---
 
-## The service node is the only doorway
+## Create Service Task
 
-Your runtime code receives everything from the service declaration it
-imports:
+### Task: Create New Service with RPC
 
-1. `service.load()`: dependencies (typed RPC clients, database bindings).
-2. `service.input()`: the whole input as one schema-validated object;
-   credentials in it are redacting `SecretString` boxes.
-3. `service.port()`: the reserved port to bind (default 3000).
+**Input**: Service name, dependencies, contract methods
 
-A service declaration is pure data; the server entry is what your build
-produces and the platform boots:
+**Steps**:
 
-```ts
-// service.ts
+```bash
+# 1. Create directory structure
+mkdir -p services/auth
+
+# 2. Create contract
+cat > services/auth/contract.ts << 'EOF'
+import { z } from "zod";
+
+export const authContract = {
+  verify: z.object({
+    token: z.string()
+  }).transform(async ({ token }) => {
+    return { ok: true, userId: "user_123" };
+  }),
+  
+  login: z.object({
+    email: z.string().email(),
+    password: z.string().min(8)
+  }).transform(async ({ email, password }) => {
+    return { ok: true, token: "jwt_here" };
+  })
+};
+EOF
+
+# 3. Create service declaration
+cat > services/auth/service.ts << 'EOF'
+import { compute, node, rawPostgres } from "@prisma/composer-prisma-cloud";
+import { authContract } from "./contract";
+import { z } from "zod";
+
 export default compute({
   name: "auth",
-  deps: { db: rawPostgres() },
-  build: node({ module: import.meta.url, entry: "../dist/server.mjs" }),
-  expose: { rpc: authContract },
+  deps: { 
+    db: rawPostgres() 
+  },
+  input: {
+    jwtSecret: z.string().min(16),
+    sessionTtl: z.number().default(3600)
+  },
+  build: node({ 
+    module: import.meta.url, 
+    entry: "../dist/server.mjs" 
+  }),
+  expose: { 
+    rpc: authContract 
+  },
 });
+EOF
 
-// server.ts
-const { db } = service.load(); // { url }: you construct your own client
+# 4. Create server implementation
+cat > services/auth/server.ts << 'EOF'
+import { service, serve } from "@prisma/composer";
+import { authContract } from "./contract";
+import { SQL } from "bun";
+
+const { db } = service.load();
+const { jwtSecret, sessionTtl } = service.input();
+
 const handler = serve(service, {
-  rpc: { verify: async ({ token }) => ({ ok: token.length > 0 }) },
+  rpc: {
+    verify: async ({ token }) => {
+      if (token.length === 0) return { ok: false, error: "Empty token" };
+      return { ok: true, userId: "user_123" };
+    },
+    login: async ({ email, password }) => {
+      const sql = new SQL({ url: db.url });
+      const user = await sql`SELECT * FROM users WHERE email = ${email}`;
+      return { ok: true, token: "jwt_here" };
+    }
+  } satisfies typeof authContract
 });
-Bun.serve({ port: service.port(), hostname: "0.0.0.0", fetch: handler });
+
+Bun.serve({ 
+  port: service.port(), 
+  hostname: "0.0.0.0", 
+  fetch: handler 
+});
+EOF
+
+# 5. Wire in root module
+cat > modules/store/module.ts << 'EOF'
+import { module } from "@prisma/composer";
+import { authModule } from "../auth";
+import { storefrontService } from "./services/storefront";
+
+export default module("store", ({ provision }) => {
+  const auth = provision(authModule);
+  
+  provision(storefrontService, { 
+    deps: { auth: auth.rpc } 
+  });
+});
+EOF
 ```
 
-The consumer declares `deps: { auth: rpc(authContract) }` and gets a typed
-client back from `load()`.
+**Verification**:
+```bash
+# Typecheck
+npx tsc --noEmit
 
-## Two channels: dependencies and input
+# Build
+bun build services/auth/server.ts --outdir dist --format esm
 
-| The value is…                        | Declare                         | Provide                                                        | Read      |
-| ------------------------------------ | ------------------------------- | -------------------------------------------------------------- | --------- |
-| produced by another node             | `deps: { db: rawPostgres() }`   | wire at `provision()`                                          | `load()`  |
-| anything else (config or credential) | one field of the `input` schema | bind at `provision()`: literal, `envParam()`, or `envSecret()` | `input()` |
-
-The service declares its whole incoming configuration, plain values and
-credentials together, as **one [Standard Schema](https://standardschema.dev)**
-(arktype is the house choice). A credential is a field typed as
-`secretString()` from `@prisma/composer/arktype`; conditional legality ("no
-stripe key unless billing is on") is an ordinary schema union. The binding at
-`provision()` mirrors the schema's shape; `envSecret('NAME')` names the
-platform variable and never carries the value.
-
-Rules that bite:
-
-1. **Secretness is enforced by validation.** A literal bound where the schema
-   expects `SecretString` fails the deploy; `envSecret` bound to a plain
-   string field fails the same way.
-2. **`envParam` values arrive as raw strings**; bind them to string fields.
-   The stage's platform variable is the store; the deploying shell only seeds
-   a missing name (and the deploy fails early, naming the variable, when both
-   lack it). Changing the platform value needs a redeploy.
-3. **Absence is the schema's call.** An env-bound field whose variable is
-   unset or empty resolves to _key omitted_, which is legal only if the
-   schema allows it (optional field, union arm). The deploy report prints the
-   serialized input document (secrets ride as `{"$secret":"VAR"}` pointers)
-   and every key that resolved absent.
-4. **The reserved `port` is outside the schema.** Read it through
-   `service.port()`, never `process.env`. The framework also exports `PORT`
-   for Next.js standalone, which binds it itself.
-5. **A Module forwards a secret need without learning the platform name.**
-   Declare `secrets: { signingKey: secret() }` on the Module boundary and
-   pass the forwarded ref as a binding leaf; the parent binds the real
-   source.
-6. `input.apiKey.expose()` is the only way to a secret's value; the box
-   redacts everywhere else (logs, JSON, errors).
-
-## Contracts and RPC
-
-A contract is the typed interface through which services communicate. It
-lives with the service that owns it, typed by any Standard Schema validator,
-and both provider (`serve()`, exhaustive over the contract's methods at
-compile time) and consumer (`rpc(contract)`) reference the same value. Calls
-travel as RPC over HTTP. Two behaviours are provisioned for you and must not
-be reimplemented:
-
-1. **Service keys.** At deploy, Composer mints a distinct unguessable key per
-   consumer→provider binding; `serve()` returns `401` to anything else before
-   the handler runs. Nothing in your code declares it. Consequences: don't
-   build your own service-to-service auth, and don't `curl` a deployed
-   `/rpc/<method>` to check it works. An unwired caller always gets `401`,
-   which looks like a broken deploy and isn't. Debug through a consumer, or
-   locally, where nothing is enforced. Keys are per binding (one leaking
-   can't impersonate another consumer), service-scoped (any valid key
-   reaches every method; split services to gate separately), rotated only by
-   removing the binding or destroying the stack and redeploying, and stored
-   in deploy-owned `COMPOSER_*` variables you never hand-edit.
-2. **Idempotency and retries.** Every generated-client call carries an
-   `Idempotency-Key`; dropped calls retry with backoff, and `serve()` runs
-   one call per key, replaying the completed answer to late retries. Every
-   method is therefore safely retryable and no contract declares anything
-   about it (there is no "is this idempotent" flag; don't invent one). A
-   handler may take an optional third argument `(input, deps, ctx)` and read
-   `ctx.idempotencyKey` (`string | undefined`) if it needs exactly-once
-   beyond one instance's memory; most don't. Locally and in tests nothing is
-   provisioned, so `serve()` passes every call through: never supply a key
-   in test inputs.
-
-## Builds are yours
-
-You build, the framework assembles. For a plain server process, `entry` must
-point at a single self-contained ESM file: everything inlined except runtime
-built-ins (`bun`, `bun:*`, `node:*`). Deploy copies that one file and never
-ships `node_modules`, so anything left un-inlined fails at boot, not at
-deploy. Rules that bite:
-
-1. **Two services in one package means two separate builds**, one per entry.
-   A single multi-entry build splits shared code into a chunk neither output
-   contains.
-2. **A directory build uses `dir` + `entry`** (`dir` relative to the service
-   module, `entry` a file inside `dir`; `../` is an error). The tree is
-   copied verbatim, so the server must resolve siblings against
-   `import.meta.url`, not the working directory. The tree must contain no
-   symlinks: the packager rejects them, names the link, and assembly fails.
-3. **Next.js**: `next build` with `output: 'standalone'` is the whole build;
-   `nextjs({ module, appDir })` names the app root. Any page or action that
-   calls `load()` needs `export const dynamic = 'force-dynamic'`, because
-   the runtime environment doesn't exist at build time and Next ignores
-   runtime env for prerendered routes.
-4. **Always build before `deploy` or `dev`.** Neither builds for you.
-
-Deploy configuration lives in `prisma-composer.config.ts` (or `.mts`, `.mjs`,
-`.js`; nearest ancestor of the entry wins, `.ts` first within a directory).
-It registers extensions (`prismaCloud()`, `nodeBuild()`, `nextjsBuild()` when
-the app has a Next.js service) and the deploy-state backend
-(`prismaState()`). It is read by the CLI's operations (deploy, destroy, and
-dev; a `dev` run without one refuses, naming the missing file) and never
-imported by app code.
-
-## Databases and migrations
-
-Two kinds of Postgres dependency:
-
-1. **`rawPostgres()`**: the binding is `{ url }` and the app owns its client.
-2. **`postgres(...)`**: a Prisma-ORM-typed database. The binding is
-   `{ url, client }` (ADR-0040): the raw connection URL plus the typed
-   client Composer constructs from your data contract, lazily on first
-   access, so queries go through `binding.client` and are compile-time
-   checked. Both `postgres` and `dataContract` import from
-   `@prisma/composer-prisma-cloud/orm`, not the package root. One
-   `dataContract`-wrapped value (emitted from `contract.prisma` by
-   `prisma contract emit`) is referenced by both the dependency end
-   (`deps: { db: postgres(catalogData) }`) and the resource end, which also
-   names the `prisma.config.ts` path so the deploy's migration step can
-   find `migrations/`.
-
-**Deploys are replay-only**: they apply the migrations committed under
-`migrations/` and never create schema themselves. Every schema change,
-including the first schema of a new database, follows one loop:
-
-1. Edit `contract.prisma`.
-2. `prisma contract emit` regenerates `contract.json` + `contract.d.ts`.
-3. `prisma migration plan --name <slug>` authors the migration (on an empty
-   graph this authors the baseline).
-4. Commit `migrations/` with the change, then deploy. A fresh database
-   replays the whole path from empty.
-
-If no authored path reaches the target contract, deploy (and `dev` against a
-stale local database) refuses with `MIGRATION_PATH_NOT_FOUND`; its message
-lists the two ways out: author the missing migration, or, when iterating
-against a local
-database only, `prisma db update`. Never skip step 3 before a deploy. See
-`examples/store/modules/catalog` for the complete pattern.
-
-## Deploy model: converge, don't script
-
-Deploy compares the declared topology against recorded deploy state and
-applies only the difference. Re-deploying with nothing changed is a no-op;
-removing a node removes its deployed resource. The Prisma Cloud target
-requires exactly two environment variables: `PRISMA_SERVICE_TOKEN` and
-`PRISMA_WORKSPACE_ID`. There is no interactive login.
-
-**Stages.** A stage is an environment name chosen on the command line at
-deploy time, never written in the topology. The identical graph deploys
-everywhere. On the Prisma Cloud target, a Prisma App is one Project and a
-stage is a Branch of it, with its own running services, its own empty
-database, its own configuration. A stage name must be a valid git ref name;
-an invalid name is a hard error.
-
-**Destroy** always requires an explicit target: a bare destroy is an error,
-and naming a stage and production together is too. Destroying a stage
-deletes its Branch after removing its resources. Destroying production
-removes only the resources inside the production Branch, never the Branch
-itself directly; once the Project is empty it is deleted too, and that
-deletion takes the production Branch with it. A Project still holding
-another stage's resources is kept. Destroy never creates anything:
-destroying a
-never-deployed stage fails rather than standing one up.
-
-**The engine underneath is alchemy.** Convergence is executed by
-[alchemy](https://alchemy.run), a third-party infrastructure-as-code engine
-that arrives as an ordinary, exactly-pinned npm dependency of
-`@prisma/composer` (2.0.0-beta.74 at this library version). Your code never
-imports or configures it; consult alchemy's own docs for the engine itself.
-What matters operationally:
-
-1. Deploy and destroy write the pipeline's results to a generated, gitignored
-   stack file at `.prisma-composer/alchemy.run.ts`, then run the alchemy CLI
-   against it as a child process; `dev` does the same at
-   `.prisma-composer/dev/alchemy.run.ts` with local providers. The file
-   carries the computed values as literals but reads credentials via
-   `fromEnv()`, so nothing sensitive lands on disk, and it is regenerated
-   every run: output, not configuration, never edited.
-2. Failures are bisectable through that file. A failing deploy names its
-   path; running `alchemy deploy .prisma-composer/alchemy.run.ts` directly
-   separates "the framework computed the wrong thing" from "the engine or
-   platform rejected the right thing". An engine failure surfaces as
-   `DEPLOY.ENGINE_FAILED` carrying the exit code and that reproduce command;
-   the child's live output streams to the terminal either way.
-3. Destroy evaluates the same stack program as deploy, and evaluating it
-   packages the assembled bundles, so **an app must be built before it can
-   be torn down**.
-4. alchemy is why the `effect` pin exists: it resolves the `effect`
-   constellation, and a hoisted newer `effect` halts every command (failure
-   mode 1 below).
-
-**The deploy report** ends with the app's own topology: authored names, the
-platform resource each became, and public URLs. Read ids out of it rather
-than hunting in the Console. A URL appears only where the address is
-genuinely public: a service prints one, a database never does, and a
-node whose product is secret material reports no resource line at all.
-
-**Connection contract refusals.** A connection declares the values it needs
-by name; a producer that omits one fails the deploy, naming the edge, the
-param, and what the producer did supply:
-
-```text
-Connection input "auth.db" declares param "url", but its producer "db" did not
-supply it — the producer's outputs carry [host].
+# Should complete without errors
 ```
 
-This is a deploy-time refusal, not a broken deploy, and it can appear on an
-app whose code didn't change (the gap used to pass silently as `undefined`
-and crash the consumer at boot). Fix whichever end is wrong; don't mark the
-param `optional` unless absent really is legal. Only reachable if you
-authored the connection or an extension on one side.
+---
 
-**Driving deploys from code.** `@prisma/composer/control` exposes typed
-`deploy`, `destroy`, `dev`, and `log` returning structured results. Failures
-come back as `{ ok: false, failure }` with a dotted `failure.code` from a
-closed registry (e.g. `ASSEMBLE.BUILD_FAILED`, `DEPLOY.ENGINE_FAILED`,
-`DEPS.EFFECT_VERSION_CONFLICT`); branch on the code, not the message. A
-non-structured rejection out of an operation is a bug in composer, not an
-expected failure.
+## Deploy Task
 
-## Local development
+### Task: Deploy App to Stage
 
-The `dev` command runs the whole app on this machine, wired as it deploys,
-against local emulators. No cloud credentials are needed or read. Concepts
-that surprise:
+**Prerequisites Check**:
+```bash
+# 1. Verify env vars
+echo "PRISMA_SERVICE_TOKEN: ${PRISMA_SERVICE_TOKEN:-(not set)}"
+echo "PRISMA_WORKSPACE_ID: ${PRISMA_WORKSPACE_ID:-(not set)}"
 
-1. It runs the same pipeline as deploy, so **build first**, exactly like
-   deploy. It watches built output and restarts a service when its build
-   changes.
-2. Ctrl-C stops the app's processes but leaves local databases, buckets, and
-   their data up: the next `dev` is a warm start. Starting clean, wiping
-   this app's local instances and data first, is an explicit opt-in flag.
-3. `dev` does not print service logs; `log` is a separate, read-only command
-   that follows the already-running app's merged logs. It never builds,
-   provisions, starts, or stops anything.
-4. An unset secret doesn't block a local run: it becomes a placeholder plus a
-   warning, and only the code path that spends it fails, at the external
-   service it calls.
-5. Windows isn't supported yet.
+# 2. Check effect pinning
+cat package.json | grep -A 10 '"overrides"'
 
-## Testing is an environment seam
+# 3. Verify config exists
+ls -la prisma-composer.config.ts
+```
 
-A test is just another environment: one where you decide what `load()` and
-`input()` return, never by editing the code under test.
+**Steps**:
 
-| You want to…                                               | Use                | From                                    |
-| ---------------------------------------------------------- | ------------------ | --------------------------------------- |
-| Test a page / action / handler in isolation                | `mockService`      | `@prisma/composer/testing`              |
-| Run the real boot + request path against a fake dependency | `bootstrapService` | `@prisma/composer-prisma-cloud/testing` |
+```bash
+# 1. Build all services
+bun build services/auth/server.ts --outdir dist --format esm
 
-`mockService` returns a copy of the service whose `load()` yields your
-doubles (type-checked against the declared deps) and whose `input()` yields
-the object passed under the reserved `input` key (required exactly when the
-service declares an input schema; handed over as-is, not validated). Wiring
-the module substitution is your runner's job (`vi.mock` in Vitest,
-`mock.module` in bun test).
+# 2. Deploy to stage
+prisma-composer deploy staging
 
-`bootstrapService` boots the service's real built entry in-process against a
-config you choose; drive it over real HTTP. Gotchas:
+# 3. Verify deployment
+# Check deploy report for:
+# - Service URLs
+# - Resource IDs
+# - No errors
+```
 
-1. `service.port` must be concrete: the entry self-listens, and no
-   OS-assigned port is reported back.
-2. There is no `close()`; run each integration-test file in its own process
-   (bun test does).
-3. Next.js services take a third argument, a boot thunk, resolved with
-   `standaloneServerPath` from `@prisma/composer/nextjs/control`.
-4. A service with an input schema takes `input` in the config, a binding
-   exactly like `provision()`'s, run through the real serialize/read path.
+**Post-Deploy Verification**:
+```bash
+# Test RPC endpoint (through consumer, not direct curl)
+# Direct curl will return 401 (expected - service keys enforced)
 
-A dependency's type is its contract, so any value of that shape is a valid
-double: a bare object, the real client over an in-memory handler, or a real
-local server. Ship a dependency's fake from its own package as a `/fake`
-entry point, outside `src/`, so the fake and the real service share one
-contract.
+# Check logs
+prisma-composer log --stage staging
+```
 
-## Building blocks and extensions
+**Failure Recovery**:
 
-First-party Modules ship inside `@prisma/composer-prisma-cloud` and
-provision exactly like your own:
+| Error | Recovery Action |
+|-------|-----------------|
+| `effect` version conflict | Reinstall with pinned versions (see Setup) |
+| `MIGRATION_PATH_NOT_FOUND` | Run `prisma migration plan --name <slug>` |
+| `DEPLOY.ENGINE_FAILED` | Run `alchemy deploy .prisma-composer/alchemy.run.ts` directly |
+| 401 on `/rpc/<method>` | Normal — debug through consumer, not direct curl |
 
-| Import                    | What it provisions                                                                       | Exposes                   |
-| ------------------------- | ---------------------------------------------------------------------------------------- | ------------------------- |
-| `cron` from `/cron`       | An always-on scheduler firing your schedule at your runner service                       | nothing                   |
-| `storage` from `/storage` | An S3-backed blob store (own Postgres + minted credentials)                              | `store`                   |
-| `streams` from `/streams` | Durable append-only event streams over a `store`                                         | `streams`                 |
-| `auth` from `/auth`       | Signup, login, sessions, and JWT verification (Better Auth in one service, own database) | `api`, `session`, `admin` |
-| `email` from `/email`     | Transactional email with a stored outbox (own service and database)                      | `send`, `outbox`          |
+---
 
-`bucket()` (imported alongside `rawPostgres`) is a raw S3-compatible bucket:
-the dependency end receives `{ url, bucket, accessKeyId, secretAccessKey }`,
-shape-compatible with `/storage`'s `s3()` dependency, so a service wired to
-`s3()` can be rewired to a `bucket` resource unchanged.
+## Migrate Database Task
 
-An extension (a package bringing its own Modules, resources, or deploy
-target) is published on npm as `prisma-composer-*`. The ecosystem is new:
-today the blocks above plus your own Modules are the whole set, so verify a
-`prisma-composer-*` package exists on npm before reaching for it.
+### Task: Add Schema Migration
 
-## Failure modes quick reference
+**Input**: Schema changes in `contract.prisma`
 
-1. **Every `prisma-composer` command halts at start-up on an `effect`
-   version conflict** (`Dependency conflict: alchemy resolves effect@...`).
-   Another dependency floated a newer `effect` and the package manager
-   hoisted it over Composer's pin. Pin the whole `effect` constellation in
-   the app's `package.json` `overrides` (yarn: `resolutions`; pnpm:
-   `pnpm.overrides`): `effect` plus `@effect/sql-d1`, `@effect/sql-pg`,
-   `@effect/vitest`, and `@effect/platform-bun`/`-node`/`-node-shared`, all
-   at Composer's exact pin, then reinstall. The repo's examples carry the
-   block.
-2. **A deployed `/rpc/<method>` returns `401` to anything but a wired
-   peer.** Not a broken deploy; see Contracts above.
-3. **Scale-to-zero closes idle database connections.** A persistent client
-   crashes into a 502 restart loop unless the pool is small and
-   reconnect-friendly (`new SQL({ url, max: 1, idleTimeout: 10 })` for Bun)
-   and the process logs `uncaughtException`/`unhandledRejection` instead of
-   dying. Under `dev` watch-restarts against the local emulator, add
-   `prepare: false` as well: restarted processes collide on
-   prepared-statement names in the emulator's shared session.
-4. **Cold starts reset service-to-service connections.** A call into a
-   scaled-to-zero service can get `ECONNRESET`; retry it.
-5. **Bind `0.0.0.0`, not loopback.** The platform routes external HTTP to
-   the VM; a loopback-only listener is unreachable.
-6. **The ingress buffers streaming responses.** An open SSE tail delivers
-   nothing and times out at 60s; don't build on streamed HTTP responses.
-7. **Naming rules fail at load, not typecheck.** Provision ids and declared
-   node names must be ASCII letters and digits only (`[A-Za-z0-9]`): they
-   derive config keys and address segments, so a hyphenated name like
-   `my-db` passes `tsc` and then fails the load. The root module's name is
-   exempt. A provision id shorter than 3 characters is rejected by the
-   platform (name the database `'database'`, not `'db'`), and a service
-   whose name equals its enclosing Module's reads as `auth.auth` unless
-   given an explicit `id`.
-8. **`MIGRATION_PATH_NOT_FOUND`**: see Databases above; author the missing
-   migration, don't skip the plan step.
-9. **Date/time columns hand back `Temporal.*` values on read.** Bun and
-   stock Node ship no global `Temporal`, so a service with `DateTime`
-   contract columns compiles and deploys, then fails on the first timestamp
-   read. Provide the global at the server entry
-   (`import 'temporal-polyfill/global'`) or use string column types.
+**Steps**:
 
-## What Composer doesn't do yet
+```bash
+# 1. Edit contract.prisma
+# (make schema changes in editor)
 
-Name the gap instead of inventing an API:
+# 2. Regenerate contract artifacts
+prisma contract emit
 
-1. **No interactive auth in the `prisma-composer` CLI.** Its deploys
-   authenticate only via a static
-   `PRISMA_SERVICE_TOKEN`; there is no `login` flow.
-2. **No in-memory contract bindings.** A dependency can't yet be wired to a
-   co-located handler without HTTP; use `bootstrapService` with a loopback
-   fake.
-3. **RPC over HTTP is the only contract kind.** No gRPC, WebSocket, or
-   streaming contracts.
+# 3. Verify generated files
+ls -la modules/catalog/contract.json
+ls -la modules/catalog/contract.d.ts
 
-For anything else missing, check `examples/`, `docs/design/10-domains/`, and
-`docs/design/90-decisions/` in the prisma/composer repo, then file an issue
-there rather than guessing.
+# 4. Author migration
+prisma migration plan --name add_users_table
+
+# 5. Verify migration created
+ls -la modules/catalog/migrations/
+
+# 6. Commit migrations
+git add modules/catalog/migrations/
+git commit -m "Add users table migration"
+
+# 7. Deploy (replays all migrations)
+prisma-composer deploy production
+```
+
+**Verification**:
+```bash
+# Check migration was applied
+prisma-composer log --stage production
+
+# Should show migration applied successfully
+```
+
+**Failure Recovery**:
+
+| Error | Recovery Action |
+|-------|-----------------|
+| `MIGRATION_PATH_NOT_FOUND` | Author missing migration with `prisma migration plan` |
+| Migration fails on deploy | Check `migrations/` directory committed, retry deploy |
+| Local DB stale | Run `prisma db update` for local iteration only |
+
+---
+
+## Test Task
+
+### Task: Create and Run Tests
+
+**Steps**:
+
+```bash
+# 1. Create unit test
+cat > services/auth/server.test.ts << 'EOF'
+import { mockService } from "@prisma/composer/testing";
+import { describe, it, expect } from "bun:test";
+import authDeclaration from "./service";
+
+describe("auth service", () => {
+  it("verifies valid token", async () => {
+    const mockDb = { url: "postgresql://mock:5432/test" };
+    const service = mockService(authDeclaration, {
+      deps: { db: mockDb },
+      input: { jwtSecret: "test-secret-key-here" }
+    });
+    
+    const { verify } = service.load().rpc;
+    const result = await verify({ token: "valid-token" });
+    
+    expect(result.ok).toBe(true);
+  });
+});
+EOF
+
+# 2. Create integration test
+cat > tests/auth.integration.test.ts << 'EOF'
+import { bootstrapService } from "@prisma/composer-prisma-cloud/testing";
+import { describe, it, expect, beforeEach } from "bun:test";
+
+describe("auth integration", () => {
+  let service: ReturnType<typeof bootstrapService>;
+  
+  beforeEach(() => {
+    service = bootstrapService(authDeclaration, {
+      deps: { db: { url: "postgresql://localhost:5432/test_db" } },
+      input: { jwtSecret: "test-secret" }
+    });
+  });
+  
+  it("handles login request", async () => {
+    const response = await fetch(`http://localhost:${service.port}/rpc/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "test@example.com", password: "password123" })
+    });
+    
+    expect(response.status).toBe(200);
+  });
+});
+EOF
+
+# 3. Run tests
+bun test services/auth/server.test.ts
+bun test tests/auth.integration.test.ts
+```
+
+**Verification**:
+```bash
+# All tests should pass
+# Check test output for failures
+```
+
+---
+
+## Debug Task
+
+### Task: Debug Deployment Failure
+
+**Diagnostic Steps**:
+
+```bash
+# 1. Check build status
+bun build services/auth/server.ts --outdir dist --format esm
+# If fails: fix build errors first
+
+# 2. Check config
+cat prisma-composer.config.ts
+# Should have targets and builds defined
+
+# 3. Check effect pinning
+cat package.json | grep -A 10 '"overrides"'
+# Should have all effect packages pinned
+
+# 4. Run deploy with verbose output
+prisma-composer deploy staging --verbose
+
+# 5. If deploy fails, check alchemy stack file
+cat .prisma-composer/alchemy.run.ts
+
+# 6. Reproduce alchemy failure directly
+alchemy deploy .prisma-composer/alchemy.run.ts
+
+# 7. Check logs for deployed app
+prisma-composer log --stage staging
+```
+
+**Common Issues & Fixes**:
+
+| Issue | Diagnostic | Fix |
+|-------|------------|-----|
+| `effect` version conflict | `Dependency conflict: alchemy resolves effect@...` | Pin effect constellation in `package.json` overrides |
+| 401 on `/rpc/<method>` | Direct curl returns 401 | Normal — service keys enforced. Debug through consumer |
+| `MIGRATION_PATH_NOT_FOUND` | Deploy refuses with this error | Run `prisma migration plan --name <slug>` |
+| Service unreachable | Can't connect to deployed service | Check binding: should be `0.0.0.0`, not `localhost` |
+| Timestamp read fails | First read of DateTime column crashes | Add `import 'temporal-polyfill/global'` at server entry |
+
+---
+
+## Local Development Task
+
+### Task: Run App Locally
+
+**Steps**:
+
+```bash
+# 1. Build first
+bun build services/auth/server.ts --outdir dist --format esm
+
+# 2. Run dev
+prisma-composer dev
+
+# 3. Follow logs (separate terminal)
+prisma-composer log
+
+# 4. Stop dev (Ctrl-C)
+# Local databases and data persist for warm start
+
+# 5. Clean start (wipe local data)
+prisma-composer dev --clean
+```
+
+**Verification**:
+```bash
+# Check services are running
+prisma-composer log
+
+# Should show service startup logs
+```
+
+---
+
+## File Structure Reference
+my-app/
+├── prisma-composer.config.ts # Deploy config
+├── tsconfig.json # TypeScript config
+├── package.json # Dependencies + effect overrides
+├── .prisma-composer/ # Generated (gitignored)
+│ └── alchemy.run.ts # Stack file for deploy/destroy
+├── modules/
+│ └── store/
+│ ├── module.ts # Root module
+│ └── catalog/
+│ ├── module.ts
+│ ├── contract.prisma
+│ ├── contract.json # Generated
+│ ├── contract.d.ts # Generated
+│ └── migrations/ # Committed migrations
+├── services/
+│ └── auth/
+│ ├── service.ts # compute() declaration
+│ ├── server.ts # Built entry
+│ └── contract.ts # RPC contract
+└── dist/
+└── server.mjs # Built output
+
+text
+
+---
+
+## Command Reference
+
+```bash
+# Development
+prisma-composer dev              # Run locally
+prisma-composer log              # Follow logs
+
+# Deployment
+prisma-composer deploy <stage>   # Deploy to stage
+prisma-composer destroy <stage>  # Destroy stage (explicit target required)
+
+# Database
+prisma contract emit             # Regenerate contract artifacts
+prisma migration plan --name <slug>  # Author migration
+prisma db update                 # Update local DB (iteration only)
+
+# Help
+prisma-composer <command> --help # Show command help
+```
+
+---
+
+## Import Reference
+
+```typescript
+// Core
+import { module, compute, node } from "@prisma/composer";
+
+// Prisma Cloud
+import { prismaCloud, rawPostgres, bucket, envSecret, envParam } 
+  from "@prisma/composer-prisma-cloud";
+
+// ORM
+import { postgres, dataContract } 
+  from "@prisma/composer-prisma-cloud/orm";
+
+// Modules
+import { cron } from "@prisma/composer-prisma-cloud/cron";
+import { storage } from "@prisma/composer-prisma-cloud/storage";
+import { streams } from "@prisma/composer-prisma-cloud/streams";
+import { auth } from "@prisma/composer-prisma-cloud/auth";
+import { email } from "@prisma/composer-prisma-cloud/email";
+
+// Testing
+import { mockService } from "@prisma/composer/testing";
+import { bootstrapService } from "@prisma/composer-prisma-cloud/testing";
+
+// Control
+import { deploy, destroy, dev, log } from "@prisma/composer/control";
+```
+
+---
+
+## Resources
+
+- **Docs**: <https://www.prisma.io/docs/composer>
+- **Examples**: <https://github.com/prisma/composer/tree/main/examples>
+- **Discord**: <https://pris.ly/discord>
+- **npm**: <https://www.npmjs.com/package/@prisma/composer>
+
+---
+
+> **Execution Checklist**: Typecheck ✅ → Build ✅ → Deploy ✅ → Verify ✅
+Características de esta versión para Devin:
+✅ Tasks autónomas — pasos completos ejecutables
+✅ Verificación integrada — checks después de cada paso
+✅ Recovery procedures — qué hacer cuando falla
+✅ Comandos copy-paste — scripts listos para terminal
+✅ Diagnóstico estructurado — tablas de issues & fixes
+✅ File structure reference — para navegación autónoma
+✅ Import reference — para generación de código
