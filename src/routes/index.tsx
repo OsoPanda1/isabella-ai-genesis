@@ -130,7 +130,11 @@ function Index() {
           <div className="glass min-h-[52vh] flex-1 overflow-y-auto rounded-3xl">
             <MessageStream
               messages={isabella.messages}
-              onRetry={() => lastInput.current && send(lastInput.current)}
+              onRetry={() => {
+                if (lastInput.current || lastAttachments.current.length) {
+                  send(lastInput.current, lastAttachments.current);
+                }
+              }}
             />
           </div>
           <CommandLine
