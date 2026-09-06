@@ -18,6 +18,7 @@ import { QuantumUtilityDashboard } from "@/components/isabella/QuantumUtilityDas
 import { AiInterfacesHub } from "@/components/isabella/AiInterfacesHub";
 import { LatamAegisDashboard } from "@/components/isabella/LatamAegisDashboard";
 import { CognitiveStatusDashboard } from "@/components/isabella/CognitiveStatusDashboard";
+import { FindarepoDashboard } from "@/components/isabella/FindarepoDashboard";
 import { useIsabella } from "@/lib/useIsabella";
 
 const TITLE = "Isabella Villaseñor AI — Terminal Cognitivo C.R.O.W.N.";
@@ -227,6 +228,7 @@ function IsabellaInterface() {
                   {activeTab === "monetization" && "Tablero de Consumo Soberano"}
                   {activeTab === "quantum" && "Optimización y Transpilación Cuántica (qup)"}
                   {activeTab === "aegis" && "Muro de Defensa Activa LATAM AEGIS-X"}
+                  {activeTab === "findarepo" && "Ranking Global de Agentes (Findarepo)"}
                 </p>
               </div>
             </div>
@@ -344,6 +346,12 @@ function IsabellaInterface() {
           {activeTab === "aegis" && (
             <div className="animate-rise max-w-[1300px] mx-auto crystal-glow-crown rounded-3xl overflow-hidden">
               <LatamAegisDashboard />
+            </div>
+          )}
+
+          {activeTab === "findarepo" && (
+            <div className="animate-rise max-w-[1300px] mx-auto crystal-glow-electric rounded-3xl overflow-hidden h-[85vh]">
+              <FindarepoDashboard />
             </div>
           )}
         </main>

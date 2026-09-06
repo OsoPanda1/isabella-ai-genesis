@@ -33,7 +33,8 @@ export type NavTabId =
   | "monetization"
   | "quantum"
   | "interfaces"
-  | "aegis";
+  | "aegis"
+  | "findarepo";
 
 export interface NavGroupItem {
   id: NavTabId;
@@ -206,6 +207,14 @@ export const NAV_GROUPS = (
         id: "interfaces",
         label: "Interfaces IA",
         icon: <Sparkles className="size-4" />,
+        glow: "crystal-glow-electric",
+        activeClass:
+          "bg-electric/15 text-electric border border-electric/30 shadow-[0_0_15px_-4px_rgba(112,102,249,0.3)]",
+      },
+      {
+        id: "findarepo",
+        label: "AI Agents Repos (Findarepo)",
+        icon: <TrendingUp className="size-4" />,
         glow: "crystal-glow-electric",
         activeClass:
           "bg-electric/15 text-electric border border-electric/30 shadow-[0_0_15px_-4px_rgba(112,102,249,0.3)]",
