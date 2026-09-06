@@ -31,15 +31,38 @@ function Index() {
   const lastInput = useRef("");
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  const send = (text: string) => {
+  const lastAttachments = useRef<Attachment[]>([]);
+  const [intro, setIntro] = useState(false);
+
+  // El intro cinematográfico se ejecuta una vez por sesión, sólo en el cliente.
+  useEffect(() => {
+    try {
+      if (!window.sessionStorage.getItem("isabella.intro.v1")) setIntro(true);
+    } catch {
+      /* almacenamiento no disponible */
+    }
+  }, []);
+
+  const closeIntro = () => {
+    setIntro(false);
+    try {
+      window.sessionStorage.setItem("isabella.intro.v1", "1");
+    } catch {
+      /* almacenamiento no disponible */
+    }
+  };
+
+  const send = (text: string, attachments: Attachment[] = []) => {
     lastInput.current = text;
-    void isabella.send(text);
+    lastAttachments.current = attachments;
+    void isabella.send(text, attachments);
   };
 
   const turns = isabella.messages.filter((m) => m.role === "user").length;
 
   return (
     <div className="min-h-screen">
+      {intro && <CinematicIntro onComplete={closeIntro} />
       <header className="hairline sticky top-0 z-20 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 py-4 sm:px-8">
           <div>
