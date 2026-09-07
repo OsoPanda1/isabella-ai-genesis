@@ -1,4 +1,3 @@
-
 import {
   Outlet,
   Link,
@@ -8,6 +7,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Component, useEffect, type ErrorInfo, type ReactNode } from "react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import appCss from "../styles.css?url";
 
@@ -123,6 +123,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <body>
         {children}
         <Scripts />
+        <SpeedInsights />
       </body>
     </html>
   );
@@ -142,7 +143,10 @@ class ClientErrorBoundary extends Component<
   }
 
   override componentDidCatch(error: unknown, info: ErrorInfo) {
-    console.error("[Isabella] client render failure", { error, componentStack: info.componentStack });
+    console.error("[Isabella] client render failure", {
+      error,
+      componentStack: info.componentStack,
+    });
   }
 
   override render() {
@@ -150,11 +154,23 @@ class ClientErrorBoundary extends Component<
       return (
         <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
           <section className="glass-strong w-full max-w-xl rounded-3xl p-8 text-center">
-            <p className="font-mono text-xs uppercase tracking-[0.24em] text-electric">C.R.O.W.N. Recovery</p>
+            <p className="font-mono text-xs uppercase tracking-[0.24em] text-electric">
+              C.R.O.W.N. Recovery
+            </p>
             <h1 className="mt-4 text-2xl font-semibold">La interfaz encontró un error</h1>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">El backend permanece protegido. Recarga la interfaz para reintentar el montaje.</p>
-            <button type="button" onClick={() => window.location.reload()} className="mt-6 rounded-xl bg-primary px-5 py-3 font-mono text-xs uppercase tracking-wider text-primary-foreground">Reintentar interfaz</button>
-            <p className="mt-4 font-mono text-[10px] text-muted-foreground">Código de recuperación: CROWN-RENDER-01</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              El backend permanece protegido. Recarga la interfaz para reintentar el montaje.
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-6 rounded-xl bg-primary px-5 py-3 font-mono text-xs uppercase tracking-wider text-primary-foreground"
+            >
+              Reintentar interfaz
+            </button>
+            <p className="mt-4 font-mono text-[10px] text-muted-foreground">
+              Código de recuperación: CROWN-RENDER-01
+            </p>
           </section>
         </main>
       );
