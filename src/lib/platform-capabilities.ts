@@ -5,7 +5,7 @@
  * authorization boundary or an unsupported production claim.
  */
 export type CapabilityStatus =
-  "implemented" | "verified" | "experimental" | "simulated" | "planned" | "unavailable";
+  "implemented" | "verified" | "experimental" | "simulated" | "shadow" | "planned" | "unavailable";
 
 export interface PlatformCapability {
   id: string;
@@ -61,6 +61,15 @@ export const PLATFORM_CAPABILITIES: readonly PlatformCapability[] = [
     notes: "Simulator/fallback boundary; no QPU or quantum-safe certification is claimed.",
   },
   {
+    id: "cryptography.post-quantum-signatures",
+    owner: "QUP",
+    status: "simulated",
+    productionSafe: false,
+    evidence: ["src/lib/sovereign-audit.ts", "src/lib/qup-v3-engine.ts"],
+    notes:
+      "ML-DSA simulation is not cryptographic signature authority and must never be advertised as verified.",
+  },
+  {
     id: "economy.ledger",
     owner: "BookPI",
     status: "implemented",
@@ -97,7 +106,15 @@ export function capabilitySummary() {
       summary[capability.status] += 1;
       return summary;
     },
-    { implemented: 0, verified: 0, experimental: 0, simulated: 0, planned: 0, unavailable: 0 },
+    {
+      implemented: 0,
+      verified: 0,
+      experimental: 0,
+      simulated: 0,
+      shadow: 0,
+      planned: 0,
+      unavailable: 0,
+    },
   );
 }
 

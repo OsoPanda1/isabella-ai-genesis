@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Cpu, Play, ListCollapse, Clock, Percent } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { toast } from "sonner";
@@ -15,55 +15,16 @@ interface QuantumJob {
 }
 
 export function QuantumJobMonitor() {
-  const [jobs, setJobs] = useState<QuantumJob[]>([
-    {
-      id: "qup-job-a3b1",
-      objective: "Clasificación QML Híbrido",
-      backend: "aer_simulator_local",
-      status: "Completed",
-      qubits: 4,
-      fidelity: 96.8,
-      durationMs: 820,
-      timestamp: "Hace 2 mins",
-    },
-    {
-      id: "qup-job-e58f",
-      objective: "Cálculo Hamiltonian VQE",
-      backend: "ibm_sherbrooke_qpu",
-      status: "Completed",
-      qubits: 8,
-      fidelity: 94.1,
-      durationMs: 1420,
-      timestamp: "Hace 5 mins",
-    },
-    {
-      id: "qup-job-f9e2",
-      objective: "Simulación de Espines QEC",
-      backend: "aws_braket_dm1",
-      status: "Executing",
-      qubits: 6,
-      fidelity: 0,
-      durationMs: 0,
-      timestamp: "En proceso...",
-    },
-    {
-      id: "qup-job-908a",
-      objective: "Estado GHZ (5 Qubits)",
-      backend: "aer_simulator_local",
-      status: "Queued",
-      qubits: 5,
-      fidelity: 0,
-      durationMs: 0,
-      timestamp: "En cola...",
-    },
-  ]);
+  // Sin jobs semilla: la cola inicia vacía y solo muestra trabajos
+  // ejecutados de verdad contra /api/db?action=qup-run en esta sesión.
+  const [jobs, setJobs] = useState<QuantumJob[]>([]);
 
   const [isSimulating, setIsSimulating] = useState(false);
 
   const handleSimulateNewJob = async () => {
     setIsSimulating(true);
     const newId = `qup-job-${Math.random().toString(36).substring(2, 6)}`;
-    
+
     const randomObjectives = [
       { obj: "qml_classification", label: "Clasificación QML Híbrido" },
       { obj: "hamiltonian_spectrum", label: "Cálculo Hamiltonian VQE" },
@@ -72,7 +33,7 @@ export function QuantumJobMonitor() {
     ] as const;
 
     const randomBackends = ["aer_simulator_local", "aws_braket_dm1", "ibm_sherbrooke_qpu"] as const;
-    
+
     const choice = randomObjectives[Math.floor(Math.random() * randomObjectives.length)];
     const backend = randomBackends[Math.floor(Math.random() * randomBackends.length)];
     const qubits = Math.floor(Math.random() * 8) + 2;
@@ -123,7 +84,11 @@ export function QuantumJobMonitor() {
         },
       };
 
-      setJobs((prev) => prev.map(j => j.id === newId ? { ...j, status: "Transpiling", timestamp: "Transpilando..." } : j));
+      setJobs((prev) =>
+        prev.map((j) =>
+          j.id === newId ? { ...j, status: "Transpiling", timestamp: "Transpilando..." } : j,
+        ),
+      );
 
       const res = await fetch("/api/db?action=qup-run", {
         method: "POST",
@@ -135,20 +100,29 @@ export function QuantumJobMonitor() {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || "Error en API cuántica");
       }
-      
+
       const { result } = await res.json();
-      
-      setJobs((prev) => prev.map(j => j.id === newId ? { 
-        ...j, 
-        status: "Completed", 
-        fidelity: parseFloat((result.runtime.quantumFidelity * 100).toFixed(1)), 
-        durationMs: result.compilation.latencyMs,
-        timestamp: "Hace unos instantes" 
-      } : j));
-      toast.success(`Trabajo cuántico ${newId} completado con fidelidad: ${(result.runtime.quantumFidelity * 100).toFixed(1)}%`);
-      
+
+      setJobs((prev) =>
+        prev.map((j) =>
+          j.id === newId
+            ? {
+                ...j,
+                status: "Completed",
+                fidelity: parseFloat((result.runtime.quantumFidelity * 100).toFixed(1)),
+                durationMs: result.compilation.latencyMs,
+                timestamp: "Hace unos instantes",
+              }
+            : j,
+        ),
+      );
+      toast.success(
+        `Trabajo cuántico ${newId} completado con fidelidad: ${(result.runtime.quantumFidelity * 100).toFixed(1)}%`,
+      );
     } catch (e) {
-      setJobs((prev) => prev.map(j => j.id === newId ? { ...j, status: "Failed", timestamp: "Falló" } : j));
+      setJobs((prev) =>
+        prev.map((j) => (j.id === newId ? { ...j, status: "Failed", timestamp: "Falló" } : j)),
+      );
       toast.error(`Error ejecutando job: ${e instanceof Error ? e.message : "Desconocido"}`);
     } finally {
       setIsSimulating(false);
@@ -164,6 +138,14 @@ export function QuantumJobMonitor() {
       duration: j.durationMs,
     }))
     .reverse();
+
+  // Latencia promedio real de los trabajos completados en esta sesión.
+  const averageLatencyLabel = (() => {
+    const done = jobs.filter((j) => j.status === "Completed" && j.durationMs > 0);
+    if (done.length === 0) return "Sin corridas aún";
+    const avg = done.reduce((acc, j) => acc + j.durationMs, 0) / done.length;
+    return `${(avg / 1000).toFixed(2)} seg / Corrida (${done.length})`;
+  })();
 
   return (
     <div
@@ -191,7 +173,8 @@ export function QuantumJobMonitor() {
         {/* JOBS LIST TABLE */}
         <div className="lg:col-span-7 space-y-2.5">
           <span className="block text-[10px] uppercase font-bold text-white font-mono flex items-center gap-1">
-            <ListCollapse className="size-3.5 text-crown" /> Estado de la Cola en QPU:
+            <ListCollapse className="size-3.5 text-crown" /> Cola de estimación (estimador clásico
+            QUP):
           </span>
           <div className="border border-border/10 rounded-xl overflow-hidden bg-black/15">
             <div className="grid grid-cols-12 gap-2 p-2 bg-black/40 text-[9.5px] font-bold text-white border-b border-border/5 uppercase font-mono">
@@ -201,6 +184,12 @@ export function QuantumJobMonitor() {
               <div className="col-span-2 text-right">Fidelidad</div>
             </div>
             <div className="divide-y divide-border/5 max-h-[190px] overflow-auto">
+              {jobs.length === 0 && (
+                <div className="p-4 text-center italic text-muted-foreground text-[11px]">
+                  Cola vacía. Inyecta un job para ejecutar el pipeline QUP real (compilación +
+                  estimación + gobernanza + sello de auditoría).
+                </div>
+              )}
               {jobs.map((job) => (
                 <div
                   key={job.id}
@@ -289,7 +278,7 @@ export function QuantumJobMonitor() {
             <span className="flex items-center gap-1 text-muted-foreground">
               <Clock className="size-3 text-purple-400" /> Latencia Promedio:
             </span>
-            <strong className="text-white font-bold">1.12 seg / Corrida</strong>
+            <strong className="text-white font-bold">{averageLatencyLabel}</strong>
           </div>
         </div>
       </div>

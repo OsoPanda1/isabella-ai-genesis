@@ -15,6 +15,7 @@ import {
   toTelemetryRecord,
   type TelemetryRecord,
 } from "./audit-export";
+import { useIsabellaObservability } from "@/hooks/use-isabella-observability";
 
 export interface TerminalMessage {
   id: string;
@@ -24,6 +25,10 @@ export interface TerminalMessage {
   decision?: RoutingDecision;
   streaming?: boolean;
   error?: boolean;
+  /** Proveedor real de la respuesta; "native-fallback" = clasificador local, NO LLM. */
+  provider?: string;
+  /** True cuando la respuesta se generó en modo degradado declarado. */
+  degraded?: boolean;
   attachments?: Attachment[];
 }
 
@@ -91,6 +96,7 @@ export function useIsabella() {
   const [telemetry, setTelemetry] = useState<TelemetryRecord[]>([]);
   const [runId] = useState(() => `run-${uid()}`);
   const abortRef = useRef<AbortController | null>(null);
+  const { logLifecycleEvent, validatePayload } = useIsabellaObservability();
 
   const preset: Preset = PRESETS.find((p) => p.id === presetId) ?? (PRESETS[0] as Preset);
 
@@ -129,7 +135,18 @@ export function useIsabella() {
       const text = input.trim();
       if ((!text && attachments.length === 0) || isProcessing) return;
 
-      const skillResolution = resolveSkillInvocation(text);
+      logLifecycleEvent("INIT", { input: text, attachmentsCount: attachments.length });
+
+      // Apply robust serialization protocol to validate the outgoing payload
+      const validatedPayload = validatePayload(text, attachments);
+      if (!validatedPayload) {
+         logLifecycleEvent("ERROR", { reason: "Payload validation failed" });
+         return;
+      }
+
+      logLifecycleEvent("SANITIZATION", { validatedPayload });
+
+      const skillResolution = resolveSkillInvocation(validatedPayload.text || "");
       if (skillResolution && "error" in skillResolution) {
         setMessages((prev) => [
           ...prev,
@@ -152,6 +169,8 @@ export function useIsabella() {
       const routing = route(effectiveText || "material adjunto", preset);
       setDecision(routing);
       setTelemetry((prev) => [...prev, toTelemetryRecord(routing, preset.id)]);
+      
+      logLifecycleEvent("PAYLOAD_CONSTRUCTION", { presetId: preset.id, routing });
 
       const { getSessionToken, ensureSessionToken, setSessionToken } =
         await import("@/lib/auth-client");
@@ -220,6 +239,7 @@ export function useIsabella() {
       abortRef.current = controller;
 
       try {
+        logLifecycleEvent("SEND", { endpoint: "/api/isabella" });
         const res = await fetch("/api/isabella", {
           method: "POST",
           headers: {
@@ -231,13 +251,20 @@ export function useIsabella() {
             system: buildSystemPrompt(routing, preset) + skillContext,
             temperature: preset.temperature,
             messages: history,
+            context: validatedPayload.context,
           }),
         });
 
         if (!res.ok || !res.body) {
-          const detail = await res.json().catch(() => ({ error: "Fallo de percepción." }));
-          throw new Error(detail.error ?? "Fallo de percepción.");
+          const detail = await res
+            .json()
+            .catch(() => ({ error: "Fallo de percepción." }) as { error?: string; message?: string });
+          throw new Error(detail.message ?? detail.error ?? "Fallo de percepción.");
         }
+
+        // Modo degradado declarado por el servidor (header + payload).
+        const degradedHeader = res.headers.get("x-isabella-degraded-mode");
+        const degradedMode = degradedHeader && degradedHeader.length > 0 ? degradedHeader : null;
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -259,6 +286,16 @@ export function useIsabella() {
             try {
               const json = JSON.parse(payload);
               const delta: string | undefined = json.choices?.[0]?.delta?.content;
+              if (typeof json.provider === "string" || json.degraded === true) {
+                const provider = typeof json.provider === "string" ? json.provider : "unknown";
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === replyId
+                      ? { ...m, provider, degraded: json.degraded === true || degradedMode !== null }
+                      : m,
+                  ),
+                );
+              }
               if (delta) {
                 acc += delta;
                 setTokens((t) => t + 1);
@@ -291,18 +328,22 @@ export function useIsabella() {
               ? {
                   ...m,
                   streaming: false,
+                  degraded: m.degraded ?? degradedMode !== null,
+                  provider: m.provider ?? (degradedMode !== null ? "native-fallback" : "gemini"),
                   content:
                     acc || "Silencio cognitivo: el núcleo no emitió síntesis para esta percepción.",
                 }
               : m,
           ),
         );
+        logLifecycleEvent("SUCCESS", { tokens: acc.length });
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
           setMessages((prev) => prev.filter((m) => m.id !== replyId));
           return;
         }
         const message = err instanceof Error ? err.message : "Interrupción del núcleo.";
+        logLifecycleEvent("ERROR", { reason: message });
         setMessages((prev) =>
           prev.map((m) =>
             m.id === replyId
@@ -315,7 +356,7 @@ export function useIsabella() {
         abortRef.current = null;
       }
     },
-    [isProcessing, messages, preset],
+    [isProcessing, messages, preset, logLifecycleEvent, validatePayload],
   );
 
   const stop = useCallback(() => abortRef.current?.abort(), []);

@@ -1,26 +1,44 @@
-// @lovable.dev/vite-tanstack-config ya incluye tanstackStart, viteReact, tailwindcss, tsConfigPaths, nitro
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { defineConfig } from "vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import tsConfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  tanstackStart: {
-    server: { entry: "server" },
+  plugins: [
+    tanstackStart(),
+    viteReact(),
+    tailwindcss(),
+    tsConfigPaths({
+      projects: ["./tsconfig.json"],
+    }),
+  ],
+  server: {
+    host: "0.0.0.0",
+    port: 3000,
   },
-  nitro: {
-    preset: "vercel",
-  },
-  vite: {
-    resolve: {
-      alias: {
-        "server-only": "vite/client",
+  build: {
+    target: "esnext",
+    minify: "esbuild",
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("@tanstack")) {
+              return "vendor-tanstack";
+            }
+            if (id.includes("react") || id.includes("react-dom")) {
+              return "vendor-react";
+            }
+            if (id.includes("@radix-ui")) {
+              return "vendor-radix";
+            }
+            return "vendor";
+          }
+          return undefined;
+        },
       },
-    },
-    // Excluir dependencias pesadas del bundle SSR de Nitro para prevenir errores Node/Client
-    ssr: {
-      noExternal: [],
-      external: ["three"],
-    },
-    build: {
-      target: "esnext",
     },
   },
 });

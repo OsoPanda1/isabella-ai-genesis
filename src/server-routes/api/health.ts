@@ -9,11 +9,22 @@ export const Route = createFileRoute("/api/health")({
       GET: async ({ request }) => {
         const url = new URL(request.url);
         const path = url.pathname;
+        const stage = url.searchParams.get("stage");
 
-        if (path.endsWith("/live")) {
+        // Liveness dedicado: sin dependencias externas, siempre 200 si el proceso vive.
+        // Accesible vía /api/health/live, /api/health?stage=live y ?health=live.
+        if (
+          path.endsWith("/live") ||
+          stage === "live" ||
+          url.searchParams.get("health") === "live"
+        ) {
           return liveness();
         }
-        if (path.endsWith("/ready")) {
+        if (
+          path.endsWith("/ready") ||
+          stage === "ready" ||
+          url.searchParams.get("health") === "ready"
+        ) {
           return readiness();
         }
         if (path.endsWith("/deep")) {
@@ -59,7 +70,7 @@ async function readiness(): Promise<Response> {
     const repoHealth = await repositoryFactory.getTenantRepository().health();
     checks.repository = { ok: repoHealth.ok, latencyMs: repoHealth.latencyMs };
     if (!repoHealth.ok) overallOk = false;
-  } catch (e) {
+  } catch {
     checks.repository = { ok: false, error: "repository_unavailable" };
     overallOk = false;
   }
@@ -73,7 +84,7 @@ async function readiness(): Promise<Response> {
     );
     checks.config = { ok: hasDurableAuthority };
     if (!hasDurableAuthority && isProductionLike(mode)) overallOk = false;
-  } catch (e) {
+  } catch {
     checks.config = { ok: false, error: "configuration_unavailable" };
     overallOk = false;
   }
@@ -82,8 +93,23 @@ async function readiness(): Promise<Response> {
   try {
     const auditHealth = await repositoryFactory.getAuditRepository().health();
     checks.audit = { ok: auditHealth.ok, latencyMs: auditHealth.latencyMs };
-  } catch (e) {
+  } catch {
     checks.audit = { ok: false, error: "audit_unavailable" };
+  }
+
+  // Isabella AI Genesis Service health
+  try {
+    const cfg = config();
+    // Simulate Isabella AI Genesis connectivity or configuration check
+    const isGenesisConfigured = Boolean(cfg.GEMINI_API_KEY && cfg.CROWN_POLICY_SIGNING_KEY);
+    checks.isabella_genesis = { ok: isGenesisConfigured };
+    if (!isGenesisConfigured && isProductionLike(resolveRuntimeMode(cfg.ISABELLA_RUNTIME_MODE))) {
+      checks.isabella_genesis.error = "genesis_service_unconfigured";
+      overallOk = false;
+    }
+  } catch {
+    checks.isabella_genesis = { ok: false, error: "genesis_service_unavailable" };
+    overallOk = false;
   }
 
   const status = overallOk ? 200 : 503;

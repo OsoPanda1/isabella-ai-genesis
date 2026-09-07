@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
 import { secrets } from "@/lib/secrets";
+import { config } from "@/lib/config";
+import { isProductionLike, resolveRuntimeMode } from "@/lib/runtime-mode";
+import { resolveInferencePolicy, resolveUpstreamFailure } from "@/lib/inference-policy";
 import { withSovereignAuth } from "@/lib/principal-context";
 import {
   LatamAegisXFirewall,
@@ -64,14 +67,20 @@ export const Route = createFileRoute("/api/isabella")({
           );
         }
 
-        // --- LAYER 3.5: Upstream API configuration validation — fallback nativo si no hay GEMINI ---
+        // --- LAYER 3.5: Política estricta de proveedor cognitivo ---
+        // PRODUCTION_NORMAL → proveedor real o FALLO explícito (503 maintenance).
+        // El fallback nativo NUNCA sustituye inferencia generativa en producción:
+        // degradar sin declararlo sería operar un sistema cognitivo fingido.
+        // Solo desarrollo admite native-fallback, declarado en payload y headers.
         let apiKey: string;
         try {
           apiKey = secrets.aiGatewayKey();
         } catch {
           apiKey = "";
         }
-        // Si no hay GEMINI_API_KEY en Vercel, no bloquear chat: usar ML nativo es-MX directamente
+        const productionLike = isProductionLike(
+          resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE),
+        );
         const useNativeOnly = !apiKey;
 
         // Parse Request Body safely with byte counter and hard limit aborts (P15)
@@ -238,6 +247,24 @@ export const Route = createFileRoute("/api/isabella")({
 
         // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker — Gemini o Nativo es-MX ---
         if (useNativeOnly) {
+          const decision = resolveInferencePolicy({ productionLike, hasProvider: false });
+          if (decision.mode === "MAINTENANCE") {
+            // Sin proveedor no hay inferencia productiva: mantenimiento explícito.
+            const headers = SecuritySystem.injectSecureHeaders(
+              new Headers({ "content-type": "application/json" }),
+            );
+            return new Response(
+              JSON.stringify({
+                error: decision.errorCode,
+                provider: decision.provider,
+                degraded: true,
+                mode: "maintenance",
+                message: decision.message,
+                traceId: telemetry.traceId,
+              }),
+              { status: decision.httpStatus, headers },
+            );
+          }
           const native = nativeInference({
             text: lastUserMessage,
             locale: "es-MX",
@@ -256,7 +283,8 @@ export const Route = createFileRoute("/api/isabella")({
               "x-isabella-degraded-mode": "native_fallback",
             }),
           );
-          const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: native.text } }] })}\n\ndata: [DONE]\n\n`;
+          // Declaración semántica explícita: clasificador local, NO LLM.
+          const sseBody = `data: ${JSON.stringify({ provider: "native-fallback", degraded: true, choices: [{ delta: { content: native.text } }] })}\n\ndata: [DONE]\n\n`;
           return new Response(sseBody, { headers });
         }
         try {
@@ -288,7 +316,25 @@ export const Route = createFileRoute("/api/isabella")({
           if (!upstream.ok || !upstream.body) {
             const detail = await upstream.text().catch(() => "");
             console.error(`Isabella gateway error [${upstream.status}]: ${detail}`);
-            // Fallback soberano nativo 100% español LATAM — garantiza respuesta incluso sin Gemini
+            const failure = resolveUpstreamFailure({ productionLike });
+            if (failure.mode === "MAINTENANCE") {
+              // Upstream caído en producción: mantenimiento explícito, sin fingir cognición.
+              const headers = SecuritySystem.injectSecureHeaders(
+                new Headers({ "content-type": "application/json" }),
+              );
+              return new Response(
+                JSON.stringify({
+                  error: failure.errorCode,
+                  provider: failure.provider,
+                  degraded: true,
+                  mode: "maintenance",
+                  message: failure.message,
+                  traceId: telemetry.traceId,
+                }),
+                { status: failure.httpStatus, headers },
+              );
+            }
+            // Solo desarrollo: fallback nativo declarado como tal.
             const native = nativeInference({
               text: lastUserMessage,
               locale: "es-MX",
@@ -308,7 +354,7 @@ export const Route = createFileRoute("/api/isabella")({
                 "x-isabella-degraded-mode": "upstream_failed",
               }),
             );
-            const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: native.text } }] })}\n\ndata: [DONE]\n\n`;
+            const sseBody = `data: ${JSON.stringify({ provider: "native-fallback", degraded: true, choices: [{ delta: { content: native.text } }] })}\n\ndata: [DONE]\n\n`;
             return new Response(sseBody, { headers });
           }
 
@@ -411,14 +457,31 @@ export const Route = createFileRoute("/api/isabella")({
             const fullText =
               gemJson.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ??
               gemJson.text ??
-              "Isabella: respuesta generada en modo soberano — Nodo Cero.";
-            const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: fullText } }] })}\n\ndata: [DONE]\n\n`;
+              "Isabella: el proveedor no devolvió texto utilizable.";
+            const sseBody = `data: ${JSON.stringify({ provider: "gemini", degraded: false, choices: [{ delta: { content: fullText } }] })}\n\ndata: [DONE]\n\n`;
             return new Response(sseBody, { headers });
           } catch {
             return new Response(upstream.body, { headers });
           }
         } catch (err) {
           console.error("Critical gateway failure:", err);
+          const failure = resolveUpstreamFailure({ productionLike });
+          if (failure.mode === "MAINTENANCE") {
+            const headers = SecuritySystem.injectSecureHeaders(
+              new Headers({ "content-type": "application/json" }),
+            );
+            return new Response(
+              JSON.stringify({
+                error: failure.errorCode,
+                provider: failure.provider,
+                degraded: true,
+                mode: "maintenance",
+                message: "Fallo crítico de pasarela en producción. Sin inferencia sustituta: escale a un humano.",
+                traceId: telemetry.traceId,
+              }),
+              { status: failure.httpStatus, headers },
+            );
+          }
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({
               "content-type": "text/event-stream",
@@ -426,6 +489,7 @@ export const Route = createFileRoute("/api/isabella")({
               connection: "keep-alive",
               "x-isabella-trace-id": telemetry.traceId,
               "x-isabella-correlation-id": telemetry.correlationId,
+              "x-isabella-degraded-mode": "gateway_exception",
             }),
           );
           const native = nativeInference({
@@ -434,7 +498,7 @@ export const Route = createFileRoute("/api/isabella")({
             tenantId: context.tenantId,
             history: messages as Array<{ role: "user" | "assistant"; content: string }>,
           });
-          const sseBody = `data: ${JSON.stringify({ choices: [{ delta: { content: native.text } }] })}\n\ndata: [DONE]\n\n`;
+          const sseBody = `data: ${JSON.stringify({ provider: "native-fallback", degraded: true, choices: [{ delta: { content: native.text } }] })}\n\ndata: [DONE]\n\n`;
           return new Response(sseBody, { headers });
         }
       }),

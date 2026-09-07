@@ -33,7 +33,7 @@ export function SovereignCompliancePanel() {
 
   const handleExportPdf = () => {
     const runId = `GOV-RUN-${Math.floor(100000 + Math.random() * 900000)}`;
-    exportSecurityCompliancePdf(logs, runId);
+    void exportSecurityCompliancePdf(logs, runId);
   };
 
   const handleVerifyWithAnubis = async () => {
@@ -56,6 +56,12 @@ export function SovereignCompliancePanel() {
             locale: "es",
             federation: "SOVEREIGNTY",
             intent: "Verificar reporte de cumplimiento",
+            // Consola sin sesión: identidad Guest explícita. El PDP decide de
+            // verdad; sin tool:execute la respuesta es denegación firmada.
+            actorId: "ui_compliance_console",
+            tenantId: "tenant_public_console",
+            role: "Guest",
+            authenticated: false,
           },
         );
 
@@ -110,6 +116,43 @@ export function SovereignCompliancePanel() {
               <FileText className="size-4" />
               <span>Exportar Reporte PDF</span>
             </button>
+          </div>
+
+          {/* CROWN Production Gate Dashboard */}
+          <div className="p-5 rounded-xl bg-black/45 border border-border/20 mb-6">
+            <h4 className="text-xs font-bold font-mono text-emerald-400 mb-3 uppercase flex items-center gap-2">
+              <CheckCircle className="size-4" /> C.R.O.W.N. PRODUCTION GATE
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 font-mono text-xs">
+              <div className="space-y-1">
+                <span className="text-muted-foreground block text-[10px] uppercase">Arquitectura</span>
+                <div className="flex justify-between text-platinum"><span className="text-amber-400">82%</span><span className="text-muted-foreground/60">/ 90%</span></div>
+                <div className="w-full bg-border/20 h-1 rounded-full"><div className="bg-amber-400 h-1 rounded-full" style={{ width: "82%" }}></div></div>
+              </div>
+              <div className="space-y-1">
+                <span className="text-muted-foreground block text-[10px] uppercase">Seguridad / Identidad</span>
+                <div className="flex justify-between text-platinum"><span className="text-amber-400">78%</span><span className="text-muted-foreground/60">/ 95%</span></div>
+                <div className="w-full bg-border/20 h-1 rounded-full"><div className="bg-amber-400 h-1 rounded-full" style={{ width: "78%" }}></div></div>
+              </div>
+              <div className="space-y-1">
+                <span className="text-muted-foreground block text-[10px] uppercase">IA Segura / CROWN</span>
+                <div className="flex justify-between text-platinum"><span className="text-red-400">68%</span><span className="text-muted-foreground/60">/ 95%</span></div>
+                <div className="w-full bg-border/20 h-1 rounded-full"><div className="bg-red-400 h-1 rounded-full" style={{ width: "68%" }}></div></div>
+              </div>
+              <div className="space-y-1">
+                <span className="text-muted-foreground block text-[10px] uppercase">BookPI / DB / Pagos</span>
+                <div className="flex justify-between text-platinum"><span className="text-red-400">65%</span><span className="text-muted-foreground/60">/ 95%</span></div>
+                <div className="w-full bg-border/20 h-1 rounded-full"><div className="bg-red-400 h-1 rounded-full" style={{ width: "65%" }}></div></div>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <div className="px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 font-mono text-[9px] uppercase tracking-wider flex items-center gap-1.5">
+                <AlertTriangle className="size-3" /> Producción Restringida
+              </div>
+              <div className="px-2 py-1 rounded-md bg-secondary/30 text-muted-foreground font-mono text-[9px] uppercase tracking-wider flex items-center gap-1.5">
+                VER /docs/PRODUCTION_GATE.md
+              </div>
+            </div>
           </div>
 
           {/* Quick Metrics */}
