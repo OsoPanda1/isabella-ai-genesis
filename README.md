@@ -14,9 +14,11 @@ _Arquitectura cognitiva híbrida que coordina interpretación, memoria, gobernan
 
 </div>
 
+### TAMV ONLINE NETWORK  _Orgullosamente Latinoamericanos_
+
 ---
 
-## 🎯 Declaración de Naturaleza
+##  Declaración de Naturaleza
 
 ### Lo que Isabella es
 
@@ -35,7 +37,7 @@ _Arquitectura cognitiva híbrida que coordina interpretación, memoria, gobernan
 
 Los módulos **sugieren, verifican y ejecutan únicamente dentro de políticas explícitas**.
 
-## ⚠️ Estado del Proyecto
+##  Estado del Proyecto
 
 | Atributo                | Valor                                                                                   |
 | ----------------------- | --------------------------------------------------------------------------------------- |
@@ -45,7 +47,7 @@ Los módulos **sugieren, verifican y ejecutan únicamente dentro de políticas e
 | **Correspondencia**     | `docs/governance/EVIDENCE-MAP.md` (claim ↔ código)                                      |
 | **Regla D.5**           | Ninguna capacidad se declara _Verified_ / _Production-Verified_ sin prueba reproducible |
 
-## 📜 Principios Operativos
+##  Principios Operativos
 
 |             Principio             | Referencia FGAIS | Descripción                                                                              |
 | :-------------------------------: | :--------------: | ---------------------------------------------------------------------------------------- |
@@ -57,7 +59,7 @@ Los módulos **sugieren, verifican y ejecutan únicamente dentro de políticas e
 |       Incertidumbre honesta       |       §1.4       | Los fallos de proveedores y modos degradados se comunican, no se disfrazan.              |
 |     Correspondencia estricta      |       D.5        | Ninguna capacidad se declara _Verified_ / _Production-Verified_ sin prueba reproducible. |
 
-## 🏗️ Arquitectura
+##  Arquitectura
 
 ### Componentes Principales
 
@@ -92,10 +94,10 @@ Perceive → Remember → Policy Gate → Decide → Act → Audit
 
 ### Requisitos Críticos
 
-- 🔑 `DATABASE_URL` es **obligatoria** en producción (`requiredEnvKeys`, CI y `production-authority.ts` la exigen).
-- 🛡️ `assertProductionAuthorities()` / `runtime-integrity` **degradan el arranque** si una autoridad crítica falla.
+-  `DATABASE_URL` es **obligatoria** en producción (`requiredEnvKeys`, CI y `production-authority.ts` la exigen).
+-  `assertProductionAuthorities()` / `runtime-integrity` **degradan el arranque** si una autoridad crítica falla.
 
-## 🌐 Inferencia Federada _(Declaración Honesta)_
+##  Inferencia Federada _(Declaración Honesta)_
 
 ### Modo Producción
 
@@ -115,25 +117,25 @@ En payload, headers e insignia UI.
 
 > ML-DSA-87 es **SIMULATION-ONLY** por contrato. No se presenta como autoridad criptográfica productiva.
 
-## 🔒 Seguridad Operativa
+##  Seguridad Operativa
 
 ### Controles Implementados
 
 | Control                      | Implementación                                               |     Estado     |
-| :--------------------------- | :----------------------------------------------------------- | :------------: |
+| :--------------------------- | :------------------------------------------------------------ | :------------: |
 | Autenticación Soberana       | `withSovereignAuth` en rutas sensibles                       | ✅ Implemented |
 | Tenant Derivado de Identidad | Nunca del body/query                                         | ✅ Implemented |
 | Validación Zod + Límites     | Todos los inputs                                             | ✅ Implemented |
-| Rate Limiting Distribuido    | Fail-closed en prod sin Redis → 503                          |   🟡 Partial   |
+| Rate Limiting Distribuido    | Fail-closed en prod sin Redis → 503                          | 🟡 Partial     |
 | Egress Allowlist Anti-SSRF   | Dominios y puertos explícitos                                | ✅ Implemented |
 | Idempotencia                 | Pagos, webhooks, mutaciones                                  | ✅ Implemented |
 | Auditoría con Correlación    | `traceId`, `correlationId`                                   | ✅ Implemented |
 | Errores Genéricos            | Sin filtrar stack traces                                     | ✅ Implemented |
 | Dev-auth Deshabilitado       | `oauth-*`, `dev-session` → 404 en prod                       | ✅ Implemented |
 | Invitados y Atajos Dev       | Deshabilitados en prod                                       | ✅ Implemented |
-| CSP                          | En transición documentada (enforced + Report-Only con nonce) |   🟡 Partial   |
+| CSP                          | En transición documentada (enforced + Report-Only con nonce) | 🟡 Partial     |
 
-## 💰 Economía y BookPI
+##  Economía y BookPI
 
 ### Modelo de Créditos
 
@@ -155,7 +157,7 @@ En payload, headers e insignia UI.
 - Sin destino, programado manual etiquetado.
 - Pagos en vivo: ver matriz (evidencia en vivo pendiente).
 
-## ✅ Verificación _(Todo Reproducible Localmente)_
+##  Verificación _(Todo Reproducible Localmente)_
 
 ### Comandos Base
 
@@ -194,7 +196,7 @@ TEST_DATABASE_URL=... pnpm exec vitest run --project bookpi --project integratio
 
 > Build + security + CodeQL + migrate-check + db-tests (pgvector:pg16 con migraciones aplicadas) + release-readiness honesto.
 
-## 🚀 Despliegue en Vercel
+##  Despliegue en Vercel
 
 ### Rama Fuente Única
 
@@ -241,14 +243,14 @@ Todos obligatorios (`requiredEnvKeys("production")`, paridad CI↔prod verificad
 
 `pnpm-lock.yaml` es el único lockfile canónico (pnpm 10, Node ≥22).
 
-### ⛔ Prohibiciones
+###  Prohibiciones
 
 - No publicar ramas con fallos de build.
 - No publicar ramas con secretos expuestos.
 - No publicar ramas con datos de prueba con apariencia real.
 - No publicar ramas con afirmaciones sin evidencia.
 
-## 📁 Estructura Principal
+##  Estructura Principal
 
 <details>
 <summary><strong>Ver árbol del repositorio</strong></summary>
@@ -280,7 +282,7 @@ prisma/                    # Esquema fuente (migraciones vía Supabase)
 
 </details>
 
-## 🤝 Contribución
+##  Contribución
 
 ### Lineamientos
 
@@ -295,7 +297,7 @@ prisma/                    # Esquema fuente (migraciones vía Supabase)
 - `main` siempre compilable.
 - Prohibido `push --force`/rebase sobre historia publicada.
 
-## ⚠️ Limitaciones Conocidas _(Deuda Declarada, No Oculta)_
+##  Limitaciones Conocidas _(Deuda Declarada, No Oculta)_
 
 | Limitación                                                    |  Estado   |        Owner         |  Evidencia   |
 | :------------------------------------------------------------ | :-------: | :------------------: | :----------: |
@@ -310,7 +312,7 @@ prisma/                    # Esquema fuente (migraciones vía Supabase)
 
 _Ver matriz y `EVIDENCE-MAP.md` para dueño y estado por brecha._
 
-## 📄 Licencia y Autoría
+##  Licencia y Autoría
 
 ### Dominio Público Arquitectónico
 
@@ -337,7 +339,7 @@ La licencia no elimina obligaciones de privacidad, seguridad, pagos ni cumplimie
 
 <div align="center">
 
-## 🌍 Nodo Cero
+##  Nodo Cero
 
 **Isabella Villaseñor AI es orgullosamente realmontense.**
 
