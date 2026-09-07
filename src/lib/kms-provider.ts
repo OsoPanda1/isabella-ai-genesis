@@ -27,8 +27,9 @@ export interface KMSProvider {
  * Usa las variables en .env como fuente de verdad cuando el KMS
  * externo no está disponible. Soporta rotación mediante prefijos
  * de versión (ej. SECRETV1_..., SECRETV2_...).
+ * Derivación real: HKDF-SHA3-512 (§4.1 del Charter FGAIS).
  */
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from "node:crypto";
 
 /**
  * EnvKMSProvider con cifrado REAL (AES-256-GCM):
@@ -54,11 +55,11 @@ export class EnvKMSProvider implements KMSProvider {
   }
 
   private subKey(keyName: string): Buffer {
-    return createHash("sha256")
-      .update(this.masterKey())
-      .update("|isabella-kms-v1|")
-      .update(keyName)
-      .digest();
+    // HKDF-SHA3-512 (§4.1 del Charter): IKM = master, info ligada al
+    // nombre del secreto (dominios criptográficos separados), 32 bytes.
+    return Buffer.from(
+      hkdfSync("sha3-512", this.masterKey(), "", `isabella-kms-v1|${keyName}`, 32),
+    );
   }
 
   async encrypt(keyName: string, plaintext: string): Promise<string> {

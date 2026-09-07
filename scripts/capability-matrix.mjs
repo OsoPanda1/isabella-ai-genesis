@@ -285,10 +285,21 @@ const CAPABILITIES = [
   },
   {
     capability: "Payment full-loop (payouts, chargebacks, fraud review)",
-    sources: ["src/server-routes/api/billing.ts"],
+    sources: [
+      "src/server-routes/api/billing.ts",
+      "src/lib/monetization/payout-executor.ts",
+      "src/lib/monetization/fraud-review.ts",
+    ],
+    tests: ["test/unit/payout-executor.test.ts", "test/unit/fraud-review.test.ts"],
+    runtime: "Disputas + fraud + payouts cableados (Stripe real con destino, manual sin él). Evidencia en vivo pendiente.",
+    status: "real",
+  },
+  {
+    capability: "Governance charter FGAIS v2.0 (Nivel 0)",
+    sources: ["docs/governance/01-FGAIS-Governance-Constitution.md"],
     tests: [],
-    runtime: "Sin evidencia automatizada: conteos pendientes, sin payouts automáticos.",
-    status: "manual",
+    runtime: "Marco maestro interno versionado; correspondencia D.5 verificada por matriz.",
+    status: "real",
   },
 ];
 

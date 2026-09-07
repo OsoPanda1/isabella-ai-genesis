@@ -189,7 +189,9 @@ export const Route = createFileRoute("/api/catalog")({
               contractId: id,
               method,
               path,
-              governanceScore: decision.policy.risk === "low" ? 1.0 : 0.8,
+              // Señal real y gruesa derivada de la decisión CROWN (allowed=1).
+              // No es un score probabilístico: el detalle está en riskLevel.
+              governanceScore: decision.policy.status === "allowed" ? 1.0 : 0.0,
               decisionStatus: decision.policy.status,
               riskLevel: decision.policy.risk,
               allowedTools: decision.allowedTools,
@@ -207,10 +209,10 @@ export const Route = createFileRoute("/api/catalog")({
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );
-          return new Response(
-            JSON.stringify({ error: "Error en simulación nativa de contrato con protección." }),
-            { status: 500, headers },
-          );
+          return new Response(JSON.stringify({ error: "Error en la evaluación del contrato." }), {
+            status: 500,
+            headers,
+          });
         }
       },
     },

@@ -59,6 +59,15 @@ describe("EnvKMSProvider real", () => {
     await expect(kms.decrypt("beta", envelope)).rejects.toThrow();
   });
 
+  it("deriva subclaves HKDF-SHA3-512 deterministas y separadas", async () => {
+    const { hkdfSync } = await import("node:crypto");
+    const derive = (info: string) =>
+      Buffer.from(hkdfSync("sha3-512", MASTER, "", info, 32)).toString("hex");
+    const expected = derive("isabella-kms-v1|bookpi");
+    expect(expected).toHaveLength(64);
+    expect(derive("isabella-kms-v1|otro")).not.toBe(expected);
+  });
+
   it("sin master falla cerrado", async () => {
     const kms = new EnvKMSProvider({});
     await expect(kms.encrypt("k", "x")).rejects.toThrow(/ENCRYPTION_MASTER_KEY/);

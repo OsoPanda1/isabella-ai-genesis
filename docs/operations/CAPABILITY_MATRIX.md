@@ -31,4 +31,5 @@
 | KMS real (AES-256-GCM) | `src/lib/kms-provider.ts` | `test/unit/kms.test.ts` | Roundtrip, tamper, clave errónea, aislamiento por secreto; 6 tests verdes. | real |
 | Payout executor (Stripe idempotente) | `src/lib/monetization/payout-executor.ts` | `test/unit/payout-executor.test.ts` | Validación, idempotency propagada, fail-closed sin clave; 3 tests verdes. | real |
 | Asiento contable atómico | `src/lib/accounting/accounting-postgres-repository.ts`<br>`src/lib/accounting/double-entry-service.ts` | `test/unit/double-entry.test.ts` | createJournalEntryAtomic BEGIN/COMMIT/ROLLBACK; servicio prefiere vía atómica. | real |
-| Payment full-loop (payouts, chargebacks, fraud review) | `src/server-routes/api/billing.ts` | — | Sin evidencia automatizada: conteos pendientes, sin payouts automáticos. | manual |
+| Payment full-loop (payouts, chargebacks, fraud review) | `src/server-routes/api/billing.ts`<br>`src/lib/monetization/payout-executor.ts`<br>`src/lib/monetization/fraud-review.ts` | `test/unit/payout-executor.test.ts`<br>`test/unit/fraud-review.test.ts` | Disputas + fraud + payouts cableados (Stripe real con destino, manual sin él). Evidencia en vivo pendiente. | real |
+| Governance charter FGAIS v2.0 (Nivel 0) | `docs/governance/01-FGAIS-Governance-Constitution.md` | — | Marco maestro interno versionado; correspondencia D.5 verificada por matriz. | real |

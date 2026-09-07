@@ -10,7 +10,7 @@
 | API keys almacenadas | PBKDF2-SHA512 100k + HMAC-SHA512 con master + salt única (`v7`, timing-safe) | `API_KEY_HASH_SECRET` | `rotate-api-key` (grace period) |
 | Cadena BookPI/auditoría | SHA-256/SHA3 + ECDSA-P384 o RSA-SHA256 | `BOOKPI_SIGNING_KEY` / `AEGIS_AUDIT_SECRET` | Nueva clave + re-verificación de cadena |
 | Sellos de auditoría | HMAC-SHA3-512 (`audit-seal-v1`) | `AEGIS_AUDIT_SECRET` (≥32) | Re-sellar desde eventos (cadena intacta) |
-| Campos sensibles aplicativos | AES-256-GCM (`EnvKMSProvider`, subclave por secreto) | `ENCRYPTION_MASTER_KEY` (≥32) | Re-cifrar con formato `v1:iv:ct:tag` versionado |
+| Campos sensibles aplicativos | AES-256-GCM (`EnvKMSProvider`, subclave HKDF-SHA3-512 por secreto) | `ENCRYPTION_MASTER_KEY` (≥32) | Re-cifrar con formato `v1:iv:ct:tag` versionado |
 | Transporte | TLS del proveedor (Vercel/Neon/Supabase) | gestionada por proveedor | automática |
 | Reposo PG | Cifrado del proveedor de Postgres | gestionada por proveedor | automática |
 | Backups JSON (`db-backup`) | **SIN cifrar por defecto** | — | Custodiar como secreto o cifrar con `EnvKMSProvider.encrypt` (ver runbook DR) |

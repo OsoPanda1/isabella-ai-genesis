@@ -327,13 +327,19 @@ export class PostgresAccountingRepository implements AccountingRepository {
   }
 
   async beginTransaction(): Promise<unknown> {
-    // In a real app we'd structure the service to take a callback for transaction.
-    // For now, just return the sql instance to mock the transaction interface
-    return deferredSql();
+    // Sin transacción interactiva real en este adaptador (neon HTTP es
+    // auto-commit por query). Usar createJournalEntryAtomic() para
+    // escritura atómica. Falla cerrado en lugar de fingir TX.
+    throw new Error("Transacciones interactivas no soportadas: usar createJournalEntryAtomic().");
   }
 
-  async commitTransaction(tx: unknown): Promise<void> {}
-  async rollbackTransaction(tx: unknown): Promise<void> {}
+  async commitTransaction(_tx: unknown): Promise<void> {
+    throw new Error("Transacciones interactivas no soportadas: usar createJournalEntryAtomic().");
+  }
+
+  async rollbackTransaction(_tx: unknown): Promise<void> {
+    throw new Error("Transacciones interactivas no soportadas: usar createJournalEntryAtomic().");
+  }
 
   private mapAccount(row: any): Account {
     return {

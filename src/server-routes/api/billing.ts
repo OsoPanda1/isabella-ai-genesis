@@ -400,20 +400,31 @@ export const Route = createFileRoute("/api/billing")({
                 });
               }
 
-              // IDEMPOTENCIA: Stripe puede reintentar el mismo evento. Nunca acreditar
-              // créditos de bono dos veces por el mismo `eventId`.
+              // IDEMPOTENCIA ATÓMICA (§5): UNIQUE(provider, provider_event_id)
+              // en `webhook_events`. Dos entregas simultáneas → 1 procesado.
               if (eventId) {
-                const marker = `STRIPE_EVENT:${eventId}`;
-                const alreadyProcessed = SovereignDB.getFullLedger().some(
-                  (b) => b.operation && b.operation.includes(marker),
-                );
-                if (alreadyProcessed) {
+                const { claimWebhookEvent } = await import("@/lib/economic-events");
+                const claim = await claimWebhookEvent({
+                  provider: "stripe",
+                  providerEventId: eventId,
+                  eventType,
+                });
+                if (claim.status === "duplicate") {
                   return new Response(
                     JSON.stringify({ success: true, processed: true, duplicate: true }),
                     { headers },
                   );
                 }
-                metadata.marker = marker;
+                if (claim.status === "error") {
+                  console.error("[billing:webhook] claimWebhookEvent failed:", claim.message);
+                  if (config().NODE_ENV === "production") {
+                    return new Response(
+                      JSON.stringify({ error: "Idempotencia de webhook no disponible." }),
+                      { status: 500, headers },
+                    );
+                  }
+                }
+                metadata.marker = `STRIPE_EVENT:${eventId}`;
               }
 
               if (targetTenantId) {
@@ -649,20 +660,10 @@ export const Route = createFileRoute("/api/billing")({
                 });
               }
 
-              // IDEMPOTENCIA: un PaymentIntent solo puede acreditar créditos una vez.
+              // IDEMPOTENCIA ATÓMICA: un PaymentIntent solo acredita una vez.
+              // UNIQUE(tenant_id, idempotency_key) en economic_events
+              // (sin escaneo O(n) del ledger, sin carreras).
               const piMarker = `STRIPE_PI:${parsed.data.stripePaymentIntentId}`;
-              const alreadyCredited = SovereignDB.getFullLedger().some(
-                (b) => b.operation && b.operation.includes(piMarker),
-              );
-              if (alreadyCredited) {
-                return new Response(
-                  JSON.stringify({
-                    error: "Este PaymentIntent ya fue aplicado a una recarga previa.",
-                    duplicate: true,
-                  }),
-                  { status: 409, headers },
-                );
-              }
 
               // P0: el saldo solo se acredita tras verificar un pago real en Stripe.
               const stripe = getStripe();
@@ -697,6 +698,42 @@ export const Route = createFileRoute("/api/billing")({
                 return new Response(
                   JSON.stringify({ error: "El monto del pago no coincide con la recarga." }),
                   { status: 422, headers },
+                );
+              }
+
+              // Claim atómico POST-verificación: reintentos concurrentes del
+              // mismo PI → uno acredita, el resto 409 (constraint, no scan).
+              const { recordEconomicEvent } = await import("@/lib/economic-events");
+              const topupClaim = await recordEconomicEvent({
+                tenantId: context.tenantId,
+                actorId: context.userId,
+                eventType: "QUOTA_TOPUP",
+                amountMinor: expectedCents,
+                direction: "CREDIT",
+                source: "stripe",
+                provider: "stripe",
+                providerEventId: parsed.data.stripePaymentIntentId,
+                idempotencyKey: `topup:${parsed.data.stripePaymentIntentId}`,
+                correlationId: context.correlationId,
+                metadata: { amountUSD: parsed.data.amountUSD },
+              }).catch((error: unknown) => ({
+                ok: false as const,
+                duplicate: false as const,
+                error: error instanceof Error ? error.message : String(error),
+              }));
+              if (!topupClaim.ok) {
+                if (topupClaim.duplicate) {
+                  return new Response(
+                    JSON.stringify({
+                      error: "Este PaymentIntent ya fue aplicado a una recarga previa.",
+                      duplicate: true,
+                    }),
+                    { status: 409, headers },
+                  );
+                }
+                return new Response(
+                  JSON.stringify({ error: "Idempotencia de recarga no disponible." }),
+                  { status: 500, headers },
                 );
               }
 
@@ -889,9 +926,8 @@ export const Route = createFileRoute("/api/billing")({
               // Escritura durable en tabla (idempotente por skill_id); en dev
               // sin DB se conserva el fallback a settings/SovereignDB.
               try {
-                const { createMarketplaceListing } = await import(
-                  "@/lib/repositories/marketplace-repository"
-                );
+                const { createMarketplaceListing } =
+                  await import("@/lib/repositories/marketplace-repository");
                 const { created, listing } = await createMarketplaceListing({
                   skillId: parsed.data.skillId,
                   title: parsed.data.title,

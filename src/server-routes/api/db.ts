@@ -1265,7 +1265,10 @@ export const Route = createFileRoute("/api/db")({
 
           if (action === "monetization-request-withdrawal") {
             return withSovereignAuth("system", "write", async (context, _req, body: unknown) => {
-              const { idempotencyKey } = (body || {}) as { idempotencyKey?: string };
+              const { idempotencyKey, destinationAccountId } = (body || {}) as {
+                idempotencyKey?: string;
+                destinationAccountId?: string;
+              };
 
               const { WithdrawalService } = await import("@/lib/monetization/withdrawal");
               const deps = {
@@ -1369,7 +1372,29 @@ export const Route = createFileRoute("/api/db")({
                   });
                 },
                 checkLiquidityPool: async () => true,
-                createPayout: async () => {
+                createPayout: async (payoutRequest: {
+                  userId: string;
+                  amountCents: number;
+                  idempotencyKey: string;
+                }) => {
+                  // Ejecución REAL cuando el usuario provee cuenta destino
+                  // (Stripe Transfer idempotente con el monto verificado).
+                  // Sin destino: programado manual, sin movimiento de fondos.
+                  if (
+                    typeof destinationAccountId === "string" &&
+                    destinationAccountId.length > 0
+                  ) {
+                    const { executePayout } = await import(
+                      "@/lib/monetization/payout-executor"
+                    );
+                    const executed = await executePayout({
+                      amountCents: payoutRequest.amountCents,
+                      destinationAccountId,
+                      idempotencyKey: `payout:${payoutRequest.idempotencyKey}`,
+                      metadata: { tenantId: context.tenantId, userId: payoutRequest.userId },
+                    });
+                    return { payoutId: executed.payoutId, status: executed.status };
+                  }
                   return {
                     payoutId: `pay_${nodeCrypto.randomUUID().slice(0, 8)}`,
                     status: "scheduled" as const,
@@ -1401,7 +1426,9 @@ export const Route = createFileRoute("/api/db")({
                   context.ip,
                   "Retiro de Monetización Procesado",
                   "S3",
-                  `Usuario ${context.userId} retiró de forma exitosa $${(currentAccount.earnedBalanceCents / 100).toFixed(2)} USD. ID de Liquidación: ${result.payoutId || "N/A"}`,
+                  result.payoutId?.startsWith("tr_")
+                    ? `Usuario ${context.userId} retiró $${(currentAccount.earnedBalanceCents / 100).toFixed(2)} USD vía Stripe. ID: ${result.payoutId}`
+                    : `Usuario ${context.userId} programó retiro de $${(currentAccount.earnedBalanceCents / 100).toFixed(2)} USD (ejecución manual pendiente). ID: ${result.payoutId || "N/A"}`,
                 );
 
                 return new Response(
