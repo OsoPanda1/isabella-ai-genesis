@@ -27,5 +27,8 @@
 | Settlement saga (pago→evento→ledger→contabilidad) | `src/lib/financial-settlement.ts` | `test/unit/financial-settlement.test.ts` | Orden, compensación, reentrancia; 5 tests verdes. | real |
 | Aislamiento + mutex + tamper-evidence | `src/lib/repositories/memory-repository.ts`<br>`src/lib/repositories/audit-repository.ts` | `test/security/isolation-evidence.test.ts` | 20 escritores concurrentes → cadena única; tamper detectado; 6 tests verdes. | real |
 | SSRF allowlist | `src/lib/security.ts` | `test/security/ssrf.test.ts` | Solo HTTPS a hosts declarados; 3 tests verdes. | real |
-| Sesiones con expiración enforced | `src/lib/principal-context.ts` | — | is_active=false y expiresAt pasado → 401. Pendiente test de integración. | manual |
+| Sesiones con expiración enforced | `src/lib/principal-context.ts` | `test/integration/session-lifecycle.test.ts` | is_active=false y expiresAt pasado → 401; vigente autoriza; 3 tests verdes. | real |
+| KMS real (AES-256-GCM) | `src/lib/kms-provider.ts` | `test/unit/kms.test.ts` | Roundtrip, tamper, clave errónea, aislamiento por secreto; 6 tests verdes. | real |
+| Payout executor (Stripe idempotente) | `src/lib/monetization/payout-executor.ts` | `test/unit/payout-executor.test.ts` | Validación, idempotency propagada, fail-closed sin clave; 3 tests verdes. | real |
+| Asiento contable atómico | `src/lib/accounting/accounting-postgres-repository.ts`<br>`src/lib/accounting/double-entry-service.ts` | `test/unit/double-entry.test.ts` | createJournalEntryAtomic BEGIN/COMMIT/ROLLBACK; servicio prefiere vía atómica. | real |
 | Payment full-loop (payouts, chargebacks, fraud review) | `src/server-routes/api/billing.ts` | — | Sin evidencia automatizada: conteos pendientes, sin payouts automáticos. | manual |

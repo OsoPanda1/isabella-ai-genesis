@@ -5,7 +5,9 @@ export default defineConfig({
   plugins: [tsConfigPaths()],
   test: {
     globals: true,
-    environment: "happy-dom",
+    // node por defecto: no hay tests de componentes DOM; happy-dom queda
+    // declarado pero sin instalar localmente (CI lo instala con pnpm).
+    environment: "node",
     setupFiles: ["./test/setup.ts"],
     coverage: {
       provider: "v8",

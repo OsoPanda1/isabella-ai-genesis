@@ -67,6 +67,9 @@
     // Tests
     "test/**/*.ts",
     "test/**/*.tsx",
+
+    // Applet embebido (sin toolchain propia: lo cubre este proyecto)
+    "app/applet/**/*.ts",
     
     // Scripts críticos
     "scripts/**/*.ts",

@@ -255,9 +255,33 @@ const CAPABILITIES = [
   {
     capability: "Sesiones con expiración enforced",
     sources: ["src/lib/principal-context.ts"],
-    tests: [],
-    runtime: "is_active=false y expiresAt pasado → 401. Pendiente test de integración.",
-    status: "manual",
+    tests: ["test/integration/session-lifecycle.test.ts"],
+    runtime: "is_active=false y expiresAt pasado → 401; vigente autoriza; 3 tests verdes.",
+    status: "real",
+  },
+  {
+    capability: "KMS real (AES-256-GCM)",
+    sources: ["src/lib/kms-provider.ts"],
+    tests: ["test/unit/kms.test.ts"],
+    runtime: "Roundtrip, tamper, clave errónea, aislamiento por secreto; 6 tests verdes.",
+    status: "real",
+  },
+  {
+    capability: "Payout executor (Stripe idempotente)",
+    sources: ["src/lib/monetization/payout-executor.ts"],
+    tests: ["test/unit/payout-executor.test.ts"],
+    runtime: "Validación, idempotency propagada, fail-closed sin clave; 3 tests verdes.",
+    status: "real",
+  },
+  {
+    capability: "Asiento contable atómico",
+    sources: [
+      "src/lib/accounting/accounting-postgres-repository.ts",
+      "src/lib/accounting/double-entry-service.ts",
+    ],
+    tests: ["test/unit/double-entry.test.ts"],
+    runtime: "createJournalEntryAtomic BEGIN/COMMIT/ROLLBACK; servicio prefiere vía atómica.",
+    status: "real",
   },
   {
     capability: "Payment full-loop (payouts, chargebacks, fraud review)",

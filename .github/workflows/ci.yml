@@ -169,6 +169,62 @@ jobs:
           if-no-files-found: error
 
   # ============================================================
+  # JOB 2b: DB Evidence Tests (PostgreSQL real en CI)
+  # ============================================================
+  # Ejecuta los tests gateados por DB (concurrencia, idempotencia,
+  # reconciliación, refunds, approvals) contra pgvector/pg16 con las
+  # migraciones del repo aplicadas. Sin mocks de PG.
+  db-tests:
+    name: 🗄️ DB Evidence Tests (PostgreSQL)
+    runs-on: ubuntu-latest
+    needs: env-check
+    if: needs.env-check.outputs.secrets-present == 'true' || github.event_name == 'pull_request'
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: isabella_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply migrations to test database
+        env:
+          PGPASSWORD: postgres
+        run: |
+          for migration in $(ls supabase/migrations/*.sql | sort); do
+            echo "Applying $migration"
+            psql -h localhost -U postgres -d isabella_test -v ON_ERROR_STOP=1 -f "$migration"
+          done
+
+      - name: Run DB-gated evidence tests
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/isabella_test
+        run: pnpm exec vitest run --project bookpi --project integration
+
+  # ============================================================
   # JOB 3: Security & Supply Chain (FAIL ON CRITICAL)
   # ============================================================
   security:
@@ -313,7 +369,7 @@ jobs:
   release-readiness:
     name: ✅ Release Readiness
     runs-on: ubuntu-latest
-    needs: [build, security, codeql, migrate-check]
+    needs: [build, security, codeql, migrate-check, db-tests]
     if: >-
       always() && 
       needs.build.result == 'success' && 
