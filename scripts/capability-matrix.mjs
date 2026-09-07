@@ -308,6 +308,13 @@ const CAPABILITIES = [
     runtime: "Build local genera .vercel/output/functions + config de rutas; wrappers estáticos bundlables.",
     status: "real",
   },
+  {
+    capability: "Client env guard (sin secretos al bundle)",
+    sources: ["scripts/check-client-env.mjs", "package.json"],
+    tests: ["test/unit/client-env.test.ts"],
+    runtime: "prebuild falla ante VITE_* secret-like; advierte no declaradas; 4 tests verdes.",
+    status: "real",
+  },
 ];
 
 let missing = [];

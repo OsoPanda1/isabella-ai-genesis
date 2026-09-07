@@ -10,6 +10,7 @@
   },
   "scripts": {
     "dev": "node scripts/check-env.mjs && vite dev --host 0.0.0.0 --port 3000",
+    "prebuild": "node scripts/check-client-env.mjs",
     "build": "vite build",
     "start": "node .output/server/index.mjs",
     "build:dev": "node scripts/check-env.mjs && vite build --mode development",
