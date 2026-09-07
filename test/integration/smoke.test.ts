@@ -65,9 +65,13 @@ describe("smoke de despliegue", () => {
     expect(vercel.outputDirectory).toBe(".vercel/output");
 
     // Nitro debe estar resoluble en el closure instalado (lockfile).
-    // Nota: es dependencia transitiva pineada; si pasa a import directo,
+    // Nota: es dep directa pineada; si pasa a import directo,
     // fijar también package.json + importers del lockfile.
     const lockfile = readFileSync(resolve(root, "pnpm-lock.yaml"), "utf8");
     expect(lockfile.includes("nitro@3.0.260603-beta"), "nitro ausente del lockfile").toBe(true);
+    const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as {
+      devDependencies?: Record<string, string>;
+    };
+    expect(pkg.devDependencies?.nitro, "nitro debe ser dependencia directa").toBeDefined();
   });
 });
