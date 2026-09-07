@@ -301,6 +301,13 @@ const CAPABILITIES = [
     runtime: "Marco maestro interno versionado; correspondencia D.5 verificada por matriz.",
     status: "real",
   },
+  {
+    capability: "Deploy Vercel con funciones (Nitro preset)",
+    sources: ["vite.config.ts", "vercel.json", "src/routes/api/"],
+    tests: ["test/integration/smoke.test.ts"],
+    runtime: "Build local genera .vercel/output/functions + config de rutas; wrappers estáticos bundlables.",
+    status: "real",
+  },
 ];
 
 let missing = [];

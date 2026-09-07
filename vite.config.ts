@@ -3,6 +3,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
+import { nitro } from "nitro/vite";
 
 export default defineConfig({
   plugins: [
@@ -12,6 +13,10 @@ export default defineConfig({
     tsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
+    // Nitro con preset Vercel: empaqueta el servidor (SSR + /api/*) como
+    // Serverless Functions en .vercel/output. Sin esto, Vercel despliega
+    // solo archivos estáticos y TODAS las rutas devuelven 404.
+    nitro({ preset: "vercel" }),
   ],
   server: {
     host: "0.0.0.0",
@@ -40,5 +45,10 @@ export default defineConfig({
         },
       },
     },
+  },
+  ssr: {
+    noExternal: [],
+    // Three.js fuera del bundle SSR de Nitro (solo cliente).
+    external: ["three"],
   },
 });

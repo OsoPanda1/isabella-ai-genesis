@@ -50,4 +50,24 @@ describe("smoke de despliegue", () => {
   it("migraciones RLS de economic_contract existen", () => {
     expect(existsSync(resolve(root, "supabase/migrations/20260906090000_economic_contract_rls.sql"))).toBe(true);
   });
+
+  it("configuración de deploy Vercel: Nitro + pnpm + output prebuilt", () => {
+    // Sin preset Nitro, Vercel despliega estático y todo devuelve 404.
+    const viteConfig = readFileSync(resolve(root, "vite.config.ts"), "utf8");
+    expect(viteConfig.includes("nitro/vite"), "falta plugin nitro en vite.config").toBe(true);
+    expect(viteConfig.includes('preset: "vercel"'), "falta preset vercel").toBe(true);
+
+    const vercel = JSON.parse(readFileSync(resolve(root, "vercel.json"), "utf8")) as {
+      installCommand?: string;
+      outputDirectory?: string;
+    };
+    expect(vercel.installCommand).toContain("pnpm");
+    expect(vercel.outputDirectory).toBe(".vercel/output");
+
+    // Nitro debe estar resoluble en el closure instalado (lockfile).
+    // Nota: es dependencia transitiva pineada; si pasa a import directo,
+    // fijar también package.json + importers del lockfile.
+    const lockfile = readFileSync(resolve(root, "pnpm-lock.yaml"), "utf8");
+    expect(lockfile.includes("nitro@3.0.260603-beta"), "nitro ausente del lockfile").toBe(true);
+  });
 });

@@ -31,7 +31,8 @@ export const Route = createFileRoute("/api/economic-integrity")({
     // Cadena BookPI válida (si la DB canónica está disponible).
     let bookpi = { available: false, valid: false };
     try {
-      const { createBookpiPostgresRepository } = await import("@/lib/repositories/bookpi-postgres-repository");
+      const { createBookpiPostgresRepository } =
+        await import("@/lib/repositories/bookpi-postgres-repository");
       const repo = createBookpiPostgresRepository();
       const integrity = await repo.verifyIntegrity();
       bookpi = { available: true, valid: integrity.success };
@@ -58,7 +59,8 @@ export const Route = createFileRoute("/api/economic-integrity")({
     }
 
     // Fail-closed (§16): escribe económicas solo si TODO está ok.
-    const status = signerAvailable && bookpi.valid && projection.available && projection.rebuildable;
+    const status =
+      signerAvailable && bookpi.valid && projection.available && projection.rebuildable;
 
     return json(
       headers,

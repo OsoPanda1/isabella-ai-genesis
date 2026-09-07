@@ -1,10 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Route as ServerRoute } from "../../../server-routes/api/health";
 
-const loadHandler = async (context: unknown): Promise<Response> => {
-  const module = (await import(/* @vite-ignore */ "../../../server-routes/api/health")) as {
-    Route: { options: { server: { handlers: { GET: (ctx: unknown) => Promise<Response> } } } };
-  };
-  return module.Route.options.server.handlers.GET({ request: new Request(new URL("/api/health/live", (context as { request: Request }).request.url)) });
+// Delega al handler canónico reescribiendo el path a /api/health/live.
+// Import estático para que el bundler (Nitro/Rolldown) resuelva en build.
+type Handlers = {
+  GET: (ctx: unknown) => Promise<Response>;
+};
+const server = ServerRoute.options.server;
+if (!server) throw new Error("Ruta servidora sin handlers.");
+const handlers = server.handlers as unknown as Handlers;
+
+const loadHandler = (context: unknown): Promise<Response> => {
+  const request = (context as { request: Request }).request;
+  const url = new URL(request.url);
+  url.pathname = "/api/health/live";
+  return handlers.GET({ request: new Request(url, request) });
 };
 
 export const Route = createFileRoute("/api/health/live")({
