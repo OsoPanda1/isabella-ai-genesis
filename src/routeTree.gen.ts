@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PakeRouteImport } from './routes/pake'
 import { Route as ApiBillingRouteImport } from './routes/api/billing'
 import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiDbRouteImport } from './routes/api/db'
@@ -18,10 +19,18 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiIsabellaRouteImport } from './routes/api/isabella'
 import { Route as ApiIsabellaVoiceRouteImport } from './routes/api/isabella-voice'
 import { Route as ApiSecurityRouteImport } from './routes/api/security'
+import { Route as ApiHealthDeepRouteImport } from './routes/api/health/deep'
+import { Route as ApiHealthLiveRouteImport } from './routes/api/health/live'
+import { Route as ApiHealthReadyRouteImport } from './routes/api/health/ready'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PakeRoute = PakeRouteImport.update({
+  id: '/pake',
+  path: '/pake',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiBillingRoute = ApiBillingRouteImport.update({
@@ -64,45 +73,73 @@ const ApiSecurityRoute = ApiSecurityRouteImport.update({
   path: '/api/security',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthDeepRoute = ApiHealthDeepRouteImport.update({
+  id: '/deep',
+  path: '/deep',
+  getParentRoute: () => ApiHealthRoute,
+} as any)
+const ApiHealthLiveRoute = ApiHealthLiveRouteImport.update({
+  id: '/live',
+  path: '/live',
+  getParentRoute: () => ApiHealthRoute,
+} as any)
+const ApiHealthReadyRoute = ApiHealthReadyRouteImport.update({
+  id: '/ready',
+  path: '/ready',
+  getParentRoute: () => ApiHealthRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/pake': typeof PakeRoute
   '/api/billing': typeof ApiBillingRoute
   '/api/catalog': typeof ApiCatalogRoute
   '/api/db': typeof ApiDbRoute
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
-  '/api/health': typeof ApiHealthRoute
+  '/api/health': typeof ApiHealthRouteWithChildren
   '/api/isabella': typeof ApiIsabellaRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/security': typeof ApiSecurityRoute
+  '/api/health/deep': typeof ApiHealthDeepRoute
+  '/api/health/live': typeof ApiHealthLiveRoute
+  '/api/health/ready': typeof ApiHealthReadyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/pake': typeof PakeRoute
   '/api/billing': typeof ApiBillingRoute
   '/api/catalog': typeof ApiCatalogRoute
   '/api/db': typeof ApiDbRoute
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
-  '/api/health': typeof ApiHealthRoute
+  '/api/health': typeof ApiHealthRouteWithChildren
   '/api/isabella': typeof ApiIsabellaRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/security': typeof ApiSecurityRoute
+  '/api/health/deep': typeof ApiHealthDeepRoute
+  '/api/health/live': typeof ApiHealthLiveRoute
+  '/api/health/ready': typeof ApiHealthReadyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/pake': typeof PakeRoute
   '/api/billing': typeof ApiBillingRoute
   '/api/catalog': typeof ApiCatalogRoute
   '/api/db': typeof ApiDbRoute
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
-  '/api/health': typeof ApiHealthRoute
+  '/api/health': typeof ApiHealthRouteWithChildren
   '/api/isabella': typeof ApiIsabellaRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/security': typeof ApiSecurityRoute
+  '/api/health/deep': typeof ApiHealthDeepRoute
+  '/api/health/live': typeof ApiHealthLiveRoute
+  '/api/health/ready': typeof ApiHealthReadyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/pake'
     | '/api/billing'
     | '/api/catalog'
     | '/api/db'
@@ -111,9 +148,13 @@ export interface FileRouteTypes {
     | '/api/isabella'
     | '/api/isabella-voice'
     | '/api/security'
+    | '/api/health/deep'
+    | '/api/health/live'
+    | '/api/health/ready'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/pake'
     | '/api/billing'
     | '/api/catalog'
     | '/api/db'
@@ -122,9 +163,13 @@ export interface FileRouteTypes {
     | '/api/isabella'
     | '/api/isabella-voice'
     | '/api/security'
+    | '/api/health/deep'
+    | '/api/health/live'
+    | '/api/health/ready'
   id:
     | '__root__'
     | '/'
+    | '/pake'
     | '/api/billing'
     | '/api/catalog'
     | '/api/db'
@@ -133,15 +178,19 @@ export interface FileRouteTypes {
     | '/api/isabella'
     | '/api/isabella-voice'
     | '/api/security'
+    | '/api/health/deep'
+    | '/api/health/live'
+    | '/api/health/ready'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PakeRoute: typeof PakeRoute
   ApiBillingRoute: typeof ApiBillingRoute
   ApiCatalogRoute: typeof ApiCatalogRoute
   ApiDbRoute: typeof ApiDbRoute
   ApiEconomicIntegrityRoute: typeof ApiEconomicIntegrityRoute
-  ApiHealthRoute: typeof ApiHealthRoute
+  ApiHealthRoute: typeof ApiHealthRouteWithChildren
   ApiIsabellaRoute: typeof ApiIsabellaRoute
   ApiIsabellaVoiceRoute: typeof ApiIsabellaVoiceRoute
   ApiSecurityRoute: typeof ApiSecurityRoute
@@ -154,6 +203,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pake': {
+      id: '/pake'
+      path: '/pake'
+      fullPath: '/pake'
+      preLoaderRoute: typeof PakeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/billing': {
@@ -212,16 +268,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSecurityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health/deep': {
+      id: '/api/health/deep'
+      path: '/deep'
+      fullPath: '/api/health/deep'
+      preLoaderRoute: typeof ApiHealthDeepRouteImport
+      parentRoute: typeof ApiHealthRoute
+    }
+    '/api/health/live': {
+      id: '/api/health/live'
+      path: '/live'
+      fullPath: '/api/health/live'
+      preLoaderRoute: typeof ApiHealthLiveRouteImport
+      parentRoute: typeof ApiHealthRoute
+    }
+    '/api/health/ready': {
+      id: '/api/health/ready'
+      path: '/ready'
+      fullPath: '/api/health/ready'
+      preLoaderRoute: typeof ApiHealthReadyRouteImport
+      parentRoute: typeof ApiHealthRoute
+    }
   }
 }
 
+interface ApiHealthRouteChildren {
+  ApiHealthDeepRoute: typeof ApiHealthDeepRoute
+  ApiHealthLiveRoute: typeof ApiHealthLiveRoute
+  ApiHealthReadyRoute: typeof ApiHealthReadyRoute
+}
+
+const ApiHealthRouteChildren: ApiHealthRouteChildren = {
+  ApiHealthDeepRoute: ApiHealthDeepRoute,
+  ApiHealthLiveRoute: ApiHealthLiveRoute,
+  ApiHealthReadyRoute: ApiHealthReadyRoute,
+}
+
+const ApiHealthRouteWithChildren = ApiHealthRoute._addFileChildren(
+  ApiHealthRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PakeRoute: PakeRoute,
   ApiBillingRoute: ApiBillingRoute,
   ApiCatalogRoute: ApiCatalogRoute,
   ApiDbRoute: ApiDbRoute,
   ApiEconomicIntegrityRoute: ApiEconomicIntegrityRoute,
-  ApiHealthRoute: ApiHealthRoute,
+  ApiHealthRoute: ApiHealthRouteWithChildren,
   ApiIsabellaRoute: ApiIsabellaRoute,
   ApiIsabellaVoiceRoute: ApiIsabellaVoiceRoute,
   ApiSecurityRoute: ApiSecurityRoute,
