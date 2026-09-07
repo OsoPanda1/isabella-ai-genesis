@@ -684,7 +684,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
     email: string;
     telemetryConsent: boolean;
   }) => {
-    console.log("Onboarding complete for user:", data.username);
+    // Sin log de PII a consola (privacidad §1.10 Charter).
+    void data;
   };
 
   const handleGenerateApiKey = async () => {

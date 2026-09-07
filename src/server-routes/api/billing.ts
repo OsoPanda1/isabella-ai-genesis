@@ -1018,17 +1018,40 @@ export const Route = createFileRoute("/api/billing")({
               const tenant = SovereignDB.getTenant(context.tenantId);
               const costUSD = listing.costCents / 100;
 
-              // P0: IDEMPOTENCIA + RE-validación de saldo tras lecturas concurrentes.
-              const purchaseMarker = `MARKETPLACE_PURCHASE:${parsed.data.skillId}:${listing.costCents}`;
-              const alreadyOwned = SovereignDB.getLedger(context.tenantId).some(
-                (b) => b.operation && b.operation.includes(purchaseMarker),
+              // P0: IDEMPOTENCIA ATÓMICA — UNIQUE(tenant_id, idempotency_key)
+              // en economic_events. Re-compra concurrente → 409 por constraint,
+              // no por escaneo O(n) del ledger con carreras.
+              const { recordEconomicEvent: recordPurchaseEvent } = await import(
+                "@/lib/economic-events"
               );
-              if (alreadyOwned) {
+              const purchaseClaim = await recordPurchaseEvent({
+                tenantId: context.tenantId,
+                actorId: context.userId,
+                eventType: `MARKETPLACE_PURCHASE:${parsed.data.skillId}`,
+                amountMinor: listing.costCents,
+                direction: "DEBIT",
+                source: "marketplace",
+                idempotencyKey: `purchase:${parsed.data.skillId}:${listing.costCents}`,
+                correlationId: context.correlationId,
+                metadata: { skillId: parsed.data.skillId, costCents: listing.costCents },
+              }).catch((error: unknown) => ({
+                ok: false as const,
+                duplicate: false as const,
+                error: error instanceof Error ? error.message : String(error),
+              }));
+              if (!purchaseClaim.ok) {
+                if (purchaseClaim.duplicate) {
+                  return new Response(
+                    JSON.stringify({ error: "Este skill ya fue adquirido por el tenant." }),
+                    { status: 409, headers },
+                  );
+                }
                 return new Response(
-                  JSON.stringify({ error: "Este skill ya fue adquirido por el tenant." }),
-                  { status: 409, headers },
+                  JSON.stringify({ error: "Idempotencia de compra no disponible." }),
+                  { status: 500, headers },
                 );
               }
+              const purchaseMarker = `MARKETPLACE_PURCHASE:${parsed.data.skillId}:${listing.costCents}`;
 
               if (!tenant || tenant.quotaBalance < costUSD) {
                 return new Response(

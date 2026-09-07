@@ -195,6 +195,13 @@ export function createExecutionAuthority(opts?: {
       tenantId: string,
     ): Promise<ApprovalGrant | null>;
   };
+  /**
+   * Kill switch (§7.1 Charter). Si `tool-execution` está engaged,
+   * toda ejecución se deniega antes de autorizar.
+   */
+  killSwitch?: {
+    isKilled(capability: string): Promise<boolean>;
+  };
 }) {
   const registry = createToolRegistry();
   const approvals = opts?.approvalLedger ?? createApprovalLedger();
@@ -263,6 +270,23 @@ export function createExecutionAuthority(opts?: {
     registry,
 
     async execute(request: ExecutionRequest): Promise<ExecutionOutcome> {
+      // ── KILL SWITCH: parada de emergencia antes de todo ───────
+      if (opts?.killSwitch) {
+        let killed = false;
+        try {
+          killed = await opts.killSwitch.isKilled("tool-execution");
+        } catch {
+          killed = true; // Sin estado legible: fail-closed.
+        }
+        if (killed) {
+          return {
+            executed: false,
+            reason: "Kill switch activo en 'tool-execution' (emergencia).",
+            stage: "decide",
+          };
+        }
+      }
+
       // ── DECIDE: whitelist Zero Trust ──────────────────────────
       const check = registry.check(request.tool);
       if (!check.allowed) {

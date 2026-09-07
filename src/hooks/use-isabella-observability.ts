@@ -15,7 +15,10 @@ export function useIsabellaObservability() {
   const logLifecycleEvent = useCallback(
     (stage: "INIT" | "SANITIZATION" | "PAYLOAD_CONSTRUCTION" | "SEND" | "SUCCESS" | "ERROR", details: any) => {
       const timestamp = new Date().toISOString();
-      console.log(`[Isabella Observability] [${timestamp}] [${stage}]`, details);
+      // Solo desarrollo: details puede contener texto del usuario (privacidad).
+      if (typeof process !== "undefined" && process.env?.NODE_ENV !== "production") {
+        console.log(`[Isabella Observability] [${timestamp}] [${stage}]`, details);
+      }
       
       // We can also dispatch an event to the window for telemetry panels
       if (typeof window !== "undefined") {

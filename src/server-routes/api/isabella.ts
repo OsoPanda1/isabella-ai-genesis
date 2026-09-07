@@ -254,6 +254,49 @@ export const Route = createFileRoute("/api/isabella")({
           );
         }
 
+        // --- KILL SWITCH (§7.1 Charter): parada de emergencia de inferencia.
+        // Store durable (PG) si hay DATABASE_URL, memoria en desarrollo.
+        // Sin estado legible: fail-closed (denegar).
+        try {
+          const { createMemoryKillSwitchStore, createPostgresKillSwitchStore } = await import(
+            "@/lib/kill-switch"
+          );
+          const store = config().DATABASE_URL
+            ? createPostgresKillSwitchStore()
+            : createMemoryKillSwitchStore();
+          if (await store.isKilled("inference")) {
+            const headers = SecuritySystem.injectSecureHeaders(
+              new Headers({ "content-type": "application/json" }),
+            );
+            return new Response(
+              JSON.stringify({
+                error: "inference_killed",
+                provider: "none",
+                degraded: true,
+                mode: "maintenance",
+                message:
+                  "Parada de emergencia activa en inferencia (kill switch). Intervención humana requerida.",
+                traceId: telemetry.traceId,
+              }),
+              { status: 503, headers },
+            );
+          }
+        } catch {
+          const headers = SecuritySystem.injectSecureHeaders(
+            new Headers({ "content-type": "application/json" }),
+          );
+          return new Response(
+            JSON.stringify({
+              error: "inference_unavailable",
+              degraded: true,
+              mode: "maintenance",
+              message: "Estado de emergencia ilegible (fail-closed).",
+              traceId: telemetry.traceId,
+            }),
+            { status: 503, headers },
+          );
+        }
+
         // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker — Gemini o Nativo es-MX ---
         if (useNativeOnly) {
           const decision = resolveInferencePolicy({ productionLike, hasProvider: false });

@@ -1135,6 +1135,68 @@ export const Route = createFileRoute("/api/db")({
             })({ request });
           }
 
+          // EMERGENCY (§7.1 Charter): engage/release/status del kill switch.
+          // Solo SovereignOwner. Sin DATABASE_URL: 503 honesto (sin estado
+          // durable no hay parada multi-instancia confiable).
+          if (
+            action === "emergency-engage" ||
+            action === "emergency-release" ||
+            action === "emergency-status"
+          ) {
+            return withSovereignAuth("system", "admin", async (context, req, body: unknown) => {
+              if (context.role !== "SovereignOwner") {
+                return new Response(
+                  JSON.stringify({ error: "Solo SovereignOwner opera el kill switch." }),
+                  { status: 403, headers },
+                );
+              }
+              if (!config().DATABASE_URL) {
+                return new Response(
+                  JSON.stringify({ error: "Kill switch durable requiere DATABASE_URL." }),
+                  { status: 503, headers },
+                );
+              }
+              const { createPostgresKillSwitchStore } = await import("@/lib/kill-switch");
+              const store = createPostgresKillSwitchStore((event, details) => {
+                SovereignDB.appendAuditLog(
+                  `trc_emergency_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                  context.correlationId,
+                  context.ip,
+                  "Kill Switch Operado",
+                  "S0",
+                  `${event}: ${JSON.stringify(details)}`,
+                );
+              });
+              if (action === "emergency-status") {
+                const states = await store.list();
+                return new Response(JSON.stringify({ success: true, states }), { headers });
+              }
+              const { capability, reason } = (body || {}) as {
+                capability?: string;
+                reason?: string;
+              };
+              if (!capability) {
+                return new Response(JSON.stringify({ error: "capability requerida." }), {
+                  status: 400,
+                  headers,
+                });
+              }
+              try {
+                const state =
+                  action === "emergency-engage"
+                    ? await store.engage(capability, reason || "emergencia declarada", context.userId)
+                    : await store.release(capability, context.userId);
+                return new Response(JSON.stringify({ success: true, state }), { headers });
+              } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                return new Response(JSON.stringify({ error: message }), {
+                  status: 400,
+                  headers,
+                });
+              }
+            })({ request });
+          }
+
           if (action === "monetization-execute-task") {
             return withSovereignAuth("system", "write", async (context, _req, body: unknown) => {
               const { task } = (body || {}) as { task?: string };

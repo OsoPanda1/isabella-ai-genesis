@@ -51,6 +51,9 @@ export interface PipelineResult {
 export function createSovereignPipeline(opts?: {
   memoryRepository?: MemoryRepository;
   auditRepository?: AuditRepository;
+  killSwitchStore?: {
+    isKilled(capability: string): Promise<boolean>;
+  };
 }) {
   const memoryEngine = createMemoryEngine(opts?.memoryRepository);
   const toolRegistry = createToolRegistry();
@@ -184,6 +187,7 @@ export function createSovereignPipeline(opts?: {
         const authority = createExecutionAuthority({
           memoryRepository: opts?.memoryRepository,
           auditRepository: opts?.auditRepository,
+          killSwitch: opts?.killSwitchStore,
         });
         const outcome = await authority.execute({
           tool: input.toolRequest,

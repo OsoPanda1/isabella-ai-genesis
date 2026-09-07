@@ -1,138 +1,85 @@
-# Isabella Villaseñor AI
+# Isabella Villaseñor AI — Genesis
 
-## Terminal cognitivo gobernado para TAMV ONLINE NETWORK
+## IA cognitiva gobernada federada (Federated Governed Artificial Intelligence System)
 
-Isabella Villaseñor AI es una arquitectura cognitiva híbrida para coordinar interpretación, memoria, gobernanza, herramientas y trazabilidad dentro de un marco de soberanía humana. El proyecto no es una AGI, un chatbot autónomo ni un sustituto de la decisión humana: los módulos sugieren, verifican y ejecutan únicamente dentro de políticas explícitas.
+Isabella Villaseñor AI es una arquitectura cognitiva híbrida que coordina interpretación, memoria, gobernanza, herramientas y trazabilidad bajo soberanía humana, operada desde el Nodo Cero (Real del Monte, Hidalgo, México) por TAMV ONLINE.
 
-> Estado del repositorio: prototipo operativo endurecido en evolución. Las integraciones productivas deben verificarse en cada entorno antes de autorizar usuarios, cobros o acciones sensibles.
+**Lo que Isabella es:** una capa de gobernanza, identidad, ruteo, seguridad, memoria y auditoría —propia y verificable— sobre un substrato de inferencia generativa federado (Gemini). **Lo que no es:** una AGI, un stack totalmente soberano, un chatbot autónomo ni un sustituto de la decisión humana. Los módulos sugieren, verifican y ejecutan únicamente dentro de políticas explícitas.
 
-## Principios
+> Estado: prototipo operativo endurecido en evolución. Nada en este README afirma preparación productiva sin evidencia enlazada. Ver `docs/governance/01-FGAIS-Governance-Constitution.md` (Nivel 0) y `docs/governance/EVIDENCE-MAP.md` (correspondencia claim↔código).
 
-- **Soberanía humana:** ninguna acción de alto riesgo se ejecuta sin aprobación.
-- **Zero Trust:** toda herramienta requiere identidad, tenant, alcance y política.
-- **Soberanía territorial:** el contexto de Real del Monte y la comunidad no se trata como un dato genérico.
-- **Trazabilidad:** las decisiones relevantes producen correlación, auditoría y evidencia.
+## Principios operativos
+
+- **La capacidad no implica autoridad** (axioma FGAIS §2.1): existir no autoriza ejecutar.
+- **Negar por defecto:** verificar → autorizar → ejecutar → registrar → monitorear → recuperar.
+- **Soberanía humana:** ninguna acción de alto riesgo sin aprobación registrada.
+- **Zero Trust:** identidad, tenant, alcance y política en cada operación.
+- **Trazabilidad:** toda decisión relevante produce `traceId`, `correlationId` y evidencia auditable.
 - **Incertidumbre honesta:** los fallos de proveedores y modos degradados se comunican, no se disfrazan.
+- **Correspondencia estricta (D.5):** ninguna capacidad se declara `Verified`/`Production-Verified` sin prueba reproducible.
 
 ## Arquitectura
 
-- **CROWN Gateway:** ruteo, arbitraje, estado y composición de la respuesta.
-- **ISA:** presencia, tono y modulación contextual.
-- **SOPHIA:** razonamiento, consistencia y síntesis.
-- **ORION:** tareas técnicas, operativas y creativas.
-- **ARGUS / AEGIS:** seguridad, evaluación de riesgo, filtros y veto.
-- **BookPI:** registro de decisiones, consumo y evidencias.
-- **QUP:** utilidades de optimización y procesamiento con contratos tipados.
+- **CROWN Gateway:** ruteo, arbitraje, estado y composición (`src/lib/crown.ts`, `constitutional-gate.ts`, `policy-engine.ts`).
+- **ISA / SOPHIA / ORION / ARGUS:** presencia, razonamiento, ejecución y veto.
+- **AEGIS semántico** (`src/lib/aegis-semantic.ts`): 7 detectores (classifier, contextual, inyección indirecta, tool poisoning, retrieval poisoning, exfiltración, conductual) integrados al firewall, 37 casos adversariales verdes.
+- **Authorization real** (`src/lib/authorization.ts`): PDP RBAC (matriz + catálogo) + ABAC deny-overrides + anomalía, decisiones firmadas ECDSA P-384.
+- **Execution Authority** (`src/lib/execution-authority.ts`): Decide → Authorization → Approval (un solo uso / capability tokens firmados) → Execution → Validation → Audit.
+- **Kill switch** (`src/lib/kill-switch.ts`, §7.1): parada por capacidad (`inference`, `tool-execution`, `skill-execution`, `payouts`, `quantum-jobs`), durable en PG, API `emergency-*` solo SovereignOwner.
+- **BookPI + contabilidad** (`src/lib/repositories/bookpi-postgres-repository.ts`, `src/lib/accounting/`): ledger append-only con firmas reales, doble entrada con asiento atómico, eventos económicos idempotentes.
+- **Memoria y auditoría** con hash-chain, mutex anti-bifurcación y verificación de integridad.
+- **Observabilidad durable**: OTLP/HTTP → Collector → backend/SIEM (`src/lib/otel-exporter.ts`); el buffer en memoria es solo fallback local.
 
-El flujo canónico es:
+Flujo canónico: `Perceive → Remember → Policy Gate → Decide → Act → Audit`.
 
-```text
-Perceive → Remember → Policy Gate → Decide → Act → Audit
-```
+## Autoridades de producción (sin ambigüedad)
 
-## Interfaz
+| Autoridad | Fuente única | Infraestructura (no autoridad) |
+|---|---|---|
+| Estado relacional | PostgreSQL vía `DATABASE_URL` | Neon / Supabase Postgres (mismo cluster) |
+| Identidad | OIDC/Supabase JWT + API keys server-side | Supabase Auth (emisión) |
+| Inferencia | Proveedor federado Gemini | `generativelanguage.googleapis.com` |
+| Auditoría | Hash-chain + PG append-only + HMAC-SHA3-512 | Sistema de archivos inmutable |
+| Pagos | Stripe + `webhook_events` + `economic_events` + BookPI | Stripe API |
+| Observabilidad | OTLP Collector → backend/SIEM | — |
 
-La aplicación usa TanStack Start, React, Vite y Tailwind CSS. La terminal ofrece:
+`DATABASE_URL` es obligatoria en producción (`requiredEnvKeys`, CI y `production-authority.ts` la exigen). `assertProductionAuthorities()` / `runtime-integrity` degradan el arranque si una autoridad crítica falla.
 
-- introducción cinemática accesible y recuperable;
-- navegación cognitiva, gobernanza, catálogo, monetización, QUP y AEGIS;
-- mensajes en streaming, adjuntos y reintentos;
-- telemetría exportable y persistencia local limitada al navegador;
-- paneles responsive para escritorio y pantallas estrechas;
-- recuperación ante errores de renderizado sin exponer mensajes internos.
+## Inferencia federada (declaración honesta)
 
-La interfaz es una superficie de operación y observación. La autoridad permanece en el servidor.
-
-## Requisitos
-
-- Node.js 22 o superior.
-- pnpm 10.15.0 o compatible con el lockfile.
-- Variables de entorno configuradas según el entorno.
-- PostgreSQL/Neon, Stripe, Supabase u otros proveedores únicamente cuando sus integraciones estén conectadas y validadas.
-
-## Instalación
-
-```bash
-pnpm install --frozen-lockfile
-pnpm dev
-```
-
-La aplicación local queda disponible en `http://localhost:3000`.
-
-## Validación
-
-Ejecuta antes de publicar:
-
-```bash
-pnpm typecheck
-pnpm test
-pnpm lint
-pnpm security:scan
-pnpm build
-```
-
-Para comprobar el artefacto de Vercel:
-
-```bash
-test -d .vercel/output
-```
-
-## Variables y secretos
-
-Nunca se deben incluir secretos en el repositorio, en `VITE_*`, en el cliente, en logs ni en URLs. Las claves de servidor se leen mediante el módulo de configuración y deben existir únicamente en el entorno de ejecución.
-
-Variables habituales del proyecto incluyen:
-
-- conexión PostgreSQL/Neon;
-- claves de firma CROWN y BookPI;
-- secretos OIDC/JWKS;
-- claves y webhook secret de Stripe;
-- configuración de voz y proveedores de IA;
-- secretos de AEGIS y límites de seguridad.
-
-Consulta `.env.example`, `src/lib/env-schema.ts` y la configuración del proyecto Vercel. Los valores reales nunca deben documentarse aquí.
+Sin `GEMINI_API_KEY` en producción, `/api/isabella` responde **503 `inference_unavailable`** explícito; no existe fallback generativo silencioso. En desarrollo, el clasificador local determinista (`isabella-native-ml`, no generativo) opera declarado como `provider: native-fallback, degraded: true` en payload, headers e insignia UI. ML-DSA-87 es SIMULATION-ONLY por contrato.
 
 ## Seguridad operativa
 
-Toda ruta sensible debe conservar:
-
-1. autenticación y autorización mediante `withSovereignAuth`;
-2. aislamiento por `tenantId` derivado de la identidad, nunca del cuerpo;
-3. validación Zod y límites de tamaño;
-4. rate limiting y cabeceras defensivas;
-5. idempotencia para pagos, webhooks y mutaciones;
-6. auditoría con `traceId` y `correlationId`;
-7. respuesta genérica ante errores internos.
-
-El acceso invitado y los atajos de desarrollo deben permanecer deshabilitados en producción. Un adapter determinista o fallback no debe presentarse como inferencia productiva.
-
-## CSP (estado transitorio declarado)
-
-La política enforced permite `script-src 'self' 'unsafe-inline'` porque el bootstrap de hidratación de TanStack Start requiere inline scripts; en paralelo corre una política nonce en Report-Only. Pasar a enforcement con nonce exige nonces por request emitidos por el framework: pendiente documentado, no deuda oculta. `frame-ancestors 'none'`, HSTS y nosniff están enforced.
-
-## Clasificación de soberanía (precisa)
-
-Isabella es una **IA cognitiva gobernada federada** (*Federated Governed Cognitive AI*), no un stack totalmente soberano:
-
-- **Soberano (propio, verificable):** identidad, gobernanza (CROWN), ruteo, seguridad (ARGUS/AEGIS), memoria, auditoría (BookPI), tenancy y políticas.
-- **Federado (externo, declarado):** el substrato de inferencia generativa es Gemini (`generativelanguage.googleapis.com`) vía `GEMINI_API_KEY`. Sin proveedor en producción, `/api/isabella` responde 503 `inference_unavailable` explícito; el clasificador local (`isabella-native-ml`) es determinista y no generativo, y solo opera en desarrollo declarado como `provider: native-fallback, degraded: true`.
+Toda ruta sensible conserva: `withSovereignAuth`, tenant derivado de identidad, validación Zod + límites, rate limiting distribuido (fail-closed en prod sin Redis → 503), egress allowlist anti-SSRF, idempotencia en pagos/webhooks/mutaciones, auditoría con correlación y errores genéricos. Dev-auth (`oauth-*`, `dev-session`) responde 404 en producción. Invitados y atajos de desarrollo deshabilitados en prod. CSP en transición documentada (enforced + Report-Only con nonce).
 
 ## Economía y BookPI
 
-Los créditos representan consumo prefinanciado. La recarga debe acreditarse únicamente después de confirmar el pago en Stripe, con deduplicación por `event.id` o `PaymentIntent`. Los débitos deben ser atómicos, impedir saldo negativo y quedar unidos a un registro BookPI verificable.
+Créditos = consumo prefinanciado. Recarga solo tras `PaymentIntent` verificado, con claim atómico `UNIQUE(tenant, idempotency_key)`. Débitos con gate de saldo, reembolsos como eventos nuevos (nunca UPDATE), chargebacks con disputa + congelamiento de payouts. Fraud review con scoring, hold/decisión única y doble aprobación en montos altos. Payouts Stripe reales con cuenta destino + idempotencia; sin destino, programado manual etiquetado. Pagos en vivo: ver matriz (evidencia en vivo pendiente).
 
-Antes de operar pagos reales deben comprobarse transacciones concurrentes, reintentos, chargebacks, idempotencia y reconciliación. Un endpoint de demostración no es una garantía financiera.
+## Verificación (todo reproducible localmente)
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run typecheck && pnpm run lint
+pnpm run test            # unit + security + bookpi + integration (DB-gateados se omiten sin PG)
+pnpm run capabilities    # matriz 27 capabilities contra archivos + manifiesto
+pnpm run db:verify       # estructura de migraciones
+pnpm run security:scan   # eslint security + secret-scan
+pnpm run build           # bundle cliente + SSR
+```
+
+Con PostgreSQL: `TEST_DATABASE_URL=... pnpm exec vitest run --project bookpi --project integration` (concurrencia, idempotencia, reconciliación, refunds, approvals atómicos). En CI (`ci.yml`): build + security + CodeQL + `migrate-check` + `db-tests` (pgvector:pg16 con migraciones aplicadas) + `release-readiness` honesto.
 
 ## Despliegue en Vercel
 
-1. Conecta el repositorio y selecciona la rama que se desea publicar.
-2. Configura las variables de entorno por entorno.
-3. Ejecuta las validaciones anteriores.
-4. Confirma que `vite.config.ts` usa el preset `vercel` de Nitro.
-5. Publica y revisa logs de compilación y runtime.
-6. Ejecuta smoke tests de inicio, autenticación, chat, error boundary y rutas críticas.
+1. Rama `main` (fuente única; cada push despliega).
+2. Secretos requeridos = `requiredEnvKeys("production")` (paridad CI↔prod verificada por test): `PUBLIC_URL`, `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `AUTH_JWT_SECRET`, `GEMINI_API_KEY`, `ENCRYPTION_MASTER_KEY`, `CROWN_POLICY_SIGNING_KEY`, `AEGIS_AUDIT_SECRET`, `BOOKPI_SIGNING_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (+ `OTEL_EXPORTER_OTLP_ENDPOINT` para observabilidad durable).
+3. `postinstall` regenera Prisma (`schema.prisma` es la fuente; `src/generated` no se versiona).
+4. Health: `/api/health/live` (proceso), `/api/health/ready` (tráfico), `/api/health/deep` (dependencias).
+5. `pnpm-lock.yaml` es el único lockfile canónico (pnpm 10, Node ≥22).
 
-No se deben publicar ramas con fallos de build, secretos, datos de prueba con apariencia real o afirmaciones no verificadas de preparación productiva.
+No publicar ramas con fallos de build, secretos, datos de prueba con apariencia real o afirmaciones sin evidencia.
 
 ## Estructura principal
 
@@ -140,27 +87,31 @@ No se deben publicar ramas con fallos de build, secretos, datos de prueba con ap
 src/
 ├── components/isabella/   Interfaz, terminal y paneles
 ├── lib/                   CROWN, seguridad, identidad, persistencia y contratos
-├── routes/                Rutas de aplicación y API
-├── styles.css             Tokens visuales y utilidades de cristal
-└── generated/prisma/      Cliente generado; no editar manualmente
-
-latam-aegis-x/             Motor auxiliar de evaluación AEGIS
-prisma/                    Esquema y migraciones
-supabase/                  Migraciones cuando aplique
-scripts/                   Verificación, migración y seguridad
-k8s/                       Referencias de despliegue restringido
+│   ├── sandbox/           Ejecutor VM aislado real (JS puro, timeout enforced)
+│   ├── monetization/      Fraud review, payouts, withdrawals
+│   ├── repositories/      PG durables (bookpi, approvals, marketplace, memoria, auditoría)
+│   └── skills/            Registro y packs de habilidades soberanas
+├── routes/api/            Delegación fina → server-routes (autoridad única)
+├── server-routes/api/     Handlers canónicos (billing, db, isabella, health…)
+├── styles.css             Tokens visuales
+docs/
+├── governance/            Charter FGAIS v2.0 (Nivel 0) + EVIDENCE-MAP
+├── architecture/          ADRs de la cadena de autoridad
+├── operations/            Matrices, runbook DR, reparación, dependencias
+└── api/                   Contratos de autoridad de API
+supabase/migrations/      Esquema, RLS, inmutabilidad, seeds auditables
+scripts/                  Verificación, backup/restore, supply-chain, capabilities
+prisma/                   Esquema fuente (migraciones vía Supabase)
 ```
 
 ## Contribución
 
-Lee `AGENTS.md` antes de modificar el proyecto. Mantén TypeScript estricto, contratos runtime, cambios pequeños y reversibles, pruebas para cada invariantes de seguridad y documentación sincronizada. No uses `any` sin justificación, no sustituyas una integración real por datos simulados y no promociones inferencias a hechos.
+Lee `AGENTS.md`. TypeScript estricto, contratos runtime, cambios pequeños reversibles, prueba por cada invariante de seguridad, documentación sincronizada. Sin `any` injustificado, sin simulaciones como integraciones, sin inferencias promovidas a hechos. `main` siempre compilable; prohibido `push --force`/rebase sobre historia publicada.
 
-## Limitaciones conocidas
+## Limitaciones conocidas (deuda declarada, no oculta)
 
-La preparación productiva depende de la configuración real de cada integración. Interfaces de firma post-cuántica, adapters cognitivos, almacenamiento de auditoría, aprobaciones humanas y observabilidad deben verificarse contra servicios reales antes de confiarles operaciones sensibles.
+Pagos Stripe en vivo sin evidencia de transferencia ejecutada; multi-región; nonce-CSP enforcement; DAST/pentesting/red-team externo; MFA admins; rotación programada de 90 días; payouts masivos; `happy-dom`/`pnpm` sin instalar localmente (CI los provee). Ver matriz y EVIDENCE-MAP para dueño y estado por brecha.
 
 ## Licencia y autoría
 
-Arquitectura de dominio público bajo CC BY 4.0, atribuida a Edwin Oswaldo Castillo Trejo (Anubis Villaseñor), dentro del ecosistema TAMV ONLINE NETWORK / RDM Digital Hub / Nodo Cero.
-
-La licencia no elimina las obligaciones de privacidad, seguridad, protección de datos, pagos ni cumplimiento legal aplicables al despliegue.
+Dominio público arquitectónico bajo CC BY 4.0, Edwin Oswaldo Castillo Trejo (Anubis Villaseñor), ecosistema TAMV ONLINE NETWORK / RDM Digital Hub / Nodo Cero (Real del Monte, Hidalgo, México). La licencia no elimina obligaciones de privacidad, seguridad, pagos ni cumplimiento legal del despliegue.
