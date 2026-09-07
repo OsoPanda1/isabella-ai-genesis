@@ -561,7 +561,7 @@ export const Route = createFileRoute("/api/db")({
           }
 
           const scope = "isabella:chat isabella:ledger:write isabella:sandbox:run";
-          const userToken = SecuritySystem.generateSovereignToken(
+          const userToken = await SecuritySystem.generateSovereignToken(
             session.userId,
             session.role,
             session.tenantId,
@@ -824,7 +824,7 @@ export const Route = createFileRoute("/api/db")({
               tenantId: "nodo-cero",
             };
 
-            const devToken = SecuritySystem.generateSovereignToken(
+            const devToken = await SecuritySystem.generateSovereignToken(
               DEV_USER.userId,
               DEV_USER.role,
               DEV_USER.tenantId,

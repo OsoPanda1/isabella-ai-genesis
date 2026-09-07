@@ -181,7 +181,7 @@ export const SecuritySystem = {
   },
 
   // --- LAYER 3: Sovereign Cryptographic Authorization & Token Verification ---
-  generateSovereignToken(userId: string, role: string, tenantId: string, scope: string): string {
+  async generateSovereignToken(userId: string, role: string, tenantId: string, scope: string): Promise<string> {
     const payload = {
       iss: "TAMV Online Network Security Hub",
       sub: userId,
@@ -195,7 +195,7 @@ export const SecuritySystem = {
     return JWT_VERIFIER.signHs256(payload, securitySecret());
   },
 
-  verifyToken(token: string | null): { success: boolean; claims?: TokenClaims; error?: string } {
+  async verifyToken(token: string | null): Promise<{ success: boolean; claims?: TokenClaims; error?: string }> {
     if (!token) {
       return { success: false, error: "Credencial nula: No se proporcionó clave de API." };
     }
@@ -209,7 +209,7 @@ export const SecuritySystem = {
     }
 
     try {
-      const res = JWT_VERIFIER.verify(token, {
+      const res = await JWT_VERIFIER.verify(token, {
         key: securitySecret(),
         algorithm: "HS256",
         issuer: "TAMV Online Network Security Hub",
@@ -220,7 +220,7 @@ export const SecuritySystem = {
         return {
           success: false,
           error:
-            res.reason ?? "Firma digital no válida: Manipulación detectada (Integrity violation).",
+            res.reason ?? "Firma digital no válida: Manipulaci��n detectada (Integrity violation).",
         };
       }
 
@@ -230,11 +230,11 @@ export const SecuritySystem = {
     }
   },
 
-  verifyApiScope(
+  async verifyApiScope(
     token: string | null,
     requiredScope: string,
-  ): { allowed: boolean; reason?: string; claims?: TokenClaims } {
-    const verification = this.verifyToken(token);
+  ): Promise<{ allowed: boolean; reason?: string; claims?: TokenClaims }> {
+    const verification = await this.verifyToken(token);
     if (!verification.success) {
       return { allowed: false, reason: verification.error ?? "Credencial no válida." };
     }

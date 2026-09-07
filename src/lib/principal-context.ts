@@ -268,7 +268,7 @@ export class PrincipalContext {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const verification = SecuritySystem.verifyToken(token);
+    const verification = await SecuritySystem.verifyToken(token);
     if (!verification.success || !verification.claims) {
       const isGuestAllowed = (() => {
         try {
@@ -359,7 +359,7 @@ export class PrincipalContext {
     }
 
     if (requiredScope) {
-      const scopeCheck = SecuritySystem.verifyApiScope(token, requiredScope);
+      const scopeCheck = await SecuritySystem.verifyApiScope(token, requiredScope);
       if (!scopeCheck.allowed) {
         return {
           success: false,
