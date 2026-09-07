@@ -154,6 +154,19 @@ export const envSchema = z.object({
     return undefined;
   }, z.boolean().default(true)),
 
+  // --- SANDBOX (aislamiento de ejecución; default fail-closed) ---
+  // Solo desarrollo puede habilitarlo sin aprobación explícita; en
+  // producción requiere SANDBOX_ENABLED=true + revisión registrada.
+  SANDBOX_ENABLED: z
+    .preprocess((val) => {
+      if (typeof val === "boolean") return val;
+      if (typeof val !== "string") return undefined;
+      const t = val.trim().toLowerCase();
+      if (t === "true") return true;
+      if (t === "false") return false;
+      return undefined;
+    }, z.boolean().default(false)),
+
   // --- REDIS ---
   REDIS_URL: optionalString(),
   REDIS_TOKEN: optionalString(),
@@ -233,6 +246,10 @@ export function requiredEnvKeys(mode: RuntimeMode): (keyof Env)[] {
       return [
         "NODE_ENV",
         "PUBLIC_URL",
+        // DATABASE_URL es la ÚNICA fuente autoritativa de estado relacional.
+        // SUPABASE_URL/ANON_KEY cubren Auth (JWT/JWKS) y superficie PostgREST,
+        // no autoridad de estado: todo lo durable resuelve al cluster DSN.
+        "DATABASE_URL",
         "SUPABASE_URL",
         "SUPABASE_ANON_KEY",
         "AUTH_JWT_SECRET",

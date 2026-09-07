@@ -11,7 +11,16 @@ async function getPrismaClient(): Promise<PrismaClient> {
 
   const { PrismaClient: PrismaClientConstructor } = await import("../generated/prisma");
   const client = new PrismaClientConstructor();
-  if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = client;
+  // Caché global solo fuera de producción; si la config no carga,
+  // fail-closed (sin caché global).
+  let cacheGlobal = false;
+  try {
+    const { config } = await import("./config");
+    cacheGlobal = config().NODE_ENV !== "production";
+  } catch {
+    cacheGlobal = false;
+  }
+  if (cacheGlobal) globalForPrisma.prisma = client;
   return client;
 }
 
@@ -23,7 +32,10 @@ export const prisma = new Proxy({} as PrismaClient, {
         get: (_modelTarget, method: string) =>
           (async (...args: unknown[]) => {
             const client = await getPrismaClient();
-            const modelClient = client[model as keyof PrismaClient] as unknown as Record<string, PrismaModelMethod>;
+            const modelClient = client[model as keyof PrismaClient] as unknown as Record<
+              string,
+              PrismaModelMethod
+            >;
             return modelClient[method](...args);
           }) as PrismaModelMethod,
       },

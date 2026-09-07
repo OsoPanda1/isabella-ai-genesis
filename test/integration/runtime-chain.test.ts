@@ -77,7 +77,7 @@ describe("cadena runtime auth → CROWN → AEGIS → memory → audit", () => {
     const memoryRepository = createMemoryRepository(memPath);
     const auditRepository = createAuditRepository(auditPath);
 
-    const seed = memoryRepository.add({
+    const seed = await memoryRepository.add({
       tenantId: "tenant_chain",
       content: "Saldo inicial verificado del tenant.",
       source: "system",

@@ -106,6 +106,20 @@ export function createDoubleEntryService(repository: AccountingRepository): Doub
       return { success: false, error: validation.errors.join(" ") };
     }
 
+    // Vía atómica cuando el repositorio la implementa (PostgreSQL real:
+    // asiento + líneas en una sola transacción, rollback total al fallar).
+    if (typeof repository.createJournalEntryAtomic === "function") {
+      try {
+        const { entry, lines } = await repository.createJournalEntryAtomic(dto);
+        return { success: true, entry, lines };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Error desconocido",
+        };
+      }
+    }
+
     let tx: unknown | undefined;
     try {
       tx = await repository.beginTransaction();

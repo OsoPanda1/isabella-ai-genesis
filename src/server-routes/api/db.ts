@@ -9,6 +9,7 @@ import { SecuritySystem } from "@/lib/security";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { SovereignSandboxService } from "@/lib/sovereign-sandbox";
 import { config } from "@/lib/config";
+import { devAuthNotFound } from "@/lib/dev-auth-guard";
 
 const addLedgerSchema = z.object({
   operation: z.string().min(1).max(200),
@@ -111,6 +112,11 @@ export const Route = createFileRoute("/api/db")({
       GET: async ({ request }) => {
         const url = new URL(request.url);
         const action = url.searchParams.get("action") || "session";
+
+        // Separación prod/dev a nivel de módulo: las acciones dev-auth no
+        // existen en producción (404, sin confirmar existencia).
+        const dev404 = devAuthNotFound(action);
+        if (dev404) return dev404;
 
         if (action === "session") {
           return withSovereignAuth("system", "read", async (context) => {
@@ -276,26 +282,25 @@ export const Route = createFileRoute("/api/db")({
               where: { userId: context.userId },
             });
             if (!account) {
-              account = {
-                userId: context.userId,
-                earnedBalanceCents: 0,
-                qualifiedUses: 0,
-                approvedContributions: 0,
-                trainingCompleted: false, // P8: NO synthetic data
-                identityVerified: false, // P8: NO synthetic data
-                paymentAccountVerified: false, // P8: NO synthetic data
-                profileComplete: false,
-                sanctioned: false,
-                underFraudReview: false,
-              };
+              // Fila durable real (ceros, sin sintéticos): nada transitorio.
+              account = await prisma.monetizationAccount.create({
+                data: { userId: context.userId },
+              });
             }
             const { evaluateEligibility } = await import("@/lib/monetization/eligibility");
+            // subscriptionActive desde el tenant durable (repository authority),
+            // jamás de proyecciones en memoria. Fallo → false (fail-closed).
+            let subscriptionActive = false;
+            try {
+              const tenantRepo = repositoryFactory.getTenantRepository();
+              const tenant = await tenantRepo.read(context.tenantId, context.tenantId);
+              const tier = String(tenant?.tier ?? "").toLowerCase();
+              subscriptionActive = tier === "sovereign" || tier === "enterprise";
+            } catch {
+              subscriptionActive = false;
+            }
             const eligibility = evaluateEligibility({
-              subscriptionActive: (() => {
-                const dbInst = SovereignDB.load();
-                const tenant = dbInst.tenants.find((t) => t.id === (context.tenantId || ""));
-                return tenant ? tenant.tier === "Sovereign" || tenant.tier === "Enterprise" : false;
-              })(), // TODO: Replace with real SovereignDB/Prisma check when merged
+              subscriptionActive,
               identityVerified: account.identityVerified,
               paymentAccountVerified: account.paymentAccountVerified,
               profileComplete: account.profileComplete,
@@ -654,6 +659,9 @@ export const Route = createFileRoute("/api/db")({
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json" }),
         );
+
+        const dev404Post = action ? devAuthNotFound(action) : null;
+        if (dev404Post) return dev404Post;
 
         try {
           if (action === "oauth-authorize-action") {
@@ -1063,6 +1071,70 @@ export const Route = createFileRoute("/api/db")({
             })({ request });
           }
 
+          // HITL: solicitar approval durable para ejecutar una herramienta.
+          // Requiere DATABASE_URL (multi-instancia); sin ella, 503 honesto.
+          if (action === "approval-request") {
+            return withSovereignAuth("system", "write", async (context, req, body: unknown) => {
+              const { traceId, tool } = (body || {}) as { traceId?: string; tool?: string };
+              if (!traceId || !tool) {
+                return new Response(JSON.stringify({ error: "traceId y tool requeridos." }), {
+                  status: 400,
+                  headers,
+                });
+              }
+              if (!config().DATABASE_URL) {
+                return new Response(
+                  JSON.stringify({
+                    error: "Approvals durables requieren DATABASE_URL (multi-instancia).",
+                  }),
+                  { status: 503, headers },
+                );
+              }
+              const { grantApprovalAsync } = await import("@/lib/repositories/approval-repository");
+              const grant = await grantApprovalAsync(
+                traceId,
+                tool,
+                context.userId,
+                context.tenantId,
+              );
+              return new Response(
+                JSON.stringify({
+                  success: true,
+                  approvalId: grant.approvalId,
+                  expiresAt: grant.expiresAt,
+                }),
+                { headers },
+              );
+            })({ request });
+          }
+
+          // HITL: estado de approval (vigente/consumido/ausente).
+          if (action === "approval-status") {
+            return withSovereignAuth("system", "read", async (context, req, body: unknown) => {
+              const { traceId, tool } = (body || {}) as { traceId?: string; tool?: string };
+              if (!traceId || !tool) {
+                return new Response(JSON.stringify({ error: "traceId y tool requeridos." }), {
+                  status: 400,
+                  headers,
+                });
+              }
+              if (!config().DATABASE_URL) {
+                return new Response(
+                  JSON.stringify({ error: "Approvals durables requieren DATABASE_URL." }),
+                  { status: 503, headers },
+                );
+              }
+              const { hasApprovalAsync } = await import("@/lib/repositories/approval-repository");
+              const active = await hasApprovalAsync(
+                traceId,
+                tool,
+                context.userId,
+                context.tenantId,
+              );
+              return new Response(JSON.stringify({ success: true, active }), { headers });
+            })({ request });
+          }
+
           if (action === "monetization-execute-task") {
             return withSovereignAuth("system", "write", async (context, _req, body: unknown) => {
               const { task } = (body || {}) as { task?: string };
@@ -1203,14 +1275,17 @@ export const Route = createFileRoute("/api/db")({
                   });
                   if (!acc) throw new Error("No account");
                   const { evaluateEligibility } = await import("@/lib/monetization/eligibility");
+                  let withdrawalSubscriptionActive = false;
+                  try {
+                    const tenantRepo = repositoryFactory.getTenantRepository();
+                    const tenant = await tenantRepo.read(context.tenantId, context.tenantId);
+                    const tier = String(tenant?.tier ?? "").toLowerCase();
+                    withdrawalSubscriptionActive = tier === "sovereign" || tier === "enterprise";
+                  } catch {
+                    withdrawalSubscriptionActive = false;
+                  }
                   return evaluateEligibility({
-                    subscriptionActive: (() => {
-                      const dbInst = SovereignDB.load();
-                      const tenant = dbInst.tenants.find((t) => t.id === (context.tenantId || ""));
-                      return tenant
-                        ? tenant.tier === "Sovereign" || tenant.tier === "Enterprise"
-                        : false;
-                    })(),
+                    subscriptionActive: withdrawalSubscriptionActive,
                     identityVerified: acc.identityVerified,
                     paymentAccountVerified: acc.paymentAccountVerified,
                     profileComplete: acc.profileComplete,
@@ -1230,30 +1305,49 @@ export const Route = createFileRoute("/api/db")({
                     where: { userId: uid },
                   });
                   if (!acc) throw new Error("No account");
-                  if (acc.underFraudReview) {
-                    return {
-                      reviewId: `rev_${nodeCrypto.randomUUID().slice(0, 8)}`,
-                      status: "hold" as const,
-                      score: 0.95,
-                      signals: ["FRAUD_FLAG_ON"],
-                    };
-                  }
+                  // Riesgo REAL vía fraud-review (determinista, auditable),
+                  // no hardcoded. Velocidad desconocida aquí → 0 documentado.
+                  const { evaluateWithdrawalRisk } =
+                    await import("@/lib/monetization/fraud-review");
+                  const accountAgeDays = Math.max(
+                    0,
+                    Math.floor((Date.now() - new Date(acc.createdAt).getTime()) / 86_400_000),
+                  );
+                  const evaluation = evaluateWithdrawalRisk({
+                    userId: uid,
+                    amountCents: acc.earnedBalanceCents,
+                    accountAgeDays,
+                    withdrawalsLast24h: 0,
+                    failedAttemptsLast24h: 0,
+                    sanctioned: acc.sanctioned,
+                    underFraudReview: acc.underFraudReview,
+                    identityVerified: acc.identityVerified,
+                  });
                   return {
-                    reviewId: `rev_${nodeCrypto.randomUUID().slice(0, 8)}`,
-                    status: "pass" as const,
-                    score: 0.05,
-                    signals: [],
+                    reviewId: evaluation.reviewId,
+                    status: evaluation.status,
+                    score: evaluation.score,
+                    signals: evaluation.signals,
                   };
                 },
                 isIdempotent: async (key: string) => {
-                  const bookpi = createBookpiPostgresRepository();
-                  // TODO: full ledger for all tenants is not standard, simulating by empty or error if needed, but let's mock full Ledger here since it's admin
-                  const fullLedger = await bookpi.list(context.tenantId); // Restricted to tenant for now
-                  return fullLedger.some(
-                    (b) =>
-                      b.operation.includes(`idempotencyKey:${key}`) || b.operation.includes(key),
-                  );
+                  // Idempotencia ATÓMICA real: INSERT ... ON CONFLICT sobre
+                  // UNIQUE(tenant_id, idempotency_key) en economic_events.
+                  // El primer llamador inserta (no duplicado); los siguientes
+                  // chocan con la constraint (duplicado). Sin carreras.
+                  const { recordEconomicEvent } = await import("@/lib/economic-events");
+                  const claimed = await recordEconomicEvent({
+                    tenantId: context.tenantId,
+                    actorId: context.userId,
+                    eventType: "WITHDRAWAL_REQUEST",
+                    amountMinor: 0,
+                    direction: "DEBIT",
+                    source: "internal",
+                    idempotencyKey: `withdrawal:${key}`,
+                  });
+                  return claimed.duplicate === true;
                 },
+                // Sin efecto: el claim ya ocurrió atómicamente en isIdempotent.
                 markIdempotent: async () => {},
                 appendBookPI: async (entry: {
                   type: string;

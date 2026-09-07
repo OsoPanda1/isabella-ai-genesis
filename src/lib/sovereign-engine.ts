@@ -185,9 +185,8 @@ function isProductionRuntime(): boolean {
       cfg.ISABELLA_RUNTIME_MODE === "staging"
     );
   } catch {
-    return (
-      process.env.NODE_ENV === "production" || process.env.ISABELLA_RUNTIME_MODE === "production"
-    );
+    // Sin configuración válida: asumir producción (fail-closed).
+    return true;
   }
 }
 
@@ -199,7 +198,9 @@ export class SovereignDB {
    * share one refresh. Mutating paths must request a fresh read (`maxAgeMs: 0`)
    * before a read-modify-write sequence.
    */
-  public static async hydrate({ maxAgeMs = 0 }: { maxAgeMs?: number } = {}): Promise<DatabaseSchema> {
+  public static async hydrate({
+    maxAgeMs = 0,
+  }: { maxAgeMs?: number } = {}): Promise<DatabaseSchema> {
     if (memoryDb && maxAgeMs > 0 && Date.now() - lastHydratedAt < maxAgeMs) {
       return memoryDb;
     }

@@ -77,7 +77,7 @@ export function createSovereignPipeline(opts?: {
       const gate = evaluateConstitutionalGate(context, input.identity, input.evidence, intent);
 
       if (!gate.passed) {
-        const auditEvent = opts?.auditRepository?.append({
+        const auditEvent = await opts?.auditRepository?.append({
           traceId: input.traceId,
           correlationId: input.requestId,
           actorIp: input.actorIp,
@@ -150,7 +150,7 @@ export function createSovereignPipeline(opts?: {
           });
 
           if (policyResult.decision === "denied") {
-            const auditEvent = opts?.auditRepository?.append({
+            const auditEvent = await opts?.auditRepository?.append({
               traceId: input.traceId,
               correlationId: input.requestId,
               actorIp: input.actorIp,
@@ -198,7 +198,7 @@ export function createSovereignPipeline(opts?: {
         });
         toolExecuted = outcome.executed;
         if (!outcome.executed) {
-          const auditDeny = opts?.auditRepository?.append({
+          const auditDeny = await opts?.auditRepository?.append({
             traceId: input.traceId,
             correlationId: input.requestId,
             actorIp: input.actorIp,
@@ -220,7 +220,7 @@ export function createSovereignPipeline(opts?: {
         }
       }
 
-      const auditEvent = opts?.auditRepository?.append({
+      const auditEvent = await opts?.auditRepository?.append({
         traceId: input.traceId,
         correlationId: input.requestId,
         actorIp: input.actorIp,

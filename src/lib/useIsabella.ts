@@ -140,8 +140,8 @@ export function useIsabella() {
       // Apply robust serialization protocol to validate the outgoing payload
       const validatedPayload = validatePayload(text, attachments);
       if (!validatedPayload) {
-         logLifecycleEvent("ERROR", { reason: "Payload validation failed" });
-         return;
+        logLifecycleEvent("ERROR", { reason: "Payload validation failed" });
+        return;
       }
 
       logLifecycleEvent("SANITIZATION", { validatedPayload });
@@ -169,7 +169,7 @@ export function useIsabella() {
       const routing = route(effectiveText || "material adjunto", preset);
       setDecision(routing);
       setTelemetry((prev) => [...prev, toTelemetryRecord(routing, preset.id)]);
-      
+
       logLifecycleEvent("PAYLOAD_CONSTRUCTION", { presetId: preset.id, routing });
 
       const { getSessionToken, ensureSessionToken, setSessionToken } =
@@ -258,7 +258,9 @@ export function useIsabella() {
         if (!res.ok || !res.body) {
           const detail = await res
             .json()
-            .catch(() => ({ error: "Fallo de percepción." }) as { error?: string; message?: string });
+            .catch(
+              () => ({ error: "Fallo de percepción." }) as { error?: string; message?: string },
+            );
           throw new Error(detail.message ?? detail.error ?? "Fallo de percepción.");
         }
 
@@ -291,7 +293,11 @@ export function useIsabella() {
                 setMessages((prev) =>
                   prev.map((m) =>
                     m.id === replyId
-                      ? { ...m, provider, degraded: json.degraded === true || degradedMode !== null }
+                      ? {
+                          ...m,
+                          provider,
+                          degraded: json.degraded === true || degradedMode !== null,
+                        }
                       : m,
                   ),
                 );

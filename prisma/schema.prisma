@@ -1,10 +1,31 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// Cuenta de monetización por usuario: ceros reales por defecto, sin
+// saldos/identidad sintéticos (ver SovereignDB.getMonetizationAccount).
+model MonetizationAccount {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String   @unique @map("user_id") @db.VarChar(128)
+  earnedBalanceCents   Int      @default(0) @map("earned_balance_cents")
+  qualifiedUses        Int      @default(0) @map("qualified_uses")
+  approvedContributions Int     @default(0) @map("approved_contributions")
+  trainingCompleted    Boolean  @default(false) @map("training_completed")
+  identityVerified     Boolean  @default(false) @map("identity_verified")
+  paymentAccountVerified Boolean @default(false) @map("payment_account_verified")
+  profileComplete      Boolean  @default(false) @map("profile_complete")
+  sanctioned           Boolean  @default(false)
+  underFraudReview     Boolean  @default(false) @map("under_fraud_review")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("monetization_accounts")
 }
 
 model AccountingAccount {

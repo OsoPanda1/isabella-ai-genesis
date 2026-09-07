@@ -436,6 +436,39 @@ export class PrincipalContext {
         };
       }
 
+      // P0: expiración y revocación efectiva. Una sesión con is_active=false
+      // o expiresAt pasado se rechaza aunque el JWT aún sea válido.
+      const sessionRecord = session as unknown as Record<string, unknown>;
+      const activeFlag = sessionRecord.is_active ?? sessionRecord.isActive;
+      if (activeFlag === false) {
+        return {
+          success: false,
+          response: new Response(
+            JSON.stringify({
+              error: "Acceso Denegado: sesión revocada.",
+              traceId: telemetry.traceId,
+            }),
+            { status: 401, headers },
+          ),
+        };
+      }
+      const expiresRaw = sessionRecord.expiresAt ?? sessionRecord.expires_at ?? sessionRecord.exp;
+      if (expiresRaw !== undefined && expiresRaw !== null) {
+        const expiresMillis = new Date(String(expiresRaw)).getTime();
+        if (Number.isFinite(expiresMillis) && expiresMillis <= Date.now()) {
+          return {
+            success: false,
+            response: new Response(
+              JSON.stringify({
+                error: "Acceso Denegado: sesión expirada.",
+                traceId: telemetry.traceId,
+              }),
+              { status: 401, headers },
+            ),
+          };
+        }
+      }
+
       const context = new PrincipalContext(
         claims,
         tenant,

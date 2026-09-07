@@ -2,6 +2,7 @@ import { config, getConfigLoadError, resetConfigCache } from "./config";
 import { buildManifest } from "./build-manifest";
 import { capabilityRegistry } from "./capability-registry";
 import { resolveRuntimeMode } from "./runtime-mode";
+import { evaluateProductionAuthorities } from "./production-authority";
 
 /**
  * INTEGRIDAD DEL RUNTIME (src/lib/runtime-integrity.ts)
@@ -35,7 +36,8 @@ export function verifyRuntimeIntegrity(options?: {
   }
 
   const configError = getConfigLoadError();
-  const mode = resolveRuntimeMode(process.env.NODE_ENV);
+  // config() ya forzó la carga arriba; el modo sale del contrato (§12).
+  const mode = resolveRuntimeMode(config().NODE_ENV);
 
   let status: IntegrityStatus = "ok";
   if (configError) status = "failed";
@@ -53,6 +55,17 @@ export function verifyRuntimeIntegrity(options?: {
 
   const manifest = buildManifest("server");
   const manifestValid = manifest.sourceHash.length === 64;
+
+  // Autoridades de producción: un fallo crítico degrada (nunca aborta el
+  // arranque aquí; /ready reporta 503 y el operador decide el rollout).
+  try {
+    const authorities = evaluateProductionAuthorities();
+    if (authorities.criticalFailed) {
+      status = status === "failed" ? "failed" : "degraded";
+    }
+  } catch {
+    status = status === "failed" ? "failed" : "degraded";
+  }
 
   return {
     status,

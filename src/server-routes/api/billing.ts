@@ -25,7 +25,8 @@ function getStripe(): Stripe | null {
   return stripeInstance;
 }
 
-// In-Memory Marketplace Listings and Purchases store linked to database/SovereignDB settings
+// In-Memory Marketplace Listings: SOLO fallback dev sin DB. La fuente
+// durable es la tabla marketplace_listings (marketplace-repository).
 interface MarketplaceListing {
   skillId: string;
   title: string;
@@ -33,6 +34,22 @@ interface MarketplaceListing {
   ownerId: string;
   description: string;
   createdAt: string;
+}
+
+/**
+ * Lee listados: tabla PG durable primero; settings/SovereignDB solo como
+ * fallback cuando no hay DATABASE_URL (desarrollo). En producción la
+ * tabla es autoridad (migración 20260908090000).
+ */
+async function readAllListings(): Promise<MarketplaceListing[]> {
+  try {
+    const { listMarketplace } = await import("@/lib/repositories/marketplace-repository");
+    return await listMarketplace();
+  } catch {
+    const db = SovereignDB.load();
+    const customListings = (db.settings.marketplaceListings as MarketplaceListing[]) || [];
+    return [...DEFAULT_MARKETPLACE_LISTINGS, ...customListings];
+  }
 }
 
 const DEFAULT_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
@@ -153,12 +170,10 @@ export const Route = createFileRoute("/api/billing")({
           })({ request });
         }
 
-        // 3. CONSULTAR LISTADOS DEL MARKETPLACE
+        // 3. CONSULTAR LISTADOS DEL MARKETPLACE (tabla durable primero)
         if (action === "marketplace-listings") {
           return withSovereignAuth("system", "read", async () => {
-            const db = SovereignDB.load();
-            const customListings = (db.settings.marketplaceListings as MarketplaceListing[]) || [];
-            const allListings = [...DEFAULT_MARKETPLACE_LISTINGS, ...customListings];
+            const allListings = await readAllListings();
 
             return new Response(
               JSON.stringify({
@@ -871,6 +886,40 @@ export const Route = createFileRoute("/api/billing")({
                 });
               }
 
+              // Escritura durable en tabla (idempotente por skill_id); en dev
+              // sin DB se conserva el fallback a settings/SovereignDB.
+              try {
+                const { createMarketplaceListing } = await import(
+                  "@/lib/repositories/marketplace-repository"
+                );
+                const { created, listing } = await createMarketplaceListing({
+                  skillId: parsed.data.skillId,
+                  title: parsed.data.title,
+                  costCents: parsed.data.costCents,
+                  ownerId: context.userId,
+                  description: parsed.data.description,
+                });
+                if (!created) {
+                  return new Response(
+                    JSON.stringify({ error: "Este skillId ya está listado.", duplicate: true }),
+                    { status: 409, headers },
+                  );
+                }
+
+                SovereignDB.appendAuditLog(
+                  `trc_market_list_${parsed.data.skillId}`,
+                  context.correlationId,
+                  context.ip,
+                  "Anuncio en Marketplace Publicado",
+                  "S3",
+                  `Habilidad premium '${parsed.data.title}' listada para monetización por $${(parsed.data.costCents / 100).toFixed(2)} USD`,
+                );
+
+                return new Response(JSON.stringify({ success: true, listing }), { headers });
+              } catch {
+                // Sin DATABASE_URL (desarrollo): fallback a settings.
+              }
+
               const db = SovereignDB.load();
               const currentListings =
                 (db.settings?.marketplaceListings as MarketplaceListing[]) || [];
@@ -917,11 +966,8 @@ export const Route = createFileRoute("/api/billing")({
                 });
               }
 
-              const db = SovereignDB.load();
-              const customListings =
-                (db.settings.marketplaceListings as MarketplaceListing[]) || [];
-              const allListings = [...DEFAULT_MARKETPLACE_LISTINGS, ...customListings];
-              const listing = allListings.find((l) => l.skillId === parsed.data.skillId);
+              const customListings = await readAllListings();
+              const listing = customListings.find((l) => l.skillId === parsed.data.skillId);
 
               if (!listing) {
                 return new Response(

@@ -106,6 +106,10 @@ Toda ruta sensible debe conservar:
 
 El acceso invitado y los atajos de desarrollo deben permanecer deshabilitados en producción. Un adapter determinista o fallback no debe presentarse como inferencia productiva.
 
+## CSP (estado transitorio declarado)
+
+La política enforced permite `script-src 'self' 'unsafe-inline'` porque el bootstrap de hidratación de TanStack Start requiere inline scripts; en paralelo corre una política nonce en Report-Only. Pasar a enforcement con nonce exige nonces por request emitidos por el framework: pendiente documentado, no deuda oculta. `frame-ancestors 'none'`, HSTS y nosniff están enforced.
+
 ## Clasificación de soberanía (precisa)
 
 Isabella es una **IA cognitiva gobernada federada** (*Federated Governed Cognitive AI*), no un stack totalmente soberano:

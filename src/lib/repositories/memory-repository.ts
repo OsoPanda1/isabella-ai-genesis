@@ -48,6 +48,18 @@ export interface MemoryStoreFile {
 const GENESIS_CHAIN_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
 const STORE_PATH = path.join(process.cwd(), "isabella_memory_store.json");
 
+/**
+ * Mutex por ruta: serializa read-modify-write del MISMO store entre
+ * llamadas concurrentes del proceso (evita bifurcación de cadena).
+ */
+const storeLocks = new Map<string, Promise<unknown>>();
+function withStoreLock<T>(storePath: string, task: () => T | Promise<T>): Promise<T> {
+  const previous = storeLocks.get(storePath) ?? Promise.resolve();
+  const next = previous.catch(() => undefined).then(task);
+  storeLocks.set(storePath, next.catch(() => undefined));
+  return next;
+}
+
 function sha256(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
@@ -122,8 +134,10 @@ export function createMemoryRepository(storePath: string = STORE_PATH) {
       return { success: true };
     },
 
-    /** Registra una pieza de memoria con hash de contenido y encadenado. */
-    add(input: {
+    /** Registra una pieza de memoria con hash de contenido y encadenado.
+     * Serializado por store (mutex): N escritores concurrentes producen
+     * una cadena única, nunca bifurcada. */
+    async add(input: {
       tenantId: string;
       content: string;
       source: MemorySource;
@@ -135,7 +149,7 @@ export function createMemoryRepository(storePath: string = STORE_PATH) {
       ownerId?: string;
       expiresAt?: string;
       provenance?: readonly string[];
-    }): { success: true; record: MemoryRecord } | { success: false; error: string } {
+    }): Promise<{ success: true; record: MemoryRecord } | { success: false; error: string }> {
       if (!input.content || input.content.length === 0) {
         return { success: false, error: "Contenido de memoria vacío." };
       }
@@ -148,38 +162,40 @@ export function createMemoryRepository(storePath: string = STORE_PATH) {
         }
       }
 
-      const store = loadStore();
-      const id = `mem_${crypto.randomUUID()}`;
-      const createdAt = new Date().toISOString();
-      const contentHash = sha256(
-        `${id}|${input.tenantId}|${input.content}|${input.source}|${input.scope}|${input.sensitivity}`,
-      );
-      const previousChainHash = lastChainHash(store.records);
-      const chainHash = sha256(`${previousChainHash}|${contentHash}`);
+      return withStoreLock(storePath, () => {
+        const store = loadStore();
+        const id = `mem_${crypto.randomUUID()}`;
+        const createdAt = new Date().toISOString();
+        const contentHash = sha256(
+          `${id}|${input.tenantId}|${input.content}|${input.source}|${input.scope}|${input.sensitivity}`,
+        );
+        const previousChainHash = lastChainHash(store.records);
+        const chainHash = sha256(`${previousChainHash}|${contentHash}`);
 
-      const record: MemoryRecord = {
-        id,
-        tenantId: input.tenantId,
-        content: input.content,
-        source: input.source,
-        scope: input.scope,
-        sensitivity: input.sensitivity,
-        purpose: input.purpose,
-        consentRequired: input.consentRequired,
-        consentGranted: input.consentGranted,
-        createdAt,
-        deletable: true,
-        provenance: input.provenance ?? [],
-        contentHash,
-        chainHash,
-        previousChainHash,
-        ...(input.ownerId ? { ownerId: input.ownerId } : {}),
-        ...(input.expiresAt ? { expiresAt: input.expiresAt } : {}),
-      };
+        const record: MemoryRecord = {
+          id,
+          tenantId: input.tenantId,
+          content: input.content,
+          source: input.source,
+          scope: input.scope,
+          sensitivity: input.sensitivity,
+          purpose: input.purpose,
+          consentRequired: input.consentRequired,
+          consentGranted: input.consentGranted,
+          createdAt,
+          deletable: true,
+          provenance: input.provenance ?? [],
+          contentHash,
+          chainHash,
+          previousChainHash,
+          ...(input.ownerId ? { ownerId: input.ownerId } : {}),
+          ...(input.expiresAt ? { expiresAt: input.expiresAt } : {}),
+        };
 
-      store.records.push(record);
-      saveStore(store);
-      return { success: true, record };
+        store.records.push(record);
+        saveStore(store);
+        return { success: true, record };
+      });
     },
 
     /** Recupera registros activos (no caducados) de un tenant. */

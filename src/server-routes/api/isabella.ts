@@ -55,12 +55,23 @@ export const Route = createFileRoute("/api/isabella")({
   server: {
     handlers: {
       POST: withSovereignAuth("system", "execute", async (context, request) => {
-        // --- LAYER 2: Rate Limiting ---
+        // --- LAYER 2: Rate Limiting (distribuido; fail-closed en prod) ---
         const rateLimit = await SecuritySystem.checkRateLimitDistributed(context.ip, 40);
         if (!rateLimit.allowed) {
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );
+          if (rateLimit.degraded === true) {
+            return new Response(
+              JSON.stringify({
+                error: "rate-limit-infrastructure-unavailable",
+                message:
+                  "Infraestructura de rate limiting distribuido no disponible en producción. Sin Redis no hay control global (fail-closed).",
+                traceId: context.traceId,
+              }),
+              { status: 503, headers },
+            );
+          }
           return new Response(
             JSON.stringify({ error: "Límite de solicitudes de inferencia excedido (40/min)." }),
             { status: 429, headers },
@@ -78,9 +89,7 @@ export const Route = createFileRoute("/api/isabella")({
         } catch {
           apiKey = "";
         }
-        const productionLike = isProductionLike(
-          resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE),
-        );
+        const productionLike = isProductionLike(resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE));
         const useNativeOnly = !apiKey;
 
         // Parse Request Body safely with byte counter and hard limit aborts (P15)
@@ -476,7 +485,8 @@ export const Route = createFileRoute("/api/isabella")({
                 provider: failure.provider,
                 degraded: true,
                 mode: "maintenance",
-                message: "Fallo crítico de pasarela en producción. Sin inferencia sustituta: escale a un humano.",
+                message:
+                  "Fallo crítico de pasarela en producción. Sin inferencia sustituta: escale a un humano.",
                 traceId: telemetry.traceId,
               }),
               { status: failure.httpStatus, headers },

@@ -23,7 +23,8 @@ class ProductionRepositoryFactory implements RepositoryFactory {
         cfg.ISABELLA_RUNTIME_MODE === "staging"
       );
     } catch {
-      return process.env.NODE_ENV === "production";
+      // Sin configuración válida: asumir lo más restrictivo (producción).
+      return true;
     }
   }
 
@@ -34,12 +35,9 @@ class ProductionRepositoryFactory implements RepositoryFactory {
       if (typeof cfg.DURABLE_JSON_ALLOWED === "boolean") return cfg.DURABLE_JSON_ALLOWED as boolean;
       if (typeof cfg.DURABLE_JSON_ALLOWED === "string")
         return (cfg.DURABLE_JSON_ALLOWED as string) === "true";
-    } catch (e) {
-      void e;
+    } catch {
+      // Sin configuración válida: JSON jamás permitido (fail-closed).
     }
-    const raw = process.env.DURABLE_JSON_ALLOWED;
-    if (raw === "true") return true;
-    if (raw === "false") return false;
     return false;
   }
 

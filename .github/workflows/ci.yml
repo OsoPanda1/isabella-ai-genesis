@@ -65,7 +65,7 @@ jobs:
         id: check
         run: |
           MISSING=()
-          for VAR in PUBLIC_URL SUPABASE_URL SUPABASE_ANON_KEY AUTH_JWT_SECRET GEMINI_API_KEY ENCRYPTION_MASTER_KEY CROWN_POLICY_SIGNING_KEY AEGIS_AUDIT_SECRET BOOKPI_SIGNING_KEY STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET; do
+          for VAR in DATABASE_URL PUBLIC_URL SUPABASE_URL SUPABASE_ANON_KEY AUTH_JWT_SECRET GEMINI_API_KEY ENCRYPTION_MASTER_KEY CROWN_POLICY_SIGNING_KEY AEGIS_AUDIT_SECRET BOOKPI_SIGNING_KEY STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET; do
             if [ -z "${!VAR}" ]; then
               echo "⚠️ Missing $VAR"
               MISSING+=("$VAR")
@@ -85,6 +85,7 @@ jobs:
           echo "✅ All required secrets present."
           echo "secrets-present=true" >> $GITHUB_OUTPUT
         env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}

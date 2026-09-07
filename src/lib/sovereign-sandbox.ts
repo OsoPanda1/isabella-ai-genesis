@@ -6,12 +6,13 @@ import type { AuditEntry } from "./persistence/repository";
 function isSandboxEnabled(): boolean {
   try {
     const cfg = config();
+    // Contrato canónico: SANDBOX_ENABLED vía config() (§12). Default false.
+    if (cfg.SANDBOX_ENABLED === true) return true;
     if (cfg.NODE_ENV === "production" || cfg.ISABELLA_RUNTIME_MODE === "production") {
-      return process.env.SANDBOX_ENABLED === "true";
+      return false;
     }
   } catch {
-    if (process.env.NODE_ENV === "production" && process.env.SANDBOX_ENABLED !== "true")
-      return false;
+    return false;
   }
   return true;
 }

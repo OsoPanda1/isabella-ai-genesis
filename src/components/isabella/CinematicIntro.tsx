@@ -349,6 +349,15 @@ export function CinematicIntroContent({
   }, [muted]);
   useEffect(() => {
     if (showGate) return;
+    // Accesibilidad: movimiento reducido → omitir cinemática (estático + complete).
+    if (
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      const timer = window.setTimeout(() => onCompleteRef.current(), 800);
+      return () => window.clearTimeout(timer);
+    }
     let frame = 0;
     let last = performance.now();
     let frames = 0;

@@ -76,6 +76,16 @@ export interface AccountingRepository {
   beginTransaction(): Promise<unknown>;
   commitTransaction(tx: unknown): Promise<void>;
   rollbackTransaction(tx: unknown): Promise<void>;
+
+  /**
+   * Asiento + líneas en UNA transacción atómica (opcional). Los
+   * repositorios que no la implementan usan begin/commit (no atómico:
+   * documentado en la matriz como deuda).
+   */
+  createJournalEntryAtomic?(dto: CreateJournalEntryDTO): Promise<{
+    entry: JournalEntry;
+    lines: LedgerLine[];
+  }>;
 }
 
 // Implementación in-memory para pruebas

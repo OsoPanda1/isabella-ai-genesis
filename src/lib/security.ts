@@ -1,6 +1,7 @@
 import { z } from "zod";
 import * as crypto from "node:crypto";
 import { config } from "./config";
+import { isProductionLike, resolveRuntimeMode } from "./runtime-mode";
 import { JWT_VERIFIER } from "./jwt-verifier";
 
 // ============================================================================
@@ -23,9 +24,18 @@ function securitySecret(): string {
   return value;
 }
 
-// --- LAYER 2: Distributed Rate Limiting (Upstash Redis + in-memory fallback) ---
+// --- LAYER 2: Distributed Rate Limiting (Upstash Redis autoridad en prod) ---
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute window
 const rateLimitCache = new Map<string, { count: number; windowStart: number }>();
+
+/** Modo production-like vía contrato (§12). Sin config válida: lo más restrictivo. */
+function isProductionLikeRuntime(): boolean {
+  try {
+    return isProductionLike(resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE));
+  } catch {
+    return true;
+  }
+}
 
 // Upstash Redis client lazy — only instantiated if REDIS_URL/KV_URL present
 let redisClient: {
@@ -162,13 +172,26 @@ export const SecuritySystem = {
     return { allowed: true, remaining: limit - entry.count };
   },
 
-  // Distributed rate limit — uses Upstash Redis when available, falls back to memory
+  // Distributed rate limit — Upstash Redis es autoridad en producción.
+  // Sin Redis (ausente o caído) en modo production/staging: FAIL CLOSED
+  // (503 rate-limit-infrastructure) en lugar del fallback en memoria, que
+  // en multi-instancia permitiría N×límite. En desarrollo, memoria local.
   async checkRateLimitDistributed(
     ip: string,
     limit: number = 30,
-  ): Promise<{ allowed: boolean; remaining: number }> {
+  ): Promise<{ allowed: boolean; remaining: number; degraded?: boolean; reason?: string }> {
     const redis = await getRedis();
-    if (!redis) return this.checkRateLimit(ip, limit);
+    if (!redis) {
+      if (isProductionLikeRuntime()) {
+        return {
+          allowed: false,
+          remaining: 0,
+          degraded: true,
+          reason: "rate-limit-infrastructure-unavailable",
+        };
+      }
+      return this.checkRateLimit(ip, limit);
+    }
     try {
       const key = `ratelimit:${ip}:${Math.floor(Date.now() / RATE_LIMIT_WINDOW_MS)}`;
       const count = await redis.incr(key);
@@ -176,12 +199,25 @@ export const SecuritySystem = {
       const remaining = Math.max(0, limit - count);
       return { allowed: count <= limit, remaining };
     } catch {
+      if (isProductionLikeRuntime()) {
+        return {
+          allowed: false,
+          remaining: 0,
+          degraded: true,
+          reason: "rate-limit-infrastructure-unavailable",
+        };
+      }
       return this.checkRateLimit(ip, limit);
     }
   },
 
   // --- LAYER 3: Sovereign Cryptographic Authorization & Token Verification ---
-  async generateSovereignToken(userId: string, role: string, tenantId: string, scope: string): Promise<string> {
+  async generateSovereignToken(
+    userId: string,
+    role: string,
+    tenantId: string,
+    scope: string,
+  ): Promise<string> {
     const payload = {
       iss: "TAMV Online Network Security Hub",
       sub: userId,
@@ -195,7 +231,9 @@ export const SecuritySystem = {
     return JWT_VERIFIER.signHs256(payload, securitySecret());
   },
 
-  async verifyToken(token: string | null): Promise<{ success: boolean; claims?: TokenClaims; error?: string }> {
+  async verifyToken(
+    token: string | null,
+  ): Promise<{ success: boolean; claims?: TokenClaims; error?: string }> {
     if (!token) {
       return { success: false, error: "Credencial nula: No se proporcionó clave de API." };
     }

@@ -17,10 +17,23 @@ import type {
 } from "./accounting-repository";
 import { randomUUID } from "node:crypto";
 
-const sql = neon(process.env.DATABASE_URL || config().DATABASE_URL || "");
+/**
+ * Cliente diferido: se resuelve al INVOCAR cada método (no al importar el
+ * módulo), así importar sin DATABASE_URL no revienta. Sin URL, el método
+ * rechaza con error fail-closed.
+ */
+function deferredSql() {
+  const url = config().DATABASE_URL || "";
+  if (!url) {
+    throw new Error(
+      "PostgresAccountingRepository: DATABASE_URL ausente. Contabilidad durable requiere PostgreSQL.",
+    );
+  }
+  return neon(url);
+}
 
 export class PostgresAccountingRepository implements AccountingRepository {
-  async createAccount(dto: CreateAccountDTO, tx: any = sql): Promise<Account> {
+  async createAccount(dto: CreateAccountDTO, tx: any = deferredSql()): Promise<Account> {
     const rows = await tx`
       INSERT INTO accounting_accounts (tenant_id, code, name, type, parent_id, currency)
       VALUES (${dto.tenantId}, ${dto.code}, ${dto.name}, ${dto.type}, ${dto.parentId || null}, ${dto.currency || "USD"})
@@ -29,17 +42,21 @@ export class PostgresAccountingRepository implements AccountingRepository {
     return this.mapAccount(rows[0]);
   }
 
-  async getAccountById(id: string, tx: any = sql): Promise<Account | null> {
+  async getAccountById(id: string, tx: any = deferredSql()): Promise<Account | null> {
     const rows = await tx`SELECT * FROM accounting_accounts WHERE id = ${id}`;
     return rows[0] ? this.mapAccount(rows[0]) : null;
   }
 
-  async getAccountsByTenant(tenantId: string, tx: any = sql): Promise<Account[]> {
+  async getAccountsByTenant(tenantId: string, tx: any = deferredSql()): Promise<Account[]> {
     const rows = await tx`SELECT * FROM accounting_accounts WHERE tenant_id = ${tenantId}`;
     return rows.map((r: any) => this.mapAccount(r));
   }
 
-  async updateAccount(id: string, updates: Partial<Account>, tx: any = sql): Promise<Account> {
+  async updateAccount(
+    id: string,
+    updates: Partial<Account>,
+    tx: any = deferredSql(),
+  ): Promise<Account> {
     // Basic dynamic update simulation for raw sql (neon)
     const existing = await this.getAccountById(id, tx);
     if (!existing) throw new Error("Account not found");
@@ -54,7 +71,10 @@ export class PostgresAccountingRepository implements AccountingRepository {
     return this.mapAccount(rows[0]);
   }
 
-  async createJournalEntry(dto: CreateJournalEntryDTO, tx: any = sql): Promise<JournalEntry> {
+  async createJournalEntry(
+    dto: CreateJournalEntryDTO,
+    tx: any = deferredSql(),
+  ): Promise<JournalEntry> {
     const entryNumber = `JE-${Date.now()}-${randomUUID().slice(0, 8)}`;
     const rows = await tx`
       INSERT INTO accounting_journal_entries (tenant_id, entry_number, description, status, created_by, metadata)
@@ -64,12 +84,15 @@ export class PostgresAccountingRepository implements AccountingRepository {
     return this.mapJournalEntry(rows[0]);
   }
 
-  async getJournalEntryById(id: string, tx: any = sql): Promise<JournalEntry | null> {
+  async getJournalEntryById(id: string, tx: any = deferredSql()): Promise<JournalEntry | null> {
     const rows = await tx`SELECT * FROM accounting_journal_entries WHERE id = ${id}`;
     return rows[0] ? this.mapJournalEntry(rows[0]) : null;
   }
 
-  async getJournalEntriesByTenant(tenantId: string, tx: any = sql): Promise<JournalEntry[]> {
+  async getJournalEntriesByTenant(
+    tenantId: string,
+    tx: any = deferredSql(),
+  ): Promise<JournalEntry[]> {
     const rows = await tx`SELECT * FROM accounting_journal_entries WHERE tenant_id = ${tenantId}`;
     return rows.map((r: any) => this.mapJournalEntry(r));
   }
@@ -77,7 +100,7 @@ export class PostgresAccountingRepository implements AccountingRepository {
   async updateJournalEntryStatus(
     id: string,
     status: TransactionStatus,
-    tx: any = sql,
+    tx: any = deferredSql(),
   ): Promise<JournalEntry> {
     const postedAt = status === "posted" ? new Date().toISOString() : null;
     const rows = await tx`
@@ -91,9 +114,8 @@ export class PostgresAccountingRepository implements AccountingRepository {
 
   async createLedgerLines(
     lines: Omit<LedgerLine, "id" | "createdAt">[],
-    tx: any = sql,
+    tx: any = deferredSql(),
   ): Promise<LedgerLine[]> {
-    // In raw neon SQL we can do multiple inserts
     const created: LedgerLine[] = [];
     for (const line of lines) {
       const rows = await tx`
@@ -106,12 +128,73 @@ export class PostgresAccountingRepository implements AccountingRepository {
     return created;
   }
 
-  async getLedgerLinesByEntry(entryId: string, tx: any = sql): Promise<LedgerLine[]> {
+  /**
+   * Asiento + líneas en UNA transacción PostgreSQL real (pg Pool,
+   * BEGIN/COMMIT/ROLLBACK). Si cualquier línea falla, el asiento se
+   * revierte completo: nunca quedan diarios a medias.
+   */
+  async createJournalEntryAtomic(dto: CreateJournalEntryDTO): Promise<{
+    entry: JournalEntry;
+    lines: LedgerLine[];
+  }> {
+    const { Pool } = await import("pg");
+    const url = config().DATABASE_URL || "";
+    if (!url) {
+      throw new Error("createJournalEntryAtomic: DATABASE_URL ausente.");
+    }
+    const pool = new Pool({ connectionString: url, max: 1 });
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const entryNumber = `JE-${Date.now()}-${randomUUID().slice(0, 8)}`;
+      const entryRows = await client.query(
+        `INSERT INTO accounting_journal_entries (tenant_id, entry_number, description, status, created_by, metadata)
+         VALUES ($1, $2, $3, 'pending', $4, $5)
+         RETURNING *`,
+        [
+          dto.tenantId,
+          entryNumber,
+          dto.description,
+          dto.createdBy,
+          dto.metadata ? JSON.stringify(dto.metadata) : null,
+        ],
+      );
+      const entry = this.mapJournalEntry(entryRows.rows[0]);
+      const lines: LedgerLine[] = [];
+      for (const line of dto.lines) {
+        const lineRows = await client.query(
+          `INSERT INTO accounting_ledger_lines (entry_id, account_id, tenant_id, debit_cents, credit_cents, description, metadata)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           RETURNING *`,
+          [
+            entry.id,
+            line.accountId,
+            dto.tenantId,
+            line.debitCents || 0,
+            line.creditCents || 0,
+            line.description || null,
+            line.description ? JSON.stringify({ note: line.description }) : null,
+          ],
+        );
+        lines.push(this.mapLedgerLine(lineRows.rows[0]));
+      }
+      await client.query("COMMIT");
+      return { entry, lines };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+      await pool.end();
+    }
+  }
+
+  async getLedgerLinesByEntry(entryId: string, tx: any = deferredSql()): Promise<LedgerLine[]> {
     const rows = await tx`SELECT * FROM accounting_ledger_lines WHERE entry_id = ${entryId}`;
     return rows.map((r: any) => this.mapLedgerLine(r));
   }
 
-  async getLedgerLinesByAccount(accountId: string, tx: any = sql): Promise<LedgerLine[]> {
+  async getLedgerLinesByAccount(accountId: string, tx: any = deferredSql()): Promise<LedgerLine[]> {
     const rows = await tx`SELECT * FROM accounting_ledger_lines WHERE account_id = ${accountId}`;
     return rows.map((r: any) => this.mapLedgerLine(r));
   }
@@ -120,7 +203,7 @@ export class PostgresAccountingRepository implements AccountingRepository {
     accountId: string,
     periodStart: Date,
     periodEnd: Date,
-    tx: any = sql,
+    tx: any = deferredSql(),
   ): Promise<AccountBalance> {
     const account = await this.getAccountById(accountId, tx);
     if (!account) throw new Error("Account not found");
@@ -156,7 +239,7 @@ export class PostgresAccountingRepository implements AccountingRepository {
     tenantId: string,
     periodStart: Date,
     periodEnd: Date,
-    tx: any = sql,
+    tx: any = deferredSql(),
   ): Promise<TrialBalance> {
     const accounts = await this.getAccountsByTenant(tenantId, tx);
     const accountBalances = await Promise.all(
@@ -194,7 +277,7 @@ export class PostgresAccountingRepository implements AccountingRepository {
   async generateBalanceSheet(
     tenantId: string,
     asOfDate: Date,
-    tx: any = sql,
+    tx: any = deferredSql(),
   ): Promise<BalanceSheet> {
     const periodStart = new Date(asOfDate.getFullYear(), 0, 1);
     const accounts = await this.getAccountsByTenant(tenantId, tx);
@@ -246,7 +329,7 @@ export class PostgresAccountingRepository implements AccountingRepository {
   async beginTransaction(): Promise<unknown> {
     // In a real app we'd structure the service to take a callback for transaction.
     // For now, just return the sql instance to mock the transaction interface
-    return sql;
+    return deferredSql();
   }
 
   async commitTransaction(tx: unknown): Promise<void> {}

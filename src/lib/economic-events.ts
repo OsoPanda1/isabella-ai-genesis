@@ -13,6 +13,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { config } from "./config";
 
 let pool: Pool | null = null;
+let poolUrl: string | null = null;
 function getPool(): Pool {
   const cfg = config();
   const url = cfg.DATABASE_URL;
@@ -21,8 +22,11 @@ function getPool(): Pool {
       "CRITICAL: DATABASE_URL is missing. Economic events require PostgreSQL persistence.",
     );
   }
-  if (!pool) {
+  // Pool ligado a la URL (tests rotan DATABASE_URL; nunca reusar otra DB).
+  if (!pool || poolUrl !== url) {
+    if (pool) void pool.end().catch(() => undefined);
     pool = new Pool({ connectionString: url, max: 5 });
+    poolUrl = url;
     pool.on("error", (err) => {
       console.error("Unexpected error on idle economic-events pool", err);
     });
@@ -45,12 +49,21 @@ export async function claimWebhookEvent(input: {
   eventType: string;
   payloadHash?: string;
 }): Promise<WebhookClaimResult> {
-  const client = await getPool().connect();
+  // connect() DENTRO del try: DB caída → {status:"error"}, nunca throw.
+  let client;
+  try {
+    client = await getPool().connect();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown";
+    return { status: "error", id: randomUUID(), message };
+  }
   try {
     await client.query("BEGIN");
     const payloadHash =
       input.payloadHash ??
-      createHash("sha256").update(JSON.stringify({ provider: input.provider, eventId: input.providerEventId })).digest("hex");
+      createHash("sha256")
+        .update(JSON.stringify({ provider: input.provider, eventId: input.providerEventId }))
+        .digest("hex");
     const { rows } = await client.query(
       `INSERT INTO webhook_events (provider, provider_event_id, event_type, payload_hash, status, processed_at, error)
        VALUES ($1, $2, $3, $4, 'processed', NOW(), NULL)
@@ -107,11 +120,13 @@ export type EconomicEventInput = {
 export async function recordEconomicEvent(
   input: EconomicEventInput,
 ): Promise<{ ok: boolean; duplicate?: boolean; id?: string; error?: string }> {
-  const sum = typeof input.amountMinor === "bigint" ? input.amountMinor : BigInt(Math.round(input.amountMinor));
+  const sum =
+    typeof input.amountMinor === "bigint"
+      ? input.amountMinor
+      : BigInt(Math.round(input.amountMinor));
   try {
     const cfg = config();
-    const key =
-      input.idempotencyKey ?? input.providerEventId ?? `uuid_${randomUUID()}`;
+    const key = input.idempotencyKey ?? input.providerEventId ?? `uuid_${randomUUID()}`;
     const { rows } = await getPool().query(
       `INSERT INTO economic_events
          (tenant_id, actor_id, event_type, currency, amount_minor, direction,

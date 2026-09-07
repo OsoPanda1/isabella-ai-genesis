@@ -178,9 +178,11 @@ export const PRODUCTION_AUTHORITIES: readonly AuthorityDefinition[] = [
       return [
         {
           ok: has(cfg.OTEL_EXPORTER_OTLP_ENDPOINT),
-          critical: false,
-          detail:
-            "Sin OTEL_EXPORTER_OTLP_ENDPOINT la telemetría queda solo en buffer local (no durable).",
+          // Crítico en producción: sin observabilidad durable no hay incident
+          // response, forense, SLO ni reconciliación. (Aún no cableado al
+          // arranque: ver ensureRuntimeReady; verificación vía tests/CI.)
+          critical: true,
+          detail: "OTEL_EXPORTER_OTLP_ENDPOINT obligatorio en producción.",
         },
       ];
     },

@@ -47,6 +47,14 @@ function sha256(input: string): string {
  * Crea un repositorio de auditoría ligado a una ruta opcional (inyectable).
  */
 export function createAuditRepository(storePath: string = STORE_PATH) {
+  // Mutex por store: escrituras concurrentes del proceso se serializan;
+  // dos appends jamás leen el mismo "último hash" (sin bifurcación).
+  let tail: Promise<unknown> = Promise.resolve();
+  function locked<T>(task: () => T | Promise<T>): Promise<T> {
+    const next = tail.catch(() => undefined).then(task);
+    tail = next.catch(() => undefined);
+    return next;
+  }
   function loadStore(): AuditStoreFile {
     if (!fs.existsSync(storePath)) {
       return { events: [], genesisPreviousHash: GENESIS_HASH };
@@ -73,7 +81,7 @@ export function createAuditRepository(storePath: string = STORE_PATH) {
   }
 
   return {
-    /** Registra un evento de auditoría, encadenado al anterior. */
+    /** Registra un evento de auditoría, encadenado al anterior (serializado). */
     append(input: {
       traceId: string;
       correlationId: string;
@@ -82,7 +90,8 @@ export function createAuditRepository(storePath: string = STORE_PATH) {
       severity: AuditSeverity;
       details: string;
       remediated?: boolean;
-    }): AuditEvent {
+    }): Promise<AuditEvent> {
+      return locked(() => {
       const store = loadStore();
       const prev = store.events[0];
       const previousLogHash = prev?.verificationHash ?? store.genesisPreviousHash;
@@ -107,6 +116,7 @@ export function createAuditRepository(storePath: string = STORE_PATH) {
       store.events.unshift(event);
       saveStore(store);
       return event;
+      });
     },
 
     list(limit = 200): AuditEvent[] {

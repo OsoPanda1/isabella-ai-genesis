@@ -55,6 +55,16 @@ audit/
 coverage/
 
 # ---------------------------------------------------------------------------
+# PACKAGE MANAGERS — pnpm es canónico (packageManager). Solo pnpm-lock.yaml.
+# ---------------------------------------------------------------------------
+package-lock.json
+bun.lock
+yarn.lock
+
+# Prisma generado (postinstall lo regenera en src/generated/prisma).
+src/generated/prisma
+
+# ---------------------------------------------------------------------------
 # ARTEFACTOS Y CACHÉ (lint, compilación, Python)
 # ---------------------------------------------------------------------------
 lint_out.txt

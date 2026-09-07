@@ -75,13 +75,11 @@ async function readiness(): Promise<Response> {
     overallOk = false;
   }
 
-  // Config health
+  // Config health: DATABASE_URL es la única autoridad durable en prod.
   try {
     const cfg = config();
     const mode = resolveRuntimeMode(cfg.ISABELLA_RUNTIME_MODE);
-    const hasDurableAuthority = Boolean(
-      (cfg.SUPABASE_URL && cfg.AUTH_JWT_SECRET) || cfg.DATABASE_URL,
-    );
+    const hasDurableAuthority = Boolean(cfg.DATABASE_URL);
     checks.config = { ok: hasDurableAuthority };
     if (!hasDurableAuthority && isProductionLike(mode)) overallOk = false;
   } catch {
