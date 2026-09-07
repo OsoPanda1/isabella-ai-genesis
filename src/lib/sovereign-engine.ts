@@ -563,11 +563,11 @@ export class SovereignDB {
   }
 
   // Get active session with multi-tenant OIDC and real, signature-validated JWT claims
-  public static getSessionByToken(token: string): UserSession | undefined {
+  public static async getSessionByToken(token: string): Promise<UserSession | undefined> {
     const db = this.load();
 
     // Try to verify as a real cryptographic token first
-    const verification = SecuritySystem.verifyToken(token);
+    const verification = await SecuritySystem.verifyToken(token);
     if (verification.success && verification.claims) {
       const claims = verification.claims;
       const session = db.sessions.find((s) => s.userId === claims.sub);
