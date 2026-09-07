@@ -27,6 +27,16 @@ export class ApiGateway {
     const headers = SecuritySystem.injectSecureHeaders(
       new Headers({ "content-type": "application/json" }),
     );
+    const method = request.method.toUpperCase();
+    const bodyMethods = new Set(["POST", "PUT", "PATCH"]);
+    const maxBodyBytes = 512 * 1024;
+    const contentLength = Number(request.headers.get("content-length") ?? 0);
+    if (bodyMethods.has(method) && Number.isFinite(contentLength) && contentLength > maxBodyBytes) {
+      return new Response(JSON.stringify({ error: "Payload excede el límite permitido." }), {
+        status: 413,
+        headers,
+      });
+    }
 
     // 1. Autenticación y resolución de Principal Context
     const authResult = await PrincipalContext.authorize(request);
@@ -62,7 +72,7 @@ export class ApiGateway {
 
     // 3. Procesamiento seguro de payload de entrada
     let parsedData: T = {} as T;
-    if (request.method === "POST" || request.method === "PUT" || request.method === "PATCH") {
+    if (bodyMethods.has(method)) {
       try {
         const rawBody = await request.clone().json();
         const validation = schema.safeParse(rawBody);

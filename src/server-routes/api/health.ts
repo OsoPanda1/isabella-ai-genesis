@@ -16,7 +16,10 @@ export const Route = createFileRoute("/api/health")({
         if (path.endsWith("/ready")) {
           return readiness();
         }
-        // Default health
+        if (path.endsWith("/deep")) {
+          return deepReadiness();
+        }
+        // Default health remains backward-compatible and reports readiness.
         return readiness();
       },
     },
@@ -31,8 +34,20 @@ async function liveness(): Promise<Response> {
       version: config().CROWN_CONSTITUTION_VERSION ?? "v4.2.0",
       timestamp: new Date().toISOString(),
     }),
-    { status: 200, headers: { "content-type": "application/json" } },
+    { status: 200, headers: { "content-type": "application/json", "cache-control": "no-store" } },
   );
+}
+
+async function deepReadiness(): Promise<Response> {
+  const base = await readiness();
+  const body = await base.json() as { status: string; checks: Record<string, unknown>; timestamp: string };
+  body.checks.runtime = { ok: true, mode: resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE) };
+  body.checks.bookpi = { ok: Boolean(config().BOOKPI_SIGNING_KEY) };
+  const ok = body.status === "ready" && Boolean(config().BOOKPI_SIGNING_KEY);
+  return new Response(JSON.stringify({ ...body, status: ok ? "ready" : "not_ready" }), {
+    status: ok ? 200 : 503,
+    headers: { "content-type": "application/json", "cache-control": "no-store" },
+  });
 }
 
 async function readiness(): Promise<Response> {
@@ -78,6 +93,6 @@ async function readiness(): Promise<Response> {
       checks,
       timestamp: new Date().toISOString(),
     }),
-    { status, headers: { "content-type": "application/json" } },
+    { status, headers: { "content-type": "application/json", "cache-control": "no-store" } },
   );
 }
