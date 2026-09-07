@@ -1,59 +1,77 @@
+<div align="center">
+
 # Isabella Villaseñor AI — Genesis
 
-## IA Cognitiva Gobernada Federada (Federated Governed Artificial Intelligence System)
+### IA Cognitiva Gobernada Federada · _Federated Governed Artificial Intelligence System_
 
-Isabella Villaseñor AI es una arquitectura cognitiva híbrida que coordina interpretación, memoria, gobernanza, herramientas y trazabilidad bajo soberanía humana, operada desde el Nodo Cero (Real del Monte, Hidalgo, México) por TAMV ONLINE.
+![Versión](https://img.shields.io/badge/Versi%C3%B3n-G%C3%A9nesis_2.0-C9A227?style=for-the-badge)
+![Licencia](https://img.shields.io/badge/Licencia-CC_BY_4.0-0E1B2C?style=for-the-badge)
+![Node](https://img.shields.io/badge/Node-%3E%3D22-1B7F4D?style=for-the-badge)
+![pnpm](https://img.shields.io/badge/pnpm-10-F69220?style=for-the-badge)
+![Gobernanza](https://img.shields.io/badge/Gobernanza-FGAIS_Nivel_0-5B2D8E?style=for-the-badge)
+
+_Arquitectura cognitiva híbrida que coordina interpretación, memoria, gobernanza, herramientas y trazabilidad bajo soberanía humana — operada desde el Nodo Cero, Real del Monte, Hidalgo, México, por **TAMV ONLINE**._
+
+</div>
+
+---
 
 ## 🎯 Declaración de Naturaleza
 
 ### Lo que Isabella es
 
-- Una capa de gobernanza, identidad, ruteo, seguridad, memoria y auditoría —propia y verificable— sobre un substrato de inferencia generativa federado (Gemini).
-- Un sistema de IA gobernada que opera bajo el marco FGAIS (Federated Governed Artificial Intelligence System).
-- Una arquitectura que coordina interpretación, memoria, gobernanza, herramientas y trazabilidad bajo soberanía humana.
+> - Una capa de gobernanza, identidad, ruteo, seguridad, memoria y auditoría —**propia y verificable**— sobre un substrato de inferencia generativa federado (Gemini).
+> - Un sistema de IA gobernada que opera bajo el marco **FGAIS** (_Federated Governed Artificial Intelligence System_).
+> - Una arquitectura que coordina interpretación, memoria, gobernanza, herramientas y trazabilidad bajo soberanía humana.
 
 ### Lo que Isabella no es
 
-- No es una AGI (Inteligencia Artificial General).
-- No es un stack totalmente soberano (depende de proveedores federados para inferencia).
-- No es un chatbot autónomo sin restricciones.
-- No es un sustituto de la decisión humana en operaciones de alto impacto.
+| Negación                           | Alcance                                                |
+| ---------------------------------- | ------------------------------------------------------ |
+| No es una AGI                      | Sin pretensión de Inteligencia Artificial General.     |
+| No es un stack totalmente soberano | Depende de proveedores federados para inferencia.      |
+| No es un chatbot autónomo          | Opera siempre dentro de restricciones explícitas.      |
+| No sustituye al humano             | Jamás decide operaciones de alto impacto por sí misma. |
 
-Los módulos sugieren, verifican y ejecutan únicamente dentro de políticas explícitas.
+Los módulos **sugieren, verifican y ejecutan únicamente dentro de políticas explícitas**.
 
 ## ⚠️ Estado del Proyecto
 
-- **Estado:** Prototipo operativo endurecido en evolución.
-- **Advertencia crítica:** Nada en este README afirma preparación productiva sin evidencia enlazada. Ver `docs/governance/01-FGAIS-Governance-Constitution.md` (Nivel 0) y `docs/governance/EVIDENCE-MAP.md` (correspondencia claim↔código).
-- **Regla de correspondencia estricta (D.5):** Ninguna capacidad se declara Verified/Production-Verified sin prueba reproducible.
+| Atributo                | Valor                                                                                   |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| **Estado**              | Prototipo operativo endurecido en evolución                                             |
+| **Advertencia crítica** | Nada en este README afirma preparación productiva sin evidencia enlazada                |
+| **Marco rector**        | `docs/governance/01-FGAIS-Governance-Constitution.md` (Nivel 0)                         |
+| **Correspondencia**     | `docs/governance/EVIDENCE-MAP.md` (claim ↔ código)                                      |
+| **Regla D.5**           | Ninguna capacidad se declara _Verified_ / _Production-Verified_ sin prueba reproducible |
 
 ## 📜 Principios Operativos
 
-| Principio                         | Referencia FGAIS | Descripción                                                                        |
-| --------------------------------- | ---------------- | ---------------------------------------------------------------------------------- |
-| La capacidad no implica autoridad | §2.1             | Existir no autoriza ejecutar. Toda capacidad requiere autorización explícita.      |
-| Negar por defecto                 | §2.3             | Verificar → Autorizar → Ejecutar → Registrar → Monitorear → Recuperar.             |
-| Soberanía humana                  | §1.6             | Ninguna acción de alto riesgo sin aprobación registrada (HITL).                    |
-| Zero Trust                        | §1.8             | Identidad, tenant, alcance y política en cada operación.                           |
-| Trazabilidad                      | §1.9             | Toda decisión relevante produce traceId, correlationId y evidencia auditable.      |
-| Incertidumbre honesta             | §1.4             | Los fallos de proveedores y modos degradados se comunican, no se disfrazan.        |
-| Correspondencia estricta          | D.5              | Ninguna capacidad se declara Verified/Production-Verified sin prueba reproducible. |
+|             Principio             | Referencia FGAIS | Descripción                                                                              |
+| :-------------------------------: | :--------------: | ---------------------------------------------------------------------------------------- |
+| La capacidad no implica autoridad |       §2.1       | Existir no autoriza ejecutar. Toda capacidad requiere autorización explícita.            |
+|         Negar por defecto         |       §2.3       | Verificar → Autorizar → Ejecutar → Registrar → Monitorear → Recuperar.                   |
+|         Soberanía humana          |       §1.6       | Ninguna acción de alto riesgo sin aprobación registrada (HITL).                          |
+|            Zero Trust             |       §1.8       | Identidad, tenant, alcance y política en cada operación.                                 |
+|           Trazabilidad            |       §1.9       | Toda decisión relevante produce `traceId`, `correlationId` y evidencia auditable.        |
+|       Incertidumbre honesta       |       §1.4       | Los fallos de proveedores y modos degradados se comunican, no se disfrazan.              |
+|     Correspondencia estricta      |       D.5        | Ninguna capacidad se declara _Verified_ / _Production-Verified_ sin prueba reproducible. |
 
 ## 🏗️ Arquitectura
 
 ### Componentes Principales
 
-| Componente                   | Ubicación                                                                   | Función                                                                                                                                                                          |
-| ---------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CROWN Gateway                | `src/lib/crown.ts`, `constitutional-gate.ts`, `policy-engine.ts`            | Ruteo, arbitraje, estado y composición de políticas.                                                                                                                             |
-| ISA / SOPHIA / ORION / ARGUS | `src/lib/`                                                                  | Presencia, razonamiento, ejecución y veto.                                                                                                                                       |
-| AEGIS Semántico              | `src/lib/aegis-semantic.ts`                                                 | 7 detectores (classifier, contextual, inyección indirecta, tool poisoning, retrieval poisoning, exfiltración, conductual) integrados al firewall, 37 casos adversariales verdes. |
-| Authorization Real           | `src/lib/authorization.ts`                                                  | PDP RBAC (matriz + catálogo) + ABAC deny-overrides + anomalía, decisiones firmadas ECDSA P-384.                                                                                  |
-| Execution Authority          | `src/lib/execution-authority.ts`                                            | Decide → Authorization → Approval (un solo uso / capability tokens firmados) → Execution → Validation → Audit.                                                                   |
-| Kill Switch                  | `src/lib/kill-switch.ts` (§7.1)                                             | Parada por capacidad (inference, tool-execution, skill-execution, payouts, quantum-jobs), durable en PG, API emergency-\* solo SovereignOwner.                                   |
-| BookPI + Contabilidad        | `src/lib/repositories/bookpi-postgres-repository.ts`, `src/lib/accounting/` | Ledger append-only con firmas reales, doble entrada con asiento atómico, eventos económicos idempotentes.                                                                        |
-| Memoria y Auditoría          | `src/lib/`                                                                  | Hash-chain, mutex anti-bifurcación y verificación de integridad.                                                                                                                 |
-| Observabilidad Durable       | `src/lib/otel-exporter.ts`                                                  | OTLP/HTTP → Collector → backend/SIEM; el buffer en memoria es solo fallback local.                                                                                               |
+| Componente                       | Ubicación                                                                   | Función                                                                                                                                                                          |
+| -------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CROWN Gateway**                | `src/lib/crown.ts`, `constitutional-gate.ts`, `policy-engine.ts`            | Ruteo, arbitraje, estado y composición de políticas.                                                                                                                             |
+| **ISA / SOPHIA / ORION / ARGUS** | `src/lib/`                                                                  | Presencia, razonamiento, ejecución y veto.                                                                                                                                       |
+| **AEGIS Semántico**              | `src/lib/aegis-semantic.ts`                                                 | 7 detectores (classifier, contextual, inyección indirecta, tool poisoning, retrieval poisoning, exfiltración, conductual) integrados al firewall, 37 casos adversariales verdes. |
+| **Authorization Real**           | `src/lib/authorization.ts`                                                  | PDP RBAC (matriz + catálogo) + ABAC deny-overrides + anomalía, decisiones firmadas ECDSA P-384.                                                                                  |
+| **Execution Authority**          | `src/lib/execution-authority.ts`                                            | Decide → Authorization → Approval (un solo uso / capability tokens firmados) → Execution → Validation → Audit.                                                                   |
+| **Kill Switch**                  | `src/lib/kill-switch.ts` (§7.1)                                             | Parada por capacidad (`inference`, `tool-execution`, `skill-execution`, `payouts`, `quantum-jobs`), durable en PG, API `emergency-*` solo SovereignOwner.                        |
+| **BookPI + Contabilidad**        | `src/lib/repositories/bookpi-postgres-repository.ts`, `src/lib/accounting/` | Ledger append-only con firmas reales, doble entrada con asiento atómico, eventos económicos idempotentes.                                                                        |
+| **Memoria y Auditoría**          | `src/lib/`                                                                  | Hash-chain, mutex anti-bifurcación y verificación de integridad.                                                                                                                 |
+| **Observabilidad Durable**       | `src/lib/otel-exporter.ts`                                                  | OTLP/HTTP → Collector → backend/SIEM; el buffer en memoria es solo fallback local.                                                                                               |
 
 ### Flujo Canónico
 
@@ -61,10 +79,10 @@ Los módulos sugieren, verifican y ejecutan únicamente dentro de políticas exp
 Perceive → Remember → Policy Gate → Decide → Act → Audit
 ```
 
-## 🏛️ Autoridades de Producción (Sin Ambigüedad)
+## 🏛️ Autoridades de Producción _(Sin Ambigüedad)_
 
-| Autoridad         | Fuente Única                                           | Infraestructura (No Autoridad)           |
-| ----------------- | ------------------------------------------------------ | ---------------------------------------- |
+| Autoridad         | Fuente Única                                           | Infraestructura _(No Autoridad)_         |
+| :---------------- | :----------------------------------------------------- | :--------------------------------------- |
 | Estado Relacional | PostgreSQL vía `DATABASE_URL`                          | Neon / Supabase Postgres (mismo cluster) |
 | Identidad         | OIDC/Supabase JWT + API keys server-side               | Supabase Auth (emisión)                  |
 | Inferencia        | Proveedor federado Gemini                              | `generativelanguage.googleapis.com`      |
@@ -74,15 +92,15 @@ Perceive → Remember → Policy Gate → Decide → Act → Audit
 
 ### Requisitos Críticos
 
-- `DATABASE_URL` es obligatoria en producción (`requiredEnvKeys`, CI y `production-authority.ts` la exigen).
-- `assertProductionAuthorities()` / `runtime-integrity` degradan el arranque si una autoridad crítica falla.
+- 🔑 `DATABASE_URL` es **obligatoria** en producción (`requiredEnvKeys`, CI y `production-authority.ts` la exigen).
+- 🛡️ `assertProductionAuthorities()` / `runtime-integrity` **degradan el arranque** si una autoridad crítica falla.
 
-## 🌐 Inferencia Federada (Declaración Honesta)
+## 🌐 Inferencia Federada _(Declaración Honesta)_
 
 ### Modo Producción
 
-- Sin `GEMINI_API_KEY` en producción, `/api/isabella` responde 503 `inference_unavailable` explícito.
-- No existe fallback generativo silencioso.
+- Sin `GEMINI_API_KEY` en producción, `/api/isabella` responde **503 `inference_unavailable`** explícito.
+- **No existe fallback generativo silencioso.**
 
 ### Modo Desarrollo
 
@@ -95,25 +113,25 @@ En payload, headers e insignia UI.
 
 ### Criptografía Poscuántica
 
-ML-DSA-87 es SIMULATION-ONLY por contrato. No se presenta como autoridad criptográfica productiva.
+> ML-DSA-87 es **SIMULATION-ONLY** por contrato. No se presenta como autoridad criptográfica productiva.
 
 ## 🔒 Seguridad Operativa
 
 ### Controles Implementados
 
-| Control                      | Implementación                                               | Estado      |
-| ---------------------------- | ------------------------------------------------------------ | ----------- |
-| Autenticación Soberana       | `withSovereignAuth` en rutas sensibles                       | Implemented |
-| Tenant Derivado de Identidad | Nunca del body/query                                         | Implemented |
-| Validación Zod + Límites     | Todos los inputs                                             | Implemented |
-| Rate Limiting Distribuido    | Fail-closed en prod sin Redis → 503                          | Partial     |
-| Egress Allowlist Anti-SSRF   | Dominios y puertos explícitos                                | Implemented |
-| Idempotencia                 | Pagos, webhooks, mutaciones                                  | Implemented |
-| Auditoría con Correlación    | traceId, correlationId                                       | Implemented |
-| Errores Genéricos            | Sin filtrar stack traces                                     | Implemented |
-| Dev-auth Deshabilitado       | oauth-\*, dev-session → 404 en prod                          | Implemented |
-| Invitados y Atajos Dev       | Deshabilitados en prod                                       | Implemented |
-| CSP                          | En transición documentada (enforced + Report-Only con nonce) | Partial     |
+| Control                      | Implementación                                               |     Estado     |
+| :--------------------------- | :----------------------------------------------------------- | :------------: |
+| Autenticación Soberana       | `withSovereignAuth` en rutas sensibles                       | ✅ Implemented |
+| Tenant Derivado de Identidad | Nunca del body/query                                         | ✅ Implemented |
+| Validación Zod + Límites     | Todos los inputs                                             | ✅ Implemented |
+| Rate Limiting Distribuido    | Fail-closed en prod sin Redis → 503                          |   🟡 Partial   |
+| Egress Allowlist Anti-SSRF   | Dominios y puertos explícitos                                | ✅ Implemented |
+| Idempotencia                 | Pagos, webhooks, mutaciones                                  | ✅ Implemented |
+| Auditoría con Correlación    | `traceId`, `correlationId`                                   | ✅ Implemented |
+| Errores Genéricos            | Sin filtrar stack traces                                     | ✅ Implemented |
+| Dev-auth Deshabilitado       | `oauth-*`, `dev-session` → 404 en prod                       | ✅ Implemented |
+| Invitados y Atajos Dev       | Deshabilitados en prod                                       | ✅ Implemented |
+| CSP                          | En transición documentada (enforced + Report-Only con nonce) |   🟡 Partial   |
 
 ## 💰 Economía y BookPI
 
@@ -122,7 +140,7 @@ ML-DSA-87 es SIMULATION-ONLY por contrato. No se presenta como autoridad criptog
 - Créditos = consumo prefinanciado.
 - Recarga solo tras PaymentIntent verificado, con claim atómico `UNIQUE(tenant, idempotency_key)`.
 - Débitos con gate de saldo.
-- Reembolsos como eventos nuevos (nunca UPDATE).
+- Reembolsos como eventos nuevos (**nunca** `UPDATE`).
 - Chargebacks con disputa + congelamiento de payouts.
 
 ### Prevención de Fraude
@@ -137,7 +155,7 @@ ML-DSA-87 es SIMULATION-ONLY por contrato. No se presenta como autoridad criptog
 - Sin destino, programado manual etiquetado.
 - Pagos en vivo: ver matriz (evidencia en vivo pendiente).
 
-## ✅ Verificación (Todo Reproducible Localmente)
+## ✅ Verificación _(Todo Reproducible Localmente)_
 
 ### Comandos Base
 
@@ -152,40 +170,42 @@ pnpm run typecheck && pnpm run lint
 pnpm run test
 # DB-gateados se omiten sin PG
 
-# Matriz de capacidades (27 capabilities)
+# Matriz de capacidades (29 capabilities)
 pnpm run capabilities
 
 # Verificación de migraciones
 pnpm run db:verify
 
-# Security scanning
+# Security scanning (eslint security + secret-scan)
 pnpm run security:scan
-# eslint security + secret-scan
 
-# Build (bundle cliente + SSR)
+# Build (bundle cliente + SSR + funciones Nitro)
 pnpm run build
 ```
 
 ### Con PostgreSQL
 
 ```bash
-# Tests de concurrencia, idempotencia, reconciliación, refunds, approvals atómicos
+# Concurrencia, idempotencia, reconciliación, refunds, approvals atómicos
 TEST_DATABASE_URL=... pnpm exec vitest run --project bookpi --project integration
 ```
 
-### CI (ci.yml)
+### CI (`ci.yml`)
 
-Build + security + CodeQL + migrate-check + db-tests (pgvector:pg16 con migraciones aplicadas) + release-readiness honesto.
+> Build + security + CodeQL + migrate-check + db-tests (pgvector:pg16 con migraciones aplicadas) + release-readiness honesto.
 
 ## 🚀 Despliegue en Vercel
 
 ### Rama Fuente Única
 
-Rama `main` (cada push despliega).
+**`main`** — cada push despliega.
 
 ### Secretos Requeridos
 
-Todos los siguientes son obligatorios (`requiredEnvKeys("production")`, paridad CI↔prod verificada por test):
+Todos obligatorios (`requiredEnvKeys("production")`, paridad CI↔prod verificada por test):
+
+<details>
+<summary><strong>Ver tabla de secretos (13)</strong></summary>
 
 | Variable                      | Propósito                         |
 | ----------------------------- | --------------------------------- |
@@ -203,6 +223,8 @@ Todos los siguientes son obligatorios (`requiredEnvKeys("production")`, paridad 
 | `STRIPE_WEBHOOK_SECRET`       | Webhooks Stripe                   |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | Observabilidad durable (opcional) |
 
+</details>
+
 ### Post-install
 
 `postinstall` regenera Prisma (`schema.prisma` es la fuente; `src/generated` no se versiona).
@@ -219,7 +241,7 @@ Todos los siguientes son obligatorios (`requiredEnvKeys("production")`, paridad 
 
 `pnpm-lock.yaml` es el único lockfile canónico (pnpm 10, Node ≥22).
 
-### Prohibiciones
+### ⛔ Prohibiciones
 
 - No publicar ramas con fallos de build.
 - No publicar ramas con secretos expuestos.
@@ -227,6 +249,9 @@ Todos los siguientes son obligatorios (`requiredEnvKeys("production")`, paridad 
 - No publicar ramas con afirmaciones sin evidencia.
 
 ## 📁 Estructura Principal
+
+<details>
+<summary><strong>Ver árbol del repositorio</strong></summary>
 
 ```text
 src/
@@ -253,6 +278,8 @@ scripts/                   # Verificación, backup/restore, supply-chain, capabi
 prisma/                    # Esquema fuente (migraciones vía Supabase)
 ```
 
+</details>
+
 ## 🤝 Contribución
 
 ### Lineamientos
@@ -268,20 +295,20 @@ prisma/                    # Esquema fuente (migraciones vía Supabase)
 - `main` siempre compilable.
 - Prohibido `push --force`/rebase sobre historia publicada.
 
-## ⚠️ Limitaciones Conocidas (Deuda Declarada, No Oculta)
+## ⚠️ Limitaciones Conocidas _(Deuda Declarada, No Oculta)_
 
-| Limitación                                                    | Estado    | Owner                | Evidencia    |
-| ------------------------------------------------------------- | --------- | -------------------- | ------------ |
-| Pagos Stripe en vivo sin evidencia de transferencia ejecutada | Pendiente | Payments Owner       | EVIDENCE-MAP |
+| Limitación                                                    |  Estado   |        Owner         |  Evidencia   |
+| :------------------------------------------------------------ | :-------: | :------------------: | :----------: |
+| Pagos Stripe en vivo sin evidencia de transferencia ejecutada | Pendiente |    Payments Owner    | EVIDENCE-MAP |
 | Multi-región                                                  | Pendiente | Infrastructure Owner | EVIDENCE-MAP |
-| Nonce-CSP enforcement                                         | Partial   | Security Owner       | EVIDENCE-MAP |
-| DAST/pentesting/red-team externo                              | Pendiente | AI Safety Officer    | EVIDENCE-MAP |
-| MFA admins                                                    | Planned   | Security Owner       | EVIDENCE-MAP |
-| Rotación programada de 90 días                                | Planned   | CISO                 | EVIDENCE-MAP |
-| Payouts masivos                                               | Pendiente | Payments Owner       | EVIDENCE-MAP |
-| happy-dom/pnpm sin instalar localmente (CI los provee)        | Known     | DevOps               | EVIDENCE-MAP |
+| Nonce-CSP enforcement                                         |  Partial  |    Security Owner    | EVIDENCE-MAP |
+| DAST/pentesting/red-team externo                              | Pendiente |  AI Safety Officer   | EVIDENCE-MAP |
+| MFA admins                                                    |  Planned  |    Security Owner    | EVIDENCE-MAP |
+| Rotación programada de 90 días                                |  Planned  |         CISO         | EVIDENCE-MAP |
+| Payouts masivos                                               | Pendiente |    Payments Owner    | EVIDENCE-MAP |
+| happy-dom/pnpm sin instalar localmente (CI los provee)        |   Known   |        DevOps        | EVIDENCE-MAP |
 
-Ver matriz y `EVIDENCE-MAP.md` para dueño y estado por brecha.
+_Ver matriz y `EVIDENCE-MAP.md` para dueño y estado por brecha._
 
 ## 📄 Licencia y Autoría
 
@@ -306,17 +333,22 @@ La licencia no elimina obligaciones de privacidad, seguridad, pagos ni cumplimie
 | `docs/api/`                                           | Nivel 2 | Contratos de autoridad de API                          |
 | `AGENTS.md`                                           | Nivel 3 | Lineamientos de contribución                           |
 
+---
+
+<div align="center">
+
 ## 🌍 Nodo Cero
 
-Isabella Villaseñor AI es orgullosamente realmontense.
+**Isabella Villaseñor AI es orgullosamente realmontense.**
 
-- **Origen:** Real del Monte, Hidalgo, México (20.1597° N, 98.6669° O)
-- **Operador:** TAMV ONLINE
-- **Soberanía Tecnológica:** Preservada, documentada y jurídicamente protegida conforme al derecho aplicable.
+Origen: Real del Monte, Hidalgo, México (20.1597° N, 98.6669° O) · Operador: **TAMV ONLINE**
+
+_Soberanía Tecnológica: Preservada, documentada y jurídicamente protegida conforme al derecho aplicable._
 
 ---
 
 _Isabella Villaseñor AI — A Federated Governed Artificial Intelligence System._
-_By TAMV ONLINE._
-_Orgullosamente Realmontenses._
+_By TAMV ONLINE. Orgullosamente Realmontenses._
 _Nodo Cero: Real del Monte, Hidalgo, México._
+
+</div>
