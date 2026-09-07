@@ -30,7 +30,7 @@ import {
 } from "../crypto/bookpi-signer";
 
 export type LedgerCategory = "inference" | "processing" | "apis" | "skills" | "other";
-export type LedgerStatus = "settled" | "pending" | "refunded";
+export type LedgerStatus = "settled" | "pending" | "refunded" | "pruned";
 
 export interface BlockPIBlock {
   index: number;
@@ -124,14 +124,14 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
 
   return {
     list(tenantId: string): BlockPIBlock[] {
-      return loadStore().blocks.filter((b) => b.tenantId === tenantId);
+      return loadStore().blocks.filter((b) => b.tenantId === tenantId).sort((a, b) => a.index - b.index);
     },
 
     full(): BlockPIBlock[] {
       return loadStore().blocks;
     },
 
-    /** Registra un bloque nuevo encadenado al anterior (append-only). */
+    /** Registra un bloque nuevo encadenado al anterior del tenant (append-only). */
     append(input: {
       tenantId: string;
       userId: string;
@@ -143,8 +143,11 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
       if (input.cost < 0) return { success: false, error: "Costo negativo no admitido." };
       if (isSimulatedAlgorithm()) return { success: false, error: "Algoritmo simulado no permitido." };
       const store = loadStore();
-      const prev = store.blocks[store.blocks.length - 1];
-      const index = store.blocks.length;
+      
+      const tenantBlocks = store.blocks.filter((b) => b.tenantId === input.tenantId);
+      const prev = tenantBlocks[tenantBlocks.length - 1];
+      const index = tenantBlocks.length;
+      
       const timestamp = new Date().toISOString();
       const previousHash = prev?.blockHash ?? store.genesisPreviousHash;
       const nonce = crypto.randomUUID();
@@ -172,6 +175,143 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
       return { success: true, block };
     },
 
+    batchAppend(inputs: Array<{
+      tenantId: string;
+      userId: string;
+      operation: string;
+      category: LedgerCategory;
+      cost: number;
+      tokens: number;
+    }>): { success: true; blocks: BlockPIBlock[] } | { success: false; error: string } {
+      if (isSimulatedAlgorithm()) return { success: false, error: "Algoritmo simulado no permitido." };
+      const store = loadStore();
+      const newBlocks: BlockPIBlock[] = [];
+      
+      for (const input of inputs) {
+        if (input.cost < 0) return { success: false, error: "Costo negativo no admitido." };
+        
+        // Use updated store state including previously appended blocks in this batch
+        const tenantBlocks = store.blocks.filter((b) => b.tenantId === input.tenantId);
+        const prev = tenantBlocks[tenantBlocks.length - 1];
+        const index = tenantBlocks.length;
+        
+        const timestamp = new Date().toISOString();
+        const previousHash = prev?.blockHash ?? store.genesisPreviousHash;
+        const nonce = crypto.randomUUID();
+        const base: Omit<BlockPIBlock, "blockHash"> = {
+          index,
+          timestamp,
+          tenantId: input.tenantId,
+          userId: input.userId,
+          operation: input.operation,
+          category: input.category,
+          costDecimal: toCents(input.cost),
+          tokensConsumed: input.tokens,
+          previousHash,
+          pqcSignature: null,
+          signatureAlgorithm: getSigningAlgorithm(),
+          status: "settled",
+          nonce,
+        };
+        const blockHash = computeBlockHash(base);
+        const pqcSignature = signBlockHash(blockHash);
+        const block: BlockPIBlock = { ...base, blockHash, pqcSignature };
+        store.blocks.push(block);
+        newBlocks.push(block);
+      }
+      
+      saveStore(store);
+      return { success: true, blocks: newBlocks };
+    },
+
+    query(
+      tenantId: string,
+      filter: { category?: LedgerCategory; userId?: string; fromDate?: Date; toDate?: Date }
+    ): BlockPIBlock[] {
+      let blocks = this.list(tenantId);
+      if (filter.category) blocks = blocks.filter((b) => b.category === filter.category);
+      if (filter.userId) blocks = blocks.filter((b) => b.userId === filter.userId);
+      if (filter.fromDate) blocks = blocks.filter((b) => new Date(b.timestamp) >= filter.fromDate!);
+      if (filter.toDate) blocks = blocks.filter((b) => new Date(b.timestamp) <= filter.toDate!);
+      return blocks;
+    },
+
+    prune(tenantId: string, maxAgeMs: number): { success: boolean; prunedCount: number; error?: string } {
+      if (isSimulatedAlgorithm()) return { success: false, error: "Algoritmo simulado no permitido.", prunedCount: 0 };
+      if (maxAgeMs < 0) return { success: false, error: "maxAgeMs debe ser >= 0", prunedCount: 0 };
+      
+      const store = loadStore();
+      const allBlocks = store.blocks;
+      const tenantBlocks = allBlocks.filter((b) => b.tenantId === tenantId).sort((a, b) => a.index - b.index);
+      
+      const cutoff = Date.now() - maxAgeMs;
+      const blocksToKeep = tenantBlocks.filter((b) => new Date(b.timestamp).getTime() > cutoff);
+      const prunedCount = tenantBlocks.length - blocksToKeep.length;
+      
+      if (prunedCount === 0) return { success: true, prunedCount: 0 };
+      
+      // Rewrite chain hashes
+      let prevHash = store.genesisPreviousHash;
+      for (let i = 0; i < blocksToKeep.length; i++) {
+        const block = blocksToKeep[i];
+        block.index = i;
+        block.previousHash = prevHash;
+        
+        const base: Omit<BlockPIBlock, "blockHash"> = {
+          index: block.index,
+          timestamp: block.timestamp,
+          tenantId: block.tenantId,
+          userId: block.userId,
+          operation: block.operation,
+          category: block.category,
+          costDecimal: block.costDecimal,
+          tokensConsumed: block.tokensConsumed,
+          previousHash: block.previousHash,
+          pqcSignature: null,
+          signatureAlgorithm: getSigningAlgorithm(),
+          status: block.status,
+          nonce: block.nonce,
+        };
+        block.blockHash = computeBlockHash(base);
+        block.pqcSignature = signBlockHash(block.blockHash);
+        prevHash = block.blockHash;
+      }
+      
+      store.blocks = allBlocks.filter((b) => b.tenantId !== tenantId).concat(blocksToKeep);
+      saveStore(store);
+      return { success: true, prunedCount };
+    },
+
+    pruneInactive(inactiveDays: number): { success: boolean; prunedTenants: string[]; error?: string } {
+      const store = loadStore();
+      const now = Date.now();
+      const inactiveMs = inactiveDays * 24 * 60 * 60 * 1000;
+      
+      // Group by tenant
+      const tenantLastActivity = new Map<string, number>();
+      for (const block of store.blocks) {
+        const time = new Date(block.timestamp).getTime();
+        const current = tenantLastActivity.get(block.tenantId) ?? 0;
+        if (time > current) {
+          tenantLastActivity.set(block.tenantId, time);
+        }
+      }
+      
+      const tenantsToPrune: string[] = [];
+      for (const [tenantId, lastActivity] of tenantLastActivity.entries()) {
+        if (now - lastActivity > inactiveMs) {
+          tenantsToPrune.push(tenantId);
+        }
+      }
+      
+      if (tenantsToPrune.length > 0) {
+        store.blocks = store.blocks.filter((b) => !tenantsToPrune.includes(b.tenantId));
+        saveStore(store);
+      }
+      
+      return { success: true, prunedTenants: tenantsToPrune };
+    },
+
     /** Marca un bloque como refundido con un bloque de anulación encadenado. */
     refund(index: number, tenantId: string): { success: boolean; error?: string } {
       const store = loadStore();
@@ -185,11 +325,12 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
       if (alreadyRefunded) return { success: false, error: "Ya refundido." };
       if (isSimulatedAlgorithm()) return { success: false, error: "Algoritmo simulado no permitido." };
 
-      const prev = store.blocks[store.blocks.length - 1];
+      const tenantBlocks = store.blocks.filter((b) => b.tenantId === tenantId);
+      const prev = tenantBlocks[tenantBlocks.length - 1];
       const previousHash = prev?.blockHash ?? store.genesisPreviousHash;
       const nonce = crypto.randomUUID();
       const base: Omit<BlockPIBlock, "blockHash"> = {
-        index: store.blocks.length,
+        index: tenantBlocks.length,
         timestamp: new Date().toISOString(),
         tenantId,
         userId: target.userId,
@@ -212,24 +353,33 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
     },
 
     /** Verifica la integridad de toda la cadena. */
-    verifyIntegrity(): { success: boolean; error?: string; corruptedIndex?: number } {
+    verifyIntegrity(tenantId?: string): { success: boolean; error?: string; corruptedIndex?: number } {
       const store = loadStore();
-      let prev = store.genesisPreviousHash;
-      for (let i = 0; i < store.blocks.length; i++) {
-        const block = store.blocks[i];
-        if (!block) return { success: false, error: "Bloque ausente.", corruptedIndex: i };
-        if (block.previousHash !== prev) {
-          return { success: false, error: "Cadena rota.", corruptedIndex: i };
+      const tenantIds = tenantId 
+        ? [tenantId] 
+        : Array.from(new Set(store.blocks.map(b => b.tenantId)));
+        
+      for (const tId of tenantIds) {
+        const tenantBlocks = store.blocks.filter(b => b.tenantId === tId).sort((a, b) => a.index - b.index);
+        let prev = store.genesisPreviousHash;
+        
+        for (let i = 0; i < tenantBlocks.length; i++) {
+          const block = tenantBlocks[i];
+          if (!block) return { success: false, error: "Bloque ausente.", corruptedIndex: i };
+          if (block.index !== i) return { success: false, error: "Índice incorrecto.", corruptedIndex: i };
+          if (block.previousHash !== prev) {
+            return { success: false, error: "Cadena rota.", corruptedIndex: block.index };
+          }
+          // §6.1: recomputa con el MISMO payload canónico que append().
+          if (computeBlockHash(block) !== block.blockHash) {
+            return { success: false, error: "Bloque alterado.", corruptedIndex: block.index };
+          }
+          // §6.5: verifica la firma real (rechaza sin firma o firma inválida).
+          if (!verifyBlockSignature(block.blockHash, block.pqcSignature)) {
+            return { success: false, error: "Firma inválida o ausente.", corruptedIndex: block.index };
+          }
+          prev = block.blockHash;
         }
-        // §6.1: recomputa con el MISMO payload canónico que append().
-        if (computeBlockHash(block) !== block.blockHash) {
-          return { success: false, error: "Bloque alterado.", corruptedIndex: i };
-        }
-        // §6.5: verifica la firma real (rechaza sin firma o firma inválida).
-        if (!verifyBlockSignature(block.blockHash, block.pqcSignature)) {
-          return { success: false, error: "Firma inválida o ausente.", corruptedIndex: i };
-        }
-        prev = block.blockHash;
       }
       return { success: true };
     },

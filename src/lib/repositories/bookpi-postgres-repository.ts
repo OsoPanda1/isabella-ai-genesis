@@ -160,6 +160,249 @@ export function createBookpiPostgresRepository() {
         client.release();
       }
     },
+    async batchAppend(inputs: Array<{
+      tenantId: string;
+      userId: string;
+      operation: string;
+      category: LedgerCategory;
+      cost: number;
+      tokens: number;
+      status?: LedgerStatus;
+      metadata?: Record<string, unknown>;
+    }>) {
+      if (isSimulatedAlgorithm()) {
+        throw new Error(
+          "CRITICAL_SECURITY_ERROR: algoritmo de firma simulado no permitido para el ledger.",
+        );
+      }
+      
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        
+        // Group inputs by tenant to handle locks correctly and fetch previous hash once per tenant
+        const tenantGroups = new Map<string, typeof inputs>();
+        for (const input of inputs) {
+          if (!tenantGroups.has(input.tenantId)) tenantGroups.set(input.tenantId, []);
+          tenantGroups.get(input.tenantId)!.push(input);
+        }
+        
+        const results: BlockPIBlock[] = [];
+        
+        for (const [tenantId, tenantInputs] of tenantGroups.entries()) {
+          const tenantHash = createHash("sha256").update(tenantId).digest();
+          const lockId = tenantHash.readInt32BE(0);
+          await client.query("SELECT pg_advisory_xact_lock($1)", [lockId]);
+          
+          const { rows: previous } = await client.query(
+            "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index DESC LIMIT 1 FOR UPDATE",
+            [tenantId]
+          );
+          
+          let previousBlock = previous[0] ? mapRow(previous[0]) : null;
+          
+          for (const input of tenantInputs) {
+            if (!Number.isFinite(input.cost) || input.cost < 0) {
+              await client.query("ROLLBACK");
+              return { success: false as const, error: "Costo inválido." };
+            }
+            if (!Number.isInteger(input.tokens) || input.tokens < 0) {
+              await client.query("ROLLBACK");
+              return { success: false as const, error: "Tokens inválidos." };
+            }
+            
+            const index = previousBlock ? previousBlock.index + 1 : 0;
+            const timestamp = new Date().toISOString();
+            const costDecimal = input.cost.toFixed(2);
+            const status: LedgerStatus = input.status ?? "settled";
+            
+            const base: Omit<BlockPIBlock, "blockHash"> = {
+              index,
+              timestamp,
+              tenantId: input.tenantId,
+              userId: input.userId,
+              operation: input.operation.slice(0, 200),
+              category: input.category,
+              costDecimal,
+              tokensConsumed: input.tokens,
+              previousHash: previousBlock?.blockHash ?? GENESIS_PREVIOUS_HASH,
+              pqcSignature: null,
+              signatureAlgorithm: getSigningAlgorithm(),
+              status,
+              nonce: randomUUID(),
+            };
+            
+            const blockHash = hashBlock(base);
+            const pqcSignature = signBlockHash(blockHash);
+            if (!pqcSignature) {
+              await client.query("ROLLBACK");
+              return { success: false as const, error: "Failed to sign BookPI block." };
+            }
+            
+            const { rows } = await client.query(
+              `INSERT INTO public.bookpi_ledger
+               (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed,
+                previous_hash, block_hash, status, nonce, signature_algorithm, pqc_signature)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+               RETURNING *`,
+              [base.index, base.tenantId, base.userId, base.operation, base.category, base.costDecimal,
+               base.tokensConsumed, base.previousHash, blockHash, status, base.nonce,
+               base.signatureAlgorithm, pqcSignature]
+            );
+            
+            const newBlock = mapRow(rows[0]!);
+            results.push(newBlock);
+            previousBlock = newBlock;
+          }
+        }
+        
+        await client.query("COMMIT");
+        return { success: true as const, blocks: results };
+      } catch (err) {
+        await client.query("ROLLBACK");
+        return { success: false as const, error: "Fallo transaccional" };
+      } finally {
+        client.release();
+      }
+    },
+    async query(
+      tenantId: string,
+      filter: { category?: LedgerCategory; userId?: string; fromDate?: Date; toDate?: Date }
+    ): Promise<BlockPIBlock[]> {
+      let query = "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1";
+      const params: any[] = [tenantId];
+      let paramIndex = 2;
+      
+      if (filter.category) {
+        query += ` AND category = $${paramIndex++}`;
+        params.push(filter.category);
+      }
+      if (filter.userId) {
+        query += ` AND user_id = $${paramIndex++}`;
+        params.push(filter.userId);
+      }
+      if (filter.fromDate) {
+        query += ` AND timestamp >= $${paramIndex++}`;
+        params.push(filter.fromDate.toISOString());
+      }
+      if (filter.toDate) {
+        query += ` AND timestamp <= $${paramIndex++}`;
+        params.push(filter.toDate.toISOString());
+      }
+      
+      query += " ORDER BY index ASC";
+      
+      const { rows } = await pool.query(query, params);
+      return rows.map(mapRow);
+    },
+    async prune(tenantId: string, maxAgeMs: number): Promise<{ success: boolean; prunedCount: number; error?: string }> {
+      const cutoff = new Date(Date.now() - maxAgeMs).toISOString();
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        const tenantHash = createHash("sha256").update(tenantId).digest();
+        const lockId = tenantHash.readInt32BE(0);
+        await client.query("SELECT pg_advisory_xact_lock($1)", [lockId]);
+        
+        const { rows } = await client.query(
+          "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index ASC",
+          [tenantId]
+        );
+        const blocks = rows.map(mapRow);
+        
+        const blocksToKeep = blocks.filter(b => b.timestamp > cutoff);
+        const prunedCount = blocks.length - blocksToKeep.length;
+        if (prunedCount === 0) {
+          await client.query("COMMIT");
+          return { success: true, prunedCount: 0 };
+        }
+        
+        await client.query("DELETE FROM public.bookpi_ledger WHERE tenant_id = $1", [tenantId]);
+        
+        let prevHash = GENESIS_PREVIOUS_HASH;
+        for (let i = 0; i < blocksToKeep.length; i++) {
+          const block = blocksToKeep[i];
+          block.index = i;
+          block.previousHash = prevHash;
+          
+          const base: Omit<BlockPIBlock, "blockHash"> = {
+            index: block.index,
+            timestamp: block.timestamp,
+            tenantId: block.tenantId,
+            userId: block.userId,
+            operation: block.operation.slice(0, 200),
+            category: block.category,
+            costDecimal: block.costDecimal,
+            tokensConsumed: block.tokensConsumed,
+            previousHash: block.previousHash,
+            pqcSignature: null,
+            signatureAlgorithm: getSigningAlgorithm(),
+            status: block.status,
+            nonce: block.nonce,
+          };
+          const blockHash = hashBlock(base);
+          if (isSimulatedAlgorithm()) {
+             throw new Error("CRITICAL_SECURITY_ERROR: algoritmo simulado.");
+          }
+          const pqcSignature = signBlockHash(blockHash);
+          if (!pqcSignature) throw new Error("Firma fallida");
+          
+          await client.query(
+            `INSERT INTO public.bookpi_ledger
+             (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed,
+              previous_hash, block_hash, status, nonce, signature_algorithm, pqc_signature)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+            [base.index, base.tenantId, base.userId, base.operation, base.category, base.costDecimal,
+             base.tokensConsumed, base.previousHash, blockHash, block.status, base.nonce,
+             base.signatureAlgorithm, pqcSignature]
+          );
+          prevHash = blockHash;
+        }
+        
+        await client.query("COMMIT");
+        return { success: true, prunedCount };
+      } catch (err) {
+        await client.query("ROLLBACK");
+        return { success: false, error: "Fallo transaccional", prunedCount: 0 };
+      } finally {
+        client.release();
+      }
+    },
+    async pruneInactive(inactiveDays: number): Promise<{ success: boolean; prunedTenants: string[]; error?: string }> {
+      const inactiveMs = inactiveDays * 24 * 60 * 60 * 1000;
+      const cutoffDate = new Date(Date.now() - inactiveMs).toISOString();
+      
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        
+        // Find tenants whose latest block is older than cutoffDate
+        const { rows } = await client.query(`
+          SELECT tenant_id
+          FROM public.bookpi_ledger
+          GROUP BY tenant_id
+          HAVING MAX(created_at) < $1
+        `, [cutoffDate]);
+        
+        const tenantsToPrune = rows.map((r: any) => String(r.tenant_id));
+        
+        if (tenantsToPrune.length > 0) {
+          // Delete all records for these tenants
+          await client.query(
+            "DELETE FROM public.bookpi_ledger WHERE tenant_id = ANY($1)",
+            [tenantsToPrune]
+          );
+        }
+        
+        await client.query("COMMIT");
+        return { success: true, prunedTenants: tenantsToPrune };
+      } catch (err) {
+        await client.query("ROLLBACK");
+        return { success: false, prunedTenants: [], error: "Fallo transaccional" };
+      } finally {
+        client.release();
+      }
+    },
     async refund(
       originalEventId: string,
       requestor: { tenantId: string; userId: string },
