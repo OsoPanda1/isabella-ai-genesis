@@ -40,4 +40,13 @@ describe("client env guard", () => {
     expect(errors).toHaveLength(0);
     expect(warnings).toHaveLength(0);
   });
+
+  it("silencia vars de sistema VITE_VERCEL_* (plataforma, no operador)", () => {
+    const { errors, warnings } = auditClientEnv({
+      VITE_VERCEL_URL: "x.vercel.app",
+      VITE_VERCEL_ENV: "production",
+    } as NodeJS.ProcessEnv);
+    expect(errors).toHaveLength(0);
+    expect(warnings).toHaveLength(0);
+  });
 });

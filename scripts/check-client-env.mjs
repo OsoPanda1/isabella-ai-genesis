@@ -18,12 +18,19 @@ const BROWSER_SAFE_ALLOWLIST = new Set([
   // "VITE_PUBLIC_APP_URL", // pública por diseño, hoy sin uso en código
 ]);
 
+// Prefijos del sistema (los inyecta la plataforma, no el operador;
+// públicas por diseño: URLs, IDs y metadatos del deployment).
+// Se silencian para no ahogar el warning real. Cualquier secreto
+// con estos prefijos seguiría siendo un error de configuración.
+const SYSTEM_PREFIXES = ["VITE_VERCEL_"];
+
 export function auditClientEnv(env = process.env) {
   const errors = [];
   const warnings = [];
   for (const key of Object.keys(env)) {
     if (!key.startsWith("VITE_")) continue;
     if (BROWSER_SAFE_ALLOWLIST.has(key)) continue;
+    if (SYSTEM_PREFIXES.some((prefix) => key.startsWith(prefix))) continue;
     if (SECRET_LIKE.test(key)) {
       errors.push(
         `${key}: patrón de secreto con prefijo VITE_* → se inliniaría al bundle público. ` +
