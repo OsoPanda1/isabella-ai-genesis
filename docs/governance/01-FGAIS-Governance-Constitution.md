@@ -1,4 +1,5 @@
 # Isabella AI Genesis — FGAIS Governance Charter (Versión Génesis 2.0 Final)
+
 ## Federated Governed Artificial Intelligence System
 
 **Marco Maestro Interno de Gobernanza, Seguridad y Cumplimiento**
@@ -10,7 +11,7 @@
 **Alcance:** Internacional, multi-jurisdiccional, sujeto al derecho aplicable  
 **Nodo Cero:** Real del Monte, Hidalgo, México (20.1597° N, 98.6669° O)
 
-***
+---
 
 ## Declaración de Naturaleza y Alcance del Documento
 
@@ -34,14 +35,14 @@ Este documento está diseñado para proporcionar un **marco de gobernanza técni
 
 Este documento ocupa el **Nivel 0** en la jerarquía de gobernanza de Isabella AI Genesis:
 
-| Nivel | Tipo de Documento | Ejemplos |
-|---|---|---|
-| **Nivel 0** | Constitución / Governance Charter | Este documento (01-FGAIS-Governance-Constitution) |
-| **Nivel 1** | Políticas Maestras | 02-AI-Safety-Policy, 03-Security-Policy, 04-Privacy-Policy, 05-Data-Governance, 06-Model-Governance, 07-Tool-and-Agent-Governance, 08-Incident-Response, 09-Business-Continuity, 10-IP-and-Provenance, 11-Compliance-Framework, 12-Human-Oversight |
-| **Nivel 2** | Estándares Técnicos | Architectural Standards, Cryptographic Standards, Data Standards, API Standards |
-| **Nivel 3** | Procedimientos Operativos | Deployment Procedures, Incident Response Runbooks, Audit Procedures, DR Procedures |
-| **Nivel 4** | Implementación | Código, configuración, infraestructura, pipelines |
-| **Nivel 5** | Evidencia | Logs, auditorías, pruebas, reportes, métricas, SBOM, attestations |
+| Nivel       | Tipo de Documento                 | Ejemplos                                                                                                                                                                                                                                           |
+| ----------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Nivel 0** | Constitución / Governance Charter | Este documento (01-FGAIS-Governance-Constitution)                                                                                                                                                                                                  |
+| **Nivel 1** | Políticas Maestras                | 02-AI-Safety-Policy, 03-Security-Policy, 04-Privacy-Policy, 05-Data-Governance, 06-Model-Governance, 07-Tool-and-Agent-Governance, 08-Incident-Response, 09-Business-Continuity, 10-IP-and-Provenance, 11-Compliance-Framework, 12-Human-Oversight |
+| **Nivel 2** | Estándares Técnicos               | Architectural Standards, Cryptographic Standards, Data Standards, API Standards                                                                                                                                                                    |
+| **Nivel 3** | Procedimientos Operativos         | Deployment Procedures, Incident Response Runbooks, Audit Procedures, DR Procedures                                                                                                                                                                 |
+| **Nivel 4** | Implementación                    | Código, configuración, infraestructura, pipelines                                                                                                                                                                                                  |
+| **Nivel 5** | Evidencia                         | Logs, auditorías, pruebas, reportes, métricas, SBOM, attestations                                                                                                                                                                                  |
 
 ### D.3 Entidad Responsable
 
@@ -73,7 +74,7 @@ La vinculatoriedad de este marco se establece mediante:
 
 **Ninguna afirmación se declarará como Verified o Production-Verified sin evidencia técnica reproducible que la respalde.**
 
-***
+---
 
 ## Preámbulo: Soberanía Tecnológica y Procedencia del Proyecto
 
@@ -112,7 +113,7 @@ TAMV ONLINE se reserva el derecho de:
 - Defender la soberanía tecnológica conforme a derecho aplicable.
 - Documentar y verificar la procedencia mediante evidencia técnica y registral.
 
-***
+---
 
 ## 1. Principios Fundamentales de Gobernanza
 
@@ -233,7 +234,7 @@ El desarrollo y operación de IA debe considerar impactos ambientales y sociales
 
 La gobernanza de IA no debe diseñarse exclusivamente desde una perspectiva única. Isabella reconoce el valor de la colaboración entre ingenieros, investigadores, profesionales de seguridad, especialistas legales y de cumplimiento, educadores, formuladores de políticas, sociedad civil, usuarios, expertos de dominio y otros actores relevantes.
 
-***
+---
 
 ## 2. Axioma Fundamental de FGAIS
 
@@ -276,7 +277,7 @@ La arquitectura FGAIS se especifica técnicamente en el documento **FGAIS Refere
 - Federation Model
 - Trust Boundary Model
 
-***
+---
 
 ## 3. Marcos Internacionales de Referencia
 
@@ -309,7 +310,7 @@ Estos marcos son tratados exclusivamente como inputs de ingeniería y gobernanza
 
 Cuando una jurisdicción específica imponga requisitos legales obligatorios, dichos requisitos prevalecen sobre cualquier marco voluntario, recomendación, política interna o interpretación técnica.
 
-***
+---
 
 ## 4. Seguridad y Criptografía
 
@@ -317,14 +318,14 @@ Cuando una jurisdicción específica imponga requisitos legales obligatorios, di
 
 Isabella AI Genesis adopta como objetivos y estándares criptográficos de referencia los siguientes mecanismos, con el estado de implementación indicado:
 
-| Estándar | Propósito | Estado |
-|---|---|---|
-| **ML-KEM (Kyber)** | Cifrado poscuántico para intercambio de claves | Planned |
-| **ML-DSA (Dilithium)** | Firmas digitales poscuánticas | Planned |
-| **X25519 híbrido** | Intercambio seguro de claves (clásico + poscuántico) | Designed |
-| **HKDF-SHA3-512** | Derivación de claves | Implemented |
-| **AES-256-GCM** | Cifrado simétrico | Implemented |
-| **SHA3-512** | Integridad criptográfica y encadenamiento de evidencia | Implemented |
+| Estándar               | Propósito                                              | Estado      |
+| ---------------------- | ------------------------------------------------------ | ----------- |
+| **ML-KEM (Kyber)**     | Cifrado poscuántico para intercambio de claves         | Planned     |
+| **ML-DSA (Dilithium)** | Firmas digitales poscuánticas                          | Planned     |
+| **X25519 híbrido**     | Intercambio seguro de claves (clásico + poscuántico)   | Designed    |
+| **HKDF-SHA3-512**      | Derivación de claves                                   | Implemented |
+| **AES-256-GCM**        | Cifrado simétrico                                      | Implemented |
+| **SHA3-512**           | Integridad criptográfica y encadenamiento de evidencia | Implemented |
 
 ### 4.2 Rotación de Claves
 
@@ -357,24 +358,24 @@ Isabella AI Genesis adopta como objetivos y estándares criptográficos de refer
 
 ### 4.5 Controles de Seguridad Técnica
 
-| Control | Requisito | Estándar | Estado |
-|---|---|---|---|
-| MFA | Obligatorio para admins | OWASP ASVS | Planned |
-| RBAC | Roles mínimos | OWASP ASVS | Implemented |
-| ABAC | Policy evaluation | NIST CSF | Designed |
-| Tenant Isolation | Obligatorio | ISO/IEC 27001 | Partial |
-| Tamper-evident Audit | Obligatorio | WORM + firmas | Partial |
-| HITL | Alto riesgo | EU AI Act | Designed |
-| Secret Management | Obligatorio | NIST CSF | Partial |
-| Key Rotation | 90 días o compromiso | ISO/IEC 27001 | Planned |
-| SAST | Obligatorio | OWASP ASVS | Implemented |
-| DAST | Obligatorio | OWASP ASVS | Planned |
-| SCA | Obligatorio | CIS Controls | Implemented |
-| Secret Scanning | Obligatorio | CIS Controls | Implemented |
-| SBOM | Obligatorio | SLSA | Partial |
-| Penetration Test | Anual | ISO/IEC 27001 | Planned |
+| Control              | Requisito               | Estándar      | Estado      |
+| -------------------- | ----------------------- | ------------- | ----------- |
+| MFA                  | Obligatorio para admins | OWASP ASVS    | Planned     |
+| RBAC                 | Roles mínimos           | OWASP ASVS    | Implemented |
+| ABAC                 | Policy evaluation       | NIST CSF      | Designed    |
+| Tenant Isolation     | Obligatorio             | ISO/IEC 27001 | Partial     |
+| Tamper-evident Audit | Obligatorio             | WORM + firmas | Partial     |
+| HITL                 | Alto riesgo             | EU AI Act     | Designed    |
+| Secret Management    | Obligatorio             | NIST CSF      | Partial     |
+| Key Rotation         | 90 días o compromiso    | ISO/IEC 27001 | Planned     |
+| SAST                 | Obligatorio             | OWASP ASVS    | Implemented |
+| DAST                 | Obligatorio             | OWASP ASVS    | Planned     |
+| SCA                  | Obligatorio             | CIS Controls  | Implemented |
+| Secret Scanning      | Obligatorio             | CIS Controls  | Implemented |
+| SBOM                 | Obligatorio             | SLSA          | Partial     |
+| Penetration Test     | Anual                   | ISO/IEC 27001 | Planned     |
 
-***
+---
 
 ## 5. Gobernanza y Supervisión
 
@@ -382,26 +383,26 @@ Isabella AI Genesis adopta como objetivos y estándares criptográficos de refer
 
 Órgano rector con roles definidos:
 
-| Cargo | Responsabilidades | Límites de Aprobación |
-|---|---|---|
-| **Chief Governance Officer (CGO)** | Gobernanza general, coordinación del council. | Políticas Nivel 1, excepciones críticas. |
-| **AI Safety Officer** | Seguridad de IA, evaluación de modelos, red teaming. | Aprobación de despliegues de modelos, safety gates. |
-| **CISO / Security Owner** | Seguridad de la información, respuesta a incidentes. | Controles de seguridad, clasificación de incidentes. |
-| **Privacy Officer / DPO** | Privacidad, protección de datos, DPIA. | Transferencias internacionales, DPIA de alto riesgo. |
-| **Legal & Compliance Officer** | Cumplimiento legal, contratos, regulatorio. | Acuerdos comerciales, evaluaciones de aplicabilidad. |
-| **AI/ML Engineering Owner** | Desarrollo de modelos, evaluación, deployment. | Aprobación de modelos para producción. |
-| **Infrastructure/SRE Owner** | Infraestructura, disponibilidad, recuperación. | Cambios de infraestructura crítica, DR tests. |
-| **Data Governance Owner** | Gobernanza de datos, calidad, clasificación. | Políticas de retención, acceso a datos sensibles. |
+| Cargo                              | Responsabilidades                                    | Límites de Aprobación                                |
+| ---------------------------------- | ---------------------------------------------------- | ---------------------------------------------------- |
+| **Chief Governance Officer (CGO)** | Gobernanza general, coordinación del council.        | Políticas Nivel 1, excepciones críticas.             |
+| **AI Safety Officer**              | Seguridad de IA, evaluación de modelos, red teaming. | Aprobación de despliegues de modelos, safety gates.  |
+| **CISO / Security Owner**          | Seguridad de la información, respuesta a incidentes. | Controles de seguridad, clasificación de incidentes. |
+| **Privacy Officer / DPO**          | Privacidad, protección de datos, DPIA.               | Transferencias internacionales, DPIA de alto riesgo. |
+| **Legal & Compliance Officer**     | Cumplimiento legal, contratos, regulatorio.          | Acuerdos comerciales, evaluaciones de aplicabilidad. |
+| **AI/ML Engineering Owner**        | Desarrollo de modelos, evaluación, deployment.       | Aprobación de modelos para producción.               |
+| **Infrastructure/SRE Owner**       | Infraestructura, disponibilidad, recuperación.       | Cambios de infraestructura crítica, DR tests.        |
+| **Data Governance Owner**          | Gobernanza de datos, calidad, clasificación.         | Políticas de retención, acceso a datos sensibles.    |
 
 ### 5.2 Matriz de Autoridad RACI
 
-| Operación | Developer | AI Safety | CISO | Legal | CGO | Auditor |
-|---|---|---|---|---|---|---|
-| Deploy modelo | R | A | C | C | A | I |
-| Cambio criptográfico | R | C | A | I | A | I |
-| Transacción financiera | I | A | C | C | A | I |
-| Cambio de política | C | C | C | A | A | I |
-| Emergency shutdown | I | C | A | I | A | I |
+| Operación              | Developer | AI Safety | CISO | Legal | CGO | Auditor |
+| ---------------------- | --------- | --------- | ---- | ----- | --- | ------- |
+| Deploy modelo          | R         | A         | C    | C     | A   | I       |
+| Cambio criptográfico   | R         | C         | A    | I     | A   | I       |
+| Transacción financiera | I         | A         | C    | C     | A   | I       |
+| Cambio de política     | C         | C         | C    | A     | A   | I       |
+| Emergency shutdown     | I         | C         | A    | I     | A   | I       |
 
 **Leyenda:** R = Responsible, A = Accountable, C = Consulted, I = Informed
 
@@ -477,20 +478,20 @@ Se implementa separación de funciones para prevenir conflictos de interés y ab
 
 Las excepciones a políticas se gestionan mediante:
 
-| Campo | Descripción |
-|---|---|
-| Exception ID | Identificador único. |
-| Reason | Razón de la excepción. |
-| Risk | Evaluación de riesgo. |
-| Compensating Control | Controles compensatorios. |
-| Approver | Autoridad que aprueba. |
-| Expiration | Fecha de vencimiento. |
-| Review Date | Fecha de revisión. |
-| Evidence | Evidencia de justificación. |
+| Campo                | Descripción                 |
+| -------------------- | --------------------------- |
+| Exception ID         | Identificador único.        |
+| Reason               | Razón de la excepción.      |
+| Risk                 | Evaluación de riesgo.       |
+| Compensating Control | Controles compensatorios.   |
+| Approver             | Autoridad que aprueba.      |
+| Expiration           | Fecha de vencimiento.       |
+| Review Date          | Fecha de revisión.          |
+| Evidence             | Evidencia de justificación. |
 
 Ninguna excepción es permanente, informal o verbal.
 
-***
+---
 
 ## 6. Privacidad y Protección de Datos
 
@@ -521,19 +522,19 @@ Ninguna excepción es permanente, informal o verbal.
 
 ### 6.5 Privacy Governance
 
-| Elemento | Estado | Responsable |
-|---|---|---|
-| Data Inventory | En desarrollo | Privacy Officer |
-| Data Classification | En desarrollo | Privacy Officer |
-| ROPA (Record of Processing Activities) | Pendiente | Privacy Officer |
-| DPIA Methodology | Definida | Privacy Officer |
-| DPA Template | Definido | Legal Officer |
-| Subprocessor Registry | En desarrollo | Privacy Officer |
-| Retention Policy | Definida | Privacy Officer |
-| Deletion Workflow | En desarrollo | Privacy Officer |
-| Privacy Incident Process | Definido | Privacy Officer |
+| Elemento                               | Estado        | Responsable     |
+| -------------------------------------- | ------------- | --------------- |
+| Data Inventory                         | En desarrollo | Privacy Officer |
+| Data Classification                    | En desarrollo | Privacy Officer |
+| ROPA (Record of Processing Activities) | Pendiente     | Privacy Officer |
+| DPIA Methodology                       | Definida      | Privacy Officer |
+| DPA Template                           | Definido      | Legal Officer   |
+| Subprocessor Registry                  | En desarrollo | Privacy Officer |
+| Retention Policy                       | Definida      | Privacy Officer |
+| Deletion Workflow                      | En desarrollo | Privacy Officer |
+| Privacy Incident Process               | Definido      | Privacy Officer |
 
-***
+---
 
 ## 7. AI Safety & Alignment
 
@@ -592,28 +593,28 @@ Isabella AI Genesis adopta una política de seguridad de IA que incluye:
 
 El threat model de Isabella incluye amenazas específicas de IA y sistemas tradicionales:
 
-| Threat ID | Asset | Actor | Preconditions | Attack Vector | Impact | Likelihood | Inherent Risk | Mitigation | Residual Risk | Owner | Evidence | Test ID | Status | Review Date |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| TM-001 | User data | External attacker | DB access | SQL injection | High | Medium | High | Parameterized queries, WAF | Medium | CISO | Audit AUD-001 | TEST-001 | Implemented | 2027-09-07 |
-| TM-002 | Model | Malicious user | API access | Prompt injection | High | High | High | Input validation, output filtering | Medium | AI Safety | Test AI-001 | TEST-002 | Partial | 2027-03-07 |
-| TM-003 | Audit logs | Insider | Admin access | Log tampering | Critical | Low | Medium | WORM storage, hashing, signatures | Low | CISO | Audit AUD-002 | TEST-003 | Partial | 2027-03-07 |
-| TM-004 | Credentials | External attacker | Network access | Credential theft | High | Medium | High | MFA, secret management, monitoring | Medium | AI Safety | Test AI-001 | TEST-004 | Planned | 2027-06-07 |
-| TM-005 | Tenant data | Malicious tenant | Tenant access | Tenant escape | Critical | Low | Medium | RLS, isolation, testing | Low | CISO | Audit AUD-003 | TEST-005 | Partial | 2027-03-07 |
+| Threat ID | Asset       | Actor             | Preconditions  | Attack Vector    | Impact   | Likelihood | Inherent Risk | Mitigation                         | Residual Risk | Owner     | Evidence      | Test ID  | Status      | Review Date |
+| --------- | ----------- | ----------------- | -------------- | ---------------- | -------- | ---------- | ------------- | ---------------------------------- | ------------- | --------- | ------------- | -------- | ----------- | ----------- |
+| TM-001    | User data   | External attacker | DB access      | SQL injection    | High     | Medium     | High          | Parameterized queries, WAF         | Medium        | CISO      | Audit AUD-001 | TEST-001 | Implemented | 2027-09-07  |
+| TM-002    | Model       | Malicious user    | API access     | Prompt injection | High     | High       | High          | Input validation, output filtering | Medium        | AI Safety | Test AI-001   | TEST-002 | Partial     | 2027-03-07  |
+| TM-003    | Audit logs  | Insider           | Admin access   | Log tampering    | Critical | Low        | Medium        | WORM storage, hashing, signatures  | Low           | CISO      | Audit AUD-002 | TEST-003 | Partial     | 2027-03-07  |
+| TM-004    | Credentials | External attacker | Network access | Credential theft | High     | Medium     | High          | MFA, secret management, monitoring | Medium        | AI Safety | Test AI-001   | TEST-004 | Planned     | 2027-06-07  |
+| TM-005    | Tenant data | Malicious tenant  | Tenant access  | Tenant escape    | Critical | Low        | Medium        | RLS, isolation, testing            | Low           | CISO      | Audit AUD-003 | TEST-005 | Partial     | 2027-03-07  |
 
 ### 7.7 AI Incident Reporting
 
 Los incidentes de IA se clasifican como:
 
-| Nivel | Descripción | Tiempo de Respuesta |
-|---|---|---|
-| **AI-INCIDENT-CRITICAL** | Vulneración de seguridad, privacidad o safety crítica. | Inmediato (<1h) |
-| **AI-INCIDENT-HIGH** | Impacto significativo en usuarios o sistema. | <4h |
-| **AI-INCIDENT-MEDIUM** | Impacto moderado, sin vulneración crítica. | <24h |
-| **AI-INCIDENT-LOW** | Impacto menor, mejora o bug no crítico. | <72h |
+| Nivel                    | Descripción                                            | Tiempo de Respuesta |
+| ------------------------ | ------------------------------------------------------ | ------------------- |
+| **AI-INCIDENT-CRITICAL** | Vulneración de seguridad, privacidad o safety crítica. | Inmediato (<1h)     |
+| **AI-INCIDENT-HIGH**     | Impacto significativo en usuarios o sistema.           | <4h                 |
+| **AI-INCIDENT-MEDIUM**   | Impacto moderado, sin vulneración crítica.             | <24h                |
+| **AI-INCIDENT-LOW**      | Impacto menor, mejora o bug no crítico.                | <72h                |
 
 Cada incidente incluye: detección, contención, notificación, investigación, root cause, remediación y lessons learned.
 
-***
+---
 
 ## 8. Transparencia y Rendición de Cuentas
 
@@ -651,21 +652,21 @@ Cada incidente incluye: detección, contención, notificación, investigación, 
 - Control Registry.
 - Evidence Registry.
 
-***
+---
 
 ## 9. Propiedad Intelectual y Licenciamiento
 
 ### 9.1 Clasificación de Propiedad Intelectual
 
-| Categoría | Definición | Ejemplos |
-|---|---|---|
-| **Background IP** | Propiedad intelectual preexistente aportada al proyecto. | Código, diseños, marcas previas de TAMV ONLINE. |
-| **Foreground IP** | Propiedad intelectual desarrollada específicamente para Isabella AI Genesis. | Arquitectura FGAIS, políticas, código nuevo, documentación. |
-| **Third-party IP** | Componentes de terceros utilizados bajo licencia. | Bibliotecas open-source, APIs, servicios cloud. |
-| **Open-source Components** | Componentes licenciados bajo licencias open-source. | Dependencias npm, PostgreSQL, Redis, etc. |
-| **User-generated Content** | Contenido generado por usuarios del sistema. | Prompts, respuestas, datos ingresados por usuarios. |
-| **Model/Provider IP** | Propiedad intelectual de proveedores externos. | Modelos de Gemini, infraestructura de Vercel, Supabase, etc. |
-| **Trademark / Brand Assets** | Marcas, nombres comerciales, logos, dominios, elementos gráficos. | Isabella AI Genesis, Isabella Villaseñor, FGAIS, TAMV ONLINE, logos. |
+| Categoría                    | Definición                                                                   | Ejemplos                                                             |
+| ---------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Background IP**            | Propiedad intelectual preexistente aportada al proyecto.                     | Código, diseños, marcas previas de TAMV ONLINE.                      |
+| **Foreground IP**            | Propiedad intelectual desarrollada específicamente para Isabella AI Genesis. | Arquitectura FGAIS, políticas, código nuevo, documentación.          |
+| **Third-party IP**           | Componentes de terceros utilizados bajo licencia.                            | Bibliotecas open-source, APIs, servicios cloud.                      |
+| **Open-source Components**   | Componentes licenciados bajo licencias open-source.                          | Dependencias npm, PostgreSQL, Redis, etc.                            |
+| **User-generated Content**   | Contenido generado por usuarios del sistema.                                 | Prompts, respuestas, datos ingresados por usuarios.                  |
+| **Model/Provider IP**        | Propiedad intelectual de proveedores externos.                               | Modelos de Gemini, infraestructura de Vercel, Supabase, etc.         |
+| **Trademark / Brand Assets** | Marcas, nombres comerciales, logos, dominios, elementos gráficos.            | Isabella AI Genesis, Isabella Villaseñor, FGAIS, TAMV ONLINE, logos. |
 
 ### 9.2 Licenciamiento
 
@@ -688,7 +689,7 @@ Cada incidente incluye: detección, contención, notificación, investigación, 
 - **Contribuciones:** Registradas y auditables.
 - **Autoría:** Documentada y trazable.
 
-***
+---
 
 ## 10. Responsabilidad Ambiental y Social
 
@@ -704,7 +705,7 @@ Cada incidente incluye: detección, contención, notificación, investigación, 
 - **Inclusión digital:** Priorizada.
 - **Evaluación de impacto social:** Periódica.
 
-***
+---
 
 ## 11. Gobernanza Multistakeholder
 
@@ -727,31 +728,31 @@ Cada incidente incluye: detección, contención, notificación, investigación, 
 - Expertos de dominio.
 - Otros actores relevantes.
 
-***
+---
 
 ## 12. Business Continuity y Disaster Recovery
 
 ### 12.1 RTO y RPO (Objetivos)
 
-| Sistema | RTO (Recovery Time Objective) | RPO (Recovery Point Objective) | Estado |
-|---|---|---|---|
-| Base de datos principal | 60 minutos | 15 minutos | Por validar |
-| Sistema de autenticación | 30 minutos | 5 minutos | Por validar |
-| API y frontend | 30 minutos | 15 minutos | Por validar |
-| Sistema de auditoría | 120 minutos | Objetivo: 0 | Por validar |
-| BookPI (ledger) | 120 minutos | Objetivo: 0 | Por validar |
+| Sistema                  | RTO (Recovery Time Objective) | RPO (Recovery Point Objective) | Estado      |
+| ------------------------ | ----------------------------- | ------------------------------ | ----------- |
+| Base de datos principal  | 60 minutos                    | 15 minutos                     | Por validar |
+| Sistema de autenticación | 30 minutos                    | 5 minutos                      | Por validar |
+| API y frontend           | 30 minutos                    | 15 minutos                     | Por validar |
+| Sistema de auditoría     | 120 minutos                   | Objetivo: 0                    | Por validar |
+| BookPI (ledger)          | 120 minutos                   | Objetivo: 0                    | Por validar |
 
 **Nota:** RPO = 0 es un objetivo sujeto a validación mediante arquitectura, pruebas de recuperación y evidencia de replicación/durabilidad.
 
 ### 12.2 Escenarios de Disaster Recovery
 
-| Escenario | Procedimiento | Responsable | Frecuencia de Prueba |
-|---|---|---|---|
-| Database corruption | Restore desde backup + PITR | Infrastructure Owner | Trimestral |
-| Ransomware | Aislamiento, restore limpio, forensic | CISO | Semestral |
-| AI provider outage | Fallback a modo degradado, notificación | AI Safety Officer | Trimestral |
-| Key compromise | Rotación de emergencia, revocación | CISO | Semestral |
-| Multi-region failure | Failover a región secundaria | Infrastructure Owner | Anual |
+| Escenario            | Procedimiento                           | Responsable          | Frecuencia de Prueba |
+| -------------------- | --------------------------------------- | -------------------- | -------------------- |
+| Database corruption  | Restore desde backup + PITR             | Infrastructure Owner | Trimestral           |
+| Ransomware           | Aislamiento, restore limpio, forensic   | CISO                 | Semestral            |
+| AI provider outage   | Fallback a modo degradado, notificación | AI Safety Officer    | Trimestral           |
+| Key compromise       | Rotación de emergencia, revocación      | CISO                 | Semestral            |
+| Multi-region failure | Failover a región secundaria            | Infrastructure Owner | Anual                |
 
 ### 12.3 Backups
 
@@ -762,7 +763,7 @@ Cada incidente incluye: detección, contención, notificación, investigación, 
 - Restore testing trimestral.
 - Retención de 35 días mínimo.
 
-***
+---
 
 ## 13. Claims Registry
 
@@ -770,20 +771,20 @@ Cada incidente incluye: detección, contención, notificación, investigación, 
 
 Cada afirmación pública sobre Isabella AI Genesis tiene un **CLAIM-ID**:
 
-| CLAIM-ID | Descripción | Tipo | Propietario | Evidencia | Fecha de Verificación | Método | Estado | Caducidad |
-|---|---|---|---|---|---|---|---|---|
-| CLAIM-001 | "Isabella AI Genesis originated in Real del Monte, Hidalgo" | Provenance | TAMV ONLINE | Git history, design records, dated artifacts | 2026-09-07 | Document review | VERIFIED | N/A |
-| CLAIM-002 | "Isabella implements HITL for high-risk operations" | Safety | AI Safety Officer | Test HITL-001, policy docs | Pendiente | Automated test + code review | DESIGNED | 2027-03-07 |
-| CLAIM-003 | "Isabella uses tamper-evident audit logging" | Security | CISO | Audit adapter code, WORM config | Pendiente | Code review + test | PARTIAL | 2027-03-07 |
-| CLAIM-004 | "Isabella está diseñada para cumplir con LFPDPPP cuando aplique" | Compliance | Privacy Officer | DPIA, DPA, privacy policy | Pendiente | Legal review + audit | EN PROCESO | 2027-09-07 |
+| CLAIM-ID  | Descripción                                                      | Tipo       | Propietario       | Evidencia                                    | Fecha de Verificación | Método                       | Estado     | Caducidad  |
+| --------- | ---------------------------------------------------------------- | ---------- | ----------------- | -------------------------------------------- | --------------------- | ---------------------------- | ---------- | ---------- |
+| CLAIM-001 | "Isabella AI Genesis originated in Real del Monte, Hidalgo"      | Provenance | TAMV ONLINE       | Git history, design records, dated artifacts | 2026-09-07            | Document review              | VERIFIED   | N/A        |
+| CLAIM-002 | "Isabella implements HITL for high-risk operations"              | Safety     | AI Safety Officer | Test HITL-001, policy docs                   | Pendiente             | Automated test + code review | DESIGNED   | 2027-03-07 |
+| CLAIM-003 | "Isabella uses tamper-evident audit logging"                     | Security   | CISO              | Audit adapter code, WORM config              | Pendiente             | Code review + test           | PARTIAL    | 2027-03-07 |
+| CLAIM-004 | "Isabella está diseñada para cumplir con LFPDPPP cuando aplique" | Compliance | Privacy Officer   | DPIA, DPA, privacy policy                    | Pendiente             | Legal review + audit         | EN PROCESO | 2027-09-07 |
 
 ### 13.2 Control Registry
 
-| Control ID | Descripción | Requisito | Estándar | Evidencia | Estado |
-|---|---|---|---|---|---|
-| CTRL-001 | MFA para admins | Obligatorio | OWASP ASVS | Test MFA-001 | Planned |
-| CTRL-002 | RBAC mínimo | Obligatorio | OWASP ASVS | Test RBAC-001 | Implemented |
-| CTRL-003 | Tenant isolation | Obligatorio | ISO/IEC 27001 | Audit AUD-001 | Partial |
+| Control ID | Descripción      | Requisito   | Estándar      | Evidencia     | Estado      |
+| ---------- | ---------------- | ----------- | ------------- | ------------- | ----------- |
+| CTRL-001   | MFA para admins  | Obligatorio | OWASP ASVS    | Test MFA-001  | Planned     |
+| CTRL-002   | RBAC mínimo      | Obligatorio | OWASP ASVS    | Test RBAC-001 | Implemented |
+| CTRL-003   | Tenant isolation | Obligatorio | ISO/IEC 27001 | Audit AUD-001 | Partial     |
 
 ### 13.3 Evidence Registry
 
@@ -797,7 +798,7 @@ Toda evidencia se registra con:
 - Retención.
 - Acceso.
 
-***
+---
 
 ## 14. Vigencia, Actualización y Sustitución
 
@@ -831,7 +832,7 @@ Cada versión de este documento será identificada con:
 
 Las actualizaciones de este documento no se aplicarán de manera retroactiva para imponer obligaciones nuevas a conductas pasadas, vulnerar derechos adquiridos o modificar responsabilidades ya incurridas, salvo que el derecho aplicable lo exija o sea necesario para proteger seguridad inmediata.
 
-***
+---
 
 ## 15. Disposiciones Finales
 
@@ -881,7 +882,7 @@ Ningún usuario, operador o tercero puede ceder, transferir o delegar sus derech
 
 Este documento, junto con sus anexos y documentos complementarios, constituye el marco completo de gobernanza de Isabella AI Genesis y coordina los instrumentos jurídicos y técnicos que crean obligaciones contractuales y legales.
 
-***
+---
 
 ## Anexos Normativos
 
@@ -932,7 +933,7 @@ Este documento, junto con sus anexos y documentos complementarios, constituye el
 CLAIM → ARGUMENT → EVIDENCE → TEST → RESULT → APPROVER → DATE
 ```
 
-***
+---
 
 ## Anexo V: Documentación Complementaria
 
@@ -951,7 +952,7 @@ Este documento se complementa con:
 11. **11-Compliance-Framework.md** — Marco de cumplimiento regulatorio.
 12. **12-Human-Oversight.md** — Supervisión humana y apelaciones.
 
-***
+---
 
 **Isabella AI Genesis — A Federated Governed Artificial Intelligence System.**  
 **By TAMV ONLINE.**  
@@ -959,14 +960,14 @@ Este documento se complementa con:
 **Nodo Cero: Real del Monte, Hidalgo, México.**  
 **Soberanía Tecnológica Responsable — Preservada, Documentada y Jurídicamente Protegida conforme al Derecho Aplicable.**
 
-***
+---
 
 **Fin del documento — Versión Génesis 2.0 Final.**  
 **Este documento está protegido por derechos de propiedad intelectual de TAMV ONLINE.**  
 **Cualquier uso no autorizado, reproducción o modificación debe respetar las licencias aplicables y los derechos de terceros.**  
 **Nodo Cero: Real del Monte, Hidalgo, México — Origen Histórico y Fundacional del Proyecto.**
 
-***
+---
 
 ## Nota de Versión Génesis 2.0 Final
 
