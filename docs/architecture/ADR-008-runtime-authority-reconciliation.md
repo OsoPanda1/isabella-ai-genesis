@@ -1,4 +1,4 @@
-# ADR-008: Runtime Authority Reconciliation — Isabella v3.1
+# ADR-008: Runtime Authority Reconciliation — Isabella v3.2
 
 **Estado:** Accepted  
 **Fecha:** 2026-09-08  
@@ -41,7 +41,7 @@ Client/UI
   -> client renderer
 ```
 
-`/api/v1/isabella` es una superficie de compatibilidad documentada que delega al mismo gateway; no contiene una segunda implementación cognitiva.
+`/api/v1/isabella` es una superficie de compatibilidad que delega al mismo gateway; no contiene una segunda implementación cognitiva.
 
 ### 3.1 Guest chat
 
@@ -55,7 +55,7 @@ Guest chat es una capacidad limitada de **inferencia conversacional sin mutació
 - elevar scopes;
 - ejecutar acciones críticas.
 
-El guest no requiere hidratar estado durable para conversar. Esto evita que una dependencia de persistencia no relacionada bloquee el canal cognitivo público. La política de producción puede desactivar `ALLOW_GUEST_CHAT`.
+El guest no requiere hidratar estado durable para conversar. Esto evita que una dependencia de persistencia no relacionada bloquee el canal cognitivo público. `ALLOW_GUEST_CHAT` puede desactivarse operativamente en producción; su activación no equivale a autorización de herramientas ni de estado durable.
 
 ## 4. Persistencia y modo offline
 
@@ -119,7 +119,7 @@ El envelope canónico es:
   "meta": {
     "request_id": "uuid",
     "trace_id": "trace",
-    "api_version": "3.1.0",
+    "api_version": "3.2.0",
     "timestamp": "ISO-8601 UTC"
   },
   "data": null,
@@ -127,7 +127,7 @@ El envelope canónico es:
 }
 ```
 
-Los streams SSE mantienen el protocolo de eventos necesario para compatibilidad con el renderer, pero deben incluir trace/correlation headers y nunca exponer secretos.
+Los streams SSE mantienen el protocolo de eventos necesario para compatibilidad con el renderer, incluyen trace/correlation headers y provenance de provider/model/gobernanza sin secretos.
 
 ## 9. Reglas de organización
 
