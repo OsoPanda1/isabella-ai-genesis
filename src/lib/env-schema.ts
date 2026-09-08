@@ -3,19 +3,17 @@ import { z } from "zod";
 export const runtimeModeSchema = z.enum(["development", "staging", "production", "emergency", "maintenance"]);
 export type RuntimeMode = z.infer<typeof runtimeModeSchema>;
 const coercedInt = (def: number) => z.coerce.number().int().nonnegative().default(def);
-const emptyToUndefined = (schema: z.ZodTypeAny) => z.preprocess((val) => { if (typeof val !== "string") return undefined; const trimmed = val.trim(); return trimmed === "" || trimmed === "undefined" || trimmed === "null" ? undefined : trimmed; }, schema);
-const optionalUrl = () => z.preprocess((val) => { if (typeof val !== "string") return undefined; const trimmed = val.trim(); if (!trimmed || trimmed === "undefined" || trimmed === "null") return undefined; try { new URL(trimmed); return trimmed; } catch { return undefined; } }, z.string().url().optional());
-const optionalString = () => emptyToUndefined(z.string().optional());
-const optionalMinString = (min: number) => emptyToUndefined(z.string().min(min).optional());
-const bool = (def: boolean) => z.preprocess((val) => { if (typeof val === "boolean") return val; if (typeof val !== "string") return undefined; const t = val.trim().toLowerCase(); if (t === "true") return true; if (t === "false") return false; return undefined; }, z.boolean().default(def));
+const optionalString = () => z.preprocess((v) => typeof v === "string" && v.trim() && !["undefined", "null"].includes(v.trim()) ? v.trim() : undefined, z.string().optional());
+const optionalMinString = (min: number) => z.preprocess((v) => typeof v === "string" && v.trim() ? v.trim() : undefined, z.string().min(min).optional());
+const optionalUrl = () => z.preprocess((v) => { if (typeof v !== "string" || !v.trim()) return undefined; try { new URL(v.trim()); return v.trim(); } catch { return undefined; } }, z.string().url().optional());
+const bool = (def: boolean) => z.preprocess((v) => typeof v === "boolean" ? v : typeof v === "string" ? v.trim().toLowerCase() === "true" ? true : v.trim().toLowerCase() === "false" ? false : undefined : undefined, z.boolean().default(def));
 
 export const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"), ISABELLA_RUNTIME_MODE: runtimeModeSchema.default("development"), PUBLIC_URL: z.string().url().default("http://localhost:3000"), VERCEL_GIT_COMMIT_SHA: optionalString(),
   DATABASE_URL: optionalString(), DATABASE_DIRECT_URL: optionalString(), INTERNAL_ORIGIN: optionalUrl(), SUPABASE_URL: optionalUrl(), SUPABASE_ANON_KEY: optionalString(), SUPABASE_SERVICE_ROLE_KEY: optionalString(), SUPABASE_JWT_SECRET: optionalString(),
   AUTH_JWT_SECRET: optionalMinString(16), SESSION_SECRET: optionalMinString(32), AUTH_ISSUER: optionalUrl(), AUTH_AUDIENCE: z.string().default("isabella"), AUTH_ACCESS_TOKEN_TTL: coercedInt(3600), AUTH_REFRESH_TOKEN_TTL: coercedInt(604800), OIDC_JWKS_URL: optionalUrl(), JWKS_CACHE_TTL: coercedInt(3600),
-  AUTH_DEV_SESSION_ENABLED: z.preprocess((val) => typeof val === "string" ? val.trim().toLowerCase() : undefined, z.enum(["true", "false"]).default("false")).transform((v) => v === "true"),
-  ALLOW_GUEST_CHAT: z.preprocess((val) => typeof val === "string" ? val.trim().toLowerCase() : undefined, z.enum(["true", "false"]).default("true")).transform((v) => v === "true"),
-  PROVISION_OWNER_TOKEN: optionalString(), ENCRYPTION_MASTER_KEY: optionalMinString(32), ENCRYPTION_ALGORITHM: z.string().default("aes-256-gcm"), CROWN_CONSTITUTION_VERSION: z.string().min(1).default("v4.2.0-sovereign"), CROWN_POLICY_SIGNING_KEY: optionalString(), AEGIS_AUDIT_SECRET: optionalMinString(32), CROWN_ENFORCEMENT_MODE: z.enum(["enforce", "dry-run"]).default("enforce"),
+  AUTH_DEV_SESSION_ENABLED: bool(false), ALLOW_GUEST_CHAT: bool(true), PROVISION_OWNER_TOKEN: optionalString(), ENCRYPTION_MASTER_KEY: optionalMinString(32), ENCRYPTION_ALGORITHM: z.string().default("aes-256-gcm"),
+  CROWN_CONSTITUTION_VERSION: z.string().min(1).default("v4.2.0-sovereign"), CROWN_POLICY_SIGNING_KEY: optionalString(), AEGIS_AUDIT_SECRET: optionalMinString(32), CROWN_ENFORCEMENT_MODE: z.enum(["enforce", "dry-run"]).default("enforce"),
   BOOKPI_SIGNATURE_ALGORITHM: z.enum(["ML-DSA-87", "ECDSA-P384", "RSA-SHA256"]).default("ECDSA-P384"), BOOKPI_SIGNING_KEY: optionalMinString(32), STRIPE_SECRET_KEY: optionalMinString(16), STRIPE_WEBHOOK_SECRET: optionalMinString(16),
   QUP_ZNE_LEVEL: coercedInt(3), QUP_PEC_ENABLED: bool(true), QUP_QEC_DECODER: z.enum(["mwpm", "uf", "tensor-network", "neural-network"]).default("tensor-network"), QUP_STRICT_ISOLATION: bool(true), SANDBOX_ENABLED: bool(false),
   REDIS_URL: optionalString(), REDIS_TOKEN: optionalString(), REDIS_PREFIX: z.string().default("isabella"), KV_URL: optionalString(), KV_REST_API_TOKEN: optionalString(), UPSTASH_REDIS_TOKEN: optionalString(), TRUSTED_PROXY_MODE: optionalString(),
@@ -35,7 +33,7 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
   { name: "NODE_ENV", visibility: "public", required: [], forbidden: [], provider: "vercel", criticality: "HIGH" },
   { name: "ISABELLA_RUNTIME_MODE", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "self", criticality: "CRITICAL" },
   { name: "PUBLIC_URL", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "vercel", criticality: "HIGH" },
-  { name: "ISABELLA_STORAGE_PROVIDER", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "postgres", criticality: "CRITICAL", description: "Solo postgres|neon es autoridad de estado en producción." },
+  { name: "ISABELLA_STORAGE_PROVIDER", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "postgres", criticality: "CRITICAL" },
   { name: "DATABASE_URL", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "postgres", criticality: "CRITICAL" },
   { name: "AUTH_JWT_SECRET", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "self", criticality: "CRITICAL" },
   { name: "ENCRYPTION_MASTER_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "self", criticality: "CRITICAL" },
@@ -44,7 +42,7 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
   { name: "BOOKPI_SIGNING_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "bookpi", criticality: "CRITICAL" },
   { name: "GEMINI_API_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "gemini", criticality: "CRITICAL" },
   { name: "PROVISION_OWNER_TOKEN", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "self", criticality: "CRITICAL" },
-  { name: "STRIPE_SECRET_KEY", visibility: "secret", required ["staging", "production"], forbidden: [], provider: "stripe", criticality: "CRITICAL" },
+  { name: "STRIPE_SECRET_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "stripe", criticality: "CRITICAL" },
   { name: "STRIPE_WEBHOOK_SECRET", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "stripe", criticality: "CRITICAL" },
   { name: "AUTH_DEV_SESSION_ENABLED", visibility: "public", required: [], forbidden: ["staging", "production"], provider: "self", criticality: "CRITICAL" },
   { name: "ALLOW_GUEST_CHAT", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH" },
