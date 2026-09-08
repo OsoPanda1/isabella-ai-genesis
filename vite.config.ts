@@ -23,10 +23,9 @@ export default defineConfig(({ mode }) => ({
     tsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
-    // Nitro se limita al build de producción: su adaptador Vercel puede
-    // reemplazar el entrypoint cliente de TanStack Start durante desarrollo.
-    // Mantenerlo fuera del servidor dev conserva SSR + hydration interactiva.
-    ...(mode === "production" ? [nitro({ preset: "vercel" })] : []),
+    // Nitro is the Vercel deployment adapter. Keep it production-only because
+    // the local Vite dev server should retain TanStack Start's native dev path.
+    ...(mode === "production" ? [nitro()] : []),
   ],
   server: {
     host: "0.0.0.0",
@@ -40,15 +39,9 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
-            if (id.includes("@tanstack")) {
-              return "vendor-tanstack";
-            }
-            if (id.includes("react") || id.includes("react-dom")) {
-              return "vendor-react";
-            }
-            if (id.includes("@radix-ui")) {
-              return "vendor-radix";
-            }
+            if (id.includes("@tanstack")) return "vendor-tanstack";
+            if (id.includes("react") || id.includes("react-dom")) return "vendor-react";
+            if (id.includes("@radix-ui")) return "vendor-radix";
             return "vendor";
           }
           return undefined;
@@ -58,7 +51,6 @@ export default defineConfig(({ mode }) => ({
   },
   ssr: {
     noExternal: [],
-    // Three.js fuera del bundle SSR de Nitro (solo cliente).
     external: ["three"],
   },
 }));
