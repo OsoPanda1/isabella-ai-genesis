@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 
 const IsabellaClientApp = lazy(() => import("@/components/isabella/IsabellaClientApp"));
 
@@ -64,7 +64,7 @@ function PublicShell({ onEnter }: { onEnter?: () => void }) {
           style={{
             margin: "18px 0 12px",
             fontSize: "clamp(40px, 8vw, 82px)",
-            lineHeight: .95,
+            lineHeight: 0.95,
             letterSpacing: "-.045em",
             fontWeight: 650,
           }}
@@ -83,11 +83,18 @@ function PublicShell({ onEnter }: { onEnter?: () => void }) {
             fontSize: 15,
           }}
         >
-          Una interfaz cognitiva gobernada donde capacidad no implica autoridad:
-          inferencia, seguridad, memoria, políticas y trazabilidad se coordinan bajo
-          supervisión humana.
+          Una interfaz cognitiva gobernada donde capacidad no implica autoridad: inferencia,
+          seguridad, memoria, políticas y trazabilidad se coordinan bajo supervisión humana.
         </p>
-        <div style={{ marginTop: 34, display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+        <div
+          style={{
+            marginTop: 34,
+            display: "flex",
+            justifyContent: "center",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
           <button
             type="button"
             onClick={onEnter}
@@ -118,7 +125,14 @@ function PublicShell({ onEnter }: { onEnter?: () => void }) {
             Estado del nodo
           </a>
         </div>
-        <div style={{ marginTop: 48, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10 }}>
+        <div
+          style={{
+            marginTop: 48,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
+            gap: 10,
+          }}
+        >
           {["C.R.O.W.N.", "AEGIS", "Gobernanza", "Trazabilidad"].map((item) => (
             <div
               key={item}
@@ -147,12 +161,7 @@ function ClientFallback() {
 }
 
 function Index() {
-  const [client, setClient] = useState(false);
   const [entered, setEntered] = useState(false);
-
-  useEffect(() => {
-    setClient(true);
-  }, []);
 
   if (typeof window === "undefined" || !entered) {
     return <PublicShell onEnter={() => setEntered(true)} />;
