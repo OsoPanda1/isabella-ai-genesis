@@ -176,7 +176,7 @@ export class DatabaseScanner {
       }
       
       let connectionInfo: string | undefined;
-      let tables: string[] = [];
+      const tables: string[] = [];
       
       if (detected) {
         for (const file of files) {

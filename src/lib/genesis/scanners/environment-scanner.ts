@@ -137,7 +137,10 @@ export class EnvironmentScanner {
       const exportMatch = content.match(/export\s+const\s+\w+\s*=\s*({[\s\S]*?})\s*;/);
       if (exportMatch) {
         try {
-          const schemaObj = eval(`(${exportMatch[1]})`);
+          const normalizedSchema = exportMatch[1]
+            .replace(/([{,]\s*)([A-Za-z_$][\w$]*)\s*:/g, '$1"$2":')
+            .replace(/'([^']*)'/g, '"$1"');
+          const schemaObj: unknown = JSON.parse(normalizedSchema);
           if (schemaObj && typeof schemaObj === "object") {
             for (const [key, value] of Object.entries(schemaObj)) {
               if (value && typeof value === "object") {

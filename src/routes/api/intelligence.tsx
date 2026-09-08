@@ -14,7 +14,13 @@ const messageSchema = z.object({
     .string()
     .min(1)
     .max(12000)
-    .refine((value) => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value), "control characters are not allowed"),
+    .refine(
+      (value) => [...value].every((character) => {
+        const code = character.codePointAt(0) ?? 0;
+        return code >= 0x20 && code !== 0x7f;
+      }),
+      "control characters are not allowed",
+    ),
 });
 
 const requestSchema = z.object({

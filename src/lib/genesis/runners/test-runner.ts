@@ -230,7 +230,8 @@ export class TestExecutor {
   async execute(testFiles: TestFile[]): Promise<TestExecutionResult> {
     const results: TestResult[] = [];
     const outputs: TestOutput[] = [];
-    let passed = 0, failed = 0, skipped = 0;
+    let passed = 0, failed = 0;
+    const skipped = 0;
     const startTime = Date.now();
     
     for (const testFile of testFiles) {

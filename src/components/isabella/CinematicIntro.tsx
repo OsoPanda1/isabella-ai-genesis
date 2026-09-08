@@ -1,6 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { Volume2, VolumeX, SkipForward, Play, Activity } from "lucide-react";
+import { Volume2, VolumeX, SkipForward, Play } from "lucide-react";
+
+// Official Isabella palette
+const PALETTE = {
+  abyss: "#020a0d",
+  navy: "#0a1628",
+  petrol: "#0d2b3e",
+  electric: "#1f9cff",
+  platinum: "#c8d9f5",
+  pearl: "#f5f7ff",
+  cherry: "#dc1c3e",
+  mexicoGreen: "#006c41",
+  iris: "#c499ff",
+} as const;
+
 const BACKGROUND_AUDIO_SRC = "/assets/background-audio.mp3";
 const DURATION = 59;
 const TARGET_FPS = 60;
@@ -60,11 +74,27 @@ const scenes = [
 function WebGLCinematicField() {
   const mountRef = useRef<HTMLDivElement>(null);
   const clockRef = useRef(0);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
+
+    // Detectar si WebGL está disponible; fallback a canvas estático si no.
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("webgl2") || canvas.getContext("webgl");
+      if (!ctx) throw new Error("WebGL no soportado");
+    } catch {
+      // WebGL no disponible: mostrar fondo estático de lujo.
+      mount.style.background = `radial-gradient(circle at 30% 20%, ${PALETTE.electric}22, transparent 40%), 
+        radial-gradient(circle at 80% 70%, ${PALETTE.iris}18, transparent 50%), 
+        linear-gradient(135deg, ${PALETTE.abyss}, ${PALETTE.navy})`;
+      return;
+    }
+
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2("#02140a", 0.00085);
+    scene.fog = new THREE.FogExp2(PALETTE.abyss, 0.00085);
     const camera = new THREE.PerspectiveCamera(42, 1, 0.6, 2680);
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -72,6 +102,7 @@ function WebGLCinematicField() {
       powerPreference: "high-performance",
       depth: true,
     });
+    rendererRef.current = renderer;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -84,13 +115,13 @@ function WebGLCinematicField() {
     const starCount = 20000;
     const positions = new Float32Array(starCount * 3);
     const colors = new Float32Array(starCount * 3);
-    const palette = [
-      new THREE.Color("#ffffff"),
-      new THREE.Color("#d9f7ff"),
-      new THREE.Color("#8edcff"),
-      new THREE.Color("#b69cff"),
-      new THREE.Color("#ffe8a6"),
-      new THREE.Color("#ff9cff"),
+    const starPalette = [
+      new THREE.Color(PALETTE.pearl),
+      new THREE.Color(PALETTE.platinum),
+      new THREE.Color(PALETTE.electric),
+      new THREE.Color(PALETTE.iris),
+      new THREE.Color(PALETTE.cherry),
+      new THREE.Color(PALETTE.mexicoGreen),
     ];
     for (let i = 0; i < starCount; i += 1) {
       const radius = 200 + Math.random() * 2000;
@@ -99,7 +130,7 @@ function WebGLCinematicField() {
       positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
       positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
       positions[i * 3 + 2] = radius * Math.cos(phi);
-      const color = palette[Math.floor(Math.random() * palette.length)];
+      const color = starPalette[Math.floor(Math.random() * starPalette.length)];
       colors[i * 3] = color.r;
       colors[i * 3 + 1] = color.g;
       colors[i * 3 + 2] = color.b;
@@ -120,62 +151,69 @@ function WebGLCinematicField() {
     );
     scene.add(stars);
 
-    // Inner super dense core
+    // Inner super dense core: platinum-electric hybrid
     const innerCore = new THREE.Mesh(
       new THREE.IcosahedronGeometry(12, 5),
       new THREE.MeshPhysicalMaterial({
-        color: "#ffffff",
-        emissive: "#ffffff",
-        emissiveIntensity: 5.0,
+        color: PALETTE.platinum,
+        emissive: PALETTE.electric,
+        emissiveIntensity: 5.5,
         metalness: 1.0,
-        roughness: 0.0,
+        roughness: 0.02,
         transmission: 0.1,
         clearcoat: 1,
       }),
     );
     world.add(innerCore);
 
+    // Core: electric-iris blend
     const core = new THREE.Mesh(
       new THREE.IcosahedronGeometry(20, 5),
       new THREE.MeshPhysicalMaterial({
-        color: "#d9f7ff",
-        emissive: "#8c60ff",
-        emissiveIntensity: 4.0,
-        metalness: 0.95,
-        roughness: 0.05,
-        transmission: 0.4,
+        color: PALETTE.electric,
+        emissive: PALETTE.iris,
+        emissiveIntensity: 4.2,
+        metalness: 0.98,
+        roughness: 0.03,
+        transmission: 0.5,
         clearcoat: 1,
       }),
     );
     world.add(core);
+
+    // Shell: electric wireframe with Mexican green accent
     const shell = new THREE.Mesh(
       new THREE.IcosahedronGeometry(35, 3),
       new THREE.MeshBasicMaterial({
-        color: "#8ee7ff",
+        color: PALETTE.electric,
         wireframe: true,
         transparent: true,
-        opacity: 0.6,
+        opacity: 0.65,
         blending: THREE.AdditiveBlending,
       }),
     );
     world.add(shell);
+
+    // Outer shell: petrol-iris transition
     const outerShell = new THREE.Mesh(
       new THREE.IcosahedronGeometry(45, 1),
       new THREE.MeshBasicMaterial({
-        color: "#b697ff",
+        color: PALETTE.iris,
         wireframe: true,
         transparent: true,
-        opacity: 0.2,
+        opacity: 0.25,
         blending: THREE.AdditiveBlending,
       }),
     );
     world.add(outerShell);
+
+    // Halo: cherry-platinum shimmer
     const halo = new THREE.Mesh(
       new THREE.TorusGeometry(55, 1.5, 32, 300),
       new THREE.MeshBasicMaterial({
-        color: "#d6b7ff",
+        color: PALETTE.cherry,
         transparent: true,
-        opacity: 0.9,
+        opacity: 0.85,
         blending: THREE.AdditiveBlending,
       }),
     );
@@ -190,9 +228,9 @@ function WebGLCinematicField() {
       const orbit = new THREE.Mesh(
         new THREE.RingGeometry(radius - 0.7, radius + 0.7, 200),
         new THREE.MeshBasicMaterial({
-          color: index % 2 ? "#8edcff" : "#d7c8ff",
+          color: index % 2 ? PALETTE.electric : PALETTE.iris,
           transparent: true,
-          opacity: 0.3,
+          opacity: 0.35,
           side: THREE.DoubleSide,
           blending: THREE.AdditiveBlending,
         }),
@@ -200,14 +238,15 @@ function WebGLCinematicField() {
       orbit.rotation.x = Math.PI / 2;
       world.add(orbit);
       orbitMeshes.push(orbit);
+
       const planet = new THREE.Mesh(
         new THREE.SphereGeometry(3.5 + index * 1.2, 64, 64),
         new THREE.MeshStandardMaterial({
-          color: index % 2 ? "#aedcff" : "#e5c5ff",
-          emissive: index % 2 ? "#266e83" : "#512e91",
-          emissiveIntensity: 1.5,
-          metalness: 0.8,
-          roughness: 0.2,
+          color: index % 2 ? PALETTE.platinum : PALETTE.cherry,
+          emissive: index % 2 ? PALETTE.petrol : PALETTE.mexicoGreen,
+          emissiveIntensity: 1.6,
+          metalness: 0.85,
+          roughness: 0.18,
         }),
       );
       world.add(planet);
@@ -216,9 +255,9 @@ function WebGLCinematicField() {
       const trail = new THREE.Mesh(
         new THREE.TorusGeometry(radius, 0.4, 8, 100, Math.PI / 2),
         new THREE.MeshBasicMaterial({
-          color: index % 2 ? "#8edcff" : "#d7c8ff",
+          color: index % 2 ? PALETTE.electric : PALETTE.mexicoGreen,
           transparent: true,
-          opacity: 0.8,
+          opacity: 0.82,
           blending: THREE.AdditiveBlending,
         }),
       );
@@ -226,13 +265,13 @@ function WebGLCinematicField() {
       world.add(trail);
       planetTrails.push(trail);
     });
-    scene.add(new THREE.AmbientLight("#17233f", 2.0));
-    const key = new THREE.PointLight("#dffff", 800, 2000);
+    scene.add(new THREE.AmbientLight(PALETTE.petrol, 2.1));
+    const key = new THREE.PointLight(PALETTE.platinum, 850, 2100);
     scene.add(key);
-    const rim = new THREE.PointLight("#9c7cff", 600, 1500);
+    const rim = new THREE.PointLight(PALETTE.iris, 620, 1600);
     rim.position.set(300, -200, 200);
     scene.add(rim);
-    const fill = new THREE.PointLight("#4bd8ff", 500, 1200);
+    const fill = new THREE.PointLight(PALETTE.electric, 550, 1300);
     fill.position.set(-250, 150, 150);
     scene.add(fill);
 
@@ -251,6 +290,8 @@ function WebGLCinematicField() {
     const render = (now: number) => {
       const t = now * 0.001;
       clockRef.current = t;
+
+      // Smooth, sophisticated rotations
       world.rotation.y = t * 0.065;
       world.rotation.x = Math.sin(t * 0.08) * 0.07;
       innerCore.rotation.y = t * 0.2;
@@ -259,6 +300,8 @@ function WebGLCinematicField() {
       outerShell.rotation.z = t * 0.1;
       halo.rotation.z = t * 0.22;
       stars.rotation.y = -t * 0.008;
+
+      // Dynamic camera orbit with breathing effect
       const cameraAngle = t * 0.105;
       const radius = 280 + Math.sin(t * 0.25) * 65;
       camera.position.set(
@@ -267,10 +310,14 @@ function WebGLCinematicField() {
         Math.sin(cameraAngle) * radius,
       );
       camera.lookAt(0, 0, 0);
+
+      // Pulsing emissive intensity for dramatic effect
       (core.material as THREE.MeshPhysicalMaterial).emissiveIntensity =
-        4.0 + Math.sin(t * 3.0) * 1.5;
+        4.2 + Math.sin(t * 3.0) * 1.8;
       (innerCore.material as THREE.MeshPhysicalMaterial).emissiveIntensity =
-        5.0 + Math.sin(t * 5.0) * 2.0;
+        5.5 + Math.sin(t * 5.0) * 2.2;
+
+      // Orbital mechanics
       planets.forEach((planet, index) => {
         const angle = t * (0.08 - index * 0.005);
         planet.position.set(
@@ -281,10 +328,13 @@ function WebGLCinematicField() {
         planet.rotation.y += 0.015;
         planetTrails[index].rotation.z = -angle + Math.PI / 2;
       });
+
       renderer.render(scene, camera);
       frame = requestAnimationFrame(render);
     };
+
     frame = requestAnimationFrame(render);
+
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
@@ -313,7 +363,9 @@ function WebGLCinematicField() {
         (trail.material as THREE.Material).dispose();
       });
       renderer.dispose();
-      if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
+      if (mount.contains(renderer.domElement)) {
+        mount.removeChild(renderer.domElement);
+      }
     };
   }, []);
   return <div ref={mountRef} className="absolute inset-0" aria-hidden="true" />;
@@ -329,42 +381,51 @@ export function CinematicIntroContent({
   const [audioReady, setAudioReady] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [fps, setFps] = useState(TARGET_FPS);
+  const [skipped, setSkipped] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const clockRef = useRef(0);
   const onCompleteRef = useRef(onComplete);
   const telemetryRef = useRef(onTelemetryUpdate);
+
   useEffect(() => {
     onCompleteRef.current = onComplete;
     telemetryRef.current = onTelemetryUpdate;
   }, [onComplete, onTelemetryUpdate]);
+
   const enter = useCallback(() => {
     setShowGate(false);
+    setSkipped(false);
     clockRef.current = performance.now();
-    if (!muted) {
+    if (!muted && audioRef.current) {
       audioRef.current
-        ?.play()
+        .play()
         .then(() => setAudioReady(true))
         .catch(() => setMuted(true));
     }
   }, [muted]);
   useEffect(() => {
     if (showGate) return;
-    // Accesibilidad: movimiento reducido → omitir cinemática (estático + complete).
-    if (
+
+    // Accesibilidad: movimiento reducido → omitir cinemática completa con fade rápido
+    const prefersReduced =
       typeof window !== "undefined" &&
       typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      const timer = window.setTimeout(() => onCompleteRef.current(), 800);
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReduced) {
+      const timer = window.setTimeout(() => onCompleteRef.current(), 600);
       return () => window.clearTimeout(timer);
     }
+
     let frame = 0;
     let last = performance.now();
     let frames = 0;
+
     const tick = (now: number) => {
       frames += 1;
       const current = Math.min(DURATION, (now - clockRef.current) / 1000);
       setElapsed(current);
+
       if (now - last >= 1000) {
         const measured = Math.round((frames * 1000) / (now - last));
         setFps(measured);
@@ -378,28 +439,58 @@ export function CinematicIntroContent({
           droppedFrames: Math.max(0, TARGET_FPS - measured),
         };
         telemetryRef.current?.(payload);
-        window.dispatchEvent(new CustomEvent("IsabellaTelemetryEvent", { detail: payload }));
+        try {
+          window.dispatchEvent(new CustomEvent("IsabellaTelemetryEvent", { detail: payload }));
+        } catch {
+          // Event dispatch non-critical to playback
+        }
         frames = 0;
         last = now;
       }
-      if (current >= DURATION) onCompleteRef.current();
-      else frame = requestAnimationFrame(tick);
+
+      if (current >= DURATION) {
+        onCompleteRef.current();
+      } else {
+        frame = requestAnimationFrame(tick);
+      }
     };
+
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
   }, [showGate]);
+  // Keyboard and visibility handling
   useEffect(() => {
-    const key = (event: KeyboardEvent) => {
+    const handleKeydown = (event: KeyboardEvent) => {
       if (showGate && (event.key === "Enter" || event.key === " ")) {
         event.preventDefault();
         enter();
       }
-      if (!showGate && event.key === "Escape") onCompleteRef.current();
-      if (!showGate && event.key.toLowerCase() === "m") setMuted((value) => !value);
+      if (!showGate && event.key === "Escape") {
+        setSkipped(true);
+        onCompleteRef.current();
+      }
+      if (!showGate && event.key.toLowerCase() === "m") {
+        setMuted((value) => !value);
+      }
     };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  }, [enter, showGate]);
+
+    const handleVisibilityChange = () => {
+      if (document.hidden && audioRef.current) {
+        audioRef.current.pause();
+      } else if (!document.hidden && !muted && !showGate && audioRef.current) {
+        audioRef.current.play().catch(() => {
+          // Autoplay may fail silently
+        });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeydown);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("keydown", handleKeydown);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [enter, muted, showGate]);
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = muted;
   }, [muted]);
@@ -421,11 +512,17 @@ export function CinematicIntroContent({
     .toString()
     .padStart(2, "0")}`;
   return (
-    <main
-      className="relative h-dvh w-full overflow-hidden bg-[#03050a] font-sans text-white select-none"
-      aria-label="Introducción cinematográfica de Isabella Villaseñor AI"
+    <div
+      style={{
+        position: "relative",
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+        background: PALETTE.abyss,
+        opacity: skipped ? 0 : 1,
+        transition: "opacity 1200ms ease-out",
+      }}
     >
-      <style>{`@keyframes reveal{from{opacity:0;transform:translateY(18px) scale(.98);filter:blur(12px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}`}</style>
       <WebGLCinematicField />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_34%,rgba(0,0,0,.34)_66%,rgba(0,0,0,.93)_100%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[9vh] bg-black/85" />
@@ -438,7 +535,10 @@ export function CinematicIntroContent({
               {scene.kicker}
             </span>
             <span className="hidden items-center gap-3 sm:flex">
-              <Activity className="size-3 text-cyan-200" />
+              <span
+                className="size-1.5 rounded-full bg-[var(--electric)] shadow-[0_0_10px_var(--electric)]"
+                aria-hidden="true"
+              />
               {fps} FPS <span className="text-white/25">//</span> {timecode} / 00:59
             </span>
           </header>
@@ -529,8 +629,15 @@ export function CinematicIntroContent({
           </div>
         </section>
       )}
-      <audio ref={audioRef} src={remoteAudioUrl} loop preload="auto" className="hidden" />
-    </main>
+      <audio
+        ref={audioRef}
+        src={remoteAudioUrl}
+        loop
+        preload="auto"
+        className="hidden"
+        onCanPlay={() => setAudioReady(true)}
+      />
+    </div>
   );
 }
 

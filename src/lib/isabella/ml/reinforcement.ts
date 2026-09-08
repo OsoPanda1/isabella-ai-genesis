@@ -20,7 +20,7 @@ export class AdvancedReinforcementEngine {
   public static async evaluateSample(sample: MLTrainingSample, modelVersion: string): Promise<number> {
     // 1. Calculate base loss (simulated deep inference evaluation)
     const exactMatch = sample.actualOutput === sample.expectedOutput;
-    let loss = exactMatch ? 0.01 : Math.random() * 0.5 + 0.1;
+    const loss = exactMatch ? 0.01 : Math.random() * 0.5 + 0.1;
 
     // 2. Heavy bias detection (simulated penalty)
     const containsBias = sample.actualOutput?.includes("unethical") || false;

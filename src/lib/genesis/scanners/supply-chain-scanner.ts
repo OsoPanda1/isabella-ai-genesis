@@ -81,8 +81,8 @@ export class SupplyChainScanner {
     const lockfiles = this.findLockfiles();
     
     let dependencies: DependencyAnalysis[] = [];
-    let lockfileAnalyses: LockfileAnalysis[] = [];
-    let vulnerabilities: VulnerabilityFinding[] = [];
+    const lockfileAnalyses: LockfileAnalysis[] = [];
+    const vulnerabilities: VulnerabilityFinding[] = [];
     
     if (fs.existsSync(packageJsonPath)) {
       const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));

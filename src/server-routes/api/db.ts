@@ -105,7 +105,7 @@ function auditAccessAttempt(
   severity: "S0" | "S1" | "S2" | "S3" = "S1",
 ): void {
   // Note: tenantId would need to be passed for production audit
-  sovereignStateRepository.appendAuditLog(
+  void sovereignStateRepository.appendAuditLog(
     traceId,
     `corr_${traceId}`,
     ip,
@@ -1180,7 +1180,7 @@ export const Route = createFileRoute("/api/db")({
               }
               const { createPostgresKillSwitchStore } = await import("@/lib/kill-switch");
               const store = createPostgresKillSwitchStore((event, details) => {
-                sovereignStateRepository.appendAuditLog(
+                void sovereignStateRepository.appendAuditLog(
                   `trc_emergency_${nodeCrypto.randomUUID().slice(0, 8)}`,
                   context.correlationId,
                   context.ip,
