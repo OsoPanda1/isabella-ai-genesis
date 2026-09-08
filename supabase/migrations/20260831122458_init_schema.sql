@@ -3,16 +3,13 @@
 -- Target Platform: PostgreSQL (Supabase Compatible)
 -- ============================================================================
 
--- Extensions must exist before domain tables are created.
 create schema if not exists extensions;
 create extension if not exists "uuid-ossp";
 create extension if not exists vector schema extensions;
 
--- IMPORTANT: this is the immutable baseline migration. It must be safe on a
--- fresh Supabase preview database. Never reference a table before creating it.
--- Re-run behavior belongs to Supabase migration history, not DROP statements.
+-- Immutable baseline: never reference a table before creating it. Re-runs are
+-- governed by Supabase migration history rather than destructive DROP calls.
 
--- 1. TENANTS
 create table tenants (
     id varchar(64) primary key,
     name varchar(255) not null,
@@ -23,7 +20,6 @@ create table tenants (
     updated_at timestamptz not null default now()
 );
 
--- 2. PROFILES
 create table profiles (
     id varchar(64) primary key,
     username varchar(150) not null unique,
@@ -34,7 +30,6 @@ create table profiles (
     updated_at timestamptz not null default now()
 );
 
--- 3. SESSIONS
 create table sessions (
     id uuid primary key default uuid_generate_v4(),
     user_id varchar(64) not null references profiles(id) on delete cascade,
@@ -47,7 +42,6 @@ create table sessions (
     created_at timestamptz not null default now()
 );
 
--- 4. COGNITIVE MEMORIES
 create table memories (
     id uuid primary key default uuid_generate_v4(),
     tenant_id varchar(64) not null references tenants(id) on delete cascade,
@@ -59,7 +53,6 @@ create table memories (
     created_at timestamptz not null default now()
 );
 
--- 5. AUDIT EVENTS
 create table audit_events (
     id varchar(64) primary key,
     timestamp timestamptz not null default now(),
@@ -75,7 +68,6 @@ create table audit_events (
     tenant_id varchar(64) references tenants(id) on delete set null
 );
 
--- 6. BOOKPI LEDGER
 create table bookpi_ledger (
     index bigint not null,
     tenant_id varchar(64) not null references tenants(id) on delete cascade,
@@ -93,15 +85,13 @@ create table bookpi_ledger (
     primary key (index, tenant_id)
 );
 
--- Performance indexes.
 create index idx_profiles_tenant_id on profiles(tenant_id);
 create index idx_sessions_user_tenant on sessions(user_id, tenant_id);
 create index idx_memories_tenant_scope on memories(tenant_id, scope);
 create index idx_audit_events_trace_correlation on audit_events(trace_id, correlation_id);
 create index idx_ledger_tenant_status on bookpi_ledger(tenant_id, status);
 
--- Modification trigger function and triggers are created only after tables exist.
-create or replace function update_modified_column()
+create or replace function public.update_modified_column()
 returns trigger as $$
 begin
     new.updated_at = now();
@@ -111,13 +101,12 @@ $$ language plpgsql;
 
 create trigger update_tenants_modtime
     before update on tenants
-    for each row execute function update_modified_column();
+    for each row execute function public.update_modified_column();
 
 create trigger update_profiles_modtime
     before update on profiles
-    for each row execute function update_modified_column();
+    for each row execute function public.update_modified_column();
 
--- Row Level Security.
 alter table tenants enable row level security;
 alter table profiles enable row level security;
 alter table sessions enable row level security;
@@ -125,58 +114,68 @@ alter table memories enable row level security;
 alter table audit_events enable row level security;
 alter table bookpi_ledger enable row level security;
 
--- Helper security functions.
-create schema if not exists auth;
-create or replace function auth.current_tenant_id()
-returns varchar as $$
-    select nullif(current_setting('request.jwt.claims', true)::jsonb->>'tenantId', '')::varchar;
-$$ language sql stable;
+-- Supabase owns the auth schema. Application helper functions therefore live
+-- in public and are referenced explicitly by RLS policies.
+create or replace function public.current_tenant_id()
+returns varchar
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+    select coalesce(
+        nullif(current_setting('request.jwt.claims', true)::jsonb->>'tenantId', ''),
+        nullif(current_setting('request.jwt.claims', true)::jsonb->>'tenant_id', '')
+    )::varchar;
+$$;
 
-create or replace function auth.current_user_role()
-returns varchar as $$
-    select nullif(current_setting('request.jwt.claims', true)::jsonb->>'role', '')::varchar;
-$$ language sql stable;
+create or replace function public.current_user_role()
+returns varchar
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+    select coalesce(
+        nullif(current_setting('request.jwt.claims', true)::jsonb->>'role', ''),
+        nullif(current_setting('request.jwt.claims', true)::jsonb->>'user_role', '')
+    )::varchar;
+$$;
 
--- Tenant policies.
 create policy "Tenants can only see their own tenant profile" on tenants
-    for select using (id = auth.current_tenant_id());
+    for select using (id = public.current_tenant_id());
 create policy "SovereignOwner can update their tenant parameters" on tenants
-    for update using (id = auth.current_tenant_id() and auth.current_user_role() = 'SovereignOwner');
+    for update using (id = public.current_tenant_id() and public.current_user_role() = 'SovereignOwner');
 
--- Profile policies.
 create policy "Users can see profiles of their same tenant" on profiles
-    for select using (tenant_id = auth.current_tenant_id());
+    for select using (tenant_id = public.current_tenant_id());
 create policy "SovereignOwner can manage profiles within their tenant" on profiles
-    for all using (tenant_id = auth.current_tenant_id() and auth.current_user_role() = 'SovereignOwner');
+    for all using (tenant_id = public.current_tenant_id() and public.current_user_role() = 'SovereignOwner');
 
--- Session policies.
 create policy "Users can inspect active sessions under their tenant" on sessions
-    for select using (tenant_id = auth.current_tenant_id());
+    for select using (tenant_id = public.current_tenant_id());
 
--- Memory policies.
 create policy "Tenant multi-tenant isolation policy for memories" on memories
-    for all using (tenant_id = auth.current_tenant_id());
+    for all using (tenant_id = public.current_tenant_id());
 
--- Audit policies.
 create policy "Auditor and Owner can view tenant security logs" on audit_events
     for select using (
-        tenant_id = auth.current_tenant_id()
-        and auth.current_user_role() in ('SovereignOwner', 'Auditor')
+        tenant_id = public.current_tenant_id()
+        and public.current_user_role() in ('SovereignOwner', 'Auditor')
     );
 
--- Ledger policies.
 create policy "Authorized roles can read ledger blocks" on bookpi_ledger
     for select using (
-        tenant_id = auth.current_tenant_id()
-        and auth.current_user_role() in ('SovereignOwner', 'Auditor', 'Operator')
+        tenant_id = public.current_tenant_id()
+        and public.current_user_role() in ('SovereignOwner', 'Auditor', 'Operator')
     );
 create policy "Owners and Operators can append ledger blocks" on bookpi_ledger
     for insert with check (
-        tenant_id = auth.current_tenant_id()
-        and auth.current_user_role() in ('SovereignOwner', 'Operator')
+        tenant_id = public.current_tenant_id()
+        and public.current_user_role() in ('SovereignOwner', 'Operator')
     );
 create policy "Only SovereignOwner can process refund updates" on bookpi_ledger
     for update using (
-        tenant_id = auth.current_tenant_id()
-        and auth.current_user_role() = 'SovereignOwner'
+        tenant_id = public.current_tenant_id()
+        and public.current_user_role() = 'SovereignOwner'
     );
