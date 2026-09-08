@@ -22,9 +22,9 @@ ALTER TABLE kill_switch_state ENABLE ROW LEVEL SECURITY;
 -- Capacidades autónomas conocidas (apagadas por defecto = operativas).
 INSERT INTO kill_switch_state (capability, engaged)
 VALUES
-    ('inference'),
-    ('tool-execution'),
-    ('skill-execution'),
-    ('payouts'),
-    ('quantum-jobs')
+    ('inference', FALSE),
+    ('tool-execution', FALSE),
+    ('skill-execution', FALSE),
+    ('payouts', FALSE),
+    ('quantum-jobs', FALSE)
 ON CONFLICT (capability) DO NOTHING;
