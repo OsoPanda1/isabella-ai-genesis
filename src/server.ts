@@ -51,7 +51,7 @@ export async function handleRequest(request: Request, env: unknown = {}, ctx: un
   });
 }
 
-export default handleRequest;
+export default { fetch: handleRequest };
 
 async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
   if (response.status < 500) return response;
@@ -85,10 +85,11 @@ export function withSecurityHeaders(response: Response): Response {
   setIfMissing("X-Frame-Options", "DENY");
   setIfMissing("Referrer-Policy", "strict-origin-when-cross-origin");
   setIfMissing("X-XSS-Protection", "0");
-  setIfMissing("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
-  setIfMissing("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+  setIfMissing("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  setIfMissing("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   setIfMissing("Cross-Origin-Opener-Policy", "same-origin");
   setIfMissing("Cross-Origin-Resource-Policy", "same-origin");
-  setIfMissing("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:");
+  setIfMissing("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:");
+  setIfMissing("Content-Security-Policy-Report-Only", "script-src 'self' 'nonce-{REQUEST_NONCE}'");
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }

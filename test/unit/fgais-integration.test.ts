@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { governIntelligence } from "@/lib/intelligence/router";
 import { evaluateModelRelease } from "@/lib/genesis-model/release-gate";
 import { aggregateFedAvg, validateFederatedUpdate } from "@/lib/learning/federation";
-import { hashObject } from "@/lib/learning/registry";
+import { createHash } from "node:crypto";
 
 const updateBase = { updateId: "u1", nodeId: "n1", modelId: "m1", baseModelVersion: "1", deltaWeights: [1, 2], deltaBias: 0.5, sampleCount: 10, createdAt: new Date().toISOString() };
 
 function signedUpdate(secret: string) {
-  const updateHash = hashObject(updateBase);
-  const signature = hashObject(`${secret}:${updateHash}`);
+  const updateHash = createHash("sha256").update(JSON.stringify(updateBase)).digest("hex");
+  const signature = createHash("sha256").update(`${secret}:${updateHash}`).digest("hex");
   return { ...updateBase, updateHash, signature };
 }
 
