@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
 const IsabellaClientApp = lazy(() => import("@/components/isabella/IsabellaClientApp"));
 
-const TITLE = "Isabella Villaseñor AI — Terminal Cognitivo C.R.O.W.N.";
+const TITLE = "Isabella Villaseñor AI — FGAIS";
 const DESC =
-  "Terminal cognitivo de Isabella Villaseñor AI: orquestación C.R.O.W.N. con ISA, SOPHIA, ORION y ARGUS, Policy Gate en vivo y telemetría desde Nodo Cero, Real del Monte, Hidalgo.";
+  "Isabella Villaseñor AI: sistema federado de inteligencia artificial gobernada, con C.R.O.W.N., seguridad, trazabilidad e inferencia federada.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,29 +21,145 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-function ServerSafeFallback() {
+function PublicShell({ onEnter }: { onEnter?: () => void }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background text-foreground">
-      <div className="text-center" role="status" aria-live="polite">
-        <div className="mx-auto mb-4 size-10 animate-pulse rounded-full border border-electric/40 bg-electric/10" />
-        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
-          Inicializando Isabella C.R.O.W.N.
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        padding: "32px",
+        color: "#f5f7ff",
+        background:
+          "radial-gradient(circle at 50% 35%, rgba(126,92,255,.18), transparent 34%), radial-gradient(circle at 20% 80%, rgba(41,211,255,.10), transparent 30%), #05060b",
+        fontFamily: "Inter, system-ui, sans-serif",
+      }}
+    >
+      <section style={{ width: "min(920px, 100%)", textAlign: "center" }}>
+        <div
+          aria-hidden="true"
+          style={{
+            width: 92,
+            height: 92,
+            margin: "0 auto 28px",
+            borderRadius: 28,
+            border: "1px solid rgba(180,150,255,.45)",
+            background:
+              "radial-gradient(circle at 35% 30%, #fff, #b9a5ff 22%, #5b3bb8 48%, #0b0d18 72%)",
+            boxShadow: "0 0 70px rgba(125,91,255,.35)",
+          }}
+        />
+        <p
+          style={{
+            margin: 0,
+            fontSize: 11,
+            letterSpacing: ".28em",
+            textTransform: "uppercase",
+            color: "#9ca3af",
+          }}
+        >
+          Nodo Cero · Real del Monte · Hidalgo · México
         </p>
-        <p className="mt-2 font-mono text-[9px] text-muted-foreground/70">
-          Nodo de presentación disponible · módulos interactivos cargando
+        <h1
+          style={{
+            margin: "18px 0 12px",
+            fontSize: "clamp(40px, 8vw, 82px)",
+            lineHeight: .95,
+            letterSpacing: "-.045em",
+            fontWeight: 650,
+          }}
+        >
+          Isabella
+        </h1>
+        <p style={{ margin: 0, fontSize: "clamp(17px, 2.4vw, 24px)", color: "#cbd5e1" }}>
+          Federated Governed Artificial Intelligence System
         </p>
-      </div>
+        <p
+          style={{
+            maxWidth: 680,
+            margin: "22px auto 0",
+            lineHeight: 1.7,
+            color: "#8f98aa",
+            fontSize: 15,
+          }}
+        >
+          Una interfaz cognitiva gobernada donde capacidad no implica autoridad:
+          inferencia, seguridad, memoria, políticas y trazabilidad se coordinan bajo
+          supervisión humana.
+        </p>
+        <div style={{ marginTop: 34, display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={onEnter}
+            style={{
+              cursor: onEnter ? "pointer" : "default",
+              border: "1px solid rgba(180,150,255,.55)",
+              borderRadius: 14,
+              padding: "13px 22px",
+              background: "linear-gradient(135deg,#7c5cff,#4d36a8)",
+              color: "white",
+              fontWeight: 650,
+              boxShadow: "0 12px 40px rgba(92,65,190,.28)",
+            }}
+          >
+            {onEnter ? "Entrar a Isabella" : "Inicializando Isabella…"}
+          </button>
+          <a
+            href="/api/health/live"
+            style={{
+              border: "1px solid rgba(148,163,184,.22)",
+              borderRadius: 14,
+              padding: "13px 22px",
+              color: "#cbd5e1",
+              textDecoration: "none",
+              background: "rgba(255,255,255,.035)",
+            }}
+          >
+            Estado del nodo
+          </a>
+        </div>
+        <div style={{ marginTop: 48, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10 }}>
+          {["C.R.O.W.N.", "AEGIS", "Gobernanza", "Trazabilidad"].map((item) => (
+            <div
+              key={item}
+              style={{
+                padding: "14px 12px",
+                borderRadius: 14,
+                border: "1px solid rgba(148,163,184,.12)",
+                background: "rgba(255,255,255,.025)",
+                color: "#aab3c4",
+                fontSize: 11,
+                letterSpacing: ".12em",
+                textTransform: "uppercase",
+              }}
+            >
+              {item}
+            </div>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }
 
+function ClientFallback() {
+  return <PublicShell />;
+}
+
 function Index() {
-  // Hard client boundary: React SSR may resolve lazy components while rendering.
-  // Do not even initialize the browser-only Isabella graph on the server.
-  if (typeof window === "undefined") return <ServerSafeFallback />;
+  const [client, setClient] = useState(false);
+  const [entered, setEntered] = useState(false);
+
+  useEffect(() => {
+    setClient(true);
+  }, []);
+
+  if (typeof window === "undefined" || !client || !entered) {
+    return <PublicShell onEnter={client ? () => setEntered(true) : undefined} />;
+  }
 
   return (
-    <Suspense fallback={<ServerSafeFallback />}>
+    <Suspense fallback={<ClientFallback />}>
       <IsabellaClientApp />
     </Suspense>
   );
