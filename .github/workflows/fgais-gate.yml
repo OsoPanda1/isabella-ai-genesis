@@ -32,6 +32,7 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
+      - run: node scripts/production-integrity-gate.mjs
       - run: node scripts/sanitize-repo.mjs
       - run: node scripts/capability-matrix.mjs --check
       - run: node scripts/genesis-route-audit.mjs
