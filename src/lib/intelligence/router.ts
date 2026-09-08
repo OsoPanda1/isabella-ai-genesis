@@ -2,26 +2,14 @@ import { randomUUID } from "node:crypto";
 import { config } from "@/lib/config";
 import { isProductionLike, resolveRuntimeMode } from "@/lib/runtime-mode";
 import type { GovernanceDecision, IntelligenceProvider, IntelligenceRequest, IntelligenceResponse } from "./contracts";
-import { getModel, registerProvider } from "./model-registry";
+import { approveModel, getModel, registerProvider } from "./model-registry";
 
 const providers = new Map<string, IntelligenceProvider>();
 
 export function addProvider(provider: IntelligenceProvider, productionApproved = false): void {
   providers.set(provider.modelId, provider);
   registerProvider(provider);
-  if (productionApproved) {
-    const model = getModel(provider.modelId);
-    if (model) {
-      // Registry remains immutable-by-copy; approval is intentionally explicit.
-      const { approveModel } = requireModelRegistry();
-      approveModel(model.modelId);
-    }
-  }
-}
-
-function requireModelRegistry() {
-  // Kept isolated so the router has one governance seam and no circular imports.
-  return require("./model-registry") as typeof import("./model-registry");
+  if (productionApproved) approveModel(provider.modelId);
 }
 
 export function governIntelligence(request: IntelligenceRequest): GovernanceDecision {
