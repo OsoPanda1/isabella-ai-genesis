@@ -1,0 +1,1867 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Genesis 2.0 Evidence Assurance Engine",
+          "version": "2.0.1",
+          "informationUri": "https://github.com/tamv-online/isabella-ai-genesis",
+          "rules": [
+            {
+              "id": "GEN-GOVERNANCE-MTRWJ22V",
+              "name": "Claim CLAIM-001 gap: Insufficient evidence: 0/6",
+              "shortDescription": {
+                "text": "Claim CLAIM-001 gap: Insufficient evidence: 0/6"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-001 (Provenance) no cumple requisitos: Insufficient evidence: 0/6"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Insufficient evidence: 0/6",
+                "markdown": "Resolver gap: Insufficient evidence: 0/6"
+              },
+              "properties": {
+                "category": "GOVERNANCE",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-GOVERNANCE-MTRWJ22W",
+              "name": "Claim CLAIM-001 gap: Missing evidence type: INTEGRATION_TEST",
+              "shortDescription": {
+                "text": "Claim CLAIM-001 gap: Missing evidence type: INTEGRATION_TEST"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-001 (Provenance) no cumple requisitos: Missing evidence type: INTEGRATION_TEST"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: INTEGRATION_TEST",
+                "markdown": "Resolver gap: Missing evidence type: INTEGRATION_TEST"
+              },
+              "properties": {
+                "category": "GOVERNANCE",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-GOVERNANCE-MTRWJ22X",
+              "name": "Low confidence for claim CLAIM-001",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-001"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-001"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "GOVERNANCE",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-GOVERNANCE-MTRWJ231",
+              "name": "Claim CLAIM-001 gap: Missing evidence type: INTEGRATION_TEST",
+              "shortDescription": {
+                "text": "Claim CLAIM-001 gap: Missing evidence type: INTEGRATION_TEST"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-001 (Provenance) no cumple requisitos: Missing evidence type: INTEGRATION_TEST"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: INTEGRATION_TEST",
+                "markdown": "Resolver gap: Missing evidence type: INTEGRATION_TEST"
+              },
+              "properties": {
+                "category": "GOVERNANCE",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-GOVERNANCE-MTRWJ232",
+              "name": "Low confidence for claim CLAIM-001",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-001"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-001"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "GOVERNANCE",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-SECURITY-MTRWJ235",
+              "name": "Claim CLAIM-002 gap: Missing evidence type: UNIT_TEST",
+              "shortDescription": {
+                "text": "Claim CLAIM-002 gap: Missing evidence type: UNIT_TEST"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-002 (HITL for high-risk operations) no cumple requisitos: Missing evidence type: UNIT_TEST"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: UNIT_TEST",
+                "markdown": "Resolver gap: Missing evidence type: UNIT_TEST"
+              },
+              "properties": {
+                "category": "SECURITY",
+                "severity": "MEDIUM",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-SECURITY-MTRWJ236",
+              "name": "Low confidence for claim CLAIM-002",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-002"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-002"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "SECURITY",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-SECURITY-MTRWJ237",
+              "name": "Claim CLAIM-002 gap: Missing evidence type: UNIT_TEST",
+              "shortDescription": {
+                "text": "Claim CLAIM-002 gap: Missing evidence type: UNIT_TEST"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-002 (HITL for high-risk operations) no cumple requisitos: Missing evidence type: UNIT_TEST"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: UNIT_TEST",
+                "markdown": "Resolver gap: Missing evidence type: UNIT_TEST"
+              },
+              "properties": {
+                "category": "SECURITY",
+                "severity": "MEDIUM",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-SECURITY-MTRWJ238",
+              "name": "Low confidence for claim CLAIM-002",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-002"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-002"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "SECURITY",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-AUDIT-MTRWJ23C",
+              "name": "Claim CLAIM-003 gap: Missing evidence type: SECURITY_TEST",
+              "shortDescription": {
+                "text": "Claim CLAIM-003 gap: Missing evidence type: SECURITY_TEST"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-003 (Tamper-evident audit) no cumple requisitos: Missing evidence type: SECURITY_TEST"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: SECURITY_TEST",
+                "markdown": "Resolver gap: Missing evidence type: SECURITY_TEST"
+              },
+              "properties": {
+                "category": "AUDIT",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-AUDIT-MTRWJ23D",
+              "name": "Low confidence for claim CLAIM-003",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-003"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-003"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "AUDIT",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-AUDIT-MTRWJ23G",
+              "name": "Claim CLAIM-003 gap: Insufficient evidence: 0/6",
+              "shortDescription": {
+                "text": "Claim CLAIM-003 gap: Insufficient evidence: 0/6"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-003 (Tamper-evident audit) no cumple requisitos: Insufficient evidence: 0/6"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Insufficient evidence: 0/6",
+                "markdown": "Resolver gap: Insufficient evidence: 0/6"
+              },
+              "properties": {
+                "category": "AUDIT",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-AUDIT-MTRWJ23K",
+              "name": "Claim CLAIM-003 gap: Missing evidence type: EXTERNAL_AUDIT",
+              "shortDescription": {
+                "text": "Claim CLAIM-003 gap: Missing evidence type: EXTERNAL_AUDIT"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-003 (Tamper-evident audit) no cumple requisitos: Missing evidence type: EXTERNAL_AUDIT"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: EXTERNAL_AUDIT",
+                "markdown": "Resolver gap: Missing evidence type: EXTERNAL_AUDIT"
+              },
+              "properties": {
+                "category": "AUDIT",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-AUDIT-MTRWJ23L",
+              "name": "Low confidence for claim CLAIM-003",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-003"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-003"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "AUDIT",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-PRIVACY-MTRWJ23M",
+              "name": "Low confidence for claim CLAIM-004",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-004"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-004"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "PRIVACY",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-PRIVACY-MTRWJ23O",
+              "name": "Low confidence for claim CLAIM-004",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-004"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-004"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "PRIVACY",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-FINANCIAL-MTRWJ23S",
+              "name": "Claim CLAIM-005 gap: Missing evidence type: SECURITY_TEST",
+              "shortDescription": {
+                "text": "Claim CLAIM-005 gap: Missing evidence type: SECURITY_TEST"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-005 (Financial atomicity) no cumple requisitos: Missing evidence type: SECURITY_TEST"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: SECURITY_TEST",
+                "markdown": "Resolver gap: Missing evidence type: SECURITY_TEST"
+              },
+              "properties": {
+                "category": "FINANCIAL",
+                "severity": "CRITICAL",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-FINANCIAL-MTRWJ23T",
+              "name": "Low confidence for claim CLAIM-005",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-005"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-005"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "FINANCIAL",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-FINANCIAL-MTRWJ23W",
+              "name": "Claim CLAIM-005 gap: Insufficient evidence: 0/10",
+              "shortDescription": {
+                "text": "Claim CLAIM-005 gap: Insufficient evidence: 0/10"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-005 (Financial atomicity) no cumple requisitos: Insufficient evidence: 0/10"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Insufficient evidence: 0/10",
+                "markdown": "Resolver gap: Insufficient evidence: 0/10"
+              },
+              "properties": {
+                "category": "FINANCIAL",
+                "severity": "CRITICAL",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-FINANCIAL-MTRWJ23X",
+              "name": "Claim CLAIM-005 gap: Missing evidence type: CONCURRENCY_TEST",
+              "shortDescription": {
+                "text": "Claim CLAIM-005 gap: Missing evidence type: CONCURRENCY_TEST"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-005 (Financial atomicity) no cumple requisitos: Missing evidence type: CONCURRENCY_TEST"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: CONCURRENCY_TEST",
+                "markdown": "Resolver gap: Missing evidence type: CONCURRENCY_TEST"
+              },
+              "properties": {
+                "category": "FINANCIAL",
+                "severity": "CRITICAL",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-FINANCIAL-MTRWJ23Y",
+              "name": "Low confidence for claim CLAIM-005",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-005"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-005"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "FINANCIAL",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ242",
+              "name": "Claim CLAIM-006 gap: Insufficient evidence: 0/10",
+              "shortDescription": {
+                "text": "Claim CLAIM-006 gap: Insufficient evidence: 0/10"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-006 (Database authority consolidation) no cumple requisitos: Insufficient evidence: 0/10"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Insufficient evidence: 0/10",
+                "markdown": "Resolver gap: Insufficient evidence: 0/10"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "CRITICAL",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ243",
+              "name": "Claim CLAIM-006 gap: Missing evidence type: EXTERNAL_AUDIT",
+              "shortDescription": {
+                "text": "Claim CLAIM-006 gap: Missing evidence type: EXTERNAL_AUDIT"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-006 (Database authority consolidation) no cumple requisitos: Missing evidence type: EXTERNAL_AUDIT"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: EXTERNAL_AUDIT",
+                "markdown": "Resolver gap: Missing evidence type: EXTERNAL_AUDIT"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "CRITICAL",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ244",
+              "name": "Low confidence for claim CLAIM-006",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-006"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-006"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ24B",
+              "name": "Claim CLAIM-006 gap: Missing evidence type: INTEGRATION_TEST",
+              "shortDescription": {
+                "text": "Claim CLAIM-006 gap: Missing evidence type: INTEGRATION_TEST"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-006 (Database authority consolidation) no cumple requisitos: Missing evidence type: INTEGRATION_TEST"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: INTEGRATION_TEST",
+                "markdown": "Resolver gap: Missing evidence type: INTEGRATION_TEST"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "CRITICAL",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ24C",
+              "name": "Low confidence for claim CLAIM-006",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-006"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-006"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ24F",
+              "name": "Claim CLAIM-007 gap: Missing evidence type: SECURITY_TEST",
+              "shortDescription": {
+                "text": "Claim CLAIM-007 gap: Missing evidence type: SECURITY_TEST"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-007 (Sovereign state transactional persistence) no cumple requisitos: Missing evidence type: SECURITY_TEST"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: SECURITY_TEST",
+                "markdown": "Resolver gap: Missing evidence type: SECURITY_TEST"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "CRITICAL",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ24H",
+              "name": "Claim CLAIM-007 gap: Missing evidence type: CONCURRENCY_TEST",
+              "shortDescription": {
+                "text": "Claim CLAIM-007 gap: Missing evidence type: CONCURRENCY_TEST"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-007 (Sovereign state transactional persistence) no cumple requisitos: Missing evidence type: CONCURRENCY_TEST"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: CONCURRENCY_TEST",
+                "markdown": "Resolver gap: Missing evidence type: CONCURRENCY_TEST"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "CRITICAL",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ24I",
+              "name": "Low confidence for claim CLAIM-007",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-007"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-007"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ24J",
+              "name": "Claim CLAIM-007 gap: Missing evidence type: SOURCE_CODE",
+              "shortDescription": {
+                "text": "Claim CLAIM-007 gap: Missing evidence type: SOURCE_CODE"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-007 (Sovereign state transactional persistence) no cumple requisitos: Missing evidence type: SOURCE_CODE"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: SOURCE_CODE",
+                "markdown": "Resolver gap: Missing evidence type: SOURCE_CODE"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "CRITICAL",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ24K",
+              "name": "Claim CLAIM-007 gap: Missing evidence type: EXTERNAL_AUDIT",
+              "shortDescription": {
+                "text": "Claim CLAIM-007 gap: Missing evidence type: EXTERNAL_AUDIT"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-007 (Sovereign state transactional persistence) no cumple requisitos: Missing evidence type: EXTERNAL_AUDIT"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: EXTERNAL_AUDIT",
+                "markdown": "Resolver gap: Missing evidence type: EXTERNAL_AUDIT"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "CRITICAL",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ24L",
+              "name": "Claim CLAIM-007 gap: Missing evidence type: HEALTH_CHECK",
+              "shortDescription": {
+                "text": "Claim CLAIM-007 gap: Missing evidence type: HEALTH_CHECK"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-007 (Sovereign state transactional persistence) no cumple requisitos: Missing evidence type: HEALTH_CHECK"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: HEALTH_CHECK",
+                "markdown": "Resolver gap: Missing evidence type: HEALTH_CHECK"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "CRITICAL",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ24M",
+              "name": "Claim CLAIM-007 gap: Missing evidence type: INCIDENT_REPORT",
+              "shortDescription": {
+                "text": "Claim CLAIM-007 gap: Missing evidence type: INCIDENT_REPORT"
+              },
+              "fullDescription": {
+                "text": "El claim CLAIM-007 (Sovereign state transactional persistence) no cumple requisitos: Missing evidence type: INCIDENT_REPORT"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver gap: Missing evidence type: INCIDENT_REPORT",
+                "markdown": "Resolver gap: Missing evidence type: INCIDENT_REPORT"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "CRITICAL",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-DATABASE-MTRWJ24Q",
+              "name": "Low confidence for claim CLAIM-007",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-007"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-007"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "DATABASE",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-SECURITY-MTRWJ24R",
+              "name": "Low confidence for claim CLAIM-008",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-008"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-008"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "SECURITY",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-SECURITY-MTRWJ24S",
+              "name": "Low confidence for claim CLAIM-008",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-008"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-008"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "SECURITY",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-AUTH-MTRWJ24T",
+              "name": "Low confidence for claim CLAIM-009",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-009"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-009"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "AUTH",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-SECURITY-MTRWJ24U",
+              "name": "Low confidence for claim CLAIM-010",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-010"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-010"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "SECURITY",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-SECURITY-MTRWJ24V",
+              "name": "Low confidence for claim CLAIM-010",
+              "shortDescription": {
+                "text": "Low confidence for claim CLAIM-010"
+              },
+              "fullDescription": {
+                "text": "Confianza baja (0%) para claim CLAIM-010"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Mejorar calidad y cantidad de evidencia",
+                "markdown": "Mejorar calidad y cantidad de evidencia"
+              },
+              "properties": {
+                "category": "SECURITY",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-SECURITY-MTRWJ24X",
+              "name": "Contradiction detected: claim_vs_code",
+              "shortDescription": {
+                "text": "Contradiction detected: claim_vs_code"
+              },
+              "fullDescription": {
+                "text": "Claim CLAIM-001 (Provenance) requires implementation but no code implements it"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver contradicción entre claim:CLAIM-001 y none",
+                "markdown": "Resolver contradicción entre claim:CLAIM-001 y none"
+              },
+              "properties": {
+                "category": "SECURITY",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-SECURITY-MTRWJ24Y",
+              "name": "Contradiction detected: claim_vs_code",
+              "shortDescription": {
+                "text": "Contradiction detected: claim_vs_code"
+              },
+              "fullDescription": {
+                "text": "Claim CLAIM-003 (Tamper-evident audit) requires implementation but no code implements it"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver contradicción entre claim:CLAIM-003 y none",
+                "markdown": "Resolver contradicción entre claim:CLAIM-003 y none"
+              },
+              "properties": {
+                "category": "SECURITY",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            },
+            {
+              "id": "GEN-SECURITY-MTRWJ24Z",
+              "name": "Contradiction detected: claim_vs_code",
+              "shortDescription": {
+                "text": "Contradiction detected: claim_vs_code"
+              },
+              "fullDescription": {
+                "text": "Claim CLAIM-010 (CSP hardened without unsafe-inline) requires implementation but no code implements it"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "help": {
+                "text": "Resolver contradicción entre claim:CLAIM-010 y none",
+                "markdown": "Resolver contradicción entre claim:CLAIM-010 y none"
+              },
+              "properties": {
+                "category": "SECURITY",
+                "severity": "HIGH",
+                "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "GEN-GOVERNANCE-MTRWJ22V",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-001 gap: Insufficient evidence: 0/6"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "GOVERNANCE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-GOVERNANCE-MTRWJ22W",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-001 gap: Missing evidence type: INTEGRATION_TEST"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "GOVERNANCE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-GOVERNANCE-MTRWJ22X",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-001"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "GOVERNANCE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-GOVERNANCE-MTRWJ231",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-001 gap: Missing evidence type: INTEGRATION_TEST"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "GOVERNANCE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-GOVERNANCE-MTRWJ232",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-001"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "GOVERNANCE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-SECURITY-MTRWJ235",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Claim CLAIM-002 gap: Missing evidence type: UNIT_TEST"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "MEDIUM",
+            "category": "SECURITY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-SECURITY-MTRWJ236",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-002"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "SECURITY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-SECURITY-MTRWJ237",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Claim CLAIM-002 gap: Missing evidence type: UNIT_TEST"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "MEDIUM",
+            "category": "SECURITY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-SECURITY-MTRWJ238",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-002"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "SECURITY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-AUDIT-MTRWJ23C",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-003 gap: Missing evidence type: SECURITY_TEST"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "AUDIT",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-AUDIT-MTRWJ23D",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-003"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "AUDIT",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-AUDIT-MTRWJ23G",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-003 gap: Insufficient evidence: 0/6"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "AUDIT",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-AUDIT-MTRWJ23K",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-003 gap: Missing evidence type: EXTERNAL_AUDIT"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "AUDIT",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-AUDIT-MTRWJ23L",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-003"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "AUDIT",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-PRIVACY-MTRWJ23M",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-004"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "PRIVACY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-PRIVACY-MTRWJ23O",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-004"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "PRIVACY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-FINANCIAL-MTRWJ23S",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-005 gap: Missing evidence type: SECURITY_TEST"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "CRITICAL",
+            "category": "FINANCIAL",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-FINANCIAL-MTRWJ23T",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-005"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "FINANCIAL",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-FINANCIAL-MTRWJ23W",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-005 gap: Insufficient evidence: 0/10"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "CRITICAL",
+            "category": "FINANCIAL",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-FINANCIAL-MTRWJ23X",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-005 gap: Missing evidence type: CONCURRENCY_TEST"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "CRITICAL",
+            "category": "FINANCIAL",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-FINANCIAL-MTRWJ23Y",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-005"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "FINANCIAL",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ242",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-006 gap: Insufficient evidence: 0/10"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "CRITICAL",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ243",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-006 gap: Missing evidence type: EXTERNAL_AUDIT"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "CRITICAL",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ244",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-006"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ24B",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-006 gap: Missing evidence type: INTEGRATION_TEST"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "CRITICAL",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ24C",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-006"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ24F",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-007 gap: Missing evidence type: SECURITY_TEST"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "CRITICAL",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ24H",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-007 gap: Missing evidence type: CONCURRENCY_TEST"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "CRITICAL",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ24I",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-007"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ24J",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-007 gap: Missing evidence type: SOURCE_CODE"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "CRITICAL",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ24K",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-007 gap: Missing evidence type: EXTERNAL_AUDIT"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "CRITICAL",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ24L",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-007 gap: Missing evidence type: HEALTH_CHECK"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "CRITICAL",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ24M",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Claim CLAIM-007 gap: Missing evidence type: INCIDENT_REPORT"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "CRITICAL",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-DATABASE-MTRWJ24Q",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-007"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "DATABASE",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-SECURITY-MTRWJ24R",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-008"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "SECURITY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-SECURITY-MTRWJ24S",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-008"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "SECURITY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-AUTH-MTRWJ24T",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-009"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "AUTH",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-SECURITY-MTRWJ24U",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-010"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "SECURITY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-SECURITY-MTRWJ24V",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Low confidence for claim CLAIM-010"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claims registry"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "SECURITY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-SECURITY-MTRWJ24X",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Contradiction detected: claim_vs_code"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claim:CLAIM-001, none"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "SECURITY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-SECURITY-MTRWJ24Y",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Contradiction detected: claim_vs_code"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claim:CLAIM-003, none"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "SECURITY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        },
+        {
+          "ruleId": "GEN-SECURITY-MTRWJ24Z",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Contradiction detected: claim_vs_code"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "claim:CLAIM-010, none"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "severity": "HIGH",
+            "category": "SECURITY",
+            "cvss": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+          }
+        }
+      ]
+    }
+  ]
+}

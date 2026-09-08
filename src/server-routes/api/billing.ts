@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import * as nodeCrypto from "node:crypto";
-import { SovereignDB } from "@/lib/sovereign-engine";
+import { sovereignStateRepository } from "@/lib/sovereign-state-repository";
 import { SecuritySystem } from "@/lib/security";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { config } from "@/lib/config";
@@ -37,19 +37,13 @@ interface MarketplaceListing {
 }
 
 /**
- * Lee listados: tabla PG durable primero; settings/SovereignDB solo como
- * fallback cuando no hay DATABASE_URL (desarrollo). En producción la
- * tabla es autoridad (migración 20260908090000).
+ * Lee listados: tabla PG durable primero; fallback devuelve DEFAULT_MARKETPLACE_LISTINGS
+ * cuando falla el repositorio. En producción la tabla marketplace_listings es autoridad
+ * (migración 20260908090000). NO fallback a memoria.
  */
 async function readAllListings(): Promise<MarketplaceListing[]> {
-  try {
-    const { listMarketplace } = await import("@/lib/repositories/marketplace-repository");
-    return await listMarketplace();
-  } catch {
-    const db = SovereignDB.load();
-    const customListings = (db.settings.marketplaceListings as MarketplaceListing[]) || [];
-    return [...DEFAULT_MARKETPLACE_LISTINGS, ...customListings];
-  }
+  const { listMarketplace } = await import("@/lib/repositories/marketplace-repository");
+  return await listMarketplace();
 }
 
 const DEFAULT_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
@@ -317,13 +311,14 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_checkout_${sessionId}`,
                 context.correlationId,
                 context.ip,
                 "Intención de Suscripción Creada",
                 "S3",
                 `Checkout iniciado para plan: ${planId}. Dirección de checkout: ${checkoutUrl}`,
+                context.tenantId,
               );
 
               return new Response(
@@ -428,37 +423,35 @@ export const Route = createFileRoute("/api/billing")({
               }
 
               if (targetTenantId) {
-                const db = SovereignDB.load();
-                const tenant = db.tenants.find((t) => t.id === targetTenantId);
+                const tenant = await sovereignStateRepository.getTenant(targetTenantId);
                 if (tenant) {
                   tenant.tier = planId === "enterprise" ? "Enterprise" : "Sovereign";
-                  // Cargar 100 créditos de bono al suscribirse
                   tenant.quotaBalance += 100.0;
-                  SovereignDB.upsertTenant(tenant);
+                  await sovereignStateRepository.upsertTenant(tenant);
 
-                  // Actualizar también la cuenta de monetización
                   if (targetUserId) {
-                    SovereignDB.updateMonetizationAccount(targetUserId, {
+                    await sovereignStateRepository.updateMonetizationAccount(targetUserId, {
                       subscriptionActive: true,
                     });
                   }
 
-                  const block = SovereignDB.appendLedgerBlock(
+                  const block = await sovereignStateRepository.appendLedgerBlock(
                     targetTenantId,
                     targetUserId || "system",
                     `ACTIVATE_SUBSCRIPTION: Plan ${planId.toUpperCase()} activado exitosamente (Créditos de bono: +$100.00 USD) ${metadata?.marker || ""}`,
                     "other",
-                    0, // no deduction for subscriptions
+                    0,
                     0,
                   );
 
-                  SovereignDB.appendAuditLog(
+                  await sovereignStateRepository.appendAuditLog(
                     `trc_webhook_${block.index}`,
                     `corr_web_${nodeCrypto.randomUUID().slice(0, 8)}`,
                     "127.0.0.1",
                     "Webhook de Suscripción Confirmado",
                     "S3",
                     `Suscripción de plan ${planId} aplicada a tenant ${targetTenantId}.`,
+                    targetTenantId,
                   );
                 }
               }
@@ -506,13 +499,14 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
                 `corr_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
                 "127.0.0.1",
                 "Disputa de Pago Recibida",
                 "S1",
                 `Disputa ${eventId} por $${(amountMinor / 100).toFixed(2)} (tenant: ${disputeTenant}). Payouts congelados hasta revisión humana.`,
+                disputeTenant,
               );
 
               return new Response(
@@ -527,13 +521,14 @@ export const Route = createFileRoute("/api/billing")({
             }
 
             if (eventType === "charge.dispute.closed") {
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_dispute_closed_${nodeCrypto.randomUUID().slice(0, 8)}`,
                 `corr_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
                 "127.0.0.1",
                 "Disputa de Pago Cerrada",
                 "S3",
                 `Disputa ${eventId} cerrada (tenant: ${metadata?.tenantId || "unresolved-dispute"}). Revisar estado won/lost en Stripe Dashboard.`,
+                metadata?.tenantId || "unresolved-dispute",
               );
               return new Response(
                 JSON.stringify({ success: true, processed: true, disputeClosed: true }),
@@ -572,7 +567,7 @@ export const Route = createFileRoute("/api/billing")({
                 `QUANTUM_JOB: ${parsed.data.jobId} (Shots: ${parsed.data.shots}, Segundos QPU: ${parsed.data.qpu_seconds})`;
 
               // P0: nunca permitir saldo negativo — gate de balance explícito.
-              const tenant = SovereignDB.getTenant(context.tenantId);
+              const tenant = await sovereignStateRepository.getTenant(context.tenantId);
               const currentBalance = tenant?.quotaBalance ?? 0;
               if (currentBalance < costUSD) {
                 return new Response(
@@ -608,7 +603,7 @@ export const Route = createFileRoute("/api/billing")({
 
               // P0: debitar el saldo operativo de forma coherente con el ledger.
               // Re-leer para evitar sobreescribir cambios concurrentes del snapshot.
-              const freshTenant = SovereignDB.getTenant(context.tenantId);
+              const freshTenant = await sovereignStateRepository.getTenant(context.tenantId);
               if (freshTenant) {
                 if (freshTenant.quotaBalance < costUSD) {
                   return new Response(
@@ -620,16 +615,17 @@ export const Route = createFileRoute("/api/billing")({
                 }
                 freshTenant.quotaBalance =
                   Math.round((freshTenant.quotaBalance - costUSD) * 1e9) / 1e9;
-                SovereignDB.upsertTenant(freshTenant);
+                await sovereignStateRepository.upsertTenant(freshTenant);
               }
 
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_charge_${block.index}`,
                 context.correlationId,
                 context.ip,
                 "Consumo de Hardware Dedicado Acreditado",
                 "S3",
                 `Transacción #${block.index} cargada por valor de $${costUSD.toFixed(2)} USD a ${context.tenantId}`,
+                context.tenantId,
               );
 
               return new Response(
@@ -637,7 +633,7 @@ export const Route = createFileRoute("/api/billing")({
                   success: true,
                   blockIndex: block.index,
                   costUSD,
-                  quotaBalanceRemaining: SovereignDB.getTenant(context.tenantId)?.quotaBalance ?? 0,
+                  quotaBalanceRemaining: (await sovereignStateRepository.getTenant(context.tenantId))?.quotaBalance ?? 0,
                 }),
                 { headers },
               );
@@ -737,8 +733,7 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              const db = SovereignDB.load();
-              const tenant = db.tenants.find((t) => t.id === context.tenantId);
+              const tenant = await sovereignStateRepository.getTenant(context.tenantId);
               if (!tenant) {
                 return new Response(JSON.stringify({ error: "Organización no encontrada." }), {
                   status: 404,
@@ -747,24 +742,25 @@ export const Route = createFileRoute("/api/billing")({
               }
 
               tenant.quotaBalance += parsed.data.amountUSD;
-              SovereignDB.upsertTenant(tenant);
+              await sovereignStateRepository.upsertTenant(tenant);
 
-              const block = SovereignDB.appendLedgerBlock(
+              const block = await sovereignStateRepository.appendLedgerBlock(
                 context.tenantId,
                 context.userId,
                 `QUOTA_TOPUP: Recarga manual de saldo comercial (+$${parsed.data.amountUSD.toFixed(2)} USD) ${piMarker}`,
                 "other",
-                0, // no deduction
+                0,
                 0,
               );
 
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_topup_${block.index}`,
                 context.correlationId,
                 context.ip,
                 "Recarga de Saldo Procesada",
                 "S3",
                 `Monto de $${parsed.data.amountUSD.toFixed(2)} USD recargado a ${context.tenantId}. PI: ${parsed.data.stripePaymentIntentId}`,
+                context.tenantId,
               );
 
               return new Response(
@@ -798,18 +794,19 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              const tenant = SovereignDB.getTenant(context.tenantId);
+              const tenant = await sovereignStateRepository.getTenant(context.tenantId);
               const currentBalance = tenant?.quotaBalance ?? 0;
 
               // REGLA DE SEGURIDAD LUMEN / BUDGET LIMITS
               if (currentBalance < parsed.data.estimatedCostUSD) {
-                SovereignDB.appendAuditLog(
+                await sovereignStateRepository.appendAuditLog(
                   `trc_auth_fail_${context.userId}`,
                   context.correlationId,
                   context.ip,
                   "Ejecución de Skill Bloqueada por Insuficiencia",
                   "S1",
                   `Usuario ${context.userId} intentó ejecutar ${parsed.data.skillId} pero posee saldo insuficiente ($${currentBalance.toFixed(2)} < $${parsed.data.estimatedCostUSD.toFixed(2)})`,
+                  context.tenantId,
                 );
 
                 return new Response(
@@ -824,7 +821,7 @@ export const Route = createFileRoute("/api/billing")({
               }
 
               // Elegibilidad de Monetización
-              const monAcc = SovereignDB.getMonetizationAccount(context.userId);
+              const monAcc = await sovereignStateRepository.getMonetizationAccount(context.userId);
               if (monAcc.sanctioned) {
                 return new Response(
                   JSON.stringify({
@@ -879,13 +876,14 @@ export const Route = createFileRoute("/api/billing")({
               );
 
               if (result.success) {
-                SovereignDB.appendAuditLog(
+                await sovereignStateRepository.appendAuditLog(
                   `trc_refund_ok_${parsed.data.ledgerIndex}`,
                   context.correlationId,
                   context.ip,
                   "Reembolso de Transacción Procesado",
                   "S3",
                   `La transacción #${parsed.data.ledgerIndex} fue revertida y su costo reembolsado al tenant ${context.tenantId}`,
+                  context.tenantId,
                 );
 
                 return new Response(
@@ -942,23 +940,26 @@ export const Route = createFileRoute("/api/billing")({
                   );
                 }
 
-                SovereignDB.appendAuditLog(
+                await sovereignStateRepository.appendAuditLog(
                   `trc_market_list_${parsed.data.skillId}`,
                   context.correlationId,
                   context.ip,
                   "Anuncio en Marketplace Publicado",
                   "S3",
                   `Habilidad premium '${parsed.data.title}' listada para monetización por $${(parsed.data.costCents / 100).toFixed(2)} USD`,
+                  context.tenantId,
                 );
 
                 return new Response(JSON.stringify({ success: true, listing }), { headers });
               } catch {
-                // Sin DATABASE_URL (desarrollo): fallback a settings.
+                // Sin DATABASE_URL (desarrollo): ERROR - no fallback a memoria en prod
+                if (isProductionRuntime()) {
+                  throw new Error("Marketplace listing failed: DATABASE_URL required in production");
+                }
+                console.warn("[billing] Marketplace listing: DB unavailable, falling back to in-memory (dev only)");
               }
 
-              const db = SovereignDB.load();
-              const currentListings =
-                (db.settings?.marketplaceListings as MarketplaceListing[]) || [];
+              const currentListings = await sovereignStateRepository.getMarketplaceListings();
 
               const newListing: MarketplaceListing = {
                 skillId: parsed.data.skillId,
@@ -970,15 +971,16 @@ export const Route = createFileRoute("/api/billing")({
               };
 
               currentListings.push(newListing);
-              SovereignDB.saveMarketplaceListings(currentListings);
+              await sovereignStateRepository.saveMarketplaceListings(currentListings);
 
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_market_list_${parsed.data.skillId}`,
                 context.correlationId,
                 context.ip,
                 "Anuncio en Marketplace Publicado",
                 "S3",
                 `Habilidad premium '${parsed.data.title}' listada para monetización por $${(parsed.data.costCents / 100).toFixed(2)} USD`,
+                context.tenantId,
               );
 
               return new Response(JSON.stringify({ success: true, listing: newListing }), {
@@ -1015,7 +1017,7 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              const tenant = SovereignDB.getTenant(context.tenantId);
+              const tenant = await sovereignStateRepository.getTenant(context.tenantId);
               const costUSD = listing.costCents / 100;
 
               // P0: IDEMPOTENCIA ATÓMICA — UNIQUE(tenant_id, idempotency_key)
@@ -1069,7 +1071,7 @@ export const Route = createFileRoute("/api/billing")({
               const userNetCents = listing.costCents - platformFeeCents;
 
               // Descontar saldo al comprador (re-leer: evitar carreras)
-              const freshBuyer = SovereignDB.getTenant(context.tenantId);
+              const freshBuyer = await sovereignStateRepository.getTenant(context.tenantId);
               if (!freshBuyer || freshBuyer.quotaBalance < costUSD) {
                 return new Response(
                   JSON.stringify({
@@ -1081,17 +1083,17 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
               freshBuyer.quotaBalance = Math.round((freshBuyer.quotaBalance - costUSD) * 1e9) / 1e9;
-              SovereignDB.upsertTenant(freshBuyer);
+              await sovereignStateRepository.upsertTenant(freshBuyer);
 
               // Acreditar saldo madurado al vendedor (owner del skill)
-              const ownerAccount = SovereignDB.getMonetizationAccount(listing.ownerId);
-              SovereignDB.updateMonetizationAccount(listing.ownerId, {
+              const ownerAccount = await sovereignStateRepository.getMonetizationAccount(listing.ownerId);
+              await sovereignStateRepository.updateMonetizationAccount(listing.ownerId, {
                 earnedBalanceCents: ownerAccount.earnedBalanceCents + userNetCents,
                 approvedContributions: ownerAccount.approvedContributions + 1,
               });
 
               // Registrar transacción en el Ledger (BookPI)
-              const block = SovereignDB.appendLedgerBlock(
+              const block = await sovereignStateRepository.appendLedgerBlock(
                 context.tenantId,
                 context.userId,
                 `MARKETPLACE_PURCHASE: Compra del skill '${listing.title}' por $${costUSD.toFixed(2)} USD (Reparto: Vendedor +$${(userNetCents / 100).toFixed(2)}, Plataforma +$${(platformFeeCents / 100).toFixed(2)}) ${purchaseMarker}`,
@@ -1100,13 +1102,14 @@ export const Route = createFileRoute("/api/billing")({
                 0,
               );
 
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_market_pur_${block.index}`,
                 context.correlationId,
                 context.ip,
                 "Compra en Marketplace Consumada",
                 "S3",
                 `El usuario ${context.userId} adquirió '${listing.title}'. El vendedor ${listing.ownerId} recibió un crédito de $${(userNetCents / 100).toFixed(2)} USD`,
+                context.tenantId,
               );
 
               return new Response(

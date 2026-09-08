@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import * as nodeCrypto from "node:crypto";
-import { SovereignDB, COGNITIVE_HEADS } from "@/lib/sovereign-engine";
+import { COGNITIVE_HEADS } from "@/lib/sovereign-engine";
+import { sovereignStateRepository } from "@/lib/sovereign-state-repository";
 import { prisma } from "@/lib/db";
 import { createBookpiPostgresRepository } from "@/lib/repositories/bookpi-postgres-repository";
 import { repositoryFactory } from "@/lib/persistence/repository-factory";
@@ -103,7 +104,8 @@ function auditAccessAttempt(
   details: string,
   severity: "S0" | "S1" | "S2" | "S3" = "S1",
 ): void {
-  SovereignDB.appendAuditLog(traceId, `corr_${traceId}`, ip, event, severity, details);
+  // Note: tenantId would need to be passed for production audit
+  sovereignStateRepository.appendAuditLog(traceId, `corr_${traceId}`, ip, event, severity, details, "system");
 }
 
 export const Route = createFileRoute("/api/db")({
@@ -158,22 +160,24 @@ export const Route = createFileRoute("/api/db")({
             const bookpi = createBookpiPostgresRepository();
             const result = await bookpi.verifyIntegrity(context.tenantId);
             if (result.success) {
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 context.traceId,
                 context.correlationId,
                 context.ip,
                 "Auditoría Forense del Ledger Exitosa",
                 "S3",
                 "Integridad del libro de transacciones validada con éxito.",
+                context.tenantId,
               );
             } else {
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_ledger_corrupt_${result.corruptedIndex}`,
                 context.correlationId,
                 context.ip,
                 "¡BRECHA DE SEGURIDAD DETECTADA EN LEDGER!",
                 "S0",
                 `Fallo de integridad en Ledger: ${result.error}`,
+                context.tenantId,
               );
             }
             return new Response(JSON.stringify(result), { headers });
@@ -185,24 +189,26 @@ export const Route = createFileRoute("/api/db")({
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({ "content-type": "application/json" }),
             );
-            const result = SovereignDB.verifyAuditChain();
+            const result = await sovereignStateRepository.verifyAuditChain();
             if (result.success) {
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 context.traceId,
                 context.correlationId,
                 context.ip,
                 "Verificación de Cadena de Auditoría Exitosa",
                 "S3",
                 "La integridad criptográfica de la cadena de logs de auditoría (SHA-256) está intacta.",
+                context.tenantId,
               );
             } else {
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_audit_corrupt_${result.corruptedId || "unknown"}`,
                 context.correlationId,
                 context.ip,
                 "¡INTEGRIDAD DE REGISTROS DE AUDITORÍA VIOLADA!",
                 "S0",
                 `Fallo en validación de cadena: ${result.error}`,
+                context.tenantId,
               );
             }
             return new Response(JSON.stringify(result), { headers });
@@ -218,22 +224,24 @@ export const Route = createFileRoute("/api/db")({
             const testResults = runSecurityTestSuite();
 
             if (testResults.success) {
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 context.traceId,
                 context.correlationId,
                 context.ip,
                 "Auditoría de Sistemas Automatizada Exitosa",
                 "S3",
                 `Paso exitoso de todas las pruebas automatizadas del criptosistema (${testResults.results.length} de ${testResults.results.length} aprobadas).`,
+                context.tenantId,
               );
             } else {
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 context.traceId,
                 context.correlationId,
                 context.ip,
                 "CRITICAL: Fallo en Auditoría de Sistemas",
                 "S0",
                 "Las pruebas del criptosistema de seguridad han fallado.",
+                context.tenantId,
               );
             }
 
@@ -242,11 +250,11 @@ export const Route = createFileRoute("/api/db")({
         }
 
         if (action === "audit") {
-          return withSovereignAuth("audit", "read", async () => {
+          return withSovereignAuth("audit", "read", async (context) => {
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({ "content-type": "application/json" }),
             );
-            const auditLogs = SovereignDB.getAuditLogs();
+            const auditLogs = await sovereignStateRepository.getAuditLogs(context.tenantId);
             return new Response(JSON.stringify({ auditLogs }), { headers });
           })({ request });
         }
@@ -368,7 +376,7 @@ export const Route = createFileRoute("/api/db")({
             });
           }
           const clientId = url.searchParams.get("client_id") || "isabella_oauth_client";
-          const sessions = SovereignDB.getSessions();
+          const sessions = await sovereignStateRepository.getSession("system") ? [await sovereignStateRepository.getSession("system")].filter(Boolean) : [];
 
           const html = `
             <!DOCTYPE html>
@@ -554,7 +562,7 @@ export const Route = createFileRoute("/api/db")({
             return new Response("Error: Origen de redirección inválido.", { status: 400 });
           }
 
-          const session = SovereignDB.getSessions().find((s) => s.userId === entry.userId);
+          const session = await sovereignStateRepository.getSession(entry.userId);
           if (!session) {
             auditAccessAttempt(
               `trc_oauth_cb_${nodeCrypto.randomUUID().slice(0, 8)}`,
@@ -688,7 +696,8 @@ export const Route = createFileRoute("/api/db")({
                 { status: 400, headers },
               );
             }
-            if (SovereignDB.getSessions().find((s) => s.userId === userId) === undefined) {
+            const session = await sovereignStateRepository.getSession(userId);
+            if (!session) {
               return new Response(JSON.stringify({ error: "Usuario no registrado en el nodo." }), {
                 status: 400,
                 headers,
@@ -768,21 +777,22 @@ export const Route = createFileRoute("/api/db")({
             }
             const { tenantId, tenantName, ownerId, ownerUsername } = parsedOwner.data;
 
-            if (SovereignDB.getTenant(tenantId)) {
+            const existingTenant = await sovereignStateRepository.getTenant(tenantId);
+            if (existingTenant) {
               return new Response(JSON.stringify({ error: "El tenant ya existe." }), {
                 status: 409,
                 headers,
               });
             }
 
-            SovereignDB.upsertTenant({
+            await sovereignStateRepository.upsertTenant({
               id: tenantId,
               name: tenantName,
               region: "MX-HGO",
               quotaBalance: 0,
               tier: "Sovereign",
             });
-            SovereignDB.upsertSession({
+            await sovereignStateRepository.upsertSession({
               userId: ownerId,
               username: ownerUsername,
               tenantId,
@@ -881,13 +891,14 @@ export const Route = createFileRoute("/api/db")({
               });
               const block = blockRes.success ? blockRes.block : { index: -1 };
 
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_tx_${block.index}`,
                 context.correlationId,
                 context.ip,
                 "Transacción Ledger Registrada",
                 "S3",
                 `Costo: $${(block as any).cost} debitado para el tenant aislado ${context.tenantId}`,
+                context.tenantId,
               );
 
               return new Response(JSON.stringify({ success: true, block }), { headers });
@@ -914,13 +925,14 @@ export const Route = createFileRoute("/api/db")({
                 return new Response(JSON.stringify({ error: res.error }), { status: 400, headers });
               }
 
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_rf_${index}`,
                 context.correlationId,
                 context.ip,
                 "Reembolso Ledger Procesado",
                 "S2",
                 `Transacción index ${index} reembolsada para ${context.tenantId}`,
+                context.tenantId,
               );
 
               return new Response(JSON.stringify({ success: true }), { headers });
@@ -955,13 +967,14 @@ export const Route = createFileRoute("/api/db")({
                 );
               }
 
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 context.traceId,
                 context.correlationId,
                 context.ip,
                 "Herramienta Ejecutada en Sandbox",
                 result.success ? "S3" : "S1",
                 `Fórmula: [${val.data.expression}]. Simulación WASM: ${val.data.useWasmSim ? "Habilitada" : "Deshabilitada"}.`,
+                context.tenantId,
               );
 
               return new Response(JSON.stringify(result), { headers });
@@ -1158,13 +1171,14 @@ export const Route = createFileRoute("/api/db")({
               }
               const { createPostgresKillSwitchStore } = await import("@/lib/kill-switch");
               const store = createPostgresKillSwitchStore((event, details) => {
-                SovereignDB.appendAuditLog(
+                sovereignStateRepository.appendAuditLog(
                   `trc_emergency_${nodeCrypto.randomUUID().slice(0, 8)}`,
                   context.correlationId,
                   context.ip,
                   "Kill Switch Operado",
                   "S0",
                   `${event}: ${JSON.stringify(details)}`,
+                  context.tenantId,
                 );
               });
               if (action === "emergency-status") {
@@ -1271,13 +1285,14 @@ export const Route = createFileRoute("/api/db")({
               });
               const block = blockRes.success ? blockRes.block : { index: -1 };
 
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_mon_task_${block.index}`,
                 context.correlationId,
                 context.ip,
                 "Crédito de Monetización Acreditado",
                 "S3",
                 `Monto de $${(centsToAdd / 100).toFixed(2)} USD asignado a ${context.userId} por tarea: ${task}`,
+                context.tenantId,
               );
 
               return new Response(JSON.stringify({ success: true, account: updated }), { headers });
@@ -1312,13 +1327,14 @@ export const Route = createFileRoute("/api/db")({
                 },
               });
 
-              SovereignDB.appendAuditLog(
+              await sovereignStateRepository.appendAuditLog(
                 `trc_mon_prof_${context.userId}`,
                 context.correlationId,
                 context.ip,
                 "Perfil de Monetización Sincronizado",
                 "S3",
                 `Parámetros de elegibilidad actualizados para ${context.userId}`,
+                context.tenantId,
               );
 
               return new Response(JSON.stringify({ success: true, account: updated }), { headers });

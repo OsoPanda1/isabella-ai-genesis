@@ -82,13 +82,13 @@ export const PRODUCTION_AUTHORITIES: readonly AuthorityDefinition[] = [
     implementations: ["src/lib/persistence/repository-factory.ts", "supabase/migrations/*"],
     verify: () => {
       const cfg = config();
-      const durable = has(cfg.DATABASE_URL) || (has(cfg.SUPABASE_URL) && has(cfg.AUTH_JWT_SECRET));
+      const durable = has(cfg.DATABASE_URL);
       return [
         {
           ok: durable,
           critical: true,
           detail:
-            "Estado autoritativo exige DATABASE_URL o Supabase tenant-scoped; JSON prohibido en prod.",
+            "Estado autoritativo exige DATABASE_URL (PostgreSQL dedicado). Supabase es solo Identity Provider; JSON prohibido en prod.",
         },
       ];
     },

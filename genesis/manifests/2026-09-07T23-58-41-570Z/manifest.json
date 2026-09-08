@@ -1,0 +1,2544 @@
+{
+  "manifest": {
+    "version": "2.0.1",
+    "generatedAt": "2026-09-07T23:58:41.570Z",
+    "generator": "genesis-audit-engine",
+    "generatorVersion": "2.0.1",
+    "generatorHash": "796dc1b08cd1ef8572ec75cc6f74e246ffb39440bd2e323b90df0399396fbffd6c90abec3242d0d788024e87e4f382fabbb175a1ed3749f90af86006aa0d47b5"
+  },
+  "context": {
+    "repository": {
+      "name": "isabella-ai-genesis",
+      "url": "https://github.com/OsoPanda1/isabella-ai-genesis",
+      "commit": "unknown",
+      "branch": "unknown",
+      "snapshotHash": "1f116e5b9fef988077c2658748ee5ecd17553038f19d6c7d330deb8249f607cb67648975d98244f63584aa18fe1e2fdf24a4ef5368993f660cf80a07dd534e6f",
+      "snapshotTimestamp": "2026-09-07T23:58:41.564Z"
+    },
+    "environment": {
+      "runner": "local",
+      "runnerId": "local",
+      "os": "win32",
+      "nodeVersion": "v22.18.0",
+      "pnpmVersion": "unknown",
+      "dependencyLockHash": "c7c486a278dca0f78fdc1d0ffaf88e66d258bb8061a913145e10510ebe9cce43d5fed865354171e757c0b61171ed8697ae1fe82b58f66c9ac6dc59edd8b464b4"
+    }
+  },
+  "summary": {
+    "totalClaims": 10,
+    "totalControls": 0,
+    "totalTests": 0,
+    "totalEvidence": 0,
+    "totalFindings": 42,
+    "bySeverity": {
+      "critical": 12,
+      "high": 28,
+      "medium": 2,
+      "low": 0,
+      "informational": 0
+    },
+    "byStatus": {
+      "planned": 1,
+      "designed": 0,
+      "partial": 6,
+      "implemented": 0,
+      "tested": 0,
+      "verified": 0,
+      "productionVerified": 0,
+      "failed": 3,
+      "unknown": 0,
+      "notApplicable": 0
+    },
+    "scores": {
+      "engineeringMaturity": 0,
+      "evidenceMaturity": 50,
+      "productionReadiness": 0
+    },
+    "releaseDecision": {
+      "decision": "NO-GO",
+      "blockingFindings": 12,
+      "justification": "12 critical findings bloquean el release"
+    }
+  },
+  "claims": [
+    {
+      "id": "CLAIM-001",
+      "title": "Provenance",
+      "description": "Complete provenance chain from conception to deployment with dated artifacts and design records",
+      "requiredStatus": "VERIFIED",
+      "evidenceRequired": [
+        "GIT_HISTORY",
+        "DESIGN_RECORDS",
+        "DATED_ARTIFACTS"
+      ],
+      "controls": [
+        "CTRL-001",
+        "CTRL-002",
+        "CTRL-003"
+      ],
+      "category": "GOVERNANCE",
+      "owner": "Edwin Oswaldo Castillo Trejo",
+      "tags": [
+        "provenance",
+        "governance",
+        "charter"
+      ],
+      "createdAt": "2026-09-01T00:00:00Z",
+      "updatedAt": "2026-09-07T00:00:00Z"
+    },
+    {
+      "id": "CLAIM-002",
+      "title": "HITL for high-risk operations",
+      "description": "Human-in-the-loop enforcement for all high-risk operations with approval workflow",
+      "requiredStatus": "TESTED",
+      "evidenceRequired": [
+        "SOURCE_CODE",
+        "TEST_HITL",
+        "POLICY_DOCUMENT"
+      ],
+      "controls": [
+        "CTRL-010",
+        "CTRL-011",
+        "CTRL-012"
+      ],
+      "category": "SECURITY",
+      "owner": "Edwin Oswaldo Castillo Trejo",
+      "tags": [
+        "hitl",
+        "approval",
+        "human-in-the-loop"
+      ],
+      "createdAt": "2026-09-01T00:00:00Z",
+      "updatedAt": "2026-09-07T00:00:00Z"
+    },
+    {
+      "id": "CLAIM-003",
+      "title": "Tamper-evident audit",
+      "description": "Cryptographically chained audit log with hash verification and concurrency safety",
+      "requiredStatus": "VERIFIED",
+      "evidenceRequired": [
+        "SOURCE_CODE",
+        "TEST_AUDIT_CHAIN",
+        "TEST_CONCURRENCY",
+        "WORM_CONFIG"
+      ],
+      "controls": [
+        "CTRL-020",
+        "CTRL-021",
+        "CTRL-022",
+        "CTRL-023"
+      ],
+      "category": "AUDIT",
+      "owner": "Edwin Oswaldo Castillo Trejo",
+      "tags": [
+        "audit",
+        "tamper-evident",
+        "hash-chain",
+        "concurrency"
+      ],
+      "createdAt": "2026-09-01T00:00:00Z",
+      "updatedAt": "2026-09-07T00:00:00Z"
+    },
+    {
+      "id": "CLAIM-004",
+      "title": "Privacy compliance",
+      "description": "GDPR/AI Act compliance with DPIA, DPA, and privacy-by-design implementation",
+      "requiredStatus": "TESTED",
+      "evidenceRequired": [
+        "DPIA",
+        "DPA",
+        "PRIVACY_POLICY",
+        "TEST_DATA_HANDLING"
+      ],
+      "controls": [
+        "CTRL-030",
+        "CTRL-031",
+        "CTRL-032"
+      ],
+      "category": "PRIVACY",
+      "owner": "Edwin Oswaldo Castillo Trejo",
+      "tags": [
+        "privacy",
+        "gdpr",
+        "ai-act",
+        "compliance"
+      ],
+      "createdAt": "2026-09-01T00:00:00Z",
+      "updatedAt": "2026-09-07T00:00:00Z"
+    },
+    {
+      "id": "CLAIM-005",
+      "title": "Financial atomicity",
+      "description": "All financial mutations execute atomically with double-entry ledger and balance protection",
+      "requiredStatus": "PRODUCTION-VERIFIED",
+      "evidenceRequired": [
+        "SOURCE_CODE",
+        "UNIT_TEST",
+        "INTEGRATION_TEST",
+        "SECURITY_TEST",
+        "CONCURRENCY_TEST",
+        "EXTERNAL_AUDIT",
+        "DEPLOYMENT_RECORD",
+        "HEALTH_CHECK",
+        "MONITORING_DATA",
+        "INCIDENT_REPORT"
+      ],
+      "controls": [
+        "CTRL-040",
+        "CTRL-041",
+        "CTRL-042",
+        "CTRL-043",
+        "CTRL-044"
+      ],
+      "category": "FINANCIAL",
+      "owner": "Edwin Oswaldo Castillo Trejo",
+      "tags": [
+        "financial",
+        "atomic",
+        "ledger",
+        "bookpi"
+      ],
+      "createdAt": "2026-09-01T00:00:00Z",
+      "updatedAt": "2026-09-07T00:00:00Z"
+    },
+    {
+      "id": "CLAIM-006",
+      "title": "Database authority consolidation",
+      "description": "Single authoritative PostgreSQL database (DATABASE_URL) with Supabase as Identity Provider only",
+      "requiredStatus": "PRODUCTION-VERIFIED",
+      "evidenceRequired": [
+        "SOURCE_CODE",
+        "UNIT_TEST",
+        "INTEGRATION_TEST",
+        "SECURITY_TEST",
+        "CONCURRENCY_TEST",
+        "EXTERNAL_AUDIT",
+        "DEPLOYMENT_RECORD",
+        "HEALTH_CHECK",
+        "MONITORING_DATA",
+        "INCIDENT_REPORT"
+      ],
+      "controls": [
+        "CTRL-050",
+        "CTRL-051",
+        "CTRL-052"
+      ],
+      "category": "DATABASE",
+      "owner": "Edwin Oswaldo Castillo Trejo",
+      "tags": [
+        "database",
+        "authority",
+        "postgresql",
+        "supabase"
+      ],
+      "createdAt": "2026-09-01T00:00:00Z",
+      "updatedAt": "2026-09-07T00:00:00Z"
+    },
+    {
+      "id": "CLAIM-007",
+      "title": "Sovereign state transactional persistence",
+      "description": "SovereignDB uses transactional PostgreSQL persistence with BEGIN/VALIDATE/LOCK/MUTATE/LEDGER/AUDIT/COMMIT pattern",
+      "requiredStatus": "PRODUCTION-VERIFIED",
+      "evidenceRequired": [
+        "SOURCE_CODE",
+        "UNIT_TEST",
+        "INTEGRATION_TEST",
+        "SECURITY_TEST",
+        "CONCURRENCY_TEST",
+        "EXTERNAL_AUDIT",
+        "DEPLOYMENT_RECORD",
+        "HEALTH_CHECK",
+        "MONITORING_DATA",
+        "INCIDENT_REPORT"
+      ],
+      "controls": [
+        "CTRL-060",
+        "CTRL-061",
+        "CTRL-062"
+      ],
+      "category": "DATABASE",
+      "owner": "Edwin Oswaldo Castillo Trejo",
+      "tags": [
+        "sovereign",
+        "transactional",
+        "persistence"
+      ],
+      "createdAt": "2026-09-01T00:00:00Z",
+      "updatedAt": "2026-09-07T00:00:00Z"
+    },
+    {
+      "id": "CLAIM-008",
+      "title": "Kill switch durable with approval store",
+      "description": "Kill switch uses durable PostgreSQL approval store in production, not in-memory Map",
+      "requiredStatus": "TESTED",
+      "evidenceRequired": [
+        "SOURCE_CODE",
+        "UNIT_TEST",
+        "INTEGRATION_TEST",
+        "SECURITY_TEST",
+        "CONCURRENCY_TEST"
+      ],
+      "controls": [
+        "CTRL-070",
+        "CTRL-071"
+      ],
+      "category": "SECURITY",
+      "owner": "Edwin Oswaldo Castillo Trejo",
+      "tags": [
+        "kill-switch",
+        "emergency",
+        "approval-store"
+      ],
+      "createdAt": "2026-09-01T00:00:00Z",
+      "updatedAt": "2026-09-07T00:00:00Z"
+    },
+    {
+      "id": "CLAIM-009",
+      "title": "MFA step-up for SovereignOwner",
+      "description": "Privileged operations require MFA step-up authentication",
+      "requiredStatus": "PLANNED",
+      "evidenceRequired": [
+        "SOURCE_CODE",
+        "UNIT_TEST",
+        "INTEGRATION_TEST",
+        "SECURITY_TEST",
+        "CONCURRENCY_TEST",
+        "EXTERNAL_AUDIT",
+        "DEPLOYMENT_RECORD",
+        "HEALTH_CHECK",
+        "MONITORING_DATA",
+        "INCIDENT_REPORT"
+      ],
+      "controls": [
+        "CTRL-080",
+        "CTRL-081"
+      ],
+      "category": "AUTH",
+      "owner": "Edwin Oswaldo Castillo Trejo",
+      "tags": [
+        "mfa",
+        "step-up",
+        "sovereign-owner"
+      ],
+      "createdAt": "2026-09-01T00:00:00Z",
+      "updatedAt": "2026-09-07T00:00:00Z"
+    },
+    {
+      "id": "CLAIM-010",
+      "title": "CSP hardened without unsafe-inline",
+      "description": "Content Security Policy enforced without 'unsafe-inline', using nonce-based script loading",
+      "requiredStatus": "TESTED",
+      "evidenceRequired": [
+        "SOURCE_CODE",
+        "UNIT_TEST",
+        "INTEGRATION_TEST",
+        "SECURITY_TEST"
+      ],
+      "controls": [
+        "CTRL-090",
+        "CTRL-091"
+      ],
+      "category": "SECURITY",
+      "owner": "Edwin Oswaldo Castillo Trejo",
+      "tags": [
+        "csp",
+        "content-security-policy",
+        "nonce"
+      ],
+      "createdAt": "2026-09-01T00:00:00Z",
+      "updatedAt": "2026-09-07T00:00:00Z"
+    }
+  ],
+  "controls": [],
+  "findings": [
+    {
+      "id": "GEN-GOVERNANCE-MTRWJ22V",
+      "title": "Claim CLAIM-001 gap: Insufficient evidence: 0/6",
+      "description": "El claim CLAIM-001 (Provenance) no cumple requisitos: Insufficient evidence: 0/6",
+      "severity": "HIGH",
+      "category": "GOVERNANCE",
+      "claimId": "CLAIM-001",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 80,
+        "rank": 8,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Resolver gap: Insufficient evidence: 0/6",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.479Z",
+      "updatedAt": "2026-09-07T23:58:41.479Z"
+    },
+    {
+      "id": "GEN-GOVERNANCE-MTRWJ22W",
+      "title": "Claim CLAIM-001 gap: Missing evidence type: INTEGRATION_TEST",
+      "description": "El claim CLAIM-001 (Provenance) no cumple requisitos: Missing evidence type: INTEGRATION_TEST",
+      "severity": "HIGH",
+      "category": "GOVERNANCE",
+      "claimId": "CLAIM-001",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 80,
+        "rank": 8,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: INTEGRATION_TEST",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.480Z",
+      "updatedAt": "2026-09-07T23:58:41.480Z"
+    },
+    {
+      "id": "GEN-GOVERNANCE-MTRWJ22X",
+      "title": "Low confidence for claim CLAIM-001",
+      "description": "Confianza baja (0%) para claim CLAIM-001",
+      "severity": "HIGH",
+      "category": "GOVERNANCE",
+      "claimId": "CLAIM-001",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 80,
+        "rank": 8,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.481Z",
+      "updatedAt": "2026-09-07T23:58:41.481Z"
+    },
+    {
+      "id": "GEN-GOVERNANCE-MTRWJ231",
+      "title": "Claim CLAIM-001 gap: Missing evidence type: INTEGRATION_TEST",
+      "description": "El claim CLAIM-001 (Provenance) no cumple requisitos: Missing evidence type: INTEGRATION_TEST",
+      "severity": "HIGH",
+      "category": "GOVERNANCE",
+      "claimId": "CLAIM-001",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 80,
+        "rank": 8,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: INTEGRATION_TEST",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.485Z",
+      "updatedAt": "2026-09-07T23:58:41.485Z"
+    },
+    {
+      "id": "GEN-GOVERNANCE-MTRWJ232",
+      "title": "Low confidence for claim CLAIM-001",
+      "description": "Confianza baja (0%) para claim CLAIM-001",
+      "severity": "HIGH",
+      "category": "GOVERNANCE",
+      "claimId": "CLAIM-001",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 80,
+        "rank": 8,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.486Z",
+      "updatedAt": "2026-09-07T23:58:41.486Z"
+    },
+    {
+      "id": "GEN-SECURITY-MTRWJ235",
+      "title": "Claim CLAIM-002 gap: Missing evidence type: UNIT_TEST",
+      "description": "El claim CLAIM-002 (HITL for high-risk operations) no cumple requisitos: Missing evidence type: UNIT_TEST",
+      "severity": "MEDIUM",
+      "category": "SECURITY",
+      "claimId": "CLAIM-002",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 62,
+        "rank": 6,
+        "shouldBlockRelease": false,
+        "slaHours": 72
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: UNIT_TEST",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.489Z",
+      "updatedAt": "2026-09-07T23:58:41.489Z"
+    },
+    {
+      "id": "GEN-SECURITY-MTRWJ236",
+      "title": "Low confidence for claim CLAIM-002",
+      "description": "Confianza baja (0%) para claim CLAIM-002",
+      "severity": "HIGH",
+      "category": "SECURITY",
+      "claimId": "CLAIM-002",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.490Z",
+      "updatedAt": "2026-09-07T23:58:41.490Z"
+    },
+    {
+      "id": "GEN-SECURITY-MTRWJ237",
+      "title": "Claim CLAIM-002 gap: Missing evidence type: UNIT_TEST",
+      "description": "El claim CLAIM-002 (HITL for high-risk operations) no cumple requisitos: Missing evidence type: UNIT_TEST",
+      "severity": "MEDIUM",
+      "category": "SECURITY",
+      "claimId": "CLAIM-002",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 62,
+        "rank": 6,
+        "shouldBlockRelease": false,
+        "slaHours": 72
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: UNIT_TEST",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.491Z",
+      "updatedAt": "2026-09-07T23:58:41.491Z"
+    },
+    {
+      "id": "GEN-SECURITY-MTRWJ238",
+      "title": "Low confidence for claim CLAIM-002",
+      "description": "Confianza baja (0%) para claim CLAIM-002",
+      "severity": "HIGH",
+      "category": "SECURITY",
+      "claimId": "CLAIM-002",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.492Z",
+      "updatedAt": "2026-09-07T23:58:41.492Z"
+    },
+    {
+      "id": "GEN-AUDIT-MTRWJ23C",
+      "title": "Claim CLAIM-003 gap: Missing evidence type: SECURITY_TEST",
+      "description": "El claim CLAIM-003 (Tamper-evident audit) no cumple requisitos: Missing evidence type: SECURITY_TEST",
+      "severity": "HIGH",
+      "category": "AUDIT",
+      "claimId": "CLAIM-003",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 94,
+        "rank": 9,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: SECURITY_TEST",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.496Z",
+      "updatedAt": "2026-09-07T23:58:41.496Z"
+    },
+    {
+      "id": "GEN-AUDIT-MTRWJ23D",
+      "title": "Low confidence for claim CLAIM-003",
+      "description": "Confianza baja (0%) para claim CLAIM-003",
+      "severity": "HIGH",
+      "category": "AUDIT",
+      "claimId": "CLAIM-003",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 94,
+        "rank": 9,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.497Z",
+      "updatedAt": "2026-09-07T23:58:41.497Z"
+    },
+    {
+      "id": "GEN-AUDIT-MTRWJ23G",
+      "title": "Claim CLAIM-003 gap: Insufficient evidence: 0/6",
+      "description": "El claim CLAIM-003 (Tamper-evident audit) no cumple requisitos: Insufficient evidence: 0/6",
+      "severity": "HIGH",
+      "category": "AUDIT",
+      "claimId": "CLAIM-003",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 94,
+        "rank": 9,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Resolver gap: Insufficient evidence: 0/6",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.500Z",
+      "updatedAt": "2026-09-07T23:58:41.500Z"
+    },
+    {
+      "id": "GEN-AUDIT-MTRWJ23K",
+      "title": "Claim CLAIM-003 gap: Missing evidence type: EXTERNAL_AUDIT",
+      "description": "El claim CLAIM-003 (Tamper-evident audit) no cumple requisitos: Missing evidence type: EXTERNAL_AUDIT",
+      "severity": "HIGH",
+      "category": "AUDIT",
+      "claimId": "CLAIM-003",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 94,
+        "rank": 9,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: EXTERNAL_AUDIT",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.504Z",
+      "updatedAt": "2026-09-07T23:58:41.504Z"
+    },
+    {
+      "id": "GEN-AUDIT-MTRWJ23L",
+      "title": "Low confidence for claim CLAIM-003",
+      "description": "Confianza baja (0%) para claim CLAIM-003",
+      "severity": "HIGH",
+      "category": "AUDIT",
+      "claimId": "CLAIM-003",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 94,
+        "rank": 9,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.505Z",
+      "updatedAt": "2026-09-07T23:58:41.505Z"
+    },
+    {
+      "id": "GEN-PRIVACY-MTRWJ23M",
+      "title": "Low confidence for claim CLAIM-004",
+      "description": "Confianza baja (0%) para claim CLAIM-004",
+      "severity": "HIGH",
+      "category": "PRIVACY",
+      "claimId": "CLAIM-004",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 94,
+        "rank": 9,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.506Z",
+      "updatedAt": "2026-09-07T23:58:41.506Z"
+    },
+    {
+      "id": "GEN-PRIVACY-MTRWJ23O",
+      "title": "Low confidence for claim CLAIM-004",
+      "description": "Confianza baja (0%) para claim CLAIM-004",
+      "severity": "HIGH",
+      "category": "PRIVACY",
+      "claimId": "CLAIM-004",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 94,
+        "rank": 9,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.508Z",
+      "updatedAt": "2026-09-07T23:58:41.508Z"
+    },
+    {
+      "id": "GEN-FINANCIAL-MTRWJ23S",
+      "title": "Claim CLAIM-005 gap: Missing evidence type: SECURITY_TEST",
+      "description": "El claim CLAIM-005 (Financial atomicity) no cumple requisitos: Missing evidence type: SECURITY_TEST",
+      "severity": "CRITICAL",
+      "category": "FINANCIAL",
+      "claimId": "CLAIM-005",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 4
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: SECURITY_TEST",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.512Z",
+      "updatedAt": "2026-09-07T23:58:41.512Z"
+    },
+    {
+      "id": "GEN-FINANCIAL-MTRWJ23T",
+      "title": "Low confidence for claim CLAIM-005",
+      "description": "Confianza baja (0%) para claim CLAIM-005",
+      "severity": "HIGH",
+      "category": "FINANCIAL",
+      "claimId": "CLAIM-005",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.513Z",
+      "updatedAt": "2026-09-07T23:58:41.513Z"
+    },
+    {
+      "id": "GEN-FINANCIAL-MTRWJ23W",
+      "title": "Claim CLAIM-005 gap: Insufficient evidence: 0/10",
+      "description": "El claim CLAIM-005 (Financial atomicity) no cumple requisitos: Insufficient evidence: 0/10",
+      "severity": "CRITICAL",
+      "category": "FINANCIAL",
+      "claimId": "CLAIM-005",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 4
+      },
+      "remediation": {
+        "description": "Resolver gap: Insufficient evidence: 0/10",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.516Z",
+      "updatedAt": "2026-09-07T23:58:41.516Z"
+    },
+    {
+      "id": "GEN-FINANCIAL-MTRWJ23X",
+      "title": "Claim CLAIM-005 gap: Missing evidence type: CONCURRENCY_TEST",
+      "description": "El claim CLAIM-005 (Financial atomicity) no cumple requisitos: Missing evidence type: CONCURRENCY_TEST",
+      "severity": "CRITICAL",
+      "category": "FINANCIAL",
+      "claimId": "CLAIM-005",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 4
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: CONCURRENCY_TEST",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.517Z",
+      "updatedAt": "2026-09-07T23:58:41.517Z"
+    },
+    {
+      "id": "GEN-FINANCIAL-MTRWJ23Y",
+      "title": "Low confidence for claim CLAIM-005",
+      "description": "Confianza baja (0%) para claim CLAIM-005",
+      "severity": "HIGH",
+      "category": "FINANCIAL",
+      "claimId": "CLAIM-005",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.518Z",
+      "updatedAt": "2026-09-07T23:58:41.518Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ242",
+      "title": "Claim CLAIM-006 gap: Insufficient evidence: 0/10",
+      "description": "El claim CLAIM-006 (Database authority consolidation) no cumple requisitos: Insufficient evidence: 0/10",
+      "severity": "CRITICAL",
+      "category": "DATABASE",
+      "claimId": "CLAIM-006",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 4
+      },
+      "remediation": {
+        "description": "Resolver gap: Insufficient evidence: 0/10",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.522Z",
+      "updatedAt": "2026-09-07T23:58:41.522Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ243",
+      "title": "Claim CLAIM-006 gap: Missing evidence type: EXTERNAL_AUDIT",
+      "description": "El claim CLAIM-006 (Database authority consolidation) no cumple requisitos: Missing evidence type: EXTERNAL_AUDIT",
+      "severity": "CRITICAL",
+      "category": "DATABASE",
+      "claimId": "CLAIM-006",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 4
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: EXTERNAL_AUDIT",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.523Z",
+      "updatedAt": "2026-09-07T23:58:41.523Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ244",
+      "title": "Low confidence for claim CLAIM-006",
+      "description": "Confianza baja (0%) para claim CLAIM-006",
+      "severity": "HIGH",
+      "category": "DATABASE",
+      "claimId": "CLAIM-006",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 94,
+        "rank": 9,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.524Z",
+      "updatedAt": "2026-09-07T23:58:41.524Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ24B",
+      "title": "Claim CLAIM-006 gap: Missing evidence type: INTEGRATION_TEST",
+      "description": "El claim CLAIM-006 (Database authority consolidation) no cumple requisitos: Missing evidence type: INTEGRATION_TEST",
+      "severity": "CRITICAL",
+      "category": "DATABASE",
+      "claimId": "CLAIM-006",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 4
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: INTEGRATION_TEST",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.531Z",
+      "updatedAt": "2026-09-07T23:58:41.531Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ24C",
+      "title": "Low confidence for claim CLAIM-006",
+      "description": "Confianza baja (0%) para claim CLAIM-006",
+      "severity": "HIGH",
+      "category": "DATABASE",
+      "claimId": "CLAIM-006",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 94,
+        "rank": 9,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.532Z",
+      "updatedAt": "2026-09-07T23:58:41.532Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ24F",
+      "title": "Claim CLAIM-007 gap: Missing evidence type: SECURITY_TEST",
+      "description": "El claim CLAIM-007 (Sovereign state transactional persistence) no cumple requisitos: Missing evidence type: SECURITY_TEST",
+      "severity": "CRITICAL",
+      "category": "DATABASE",
+      "claimId": "CLAIM-007",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 4
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: SECURITY_TEST",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.535Z",
+      "updatedAt": "2026-09-07T23:58:41.535Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ24H",
+      "title": "Claim CLAIM-007 gap: Missing evidence type: CONCURRENCY_TEST",
+      "description": "El claim CLAIM-007 (Sovereign state transactional persistence) no cumple requisitos: Missing evidence type: CONCURRENCY_TEST",
+      "severity": "CRITICAL",
+      "category": "DATABASE",
+      "claimId": "CLAIM-007",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 4
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: CONCURRENCY_TEST",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.537Z",
+      "updatedAt": "2026-09-07T23:58:41.537Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ24I",
+      "title": "Low confidence for claim CLAIM-007",
+      "description": "Confianza baja (0%) para claim CLAIM-007",
+      "severity": "HIGH",
+      "category": "DATABASE",
+      "claimId": "CLAIM-007",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 94,
+        "rank": 9,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.538Z",
+      "updatedAt": "2026-09-07T23:58:41.538Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ24J",
+      "title": "Claim CLAIM-007 gap: Missing evidence type: SOURCE_CODE",
+      "description": "El claim CLAIM-007 (Sovereign state transactional persistence) no cumple requisitos: Missing evidence type: SOURCE_CODE",
+      "severity": "CRITICAL",
+      "category": "DATABASE",
+      "claimId": "CLAIM-007",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 4
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: SOURCE_CODE",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.539Z",
+      "updatedAt": "2026-09-07T23:58:41.539Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ24K",
+      "title": "Claim CLAIM-007 gap: Missing evidence type: EXTERNAL_AUDIT",
+      "description": "El claim CLAIM-007 (Sovereign state transactional persistence) no cumple requisitos: Missing evidence type: EXTERNAL_AUDIT",
+      "severity": "CRITICAL",
+      "category": "DATABASE",
+      "claimId": "CLAIM-007",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 4
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: EXTERNAL_AUDIT",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.540Z",
+      "updatedAt": "2026-09-07T23:58:41.540Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ24L",
+      "title": "Claim CLAIM-007 gap: Missing evidence type: HEALTH_CHECK",
+      "description": "El claim CLAIM-007 (Sovereign state transactional persistence) no cumple requisitos: Missing evidence type: HEALTH_CHECK",
+      "severity": "CRITICAL",
+      "category": "DATABASE",
+      "claimId": "CLAIM-007",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 4
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: HEALTH_CHECK",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.541Z",
+      "updatedAt": "2026-09-07T23:58:41.541Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ24M",
+      "title": "Claim CLAIM-007 gap: Missing evidence type: INCIDENT_REPORT",
+      "description": "El claim CLAIM-007 (Sovereign state transactional persistence) no cumple requisitos: Missing evidence type: INCIDENT_REPORT",
+      "severity": "CRITICAL",
+      "category": "DATABASE",
+      "claimId": "CLAIM-007",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": true,
+        "slaHours": 4
+      },
+      "remediation": {
+        "description": "Resolver gap: Missing evidence type: INCIDENT_REPORT",
+        "effort": "MEDIUM",
+        "verificationSteps": [
+          "Verificar evidencia",
+          "Ejecutar tests",
+          "Actualizar documentación"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.542Z",
+      "updatedAt": "2026-09-07T23:58:41.542Z"
+    },
+    {
+      "id": "GEN-DATABASE-MTRWJ24Q",
+      "title": "Low confidence for claim CLAIM-007",
+      "description": "Confianza baja (0%) para claim CLAIM-007",
+      "severity": "HIGH",
+      "category": "DATABASE",
+      "claimId": "CLAIM-007",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 94,
+        "rank": 9,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.546Z",
+      "updatedAt": "2026-09-07T23:58:41.546Z"
+    },
+    {
+      "id": "GEN-SECURITY-MTRWJ24R",
+      "title": "Low confidence for claim CLAIM-008",
+      "description": "Confianza baja (0%) para claim CLAIM-008",
+      "severity": "HIGH",
+      "category": "SECURITY",
+      "claimId": "CLAIM-008",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.547Z",
+      "updatedAt": "2026-09-07T23:58:41.547Z"
+    },
+    {
+      "id": "GEN-SECURITY-MTRWJ24S",
+      "title": "Low confidence for claim CLAIM-008",
+      "description": "Confianza baja (0%) para claim CLAIM-008",
+      "severity": "HIGH",
+      "category": "SECURITY",
+      "claimId": "CLAIM-008",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.548Z",
+      "updatedAt": "2026-09-07T23:58:41.548Z"
+    },
+    {
+      "id": "GEN-AUTH-MTRWJ24T",
+      "title": "Low confidence for claim CLAIM-009",
+      "description": "Confianza baja (0%) para claim CLAIM-009",
+      "severity": "HIGH",
+      "category": "AUTH",
+      "claimId": "CLAIM-009",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 94,
+        "rank": 9,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.549Z",
+      "updatedAt": "2026-09-07T23:58:41.549Z"
+    },
+    {
+      "id": "GEN-SECURITY-MTRWJ24U",
+      "title": "Low confidence for claim CLAIM-010",
+      "description": "Confianza baja (0%) para claim CLAIM-010",
+      "severity": "HIGH",
+      "category": "SECURITY",
+      "claimId": "CLAIM-010",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.550Z",
+      "updatedAt": "2026-09-07T23:58:41.550Z"
+    },
+    {
+      "id": "GEN-SECURITY-MTRWJ24V",
+      "title": "Low confidence for claim CLAIM-010",
+      "description": "Confianza baja (0%) para claim CLAIM-010",
+      "severity": "HIGH",
+      "category": "SECURITY",
+      "claimId": "CLAIM-010",
+      "location": {
+        "file": "claims registry"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Mejorar calidad y cantidad de evidencia",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Revisar evidencia existente",
+          "Generar evidencia faltante",
+          "Re-ejecutar tests"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.551Z",
+      "updatedAt": "2026-09-07T23:58:41.551Z"
+    },
+    {
+      "id": "GEN-SECURITY-MTRWJ24X",
+      "title": "Contradiction detected: claim_vs_code",
+      "description": "Claim CLAIM-001 (Provenance) requires implementation but no code implements it",
+      "severity": "HIGH",
+      "category": "SECURITY",
+      "location": {
+        "file": "claim:CLAIM-001, none"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Resolver contradicción entre claim:CLAIM-001 y none",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Identificar fuente de verdad",
+          "Corregir implementación o documentación",
+          "Re-verificar"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.553Z",
+      "updatedAt": "2026-09-07T23:58:41.553Z"
+    },
+    {
+      "id": "GEN-SECURITY-MTRWJ24Y",
+      "title": "Contradiction detected: claim_vs_code",
+      "description": "Claim CLAIM-003 (Tamper-evident audit) requires implementation but no code implements it",
+      "severity": "HIGH",
+      "category": "SECURITY",
+      "location": {
+        "file": "claim:CLAIM-003, none"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Resolver contradicción entre claim:CLAIM-003 y none",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Identificar fuente de verdad",
+          "Corregir implementación o documentación",
+          "Re-verificar"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.554Z",
+      "updatedAt": "2026-09-07T23:58:41.554Z"
+    },
+    {
+      "id": "GEN-SECURITY-MTRWJ24Z",
+      "title": "Contradiction detected: claim_vs_code",
+      "description": "Claim CLAIM-010 (CSP hardened without unsafe-inline) requires implementation but no code implements it",
+      "severity": "HIGH",
+      "category": "SECURITY",
+      "location": {
+        "file": "claim:CLAIM-010, none"
+      },
+      "evidence": [],
+      "impact": {
+        "confidentiality": 0,
+        "integrity": 0,
+        "availability": 0,
+        "financial": 0,
+        "reputational": 0,
+        "compliance": 0
+      },
+      "exploitability": {
+        "attackVector": "NETWORK",
+        "attackComplexity": "LOW",
+        "privilegesRequired": "NONE",
+        "userInteraction": "NONE",
+        "scope": "UNCHANGED"
+      },
+      "blastRadius": "COMPONENT",
+      "cvss": {
+        "baseScore": 0,
+        "temporalScore": 0,
+        "environmentalScore": 0,
+        "vectorString": "CVSS:3.1/AV:NETWORK/AC:LOW/PR:NONE/UI:NONE/S:U/C:N/I:N/A:N"
+      },
+      "priority": {
+        "score": 100,
+        "rank": 10,
+        "shouldBlockRelease": false,
+        "slaHours": 24
+      },
+      "remediation": {
+        "description": "Resolver contradicción entre claim:CLAIM-010 y none",
+        "effort": "HIGH",
+        "verificationSteps": [
+          "Identificar fuente de verdad",
+          "Corregir implementación o documentación",
+          "Re-verificar"
+        ]
+      },
+      "status": "OPEN",
+      "createdAt": "2026-09-07T23:58:41.555Z",
+      "updatedAt": "2026-09-07T23:58:41.555Z"
+    }
+  ],
+  "evidenceReferences": [],
+  "integrity": {
+    "claimsHash": "cd43cdc91b56c0b4d753cd5c7a6c17f20ded4b933ad3a9249db13052d2a9e29225ebf2c954ebb707b9bdd2fa69523445031053ddb1e01de366b41ebe40eafee2",
+    "controlsHash": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "findingsHash": "e5387dca5f41d3058b3e2f75e428927c1214ec98a3f0f9d69fbf69c6a066eddb429927762ac2450ed671242046366207086d32f8659b8c02add1292b8749d2aa",
+    "evidenceHash": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "manifestHash": "333e17fcfcaf95fec785ed6afcdac191109977bd518f40ab52ef54d587eb06eb9e2e8ea6d82064f6e199bbf344a28189ecb35051b01e91b7ecaa68eb01f3bed4"
+  }
+}
