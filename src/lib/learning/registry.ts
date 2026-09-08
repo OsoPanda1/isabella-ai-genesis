@@ -8,8 +8,8 @@ export interface RegisteredModel {
 export interface EvaluationRun {
   id: string; tenantId: string; modelId: string; datasetId: string; protocolHash: string; metrics: Record<string, number>; baseline: Record<string, number>; artifactHash: string; status: "RUNNING" | "PASSED" | "FAILED"; createdAt: string;
 }
-interface DbDataset extends DatasetIdentity { id: string; }
-interface DbTrainingRun extends TrainingRun { id: string; }
+interface DbDataset { id: string; version: string; territoryId: string; source: string; license: string; schemaHash: string; contentHash: string; status: DatasetIdentity["status"]; createdAt: string; }
+interface DbTrainingRun { id: string; datasetIds: string[]; baseModelId?: string; algorithm: string; hyperparameters: Record<string, unknown>; seed: number; status: TrainingRun["status"]; sourceCommit: string; inputHash: string; outputHash?: string; createdAt: string; completedAt?: string; }
 
 const datasets = new NeonRepository<DbDataset>("fgais_datasets");
 const models = new NeonRepository<RegisteredModel>("fgais_models");
@@ -21,8 +21,8 @@ function hashObject(value: unknown): string { return createHash("sha256").update
 export async function registerDataset(tenantId: string, dataset: DatasetIdentity): Promise<DatasetIdentity> {
   if (dataset.status !== "VALIDATED") throw new Error("Only validated datasets may enter the training registry");
   if (!dataset.license.trim() || !dataset.contentHash || !dataset.schemaHash) throw new Error("Dataset provenance is incomplete");
-  const stored = await datasets.create(tenantId, { ...dataset, id: dataset.datasetId });
-  return stored;
+  await datasets.create(tenantId, { id: dataset.datasetId, version: dataset.version, territoryId: dataset.territoryId, source: dataset.source, license: dataset.license, schemaHash: dataset.schemaHash, contentHash: dataset.contentHash, status: dataset.status, createdAt: dataset.createdAt });
+  return dataset;
 }
 
 export async function registerModel(tenantId: string, model: RegisteredModel): Promise<RegisteredModel> {
@@ -33,7 +33,7 @@ export async function registerModel(tenantId: string, model: RegisteredModel): P
 
 export async function createTrainingRun(tenantId: string, input: Omit<TrainingRun, "inputHash">): Promise<TrainingRun> {
   const run: TrainingRun = { ...input, inputHash: hashObject(input) };
-  await training.create(tenantId, { ...run, id: run.runId });
+  await training.create(tenantId, { id: run.runId, datasetIds: run.datasetIds, baseModelId: run.baseModelId, algorithm: run.algorithm, hyperparameters: run.hyperparameters, seed: run.seed, status: run.status, sourceCommit: run.sourceCommit, inputHash: run.inputHash, outputHash: run.outputHash, createdAt: run.createdAt, completedAt: run.completedAt });
   return run;
 }
 
