@@ -233,6 +233,21 @@ export const envSchema = z.object({
     .describe(
       "Allow JSON file persistence in production — must be false in prod, true only for dev/test",
     ),
+  // P0-C: bloqueo de movimientos de dinero hasta certificar los circuitos
+  // financieros A–J. En staging/production, si no es true, los payouts
+  // quedan FUERA DE SERVICIO (503) sin importar la cuenta destino.
+  ISABELLA_PAYOUT_CIRCUIT_CERTIFIED: z
+    .preprocess((val) => {
+      if (typeof val === "boolean") return val;
+      if (typeof val !== "string") return undefined;
+      const t = val.trim().toLowerCase();
+      if (t === "true") return true;
+      if (t === "false") return false;
+      return undefined;
+    }, z.boolean().default(false))
+    .describe(
+      "Only true after the financial circuit cases A–J pass and are documented (PRODUCTION_REPAIR_REGISTER). Defaults to false = payouts locked.",
+    ),
 });
 
 export type Env = z.infer<typeof envSchema>;

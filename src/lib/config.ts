@@ -96,6 +96,18 @@ export function getCiRunId(source: RawEnv = process.env): string {
   return source.GITHUB_RUN_ID ?? "local";
 }
 
+/**
+ * P0-C: certificación de circuitos financieros A–J. Falso por defecto →
+ * payouts bloqueados (fail-closed). Solo `true` tras certificar y documentar
+ * los casos en PRODUCTION_REPAIR_REGISTER.
+ */
+export function isPayoutCircuitCertified(source: RawEnv = process.env): boolean {
+  const raw = source.ISABELLA_PAYOUT_CIRCUIT_CERTIFIED;
+  if (typeof raw === "boolean") return raw;
+  if (typeof raw !== "string") return false;
+  return raw.trim().toLowerCase() === "true";
+}
+
 /** Reinicia la caché (usado en tests). */
 export function resetConfigCache(): void {
   cached = undefined;

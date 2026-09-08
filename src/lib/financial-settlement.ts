@@ -87,16 +87,41 @@ async function defaultSteps(): Promise<SettlementSteps> {
   const { createBookpiPostgresRepository } =
     await import("./repositories/bookpi-postgres-repository");
   const { createAuditRepository } = await import("./repositories/audit-repository");
+  const { PostgresAccountingRepository } =
+    await import("./accounting/accounting-postgres-repository");
+  const { createDoubleEntryService } = await import("./accounting/double-entry-service");
   const auditRepository = createAuditRepository();
   const bookpi = createBookpiPostgresRepository();
   return {
     claim: (input) => economic.claimWebhookEvent(input),
     record: (input) => economic.recordEconomicEvent(input),
     appendLedger: (input) => bookpi.append(input),
-    appendAccounting: async () => ({
-      success: false,
-      error: "accounting no cableado: usar doble-entry con repositorio PG",
-    }),
+    // P0-C: asiento REAL de doble entrada sobre PostgreSQL (atómico vía
+    // createJournalEntryAtomic). Se difiere (no bloquea) solo cuando el
+    // llamador no emite líneas balanceadas; NUNCA se asienta en memoria.
+    appendAccounting: async (input) => {
+      if (!input.lines || input.lines.length < 2) {
+        return {
+          success: false,
+          error: "Asiento diferido: se requieren ≥2 líneas balanceadas (débito=crédito).",
+        };
+      }
+      const service = createDoubleEntryService(new PostgresAccountingRepository());
+      const result = await service.createDoubleEntryTransaction({
+        tenantId: input.tenantId,
+        description: input.description,
+        createdBy: "financial-settlement",
+        lines: input.lines.map((line) => ({
+          accountId: line.accountId,
+          debitCents: line.debitCents,
+          creditCents: line.creditCents,
+        })),
+      });
+      if (!result.success) {
+        return { success: false, error: result.error };
+      }
+      return { success: true };
+    },
     compensate: (input) =>
       economic.recordEconomicEvent({
         tenantId: input.tenantId,

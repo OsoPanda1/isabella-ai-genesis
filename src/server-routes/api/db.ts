@@ -9,7 +9,7 @@ import { repositoryFactory } from "@/lib/persistence/repository-factory";
 import { SecuritySystem } from "@/lib/security";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { SovereignSandboxService } from "@/lib/sovereign-sandbox";
-import { config } from "@/lib/config";
+import { config, isPayoutCircuitCertified } from "@/lib/config";
 import { devAuthNotFound } from "@/lib/dev-auth-guard";
 
 const addLedgerSchema = z.object({
@@ -1356,6 +1356,28 @@ export const Route = createFileRoute("/api/db")({
 
           if (action === "monetization-request-withdrawal") {
             return withSovereignAuth("system", "write", async (context, _req, body: unknown) => {
+              // P0-C: fail-closed. En staging/production los payouts quedan
+              // FUERA DE SERVICIO hasta certificar los circuitos financieros
+              // A–J (ISABELLA_PAYOUT_CIRCUIT_CERTIFIED=true documentado en
+              // PRODUCTION_REPAIR_REGISTER). Sin certificación → 503 y cero
+              // movimiento de fondos (real o programado).
+              const payoutRuntime = config();
+              const payoutProductionLike =
+                payoutRuntime.NODE_ENV === "production" ||
+                payoutRuntime.ISABELLA_RUNTIME_MODE === "production" ||
+                payoutRuntime.ISABELLA_RUNTIME_MODE === "staging";
+              if (payoutProductionLike && !isPayoutCircuitCertified()) {
+                return new Response(
+                  JSON.stringify({
+                    error: "payouts_locked",
+                    traceId: `trc_payout_lock_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                    message:
+                      "Movimientos de dinero bloqueados: circuitos financieros A–J sin certificar (ISABELLA_PAYOUT_CIRCUIT_CERTIFIED).",
+                  }),
+                  { status: 503, headers },
+                );
+              }
+
               const { idempotencyKey, destinationAccountId } = (body || {}) as {
                 idempotencyKey?: string;
                 destinationAccountId?: string;
