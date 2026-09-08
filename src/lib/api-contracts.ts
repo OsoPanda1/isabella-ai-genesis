@@ -1,27 +1,26 @@
 import { z } from "zod";
 
 /**
- * ISA-API Contract Authority (v3.1 Hardened)
- * Única fuente de verdad ejecutable para contratos API compartidos.
- *
- * Regla: los endpoints deben reutilizar estos envelopes y códigos; no crear
- * formatos de error ad-hoc salvo protocolos de streaming (SSE).
+ * ISA-API Contract Authority (v3.2 Hardened)
+ * -----------------------------------------------------------------
+ * Fuente de verdad ejecutable para envelopes y payloads API compartidos.
+ * Los endpoints de Isabella deben reutilizar estas definiciones.
  */
 
 export const MetaSchema = z.object({
-  request_id: z.string().uuid().describe("UUID único de la petición"),
-  trace_id: z.string().min(1).describe("UUID/ID de traza distribuida"),
-  decision_id: z.string().nullable().optional().describe("ID de decisión PDP, si existe"),
-  api_version: z.string().describe("Versión semver del contrato"),
-  tenant_id: z.string().optional().describe("Tenant resuelto"),
-  timestamp: z.string().datetime().describe("Timestamp ISO 8601 UTC"),
+  request_id: z.string().uuid(),
+  trace_id: z.string().min(1),
+  decision_id: z.string().nullable().optional(),
+  api_version: z.string().min(1),
+  tenant_id: z.string().optional(),
+  timestamp: z.string().datetime(),
 });
 
 export const ErrorPayloadSchema = z.object({
-  code: z.string().min(1).describe("Código estandarizado UPPER_SNAKE_CASE"),
-  message: z.string().min(1).describe("Mensaje seguro para cliente"),
-  correlation_id: z.string().min(1).describe("ID de correlación"),
-  retryable: z.boolean().describe("Si el cliente puede reintentar de forma segura"),
+  code: z.string().min(1),
+  message: z.string().min(1),
+  correlation_id: z.string().min(1),
+  retryable: z.boolean(),
   details: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -38,19 +37,11 @@ export const IsabellaChatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
   content: z.union([
     z.string().min(1).max(12000),
-    z.array(
-      z.discriminatedUnion("type", [
-        z.object({ type: z.literal("text"), text: z.string().min(1).max(12000) }),
-        z.object({ type: z.literal("image_url"), image_url: z.object({ url: z.string().max(11_000_000) }) }),
-        z.object({
-          type: z.literal("input_audio"),
-          input_audio: z.object({
-            data: z.string().max(11_000_000),
-            format: z.enum(["m4a", "ogg", "wav", "mp3", "webm"]),
-          }),
-        }),
-      ]),
-    ).max(10),
+    z.array(z.discriminatedUnion("type", [
+      z.object({ type: z.literal("text"), text: z.string().min(1).max(12000) }),
+      z.object({ type: z.literal("image_url"), image_url: z.object({ url: z.string().max(11_000_000) }) }),
+      z.object({ type: z.literal("input_audio"), input_audio: z.object({ data: z.string().max(11_000_000), format: z.enum(["m4a", "ogg", "wav", "mp3", "webm"]) }) }),
+    ])).max(10),
   ]),
 });
 
@@ -78,18 +69,17 @@ export const IsabellaChatErrorCode = {
   INTERNAL_ERROR: "INTERNAL_ERROR",
 } as const;
 
-export function standardError(
-  code: string,
-  message: string,
-  requestId: string,
-  traceId: string,
-  options: { status: number; retryable?: boolean; tenantId?: string; details?: Record<string, unknown> },
-): Response {
+export function standardError(code: string, message: string, requestId: string, traceId: string, options: {
+  status: number;
+  retryable?: boolean;
+  tenantId?: string;
+  details?: Record<string, unknown>;
+}): Response {
   const body: StandardResponse = {
     meta: {
       request_id: requestId,
       trace_id: traceId,
-      api_version: "3.1.0",
+      api_version: "3.2.0",
       ...(options.tenantId ? { tenant_id: options.tenantId } : {}),
       timestamp: new Date().toISOString(),
     },
@@ -108,39 +98,11 @@ export function standardError(
   });
 }
 
-// ============================================================================
-// Legacy skill contracts retained below for compatibility.
-// ============================================================================
-
-export const AtlasInputSchema = z.object({
-  scenario: z.string().min(5).max(1000),
-  variables: z.array(
-    z.object({ id: z.string(), label: z.string(), currentValue: z.number(), projectedChange: z.number(), weight: z.number().min(0).max(1) }),
-  ).min(1).max(50),
-});
-
-export const AnubisInputSchema = z.object({
-  artifactId: z.string().min(3).max(128),
-  content: z.string().min(1).max(500000),
-  expectedHash: z.string().max(128).optional(),
-});
-
-export const ThemisInputSchema = z.object({
-  decisionId: z.string().min(1).max(128),
-  decision: z.string().min(1).max(2000),
-  evidence: z.array(z.object({ id: z.string(), source: z.string(), excerpt: z.string(), score: z.number().min(0).max(1) })).max(100),
-  events: z.array(z.record(z.string(), z.unknown())).optional(),
-});
-
-export const VigiaInputSchema = z.object({
-  text: z.string().min(1).max(100000),
-  riskSignals: z.array(z.string()).optional(),
-});
-
-export const GenericSkillInputSchema = z.record(z.string(), z.unknown()).refine(
-  (data) => Object.keys(data).length > 0,
-  { message: "El payload de entrada no puede estar vacío." },
-);
+export const AtlasInputSchema = z.object({ scenario: z.string().min(5).max(1000), variables: z.array(z.object({ id: z.string(), label: z.string(), currentValue: z.number(), projectedChange: z.number(), weight: z.number().min(0).max(1) })).min(1).max(50) });
+export const AnubisInputSchema = z.object({ artifactId: z.string().min(3).max(128), content: z.string().min(1).max(500000), expectedHash: z.string().max(128).optional() });
+export const ThemisInputSchema = z.object({ decisionId: z.string().min(1).max(128), decision: z.string().min(1).max(2000), evidence: z.array(z.object({ id: z.string(), source: z.string(), excerpt: z.string(), score: z.number().min(0).max(1) })).max(100), events: z.array(z.record(z.string(), z.unknown())).optional() });
+export const VigiaInputSchema = z.object({ text: z.string().min(1).max(100000), riskSignals: z.array(z.string()).optional() });
+export const GenericSkillInputSchema = z.record(z.string(), z.unknown()).refine((data) => Object.keys(data).length > 0, { message: "El payload de entrada no puede estar vacío." });
 
 export function validateSkillInput(skillId: string, payload: unknown): unknown {
   try {
@@ -152,9 +114,7 @@ export function validateSkillInput(skillId: string, payload: unknown): unknown {
       default: return GenericSkillInputSchema.parse(payload);
     }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      throw new Error(`Validation failed for skill ${skillId}: ${error.issues.map((e) => e.message).join(", ")}`);
-    }
+    if (error instanceof z.ZodError) throw new Error(`Validation failed for skill ${skillId}: ${error.issues.map((e) => e.message).join(", ")}`);
     throw error;
   }
 }
@@ -162,8 +122,6 @@ export function validateSkillInput(skillId: string, payload: unknown): unknown {
 export function validateSkillOutput(skillId: string, output: unknown): unknown {
   if (!output || typeof output !== "object") throw new Error(`Skill ${skillId} devolvió una salida inválida.`);
   const jsonString = JSON.stringify(output);
-  if (/(sk_live_|pk_live_|sk_test_|pk_test_|AIza[0-9A-Za-z-_]{35})/.test(jsonString)) {
-    throw new Error(`[CRITICAL] Data Exfiltration Blocked: La salida del skill ${skillId} contiene posibles secretos.`);
-  }
+  if (/(sk_live_|pk_live_|sk_test_|pk_test_|AIza[0-9A-Za-z-_]{35})/.test(jsonString)) throw new Error(`[CRITICAL] Data Exfiltration Blocked: La salida del skill ${skillId} contiene posibles secretos.`);
   return output;
 }
