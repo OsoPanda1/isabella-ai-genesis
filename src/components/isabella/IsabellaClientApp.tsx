@@ -61,10 +61,8 @@ function ClientFallback({ label = "Cargando módulo Isabella…" }: { label?: st
 
 function IndexClient() {
   const [introDone, setIntroDone] = useState(false);
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setReady(true);
     try {
       setIntroDone(window.sessionStorage.getItem(INTRO_SEEN_KEY) === "1");
     } catch {
@@ -81,7 +79,6 @@ function IndexClient() {
     setIntroDone(true);
   }, []);
 
-  if (!ready) return <ClientFallback label="Inicializando núcleo C.R.O.W.N." />;
   if (!introDone) {
     return (
       <Suspense fallback={<ClientFallback label="Inicializando experiencia Isabella…" />}>
