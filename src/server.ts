@@ -13,18 +13,11 @@ let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 async function getServerEntry(): Promise<ServerEntry> {
   if (!serverEntryPromise) {
-    serverEntryPromise = import("@tanstack/react-start/server-entry").then(
-      (m) => (m.default ?? m) as ServerEntry,
-    );
+    serverEntryPromise = import("@tanstack/react-start/server-entry").then((m) => (m.default ?? m) as ServerEntry);
   }
   return serverEntryPromise;
 }
 
-/**
- * Production request boundary.
- * No demo gateway, fake inference or universal configuration hydration lives
- * here. Routes own authentication, governance, validation and capabilities.
- */
 export async function handleRequest(request: Request, env: unknown = {}, ctx: unknown = {}): Promise<Response> {
   const url = new URL(request.url);
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
@@ -43,10 +36,12 @@ export async function handleRequest(request: Request, env: unknown = {}, ctx: un
       const captured = consumeLastCapturedError();
       const err = captured ?? error;
       console.error(redact(err instanceof Error ? (err.stack ?? err.message) : String(err)));
-      return withSecurityHeaders(new Response(renderErrorPage(), {
-        status: 500,
-        headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
-      }));
+      return withSecurityHeaders(
+        new Response(renderErrorPage(), {
+          status: 500,
+          headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
+        }),
+      );
     }
   });
 }
@@ -89,7 +84,27 @@ export function withSecurityHeaders(response: Response): Response {
   setIfMissing("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   setIfMissing("Cross-Origin-Opener-Policy", "same-origin");
   setIfMissing("Cross-Origin-Resource-Policy", "same-origin");
-  setIfMissing("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:");
-  setIfMissing("Content-Security-Policy-Report-Only", "script-src 'self' 'nonce-{REQUEST_NONCE}'");
+
+  const production = process.env.NODE_ENV === "production";
+  // Production does not permit inline scripts. Development keeps the less
+  // restrictive policy so local tooling can run without a framework nonce.
+  const scriptSource = production ? "'self'" : "'self' 'unsafe-inline'";
+  const csp = [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "upgrade-insecure-requests",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data: https:",
+    "connect-src 'self' https:",
+    "style-src 'self' 'unsafe-inline'",
+    `script-src ${scriptSource}`,
+    "worker-src 'self' blob:",
+  ].join("; ");
+  setIfMissing("Content-Security-Policy", csp);
+  // Report-only policy is intentionally strict and contains no fake nonce.
+  setIfMissing("Content-Security-Policy-Report-Only", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self'; worker-src 'self' blob:");
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
