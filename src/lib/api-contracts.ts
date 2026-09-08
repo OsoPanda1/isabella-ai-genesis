@@ -1,29 +1,28 @@
 import { z } from "zod";
 
 /**
- * ISA-API Contract Authority (v3.0 Hardened)
- * Única fuente de verdad ejecutable para validación de contratos API.
+ * ISA-API Contract Authority (v3.1 Hardened)
+ * Única fuente de verdad ejecutable para contratos API compartidos.
+ *
+ * Regla: los endpoints deben reutilizar estos envelopes y códigos; no crear
+ * formatos de error ad-hoc salvo protocolos de streaming (SSE).
  */
 
-// ============================================================================
-// 1. ESQUEMAS BASE DE LA ARQUITECTURA ISA-API
-// ============================================================================
-
 export const MetaSchema = z.object({
-  request_id: z.string().uuid().describe("UUID único de la petición (correlación)"),
-  trace_id: z.string().describe("UUID de traza distribuida"),
-  decision_id: z.string().nullable().optional().describe("ID de decisión de autorización (PDP)"),
-  api_version: z.string().describe("Versión de la API (semver)"),
+  request_id: z.string().uuid().describe("UUID único de la petición"),
+  trace_id: z.string().min(1).describe("UUID/ID de traza distribuida"),
+  decision_id: z.string().nullable().optional().describe("ID de decisión PDP, si existe"),
+  api_version: z.string().describe("Versión semver del contrato"),
   tenant_id: z.string().optional().describe("Tenant resuelto"),
-  timestamp: z.string().datetime().describe("Timestamp ISO 8601 en UTC"),
+  timestamp: z.string().datetime().describe("Timestamp ISO 8601 UTC"),
 });
 
 export const ErrorPayloadSchema = z.object({
-  code: z.string().describe("Código de error estandarizado (ej. CROWN_POLICY_DENY)"),
-  message: z.string().describe("Mensaje seguro para cliente (sin filtrar secretos)"),
-  correlation_id: z.string().describe("ID de correlación (request_id)"),
-  retryable: z.boolean().describe("Indicador de reintento seguro"),
-  details: z.record(z.string(), z.unknown()).optional().describe("Detalles adicionales no sensibles"),
+  code: z.string().min(1).describe("Código estandarizado UPPER_SNAKE_CASE"),
+  message: z.string().min(1).describe("Mensaje seguro para cliente"),
+  correlation_id: z.string().min(1).describe("ID de correlación"),
+  retryable: z.boolean().describe("Si el cliente puede reintentar de forma segura"),
+  details: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const StandardResponseSchema = z.object({
@@ -32,40 +31,104 @@ export const StandardResponseSchema = z.object({
   error: ErrorPayloadSchema.nullable(),
 });
 
+export type StandardResponse = z.infer<typeof StandardResponseSchema>;
+export type ErrorPayload = z.infer<typeof ErrorPayloadSchema>;
+
+export const IsabellaChatMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.union([
+    z.string().min(1).max(12000),
+    z.array(
+      z.discriminatedUnion("type", [
+        z.object({ type: z.literal("text"), text: z.string().min(1).max(12000) }),
+        z.object({ type: z.literal("image_url"), image_url: z.object({ url: z.string().max(11_000_000) }) }),
+        z.object({
+          type: z.literal("input_audio"),
+          input_audio: z.object({
+            data: z.string().max(11_000_000),
+            format: z.enum(["m4a", "ogg", "wav", "mp3", "webm"]),
+          }),
+        }),
+      ]),
+    ).max(10),
+  ]),
+});
+
+export const IsabellaChatRequestSchema = z.object({
+  system: z.string().max(8000).optional(),
+  temperature: z.number().finite().min(0).max(2).default(0.8),
+  messages: z.array(IsabellaChatMessageSchema).min(1).max(40),
+  context: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type IsabellaChatRequest = z.infer<typeof IsabellaChatRequestSchema>;
+
+export const IsabellaChatErrorCode = {
+  INVALID_JSON: "INVALID_JSON",
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  AUTHENTICATION_REQUIRED: "AUTHENTICATION_REQUIRED",
+  AUTHORIZATION_DENIED: "AUTHORIZATION_DENIED",
+  TENANT_MISMATCH: "TENANT_MISMATCH",
+  RATE_LIMITED: "RATE_LIMITED",
+  TIMEOUT: "TIMEOUT",
+  PROVIDER_UNAVAILABLE: "PROVIDER_UNAVAILABLE",
+  INFERENCE_UNAVAILABLE: "INFERENCE_UNAVAILABLE",
+  KILL_SWITCH_ACTIVE: "KILL_SWITCH_ACTIVE",
+  POLICY_REJECTED: "POLICY_REJECTED",
+  INTERNAL_ERROR: "INTERNAL_ERROR",
+} as const;
+
+export function standardError(
+  code: string,
+  message: string,
+  requestId: string,
+  traceId: string,
+  options: { status: number; retryable?: boolean; tenantId?: string; details?: Record<string, unknown> },
+): Response {
+  const body: StandardResponse = {
+    meta: {
+      request_id: requestId,
+      trace_id: traceId,
+      api_version: "3.1.0",
+      ...(options.tenantId ? { tenant_id: options.tenantId } : {}),
+      timestamp: new Date().toISOString(),
+    },
+    data: null,
+    error: {
+      code,
+      message,
+      correlation_id: requestId,
+      retryable: options.retryable ?? false,
+      ...(options.details ? { details: options.details } : {}),
+    },
+  };
+  return new Response(JSON.stringify(body), {
+    status: options.status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+  });
+}
+
 // ============================================================================
-// 2. ESQUEMAS DE ENTRADA PARA SKILLS (Validación Estricta)
+// Legacy skill contracts retained below for compatibility.
 // ============================================================================
 
 export const AtlasInputSchema = z.object({
   scenario: z.string().min(5).max(1000),
   variables: z.array(
-    z.object({
-      id: z.string(),
-      label: z.string(),
-      currentValue: z.number(),
-      projectedChange: z.number(),
-      weight: z.number().min(0).max(1),
-    })
+    z.object({ id: z.string(), label: z.string(), currentValue: z.number(), projectedChange: z.number(), weight: z.number().min(0).max(1) }),
   ).min(1).max(50),
 });
 
 export const AnubisInputSchema = z.object({
   artifactId: z.string().min(3).max(128),
-  content: z.string().min(1).max(500000), // Max 500KB per chunk
+  content: z.string().min(1).max(500000),
   expectedHash: z.string().max(128).optional(),
 });
 
 export const ThemisInputSchema = z.object({
   decisionId: z.string().min(1).max(128),
   decision: z.string().min(1).max(2000),
-  evidence: z.array(
-    z.object({
-      id: z.string(),
-      source: z.string(),
-      excerpt: z.string(),
-      score: z.number().min(0).max(1),
-    })
-  ).max(100),
+  evidence: z.array(z.object({ id: z.string(), source: z.string(), excerpt: z.string(), score: z.number().min(0).max(1) })).max(100),
   events: z.array(z.record(z.string(), z.unknown())).optional(),
 });
 
@@ -74,64 +137,33 @@ export const VigiaInputSchema = z.object({
   riskSignals: z.array(z.string()).optional(),
 });
 
-// Fallback genérico para skills que aún no tienen un esquema Zod estricto definido
 export const GenericSkillInputSchema = z.record(z.string(), z.unknown()).refine(
   (data) => Object.keys(data).length > 0,
-  { message: "El payload de entrada no puede estar vacío." }
+  { message: "El payload de entrada no puede estar vacío." },
 );
 
-// ============================================================================
-// 3. FUNCIONES DE VALIDACIÓN RUNTIME
-// ============================================================================
-
-export type StandardResponse = z.infer<typeof StandardResponseSchema>;
-export type ErrorPayload = z.infer<typeof ErrorPayloadSchema>;
-
-/**
- * Valida el payload de entrada contra el esquema específico del Skill.
- * Aplica Zero Trust: rechaza entradas malformadas inmediatamente.
- */
 export function validateSkillInput(skillId: string, payload: unknown): unknown {
   try {
     switch (skillId.toUpperCase()) {
-      case "ATLAS":
-        return AtlasInputSchema.parse(payload);
-      case "ANUBIS":
-        return AnubisInputSchema.parse(payload);
-      case "THEMIS":
-        return ThemisInputSchema.parse(payload);
-      case "VIGIA":
-        return VigiaInputSchema.parse(payload);
-      default:
-        // Fallback seguro pero validando que sea un objeto estructurado
-        return GenericSkillInputSchema.parse(payload);
+      case "ATLAS": return AtlasInputSchema.parse(payload);
+      case "ANUBIS": return AnubisInputSchema.parse(payload);
+      case "THEMIS": return ThemisInputSchema.parse(payload);
+      case "VIGIA": return VigiaInputSchema.parse(payload);
+      default: return GenericSkillInputSchema.parse(payload);
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new Error(`Validation failed for skill ${skillId}: ${error.errors.map(e => e.message).join(", ")}`);
+      throw new Error(`Validation failed for skill ${skillId}: ${error.issues.map((e) => e.message).join(", ")}`);
     }
     throw error;
   }
 }
 
-/**
- * Valida que la salida del Skill cumpla con los estándares de seguridad (no exfiltración básica).
- * En un pipeline productivo real, aquí se aplica PII Redaction.
- */
 export function validateSkillOutput(skillId: string, output: unknown): unknown {
-  // Verificación básica de estructura (no puede ser null si es un resultado exitoso de skill)
-  if (!output || typeof output !== "object") {
-    throw new Error(`Skill ${skillId} devolvió una salida escalar o nula, violando el contrato.`);
-  }
-  
-  // Aquí se podrían agregar validaciones Zod específicas de salida.
-  // Por ahora, aplicamos validación de sanitización.
+  if (!output || typeof output !== "object") throw new Error(`Skill ${skillId} devolvió una salida inválida.`);
   const jsonString = JSON.stringify(output);
-  
-  // Basic Regex checks for obvious secret leaks (P0 Protection)
   if (/(sk_live_|pk_live_|sk_test_|pk_test_|AIza[0-9A-Za-z-_]{35})/.test(jsonString)) {
-    throw new Error(`[CRITICAL] Data Exfiltration Blocked: La salida del skill ${skillId} contiene posibles claves de API o secretos.`);
+    throw new Error(`[CRITICAL] Data Exfiltration Blocked: La salida del skill ${skillId} contiene posibles secretos.`);
   }
-
   return output;
 }
