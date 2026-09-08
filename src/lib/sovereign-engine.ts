@@ -190,6 +190,25 @@ function isProductionRuntime(): boolean {
   }
 }
 
+/**
+ * P0-B: estado soberano no durable en producción. Fail-closed: ante caída de
+ * PostgreSQL (o ausencia de DATABASE_URL) NUNCA se sirve memoria vacía ni se
+ * acepta una escritura que no será persistida. Server.ts lo mapea a 503.
+ */
+export class DurableStateUnavailableError extends Error {
+  readonly code = "SOVEREIGN_STATE_UNAVAILABLE";
+  constructor(message: string, cause?: unknown) {
+    super(message, cause === undefined ? undefined : { cause });
+    this.name = "DurableStateUnavailableError";
+  }
+}
+
+/**
+ * Error de la última persistencia fallida en producción. La siguiente operación
+ * (hydrate/save) lo relanza: una escritura fallida jamás queda silenciosa.
+ */
+let sovereignPersistError: Error | null = null;
+
 export class SovereignDB {
   /**
    * Refreshes the in-memory cache from durable PostgreSQL storage.
@@ -201,6 +220,13 @@ export class SovereignDB {
   public static async hydrate({
     maxAgeMs = 0,
   }: { maxAgeMs?: number } = {}): Promise<DatabaseSchema> {
+    // Fail-closed: si la persistencia anterior falló, no servir estado obsoleto.
+    if (isProductionRuntime() && sovereignPersistError) {
+      throw new DurableStateUnavailableError(
+        "Sovereign state persistence failed previously; refusing to serve stale/empty state.",
+        sovereignPersistError,
+      );
+    }
     if (memoryDb && maxAgeMs > 0 && Date.now() - lastHydratedAt < maxAgeMs) {
       return memoryDb;
     }
@@ -223,25 +249,28 @@ export class SovereignDB {
       return memoryDb;
     }
     const pool = getPgPool();
-    if (pool) {
-      try {
-        await ensureStateTable(pool);
-        const { rows } = await pool.query(
-          "SELECT payload FROM public.sovereign_state WHERE id = 'canonical' LIMIT 1",
-        );
-        if (rows[0]?.payload) {
-          memoryDb = rows[0].payload as DatabaseSchema;
-          lastHydratedAt = Date.now();
-          return memoryDb;
-        }
-      } catch (e) {
-        console.error("[SovereignDB] hydrate failed, using in-memory state:", e);
-      }
-    } else {
-      console.error(
-        "[SovereignDB] No DATABASE_URL in production — Sovereign state is not durable.",
+    if (!pool) {
+      throw new DurableStateUnavailableError(
+        "DATABASE_URL missing in production — Sovereign state cannot be durable (fail-closed).",
       );
     }
+    try {
+      await ensureStateTable(pool);
+      const { rows } = await pool.query(
+        "SELECT payload FROM public.sovereign_state WHERE id = 'canonical' LIMIT 1",
+      );
+      if (rows[0]?.payload) {
+        memoryDb = rows[0].payload as DatabaseSchema;
+        lastHydratedAt = Date.now();
+        return memoryDb;
+      }
+    } catch (e) {
+      throw new DurableStateUnavailableError(
+        "Failed to hydrate Sovereign state from PostgreSQL in production (fail-closed).",
+        e,
+      );
+    }
+    // Sin fila: despliegue reciente legítimo. Estado vacío, no un error.
     memoryDb = emptyDatabase();
     lastHydratedAt = Date.now();
     return memoryDb;
@@ -252,6 +281,7 @@ export class SovereignDB {
     memoryDb = null;
     lastHydratedAt = 0;
     hydrationInFlight = null;
+    sovereignPersistError = null;
   }
 
   /**
@@ -308,13 +338,14 @@ export class SovereignDB {
       return;
     }
 
-    // Production: persist to PostgreSQL async (fire-and-forget with error log).
+    // Production: persist to PostgreSQL. Fail-closed: sin DATABASE_URL esta
+    // escritura NUNCA se acepta; con persist fallida se marca el error para
+    // que la siguiente operación falle (NUNCA silencioso).
     const pool = getPgPool();
     if (!pool) {
-      console.error(
-        "[SovereignDB] No DATABASE_URL in production — sovereign state write skipped (NOT durable).",
+      throw new DurableStateUnavailableError(
+        "DATABASE_URL missing in production — sovereign state write refused (NOT durable).",
       );
-      return;
     }
     const payload = JSON.stringify(db);
     const persist = async () => {
@@ -328,10 +359,14 @@ export class SovereignDB {
     };
     persist()
       .then(() => {
-        /* persisted */
+        sovereignPersistError = null;
       })
       .catch((e) => {
-        console.error("[SovereignDB] Failed to persist sovereign state to Postgres:", e);
+        sovereignPersistError = e instanceof Error ? e : new Error(String(e));
+        console.error(
+          "[SovereignDB] Failed to persist sovereign state to Postgres (fail-closed on next op):",
+          sovereignPersistError,
+        );
       });
   }
 

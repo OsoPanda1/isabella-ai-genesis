@@ -168,6 +168,26 @@ export default {
           `[${traceId}] ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`,
         ),
       );
+      // P0: estado soberano no durable → fail-closed 503 (nunca memoria vacía).
+      if (
+        error instanceof Error &&
+        "code" in error &&
+        (error as { code?: string }).code === "SOVEREIGN_STATE_UNAVAILABLE"
+      ) {
+        return withSecurityHeaders(
+          new Response(
+            JSON.stringify({
+              error: "service_unavailable",
+              code: "SOVEREIGN_STATE_UNAVAILABLE",
+              traceId,
+            }),
+            {
+              status: 503,
+              headers: { "content-type": "application/json; charset=utf-8" },
+            },
+          ),
+        );
+      }
       return withSecurityHeaders(
         new Response(renderErrorPage(), {
           status: 500,
