@@ -62,7 +62,6 @@ export function withSecurityHeaders(response: Response): Response {
   setIfMissing("X-Content-Type-Options", "nosniff");
   setIfMissing("X-Frame-Options", "DENY");
   setIfMissing("Referrer-Policy", "strict-origin-when-cross-origin");
-  // Modern standard: disable the legacy XSS auditor to avoid filter bypass exploits, relying strictly on strong CSP
   setIfMissing("X-XSS-Protection", "0");
   setIfMissing("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
   setIfMissing("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
@@ -74,8 +73,6 @@ export function withSecurityHeaders(response: Response): Response {
       "default-src 'self'",
       "img-src 'self' data: blob:",
       "style-src 'self'",
-      // TanStack Start emits the serialized hydration bootstrap inline; without it
-      // the browser cannot find window.$_TSR and the app remains blank.
       "script-src 'self' 'unsafe-inline'",
       "connect-src 'self' https://generativelanguage.googleapis.com https://*.supabase.co https://*.neon.tech",
       "object-src 'none'",
@@ -142,15 +139,14 @@ async function fetchWithRequestChain(
       }
     }
 
-    // Verifica integridad del runtime (no aborta en desarrollo, solo informa)
+    // Runtime integrity remains best-effort here; readiness gates protect
+    // stateful traffic. Public SSR must not depend on external state.
     void ensureRuntimeReady(false);
 
-    // Refresh bounded by a short TTL and de-duplicated across concurrent
-    // requests; destructive paths still force a fresh hydrate themselves.
-    const { SovereignDB } = await import("./lib/sovereign-engine");
-    await SovereignDB.hydrate({ maxAgeMs: 5_000 });
-
-    // 3. HANDLER — delega al router SSR
+    // IMPORTANT: do not hydrate SovereignDB on the universal SSR path.
+    // PostgreSQL is authoritative for stateful operations, but a database outage
+    // must not make the public application shell unrenderable. Stateful routes
+    // and /api/health/ready own their durable-state checks and fail closed there.
     const handler = await getServerEntry();
     const response = await handler.fetch(request, env, ctx);
     return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response));
@@ -168,7 +164,6 @@ export default {
           `[${traceId}] ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`,
         ),
       );
-      // P0: estado soberano no durable → fail-closed 503 (nunca memoria vacía).
       if (
         error instanceof Error &&
         "code" in error &&
