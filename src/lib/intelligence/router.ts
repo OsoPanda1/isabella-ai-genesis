@@ -3,6 +3,7 @@ import { config } from "@/lib/config";
 import { isProductionLike, resolveRuntimeMode } from "@/lib/runtime-mode";
 import type { GovernanceDecision, IntelligenceProvider, IntelligenceRequest, IntelligenceResponse } from "./contracts";
 import { approveModel, getModel, registerProvider } from "./model-registry";
+import { assertModelRuntimeAuthority, ensureModelRecord } from "./production-model-gate";
 
 const providers = new Map<string, IntelligenceProvider>();
 
@@ -33,7 +34,17 @@ export async function invokeIntelligence(input: Omit<IntelligenceRequest, "reque
     const provider = providers.get(modelId);
     const descriptor = getModel(modelId);
     if (!provider || !descriptor || !descriptor.enabled) continue;
-    if (production && !descriptor.productionApproved) continue;
+    if (production) {
+      try {
+        await ensureModelRecord(request.tenantId, provider);
+        await assertModelRuntimeAuthority(request.tenantId, provider);
+      } catch (error) {
+        lastError = error;
+        continue;
+      }
+    } else if (!descriptor.productionApproved && preferred === modelId) {
+      // Development permits an explicitly selected registered model.
+    }
     try {
       if (!(await provider.health())) continue;
       return await provider.invoke(request);
