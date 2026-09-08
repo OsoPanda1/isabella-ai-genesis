@@ -436,8 +436,9 @@ export const Route = createFileRoute("/api/billing")({
             }
 
             // Disputas/chargebacks: NUNCA se descartan. Idempotencia por
-            // claimWebhookEvent + evento económico CHARGEBACK + auditoría.
-            // Congelan payouts del tenant hasta revisión humana (fraud-review).
+            // claimWebhookEvent + evento económico CHARGEBACK_HOLD + auditoría.
+            // P0: el hold se persiste ANTES del claim (durable, no fire-and-forget)
+            // para que un fallo de DB haga reintentar Stripe y nunca se pierda.
             if (
               eventType === "charge.dispute.created" ||
               eventType === "charge.dispute.funds_withdrawn"
@@ -448,20 +449,11 @@ export const Route = createFileRoute("/api/billing")({
 
               const { claimWebhookEvent, recordEconomicEvent } =
                 await import("@/lib/economic-events");
-              const claim = await claimWebhookEvent({
-                provider: "stripe",
-                providerEventId: eventId,
-                eventType,
-              });
-              if (claim.status === "duplicate") {
-                return new Response(
-                  JSON.stringify({ success: true, processed: true, duplicate: true }),
-                  { headers },
-                );
-              }
 
+              // 1) Hold económico durable (idempotente por idempotency_key).
+              //    Error de DB → 503 en producción para que Stripe reintente.
               if (disputeTenant !== "unresolved-dispute") {
-                void recordEconomicEvent({
+                const hold = await recordEconomicEvent({
                   tenantId: disputeTenant,
                   actorId: disputeUser,
                   eventType: "CHARGEBACK_HOLD",
@@ -472,8 +464,28 @@ export const Route = createFileRoute("/api/billing")({
                   providerEventId: eventId,
                   idempotencyKey: `chargeback:${eventId}`,
                   metadata: { dispute: true },
-                }).catch((error) =>
-                  console.error("[billing:dispute] recordEconomicEvent failed:", error),
+                });
+                if (!hold.ok && !hold.duplicate) {
+                  console.error("[billing:dispute] recordEconomicEvent failed:", hold.error);
+                  if (config().NODE_ENV === "production") {
+                    return new Response(
+                      JSON.stringify({ error: "Hold de disputa no registrado." }),
+                      { status: 503, headers },
+                    );
+                  }
+                }
+              }
+
+              // 2) Claim del webhook: deduplica el manejo completo.
+              const claim = await claimWebhookEvent({
+                provider: "stripe",
+                providerEventId: eventId,
+                eventType,
+              });
+              if (claim.status === "duplicate") {
+                return new Response(
+                  JSON.stringify({ success: true, processed: true, duplicate: true }),
+                  { headers },
                 );
               }
 
