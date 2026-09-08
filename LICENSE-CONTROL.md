@@ -4,7 +4,7 @@ This file is an operational control document and does not replace the license te
 
 ## Component-specific licensing
 
-The repository's root licensing summary describes different licensing treatment for software, documentation, and visual/content assets. The authoritative terms for each category are the actual license texts and applicable third-party notices, not this summary alone. fileciteturn360file0L2-L6
+The repository's root licensing summary describes different licensing treatment for software, documentation, and visual/content assets. The authoritative terms for each category are the actual license texts and applicable third-party notices, not this summary alone.
 
 ## Third-party materials
 
