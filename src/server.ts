@@ -5,7 +5,6 @@ import { renderErrorPage } from "./lib/error-page";
 import { createRequestContext, withRequestContext, getRequestContext } from "./lib/request-context";
 import { redact } from "./lib/secret-redactor";
 import { assertBodyWithinLimits, LimitError } from "./lib/input-limits";
-import { ensureRuntimeReady } from "./lib/runtime-integrity";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -22,8 +21,6 @@ async function getServerEntry(): Promise<ServerEntry> {
   return serverEntryPromise;
 }
 
-// h3 swallows in-handler throws into a normal 500 Response with body
-// {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
 async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
@@ -49,11 +46,6 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
-// Seguridad: headers OWASP mínimos que deben estar presentes en toda respuesta.
-// El CSP estricto se habilita primero en Report-Only: TanStack Start todavía
-// emite bootstrap inline sin nonce. El header aplicado mantiene compatibilidad,
-// mientras las violaciones recolectadas impiden afirmar que ya existe un CSP
-// estricto en producción.
 export function withSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
   const setIfMissing = (name: string, value: string) => {
@@ -110,8 +102,6 @@ async function fetchWithRequestChain(
   ctx: unknown,
 ): Promise<Response> {
   const url = new URL(request.url);
-
-  // 1. CORRELACIÓN — contexto único por request
   const requestContext = createRequestContext({
     method: request.method,
     path: url.pathname,
@@ -120,10 +110,8 @@ async function fetchWithRequestChain(
       request.headers.get("x-real-ip") ??
       "unknown",
   });
-  void requestContext;
 
   return withRequestContext(requestContext, async () => {
-    // 2. VALIDACIÓN DE ENTRADA — límite de body en la frontera
     if (request.method === "POST" || request.method === "PUT" || request.method === "PATCH") {
       const contentLength = Number(request.headers.get("content-length") ?? "0");
       try {
@@ -139,14 +127,10 @@ async function fetchWithRequestChain(
       }
     }
 
-    // Runtime integrity remains best-effort here; readiness gates protect
-    // stateful traffic. Public SSR must not depend on external state.
-    void ensureRuntimeReady(false);
-
-    // IMPORTANT: do not hydrate SovereignDB on the universal SSR path.
-    // PostgreSQL is authoritative for stateful operations, but a database outage
-    // must not make the public application shell unrenderable. Stateful routes
-    // and /api/health/ready own their durable-state checks and fail closed there.
+    // Deliberately no config/runtime-integrity call here. The universal SSR
+    // boundary must render the public shell even when production configuration
+    // or durable dependencies are unavailable. Stateful routes and readiness
+    // perform strict configuration/dependency validation themselves.
     const handler = await getServerEntry();
     const response = await handler.fetch(request, env, ctx);
     return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response));
@@ -171,15 +155,8 @@ export default {
       ) {
         return withSecurityHeaders(
           new Response(
-            JSON.stringify({
-              error: "service_unavailable",
-              code: "SOVEREIGN_STATE_UNAVAILABLE",
-              traceId,
-            }),
-            {
-              status: 503,
-              headers: { "content-type": "application/json; charset=utf-8" },
-            },
+            JSON.stringify({ error: "service_unavailable", code: "SOVEREIGN_STATE_UNAVAILABLE", traceId }),
+            { status: 503, headers: { "content-type": "application/json; charset=utf-8" } },
           ),
         );
       }
