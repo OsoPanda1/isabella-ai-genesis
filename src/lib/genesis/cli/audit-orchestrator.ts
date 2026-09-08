@@ -53,6 +53,13 @@ import {
   ManifestIntegrity,
 } from "../schemas/manifest.schema";
 import { Finding, ClaimStatus } from "../schemas";
+import {
+  evaluateReleaseGate,
+  createEvidenceCoverageMeasurer,
+  isClaimSatisfiedByStatus,
+  ReleaseGateInput,
+  ReleaseGateResult,
+} from "../release/release-gate";
 
 export interface AuditOrchestratorConfig {
   rootDir?: string;
@@ -372,8 +379,20 @@ export class AuditOrchestrator {
     const graph = this.evidenceGraphBuilder.build();
     const graphAnalysis = createEvidenceGraphAnalyzer(graph).analyze();
 
-    // Calculate summary
-    const summary = this.calculateSummary(claims, findings, graphAnalysis);
+    // Calculate summary with real evidence + release gate (P0-90)
+    const coverageMeasurer = createEvidenceCoverageMeasurer(claims, (claimId) =>
+      this.claimEngine.getEvidences(claimId),
+    );
+    const gateInput: ReleaseGateInput = {
+      claims,
+      findings,
+      productionReadiness: this.calculateProductionReadiness(claims, findings),
+      evidenceCoverage: coverageMeasurer.overallCoverage,
+      claimSatisfied: (claimId) =>
+        isClaimSatisfiedByStatus(this.claimEngine.evaluateClaimStatus(claimId)),
+      domainEvidenceCoverage: (domainId) => coverageMeasurer.domainEvidenceCoverage(domainId),
+    };
+    const summary = this.calculateSummary(claims, findings, graphAnalysis, gateInput);
 
     // Create context
     const context: ManifestContext = {
@@ -423,6 +442,7 @@ export class AuditOrchestrator {
     claims: Claim[],
     findings: Finding[],
     graphAnalysis: any,
+    gateInput: ReleaseGateInput,
   ): ManifestSummary {
     const byStatus: Record<string, number> = {};
     for (const claim of claims) {
@@ -437,27 +457,13 @@ export class AuditOrchestrator {
         (bySeverity[finding.severity.toLowerCase()] ?? 0) + 1;
     }
 
-    const criticalOpen = findings.filter(
-      (f) => f.severity === "CRITICAL" && f.status === "OPEN",
-    ).length;
-    const highOpen = findings.filter((f) => f.severity === "HIGH" && f.status === "OPEN").length;
-
-    let decision: "GO" | "CONDITIONAL" | "NO-GO" = "GO";
-    let blockingFindings = 0;
-    let justification = "";
-
-    if (criticalOpen > 0) {
-      decision = "NO-GO";
-      blockingFindings = criticalOpen;
-      justification = `${criticalOpen} critical findings bloquean el release`;
-    } else if (highOpen > 0) {
-      decision = "CONDITIONAL";
-      blockingFindings = highOpen;
-      justification = `${highOpen} high findings requieren plan de mitigación`;
-    } else {
-      decision = "GO";
-      justification = "Todos los criterios cumplidos";
-    }
+    // Release gate determinista basado en evidencia real (P0-90).
+    const gate = evaluateReleaseGate(gateInput);
+    const releaseDecision = {
+      decision: gate.decision,
+      blockingFindings: gate.blockingFindings,
+      justification: gate.justification,
+    };
 
     return {
       totalClaims: claims.length,
@@ -486,10 +492,10 @@ export class AuditOrchestrator {
       },
       scores: {
         engineeringMaturity: this.calculateEngineeringMaturity(claims, findings),
-        evidenceMaturity: this.calculateEvidenceMaturity(claims),
+        evidenceMaturity: this.calculateEvidenceMaturity(gateInput),
         productionReadiness: this.calculateProductionReadiness(claims, findings),
       },
-      releaseDecision: { decision, blockingFindings, justification },
+      releaseDecision,
     };
   }
 
@@ -508,13 +514,16 @@ export class AuditOrchestrator {
     return Math.max(0, Math.min(100, Math.round(score)));
   }
 
-  private calculateEvidenceMaturity(claims: Claim[]): number {
-    // Simplified - would use actual evidence data
-    return 50;
+  private calculateEvidenceMaturity(gateInput: ReleaseGateInput): number {
+    // Madurez de evidencia = cobertura real de tipos de evidencia requeridos
+    // por los claims (misma métrica que usa el release gate, P0-90).
+    return Math.max(0, Math.min(100, Math.round(gateInput.evidenceCoverage)));
   }
 
   private calculateProductionReadiness(claims: Claim[], findings: Finding[]): number {
-    const productionVerified = claims.filter((c) => c.status === "PRODUCTION-VERIFIED").length;
+    const productionVerified = claims.filter(
+      (c) => this.claimEngine.evaluateClaimStatus(c.id) === "PRODUCTION-VERIFIED",
+    ).length;
     const criticalFindings = findings.filter((f) => f.severity === "CRITICAL").length;
     const highFindings = findings.filter((f) => f.severity === "HIGH").length;
 
@@ -529,7 +538,9 @@ export class AuditOrchestrator {
     findings: Finding[],
     graph: EvidenceGraph,
   ): ManifestIntegrity {
-    const claimsContent = JSON.stringify(claims.map((c) => ({ id: c.id, status: c.status })));
+    const claimsContent = JSON.stringify(
+      claims.map((c) => ({ id: c.id, status: this.claimEngine.evaluateClaimStatus(c.id) })),
+    );
     const findingsContent = JSON.stringify(
       findings.map((f) => ({ id: f.id, severity: f.severity })),
     );
