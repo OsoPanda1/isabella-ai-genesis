@@ -38,6 +38,10 @@ function ServerSafeFallback() {
 }
 
 function Index() {
+  // Hard client boundary: React SSR may resolve lazy components while rendering.
+  // Do not even initialize the browser-only Isabella graph on the server.
+  if (typeof window === "undefined") return <ServerSafeFallback />;
+
   return (
     <Suspense fallback={<ServerSafeFallback />}>
       <IsabellaClientApp />
