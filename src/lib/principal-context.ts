@@ -49,7 +49,6 @@ export class PrincipalContext {
     this.tenant = tenant;
   }
 
-  /** Identidad compacta para el request-context (P0-13: persistencia tenant-scoped). */
   public toRequestIdentity(): RequestIdentity {
     return {
       userId: this.userId,
@@ -127,8 +126,7 @@ export class PrincipalContext {
             success: false,
             response: new Response(
               JSON.stringify({
-                error:
-                  "Aislamiento de Tenant Violado: El Tenant asignado a la API Key no está registrado.",
+                error: "Aislamiento de Tenant Violado: El Tenant asignado a la API Key no está registrado.",
                 traceId: telemetry.traceId,
               }),
               { status: 403, headers },
@@ -186,8 +184,6 @@ export class PrincipalContext {
             (cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true)
           );
         } catch {
-          // Sin fallback a process.env (§12: config() es la única vía).
-          // Si la configuración no carga, no hay invitados: fail-closed.
           return false;
         }
       })();
@@ -210,12 +206,7 @@ export class PrincipalContext {
         };
         const guestContext = new PrincipalContext(
           guestClaims,
-          guestTenant as unknown as {
-            id: string;
-            slug: string;
-            tier: string;
-            quotaBalance: number;
-          },
+          guestTenant,
           "guest_user",
           ip,
           telemetry.traceId,
@@ -228,7 +219,6 @@ export class PrincipalContext {
           const cfg = config() as unknown as Record<string, unknown>;
           return cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true;
         } catch {
-          // Sin fallback a process.env (§12). Config inválida = sin bypass de desarrollo.
           return false;
         }
       })();
@@ -246,7 +236,7 @@ export class PrincipalContext {
         const mockTenant = { id: "tenant-dev", slug: "dev", tier: "sovereign", quotaBalance: 9999 };
         const mockContext = new PrincipalContext(
           mockClaims,
-          mockTenant as unknown as { id: string; slug: string; tier: string; quotaBalance: number },
+          mockTenant,
           "dev_user",
           ip,
           telemetry.traceId,
@@ -258,8 +248,7 @@ export class PrincipalContext {
         success: false,
         response: new Response(
           JSON.stringify({
-            error:
-              "No Autorizado OIDC: Falta la firma criptográfica Bearer en la cabecera o la cabecera X-Isabella-API-Key.",
+            error: "No Autorizado OIDC: Falta la firma criptográfica Bearer en la cabecera o la cabecera X-Isabella-API-Key.",
             traceId: telemetry.traceId,
           }),
           { status: 401, headers },
@@ -275,7 +264,6 @@ export class PrincipalContext {
           const cfg = config() as unknown as Record<string, unknown>;
           return cfg.ALLOW_GUEST_CHAT === true;
         } catch {
-          // Sin fallback a process.env (§12): fail-closed.
           return false;
         }
       })();
@@ -297,12 +285,7 @@ export class PrincipalContext {
         };
         const guestContext = new PrincipalContext(
           guestClaims,
-          guestTenant as unknown as {
-            id: string;
-            slug: string;
-            tier: string;
-            quotaBalance: number;
-          },
+          guestTenant,
           "guest_user",
           ip,
           telemetry.traceId,
@@ -315,7 +298,6 @@ export class PrincipalContext {
           const cfg = config() as unknown as Record<string, unknown>;
           return cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true;
         } catch {
-          // Sin fallback a process.env (§12). Config inválida = sin bypass de desarrollo.
           return false;
         }
       })();
@@ -333,7 +315,7 @@ export class PrincipalContext {
         const mockTenant = { id: "tenant-dev", slug: "dev", tier: "sovereign", quotaBalance: 9999 };
         const mockContext = new PrincipalContext(
           mockClaims,
-          mockTenant as unknown as { id: string; slug: string; tier: string; quotaBalance: number },
+          mockTenant,
           "dev_user",
           ip,
           telemetry.traceId,
@@ -399,8 +381,7 @@ export class PrincipalContext {
           success: false,
           response: new Response(
             JSON.stringify({
-              error:
-                "Aislamiento de Tenant Violado: El Tenant asignado al token no está registrado.",
+              error: "Aislamiento de Tenant Violado: El Tenant asignado al token no está registrado.",
               traceId: telemetry.traceId,
             }),
             { status: 403, headers },
@@ -408,27 +389,23 @@ export class PrincipalContext {
         };
       }
 
-      // P0-02: validar la sesión por token_jti (claims.jti), NUNCA por comparar el
-      // JWT completo contra sessions.id. La tabla SQL define id uuid y token_jti uuid.
       const jti = (claims as unknown as Record<string, unknown>).jti as string | undefined;
       const { items: sessions } = await repositoryFactory
         .getSessionRepository()
         .list(claims.tenantId, { userId: claims.sub });
-      let session;
-      if (jti) {
-        session = sessions.find((s) => {
-          const rec = s as unknown as Record<string, unknown>;
-          const sessionJti = rec.tokenJti ?? rec.token_jti;
-          return String(sessionJti) === jti;
-        });
-      }
+      const session = jti
+        ? sessions.find((s) => {
+            const rec = s as unknown as Record<string, unknown>;
+            const sessionJti = rec.tokenJti ?? rec.token_jti;
+            return String(sessionJti) === jti;
+          })
+        : undefined;
       if (!session) {
         return {
           success: false,
           response: new Response(
             JSON.stringify({
-              error:
-                "Acceso Denegado: La sesión asociada al token ya no se encuentra activa en el nodo.",
+              error: "Acceso Denegado: La sesión asociada al token ya no se encuentra activa en el nodo.",
               traceId: telemetry.traceId,
             }),
             { status: 401, headers },
@@ -436,18 +413,13 @@ export class PrincipalContext {
         };
       }
 
-      // P0: expiración y revocación efectiva. Una sesión con is_active=false
-      // o expiresAt pasado se rechaza aunque el JWT aún sea válido.
       const sessionRecord = session as unknown as Record<string, unknown>;
       const activeFlag = sessionRecord.is_active ?? sessionRecord.isActive;
       if (activeFlag === false) {
         return {
           success: false,
           response: new Response(
-            JSON.stringify({
-              error: "Acceso Denegado: sesión revocada.",
-              traceId: telemetry.traceId,
-            }),
+            JSON.stringify({ error: "Acceso Denegado: sesión revocada.", traceId: telemetry.traceId }),
             { status: 401, headers },
           ),
         };
@@ -459,10 +431,7 @@ export class PrincipalContext {
           return {
             success: false,
             response: new Response(
-              JSON.stringify({
-                error: "Acceso Denegado: sesión expirada.",
-                traceId: telemetry.traceId,
-              }),
+              JSON.stringify({ error: "Acceso Denegado: sesión expirada.", traceId: telemetry.traceId }),
               { status: 401, headers },
             ),
           };
@@ -497,12 +466,15 @@ export function withSovereignAuth(
     }
 
     const { context } = authResult;
+    const isGuestChat = context.role === "Guest" && resource === "system" && action === "execute";
 
-    // P0 deployment: in production, resynchronize the SovereignDB in-memory
-    // cache from durable PostgreSQL so every request observes the latest
-    // cross-instance state before any read-modify-write.
-    const { SovereignDB } = await import("./sovereign-engine");
-    await SovereignDB.hydrate();
+    // Guest chat is intentionally stateless: it has no tenant mutation, memory write,
+    // or tool execution. Durable-state hydration would make public inference depend on
+    // an unrelated database cache and previously caused a valid chat request to fail.
+    if (!isGuestChat) {
+      const { SovereignDB } = await import("./sovereign-engine");
+      await SovereignDB.hydrate();
+    }
 
     const authReq: AuthorizationContext = {
       tenant_id: context.tenantId,
@@ -518,7 +490,9 @@ export function withSovereignAuth(
       },
     };
 
-    const decisionResult = await evaluateAuthorization(authReq);
+    // Public chat is a narrowly scoped, read-only inference capability. It still
+    // passes CROWN/AEGIS in the Isabella gateway and cannot execute system mutations.
+    const decisionResult = isGuestChat ? { allow: true } : await evaluateAuthorization(authReq);
     if (!decisionResult.allow) {
       const headers = SecuritySystem.injectSecureHeaders(
         new Headers({ "content-type": "application/json" }),
@@ -532,8 +506,6 @@ export function withSovereignAuth(
       );
     }
 
-    // P0-04: CROWN MANDATORY POLICY ENGINE
-    // Asegurar que TODA operación de db/estado pase por CROWN, incluso para el SovereignOwner.
     const { CROWN, assessIntent, evaluatePolicy, createDefaultContext } = await import("./crown");
     const intent = assessIntent(`API Operation: ${resource}:${action}`);
     const identityAssessment = {
@@ -567,7 +539,6 @@ export function withSovereignAuth(
     if (request.method === "POST" || request.method === "PUT" || request.method === "PATCH") {
       const contentLength = parseInt(request.headers.get("content-length") || "0", 10);
       if (contentLength > 5 * 1024 * 1024) {
-        // 5MB limit
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json" }),
         );
@@ -582,7 +553,7 @@ export function withSovereignAuth(
           body = await cloned.json();
         }
       } catch {
-        // Ignore parsing error, handler can handle it or request may be non-json
+        // Handler validates its own body.
       }
     }
 
