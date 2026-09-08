@@ -14,11 +14,11 @@ export function addProvider(provider: IntelligenceProvider, productionApproved =
 }
 
 export function governIntelligence(request: IntelligenceRequest): GovernanceDecision {
-  if (!request.tenantId || !request.actorId) return { decision: "DENY", reasons: ["tenant-and-actor-required"], risk: "CRITICAL" };
-  if (request.messages.length === 0 || request.messages.length > 40) return { decision: "DENY", reasons: ["invalid-message-count"], risk: "HIGH" };
+  if (!request.tenantId || !request.actorId) return { decision: "DENY", reasons: ["tenant-and-actor-required"], riskScore: 100, policyIds: [] };
+  if (request.messages.length === 0 || request.messages.length > 40) return { decision: "DENY", reasons: ["invalid-message-count"], riskScore: 80, policyIds: [] };
   const temperature = request.temperature ?? 0.7;
-  if (temperature < 0 || temperature > 2) return { decision: "DENY", reasons: ["temperature-out-of-range"], risk: "MEDIUM" };
-  return { decision: "ALLOW", reasons: [], risk: "LOW" };
+  if (temperature < 0 || temperature > 2) return { decision: "DENY", reasons: ["temperature-out-of-range"], riskScore: 50, policyIds: [] };
+  return { decision: "ALLOW", reasons: [], riskScore: 0, policyIds: [] };
 }
 
 export async function invokeIntelligence(input: Omit<IntelligenceRequest, "requestId"> & { requestId?: string }): Promise<IntelligenceResponse> {
@@ -42,8 +42,6 @@ export async function invokeIntelligence(input: Omit<IntelligenceRequest, "reque
         lastError = error;
         continue;
       }
-    } else if (!descriptor.productionApproved && preferred === modelId) {
-      // Development permits an explicitly selected registered model.
     }
     try {
       if (!(await provider.health())) continue;
