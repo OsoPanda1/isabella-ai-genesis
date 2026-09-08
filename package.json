@@ -32,6 +32,7 @@
     "db:backup": "node scripts/db-backup.mjs",
     "db:restore": "node scripts/db-restore.mjs",
     "capabilities": "node scripts/capability-matrix.mjs --check",
+    "audit:routes": "node scripts/genesis-route-audit.mjs",
     "security:scan": "eslint . --config eslint.security.mjs && node scripts/secret-scan.mjs",
     "postinstall": "prisma generate"
   },
