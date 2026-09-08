@@ -53,7 +53,7 @@ function toCamelKey(key: string): string {
   return key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
 }
 
-export class NeonRepository<T extends { id: string }> implements IRepository<T> {
+export class NeonRepository<T extends object> implements IRepository<T> {
   private readonly table: string;
   private readonly type: string;
 
@@ -126,7 +126,9 @@ export class NeonRepository<T extends { id: string }> implements IRepository<T> 
     if (!tenantId) throw toRepositoryError("tenantId required for update", 400);
     const pool = getPgPool();
     const row = toSnake(data as Record<string, unknown>);
-    const sets = Object.keys(row).map((k, i) => `${k} = $${i + 3}`).join(", ");
+    const sets = Object.keys(row)
+      .map((k, i) => `${k} = $${i + 3}`)
+      .join(", ");
     const vals = [id, tenantId, ...Object.values(row)];
     const query = `UPDATE ${this.table} SET ${sets} WHERE id = $1 AND tenant_id = $2 RETURNING *`;
     const { rows } = await pool.query(query, vals);
@@ -160,7 +162,19 @@ export class NeonRepository<T extends { id: string }> implements IRepository<T> 
     await pool.query(
       `INSERT INTO audit_events (id, tenant_id, trace_id, correlation_id, actor_ip, event, severity, details, remediated, verification_hash, previous_log_hash)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-      [id, entry.tenantId, entry.traceId, entry.traceId, "", entry.action, entry.severity, details, false, verificationHash, previousLogHash],
+      [
+        id,
+        entry.tenantId,
+        entry.traceId,
+        entry.traceId,
+        "",
+        entry.action,
+        entry.severity,
+        details,
+        false,
+        verificationHash,
+        previousLogHash,
+      ],
     );
   }
 
@@ -177,10 +191,9 @@ export class NeonRepository<T extends { id: string }> implements IRepository<T> 
 
   async findByPrefix(prefix: string): Promise<T | null> {
     const pool = getPgPool();
-    const { rows } = await pool.query(
-      `SELECT * FROM ${this.table} WHERE prefix = $1 LIMIT 1`,
-      [prefix],
-    );
+    const { rows } = await pool.query(`SELECT * FROM ${this.table} WHERE prefix = $1 LIMIT 1`, [
+      prefix,
+    ]);
     return rows[0] ? toCamel<T>(rows[0]) : null;
   }
 

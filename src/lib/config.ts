@@ -53,7 +53,9 @@ export function loadConfig(source: RawEnv = process.env): Env {
         throw new Error("AUTH_DEV_SESSION_ENABLED y ALLOW_GUEST_CHAT deben estar desactivados");
       }
       if (!parsed.DATABASE_URL && !(parsed.SUPABASE_URL && parsed.AUTH_JWT_SECRET)) {
-        throw new Error("Se requiere autoridad durable: DATABASE_URL o Supabase con AUTH_JWT_SECRET");
+        throw new Error(
+          "Se requiere autoridad durable: DATABASE_URL o Supabase con AUTH_JWT_SECRET",
+        );
       }
     }
   } catch (error) {
@@ -72,6 +74,26 @@ export function loadConfig(source: RawEnv = process.env): Env {
 /** Devuelve el error de validación de configuración (si lo hubo). */
 export function getConfigLoadError(): string | null {
   return loadError;
+}
+
+/**
+ * P0-15: distingue si el operador DECLARÓ explícitamente el proveedor de
+ * estado durable (independientemente del default de `envSchema`). Permite
+ * fail-closed sin confundir el fallback de esquema con una declaración real.
+ */
+export function isStorageProviderExplicitlyDeclared(source: RawEnv = process.env): boolean {
+  const raw = source.ISABELLA_STORAGE_PROVIDER;
+  return typeof raw === "string" && raw.trim() !== "";
+}
+
+/** True cuando la ejecución corre en un pipeline CI (GitHub Actions/CI). */
+export function isCiEnvironment(source: RawEnv = process.env): boolean {
+  return source.GITHUB_ACTIONS === "true" || source.CI === "true";
+}
+
+/** ID de corrida del pipeline CI (GitHub Actions), "local" fuera de CI. */
+export function getCiRunId(source: RawEnv = process.env): string {
+  return source.GITHUB_RUN_ID ?? "local";
 }
 
 /** Reinicia la caché (usado en tests). */

@@ -18,6 +18,7 @@ import { CIScanResult } from "../scanners/ci-scanner";
 import { SupplyChainScanResult } from "../scanners/supply-chain-scanner";
 import { GovernanceScanResult } from "../scanners/governance-scanner";
 import { TestDiscoveryResult, TestExecutionResult } from "../runners/test-runner";
+import { getCiRunId, isCiEnvironment } from "../../config";
 
 export interface ClaimEngineConfig {
   claimsPath?: string;
@@ -96,8 +97,8 @@ export class ClaimEngine {
   private collectEvidenceFromScans(): void {
     const now = new Date().toISOString();
     const environment = {
-      runner: process.env.GITHUB_ACTIONS ? "GitHub Actions" : "local",
-      runnerId: process.env.GITHUB_RUN_ID ?? "local",
+      runner: isCiEnvironment() ? "GitHub Actions" : "local",
+      runnerId: isCiEnvironment() ? getCiRunId() : "local",
       os: process.platform,
       nodeVersion: process.version,
       pnpmVersion: "10.15.0",
@@ -340,8 +341,8 @@ export class ClaimEngine {
 
     const now = new Date().toISOString();
     const environment = {
-      runner: process.env.GITHUB_ACTIONS ? "GitHub Actions" : "local",
-      runnerId: process.env.GITHUB_RUN_ID ?? "local",
+      runner: isCiEnvironment() ? "GitHub Actions" : "local",
+      runnerId: isCiEnvironment() ? getCiRunId() : "local",
       os: process.platform,
       nodeVersion: process.version,
       pnpmVersion: "10.15.0",
@@ -535,6 +536,7 @@ export class ClaimEngine {
     const requirements: Record<ClaimStatus, number> = {
       PLANNED: 0,
       DESIGNED: 1,
+      PARTIAL: 2,
       IMPLEMENTED: 2,
       TESTED: 4,
       VERIFIED: 6,

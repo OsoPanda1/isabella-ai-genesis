@@ -22,7 +22,15 @@ export interface GraphNode {
 export interface GraphEdge {
   source: string;
   target: string;
-  type: "implements" | "tests" | "evidences" | "verifies" | "blocks" | "relates_to" | "depends_on" | "conflicts_with";
+  type:
+    | "implements"
+    | "tests"
+    | "evidences"
+    | "verifies"
+    | "blocks"
+    | "relates_to"
+    | "depends_on"
+    | "conflicts_with";
   metadata: {
     strength: number;
     verified: boolean;
@@ -76,7 +84,7 @@ export class EvidenceGraphBuilder {
   addClaim(claim: Claim): string {
     const nodeId = `claim:${claim.id}`;
     if (this.findNode(nodeId)) return nodeId;
-    
+
     const node: GraphNode = {
       id: nodeId,
       type: "claim",
@@ -97,7 +105,7 @@ export class EvidenceGraphBuilder {
   addControl(control: Control): string {
     const nodeId = `control:${control.id}`;
     if (this.findNode(nodeId)) return nodeId;
-    
+
     const node: GraphNode = {
       id: nodeId,
       type: "control",
@@ -118,7 +126,7 @@ export class EvidenceGraphBuilder {
   addEvidence(evidence: Evidence): string {
     const nodeId = `evidence:${evidence.id}`;
     if (this.findNode(nodeId)) return nodeId;
-    
+
     const node: GraphNode = {
       id: nodeId,
       type: "evidence",
@@ -133,32 +141,42 @@ export class EvidenceGraphBuilder {
     };
     this.addNode(node);
     this.addToIndex("byEvidence", evidence.id, nodeId);
-    
+
     if (evidence.claimId) {
       this.addEdge({
         source: nodeId,
         target: `claim:${evidence.claimId}`,
         type: "verifies",
-        metadata: { strength: 1.0, verified: true, verifiedAt: evidence.metadata.collectedAt, verifiedBy: "evidence-scanner" },
+        metadata: {
+          strength: 1.0,
+          verified: true,
+          verifiedAt: evidence.metadata.collectedAt,
+          verifiedBy: "evidence-scanner",
+        },
       });
     }
-    
+
     if (evidence.controlId) {
       this.addEdge({
         source: nodeId,
         target: `control:${evidence.controlId}`,
         type: "evidences",
-        metadata: { strength: 1.0, verified: true, verifiedAt: evidence.metadata.collectedAt, verifiedBy: "evidence-scanner" },
+        metadata: {
+          strength: 1.0,
+          verified: true,
+          verifiedAt: evidence.metadata.collectedAt,
+          verifiedBy: "evidence-scanner",
+        },
       });
     }
-    
+
     return nodeId;
   }
 
   addFinding(finding: Finding): string {
     const nodeId = `finding:${finding.id}`;
     if (this.findNode(nodeId)) return nodeId;
-    
+
     const node: GraphNode = {
       id: nodeId,
       type: "finding",
@@ -172,23 +190,28 @@ export class EvidenceGraphBuilder {
       },
     };
     this.addNode(node);
-    
+
     if (finding.claimId) {
       this.addEdge({
         source: nodeId,
         target: `claim:${finding.claimId}`,
         type: "blocks",
-        metadata: { strength: 1.0, verified: true, verifiedAt: finding.createdAt, verifiedBy: "finding-engine" },
+        metadata: {
+          strength: 1.0,
+          verified: true,
+          verifiedAt: finding.createdAt,
+          verifiedBy: "finding-engine",
+        },
       });
     }
-    
+
     return nodeId;
   }
 
   addCodeArtifact(artifact: CodeArtifact): string {
     const nodeId = `code:${artifact.id}`;
     if (this.findNode(nodeId)) return nodeId;
-    
+
     const node: GraphNode = {
       id: nodeId,
       type: "code",
@@ -208,7 +231,7 @@ export class EvidenceGraphBuilder {
   addConfiguration(config: Configuration): string {
     const nodeId = `config:${config.id}`;
     if (this.findNode(nodeId)) return nodeId;
-    
+
     const node: GraphNode = {
       id: nodeId,
       type: "config",
@@ -230,7 +253,12 @@ export class EvidenceGraphBuilder {
       source: `code:${codeId}`,
       target: `claim:${claimId}`,
       type: "implements",
-      metadata: { strength, verified: true, verifiedAt: new Date().toISOString(), verifiedBy: "source-scanner" },
+      metadata: {
+        strength,
+        verified: true,
+        verifiedAt: new Date().toISOString(),
+        verifiedBy: "source-scanner",
+      },
     });
   }
 
@@ -239,7 +267,12 @@ export class EvidenceGraphBuilder {
       source: `evidence:${testId}`,
       target: `control:${controlId}`,
       type: "tests",
-      metadata: { strength, verified: true, verifiedAt: new Date().toISOString(), verifiedBy: "test-runner" },
+      metadata: {
+        strength,
+        verified: true,
+        verifiedAt: new Date().toISOString(),
+        verifiedBy: "test-runner",
+      },
     });
   }
 
@@ -248,7 +281,12 @@ export class EvidenceGraphBuilder {
       source: `config:${configId}`,
       target: `claim:${claimId}`,
       type: "relates_to",
-      metadata: { strength, verified: true, verifiedAt: new Date().toISOString(), verifiedBy: "env-scanner" },
+      metadata: {
+        strength,
+        verified: true,
+        verifiedAt: new Date().toISOString(),
+        verifiedBy: "env-scanner",
+      },
     });
   }
 
@@ -264,11 +302,11 @@ export class EvidenceGraphBuilder {
   }
 
   private findNode(id: string): GraphNode | undefined {
-    return this.graph.nodes.find(n => n.id === id);
+    return this.graph.nodes.find((n) => n.id === id);
   }
 
   private addToIndex(indexName: keyof EvidenceGraph["indices"], key: string, nodeId: string): void {
-    const index = this.graph.indices[indexName];
+    const index = this.graph.indices[indexName] as unknown as Map<string, string[]>;
     const existing = index.get(key) ?? [];
     existing.push(nodeId);
     index.set(key, existing);
@@ -281,18 +319,20 @@ export class EvidenceGraphBuilder {
   computeHashes(): { nodesHash: string; edgesHash: string; graphHash: string } {
     const nodesContent = this.graph.nodes
       .sort((a, b) => a.id.localeCompare(b.id))
-      .map(n => ({ id: n.id, type: n.type, dataHash: this.hashData(n.data) }))
+      .map((n) => ({ id: n.id, type: n.type, dataHash: this.hashData(n.data) }))
       .reduce((acc, n) => acc + n.id + n.type + n.dataHash, "");
-    
+
     const edgesContent = this.graph.edges
       .sort((a, b) => a.source.localeCompare(b.source))
-      .map(e => e.source + e.target + e.type)
+      .map((e) => e.source + e.target + e.type)
       .join("");
-    
+
     const nodesHash = createHash("sha3-512").update(nodesContent).digest("hex");
     const edgesHash = createHash("sha3-512").update(edgesContent).digest("hex");
-    const graphHash = createHash("sha3-512").update(nodesHash + edgesHash).digest("hex");
-    
+    const graphHash = createHash("sha3-512")
+      .update(nodesHash + edgesHash)
+      .digest("hex");
+
     return { nodesHash, edgesHash, graphHash };
   }
 
@@ -318,7 +358,8 @@ export interface GraphAnalysisResult {
   contradictions: Array<{
     nodeA: string;
     nodeB: string;
-    contradictionType: "claim_vs_code" | "docs_vs_implementation" | "test_vs_behavior" | "evidence_vs_claim";
+    contradictionType:
+      "claim_vs_code" | "docs_vs_implementation" | "test_vs_behavior" | "evidence_vs_claim";
     description: string;
     severity: "CRITICAL" | "HIGH" | "MEDIUM";
   }>;
@@ -375,49 +416,55 @@ export class EvidenceGraphAnalyzer {
   }
 
   private findOrphanClaims(): GraphAnalysisResult["orphanClaims"] {
-    const claims = this.graph.nodes.filter(n => n.type === "claim");
+    const claims = this.graph.nodes.filter((n) => n.type === "claim");
     const result: GraphAnalysisResult["orphanClaims"] = [];
-    
+
     for (const claimNode of claims) {
       const claim = claimNode.data as Claim;
       const evidenceEdges = this.graph.edges.filter(
-        e => e.target === claimNode.id && e.type === "verifies"
+        (e) => e.target === claimNode.id && e.type === "verifies",
       );
       const evidenceNodes = evidenceEdges
-        .map(e => this.graph.nodes.find(n => n.id === e.source))
+        .map((e) => this.graph.nodes.find((n) => n.id === e.source))
         .filter(Boolean) as GraphNode[];
-      
-      const evidenceTypes = new Set(evidenceNodes.map(n => (n.data as Evidence).type));
-      const missingTypes = claim.evidenceRequired.filter(t => !evidenceTypes.has(t));
-      
+
+      const evidenceTypes = new Set(evidenceNodes.map((n) => (n.data as Evidence).type));
+      const missingTypes = claim.evidenceRequired.filter((t) => !evidenceTypes.has(t));
+
       if (evidenceNodes.length === 0 || missingTypes.length > 0) {
         result.push({
           claimId: claim.id,
           expectedEvidenceCount: claim.evidenceRequired.length,
           actualEvidenceCount: evidenceNodes.length,
           missingEvidenceTypes: missingTypes,
-          severity: missingTypes.length === claim.evidenceRequired.length ? "CRITICAL" : 
-                    missingTypes.length > claim.evidenceRequired.length / 2 ? "HIGH" : "MEDIUM",
+          severity:
+            missingTypes.length === claim.evidenceRequired.length
+              ? "CRITICAL"
+              : missingTypes.length > claim.evidenceRequired.length / 2
+                ? "HIGH"
+                : "MEDIUM",
         });
       }
     }
-    
+
     return result;
   }
 
   private findOrphanEvidence(): GraphAnalysisResult["orphanEvidence"] {
-    const evidenceNodes = this.graph.nodes.filter(n => n.type === "evidence");
+    const evidenceNodes = this.graph.nodes.filter((n) => n.type === "evidence");
     const result: GraphAnalysisResult["orphanEvidence"] = [];
-    
+
     for (const evNode of evidenceNodes) {
       const evidence = evNode.data as Evidence;
-      const claimEdges = this.graph.edges.filter(e => e.source === evNode.id && e.type === "verifies");
-      
+      const claimEdges = this.graph.edges.filter(
+        (e) => e.source === evNode.id && e.type === "verifies",
+      );
+
       if (claimEdges.length === 0) {
         const possibleClaims = this.graph.nodes
-          .filter(n => n.type === "claim")
-          .map(n => (n.data as Claim).id);
-        
+          .filter((n) => n.type === "claim")
+          .map((n) => (n.data as Claim).id);
+
         result.push({
           evidenceId: evidence.id,
           type: evidence.type,
@@ -426,23 +473,29 @@ export class EvidenceGraphAnalyzer {
         });
       }
     }
-    
+
     return result;
   }
 
   private findContradictions(): GraphAnalysisResult["contradictions"] {
     const result: GraphAnalysisResult["contradictions"] = [];
-    
-    const claims = this.graph.nodes.filter(n => n.type === "claim");
-    const codeNodes = this.graph.nodes.filter(n => n.type === "code");
-    const configNodes = this.graph.nodes.filter(n => n.type === "config");
-    const findingNodes = this.graph.nodes.filter(n => n.type === "finding");
-    
+
+    const claims = this.graph.nodes.filter((n) => n.type === "claim");
+    const codeNodes = this.graph.nodes.filter((n) => n.type === "code");
+    const configNodes = this.graph.nodes.filter((n) => n.type === "config");
+    const findingNodes = this.graph.nodes.filter((n) => n.type === "finding");
+
     for (const claimNode of claims) {
       const claim = claimNode.data as Claim;
-      const codeEdges = this.graph.edges.filter(e => e.target === claimNode.id && e.type === "implements");
-      
-      if (codeEdges.length === 0 && claim.requiredStatus !== "PLANNED" && claim.requiredStatus !== "DESIGNED") {
+      const codeEdges = this.graph.edges.filter(
+        (e) => e.target === claimNode.id && e.type === "implements",
+      );
+
+      if (
+        codeEdges.length === 0 &&
+        claim.requiredStatus !== "PLANNED" &&
+        claim.requiredStatus !== "DESIGNED"
+      ) {
         result.push({
           nodeA: claimNode.id,
           nodeB: "none",
@@ -452,7 +505,7 @@ export class EvidenceGraphAnalyzer {
         });
       }
     }
-    
+
     for (const findingNode of findingNodes) {
       const finding = findingNode.data as Finding;
       if (finding.claimId) {
@@ -465,92 +518,111 @@ export class EvidenceGraphAnalyzer {
         });
       }
     }
-    
+
     return result;
   }
 
   private analyzeCoverage(): GraphAnalysisResult["coverageAnalysis"] {
-    const claims = this.graph.nodes.filter(n => n.type === "claim");
+    const claims = this.graph.nodes.filter((n) => n.type === "claim");
     let claimsWithEvidence = 0;
     const byCategory: GraphAnalysisResult["coverageAnalysis"]["byCategory"] = {};
-    
+
     for (const claimNode of claims) {
       const claim = claimNode.data as Claim;
-      const evidenceEdges = this.graph.edges.filter(e => e.target === claimNode.id && e.type === "verifies");
-      
+      const evidenceEdges = this.graph.edges.filter(
+        (e) => e.target === claimNode.id && e.type === "verifies",
+      );
+
       if (!byCategory[claim.category]) {
         byCategory[claim.category] = { total: 0, covered: 0, percentage: 0 };
       }
       byCategory[claim.category].total++;
-      
+
       if (evidenceEdges.length > 0) {
         claimsWithEvidence++;
         byCategory[claim.category].covered++;
       }
     }
-    
+
     for (const cat of Object.values(byCategory)) {
       cat.percentage = cat.total > 0 ? Math.round((cat.covered / cat.total) * 100) : 0;
     }
-    
+
     return {
       claimsWithEvidence,
       claimsWithoutEvidence: claims.length - claimsWithEvidence,
-      coveragePercentage: claims.length > 0 ? Math.round((claimsWithEvidence / claims.length) * 100) : 0,
+      coveragePercentage:
+        claims.length > 0 ? Math.round((claimsWithEvidence / claims.length) * 100) : 0,
       byCategory,
     };
   }
 
   private analyzeConfidence(): GraphAnalysisResult["confidenceAnalysis"] {
-    const claims = this.graph.nodes.filter(n => n.type === "claim");
+    const claims = this.graph.nodes.filter((n) => n.type === "claim");
     const result: GraphAnalysisResult["confidenceAnalysis"] = [];
-    
+
     for (const claimNode of claims) {
       const claim = claimNode.data as Claim;
-      const evidenceEdges = this.graph.edges.filter(e => e.target === claimNode.id && e.type === "verifies");
+      const evidenceEdges = this.graph.edges.filter(
+        (e) => e.target === claimNode.id && e.type === "verifies",
+      );
       const evidenceNodes = evidenceEdges
-        .map(e => this.graph.nodes.find(n => n.id === e.source))
+        .map((e) => this.graph.nodes.find((n) => n.id === e.source))
         .filter(Boolean) as GraphNode[];
-      
+
       const evidenceCount = evidenceNodes.length;
       const requiredCount = claim.evidenceRequired.length;
-      
-      const evidenceQuality = evidenceNodes.length > 0 
-        ? evidenceNodes.reduce((sum, n) => {
-            const ev = n.data as Evidence;
-            let quality = 0;
-            if (ev.metadata.independentlyVerifiable) quality += 0.25;
-            if (ev.metadata.reproducible) quality += 0.25;
-            if (ev.metadata.tamperEvident) quality += 0.25;
-            if (ev.metadata.cryptographicallySigned) quality += 0.25;
-            return sum + quality;
-          }, 0) / evidenceNodes.length
-        : 0;
-      
+
+      const evidenceQuality =
+        evidenceNodes.length > 0
+          ? evidenceNodes.reduce((sum, n) => {
+              const ev = n.data as Evidence;
+              let quality = 0;
+              if (ev.metadata.independentlyVerifiable) quality += 0.25;
+              if (ev.metadata.reproducible) quality += 0.25;
+              if (ev.metadata.tamperEvident) quality += 0.25;
+              if (ev.metadata.cryptographicallySigned) quality += 0.25;
+              return sum + quality;
+            }, 0) / evidenceNodes.length
+          : 0;
+
       const evidenceQuantity = Math.min(evidenceCount / Math.max(requiredCount, 1), 1);
-      const evidenceRecency = evidenceNodes.length > 0
-        ? Math.max(0, 1 - (Date.now() - new Date(evidenceNodes[0].metadata.createdAt).getTime()) / (90 * 24 * 60 * 60 * 1000))
-        : 0;
-      const evidenceIndependence = evidenceNodes.length > 0
-        ? evidenceNodes.filter(n => (n.data as Evidence).source === "external").length / evidenceNodes.length
-        : 0;
-      
-      const testEdges = this.graph.edges.filter(e => e.target === claimNode.id && e.type === "tests");
+      const evidenceRecency =
+        evidenceNodes.length > 0
+          ? Math.max(
+              0,
+              1 -
+                (Date.now() - new Date(evidenceNodes[0].metadata.createdAt).getTime()) /
+                  (90 * 24 * 60 * 60 * 1000),
+            )
+          : 0;
+      const evidenceIndependence =
+        evidenceNodes.length > 0
+          ? evidenceNodes.filter((n) => (n.data as Evidence).source === "external").length /
+            evidenceNodes.length
+          : 0;
+
+      const testEdges = this.graph.edges.filter(
+        (e) => e.target === claimNode.id && e.type === "tests",
+      );
       const testCoverage = testEdges.length > 0 ? Math.min(testEdges.length / 4, 1) : 0;
-      
-      const codeEdges = this.graph.edges.filter(e => e.target === claimNode.id && e.type === "implements");
-      const codeNodes = codeEdges.map(e => this.graph.nodes.find(n => n.id === e.source)).filter(Boolean);
+
+      const codeEdges = this.graph.edges.filter(
+        (e) => e.target === claimNode.id && e.type === "implements",
+      );
+      const codeNodes = codeEdges
+        .map((e) => this.graph.nodes.find((n) => n.id === e.source))
+        .filter(Boolean);
       const codeQuality = codeNodes.length > 0 ? 0.8 : 0;
-      
-      const confidenceScore = (
+
+      const confidenceScore =
         evidenceQuality * 0.3 +
         evidenceQuantity * 0.2 +
         evidenceRecency * 0.15 +
         evidenceIndependence * 0.15 +
         testCoverage * 0.1 +
-        codeQuality * 0.1
-      );
-      
+        codeQuality * 0.1;
+
       result.push({
         claimId: claim.id,
         confidenceScore: Math.round(confidenceScore * 100) / 100,
@@ -562,10 +634,11 @@ export class EvidenceGraphAnalyzer {
           testCoverage: Math.round(testCoverage * 100) / 100,
           codeQuality: Math.round(codeQuality * 100) / 100,
         },
-        calculation: "weighted_sum(evidenceQuality*0.3 + evidenceQuantity*0.2 + evidenceRecency*0.15 + evidenceIndependence*0.15 + testCoverage*0.1 + codeQuality*0.1)",
+        calculation:
+          "weighted_sum(evidenceQuality*0.3 + evidenceQuantity*0.2 + evidenceRecency*0.15 + evidenceIndependence*0.15 + testCoverage*0.1 + codeQuality*0.1)",
       });
     }
-    
+
     return result;
   }
 
@@ -574,13 +647,13 @@ export class EvidenceGraphAnalyzer {
     const visited = new Set<string>();
     const recStack = new Set<string>();
     const path: string[] = [];
-    
+
     const dfs = (nodeId: string): boolean => {
       visited.add(nodeId);
       recStack.add(nodeId);
       path.push(nodeId);
-      
-      const edges = this.graph.edges.filter(e => e.source === nodeId);
+
+      const edges = this.graph.edges.filter((e) => e.source === nodeId);
       for (const edge of edges) {
         if (!visited.has(edge.target)) {
           if (dfs(edge.target)) return true;
@@ -596,45 +669,45 @@ export class EvidenceGraphAnalyzer {
           return true;
         }
       }
-      
+
       recStack.delete(nodeId);
       path.pop();
       return false;
     };
-    
+
     for (const node of this.graph.nodes) {
       if (!visited.has(node.id)) {
         dfs(node.id);
       }
     }
-    
+
     return result;
   }
 
   private findCriticalPaths(): GraphAnalysisResult["criticalPath"] {
-    const claims = this.graph.nodes.filter(n => n.type === "claim");
+    const claims = this.graph.nodes.filter((n) => n.type === "claim");
     const result: GraphAnalysisResult["criticalPath"] = [];
-    
+
     for (const claimNode of claims) {
       const claim = claimNode.data as Claim;
       const path: string[] = [claimNode.id];
       let current = claimNode.id;
       let totalConfidence = 1.0;
       let weakestLink = { nodeId: "", confidence: 1.0, improvement: "" };
-      
+
       while (true) {
-        const outgoingEdges = this.graph.edges.filter(e => e.source === current);
+        const outgoingEdges = this.graph.edges.filter((e) => e.source === current);
         if (outgoingEdges.length === 0) break;
-        
-        const strongestEdge = outgoingEdges.reduce((max, e) => 
-          e.metadata.strength > max.metadata.strength ? e : max
+
+        const strongestEdge = outgoingEdges.reduce((max, e) =>
+          e.metadata.strength > max.metadata.strength ? e : max,
         );
-        
+
         if (strongestEdge.metadata.strength < 0.5) break;
-        
+
         path.push(strongestEdge.target);
         totalConfidence *= strongestEdge.metadata.strength;
-        
+
         if (strongestEdge.metadata.strength < weakestLink.confidence) {
           weakestLink = {
             nodeId: strongestEdge.target,
@@ -642,11 +715,11 @@ export class EvidenceGraphAnalyzer {
             improvement: `Strengthen ${strongestEdge.type} relationship`,
           };
         }
-        
+
         current = strongestEdge.target;
         if (path.includes(current)) break;
       }
-      
+
       result.push({
         claimId: claim.id,
         path,
@@ -654,7 +727,7 @@ export class EvidenceGraphAnalyzer {
         weakestLink,
       });
     }
-    
+
     return result;
   }
 }

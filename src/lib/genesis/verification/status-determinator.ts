@@ -1,6 +1,10 @@
 import { Claim, ClaimStatus, Evidence, Finding } from "../schemas";
 import { PolicyEngine } from "../engines/policy-engine";
-import { EvidenceGraph, createEvidenceGraphBuilder, createEvidenceGraphAnalyzer } from "../graph/evidence-graph";
+import {
+  EvidenceGraph,
+  createEvidenceGraphBuilder,
+  createEvidenceGraphAnalyzer,
+} from "../graph/evidence-graph";
 
 export interface VerificationConfig {
   policyEngine: PolicyEngine;
@@ -46,16 +50,20 @@ export class StatusDeterminator {
     this.evidenceGraph = config.evidenceGraph;
   }
 
-  determineStatus(claim: Claim, evidences: Evidence[], findings: Finding[]): ClaimVerificationResult {
+  determineStatus(
+    claim: Claim,
+    evidences: Evidence[],
+    findings: Finding[],
+  ): ClaimVerificationResult {
     const policyEvaluation = this.policyEngine.evaluateClaim(claim, evidences, findings);
     const graphAnalyzer = createEvidenceGraphAnalyzer(this.evidenceGraph);
     const analysis = graphAnalyzer.analyze();
-    
+
     const confidence = this.calculateConfidence(claim, evidences, analysis);
     const evidenceQuality = this.assessEvidenceQuality(evidences);
-    
+
     let status: ClaimStatus = "UNKNOWN";
-    
+
     if (policyEvaluation.blockingFindings.length > 0) {
       status = "FAILED";
     } else if (!policyEvaluation.meetsRequirements) {
@@ -66,7 +74,7 @@ export class StatusDeterminator {
     } else {
       status = claim.requiredStatus;
     }
-    
+
     return {
       claimId: claim.id,
       status,
@@ -80,18 +88,20 @@ export class StatusDeterminator {
 
   private calculateConfidence(claim: Claim, evidences: Evidence[], analysis: any): number {
     const coverage = analysis.coverageAnalysis?.coveragePercentage ?? 0;
-    const avgConfidence = analysis.confidenceAnalysis?.find((c: any) => c.claimId === claim.id)?.confidenceScore ?? 0;
-    const hasBlockingFindings = analysis.contradictions?.some((c: any) => c.severity === "CRITICAL") ?? false;
-    
+    const avgConfidence =
+      analysis.confidenceAnalysis?.find((c: any) => c.claimId === claim.id)?.confidenceScore ?? 0;
+    const hasBlockingFindings =
+      analysis.contradictions?.some((c: any) => c.severity === "CRITICAL") ?? false;
+
     let confidence = (coverage / 100) * 0.4 + avgConfidence * 0.6;
     if (hasBlockingFindings) confidence *= 0.5;
-    
+
     return Math.round(Math.max(0, Math.min(1, confidence)) * 100) / 100;
   }
 
   private assessEvidenceQuality(evidences: Evidence[]): number {
     if (evidences.length === 0) return 0;
-    
+
     let qualitySum = 0;
     for (const ev of evidences) {
       let q = 0;
@@ -101,7 +111,7 @@ export class StatusDeterminator {
       if (ev.metadata.cryptographicallySigned) q += 0.25;
       qualitySum += q;
     }
-    
+
     return Math.round((qualitySum / evidences.length) * 100) / 100;
   }
 }
@@ -113,21 +123,25 @@ export class CriteriaEvaluator {
     this.policyEngine = policyEngine;
   }
 
-  evaluateClaimCriteria(claim: Claim, evidences: Evidence[], findings: Finding[]): {
+  evaluateClaimCriteria(
+    claim: Claim,
+    evidences: Evidence[],
+    findings: Finding[],
+  ): {
     passed: boolean;
     criteria: Array<{ criterion: string; passed: boolean; details: string }>;
   } {
     const requirements = this.policyEngine.getClaimRequirements(claim.requiredStatus);
     const criteria: Array<{ criterion: string; passed: boolean; details: string }> = [];
-    
+
     const evidenceCount = evidences.length;
     criteria.push({
       criterion: `Minimum evidence count (${requirements.minEvidence})`,
       passed: evidenceCount >= requirements.minEvidence,
       details: `Found ${evidenceCount} evidence items`,
     });
-    
-    const coveredTypes = new Set(evidences.map(e => e.type));
+
+    const coveredTypes = new Set<string>(evidences.map((e) => e.type));
     for (const requiredType of requirements.requiredEvidenceTypes) {
       const covered = coveredTypes.has(requiredType);
       criteria.push({
@@ -136,9 +150,9 @@ export class CriteriaEvaluator {
         details: covered ? "Found" : "Missing",
       });
     }
-    
+
     if (requirements.minCodeCoverage !== undefined) {
-      const coverageEvidence = evidences.find(e => e.metadata.testResult?.coverage !== undefined);
+      const coverageEvidence = evidences.find((e) => e.metadata.testResult?.coverage !== undefined);
       const coverage = coverageEvidence?.metadata.testResult?.coverage ?? 0;
       criteria.push({
         criterion: `Code coverage >= ${(requirements.minCodeCoverage * 100).toFixed(0)}%`,
@@ -146,7 +160,7 @@ export class CriteriaEvaluator {
         details: `Current coverage: ${(coverage * 100).toFixed(1)}%`,
       });
     }
-    
+
     if (requirements.stabilityDays !== undefined) {
       const oldestEvidence = evidences.reduce((oldest, ev) => {
         const date = new Date(ev.metadata.collectedAt);
@@ -159,17 +173,17 @@ export class CriteriaEvaluator {
         details: `${Math.round(daysSince)} days since oldest evidence`,
       });
     }
-    
+
     if (requirements.externalReviewRequired) {
-      const hasExternalAudit = evidences.some(e => e.type === "EXTERNAL_AUDIT");
+      const hasExternalAudit = evidences.some((e) => e.type === "EXTERNAL_AUDIT");
       criteria.push({
         criterion: "External audit/review completed",
         passed: hasExternalAudit,
         details: hasExternalAudit ? "External audit evidence found" : "No external audit evidence",
       });
     }
-    
-    const passed = criteria.every(c => c.passed);
+
+    const passed = criteria.every((c) => c.passed);
     return { passed, criteria };
   }
 }
@@ -184,10 +198,10 @@ export class EvidenceQualityChecker {
       completeness: this.checkCompleteness(evidence),
       immutability: this.checkImmutability(evidence),
     };
-    
+
     const passed = Object.values(checks).filter(Boolean).length;
     const overallScore = passed / Object.keys(checks).length;
-    
+
     return {
       evidenceId: evidence.id,
       ...checks,
@@ -208,7 +222,8 @@ export class EvidenceQualityChecker {
   }
 
   private checkRecency(evidence: Evidence): boolean {
-    const ageDays = (Date.now() - new Date(evidence.metadata.collectedAt).getTime()) / (1000 * 60 * 60 * 24);
+    const ageDays =
+      (Date.now() - new Date(evidence.metadata.collectedAt).getTime()) / (1000 * 60 * 60 * 24);
     return ageDays <= (evidence.metadata.ttlDays ?? 90);
   }
 
@@ -237,9 +252,9 @@ export class ContradictionDetector {
   detect(): ContradictionDetection {
     const analyzer = createEvidenceGraphAnalyzer(this.evidenceGraph);
     const analysis = analyzer.analyze();
-    
+
     return {
-      contradictions: analysis.contradictions.map(c => ({
+      contradictions: analysis.contradictions.map((c) => ({
         type: c.contradictionType,
         description: c.description,
         severity: c.severity,

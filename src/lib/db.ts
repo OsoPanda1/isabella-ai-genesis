@@ -10,9 +10,7 @@ export interface PrismaClientOptions {
   poolConnectionTimeoutMs?: number;
 }
 
-async function getPrismaClient(
-  options: PrismaClientOptions = {},
-): Promise<PrismaClient> {
+async function getPrismaClient(options: PrismaClientOptions = {}): Promise<PrismaClient> {
   if (globalForPrisma.prisma) return globalForPrisma.prisma;
 
   const { PrismaClient: PrismaClientConstructor } = await import("../generated/prisma");

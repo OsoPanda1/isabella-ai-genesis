@@ -105,7 +105,15 @@ function auditAccessAttempt(
   severity: "S0" | "S1" | "S2" | "S3" = "S1",
 ): void {
   // Note: tenantId would need to be passed for production audit
-  sovereignStateRepository.appendAuditLog(traceId, `corr_${traceId}`, ip, event, severity, details, "system");
+  sovereignStateRepository.appendAuditLog(
+    traceId,
+    `corr_${traceId}`,
+    ip,
+    event,
+    severity,
+    details,
+    "system",
+  );
 }
 
 export const Route = createFileRoute("/api/db")({
@@ -1199,7 +1207,11 @@ export const Route = createFileRoute("/api/db")({
               try {
                 const state =
                   action === "emergency-engage"
-                    ? await store.engage(capability, reason || "emergencia declarada", context.userId)
+                    ? await store.engage(
+                        capability,
+                        reason || "emergencia declarada",
+                        context.userId,
+                      )
                     : await store.release(capability, context.userId);
                 return new Response(JSON.stringify({ success: true, state }), { headers });
               } catch (error) {
@@ -1459,13 +1471,8 @@ export const Route = createFileRoute("/api/db")({
                   // Ejecución REAL cuando el usuario provee cuenta destino
                   // (Stripe Transfer idempotente con el monto verificado).
                   // Sin destino: programado manual, sin movimiento de fondos.
-                  if (
-                    typeof destinationAccountId === "string" &&
-                    destinationAccountId.length > 0
-                  ) {
-                    const { executePayout } = await import(
-                      "@/lib/monetization/payout-executor"
-                    );
+                  if (typeof destinationAccountId === "string" && destinationAccountId.length > 0) {
+                    const { executePayout } = await import("@/lib/monetization/payout-executor");
                     const executed = await executePayout({
                       amountCents: payoutRequest.amountCents,
                       destinationAccountId,

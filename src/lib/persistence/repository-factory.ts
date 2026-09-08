@@ -33,8 +33,7 @@ class ProductionRepositoryFactory implements RepositoryFactory {
       if (typeof cfg.DURABLE_JSON_ALLOWED === "boolean") return cfg.DURABLE_JSON_ALLOWED as boolean;
       if (typeof cfg.DURABLE_JSON_ALLOWED === "string")
         return (cfg.DURABLE_JSON_ALLOWED as string) === "true";
-    } catch {
-    }
+    } catch {}
     return false;
   }
 
@@ -62,8 +61,7 @@ class ProductionRepositoryFactory implements RepositoryFactory {
     // presencia de variables ("tengo DATABASE_URL, entonces..."). Exige que
     // ISABELLA_STORAGE_PROVIDER declare postgres|neon; json|supabase|memory
     // son no autoritativos y quedan PROHIBIDOS en staging/production.
-    const provider = (cfg as unknown as Record<string, unknown>)
-      .ISABELLA_STORAGE_PROVIDER;
+    const provider = (cfg as unknown as Record<string, unknown>).ISABELLA_STORAGE_PROVIDER;
     const normalized =
       typeof provider === "string" ? (provider as string).trim().toLowerCase() : "";
 

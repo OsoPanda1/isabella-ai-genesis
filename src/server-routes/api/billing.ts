@@ -61,7 +61,9 @@ export const Route = createFileRoute("/api/billing")({
         if (action === "credits") {
           return withSovereignAuth("system", "read", async (context) => {
             const tenant = await sovereignStateRepository.getTenant(context.tenantId);
-            const monetizationAccount = await sovereignStateRepository.getMonetizationAccount(context.userId);
+            const monetizationAccount = await sovereignStateRepository.getMonetizationAccount(
+              context.userId,
+            );
             const ledger = await sovereignStateRepository.getLedger(context.tenantId);
 
             return new Response(
@@ -409,12 +411,8 @@ export const Route = createFileRoute("/api/billing")({
                   tenant.quotaBalance += 100.0;
                   await sovereignStateRepository.upsertTenant(tenant);
 
-                  if (targetUserId) {
-                    await sovereignStateRepository.updateMonetizationAccount(targetUserId, {
-                      subscriptionActive: true,
-                    });
-                  }
-
+                  // La activación de suscripción se registra en el ledger (abajo),
+                  // no como columna inexistente en MonetizationAccount.
                   const block = await sovereignStateRepository.appendLedgerBlock(
                     targetTenantId,
                     targetUserId || "system",
@@ -613,7 +611,8 @@ export const Route = createFileRoute("/api/billing")({
                   success: true,
                   blockIndex: block.index,
                   costUSD,
-                  quotaBalanceRemaining: (await sovereignStateRepository.getTenant(context.tenantId))?.quotaBalance ?? 0,
+                  quotaBalanceRemaining:
+                    (await sovereignStateRepository.getTenant(context.tenantId))?.quotaBalance ?? 0,
                 }),
                 { headers },
               );
@@ -933,10 +932,19 @@ export const Route = createFileRoute("/api/billing")({
                 return new Response(JSON.stringify({ success: true, listing }), { headers });
               } catch {
                 // Sin DATABASE_URL (desarrollo): ERROR - no fallback a memoria en prod
-                if (isProductionRuntime()) {
-                  throw new Error("Marketplace listing failed: DATABASE_URL required in production");
+                const runtime = config();
+                const isProductionRuntimeCheck =
+                  runtime.NODE_ENV === "production" ||
+                  runtime.ISABELLA_RUNTIME_MODE === "production" ||
+                  runtime.ISABELLA_RUNTIME_MODE === "staging";
+                if (isProductionRuntimeCheck) {
+                  throw new Error(
+                    "Marketplace listing failed: DATABASE_URL required in production",
+                  );
                 }
-                console.warn("[billing] Marketplace listing: DB unavailable, falling back to in-memory (dev only)");
+                console.warn(
+                  "[billing] Marketplace listing: DB unavailable, falling back to in-memory (dev only)",
+                );
               }
 
               const currentListings = await sovereignStateRepository.getMarketplaceListings();
@@ -1003,9 +1011,8 @@ export const Route = createFileRoute("/api/billing")({
               // P0: IDEMPOTENCIA ATÓMICA — UNIQUE(tenant_id, idempotency_key)
               // en economic_events. Re-compra concurrente → 409 por constraint,
               // no por escaneo O(n) del ledger con carreras.
-              const { recordEconomicEvent: recordPurchaseEvent } = await import(
-                "@/lib/economic-events"
-              );
+              const { recordEconomicEvent: recordPurchaseEvent } =
+                await import("@/lib/economic-events");
               const purchaseClaim = await recordPurchaseEvent({
                 tenantId: context.tenantId,
                 actorId: context.userId,
@@ -1066,7 +1073,9 @@ export const Route = createFileRoute("/api/billing")({
               await sovereignStateRepository.upsertTenant(freshBuyer);
 
               // Acreditar saldo madurado al vendedor (owner del skill)
-              const ownerAccount = await sovereignStateRepository.getMonetizationAccount(listing.ownerId);
+              const ownerAccount = await sovereignStateRepository.getMonetizationAccount(
+                listing.ownerId,
+              );
               await sovereignStateRepository.updateMonetizationAccount(listing.ownerId, {
                 earnedBalanceCents: ownerAccount.earnedBalanceCents + userNetCents,
                 approvedContributions: ownerAccount.approvedContributions + 1,

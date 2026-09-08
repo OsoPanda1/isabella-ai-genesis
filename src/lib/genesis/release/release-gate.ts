@@ -111,11 +111,7 @@ export interface ReleaseGateInput {
   domainEvidenceCoverage?: (domainId: string) => number;
 }
 
-const CLAIM_SATISFACTION_STATUSES = [
-  "TESTED",
-  "VERIFIED",
-  "PRODUCTION-VERIFIED",
-] as const;
+const CLAIM_SATISFACTION_STATUSES = ["TESTED", "VERIFIED", "PRODUCTION-VERIFIED"] as const;
 
 export function isClaimSatisfiedByStatus(status: string): boolean {
   return (CLAIM_SATISFACTION_STATUSES as readonly string[]).includes(status);
@@ -194,9 +190,7 @@ export function evaluateReleaseGate(input: ReleaseGateInput): ReleaseGateResult 
   }
 
   // Regla 3: dominios mandatorios/seguridad fallidos → NO-GO.
-  const mandatoryFailed = failedDomains.filter((d) =>
-    ["MANDATORY-CLAIMS", "SECURITY"].includes(d),
-  );
+  const mandatoryFailed = failedDomains.filter((d) => ["MANDATORY-CLAIMS", "SECURITY"].includes(d));
   if (mandatoryFailed.length > 0) {
     decision = "NO-GO";
     reasons.push(`Dominios obligatorios fallidos: ${mandatoryFailed.join(", ")}`);
@@ -224,7 +218,13 @@ export function evaluateReleaseGate(input: ReleaseGateInput): ReleaseGateResult 
       : reasons.join("; ");
 
   const blockingFindings =
-    decision === "NO-GO" ? (criticalOpen > 0 ? criticalOpen : failedDomains.length > 0 ? failedDomains.length : highOpen) : highOpen;
+    decision === "NO-GO"
+      ? criticalOpen > 0
+        ? criticalOpen
+        : failedDomains.length > 0
+          ? failedDomains.length
+          : highOpen
+      : highOpen;
 
   return {
     decision,
@@ -236,7 +236,10 @@ export function evaluateReleaseGate(input: ReleaseGateInput): ReleaseGateResult 
   };
 }
 
-export function createEvidenceCoverageMeasurer(claims: Claim[], evidencesByClaim: (claimId: string) => Evidence[]) {
+export function createEvidenceCoverageMeasurer(
+  claims: Claim[],
+  evidencesByClaim: (claimId: string) => Evidence[],
+) {
   const expectedKinds = new Set<string>();
   for (const claim of claims) {
     for (const kind of claim.evidenceRequired) expectedKinds.add(kind);
@@ -247,9 +250,7 @@ export function createEvidenceCoverageMeasurer(claims: Claim[], evidencesByClaim
   }
 
   return {
-    overallCoverage: Math.round(
-      (presentKinds.size / Math.max(1, expectedKinds.size)) * 100,
-    ),
+    overallCoverage: Math.round((presentKinds.size / Math.max(1, expectedKinds.size)) * 100),
     domainEvidenceCoverage: (domainId: string) => {
       const domain = RELEASE_GATE_DOMAINS.find((d) => d.id === domainId);
       if (!domain || domain.requiredEvidenceKinds.length === 0) return 1;

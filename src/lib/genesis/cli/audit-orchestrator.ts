@@ -4,6 +4,7 @@ import * as path from "node:path";
 import { createHash } from "node:crypto";
 import { execSync } from "node:child_process";
 import { createClaimEngine } from "../engines/claim-engine";
+import { getCiRunId, isCiEnvironment, loadConfig } from "../../config";
 import { Claim } from "../schemas/claim.schema";
 import { DEFAULT_CLAIMS } from "../schemas/claim.schema";
 import { createPolicyEngine, PolicyEngine } from "../engines/policy-engine";
@@ -140,7 +141,7 @@ export class AuditOrchestrator {
     this.testDiscovery = createTestDiscovery({ rootDir: this.config.rootDir });
     this.testExecutor = createTestExecutor({ rootDir: this.config.rootDir });
     this.maxTestFilesToExecute =
-      config.maxTestFilesToExecute ?? Number(process.env.GENESIS_MAX_TEST_FILES ?? 8);
+      config.maxTestFilesToExecute ?? loadConfig().GENESIS_MAX_TEST_FILES ?? 8;
 
     // Initialize verification
     const evidenceGraph = this.evidenceGraphBuilder.build();
@@ -405,8 +406,8 @@ export class AuditOrchestrator {
         snapshotTimestamp: new Date().toISOString(),
       },
       environment: {
-        runner: process.env.GITHUB_ACTIONS ? "GitHub Actions" : "local",
-        runnerId: process.env.GITHUB_RUN_ID ?? "local",
+        runner: isCiEnvironment() ? "GitHub Actions" : "local",
+        runnerId: isCiEnvironment() ? getCiRunId() : "local",
         os: process.platform,
         nodeVersion: process.version,
         pnpmVersion: this.getPnpmVersion(),

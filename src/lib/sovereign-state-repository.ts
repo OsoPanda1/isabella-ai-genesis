@@ -27,6 +27,7 @@ export interface Tenant {
   region: string;
   quotaBalance: number;
   tier: "Free" | "Enterprise" | "Sovereign";
+  metadata?: Record<string, unknown>;
 }
 
 export interface UserSession {
@@ -39,6 +40,7 @@ export interface UserSession {
 
 export interface AuditLog {
   id: string;
+  tenantId: string;
   timestamp: string;
   traceId: string;
   correlationId: string;
@@ -240,10 +242,10 @@ class SovereignStateRepository {
       );
       if (tenantRows[0]) {
         const newBalance = Math.max(0, Number(tenantRows[0].quota_balance) - cost);
-        await client.query(
-          `UPDATE tenants SET quota_balance = $1 WHERE id = $2`,
-          [newBalance, tenantId],
-        );
+        await client.query(`UPDATE tenants SET quota_balance = $1 WHERE id = $2`, [
+          newBalance,
+          tenantId,
+        ]);
       }
 
       return newBlock;
@@ -321,10 +323,10 @@ class SovereignStateRepository {
       );
       if (tenantRows[0]) {
         const newBalance = Number(tenantRows[0].quota_balance) + cost;
-        await client.query(
-          `UPDATE tenants SET quota_balance = $1 WHERE id = $2`,
-          [newBalance, tenantId],
-        );
+        await client.query(`UPDATE tenants SET quota_balance = $1 WHERE id = $2`, [
+          newBalance,
+          tenantId,
+        ]);
       }
 
       return { success: true };
@@ -361,6 +363,7 @@ class SovereignStateRepository {
 
       const newLog: AuditLog = {
         id,
+        tenantId,
         timestamp,
         traceId,
         correlationId,
@@ -376,14 +379,30 @@ class SovereignStateRepository {
       await client.query(
         `INSERT INTO audit_events (id, tenant_id, trace_id, correlation_id, actor_ip, event, severity, details, remediated, verification_hash, previous_log_hash)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-        [id, tenantId, traceId, correlationId, ip, event, severity, details, remediated, verificationHash, previousLogHash],
+        [
+          id,
+          tenantId,
+          traceId,
+          correlationId,
+          ip,
+          event,
+          severity,
+          details,
+          remediated,
+          verificationHash,
+          previousLogHash,
+        ],
       );
 
       return newLog;
     });
   }
 
-  async verifyLedgerIntegrity(): Promise<{ success: boolean; error?: string; corruptedIndex?: number }> {
+  async verifyLedgerIntegrity(): Promise<{
+    success: boolean;
+    error?: string;
+    corruptedIndex?: number;
+  }> {
     await this.ensureInit();
     const { items: ledger } = await this.ledgerRepo.list("system", {}, 10000, 0);
     for (let i = 0; i < ledger.length; i++) {
@@ -392,25 +411,48 @@ class SovereignStateRepository {
         return { success: false, error: `Bloque ausente en índice ${i}.`, corruptedIndex: i };
       }
       if (block.index !== i) {
-        return { success: false, error: `Fallo de secuencia: Esperado índice ${i}, encontrado ${block.index}.`, corruptedIndex: i };
+        return {
+          success: false,
+          error: `Fallo de secuencia: Esperado índice ${i}, encontrado ${block.index}.`,
+          corruptedIndex: i,
+        };
       }
       if (i > 0) {
         const prevBlock = ledger[i - 1];
         if (!prevBlock || block.previousHash !== prevBlock.blockHash) {
-          return { success: false, error: `Inconsistencia de encadenamiento: El bloque ${i} rompe la cadena de hashes.`, corruptedIndex: i };
+          return {
+            success: false,
+            error: `Inconsistencia de encadenamiento: El bloque ${i} rompe la cadena de hashes.`,
+            corruptedIndex: i,
+          };
         }
       } else {
         if (block.previousHash !== GENESIS_PREVIOUS_HASH) {
-          return { success: false, error: "Bloque Génesis inválido: Hash previo corrupto.", corruptedIndex: 0 };
+          return {
+            success: false,
+            error: "Bloque Génesis inválido: Hash previo corrupto.",
+            corruptedIndex: 0,
+          };
         }
       }
       const blockContent = `${block.index}-${block.timestamp}-${block.tenantId}-${block.userId}-${block.operation}-${block.category}-${block.costDecimal}-${block.tokensConsumed}-${block.previousHash}`;
       const expectedHash = sha256(blockContent);
       if (block.blockHash !== expectedHash) {
-        return { success: false, error: `Fallo de integridad de datos (Hash mismatch) en bloque ${i}.`, corruptedIndex: i };
+        return {
+          success: false,
+          error: `Fallo de integridad de datos (Hash mismatch) en bloque ${i}.`,
+          corruptedIndex: i,
+        };
       }
-      if (isProductionRuntime() && (block.signatureAlgorithm === "UNSIGNED_DEV" || block.pqcSignature === null)) {
-        return { success: false, error: `Bloque ${i} sin firma BookPI válida en modo productivo.`, corruptedIndex: i };
+      if (
+        isProductionRuntime() &&
+        (block.signatureAlgorithm === "UNSIGNED_DEV" || block.pqcSignature === null)
+      ) {
+        return {
+          success: false,
+          error: `Bloque ${i} sin firma BookPI válida en modo productivo.`,
+          corruptedIndex: i,
+        };
       }
     }
     return { success: true };
@@ -419,18 +461,28 @@ class SovereignStateRepository {
   async verifyAuditChain(): Promise<{ success: boolean; error?: string; corruptedId?: string }> {
     await this.ensureInit();
     const { items: logs } = await this.auditRepo.list("system", {}, 10000, 0);
-    const sorted = [...logs].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    const sorted = [...logs].sort(
+      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    );
     for (let i = 0; i < sorted.length; i++) {
       const log = sorted[i];
       const prevLog = sorted[i - 1];
       const expectedPrevHash = i === 0 ? GENESIS_PREVIOUS_HASH : (prevLog?.verificationHash ?? "");
       if (log.previousLogHash !== expectedPrevHash) {
-        return { success: false, error: `Violación de integridad: El hash del log anterior no coincide en el evento [${log.id}].`, corruptedId: log.id };
+        return {
+          success: false,
+          error: `Violación de integridad: El hash del log anterior no coincide en el evento [${log.id}].`,
+          corruptedId: log.id,
+        };
       }
       const payload = `${log.id}|${log.timestamp}|${log.traceId}|${log.correlationId}|${log.actorIp}|${log.event}|${log.severity}|${log.details}|${log.remediated ? "true" : "false"}|${log.tenantId}|${log.previousLogHash}`;
       const recalculatedHash = sha256(payload);
       if (log.verificationHash !== recalculatedHash) {
-        return { success: false, error: `Violación de firma: El hash calculado no coincide para el evento [${log.id}].`, corruptedId: log.id };
+        return {
+          success: false,
+          error: `Violación de firma: El hash calculado no coincide para el evento [${log.id}].`,
+          corruptedId: log.id,
+        };
       }
     }
     return { success: true };
@@ -458,7 +510,10 @@ class SovereignStateRepository {
     return account;
   }
 
-  async updateMonetizationAccount(userId: string, update: Partial<MonetizationAccount>): Promise<MonetizationAccount> {
+  async updateMonetizationAccount(
+    userId: string,
+    update: Partial<MonetizationAccount>,
+  ): Promise<MonetizationAccount> {
     await this.ensureInit();
     const account = await this.getMonetizationAccount(userId);
     const updated = { ...account, ...update };

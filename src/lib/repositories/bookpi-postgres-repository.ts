@@ -17,7 +17,9 @@ let pool: Pool | null = null;
 function getPool(url: string) {
   if (!pool) {
     if (!url) {
-      throw new Error("CRITICAL: DATABASE_URL is missing. BookPI Ledger requires a valid PostgreSQL connection.");
+      throw new Error(
+        "CRITICAL: DATABASE_URL is missing. BookPI Ledger requires a valid PostgreSQL connection.",
+      );
     }
     pool = new Pool({
       connectionString: url,
@@ -27,8 +29,8 @@ function getPool(url: string) {
       idleTimeoutMillis: 30_000,
       statement_timeout: 15_000,
     });
-    pool.on('error', (err) => {
-      console.error('Unexpected error on idle BookPI database client', err);
+    pool.on("error", (err) => {
+      console.error("Unexpected error on idle BookPI database client", err);
       process.exit(-1);
     });
   }
@@ -85,7 +87,9 @@ export function createBookpiPostgresRepository() {
   return {
     list(tenantId: string): Promise<BlockPIBlock[]> {
       return pool
-        .query("SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index ASC", [tenantId])
+        .query("SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index ASC", [
+          tenantId,
+        ])
         .then((r) => r.rows.map(mapRow));
     },
     async append(input: {
@@ -115,7 +119,7 @@ export function createBookpiPostgresRepository() {
         // SELECT FOR UPDATE evita carreras sobre el previous hash.
         const { rows: previous } = await client.query(
           "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index DESC LIMIT 1 FOR UPDATE",
-          [input.tenantId]
+          [input.tenantId],
         );
         const previousBlock = previous[0] ? mapRow(previous[0]) : null;
 
@@ -162,9 +166,21 @@ export function createBookpiPostgresRepository() {
             previous_hash, block_hash, status, nonce, signature_algorithm, pqc_signature)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
            RETURNING *`,
-          [base.index, base.tenantId, base.userId, base.operation, base.category, base.costDecimal,
-           base.tokensConsumed, base.previousHash, blockHash, status, base.nonce,
-           base.signatureAlgorithm, pqcSignature]
+          [
+            base.index,
+            base.tenantId,
+            base.userId,
+            base.operation,
+            base.category,
+            base.costDecimal,
+            base.tokensConsumed,
+            base.previousHash,
+            blockHash,
+            status,
+            base.nonce,
+            base.signatureAlgorithm,
+            pqcSignature,
+          ],
         );
         await client.query("COMMIT");
         return { success: true as const, block: mapRow(rows[0]!) };
@@ -175,47 +191,49 @@ export function createBookpiPostgresRepository() {
         client.release();
       }
     },
-    async batchAppend(inputs: Array<{
-      tenantId: string;
-      userId: string;
-      operation: string;
-      category: LedgerCategory;
-      cost: number;
-      tokens: number;
-      status?: LedgerStatus;
-      metadata?: Record<string, unknown>;
-    }>) {
+    async batchAppend(
+      inputs: Array<{
+        tenantId: string;
+        userId: string;
+        operation: string;
+        category: LedgerCategory;
+        cost: number;
+        tokens: number;
+        status?: LedgerStatus;
+        metadata?: Record<string, unknown>;
+      }>,
+    ) {
       if (isSimulatedAlgorithm()) {
         throw new Error(
           "CRITICAL_SECURITY_ERROR: algoritmo de firma simulado no permitido para el ledger.",
         );
       }
-      
+
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
-        
+
         // Group inputs by tenant to handle locks correctly and fetch previous hash once per tenant
         const tenantGroups = new Map<string, typeof inputs>();
         for (const input of inputs) {
           if (!tenantGroups.has(input.tenantId)) tenantGroups.set(input.tenantId, []);
           tenantGroups.get(input.tenantId)!.push(input);
         }
-        
+
         const results: BlockPIBlock[] = [];
-        
+
         for (const [tenantId, tenantInputs] of tenantGroups.entries()) {
           const tenantHash = createHash("sha256").update(tenantId).digest();
           const lockId = tenantHash.readInt32BE(0);
           await client.query("SELECT pg_advisory_xact_lock($1)", [lockId]);
-          
+
           const { rows: previous } = await client.query(
             "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index DESC LIMIT 1 FOR UPDATE",
-            [tenantId]
+            [tenantId],
           );
-          
+
           let previousBlock = previous[0] ? mapRow(previous[0]) : null;
-          
+
           for (const input of tenantInputs) {
             if (!Number.isFinite(input.cost) || input.cost < 0) {
               await client.query("ROLLBACK");
@@ -225,12 +243,12 @@ export function createBookpiPostgresRepository() {
               await client.query("ROLLBACK");
               return { success: false as const, error: "Tokens inválidos." };
             }
-            
+
             const index = previousBlock ? previousBlock.index + 1 : 0;
             const timestamp = new Date().toISOString();
             const costDecimal = input.cost.toFixed(2);
             const status: LedgerStatus = input.status ?? "settled";
-            
+
             const base: Omit<BlockPIBlock, "blockHash"> = {
               index,
               timestamp,
@@ -246,31 +264,43 @@ export function createBookpiPostgresRepository() {
               status,
               nonce: randomUUID(),
             };
-            
+
             const blockHash = hashBlock(base);
             const pqcSignature = signBlockHash(blockHash);
             if (!pqcSignature) {
               await client.query("ROLLBACK");
               return { success: false as const, error: "Failed to sign BookPI block." };
             }
-            
+
             const { rows } = await client.query(
               `INSERT INTO public.bookpi_ledger
                (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed,
                 previous_hash, block_hash, status, nonce, signature_algorithm, pqc_signature)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
                RETURNING *`,
-              [base.index, base.tenantId, base.userId, base.operation, base.category, base.costDecimal,
-               base.tokensConsumed, base.previousHash, blockHash, status, base.nonce,
-               base.signatureAlgorithm, pqcSignature]
+              [
+                base.index,
+                base.tenantId,
+                base.userId,
+                base.operation,
+                base.category,
+                base.costDecimal,
+                base.tokensConsumed,
+                base.previousHash,
+                blockHash,
+                status,
+                base.nonce,
+                base.signatureAlgorithm,
+                pqcSignature,
+              ],
             );
-            
+
             const newBlock = mapRow(rows[0]!);
             results.push(newBlock);
             previousBlock = newBlock;
           }
         }
-        
+
         await client.query("COMMIT");
         return { success: true as const, blocks: results };
       } catch (err) {
@@ -282,12 +312,12 @@ export function createBookpiPostgresRepository() {
     },
     async query(
       tenantId: string,
-      filter: { category?: LedgerCategory; userId?: string; fromDate?: Date; toDate?: Date }
+      filter: { category?: LedgerCategory; userId?: string; fromDate?: Date; toDate?: Date },
     ): Promise<BlockPIBlock[]> {
       let query = "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1";
       const params: unknown[] = [tenantId];
       let paramIndex = 2;
-      
+
       if (filter.category) {
         query += ` AND category = $${paramIndex++}`;
         params.push(filter.category);
@@ -304,13 +334,16 @@ export function createBookpiPostgresRepository() {
         query += ` AND timestamp <= $${paramIndex++}`;
         params.push(filter.toDate.toISOString());
       }
-      
+
       query += " ORDER BY index ASC";
-      
+
       const { rows } = await pool.query(query, params);
       return rows.map(mapRow);
     },
-    async prune(tenantId: string, maxAgeMs: number): Promise<{ success: boolean; prunedCount: number; error?: string }> {
+    async prune(
+      tenantId: string,
+      maxAgeMs: number,
+    ): Promise<{ success: boolean; prunedCount: number; error?: string }> {
       const cutoff = new Date(Date.now() - maxAgeMs).toISOString();
       const client = await pool.connect();
       try {
@@ -318,28 +351,28 @@ export function createBookpiPostgresRepository() {
         const tenantHash = createHash("sha256").update(tenantId).digest();
         const lockId = tenantHash.readInt32BE(0);
         await client.query("SELECT pg_advisory_xact_lock($1)", [lockId]);
-        
+
         const { rows } = await client.query(
           "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index ASC",
-          [tenantId]
+          [tenantId],
         );
         const blocks = rows.map(mapRow);
-        
-        const blocksToKeep = blocks.filter(b => b.timestamp > cutoff);
+
+        const blocksToKeep = blocks.filter((b) => b.timestamp > cutoff);
         const prunedCount = blocks.length - blocksToKeep.length;
         if (prunedCount === 0) {
           await client.query("COMMIT");
           return { success: true, prunedCount: 0 };
         }
-        
+
         await client.query("DELETE FROM public.bookpi_ledger WHERE tenant_id = $1", [tenantId]);
-        
+
         let prevHash = GENESIS_PREVIOUS_HASH;
         for (let i = 0; i < blocksToKeep.length; i++) {
           const block = blocksToKeep[i];
           block.index = i;
           block.previousHash = prevHash;
-          
+
           const base: Omit<BlockPIBlock, "blockHash"> = {
             index: block.index,
             timestamp: block.timestamp,
@@ -357,23 +390,35 @@ export function createBookpiPostgresRepository() {
           };
           const blockHash = hashBlock(base);
           if (isSimulatedAlgorithm()) {
-             throw new Error("CRITICAL_SECURITY_ERROR: algoritmo simulado.");
+            throw new Error("CRITICAL_SECURITY_ERROR: algoritmo simulado.");
           }
           const pqcSignature = signBlockHash(blockHash);
           if (!pqcSignature) throw new Error("Firma fallida");
-          
+
           await client.query(
             `INSERT INTO public.bookpi_ledger
              (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed,
               previous_hash, block_hash, status, nonce, signature_algorithm, pqc_signature)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-            [base.index, base.tenantId, base.userId, base.operation, base.category, base.costDecimal,
-             base.tokensConsumed, base.previousHash, blockHash, block.status, base.nonce,
-             base.signatureAlgorithm, pqcSignature]
+            [
+              base.index,
+              base.tenantId,
+              base.userId,
+              base.operation,
+              base.category,
+              base.costDecimal,
+              base.tokensConsumed,
+              base.previousHash,
+              blockHash,
+              block.status,
+              base.nonce,
+              base.signatureAlgorithm,
+              pqcSignature,
+            ],
           );
           prevHash = blockHash;
         }
-        
+
         await client.query("COMMIT");
         return { success: true, prunedCount };
       } catch (err) {
@@ -383,32 +428,36 @@ export function createBookpiPostgresRepository() {
         client.release();
       }
     },
-    async pruneInactive(inactiveDays: number): Promise<{ success: boolean; prunedTenants: string[]; error?: string }> {
+    async pruneInactive(
+      inactiveDays: number,
+    ): Promise<{ success: boolean; prunedTenants: string[]; error?: string }> {
       const inactiveMs = inactiveDays * 24 * 60 * 60 * 1000;
       const cutoffDate = new Date(Date.now() - inactiveMs).toISOString();
-      
+
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
-        
+
         // Find tenants whose latest block is older than cutoffDate
-        const { rows } = await client.query(`
+        const { rows } = await client.query(
+          `
           SELECT tenant_id
           FROM public.bookpi_ledger
           GROUP BY tenant_id
           HAVING MAX(created_at) < $1
-        `, [cutoffDate]);
-        
+        `,
+          [cutoffDate],
+        );
+
         const tenantsToPrune = rows.map((r: { tenant_id: unknown }) => String(r.tenant_id));
-        
+
         if (tenantsToPrune.length > 0) {
           // Delete all records for these tenants
-          await client.query(
-            "DELETE FROM public.bookpi_ledger WHERE tenant_id = ANY($1)",
-            [tenantsToPrune]
-          );
+          await client.query("DELETE FROM public.bookpi_ledger WHERE tenant_id = ANY($1)", [
+            tenantsToPrune,
+          ]);
         }
-        
+
         await client.query("COMMIT");
         return { success: true, prunedTenants: tenantsToPrune };
       } catch (err) {
@@ -487,9 +536,22 @@ export function createBookpiPostgresRepository() {
             original_event_id)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
            RETURNING *`,
-          [base.index, base.tenantId, base.userId, base.operation, base.category, base.costDecimal,
-           base.tokensConsumed, base.previousHash, blockHash, "refunded", base.nonce,
-           base.signatureAlgorithm, pqcSignature, original.nonce]
+          [
+            base.index,
+            base.tenantId,
+            base.userId,
+            base.operation,
+            base.category,
+            base.costDecimal,
+            base.tokensConsumed,
+            base.previousHash,
+            blockHash,
+            "refunded",
+            base.nonce,
+            base.signatureAlgorithm,
+            pqcSignature,
+            original.nonce,
+          ],
         );
         await client.query("COMMIT");
         return { success: true as const, block: mapRow(rows[0]!) };
@@ -503,10 +565,15 @@ export function createBookpiPostgresRepository() {
     async verifyIntegrity(tenantId?: string) {
       let rows: Record<string, unknown>[];
       if (tenantId) {
-        const res = await pool.query("SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index ASC", [tenantId]);
+        const res = await pool.query(
+          "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index ASC",
+          [tenantId],
+        );
         rows = res.rows;
       } else {
-        const res = await pool.query("SELECT * FROM public.bookpi_ledger ORDER BY tenant_id ASC, index ASC");
+        const res = await pool.query(
+          "SELECT * FROM public.bookpi_ledger ORDER BY tenant_id ASC, index ASC",
+        );
         rows = res.rows;
       }
       let previousTenant = "";
