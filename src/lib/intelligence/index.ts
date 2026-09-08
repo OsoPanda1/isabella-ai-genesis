@@ -6,9 +6,9 @@ let initialized = false;
 
 export function initializeIntelligencePlane(): void {
   if (initialized) return;
-  const model = config().LLM_DEFAULT_MODEL || "google/gemini-3.6-flash";
-  const normalized = model.includes("/") ? model.split("/").at(-1) ?? "gemini-3-flash" : model;
-  addProvider(new GeminiProvider(normalized), true);
+  const configured = config().LLM_DEFAULT_MODEL || "google/gemini-3-flash";
+  const model = configured.includes("gemini-3.6-flash") ? "gemini-3-flash" : (configured.split("/").at(-1) ?? "gemini-3-flash");
+  addProvider(new GeminiProvider(model), true);
   initialized = true;
 }
 
