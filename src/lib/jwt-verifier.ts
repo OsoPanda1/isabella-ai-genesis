@@ -16,7 +16,18 @@
  * llamador inyecta las claves resueltas por `config()`/`jwks-cache`.
  */
 
-import { createHmac, createPublicKey, verify, timingSafeEqual } from "node:crypto";
+type NodeCrypto = typeof import("node:crypto");
+
+function getNodeCrypto(): NodeCrypto {
+  const runtime = globalThis as typeof globalThis & {
+    process?: { getBuiltinModule?: (name: string) => unknown };
+  };
+  const crypto = runtime.process?.getBuiltinModule?.("node:crypto") as NodeCrypto | undefined;
+  if (!crypto) {
+    throw new Error("JWT crypto is only available in the server runtime.");
+  }
+  return crypto;
+}
 
 /** Algoritmos admitidos. */
 export type JwtAlgorithm = "HS256" | "RS256";
@@ -88,7 +99,7 @@ function base64UrlDecodeToBuffer(segment: string): Buffer {
 }
 
 function createHmacSig(data: string, secret: string): Buffer {
-  return createHmac("sha256", Buffer.from(secret, "utf-8")).update(data).digest();
+  return getNodeCrypto().createHmac("sha256", Buffer.from(secret, "utf-8")).update(data).digest();
 }
 
 /**
@@ -189,15 +200,16 @@ export function verifyJwt(token: string, options: JwtVerifierOptions): JwtVerify
 
 function verifyHmac(data: string, signature: Buffer, secret: string): boolean {
   const expected = createHmacSig(data, secret);
-  return signature.length === expected.length && timingSafeEqual(signature, expected);
+    return signature.length === expected.length && getNodeCrypto().timingSafeEqual(signature, expected);
 }
 
 function verifyRsa(data: string, signature: Buffer, publicKeyPem: string): boolean {
-  const key = createPublicKey(publicKeyPem);
-  return verify(
-    "sha256",
+    const crypto = getNodeCrypto();
+    const key = crypto.createPublicKey(publicKeyPem);
+    return crypto.verify(
+      "sha256",
     Buffer.from(data, "utf-8"),
-    key as ReturnType<typeof createPublicKey>,
+      key as ReturnType<NodeCrypto["createPublicKey"]>,
     signature,
   );
 }

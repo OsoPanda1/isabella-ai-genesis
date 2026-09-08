@@ -5,18 +5,28 @@ import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { nitro } from "nitro/vite";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
+    {
+      name: "browser-node-crypto-shim",
+      enforce: "pre",
+      resolveId(id, _importer, options) {
+        if (!options?.ssr && id === "node:crypto") {
+          return new URL("./src/lib/browser-node-crypto.ts", import.meta.url).pathname;
+        }
+        return null;
+      },
+    },
     tanstackStart(),
     viteReact(),
     tailwindcss(),
     tsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
-    // Nitro con preset Vercel: empaqueta el servidor (SSR + /api/*) como
-    // Serverless Functions en .vercel/output. Sin esto, Vercel despliega
-    // solo archivos estáticos y TODAS las rutas devuelven 404.
-    nitro({ preset: "vercel" }),
+    // Nitro se limita al build de producción: su adaptador Vercel puede
+    // reemplazar el entrypoint cliente de TanStack Start durante desarrollo.
+    // Mantenerlo fuera del servidor dev conserva SSR + hydration interactiva.
+    ...(mode === "production" ? [nitro({ preset: "vercel" })] : []),
   ],
   server: {
     host: "0.0.0.0",
@@ -51,4 +61,4 @@ export default defineConfig({
     // Three.js fuera del bundle SSR de Nitro (solo cliente).
     external: ["three"],
   },
-});
+}));

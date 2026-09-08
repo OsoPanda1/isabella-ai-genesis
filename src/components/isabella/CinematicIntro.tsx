@@ -382,6 +382,7 @@ export function CinematicIntroContent({
   const [elapsed, setElapsed] = useState(0);
   const [fps, setFps] = useState(TARGET_FPS);
   const [skipped, setSkipped] = useState(false);
+  const completedRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const clockRef = useRef(0);
   const onCompleteRef = useRef(onComplete);
@@ -392,7 +393,15 @@ export function CinematicIntroContent({
     telemetryRef.current = onTelemetryUpdate;
   }, [onComplete, onTelemetryUpdate]);
 
+  const complete = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    setSkipped(true);
+    onCompleteRef.current();
+  }, []);
+
   const enter = useCallback(() => {
+    if (completedRef.current) return;
     setShowGate(false);
     setSkipped(false);
     clockRef.current = performance.now();
@@ -413,7 +422,7 @@ export function CinematicIntroContent({
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (prefersReduced) {
-      const timer = window.setTimeout(() => onCompleteRef.current(), 600);
+      const timer = window.setTimeout(complete, 600);
       return () => window.clearTimeout(timer);
     }
 
@@ -449,7 +458,7 @@ export function CinematicIntroContent({
       }
 
       if (current >= DURATION) {
-        onCompleteRef.current();
+        complete();
       } else {
         frame = requestAnimationFrame(tick);
       }
@@ -457,7 +466,7 @@ export function CinematicIntroContent({
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [showGate]);
+  }, [complete, showGate]);
   // Keyboard and visibility handling
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -467,7 +476,7 @@ export function CinematicIntroContent({
       }
       if (!showGate && event.key === "Escape") {
         setSkipped(true);
-        onCompleteRef.current();
+        complete();
       }
       if (!showGate && event.key.toLowerCase() === "m") {
         setMuted((value) => !value);
@@ -563,8 +572,9 @@ export function CinematicIntroContent({
             <div className="mb-3 flex items-center justify-between text-[9px] uppercase tracking-[.3em] text-white/40">
               <span>ISABELLA // GENESIS</span>
               <button
-                onClick={onComplete}
-                className="pointer-events-auto transition-colors hover:text-cyan-100"
+                type="button"
+                onClick={complete}
+                className="pointer-events-auto rounded px-2 py-1 transition-colors hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-100/70"
               >
                 Omitir intro <SkipForward className="ml-1 inline size-3" />
               </button>
