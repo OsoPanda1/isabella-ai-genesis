@@ -341,7 +341,7 @@ export class GovernanceScanner {
     const patterns = [
       /`([^`]+\.(ts|tsx|js|jsx|json|yaml|yml))`/g,
       /\[([^\]]+)\]\(([^)]+\.(ts|tsx|js|jsx|json|yaml|yml))\)/g,
-      /src\/[\w\/]+\.(ts|tsx|js|jsx)/g,
+      /src\/[\w/]+\.(ts|tsx|js|jsx)/g,
     ];
     
     for (const pattern of patterns) {
@@ -373,8 +373,8 @@ export class GovernanceScanner {
   private extractFunctions(content: string): string[] {
     const fns: string[] = [];
     const patterns = [
-      /export\s+(?:async\s+)?function\s+(\w+)/g,
-      /export\s+const\s+(\w+)\s*=\s*(?:async\s+)?\(/g,
+      /export\s+(?:async\s+)?function\s+(\w+)/g, // eslint-disable-line security/detect-unsafe-regex -- bounded identifier extraction
+      /export\s+const\s+(\w+)\s*=\s*(?:async\s+)?\(/g, // eslint-disable-line security/detect-unsafe-regex -- bounded identifier extraction
       /class\s+(\w+)/g,
     ];
     

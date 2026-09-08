@@ -159,7 +159,7 @@ export class SourceScanner {
     const classes: string[] = [];
     const imports: string[] = [];
     
-    const functionRegex = /(?:export\s+)?(?:async\s+)?function\s+(\w+)|const\s+(\w+)\s*=\s*(?:async\s+)?\(/g;
+    const functionRegex = /(?:export\s+)?(?:async\s+)?function\s+(\w+)|const\s+(\w+)\s*=\s*(?:async\s+)?\(/g; // eslint-disable-line security/detect-unsafe-regex -- bounded identifier extraction
     const classRegex = /class\s+(\w+)/g;
     const importRegex = /import\s+.*\s+from\s+['"]([^'"]+)['"]/g;
     
