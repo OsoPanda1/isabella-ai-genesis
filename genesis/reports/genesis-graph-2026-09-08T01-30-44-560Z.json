@@ -1,0 +1,436 @@
+{
+  "nodes": [
+    {
+      "id": "claim:CLAIM-001",
+      "type": "claim",
+      "metadata": {
+        "createdAt": "2026-09-01T00:00:00Z",
+        "updatedAt": "2026-09-07T00:00:00Z",
+        "version": "1.0",
+        "owner": "Edwin Oswaldo Castillo Trejo",
+        "tags": [
+          "provenance",
+          "governance",
+          "charter"
+        ]
+      }
+    },
+    {
+      "id": "claim:CLAIM-002",
+      "type": "claim",
+      "metadata": {
+        "createdAt": "2026-09-01T00:00:00Z",
+        "updatedAt": "2026-09-07T00:00:00Z",
+        "version": "1.0",
+        "owner": "Edwin Oswaldo Castillo Trejo",
+        "tags": [
+          "hitl",
+          "approval",
+          "human-in-the-loop"
+        ]
+      }
+    },
+    {
+      "id": "claim:CLAIM-003",
+      "type": "claim",
+      "metadata": {
+        "createdAt": "2026-09-01T00:00:00Z",
+        "updatedAt": "2026-09-07T00:00:00Z",
+        "version": "1.0",
+        "owner": "Edwin Oswaldo Castillo Trejo",
+        "tags": [
+          "audit",
+          "tamper-evident",
+          "hash-chain",
+          "concurrency"
+        ]
+      }
+    },
+    {
+      "id": "claim:CLAIM-004",
+      "type": "claim",
+      "metadata": {
+        "createdAt": "2026-09-01T00:00:00Z",
+        "updatedAt": "2026-09-07T00:00:00Z",
+        "version": "1.0",
+        "owner": "Edwin Oswaldo Castillo Trejo",
+        "tags": [
+          "privacy",
+          "gdpr",
+          "ai-act",
+          "compliance"
+        ]
+      }
+    },
+    {
+      "id": "claim:CLAIM-005",
+      "type": "claim",
+      "metadata": {
+        "createdAt": "2026-09-01T00:00:00Z",
+        "updatedAt": "2026-09-07T00:00:00Z",
+        "version": "1.0",
+        "owner": "Edwin Oswaldo Castillo Trejo",
+        "tags": [
+          "financial",
+          "atomic",
+          "ledger",
+          "bookpi"
+        ]
+      }
+    },
+    {
+      "id": "claim:CLAIM-006",
+      "type": "claim",
+      "metadata": {
+        "createdAt": "2026-09-01T00:00:00Z",
+        "updatedAt": "2026-09-07T00:00:00Z",
+        "version": "1.0",
+        "owner": "Edwin Oswaldo Castillo Trejo",
+        "tags": [
+          "database",
+          "authority",
+          "postgresql",
+          "supabase"
+        ]
+      }
+    },
+    {
+      "id": "claim:CLAIM-007",
+      "type": "claim",
+      "metadata": {
+        "createdAt": "2026-09-01T00:00:00Z",
+        "updatedAt": "2026-09-07T00:00:00Z",
+        "version": "1.0",
+        "owner": "Edwin Oswaldo Castillo Trejo",
+        "tags": [
+          "sovereign",
+          "transactional",
+          "persistence"
+        ]
+      }
+    },
+    {
+      "id": "claim:CLAIM-008",
+      "type": "claim",
+      "metadata": {
+        "createdAt": "2026-09-01T00:00:00Z",
+        "updatedAt": "2026-09-07T00:00:00Z",
+        "version": "1.0",
+        "owner": "Edwin Oswaldo Castillo Trejo",
+        "tags": [
+          "kill-switch",
+          "emergency",
+          "approval-store"
+        ]
+      }
+    },
+    {
+      "id": "claim:CLAIM-009",
+      "type": "claim",
+      "metadata": {
+        "createdAt": "2026-09-01T00:00:00Z",
+        "updatedAt": "2026-09-07T00:00:00Z",
+        "version": "1.0",
+        "owner": "Edwin Oswaldo Castillo Trejo",
+        "tags": [
+          "mfa",
+          "step-up",
+          "sovereign-owner"
+        ]
+      }
+    },
+    {
+      "id": "claim:CLAIM-010",
+      "type": "claim",
+      "metadata": {
+        "createdAt": "2026-09-01T00:00:00Z",
+        "updatedAt": "2026-09-07T00:00:00Z",
+        "version": "1.0",
+        "owner": "Edwin Oswaldo Castillo Trejo",
+        "tags": [
+          "csp",
+          "content-security-policy",
+          "nonce"
+        ]
+      }
+    },
+    {
+      "id": "evidence:ev-gov-CLAIM-001-tests",
+      "type": "evidence",
+      "metadata": {
+        "createdAt": "2026-09-08T01:30:42.938Z",
+        "updatedAt": "2026-09-08T01:30:42.938Z",
+        "version": "1.0",
+        "owner": "governance-scanner",
+        "tags": [
+          "UNIT_TEST",
+          "test-execution"
+        ]
+      }
+    },
+    {
+      "id": "evidence:ev-gov-CLAIM-002-tests",
+      "type": "evidence",
+      "metadata": {
+        "createdAt": "2026-09-08T01:30:42.938Z",
+        "updatedAt": "2026-09-08T01:30:42.938Z",
+        "version": "1.0",
+        "owner": "governance-scanner",
+        "tags": [
+          "UNIT_TEST",
+          "test-execution"
+        ]
+      }
+    },
+    {
+      "id": "evidence:ev-gov-CLAIM-003-tests",
+      "type": "evidence",
+      "metadata": {
+        "createdAt": "2026-09-08T01:30:42.938Z",
+        "updatedAt": "2026-09-08T01:30:42.938Z",
+        "version": "1.0",
+        "owner": "governance-scanner",
+        "tags": [
+          "UNIT_TEST",
+          "test-execution"
+        ]
+      }
+    },
+    {
+      "id": "evidence:ev-gov-CLAIM-004-tests",
+      "type": "evidence",
+      "metadata": {
+        "createdAt": "2026-09-08T01:30:42.938Z",
+        "updatedAt": "2026-09-08T01:30:42.938Z",
+        "version": "1.0",
+        "owner": "governance-scanner",
+        "tags": [
+          "UNIT_TEST",
+          "test-execution"
+        ]
+      }
+    },
+    {
+      "id": "evidence:ev-gov-CLAIM-005-tests",
+      "type": "evidence",
+      "metadata": {
+        "createdAt": "2026-09-08T01:30:42.938Z",
+        "updatedAt": "2026-09-08T01:30:42.938Z",
+        "version": "1.0",
+        "owner": "governance-scanner",
+        "tags": [
+          "UNIT_TEST",
+          "test-execution"
+        ]
+      }
+    },
+    {
+      "id": "evidence:ev-gov-CLAIM-006-tests",
+      "type": "evidence",
+      "metadata": {
+        "createdAt": "2026-09-08T01:30:42.938Z",
+        "updatedAt": "2026-09-08T01:30:42.938Z",
+        "version": "1.0",
+        "owner": "governance-scanner",
+        "tags": [
+          "UNIT_TEST",
+          "test-execution"
+        ]
+      }
+    },
+    {
+      "id": "evidence:ev-gov-CLAIM-007-tests",
+      "type": "evidence",
+      "metadata": {
+        "createdAt": "2026-09-08T01:30:42.938Z",
+        "updatedAt": "2026-09-08T01:30:42.938Z",
+        "version": "1.0",
+        "owner": "governance-scanner",
+        "tags": [
+          "UNIT_TEST",
+          "test-execution"
+        ]
+      }
+    },
+    {
+      "id": "evidence:ev-gov-CLAIM-008-tests",
+      "type": "evidence",
+      "metadata": {
+        "createdAt": "2026-09-08T01:30:42.938Z",
+        "updatedAt": "2026-09-08T01:30:42.938Z",
+        "version": "1.0",
+        "owner": "governance-scanner",
+        "tags": [
+          "UNIT_TEST",
+          "test-execution"
+        ]
+      }
+    },
+    {
+      "id": "evidence:ev-gov-CLAIM-009-tests",
+      "type": "evidence",
+      "metadata": {
+        "createdAt": "2026-09-08T01:30:42.938Z",
+        "updatedAt": "2026-09-08T01:30:42.938Z",
+        "version": "1.0",
+        "owner": "governance-scanner",
+        "tags": [
+          "UNIT_TEST",
+          "test-execution"
+        ]
+      }
+    },
+    {
+      "id": "evidence:ev-gov-CLAIM-010-tests",
+      "type": "evidence",
+      "metadata": {
+        "createdAt": "2026-09-08T01:30:42.938Z",
+        "updatedAt": "2026-09-08T01:30:42.938Z",
+        "version": "1.0",
+        "owner": "governance-scanner",
+        "tags": [
+          "UNIT_TEST",
+          "test-execution"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "evidence:ev-gov-CLAIM-001-tests",
+      "target": "claim:CLAIM-001",
+      "type": "verifies",
+      "metadata": {
+        "strength": 1,
+        "verified": true,
+        "verifiedAt": "2026-09-08T01:30:42.938Z",
+        "verifiedBy": "evidence-scanner"
+      }
+    },
+    {
+      "source": "evidence:ev-gov-CLAIM-002-tests",
+      "target": "claim:CLAIM-002",
+      "type": "verifies",
+      "metadata": {
+        "strength": 1,
+        "verified": true,
+        "verifiedAt": "2026-09-08T01:30:42.938Z",
+        "verifiedBy": "evidence-scanner"
+      }
+    },
+    {
+      "source": "evidence:ev-gov-CLAIM-003-tests",
+      "target": "claim:CLAIM-003",
+      "type": "verifies",
+      "metadata": {
+        "strength": 1,
+        "verified": true,
+        "verifiedAt": "2026-09-08T01:30:42.938Z",
+        "verifiedBy": "evidence-scanner"
+      }
+    },
+    {
+      "source": "evidence:ev-gov-CLAIM-004-tests",
+      "target": "claim:CLAIM-004",
+      "type": "verifies",
+      "metadata": {
+        "strength": 1,
+        "verified": true,
+        "verifiedAt": "2026-09-08T01:30:42.938Z",
+        "verifiedBy": "evidence-scanner"
+      }
+    },
+    {
+      "source": "evidence:ev-gov-CLAIM-005-tests",
+      "target": "claim:CLAIM-005",
+      "type": "verifies",
+      "metadata": {
+        "strength": 1,
+        "verified": true,
+        "verifiedAt": "2026-09-08T01:30:42.938Z",
+        "verifiedBy": "evidence-scanner"
+      }
+    },
+    {
+      "source": "evidence:ev-gov-CLAIM-006-tests",
+      "target": "claim:CLAIM-006",
+      "type": "verifies",
+      "metadata": {
+        "strength": 1,
+        "verified": true,
+        "verifiedAt": "2026-09-08T01:30:42.938Z",
+        "verifiedBy": "evidence-scanner"
+      }
+    },
+    {
+      "source": "evidence:ev-gov-CLAIM-007-tests",
+      "target": "claim:CLAIM-007",
+      "type": "verifies",
+      "metadata": {
+        "strength": 1,
+        "verified": true,
+        "verifiedAt": "2026-09-08T01:30:42.938Z",
+        "verifiedBy": "evidence-scanner"
+      }
+    },
+    {
+      "source": "evidence:ev-gov-CLAIM-008-tests",
+      "target": "claim:CLAIM-008",
+      "type": "verifies",
+      "metadata": {
+        "strength": 1,
+        "verified": true,
+        "verifiedAt": "2026-09-08T01:30:42.938Z",
+        "verifiedBy": "evidence-scanner"
+      }
+    },
+    {
+      "source": "evidence:ev-gov-CLAIM-009-tests",
+      "target": "claim:CLAIM-009",
+      "type": "verifies",
+      "metadata": {
+        "strength": 1,
+        "verified": true,
+        "verifiedAt": "2026-09-08T01:30:42.938Z",
+        "verifiedBy": "evidence-scanner"
+      }
+    },
+    {
+      "source": "evidence:ev-gov-CLAIM-010-tests",
+      "target": "claim:CLAIM-010",
+      "type": "verifies",
+      "metadata": {
+        "strength": 1,
+        "verified": true,
+        "verifiedAt": "2026-09-08T01:30:42.938Z",
+        "verifiedBy": "evidence-scanner"
+      }
+    }
+  ],
+  "indices": {
+    "claim": [
+      "claim:CLAIM-001",
+      "claim:CLAIM-002",
+      "claim:CLAIM-003",
+      "claim:CLAIM-004",
+      "claim:CLAIM-005",
+      "claim:CLAIM-006",
+      "claim:CLAIM-007",
+      "claim:CLAIM-008",
+      "claim:CLAIM-009",
+      "claim:CLAIM-010"
+    ],
+    "evidence": [
+      "evidence:ev-gov-CLAIM-001-tests",
+      "evidence:ev-gov-CLAIM-002-tests",
+      "evidence:ev-gov-CLAIM-003-tests",
+      "evidence:ev-gov-CLAIM-004-tests",
+      "evidence:ev-gov-CLAIM-005-tests",
+      "evidence:ev-gov-CLAIM-006-tests",
+      "evidence:ev-gov-CLAIM-007-tests",
+      "evidence:ev-gov-CLAIM-008-tests",
+      "evidence:ev-gov-CLAIM-009-tests",
+      "evidence:ev-gov-CLAIM-010-tests"
+    ]
+  }
+}

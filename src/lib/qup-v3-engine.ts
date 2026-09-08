@@ -1,5 +1,5 @@
 import * as crypto from "node:crypto";
-import { SovereignDB } from "./sovereign-engine";
+import { sovereignStateRepository } from "./sovereign-state-repository";
 
 // ============================================================================
 // TYPES & INTERFACES FOR QUP v3.0 — SOVEREIGN EDITION
@@ -450,7 +450,7 @@ export class QupOrchestrator {
     const costCents = pricing.totalGrossCents;
 
     // Register the quantum calculation block on the Sovereign BookPI ledger
-    const block = SovereignDB.appendLedgerBlock(
+    const block = await sovereignStateRepository.appendLedgerBlock(
       tenantId,
       userId,
       `QUP v3.0 Compilación + Estimación clásica: ${input.config.objective}. Qubits: ${input.config.qubitCount}. Fidelidad estimada: ${Math.round(runtime.quantumFidelity * 100)}%. Plataforma Net: $${(pricing.revenueSplit.platformFeeCents / 100).toFixed(2)}. Sello de auditoría verificado.`,
@@ -460,13 +460,14 @@ export class QupOrchestrator {
     );
 
     // Append Audit record in SovereignDB
-    SovereignDB.appendAuditLog(
+    await sovereignStateRepository.appendAuditLog(
       traceId,
       correlationId,
       ip,
       "QUP v3.0 Workflow Executed Successfully",
       "S3",
       `Ejecutado con éxito en ${input.backend}. Costo: $${(costCents / 100).toFixed(2)}. Sello de auditoría verificado: ${pqcSignatures.verified}. Merkle root: ${merkleTree.root.slice(0, 16)}...`,
+      tenantId,
     );
 
     return {

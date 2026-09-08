@@ -1498,7 +1498,7 @@ export const Route = createFileRoute("/api/db")({
                   },
                 });
 
-                SovereignDB.appendAuditLog(
+                await sovereignStateRepository.appendAuditLog(
                   `trc_mon_with_${result.payoutId || "N/A"}`,
                   context.correlationId,
                   context.ip,
@@ -1507,6 +1507,7 @@ export const Route = createFileRoute("/api/db")({
                   result.payoutId?.startsWith("tr_")
                     ? `Usuario ${context.userId} retiró $${(currentAccount.earnedBalanceCents / 100).toFixed(2)} USD vía Stripe. ID: ${result.payoutId}`
                     : `Usuario ${context.userId} programó retiro de $${(currentAccount.earnedBalanceCents / 100).toFixed(2)} USD (ejecución manual pendiente). ID: ${result.payoutId || "N/A"}`,
+                  context.tenantId,
                 );
 
                 return new Response(

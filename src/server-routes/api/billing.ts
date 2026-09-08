@@ -25,8 +25,8 @@ function getStripe(): Stripe | null {
   return stripeInstance;
 }
 
-// In-Memory Marketplace Listings: SOLO fallback dev sin DB. La fuente
-// durable es la tabla marketplace_listings (marketplace-repository).
+// Listados del marketplace: la tabla durable marketplace_listings
+// (marketplace-repository) es la única fuente. NO mock en memoria.
 interface MarketplaceListing {
   skillId: string;
   title: string;
@@ -37,34 +37,14 @@ interface MarketplaceListing {
 }
 
 /**
- * Lee listados: tabla PG durable primero; fallback devuelve DEFAULT_MARKETPLACE_LISTINGS
- * cuando falla el repositorio. En producción la tabla marketplace_listings es autoridad
- * (migración 20260908090000). NO fallback a memoria.
+ * Lee listados de la tabla PG durable marketplace_listings
+ * (migración 20260908090000). Sin fallback a memoria: si el
+ * repositorio falla, la operación falla (503 en producción).
  */
 async function readAllListings(): Promise<MarketplaceListing[]> {
   const { listMarketplace } = await import("@/lib/repositories/marketplace-repository");
   return await listMarketplace();
 }
-
-const DEFAULT_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
-  {
-    skillId: "gis-cadastre",
-    title: "Módulo GIS Catastral Real del Monte",
-    costCents: 4500, // $45.00 USD
-    ownerId: "usr_anubis_villasenor",
-    description: "Sincronización cartográfica en caliente con el registro territorial local.",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    skillId: "qec-syndrome-decoder",
-    title: "Decodificador Cuántico Avanzado QEC",
-    costCents: 12000, // $120.00 USD
-    ownerId: "usr_sophia_researcher",
-    description:
-      "Decodificación correctora mediante estimaciones de grafos con peso mínimo de emparejamiento perfecto.",
-    createdAt: new Date().toISOString(),
-  },
-];
 
 export const Route = createFileRoute("/api/billing")({
   server: {
@@ -80,9 +60,9 @@ export const Route = createFileRoute("/api/billing")({
         // 1. OBTENER INFORMACIÓN DE CRÉDITOS / PLAN
         if (action === "credits") {
           return withSovereignAuth("system", "read", async (context) => {
-            const tenant = SovereignDB.getTenant(context.tenantId);
-            const monetizationAccount = SovereignDB.getMonetizationAccount(context.userId);
-            const ledger = SovereignDB.getLedger(context.tenantId);
+            const tenant = await sovereignStateRepository.getTenant(context.tenantId);
+            const monetizationAccount = await sovereignStateRepository.getMonetizationAccount(context.userId);
+            const ledger = await sovereignStateRepository.getLedger(context.tenantId);
 
             return new Response(
               JSON.stringify({
@@ -117,7 +97,7 @@ export const Route = createFileRoute("/api/billing")({
               );
             }
             // Aislamiento multi-tenant: solo se consultan los bloques del tenant actual.
-            const tenantLedger = SovereignDB.getLedger(context.tenantId);
+            const tenantLedger = await sovereignStateRepository.getLedger(context.tenantId);
             const block = tenantLedger.find((b) => b.index === invoiceIndex);
 
             if (!block) {
@@ -191,7 +171,7 @@ export const Route = createFileRoute("/api/billing")({
 
           return withSovereignAuth("audit", "read", async () => {
             const indexInt = parseInt(blockIndex, 10);
-            const fullLedger = SovereignDB.getFullLedger();
+            const fullLedger = await sovereignStateRepository.getFullLedger();
             const block = fullLedger.find((b) => b.index === indexInt);
 
             if (!block) {

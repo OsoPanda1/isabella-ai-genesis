@@ -11,7 +11,7 @@ import { AuthScanResult } from "../scanners/auth-scanner";
 import { CIScanResult } from "../scanners/ci-scanner";
 import { SupplyChainScanResult } from "../scanners/supply-chain-scanner";
 import { GovernanceScanResult } from "../scanners/governance-scanner";
-import { TestDiscoveryResult } from "../runners/test-runner";
+import { TestDiscoveryResult, TestExecutionResult } from "../runners/test-runner";
 
 export interface ClaimEngineConfig {
   claimsPath?: string;
@@ -24,6 +24,7 @@ export class ClaimEngine {
   private claimFindings: Map<string, Finding[]> = new Map();
   private scanResults: Record<string, any> = {};
   private testResults: TestDiscoveryResult | null = null;
+  private testExecution: TestExecutionResult | null = null;
 
   constructor(config: ClaimEngineConfig = {}) {
     const claims = config.customClaims ?? DEFAULT_CLAIMS;
@@ -80,8 +81,9 @@ export class ClaimEngine {
     this.collectEvidenceFromScans();
   }
 
-  setTestResults(results: TestDiscoveryResult): void {
+  setTestResults(results: TestDiscoveryResult, execution?: TestExecutionResult): void {
     this.testResults = results;
+    this.testExecution = execution ?? null;
     this.collectEvidenceFromTests();
   }
 
@@ -331,6 +333,11 @@ export class ClaimEngine {
       dependencyLockHash: "0".repeat(128),
     };
 
+    const executionByTest = new Map<string, { passed: boolean; durationMs: number }>();
+    for (const tr of this.testExecution?.results ?? []) {
+      executionByTest.set(`${tr.file}|${tr.testName}`, { passed: tr.passed, durationMs: tr.durationMs });
+    }
+
     for (const testFile of this.testResults.testFiles) {
       for (const testCase of testFile.tests) {
         let evidenceType: Evidence["type"] = "UNIT_TEST";
@@ -342,34 +349,38 @@ export class ClaimEngine {
 
         // Map test file to claim
         const claimId = this.mapTestFileToClaim(testFile);
-        
+
+        const executed = executionByTest.get(`${testFile.file}|${testCase.name}`);
+
         const evidence: Evidence = {
-          id: `ev-test-${testFile.file.replace(/[^a-zA-Z0-9]/g, "-")}-${testCase.name.replace(/[^a-zA-Z0-9]/g, "-")}`,
+          id: `ev-test-${testFile.file.replace(/[^a-zA-Z0-9]/g, "-")}-${testCase.name.replace(/[^a-zA-Z0-9]/g, "-")}`.slice(0, 64),
           claimId,
           type: evidenceType,
-          source: "test-execution",
+          source: executed ? "test-execution" : "repository",
           location: { file: testFile.file, line: testCase.line },
           content: {
             hash: createHash("sha3-512").update(`${testFile.file}:${testCase.name}`).digest("hex"),
             size: 100,
-            preview: `${testFile.category} test: ${testCase.name}`,
+            preview: `${testFile.category} test: ${testCase.name}${executed ? (executed.passed ? " (passed)" : " (failed)") : " (discovered, not executed)"}`,
           },
           metadata: {
             collectedAt: now,
-            collectedBy: "test-discovery",
+            collectedBy: executed ? "test-executor" : "test-discovery",
             environment,
-            testResult: {
-              passed: true, // Would be determined at execution time
-              durationMs: 0,
-            },
+            testResult: executed
+              ? {
+                  passed: executed.passed,
+                  durationMs: Math.max(1, executed.durationMs),
+                }
+              : undefined,
             ttlDays: 90,
             reproducible: true,
             independentlyVerifiable: true,
             tamperEvident: true,
             cryptographicallySigned: false,
-          };
-          this.addEvidence(evidence.claimId, evidence);
-        }
+          },
+        };
+        this.addEvidence(evidence.claimId, evidence);
       }
     }
   }

@@ -2,6 +2,7 @@ import { Command } from "commander";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createHash } from "node:crypto";
+import { execSync } from "node:child_process";
 import { createClaimEngine, Claim } from "../engines/claim-engine";
 import { DEFAULT_CLAIMS } from "../schemas/claim.schema";
 import { createPolicyEngine, PolicyEngine } from "../engines/policy-engine";
@@ -17,7 +18,7 @@ import { createAuthScanner, AuthScanner } from "../scanners/auth-scanner";
 import { createCIScanner, CIScanner } from "../scanners/ci-scanner";
 import { createSupplyChainScanner, SupplyChainScanner } from "../scanners/supply-chain-scanner";
 import { createGovernanceScanner, GovernanceScanner } from "../scanners/governance-scanner";
-import { createTestDiscovery, TestDiscovery } from "../runners/test-runner";
+import { createTestDiscovery, TestDiscovery, createTestExecutor, TestExecutor, TestExecutionResult } from "../runners/test-runner";
 import { createStatusDeterminator, StatusDeterminator } from "../verification/status-determinator";
 import { createCriteriaEvaluator, CriteriaEvaluator } from "../verification/status-determinator";
 import { createEvidenceQualityChecker, EvidenceQualityChecker } from "../verification/status-determinator";
@@ -37,6 +38,7 @@ export interface AuditOrchestratorConfig {
   policyPath?: string;
   failFast?: boolean;
   verbose?: boolean;
+  maxTestFilesToExecute?: number;
 }
 
 export class AuditOrchestrator {
@@ -62,6 +64,8 @@ export class AuditOrchestrator {
   
   // Runners
   private testDiscovery: TestDiscovery;
+  private testExecutor: TestExecutor;
+  private maxTestFilesToExecute: number;
   
   // Verification
   private statusDeterminator: StatusDeterminator;
@@ -103,6 +107,8 @@ export class AuditOrchestrator {
     
     // Initialize runners
     this.testDiscovery = createTestDiscovery({ rootDir: this.config.rootDir });
+    this.testExecutor = createTestExecutor({ rootDir: this.config.rootDir });
+    this.maxTestFilesToExecute = config.maxTestFilesToExecute ?? Number(process.env.GENESIS_MAX_TEST_FILES ?? 8);
     
     // Initialize verification
     const evidenceGraph = this.evidenceGraphBuilder.build();
@@ -205,11 +211,25 @@ export class AuditOrchestrator {
     console.log("  🔍 Discovering tests...");
     const discovery = this.testDiscovery.discover();
     console.log(`    Found ${discovery.totalTests} tests in ${discovery.testFiles.length} files`);
-    
-    console.log("  🏃 Executing tests...");
-    // Test execution would go here
-    // For now, return discovery results
-    return discovery;
+
+    let execution: TestExecutionResult | undefined;
+    const filesToRun = discovery.testFiles.slice(0, this.maxTestFilesToExecute);
+    if (filesToRun.length > 0) {
+      console.log(`  🏃 Executing tests in sandbox (${filesToRun.length} files, best-effort)...`);
+      try {
+        execution = await this.testExecutor.execute(filesToRun);
+        console.log(
+          `    ${execution.summary.passed} passed, ${execution.summary.failed} failed, ` +
+          `${execution.summary.skipped} skipped in ${(execution.summary.durationMs / 1000).toFixed(1)}s`,
+        );
+      } catch (error) {
+        console.log(
+          `    ⚠️ Test execution failed, falling back to discovery evidence: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    return { ...discovery, execution };
   }
 
   private async correlateEvidence(scanResults: any, testResults: any): Promise<void> {
@@ -217,18 +237,18 @@ export class AuditOrchestrator {
     for (const claim of DEFAULT_CLAIMS) {
       this.evidenceGraphBuilder.addClaim(claim);
     }
-    
-    // Add scan results as evidence
-    for (const [scannerName, result] of Object.entries(scanResults)) {
-      if (result && !result.error) {
-        // Create evidence from scan results
-        const evidenceId = `ev-${scannerName}-${Date.now()}`;
-        // This would create proper Evidence objects
+
+    // Wire scanner + test evidence into the claim engine (recolecta evidencia real)
+    this.claimEngine.setScanResults(scanResults);
+    this.claimEngine.setTestResults(testResults, testResults?.execution);
+
+    // Add evidence items to the evidence graph
+    for (const claim of DEFAULT_CLAIMS) {
+      const evidences = this.claimEngine.getEvidences(claim.id);
+      for (const evidence of evidences) {
+        this.evidenceGraphBuilder.addEvidence(evidence);
       }
     }
-    
-    // Add test results as evidence
-    // This would create proper Evidence objects from test results
   }
 
   private async verifyAndGenerateFindings(): Promise<void> {
