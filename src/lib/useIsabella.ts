@@ -353,11 +353,15 @@ export function useIsabella() {
           return;
         }
         const message = err instanceof Error ? err.message : "Interrupción del núcleo.";
-        logLifecycleEvent("ERROR", { reason: message });
+        const isGatewayFailure = /502|sandbox is not listening|requested port|gateway/i.test(message);
+        const userMessage = isGatewayFailure
+          ? "CANAL DE INFERENCIA NO DISPONIBLE :: El servidor de síntesis no está escuchando en este momento. Reintenta la percepción; ARGUS no bloqueó esta conversación."
+          : `ERROR DE PERCEPCIÓN :: ${message}`;
+        logLifecycleEvent("ERROR", { reason: message, category: isGatewayFailure ? "gateway" : "runtime" });
         setMessages((prev) =>
           prev.map((m) =>
             m.id === replyId
-              ? { ...m, streaming: false, error: true, content: `ARGUS :: ${message}` }
+              ? { ...m, streaming: false, error: true, content: userMessage }
               : m,
           ),
         );

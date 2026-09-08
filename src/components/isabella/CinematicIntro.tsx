@@ -406,11 +406,18 @@ export function CinematicIntroContent({
     setShowGate(false);
     setSkipped(false);
     clockRef.current = performance.now();
-    if (!muted && audioRef.current) {
-      audioRef.current
+
+    const audio = audioRef.current;
+    if (!muted && audio) {
+      audio.muted = false;
+      audio.volume = 0.72;
+      void audio
         .play()
         .then(() => setAudioReady(true))
-        .catch(() => setMuted(true));
+        .catch(() => {
+          // The browser can reject media until this user gesture reaches the media element.
+          setAudioReady(false);
+        });
     }
   }, [muted]);
   useEffect(() => {
