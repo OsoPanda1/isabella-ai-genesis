@@ -11,7 +11,7 @@ export interface EvaluationBenchmark {
   f1Score: number;
   biasScore: number;
   latencyMs: number;
-  approvedBy: string; 
+  approvedBy: string;
   evaluatedAt: string;
 }
 
@@ -26,46 +26,46 @@ export interface ModelEntry {
   updatedAt: string;
 }
 
+/**
+ * Legacy process-local evaluation cache.
+ *
+ * IMPORTANT: this is intentionally NOT a production authority. Durable model
+ * approval lives in src/lib/intelligence/durable-model-registry.ts and is
+ * enforced by production-model-gate.ts. Keeping this cache separate prevents
+ * a process restart or a second instance from silently changing authority.
+ */
 export class EvaluationRegistry {
-  private static models: Map<string, ModelEntry> = new Map();
+  private static readonly models: Map<string, ModelEntry> = new Map();
 
   public static registerModel(entry: ModelEntry): void {
     const key = `${entry.modelId}@${entry.version}`;
-    this.models.set(key, entry);
+    this.models.set(key, structuredClone(entry));
   }
 
   public static getModel(modelId: string, version: string): ModelEntry | undefined {
-    return this.models.get(`${modelId}@${version}`);
+    const model = this.models.get(`${modelId}@${version}`);
+    return model ? structuredClone(model) : undefined;
   }
 
   public static addBenchmark(modelId: string, version: string, benchmark: EvaluationBenchmark): void {
-    const model = this.getModel(modelId, version);
-    if (!model) throw new Error("Model not found in registry");
-    model.benchmarks.push(benchmark);
+    const key = `${modelId}@${version}`;
+    const model = this.models.get(key);
+    if (!model) throw new Error("Model not found in evaluation cache");
+    model.benchmarks.push(structuredClone(benchmark));
     model.updatedAt = new Date().toISOString();
   }
 
-  public static transitionToProduction(modelId: string, version: string, actorId: string): void {
-    const model = this.getModel(modelId, version);
-    if (!model) throw new Error("Model not found in registry");
+  /**
+   * Deliberately disabled. Production promotion must be performed through the
+   * durable, tenant-scoped governance registry and an authorized approval.
+   */
+  public static transitionToProduction(_modelId: string, _version: string, _actorId: string): never {
+    throw new Error("production_authority_is_durable_only: use assertModelRuntimeAuthority and the durable governance registry");
+  }
 
-    if (model.state === "PRODUCTION") return;
-    
-    // Gatekeeper enforcement
-    // A model cannot go to PRODUCTION without at least one approved benchmark
-    // that passes evaluation and meets a strict bias score threshold (< 0.1).
-    const approvedBenchmark = model.benchmarks.find(
-      b => b.passed && b.approvedBy && b.biasScore < 0.1
-    );
-
-    if (!approvedBenchmark) {
-      throw new Error(`Gatekeeper Denied: Model ${modelId}@${version} cannot transition to PRODUCTION without a passed, human-approved evaluation benchmark meeting strict bias criteria.`);
-    }
-
-    model.state = "PRODUCTION";
-    model.updatedAt = new Date().toISOString();
-    
-    // In a real scenario, this would trigger an audit log entry in the immutable ledger
-    console.log(`[EvaluationRegistry] Model ${modelId}@${version} promoted to PRODUCTION by ${actorId}`);
+  public static benchmarkDigest(modelId: string, version: string): string {
+    const model = this.models.get(`${modelId}@${version}`);
+    if (!model) throw new Error("Model not found in evaluation cache");
+    return createHash("sha256").update(JSON.stringify(model.benchmarks)).digest("hex");
   }
 }
