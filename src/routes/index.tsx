@@ -154,8 +154,8 @@ function Index() {
     setClient(true);
   }, []);
 
-  if (typeof window === "undefined" || !client || !entered) {
-    return <PublicShell onEnter={client ? () => setEntered(true) : undefined} />;
+  if (typeof window === "undefined" || !entered) {
+    return <PublicShell onEnter={() => setEntered(true)} />;
   }
 
   return (
