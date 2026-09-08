@@ -15,30 +15,50 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "22"
+  NODE_VERSION: "22.16.0"
   PNPM_VERSION: "10.15.0"
 
 jobs:
-  test-build:
-    name: Test and Build
+  verify:
+    name: Verify
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
-
+          run_install: false
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run lint
-      - run: pnpm run typecheck
-      - run: pnpm run test
-      - run: pnpm run capabilities
-      - run: pnpm run build
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Lint
+        run: pnpm lint
+      - name: Tests
+        run: pnpm test
+      - name: Repository hygiene
+        run: node scripts/sanitize-repo.mjs
+      - name: Capability contract
+        run: pnpm capabilities
+      - name: Route contract
+        run: pnpm audit:routes
+      - name: Production preflight
+        run: pnpm production:preflight
+      - name: Production build
+        env:
+          NODE_ENV: production
+        run: pnpm build
+      - name: Validate Vercel output
+        run: |
+          test -d .vercel/output
+          test -d .vercel/output/functions
+          test -f .vercel/output/config.json
+      - name: Security scan
+        run: pnpm security:scan
