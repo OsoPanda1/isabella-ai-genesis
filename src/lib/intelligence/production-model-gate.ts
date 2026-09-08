@@ -3,11 +3,10 @@ import { config } from "@/lib/config";
 import { assertProductionModel, getDurableModel, upsertDurableModel } from "./durable-model-registry";
 import type { IntelligenceProvider } from "./contracts";
 
-/**
- * Runtime authority for model selection.
- * Registration in process memory is never equivalent to production approval.
- */
+/** Runtime authority for model selection. Registration in process memory is never production approval. */
 export async function ensureModelRecord(tenantId: string, provider: IntelligenceProvider): Promise<void> {
+  const existing = await getDurableModel(tenantId, provider.modelId, provider.modelId);
+  if (existing) return;
   await upsertDurableModel({
     tenantId,
     modelId: provider.modelId,
