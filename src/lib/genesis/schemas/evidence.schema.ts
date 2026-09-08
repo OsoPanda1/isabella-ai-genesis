@@ -31,13 +31,16 @@ export const EvidenceSchema = z.object({
     "DATED_ARTIFACTS",
   ]),
   source: z.enum(["repository", "test-execution", "external", "infrastructure"]),
-  location: z.object({
-    file: z.string().optional(),
-    line: z.number().int().positive().optional(),
-    column: z.number().int().positive().optional(),
-    commit: z.string().optional(),
-    url: z.string().url().optional(),
-  }).optional(),
+  provenance: z.enum(["STATIC", "RUNTIME", "CI", "PRODUCTION", "EXTERNAL"]).default("STATIC"),
+  location: z
+    .object({
+      file: z.string().optional(),
+      line: z.number().int().positive().optional(),
+      column: z.number().int().positive().optional(),
+      commit: z.string().optional(),
+      url: z.string().url().optional(),
+    })
+    .optional(),
   content: z.object({
     hash: z.string().length(128), // SHA3-512 hex
     size: z.number().int().positive(),
@@ -54,12 +57,14 @@ export const EvidenceSchema = z.object({
       pnpmVersion: z.string(),
       dependencyLockHash: z.string().length(128),
     }),
-    testResult: z.object({
-      passed: z.boolean(),
-      durationMs: z.number().int().positive(),
-      output: z.string().optional(),
-      coverage: z.number().min(0).max(1).optional(),
-    }).optional(),
+    testResult: z
+      .object({
+        passed: z.boolean(),
+        durationMs: z.number().int().positive(),
+        output: z.string().optional(),
+        coverage: z.number().min(0).max(1).optional(),
+      })
+      .optional(),
     ttlDays: z.number().int().positive().default(90),
     expiresAt: z.string().datetime().optional(),
     reproducible: z.boolean().default(true),
@@ -67,13 +72,15 @@ export const EvidenceSchema = z.object({
     tamperEvident: z.boolean().default(true),
     cryptographicallySigned: z.boolean().default(false),
   }),
-  signature: z.object({
-    algorithm: z.enum(["Ed25519", "ECDSA-P384"]).optional(),
-    publicKey: z.string().optional(),
-    signature: z.string().optional(),
-    certificate: z.string().optional(),
-    timestamp: z.string().datetime().optional(),
-  }).optional(),
+  signature: z
+    .object({
+      algorithm: z.enum(["Ed25519", "ECDSA-P384"]).optional(),
+      publicKey: z.string().optional(),
+      signature: z.string().optional(),
+      certificate: z.string().optional(),
+      timestamp: z.string().datetime().optional(),
+    })
+    .optional(),
 });
 
 export type Evidence = z.infer<typeof EvidenceSchema>;

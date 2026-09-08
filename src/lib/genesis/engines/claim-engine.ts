@@ -1,4 +1,10 @@
-import { Claim, ClaimStatus, DEFAULT_CLAIMS, validateClaim, validateClaimsRegistry } from "../schemas/claim.schema";
+import {
+  Claim,
+  ClaimStatus,
+  DEFAULT_CLAIMS,
+  validateClaim,
+  validateClaimsRegistry,
+} from "../schemas/claim.schema";
 import { Evidence } from "../schemas/evidence.schema";
 import { Finding } from "../schemas/finding.schema";
 import { createHash } from "node:crypto";
@@ -107,6 +113,7 @@ export class ClaimEngine {
           claimId: this.mapArtifactToClaim(artifact),
           type: "SOURCE_CODE",
           source: "repository",
+          provenance: "STATIC",
           location: {
             file: artifact.file,
             line: 1,
@@ -123,8 +130,8 @@ export class ClaimEngine {
             environment,
             ttlDays: 90,
             reproducible: true,
-            independentlyVerifiable: true,
-            tamperEvident: true,
+            independentlyVerifiable: false,
+            tamperEvident: false,
             cryptographicallySigned: false,
           },
         };
@@ -142,6 +149,7 @@ export class ClaimEngine {
             claimId: this.mapVulnToClaim(vuln),
             type: "SECURITY_TEST",
             source: "test-execution",
+            provenance: "STATIC",
             location: {
               file: vuln.file,
               line: vuln.line,
@@ -163,8 +171,8 @@ export class ClaimEngine {
               },
               ttlDays: 90,
               reproducible: true,
-              independentlyVerifiable: true,
-              tamperEvident: true,
+              independentlyVerifiable: false,
+              tamperEvident: false,
               cryptographicallySigned: false,
             },
           };
@@ -183,6 +191,7 @@ export class ClaimEngine {
             claimId: this.mapEngineToClaim(engine),
             type: "SOURCE_CODE",
             source: "repository",
+            provenance: "STATIC",
             location: { file: engine.files?.[0] },
             content: {
               hash: createHash("sha3-512").update(JSON.stringify(engine)).digest("hex"),
@@ -195,8 +204,8 @@ export class ClaimEngine {
               environment,
               ttlDays: 90,
               reproducible: true,
-              independentlyVerifiable: true,
-              tamperEvident: true,
+              independentlyVerifiable: false,
+              tamperEvident: false,
               cryptographicallySigned: false,
             },
           };
@@ -214,6 +223,7 @@ export class ClaimEngine {
           claimId: this.mapFinancialOpToClaim(op),
           type: op.atomic && op.idempotent ? "INTEGRATION_TEST" : "SECURITY_TEST",
           source: "repository",
+          provenance: "STATIC",
           location: { file: op.location },
           content: {
             hash: createHash("sha3-512").update(op.implementation).digest("hex"),
@@ -231,8 +241,8 @@ export class ClaimEngine {
             },
             ttlDays: 90,
             reproducible: true,
-            independentlyVerifiable: true,
-            tamperEvident: true,
+            independentlyVerifiable: false,
+            tamperEvident: false,
             cryptographicallySigned: false,
           },
         };
@@ -250,6 +260,7 @@ export class ClaimEngine {
             claimId: claimAnalysis.claim.id,
             type: "SOURCE_CODE",
             source: "repository",
+            provenance: "STATIC",
             content: {
               hash: createHash("sha3-512").update(`code:${claimAnalysis.claim.id}`).digest("hex"),
               size: 100,
@@ -261,8 +272,8 @@ export class ClaimEngine {
               environment,
               ttlDays: 90,
               reproducible: true,
-              independentlyVerifiable: true,
-              tamperEvident: true,
+              independentlyVerifiable: false,
+              tamperEvident: false,
               cryptographicallySigned: false,
             },
           };
@@ -274,8 +285,11 @@ export class ClaimEngine {
             claimId: claimAnalysis.claim.id,
             type: "ARCHITECTURE_DOCUMENT",
             source: "repository",
+            provenance: "STATIC",
             content: {
-              hash: createHash("sha3-512").update(`evidence:${claimAnalysis.claim.id}`).digest("hex"),
+              hash: createHash("sha3-512")
+                .update(`evidence:${claimAnalysis.claim.id}`)
+                .digest("hex"),
               size: 100,
               preview: `Evidence found for claim ${claimAnalysis.claim.id}`,
             },
@@ -285,8 +299,8 @@ export class ClaimEngine {
               environment,
               ttlDays: 90,
               reproducible: true,
-              independentlyVerifiable: true,
-              tamperEvident: true,
+              independentlyVerifiable: false,
+              tamperEvident: false,
               cryptographicallySigned: false,
             },
           };
@@ -298,6 +312,7 @@ export class ClaimEngine {
             claimId: claimAnalysis.claim.id,
             type: "UNIT_TEST",
             source: "test-execution",
+            provenance: "STATIC",
             content: {
               hash: createHash("sha3-512").update(`tests:${claimAnalysis.claim.id}`).digest("hex"),
               size: 100,
@@ -309,8 +324,8 @@ export class ClaimEngine {
               environment,
               ttlDays: 90,
               reproducible: true,
-              independentlyVerifiable: true,
-              tamperEvident: true,
+              independentlyVerifiable: false,
+              tamperEvident: false,
               cryptographicallySigned: false,
             },
           };
@@ -322,7 +337,7 @@ export class ClaimEngine {
 
   private collectEvidenceFromTests(): void {
     if (!this.testResults) return;
-    
+
     const now = new Date().toISOString();
     const environment = {
       runner: process.env.GITHUB_ACTIONS ? "GitHub Actions" : "local",
@@ -335,7 +350,10 @@ export class ClaimEngine {
 
     const executionByTest = new Map<string, { passed: boolean; durationMs: number }>();
     for (const tr of this.testExecution?.results ?? []) {
-      executionByTest.set(`${tr.file}|${tr.testName}`, { passed: tr.passed, durationMs: tr.durationMs });
+      executionByTest.set(`${tr.file}|${tr.testName}`, {
+        passed: tr.passed,
+        durationMs: tr.durationMs,
+      });
     }
 
     for (const testFile of this.testResults.testFiles) {
@@ -345,18 +363,22 @@ export class ClaimEngine {
         else if (testFile.category === "security") evidenceType = "SECURITY_TEST";
         else if (testFile.category === "concurrency") evidenceType = "CONCURRENCY_TEST";
         else if (testFile.category === "e2e") evidenceType = "INTEGRATION_TEST";
-        else if (testFile.category === "performance") evidenceType = "PERFORMANCE_TEST";
+        else if (testFile.category === "performance") evidenceType = "UNIT_TEST";
+        const executed = executionByTest.get(`${testFile.file}|${testCase.name}`);
+        if (!executed) continue;
 
         // Map test file to claim
         const claimId = this.mapTestFileToClaim(testFile);
 
-        const executed = executionByTest.get(`${testFile.file}|${testCase.name}`);
-
         const evidence: Evidence = {
-          id: `ev-test-${testFile.file.replace(/[^a-zA-Z0-9]/g, "-")}-${testCase.name.replace(/[^a-zA-Z0-9]/g, "-")}`.slice(0, 64),
+          id: `ev-test-${testFile.file.replace(/[^a-zA-Z0-9]/g, "-")}-${testCase.name.replace(/[^a-zA-Z0-9]/g, "-")}`.slice(
+            0,
+            64,
+          ),
           claimId,
           type: evidenceType,
-          source: executed ? "test-execution" : "repository",
+          source: "test-execution",
+          provenance: "RUNTIME",
           location: { file: testFile.file, line: testCase.line },
           content: {
             hash: createHash("sha3-512").update(`${testFile.file}:${testCase.name}`).digest("hex"),
@@ -375,8 +397,8 @@ export class ClaimEngine {
               : undefined,
             ttlDays: 90,
             reproducible: true,
-            independentlyVerifiable: true,
-            tamperEvident: true,
+            independentlyVerifiable: false,
+            tamperEvident: false,
             cryptographicallySigned: false,
           },
         };
@@ -388,15 +410,20 @@ export class ClaimEngine {
   private mapArtifactToClaim(artifact: any): string {
     const file = artifact.file.toLowerCase();
     if (file.includes("sovereign") || file.includes("engine")) return "CLAIM-007";
-    if (file.includes("bookpi") || file.includes("ledger") || file.includes("audit")) return "CLAIM-003";
+    if (file.includes("bookpi") || file.includes("ledger") || file.includes("audit"))
+      return "CLAIM-003";
     if (file.includes("auth") || file.includes("rbac") || file.includes("abac")) return "CLAIM-002";
     if (file.includes("csp") || file.includes("security")) return "CLAIM-010";
-    if (file.includes("financial") || file.includes("billing") || file.includes("payment")) return "CLAIM-005";
-    if (file.includes("database") || file.includes("repository") || file.includes("persistence")) return "CLAIM-006";
+    if (file.includes("financial") || file.includes("billing") || file.includes("payment"))
+      return "CLAIM-005";
+    if (file.includes("database") || file.includes("repository") || file.includes("persistence"))
+      return "CLAIM-006";
     if (file.includes("kill") || file.includes("emergency")) return "CLAIM-008";
     if (file.includes("mfa") || file.includes("step-up")) return "CLAIM-009";
-    if (file.includes("provenance") || file.includes("git") || file.includes("charter")) return "CLAIM-001";
-    if (file.includes("privacy") || file.includes("gdpr") || file.includes("dpa")) return "CLAIM-004";
+    if (file.includes("provenance") || file.includes("git") || file.includes("charter"))
+      return "CLAIM-001";
+    if (file.includes("privacy") || file.includes("gdpr") || file.includes("dpa"))
+      return "CLAIM-004";
     return "CLAIM-001";
   }
 
@@ -423,8 +450,10 @@ export class ClaimEngine {
 
   private mapTestFileToClaim(testFile: any): string {
     const file = testFile.file.toLowerCase();
-    if (file.includes("audit") || file.includes("ledger") || file.includes("bookpi")) return "CLAIM-003";
-    if (file.includes("financial") || file.includes("billing") || file.includes("payment")) return "CLAIM-005";
+    if (file.includes("audit") || file.includes("ledger") || file.includes("bookpi"))
+      return "CLAIM-003";
+    if (file.includes("financial") || file.includes("billing") || file.includes("payment"))
+      return "CLAIM-005";
     if (file.includes("auth") || file.includes("rbac") || file.includes("hitl")) return "CLAIM-002";
     if (file.includes("sovereign") || file.includes("state")) return "CLAIM-007";
     if (file.includes("database") || file.includes("repository")) return "CLAIM-006";
@@ -440,78 +469,78 @@ export class ClaimEngine {
 
     const evidences = this.getEvidences(claimId);
     const findings = this.getFindings(claimId);
-    
-    const criticalFindings = findings.filter(f => f.severity === "CRITICAL").length;
-    const highFindings = findings.filter(f => f.severity === "HIGH").length;
-    
+
+    const criticalFindings = findings.filter((f) => f.severity === "CRITICAL").length;
+    const highFindings = findings.filter((f) => f.severity === "HIGH").length;
+
     if (criticalFindings > 0) return "FAILED";
-    
+
     const requiredTypes = claim.evidenceRequired;
-    const coveredTypes = new Set(evidences.map(e => e.type));
-    const missingTypes = requiredTypes.filter(t => !coveredTypes.has(t));
-    
+    const coveredTypes = new Set(evidences.map((e) => e.type));
+    const missingTypes = requiredTypes.filter((t) => !coveredTypes.has(t));
+
     if (missingTypes.length > 0) {
       const minRequired = this.getMinEvidenceForStatus(claim.requiredStatus);
       if (evidences.length < minRequired) return "PARTIAL";
       if (missingTypes.length === requiredTypes.length) return "PLANNED";
       return "PARTIAL";
     }
-    
+
     if (claim.requiredStatus === "PRODUCTION-VERIFIED") {
-      const hasDeploymentRecord = evidences.some(e => e.type === "DEPLOYMENT_RECORD");
-      const hasHealthCheck = evidences.some(e => e.type === "HEALTH_CHECK");
-      const hasMonitoring = evidences.some(e => e.type === "MONITORING_DATA");
-      const hasIncidentReport = evidences.some(e => e.type === "INCIDENT_REPORT");
-      
+      const hasDeploymentRecord = evidences.some((e) => e.type === "DEPLOYMENT_RECORD");
+      const hasHealthCheck = evidences.some((e) => e.type === "HEALTH_CHECK");
+      const hasMonitoring = evidences.some((e) => e.type === "MONITORING_DATA");
+      const hasIncidentReport = evidences.some((e) => e.type === "INCIDENT_REPORT");
+
       if (!hasDeploymentRecord || !hasHealthCheck || !hasMonitoring || !hasIncidentReport) {
         return "VERIFIED";
       }
       return "PRODUCTION-VERIFIED";
     }
-    
+
     if (claim.requiredStatus === "VERIFIED") {
-      const hasExternalAudit = evidences.some(e => e.type === "EXTERNAL_AUDIT");
-      const hasConcurrencyTest = evidences.some(e => e.type === "CONCURRENCY_TEST");
-      
+      const hasExternalAudit = evidences.some((e) => e.type === "EXTERNAL_AUDIT");
+      const hasConcurrencyTest = evidences.some((e) => e.type === "CONCURRENCY_TEST");
+
       if (!hasExternalAudit || !hasConcurrencyTest) {
         return "TESTED";
       }
       return "VERIFIED";
     }
-    
+
     if (claim.requiredStatus === "TESTED") {
-      const hasIntegrationTest = evidences.some(e => e.type === "INTEGRATION_TEST");
-      const hasSecurityTest = evidences.some(e => e.type === "SECURITY_TEST");
-      
+      const hasIntegrationTest = evidences.some((e) => e.type === "INTEGRATION_TEST");
+      const hasSecurityTest = evidences.some((e) => e.type === "SECURITY_TEST");
+
       if (!hasIntegrationTest || !hasSecurityTest) {
         return "IMPLEMENTED";
       }
       return "TESTED";
     }
-    
+
     if (claim.requiredStatus === "IMPLEMENTED") {
-      const hasSourceCode = evidences.some(e => e.type === "SOURCE_CODE");
-      const hasUnitTest = evidences.some(e => e.type === "UNIT_TEST");
-      
+      const hasSourceCode = evidences.some((e) => e.type === "SOURCE_CODE");
+      const hasUnitTest = evidences.some((e) => e.type === "UNIT_TEST");
+
       if (!hasSourceCode || !hasUnitTest) {
         return "DESIGNED";
       }
       return "IMPLEMENTED";
     }
-    
+
     return "DESIGNED";
   }
 
   private getMinEvidenceForStatus(status: ClaimStatus): number {
     const requirements: Record<ClaimStatus, number> = {
-      "PLANNED": 0,
-      "DESIGNED": 1,
-      "IMPLEMENTED": 2,
-      "TESTED": 4,
-      "VERIFIED": 6,
+      PLANNED: 0,
+      DESIGNED: 1,
+      IMPLEMENTED: 2,
+      TESTED: 4,
+      VERIFIED: 6,
       "PRODUCTION-VERIFIED": 10,
-      "FAILED": 0,
-      "UNKNOWN": 0,
+      FAILED: 0,
+      UNKNOWN: 0,
       "NOT-APPLICABLE": 0,
     };
     return requirements[status] ?? 0;
@@ -519,7 +548,9 @@ export class ClaimEngine {
 
   generateClaimsHash(): string {
     const sortedClaims = Array.from(this.claims.values()).sort((a, b) => a.id.localeCompare(b.id));
-    const content = JSON.stringify(sortedClaims.map(c => ({ id: c.id, title: c.title, requiredStatus: c.requiredStatus })));
+    const content = JSON.stringify(
+      sortedClaims.map((c) => ({ id: c.id, title: c.title, requiredStatus: c.requiredStatus })),
+    );
     return createHash("sha3-512").update(content).digest("hex");
   }
 }
