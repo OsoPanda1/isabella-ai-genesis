@@ -7,9 +7,11 @@ let initialized = false;
 export function initializeIntelligencePlane(): void {
   if (initialized) return;
   const configured = config().LLM_DEFAULT_MODEL || "google/gemini-3-flash";
-  const model = configured.includes("gemini-3.6-flash") ? "gemini-3-flash" : (configured.split("/").at(-1) ?? "gemini-3-flash");
-  // Registration never grants production authority. Approval must come from
-  // the governed model-release workflow and its evidence-backed approval store.
+  const model = configured.includes("gemini-3.6-flash")
+    ? "gemini-3-flash"
+    : (configured.split("/").at(-1) ?? "gemini-3-flash");
+
+  // Registration is not authorization. Production approval must come from the durable governance registry.
   addProvider(new GeminiProvider(model), false);
   initialized = true;
 }
