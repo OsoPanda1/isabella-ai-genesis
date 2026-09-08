@@ -1,19 +1,9 @@
-export interface PhoenixAllocation {
-  netProfit: number;
-  phoenixFund: number;
-  infrastructure: number;
-  creatorAndPartners: number;
-  retainedUnallocated: number;
-}
+export interface PhoenixAllocation { netProfitCents: number; phoenixFundCents: number; infrastructureCents: number; creatorPartnersCents: number; }
 
-/**
- * Proposed 20/30/50 allocation over verified net profit.
- * This is an accounting policy, not a promise of profitability or liquidity.
- */
-export function calculatePhoenixAllocation(netProfit: number): PhoenixAllocation {
-  if (!Number.isFinite(netProfit) || netProfit < 0) throw new Error("netProfit debe ser un número finito no negativo");
-  const phoenixFund = netProfit * 0.20;
-  const infrastructure = netProfit * 0.30;
-  const creatorAndPartners = netProfit * 0.50;
-  return { netProfit, phoenixFund, infrastructure, creatorAndPartners, retainedUnallocated: 0 };
+export function calculatePhoenixAllocation(netProfitCents: number): PhoenixAllocation {
+  if (!Number.isSafeInteger(netProfitCents) || netProfitCents < 0) throw new Error("netProfitCents must be a non-negative safe integer");
+  const phoenixFundCents = Math.floor(netProfitCents / 5);
+  const infrastructureCents = Math.floor(netProfitCents / 10) * 3 + Math.floor((netProfitCents % 10) * 3 / 10);
+  const creatorPartnersCents = netProfitCents - phoenixFundCents - infrastructureCents;
+  return { netProfitCents, phoenixFundCents, infrastructureCents, creatorPartnersCents };
 }
