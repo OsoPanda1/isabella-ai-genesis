@@ -1,0 +1,7 @@
+export type MLTask = "classification" | "regression" | "clustering" | "anomaly";
+export type ApprovalStatus = "PENDING_REVIEW" | "APPROVED" | "REJECTED" | "REVOKED";
+export interface DatasetIdentity { datasetId: string; version: string; territoryId: string; source: string; license: string; schemaHash: string; contentHash: string; createdAt: string; }
+export interface ModelIdentity { modelId: string; version: string; territoryId: string; ownerId: string; task: MLTask; algorithm: string; datasetIds: string[]; modelHash: string; createdAt: string; approvalStatus: ApprovalStatus; }
+export interface PredictionResult<T = unknown> { model: ModelIdentity; predictions: T[]; confidence: number[] | null; explanation: Record<string, unknown>; riskScore: number; requiresReview: boolean; degraded: boolean; auditId?: string; }
+export interface TrainingResult { model: ModelIdentity; metrics: Record<string, number>; trainingHash: string; provenanceId: string; approvalRequired: boolean; }
+export interface NativeMLHooks { authorize?: (input: { action: string; territoryId: string; modelId?: string }) => Promise<{ decision: "ALLOW" | "DENY" | "REVIEW"; riskScore: number; policyIds: string[]; reasons: string[] }> | { decision: "ALLOW" | "DENY" | "REVIEW"; riskScore: number; policyIds: string[]; reasons: string[] }; audit?: (event: string, payload: Record<string, unknown>) => Promise<string | void> | string | void; }
