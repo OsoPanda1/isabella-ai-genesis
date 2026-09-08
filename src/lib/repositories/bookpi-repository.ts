@@ -82,13 +82,28 @@ function findTenantBlock(blocks: BlockPIBlock[], tenantId: string, index: number
  */
 export function createBookpiRepository(storePath: string = STORE_PATH) {
   const runtime = config();
-  if (
+  const isProductionLike =
+    runtime.NODE_ENV === "production" ||
     runtime.ISABELLA_RUNTIME_MODE === "production" ||
-    runtime.ISABELLA_RUNTIME_MODE === "staging"
-  ) {
+    runtime.ISABELLA_RUNTIME_MODE === "staging";
+  if (isProductionLike) {
     throw new Error(
       "JSON BookPI persistence is disabled in staging and production. Use createBookpiPostgresRepository().",
     );
+  }
+
+  // P0-15: aunque el modo no sea production-like, un proveedor de estado
+  // autoritativo declarado (postgres|neon) invalida de plano el JSON: nunca
+  // se puede caer a fichero cuando la autoridad durable es PostgreSQL.
+  const provider = (runtime as unknown as Record<string, unknown>).ISABELLA_STORAGE_PROVIDER;
+  if (typeof provider === "string") {
+    const normalized = provider.trim().toLowerCase();
+    if (["postgres", "neon"].includes(normalized)) {
+      throw new Error(
+        "JSON BookPI persistence is disabled when ISABELLA_STORAGE_PROVIDER is " +
+          `${normalized}. Financial state must live in the authoritative PostgreSQL database.`,
+      );
+    }
   }
 
   function loadStore(): BookPIStoreFile {

@@ -4,6 +4,7 @@
 **Rama:** `repair/production-hardening-2026-09`
 **Fecha:** 5 de septiembre de 2026
 **Base:** `85cfbfc` (HEAD de `main` al iniciar — incluye el fix de despliegue SovereignDB)
+**Plan:** 100 archivos P0 de hardening de producción (P0-A … P0-J). Este registro es la ÚNICA fuente de verdad de remediaciones.
 
 > **Nota de desviación (Manual §1.1):** el manual fija la base en `eea83b24`,
 > pero `main` ya avanzó con el commit `85cfbfc` (SovereignDB Postgres-backed,
@@ -11,6 +12,34 @@
 
 ## Estados
 `OPEN` · `IN_PROGRESS` · `FIXED` · `TESTED` · `VERIFIED` · `BLOCKED` · `REJECTED`
+
+## Plantilla de entrada (registrar NUEVAS remediaciones)
+
+Cada hallazgo GEAE que requiera remediación debe anotarse como entrada YAML
+(vías: `genesis audit --findings`, revisión manual, incidente). Usar un ID único
+`REP-NNN`, correlación `GEN-`/finding id, y aceptación explícita.
+
+```yaml
+id: REP-NNN
+sev: P0                # P0 (bloquea) | P1 (alta) | P2 (media) | P3 (baja)
+area: financial        # config|persistence|financial|bookpi|payments|auth|api|multi-tenancy|audit|geae|ci-cd|supply-chain
+owner: <responsable>
+induced-by:
+  finding: <GEAE finding id>     # correlación con Genesis Evidence Assurance Engine
+  block: P0-C                    # P0-A … P0-J
+file: <ruta del archivo>          # archivo(s) a corregir
+problem: |-
+  Descripción del problema observado (sin solución).
+solution: |-
+  Corrección aplicada o propuesta.
+acceptance:
+  tests: <comandos>              # npm run typecheck, test, security:scan, db:verify
+  security-affecting: true|false
+  requires-migration: false
+status: OPEN                    # OPEN|IN_PROGRESS|FIXED|TESTED|VERIFIED|BLOCKED|REJECTED
+notes: |-
+  Contexto, desviaciones, enlaces a ADR.
+```
 
 ## Registro
 

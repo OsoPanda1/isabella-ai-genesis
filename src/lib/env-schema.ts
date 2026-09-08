@@ -213,6 +213,11 @@ export const envSchema = z.object({
   API_KEY_RATE_LIMIT_DEFAULT: coercedInt(100),
 
   // --- PERSISTENCE ---
+  // Proveedor de estado durable autoritativo. En producción SOLO postgres|neon;
+  // json|supabase|memory quedan PROHIBIDOS (validate: repository-factory, fail-closed).
+  ISABELLA_STORAGE_PROVIDER: z
+    .enum(["postgres", "neon", "supabase", "json", "memory"])
+    .default("postgres"),
   DURABLE_JSON_ALLOWED: z
     .preprocess((val) => {
       if (typeof val === "boolean") return val;
@@ -231,6 +236,205 @@ export type Env = z.infer<typeof envSchema>;
 
 /** Variables de entorno que SÍ se exponen de forma segura al navegador. */
 export const PUBLIC_ENV_KEYS = [] as const;
+
+// ---------------------------------------------------------------------------
+// CATÁLOGO DE VARIABLES DE ENTORNO (P0-1)
+// ---------------------------------------------------------------------------
+// Única fuente de verdad de clasificación de cada variable:
+//   · visibility  → secret (jamás a cliente/logs/traces) | public
+//   · required    → tiers en los que la variable es OBLIGATORIA
+//   · forbidden   → tiers en los que la variable está PROHIBIDA (fail-closed)
+//   · provider    → proveedor/adaptador al que pertenece
+//   · criticality → impacto de una mala configuración
+//   · rotation    → política de rotación aplicable
+// Compatibilidad guardada por el tipo: `name` debe ser una clave real de Env.
+
+export type EnvVarCriticality = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+export type EnvVarVisibility = "secret" | "public";
+export type EnvVarProvider =
+  | "postgres"
+  | "neon"
+  | "supabase"
+  | "stripe"
+  | "gemini"
+  | "openai"
+  | "redis"
+  | "upstash"
+  | "crown"
+  | "bookpi"
+  | "otel"
+  | "oidc"
+  | "vercel"
+  | "self";
+
+export interface EnvVarDescriptor {
+  name: keyof Env;
+  visibility: EnvVarVisibility;
+  required: RuntimeMode[];
+  forbidden: RuntimeMode[];
+  provider?: EnvVarProvider;
+  criticality: EnvVarCriticality;
+  rotation?: string;
+  description?: string;
+}
+
+export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
+  // --- NÚCLEO / RUNTIME ---
+  { name: "NODE_ENV", visibility: "public", required: [], forbidden: [], provider: "vercel", criticality: "HIGH", description: "development|test|production" },
+  { name: "ISABELLA_RUNTIME_MODE", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH", description: "Modo de ejecución declarado (development|staging|production|emergency|maintenance)." },
+  { name: "PUBLIC_URL", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "vercel", criticality: "HIGH", description: "URL canónica pública del despliegue." },
+  { name: "ISABELLA_STORAGE_PROVIDER", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "postgres", criticality: "CRITICAL", description: "Proveedor de estado durable autoritativo. En producción SOLO postgres|neon; json|supabase|memory quedan PROHIBIDOS (fail-closed)." },
+  { name: "PROVISION_OWNER_TOKEN", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "self", criticality: "CRITICAL", rotation: "Rotar tras el bootstrap inicial del primer tenant/owner.", description: "Token de aprovisionamiento soberano del primer owner (bootstrap)." },
+
+  // --- POSTGRES / SUPABASE ---
+  { name: "DATABASE_URL", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "postgres", criticality: "CRITICAL", rotation: "Rotar ante compromiso; usar directorios/secret manager.", description: "ÚNICA fuente autoritativa de estado relacional." },
+  { name: "DATABASE_DIRECT_URL", visibility: "secret", required: [], forbidden: [], provider: "postgres", criticality: "HIGH", rotation: "Rotar ante compromiso.", description: "DSN directo (sin pooler) para migraciones/operación." },
+  { name: "INTERNAL_ORIGIN", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM", description: "Origen interno permitido para llamadas server-side." },
+  { name: "SUPABASE_URL", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "supabase", criticality: "HIGH", description: "Identity Provider / PostgREST surface. NO es autoridad de estado." },
+  { name: "SUPABASE_ANON_KEY", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "supabase", criticality: "HIGH", description: "Clave anónima de Supabase (jwk)." },
+  { name: "SUPABASE_SERVICE_ROLE_KEY", visibility: "secret", required: [], forbidden: [], provider: "supabase", criticality: "CRITICAL", rotation: "Rotar ante compromiso; mínimo privilegio en runtime.", description: "Clave service_role — jamás exponer al cliente." },
+  { name: "SUPABASE_JWT_SECRET", visibility: "secret", required: [], forbidden: [], provider: "supabase", criticality: "CRITICAL", rotation: "Rotar periódicamente; sincronizar con Supabase Auth.", description: "Secreto JWT de Supabase Auth." },
+
+  // --- JWT / OIDC ---
+  { name: "AUTH_JWT_SECRET", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "self", criticality: "CRITICAL", rotation: "Rotar con doble firma (kid activo/vencido) para no invalidar sesiones.", description: "Secreto de firma JWT de sesión." },
+  { name: "SESSION_SECRET", visibility: "secret", required: [], forbidden: [], provider: "self", criticality: "CRITICAL", rotation: "Rotar periódicamente; invalidar sesiones dependientes.", description: "Secreto de sesión server-side." },
+  { name: "AUTH_ISSUER", visibility: "public", required: [], forbidden: [], provider: "oidc", criticality: "MEDIUM", description: "Issuer esperado al validar OIDC/JWKS." },
+  { name: "AUTH_AUDIENCE", visibility: "public", required: [], forbidden: [], provider: "oidc", criticality: "MEDIUM", description: "Audiencia esperada de los tokens." },
+  { name: "AUTH_ACCESS_TOKEN_TTL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "AUTH_REFRESH_TOKEN_TTL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "OIDC_JWKS_URL", visibility: "public", required: [], forbidden: [], provider: "oidc", criticality: "HIGH", description: "URL del JWKS para validar tokens OIDC." },
+  { name: "JWKS_CACHE_TTL", visibility: "public", required: [], forbidden: [], provider: "oidc", criticality: "LOW" },
+
+  // --- DEV SESSION / PROVISIONING ---
+  { name: "AUTH_DEV_SESSION_ENABLED", visibility: "public", required: [], forbidden: ["staging", "production"], provider: "self", criticality: "CRITICAL", description: "PROHIBIDO en staging/production. Habilita login de pruebas." },
+  { name: "ALLOW_GUEST_CHAT", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM", description: "Permite acceso guest al chat (sin autenticación)." },
+
+  // --- CRYPTO ---
+  { name: "ENCRYPTION_MASTER_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "self", criticality: "CRITICAL", rotation: "Re-encriptar datos con key version antes de rotar.", description: "Clave maestra AES-256 (≥32 chars)." },
+  { name: "ENCRYPTION_ALGORITHM", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH" },
+
+  // --- CROWN ---
+  { name: "CROWN_CONSTITUTION_VERSION", visibility: "public", required: [], forbidden: [], provider: "crown", criticality: "LOW" },
+  { name: "CROWN_POLICY_SIGNING_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "crown", criticality: "CRITICAL", rotation: "Rotar con verificación de doble clave.", description: "Firma de políticas del CROWN Gateway." },
+  { name: "AEGIS_AUDIT_SECRET", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "crown", criticality: "CRITICAL", rotation: "Rotar periódicamente.", description: "Secreto del firewall semántico ARGUS." },
+  { name: "CROWN_ENFORCEMENT_MODE", visibility: "public", required: [], forbidden: [], provider: "crown", criticality: "HIGH", description: "enforce (fail-closed) | dry-run. dry-run PROHIBIDO en producción real." },
+
+  // --- BOOKPI ---
+  { name: "BOOKPI_SIGNATURE_ALGORITHM", visibility: "public", required: [], forbidden: [], provider: "bookpi", criticality: "HIGH", description: "ML-DSA-87 es SIMULATION-ONLY en producción." },
+  { name: "BOOKPI_SIGNING_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "bookpi", criticality: "CRITICAL", rotation: "Rotar con clave versionada + kid; verificar firma de bloques previos.", description: "Clave de firma del ledger inmutable. Obligatoria en prod (rechaza ausencia)." },
+
+  // --- PAYMENTS ---
+  { name: "STRIPE_SECRET_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "stripe", criticality: "CRITICAL", rotation: "Rotar en Stripe Dashboard y actualizar runtime.", description: "Clave secreta de Stripe." },
+  { name: "STRIPE_WEBHOOK_SECRET", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "stripe", criticality: "CRITICAL", rotation: "Rotar periódicamente y revalidar firma.", description: "whsec para verificar webhooks de Stripe." },
+
+  // --- QUP ---
+  { name: "QUP_ZNE_LEVEL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "QUP_PEC_ENABLED", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "QUP_QEC_DECODER", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "QUP_STRICT_ISOLATION", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
+
+  // --- SANDBOX ---
+  { name: "SANDBOX_ENABLED", visibility: "public", required: [], forbidden: ["emergency", "maintenance"], provider: "self", criticality: "CRITICAL", description: "Requiere revisión registrada. Fail-closed por defecto (false)." },
+
+  // --- REDIS / KV ---
+  { name: "REDIS_URL", visibility: "secret", required: [], forbidden: [], provider: "redis", criticality: "HIGH", description: "Si se usa para rate-limit/estado, debe ser autoritativo (no degradar a memoria)." },
+  { name: "REDIS_TOKEN", visibility: "secret", required: [], forbidden: [], provider: "redis", criticality: "HIGH" },
+  { name: "REDIS_PREFIX", visibility: "public", required: [], forbidden: [], provider: "redis", criticality: "LOW" },
+  { name: "KV_URL", visibility: "secret", required: [], forbidden: [], provider: "upstash", criticality: "HIGH" },
+  { name: "KV_REST_API_TOKEN", visibility: "secret", required: [], forbidden: [], provider: "upstash", criticality: "HIGH" },
+  { name: "UPSTASH_REDIS_TOKEN", visibility: "secret", required: [], forbidden: [], provider: "upstash", criticality: "HIGH" },
+  { name: "TRUSTED_PROXY_MODE", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
+
+  // --- RATE LIMIT ---
+  { name: "RATE_LIMIT_DEFAULT_PER_MINUTE", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "RATE_LIMIT_INFERENCE_PER_MINUTE", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "RATE_LIMIT_VOICE_PER_MINUTE", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+
+  // --- AI GATEWAY ---
+  { name: "GEMINI_API_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "gemini", criticality: "CRITICAL", rotation: "Rotar ante compromiso o política del proveedor.", description: "Clave de la API de Gemini." },
+  { name: "LLM_DEFAULT_MODEL", visibility: "public", required: [], forbidden: [], provider: "gemini", criticality: "LOW" },
+  { name: "LLM_VOICE_MODEL", visibility: "public", required: [], forbidden: [], provider: "openai", criticality: "LOW" },
+  { name: "VOICE_API_URL", visibility: "public", required: [], forbidden: [], provider: "openai", criticality: "LOW" },
+  { name: "LLM_UPSTREAM_TIMEOUT_MS", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
+
+  // --- TELEMETRY ---
+  { name: "OTEL_EXPORTER_OTLP_ENDPOINT", visibility: "secret", required: [], forbidden: [], provider: "otel", criticality: "LOW" },
+  { name: "OTEL_SERVICE_NAME", visibility: "public", required: [], forbidden: [], provider: "otel", criticality: "LOW" },
+
+  // --- FEATURE FLAGS / REDACTION / INPUT LIMITS ---
+  { name: "ISABELLA_FEATURE_FLAGS", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "REDACT_EXTRA_KEYS", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "INPUT_MAX_BODY_BYTES", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
+  { name: "INPUT_MAX_MESSAGES", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "INPUT_MAX_ATTACHMENT_BYTES", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
+  { name: "INPUT_MAX_TOOLS_PER_REQUEST", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+
+  // --- API KEYS ---
+  { name: "API_KEY_HASH_SECRET", visibility: "secret", required: [], forbidden: [], provider: "self", criticality: "CRITICAL", rotation: "Rotar re-hasheando claves existentes con doble hash.", description: "Pepper/secret para hash de API keys." },
+  { name: "API_KEY_PREFIX", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "API_KEY_DEFAULT_TTL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "API_KEY_MAX_TTL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "API_KEY_ROTATION_GRACE_SECONDS", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+  { name: "API_KEY_RATE_LIMIT_DEFAULT", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
+
+  // --- PERSISTENCE ---
+  { name: "DURABLE_JSON_ALLOWED", visibility: "public", required: [], forbidden: ["staging", "production"], provider: "self", criticality: "CRITICAL", description: "PROHIBIDO en staging/production. Persistencia JSON solo dev/test." },
+];
+
+export function classifyEnvVar(name: keyof Env): EnvVarDescriptor | undefined {
+  return ENV_VAR_CATALOG.find((d) => d.name === name);
+}
+
+/** Variables obligatorias para un tier según el catálogo (además de requiredEnvKeys). */
+export function envVarsRequiredFor(tier: RuntimeMode): EnvVarDescriptor[] {
+  return ENV_VAR_CATALOG.filter((d) => d.required.includes(tier));
+}
+
+/** Variables PROHIBIDAS en un tier (fail-closed): si están presentes/activadas, violan el contrato. */
+export function envVarsForbiddenFor(tier: RuntimeMode): EnvVarDescriptor[] {
+  return ENV_VAR_CATALOG.filter((d) => d.forbidden.includes(tier));
+}
+
+/** Devuelve las claves de entorno cuyo valor activo viola el contrato del tier (fail-closed). */
+export function assertTierEnvContract(
+  tier: RuntimeMode,
+  values: Record<string, unknown>,
+): string[] {
+  const violations: string[] = [];
+
+  for (const descriptor of envVarsForbiddenFor(tier)) {
+    const raw = values[descriptor.name];
+    if (typeof raw !== "string") continue;
+    const normalized = raw.trim().toLowerCase();
+    if (
+      normalized === "true" ||
+      normalized === "1" ||
+      normalized === "enabled" ||
+      normalized === "on"
+    ) {
+      violations.push(
+        `[${descriptor.name}] está PROHIBIDO en tier "${tier}" (valor="${raw}"). El runtime debe operar fail-closed.`,
+      );
+    }
+  }
+
+  if (
+    tier === "staging" ||
+    tier === "production"
+  ) {
+    const provider = values.ISABELLA_STORAGE_PROVIDER;
+    if (typeof provider === "string") {
+      const p = provider.trim().toLowerCase();
+      if (p === "json" || p === "memory" || p === "supabase") {
+        violations.push(
+          `[ISABELLA_STORAGE_PROVIDER]="${provider}" es un proveedor no autoritativo; en ${tier} SOLO postgres|neon.`,
+        );
+      }
+    }
+  }
+
+  return violations;
+}
 
 /**
  * Variables obligatorias por modo de ejecución.

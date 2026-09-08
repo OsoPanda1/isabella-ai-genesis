@@ -19,13 +19,28 @@ function getPool(url: string) {
     if (!url) {
       throw new Error("CRITICAL: DATABASE_URL is missing. BookPI Ledger requires a valid PostgreSQL connection.");
     }
-    pool = new Pool({ connectionString: url });
+    pool = new Pool({
+      connectionString: url,
+      // P0-16: límites operativos explícitos — nunca esperar indefinidamente.
+      max: 10,
+      connectionTimeoutMillis: 10_000,
+      idleTimeoutMillis: 30_000,
+      statement_timeout: 15_000,
+    });
     pool.on('error', (err) => {
       console.error('Unexpected error on idle BookPI database client', err);
       process.exit(-1);
     });
   }
   return pool;
+}
+
+/** Cierre ordenado del pool BookPI (shutdown limpio; idempotente). */
+export function disposeBookpiPool(): Promise<void> {
+  if (!pool) return Promise.resolve();
+  const toClose = pool;
+  pool = null;
+  return toClose.end();
 }
 
 /**
@@ -270,7 +285,7 @@ export function createBookpiPostgresRepository() {
       filter: { category?: LedgerCategory; userId?: string; fromDate?: Date; toDate?: Date }
     ): Promise<BlockPIBlock[]> {
       let query = "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1";
-      const params: any[] = [tenantId];
+      const params: unknown[] = [tenantId];
       let paramIndex = 2;
       
       if (filter.category) {
@@ -384,7 +399,7 @@ export function createBookpiPostgresRepository() {
           HAVING MAX(created_at) < $1
         `, [cutoffDate]);
         
-        const tenantsToPrune = rows.map((r: any) => String(r.tenant_id));
+        const tenantsToPrune = rows.map((r: { tenant_id: unknown }) => String(r.tenant_id));
         
         if (tenantsToPrune.length > 0) {
           // Delete all records for these tenants

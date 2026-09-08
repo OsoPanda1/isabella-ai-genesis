@@ -57,6 +57,26 @@ class ProductionRepositoryFactory implements RepositoryFactory {
         "[FATAL] Production persistence misconfigured. Configure DATABASE_URL for the dedicated PostgreSQL authoritative database. Supabase is Identity Provider only — not state authority.",
       );
     }
+
+    // Proveedor explícito (P0-5): una app financiera no debe decidir por
+    // presencia de variables ("tengo DATABASE_URL, entonces..."). Exige que
+    // ISABELLA_STORAGE_PROVIDER declare postgres|neon; json|supabase|memory
+    // son no autoritativos y quedan PROHIBIDOS en staging/production.
+    const provider = (cfg as unknown as Record<string, unknown>)
+      .ISABELLA_STORAGE_PROVIDER;
+    const normalized =
+      typeof provider === "string" ? (provider as string).trim().toLowerCase() : "";
+
+    if (!normalized) {
+      throw new Error(
+        "[FATAL] ISABELLA_STORAGE_PROVIDER must be explicitly set to postgres|neon in staging/production. Ambiguous or missing provider is a deployment blocker.",
+      );
+    }
+    if (!["postgres", "neon"].includes(normalized)) {
+      throw new Error(
+        `[FATAL] ISABELLA_STORAGE_PROVIDER="${normalized}" is not an authoritative durable provider in production. Allowed: postgres|neon.`,
+      );
+    }
   }
 
   private getNeonRepo<T extends { id: string }>(type: string): IRepository<T> {

@@ -376,7 +376,8 @@ export const Route = createFileRoute("/api/db")({
             });
           }
           const clientId = url.searchParams.get("client_id") || "isabella_oauth_client";
-          const sessions = await sovereignStateRepository.getSession("system") ? [await sovereignStateRepository.getSession("system")].filter(Boolean) : [];
+          const systemSession = await sovereignStateRepository.getSession("system");
+          const sessions = systemSession ? [systemSession] : [];
 
           const html = `
             <!DOCTYPE html>
