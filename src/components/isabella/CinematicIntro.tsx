@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Volume2, VolumeX, SkipForward, Play } from "lucide-react";
+import backgroundAudioUrl from "@/assets/background-audio.mp3";
 
 // Official Isabella palette
 const PALETTE = {
@@ -15,7 +16,7 @@ const PALETTE = {
   iris: "#c499ff",
 } as const;
 
-const BACKGROUND_AUDIO_SRC = "/assets/background-audio.mp3";
+const BACKGROUND_AUDIO_SRC = backgroundAudioUrl;
 const DURATION = 59;
 const TARGET_FPS = 60;
 
