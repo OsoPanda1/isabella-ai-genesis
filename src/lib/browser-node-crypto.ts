@@ -1,21 +1,22 @@
 type HashLike = { update: (value: string | Uint8Array) => HashLike; digest: (encoding?: string) => string | Uint8Array };
-
-const unsupported = (name: string): never => {
-  throw new Error(`${name} is server-only and cannot run in the browser.`);
-};
+const unsupported = (name: string): never => { throw new Error(`${name} is server-only and cannot run in the browser.`); };
 
 export const randomUUID = (): string => {
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (character) => {
-    const value = Math.random() * 16;
-    const digit = character === "x" ? value : (value & 0x3) | 0x8;
-    return Math.floor(digit).toString(16);
-  });
+  if (!globalThis.crypto?.getRandomValues) throw new Error("Secure browser randomness unavailable.");
+  const bytes = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 };
 
 export const randomBytes = (size: number): Uint8Array => {
+  if (!Number.isInteger(size) || size < 0) throw new Error("Invalid random byte size.");
   const bytes = new Uint8Array(size);
-  globalThis.crypto?.getRandomValues(bytes);
+  if (!globalThis.crypto?.getRandomValues) throw new Error("Secure browser randomness unavailable.");
+  globalThis.crypto.getRandomValues(bytes);
   return bytes;
 };
 
@@ -36,5 +37,4 @@ export const timingSafeEqual = (left: Uint8Array, right: Uint8Array): boolean =>
   for (let index = 0; index < left.length; index += 1) difference |= left[index] ^ right[index];
   return difference === 0;
 };
-
 export class KeyObject {}
