@@ -16,6 +16,7 @@ import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiDbRouteImport } from './routes/api/db'
 import { Route as ApiEconomicIntegrityRouteImport } from './routes/api/economic-integrity'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiIntelligenceRouteImport } from './routes/api/intelligence'
 import { Route as ApiIsabellaRouteImport } from './routes/api/isabella'
 import { Route as ApiIsabellaVoiceRouteImport } from './routes/api/isabella-voice'
 import { Route as ApiSecurityRouteImport } from './routes/api/security'
@@ -58,6 +59,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiIntelligenceRoute = ApiIntelligenceRouteImport.update({
+  id: '/api/intelligence',
+  path: '/api/intelligence',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiIsabellaRoute = ApiIsabellaRouteImport.update({
   id: '/api/isabella',
   path: '/api/isabella',
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/api/db': typeof ApiDbRoute
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
   '/api/health': typeof ApiHealthRouteWithChildren
+  '/api/intelligence': typeof ApiIntelligenceRoute
   '/api/isabella': typeof ApiIsabellaRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/security': typeof ApiSecurityRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/api/db': typeof ApiDbRoute
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
   '/api/health': typeof ApiHealthRouteWithChildren
+  '/api/intelligence': typeof ApiIntelligenceRoute
   '/api/isabella': typeof ApiIsabellaRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/security': typeof ApiSecurityRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/api/db': typeof ApiDbRoute
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
   '/api/health': typeof ApiHealthRouteWithChildren
+  '/api/intelligence': typeof ApiIntelligenceRoute
   '/api/isabella': typeof ApiIsabellaRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/security': typeof ApiSecurityRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/api/db'
     | '/api/economic-integrity'
     | '/api/health'
+    | '/api/intelligence'
     | '/api/isabella'
     | '/api/isabella-voice'
     | '/api/security'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/api/db'
     | '/api/economic-integrity'
     | '/api/health'
+    | '/api/intelligence'
     | '/api/isabella'
     | '/api/isabella-voice'
     | '/api/security'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/api/db'
     | '/api/economic-integrity'
     | '/api/health'
+    | '/api/intelligence'
     | '/api/isabella'
     | '/api/isabella-voice'
     | '/api/security'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   ApiDbRoute: typeof ApiDbRoute
   ApiEconomicIntegrityRoute: typeof ApiEconomicIntegrityRoute
   ApiHealthRoute: typeof ApiHealthRouteWithChildren
+  ApiIntelligenceRoute: typeof ApiIntelligenceRoute
   ApiIsabellaRoute: typeof ApiIsabellaRoute
   ApiIsabellaVoiceRoute: typeof ApiIsabellaVoiceRoute
   ApiSecurityRoute: typeof ApiSecurityRoute
@@ -245,6 +258,13 @@ declare module '@tanstack/react-router' {
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/intelligence': {
+      id: '/api/intelligence'
+      path: '/api/intelligence'
+      fullPath: '/api/intelligence'
+      preLoaderRoute: typeof ApiIntelligenceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/isabella': {
@@ -316,6 +336,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDbRoute: ApiDbRoute,
   ApiEconomicIntegrityRoute: ApiEconomicIntegrityRoute,
   ApiHealthRoute: ApiHealthRouteWithChildren,
+  ApiIntelligenceRoute: ApiIntelligenceRoute,
   ApiIsabellaRoute: ApiIsabellaRoute,
   ApiIsabellaVoiceRoute: ApiIsabellaVoiceRoute,
   ApiSecurityRoute: ApiSecurityRoute,
