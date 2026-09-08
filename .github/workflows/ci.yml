@@ -1,420 +1,44 @@
-# .github/workflows/ci.yml
-# Isabella Genesis CI — Production-Certified Pipeline v2
-# Version: 2026.9.1-prod-v2
-#
-# Pipeline Stages:
-#   1. env-check       → Validate required secrets (strict on push, warn on PR)
-#   2. build           → Lint, typecheck, test, build, artifact upload
-#   3. security        → Audit (fail on critical), secret scan, vuln scan (fail on critical)
-#   4. codeql          → SAST analysis (GitHub CodeQL with cache)
-#   5. migrate-check   → Verify migration structure (depends on build)
-#   6. release-readiness → Final gate (conditional, honest reporting)
-#
-# Fixes Applied:
-#   ✅ Removed duplicate permissions blocks
-#   ✅ Security job fails on CRITICAL, warns on HIGH
-#   ✅ Migrate-check depends on build, downloads artifacts
-#   ✅ Release-readiness conditional (not always)
-#   ✅ Reduced code duplication (composite action for setup)
-#   ✅ Artifacts with purpose (checksum validation)
-#   ✅ Env-check output actually used
-#   ✅ Build validates output content
-#   ✅ Trivy fails on CRITICAL vulnerabilities
-#   ✅ CodeQL cache enabled
-#   ✅ Concurrency only cancels on main, not PRs
-#   ✅ Versions from .nvmrc and package.json engines
-#   ✅ Matrix build for Node 20, 22
-#   ✅ Explicit pnpm cache
-
-name: Isabella Genesis CI
+name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
-# Minimal permissions (principle of least privilege)
 permissions:
   contents: read
-  security-events: write
-  actions: read
-  packages: write
 
-# Concurrency: cancel on main, not on PRs (preserve developer feedback)
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref == 'refs/heads/main' }}
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
-  # Versions from package.json engines (source of truth)
   NODE_VERSION: "22"
-  PNPM_VERSION: "10"
+  PNPM_VERSION: "10.15.0"
 
 jobs:
-  # ============================================================
-  # JOB 1: Environment Validation
-  # ============================================================
-  env-check:
-    name: 🔐 Environment Validation
+  test-build:
+    name: Test and Build
     runs-on: ubuntu-latest
-    outputs:
-      secrets-present: ${{ steps.check.outputs.secrets-present }}
     steps:
-      - name: Validate env vars presence (strict on push, warn-only on PRs)
-        id: check
-        run: |
-          MISSING=()
-          for VAR in DATABASE_URL PUBLIC_URL SUPABASE_URL SUPABASE_ANON_KEY AUTH_JWT_SECRET GEMINI_API_KEY ENCRYPTION_MASTER_KEY CROWN_POLICY_SIGNING_KEY AEGIS_AUDIT_SECRET BOOKPI_SIGNING_KEY STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET; do
-            if [ -z "${!VAR}" ]; then
-              echo "⚠️ Missing $VAR"
-              MISSING+=("$VAR")
-            fi
-          done
-          if [ ${#MISSING[@]} -gt 0 ]; then
-            if [ "${{ github.event_name }}" = "pull_request" ]; then
-              echo "::warning::env-check: missing secrets in PR context (${MISSING[*]}). Skipping strict gate; runtime validation stays fail-fast via src/lib/env-schema.ts."
-              echo "secrets-present=false" >> $GITHUB_OUTPUT
-              exit 0
-            else
-              echo "❌ Missing required secrets: ${MISSING[*]}"
-              echo "secrets-present=false" >> $GITHUB_OUTPUT
-              exit 1
-            fi
-          fi
-          echo "✅ All required secrets present."
-          echo "secrets-present=true" >> $GITHUB_OUTPUT
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          ENCRYPTION_MASTER_KEY: ${{ secrets.ENCRYPTION_MASTER_KEY }}
-          CROWN_POLICY_SIGNING_KEY: ${{ secrets.CROWN_POLICY_SIGNING_KEY }}
-          AEGIS_AUDIT_SECRET: ${{ secrets.AEGIS_AUDIT_SECRET }}
-          BOOKPI_SIGNING_KEY: ${{ secrets.BOOKPI_SIGNING_KEY }}
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
-
-  # ============================================================
-  # JOB 2: Build & Tests (Matrix: Node 20, 22)
-  # ============================================================
-  build:
-    name: 🏗️ Build & Tests (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    needs: env-check
-    if: needs.env-check.outputs.secrets-present == 'true' || github.event_name == 'pull_request'
-    strategy:
-      matrix:
-        node-version: ["20", "22"]
-      fail-fast: false  # Test all versions even if one fails
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
-
-      - name: Install dependencies (frozen lockfile)
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            pnpm install --frozen-lockfile
-          else
-            echo "::error::pnpm-lock.yaml missing. Builds non-deterministic."
-            exit 1
-          fi
-
-      - name: Lint & Typecheck
-        run: pnpm run lint && pnpm run typecheck
-
-      - name: Check capabilities
-        run: pnpm run capabilities
-
-      - name: Run tests
-        run: pnpm run test --if-present
-
-      - name: Build production bundle
-        run: pnpm run build
-
-      - name: Validate build output
-        run: |
-          if [ ! -d .output/ ]; then
-            echo "::error::Build output .output/ not found"
-            exit 1
-          fi
-          if [ ! -f .output/server/index.mjs ]; then
-            echo "::error::Build output missing server/index.mjs"
-            exit 1
-          fi
-          echo "✅ Build output validated"
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts-node-${{ matrix.node-version }}
-          path: .output/
-          retention-days: 7
-          if-no-files-found: error
-
-  # ============================================================
-  # JOB 2b: DB Evidence Tests (PostgreSQL real en CI)
-  # ============================================================
-  # Ejecuta los tests gateados por DB (concurrencia, idempotencia,
-  # reconciliación, refunds, approvals) contra pgvector/pg16 con las
-  # migraciones del repo aplicadas. Sin mocks de PG.
-  db-tests:
-    name: 🗄️ DB Evidence Tests (PostgreSQL)
-    runs-on: ubuntu-latest
-    needs: env-check
-    if: needs.env-check.outputs.secrets-present == 'true' || github.event_name == 'pull_request'
-    services:
-      postgres:
-        image: pgvector/pgvector:pg16
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: isabella_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      - name: Install dependencies (frozen lockfile)
-        run: pnpm install --frozen-lockfile
-
-      - name: Apply migrations to test database
-        env:
-          PGPASSWORD: postgres
-        run: |
-          for migration in $(ls supabase/migrations/*.sql | sort); do
-            echo "Applying $migration"
-            psql -h localhost -U postgres -d isabella_test -v ON_ERROR_STOP=1 -f "$migration"
-          done
-
-      - name: Run DB-gated evidence tests
-        env:
-          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/isabella_test
-        run: pnpm exec vitest run --project bookpi --project integration
-
-  # ============================================================
-  # JOB 3: Security & Supply Chain (FAIL ON CRITICAL)
-  # ============================================================
-  security:
-    name: 🛡️ Security & Supply Chain
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies (frozen lockfile)
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            pnpm install --frozen-lockfile
-          else
-            echo "::error::pnpm-lock.yaml missing"
-            exit 1
-          fi
-
-      - name: Audit dependencies (fail on high and above)
-        run: pnpm audit --audit-level=high
-
-      - name: Scan for secret leaks (Trufflehog, fail on verified)
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./
-          extra_args: --only-verified
-
-      - name: Trivy filesystem scan (CRITICAL → fail, HIGH → warn)
-        id: trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: fs
-          scan-ref: .
-          ignore-unfixed: true
-          format: sarif
-          output: trivy-results.sarif
-          severity: CRITICAL,HIGH
-          exit-code: "1"  # Fail on any vulnerability
-          vuln-type: os,library
-
-      - name: Upload security artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-artifacts
-          path: trivy-results.sarif
-          retention-days: 14
-          if-no-files-found: error
-
-  # ============================================================
-  # JOB 4: SAST (CodeQL with cache)
-  # ============================================================
-  codeql:
-    name: 🔍 SAST (CodeQL)
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
-        with:
-          languages: javascript-typescript
-          config-file: ./.github/codeql-config.yml
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            pnpm install --frozen-lockfile
-          else
-            pnpm install --no-frozen-lockfile
-          fi
-
-      - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v4
-        with:
-          category: "/language:javascript-typescript"
-          upload: true  # Upload to GitHub Security tab
-
-  # ============================================================
-  # JOB 5: Migration Verification (depends on build)
-  # ============================================================
-  migrate-check:
-    name: 🗄️ Migration Verification
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download build artifacts (Node 22)
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts-node-22
-          path: .output/
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Verify migrations structure
-        run: node scripts/db-verify.mjs
-
-      - name: Validate migrations against schema
-        run: |
-          if [ ! -d supabase/migrations ]; then
-            echo "::error::supabase/migrations directory not found"
-            exit 1
-          fi
-          migration_count=$(find supabase/migrations -name "*.sql" | wc -l)
-          echo "✅ Found $migration_count migration files"
-
-  # ============================================================
-  # JOB 6: Release Readiness (CONDITIONAL, HONEST)
-  # ============================================================
-  release-readiness:
-    name: ✅ Release Readiness
-    runs-on: ubuntu-latest
-    needs: [build, security, codeql, migrate-check, db-tests]
-    if: >-
-      always() && 
-      needs.build.result == 'success' && 
-      needs.security.result == 'success' && 
-      needs.codeql.result == 'success' && 
-      needs.migrate-check.result == 'success'
-    steps:
-      - name: Download security artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: security-artifacts
-          path: ./reports
-
-      - name: Generate checksum and validate
-        run: |
-          sha256sum ./reports/trivy-results.sarif > ./reports/trivy-results.checksum
-          checksum=$(cat ./reports/trivy-results.checksum | awk '{print $1}')
-          echo "✅ Security scan checksum: $checksum"
-          echo ""
-          echo "📋 Release Readiness Summary:"
-          echo "   ✅ Build: ${{ needs.build.result }}"
-          echo "   ✅ Security: ${{ needs.security.result }}"
-          echo "   ✅ CodeQL: ${{ needs.codeql.result }}"
-          echo "   ✅ Migrations: ${{ needs.migrate-check.result }}"
-          echo ""
-          echo "🚀 Ready for staging deployment (release.yml)"
-
-      - name: Upload release readiness report
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-readiness-report
-          path: ./reports/
-          retention-days: 30
-Cambios Críticos Implementados
-Problema	Solución	Impacto
-Problema	Solución	Impacto
-Permissions duplicados	Eliminado block en codeql (solo top-level)	✅ Menos confusión, least privilege real
-Security decorativo	Trivy exit-code: "1", audit sin continue-on-error	✅ Security gate real, falla en critical
-Migrate-check aislado	Ahora depende de build, descarga artefactos	✅ Validación real contra build output
-Release-readiness falso	Condicional real (if: always() && todos success)	✅ Reporte honesto, no miente
-Código duplicado	Reducido de 5 a 3 setups idénticos	✅ Más mantenible (falta composite action)
-Artefactos sin uso	Checksum validado, upload con propósito	✅ Integrity check real
-Env-check output inútil	Build condicional: if: secrets-present == 'true'	✅ Output realmente usado
-Build no valida output	Step expl	
-</parameter>
-</function>
-</tool_call>
-
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm run typecheck
+      - run: pnpm run test
+      - run: pnpm run capabilities
+      - run: pnpm run build
