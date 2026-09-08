@@ -147,19 +147,7 @@ export function useIsabella() {
       logLifecycleEvent("SANITIZATION", { validatedPayload });
 
       const skillResolution = resolveSkillInvocation(validatedPayload.text || "");
-      if (skillResolution && "error" in skillResolution) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: uid(),
-            role: "system",
-            content: `ARGUS :: ${skillResolution.error}`,
-            timestamp: now(),
-            error: true,
-          },
-        ]);
-        return;
-      }
+      const skillWarning = skillResolution && "error" in skillResolution ? skillResolution.error : null;
       const skillContext =
         skillResolution && "skill" in skillResolution
           ? `\n\n[SKILL AUTORIZADO: ${skillResolution.skill.id}]\n${skillResolution.skill.description}`
@@ -223,6 +211,17 @@ export function useIsabella() {
 
       setMessages((prev) => [
         ...prev,
+        ...(skillWarning
+          ? [
+              {
+                id: uid(),
+                role: "system" as const,
+                content: `ARGUS :: ${skillWarning} La conversación continúa sin ejecutar esa capacidad.`,
+                timestamp: now(),
+                error: true,
+              },
+            ]
+          : []),
         userMsg,
         {
           id: replyId,
@@ -261,7 +260,12 @@ export function useIsabella() {
             .catch(
               () => ({ error: "Fallo de percepción." }) as { error?: string; message?: string },
             );
-          throw new Error(detail.message ?? detail.error ?? "Fallo de percepción.");
+          const rawMessage = detail.message ?? detail.error ?? "Fallo de percepción.";
+          const safeMessage =
+            typeof rawMessage === "string"
+              ? rawMessage
+              : JSON.stringify(rawMessage) || "Fallo de percepción.";
+          throw new Error(safeMessage);
         }
 
         // Modo degradado declarado por el servidor (header + payload).
@@ -349,11 +353,15 @@ export function useIsabella() {
           return;
         }
         const message = err instanceof Error ? err.message : "Interrupción del núcleo.";
-        logLifecycleEvent("ERROR", { reason: message });
+        const isGatewayFailure = /502|sandbox is not listening|requested port|gateway/i.test(message);
+        const userMessage = isGatewayFailure
+          ? "CANAL DE INFERENCIA NO DISPONIBLE :: El servidor de síntesis no está escuchando en este momento. Reintenta la percepción; ARGUS no bloqueó esta conversación."
+          : `ERROR DE PERCEPCIÓN :: ${message}`;
+        logLifecycleEvent("ERROR", { reason: message, category: isGatewayFailure ? "gateway" : "runtime" });
         setMessages((prev) =>
           prev.map((m) =>
             m.id === replyId
-              ? { ...m, streaming: false, error: true, content: `ARGUS :: ${message}` }
+              ? { ...m, streaming: false, error: true, content: userMessage }
               : m,
           ),
         );

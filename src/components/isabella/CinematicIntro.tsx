@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Volume2, VolumeX, SkipForward, Play } from "lucide-react";
+import backgroundAudioUrl from "@/assets/background-audio.mp3";
 
 // Official Isabella palette
 const PALETTE = {
@@ -15,7 +16,7 @@ const PALETTE = {
   iris: "#c499ff",
 } as const;
 
-const BACKGROUND_AUDIO_SRC = "/assets/background-audio.mp3";
+const BACKGROUND_AUDIO_SRC = backgroundAudioUrl;
 const DURATION = 59;
 const TARGET_FPS = 60;
 
@@ -405,11 +406,18 @@ export function CinematicIntroContent({
     setShowGate(false);
     setSkipped(false);
     clockRef.current = performance.now();
-    if (!muted && audioRef.current) {
-      audioRef.current
+
+    const audio = audioRef.current;
+    if (!muted && audio) {
+      audio.muted = false;
+      audio.volume = 0.72;
+      void audio
         .play()
         .then(() => setAudioReady(true))
-        .catch(() => setMuted(true));
+        .catch(() => {
+          // The browser can reject media until this user gesture reaches the media element.
+          setAudioReady(false);
+        });
     }
   }, [muted]);
   useEffect(() => {
