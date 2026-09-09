@@ -6,6 +6,7 @@ import {
   type CognitiveTrainingSample,
   type CognitiveTrainingStrategy,
 } from "@/lib/isabella-cognitive-training";
+import { loadLearningRuntime, persistLearningRuntime } from "@/lib/isabella-learning-persistence";
 
 const STRATEGIES = new Set<CognitiveTrainingStrategy>([
   "semantic",
@@ -17,17 +18,6 @@ const STRATEGIES = new Set<CognitiveTrainingStrategy>([
   "preference",
   "multimodal",
 ]);
-
-const engines = new Map<string, ReturnType<typeof createIsabellaCognitiveTrainingEngine>>();
-
-function engineFor(tenantId: string) {
-  let engine = engines.get(tenantId);
-  if (!engine) {
-    engine = createIsabellaCognitiveTrainingEngine();
-    engines.set(tenantId, engine);
-  }
-  return engine;
-}
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -72,7 +62,11 @@ export const Route = createFileRoute("/api/isabella-cognitive-training")({
         if (!body || typeof body !== "object") return json({ error: "VALIDATION_ERROR" }, 400);
         const payload = body as Record<string, unknown>;
         const action = payload.action ?? "train";
-        const engine = engineFor(context.tenantId);
+        const runtime = await loadLearningRuntime(context.tenantId).catch((error: unknown) => ({
+          error: error instanceof Error ? error.message : "LEARNING_RUNTIME_UNAVAILABLE",
+        } as const));
+        if ("error" in runtime) return json({ error: runtime.error }, 503);
+        const engine = createIsabellaCognitiveTrainingEngine(runtime.engine);
 
         if (action === "train") {
           const strategy = payload.strategy;
@@ -81,7 +75,9 @@ export const Route = createFileRoute("/api/isabella-cognitive-training")({
           }
           const sample = parseSample(payload.sample);
           if (!sample) return json({ error: "INVALID_SAMPLE", required: ["input", "source"] }, 400);
-          return json(engine.train(strategy as CognitiveTrainingStrategy, sample));
+          const result = engine.train(strategy as CognitiveTrainingStrategy, sample);
+          if (runtime.durable && result.accepted > 0) await persistLearningRuntime(context.tenantId, runtime.engine);
+          return json(result);
         }
 
         if (action === "train-batch") {
@@ -99,7 +95,9 @@ export const Route = createFileRoute("/api/isabella-cognitive-training")({
             }
             samples.push({ strategy: strategy as CognitiveTrainingStrategy, sample });
           }
-          return json(engine.trainBatch(samples));
+          const result = engine.trainBatch(samples);
+          if (runtime.durable && result.accepted > 0) await persistLearningRuntime(context.tenantId, runtime.engine);
+          return json(result);
         }
 
         if (action === "evaluate") {
