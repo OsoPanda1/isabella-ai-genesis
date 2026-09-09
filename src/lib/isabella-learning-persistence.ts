@@ -53,7 +53,7 @@ export async function loadLearningRuntime(tenantId: string): Promise<PersistedLe
   const row = result.rows[0];
   if (row?.snapshot) {
     if (row.version !== 1 || row.snapshot.version !== 1) throw new Error("LEARNING_SNAPSHOT_VERSION_UNSUPPORTED");
-    const canonical = JSON.stringify(row.snapshot);
+    const canonical = stableStringify(row.snapshot);
     const expected = createHash("sha3-512").update(canonical).digest("hex");
     if (expected !== row.snapshot_hash) throw new Error("LEARNING_SNAPSHOT_INTEGRITY_FAILURE");
     engine.restore(row.snapshot);
@@ -66,7 +66,7 @@ export async function persistLearningRuntime(tenantId: string, engine: IsabellaL
   if (!config().DATABASE_URL) return;
   await ensureTable();
   const snapshot = engine.snapshot();
-  const canonical = JSON.stringify(snapshot);
+  const canonical = stableStringify(snapshot);
   const snapshotHash = createHash("sha3-512").update(canonical).digest("hex");
   await getPool().query(
     `
@@ -93,4 +93,11 @@ export async function verifyLearningPersistence(): Promise<{ ok: boolean; durabl
   } catch {
     return { ok: false, durable: true, latencyMs: performance.now() - start };
   }
+}
+
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  const object = value as Record<string, unknown>;
+  return `{${Object.keys(object).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(object[key])}`).join(",`)}}`;
 }
