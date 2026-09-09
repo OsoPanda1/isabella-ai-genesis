@@ -93,7 +93,11 @@ export interface TokenClaims {
  * Solo HTTPS, sin credenciales embebidas, sin hosts arbitrarios.
  * El host de voz (VOICE_API_URL) se admite dinámicamente si está configurado.
  */
-const UPSTREAM_ALLOWLIST: readonly string[] = ["generativelanguage.googleapis.com"];
+const UPSTREAM_ALLOWLIST: readonly string[] = [
+  "generativelanguage.googleapis.com",
+  "api.groq.com",
+  "api.x.ai",
+];
 
 function isUpstreamAllowed(url: string): boolean {
   let parsed: URL;
