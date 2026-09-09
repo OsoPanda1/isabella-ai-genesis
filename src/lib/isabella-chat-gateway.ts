@@ -8,6 +8,7 @@ import {
 } from "@/lib/latam-aegis-x";
 import { createSovereignPipeline } from "@/lib/sovereign-pipeline";
 import { parseSafeJsonBody } from "@/lib/input-limits";
+import { prepareIsabellaCognitiveRuntime } from "@/lib/isabella-cognitive-runtime";
 import {
   IsabellaChatRequestSchema,
   standardError,
@@ -286,6 +287,39 @@ export async function handleIsabellaChat(
       403,
     );
   }
+
+  let cognitiveSystem = sanitizedSystem.clean;
+  let cognitiveRuntime = {
+    retrievedMemoryIds: [] as string[],
+    retrievedConcepts: [] as string[],
+    durableLearningAvailable: false,
+  };
+  try {
+    const prepared = await prepareIsabellaCognitiveRuntime({
+      tenantId: context.tenantId,
+      query: lastUserMessage,
+      systemInstruction: cognitiveSystem,
+    });
+    cognitiveSystem = prepared.systemInstruction;
+    cognitiveRuntime = {
+      retrievedMemoryIds: prepared.retrievedMemoryIds,
+      retrievedConcepts: prepared.retrievedConcepts,
+      durableLearningAvailable: prepared.durableLearningAvailable,
+    };
+  } catch (error) {
+    console.error(
+      `[ISABELLA_LEARNING] retrieval_failed trace=${context.traceId} error=${error instanceof Error ? error.message : "unknown"}`,
+    );
+  }
+  const sanitizedCognitiveSystem = SecuritySystem.sanitizePayload(cognitiveSystem);
+  if (sanitizedCognitiveSystem.flagged)
+    return contractError(
+      context,
+      IsabellaChatErrorCode.POLICY_REJECTED,
+      "La referencia de aprendizaje fue rechazada por la política de seguridad.",
+      403,
+    );
+
   const pipeline = createSovereignPipeline();
   const governance = await pipeline.execute({
     requestId: context.correlationId,
@@ -398,6 +432,11 @@ export async function handleIsabellaChat(
       memoryRecords: governance.memoryRecords,
       auditRecorded: governance.auditRecorded,
     },
+    learning: {
+      durable: cognitiveRuntime.durableLearningAvailable,
+      retrievedMemoryIds: cognitiveRuntime.retrievedMemoryIds,
+      retrievedConcepts: cognitiveRuntime.retrievedConcepts,
+    },
     evidence: { level: "weak", verified: false, sources: ["user_input"] },
   };
   for (const [index, attempt] of attempts.entries()) {
@@ -410,11 +449,11 @@ export async function handleIsabellaChat(
           : "https://api.x.ai/v1/chat/completions";
       const body = isGemini
         ? {
-            systemInstruction: { parts: [{ text: sanitizedSystem.clean }] },
+            systemInstruction: { parts: [{ text: sanitizedCognitiveSystem.clean }] },
             contents,
             generationConfig: { temperature, maxOutputTokens: 8192 },
           }
-        : openAiCompatibleBody(messages, sanitizedSystem.clean, temperature, attempt.model);
+        : openAiCompatibleBody(messages, sanitizedCognitiveSystem.clean, temperature, attempt.model);
       const upstream = await SecuritySystem.fetchSafeUpstream(url, {
         method: "POST",
         headers: {
@@ -443,6 +482,7 @@ export async function handleIsabellaChat(
           degraded,
           fallbackIndex: index,
           governance: governanceMetadata.governance,
+          learning: governanceMetadata.learning,
         },
         "info",
         context.traceId,
