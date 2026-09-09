@@ -2,7 +2,7 @@
 
 ## Current commit
 
-`82a7f6731a8486a28ba69152b37224c54c78fe5a`
+`ea01ca9b6db5c32f5f1e3797cb095e7c55582b61`
 
 ## Completed in this pass
 
@@ -18,10 +18,13 @@
 - Eight cognitive training strategies are implemented: semantic, procedural, contrastive, counterfactual, retrieval, reflection, preference and multimodal.
 - Native executable learning API is exposed at `/api/isabella-learning`.
 - Native executable cognitive-training API is exposed at `/api/isabella-cognitive-training`.
-- Tenant learning state is now persisted as a versioned, SHA3-512 integrity-checked PostgreSQL snapshot when `DATABASE_URL` is configured.
+- Tenant learning state is persisted as a versioned, SHA3-512 integrity-checked PostgreSQL snapshot when `DATABASE_URL` is configured.
 - Learning snapshots are canonicalized before hashing so PostgreSQL JSONB key ordering cannot invalidate integrity verification.
 - The learning migration is part of the repository's ordered SQL migration set and is applied by the existing PostgreSQL migration path.
-- The API catalog now points to executable routes instead of documentation-only `/v1/...` paths.
+- The API catalog points to executable routes instead of documentation-only `/v1/...` paths.
+- The live `/api/isabella` inference path now retrieves tenant-scoped learned references before provider invocation and injects them as explicitly untrusted context.
+- Learning provenance (memory IDs, concepts and durable-state availability) is attached to inference telemetry/SSE metadata.
+- A dedicated cognitive-runtime test covers learned-context injection and the no-memory path.
 
 ### Isabella governed skill execution
 
@@ -31,12 +34,13 @@
 
 ### Isabella inference
 
-- Primary Gemini model remains `gemini-3.8-flash`, currently a generally available production model according to Google's Gemini API documentation. The gateway also supports Groq and xAI fallback providers when configured.
+- Primary Gemini model is `gemini-3.8-flash`; the gateway also supports Groq and xAI fallback providers when configured.
+- Gemini requests no longer send the deprecated `temperature` generation parameter; fallback OpenAI-compatible providers retain their provider-specific temperature handling.
 - The inference gateway preserves tenant authentication, policy checks, kill-switch checks, provider failover, SSE streaming and trace metadata.
 
 ## CI evidence status
 
-The latest FGAIS runs still terminate with `failure` while GitHub exposes `steps: null` and no logs. This cannot be attributed to a source-level test/build failure and is not evidence of a green gate.
+The latest recorded FGAIS run before this implementation wave (`34392000928`) terminated with `failure` and GitHub exposed `steps: null` and no downloadable logs. Its head was `ba1b2798ecce06cd435173fd2c177d5f5d9227e1`, so it does not validate the newer commits in this document. A successful CI run for the current candidate commit is still required.
 
 ## Remaining P0 blockers
 
