@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Volume2, VolumeX, SkipForward, Play } from "lucide-react";
-import backgroundAudioUrl from "@/assets/background-audio.mp3";
 
 // Official Isabella palette
 const PALETTE = {
@@ -16,7 +15,8 @@ const PALETTE = {
   iris: "#c499ff",
 } as const;
 
-const BACKGROUND_AUDIO_SRC = backgroundAudioUrl;
+const BACKGROUND_AUDIO_SRC = "/assets/isabella-intro-mashup.mp3";
+const AUDIO_START_OFFSET_SECONDS = 9;
 const DURATION = 59;
 const TARGET_FPS = 60;
 
@@ -383,6 +383,7 @@ export function CinematicIntroContent({
   const [elapsed, setElapsed] = useState(0);
   const [fps, setFps] = useState(TARGET_FPS);
   const [skipped, setSkipped] = useState(false);
+  const [muxPlaybackId, setMuxPlaybackId] = useState<string | null>(null);
   const completedRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const clockRef = useRef(0);
@@ -393,6 +394,19 @@ export function CinematicIntroContent({
     onCompleteRef.current = onComplete;
     telemetryRef.current = onTelemetryUpdate;
   }, [onComplete, onTelemetryUpdate]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch("/api/mux-intro", { signal: controller.signal, headers: { accept: "application/json" } })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { enabled?: boolean; playbackId?: string } | null) => {
+        if (payload?.enabled && payload.playbackId) setMuxPlaybackId(payload.playbackId);
+      })
+      .catch(() => {
+        // Mux is an enhancement; the WebGL field remains the resilient fallback.
+      });
+    return () => controller.abort();
+  }, []);
 
   const complete = useCallback(() => {
     if (completedRef.current) return;
@@ -411,6 +425,13 @@ export function CinematicIntroContent({
     if (!muted && audio) {
       audio.muted = false;
       audio.volume = 0.72;
+      const startAtOffset = () => {
+        if (Number.isFinite(audio.duration) && audio.duration > AUDIO_START_OFFSET_SECONDS) {
+          audio.currentTime = AUDIO_START_OFFSET_SECONDS;
+        }
+      };
+      startAtOffset();
+      audio.addEventListener("loadedmetadata", startAtOffset, { once: true });
       void audio
         .play()
         .then(() => setAudioReady(true))
@@ -541,6 +562,18 @@ export function CinematicIntroContent({
       }}
     >
       <WebGLCinematicField />
+      {muxPlaybackId && (
+        <video
+          className="pointer-events-none absolute inset-0 size-full object-cover opacity-45 mix-blend-screen"
+          src={`https://stream.mux.com/${encodeURIComponent(muxPlaybackId)}/high.mp4`}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+        />
+      )}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_34%,rgba(0,0,0,.34)_66%,rgba(0,0,0,.93)_100%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[9vh] bg-black/85" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[9vh] bg-black/85" />

@@ -19,10 +19,12 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiIntelligenceRouteImport } from './routes/api/intelligence'
 import { Route as ApiIsabellaRouteImport } from './routes/api/isabella'
 import { Route as ApiIsabellaVoiceRouteImport } from './routes/api/isabella-voice'
+import { Route as ApiMuxIntroRouteImport } from './routes/api/mux-intro'
 import { Route as ApiSecurityRouteImport } from './routes/api/security'
 import { Route as ApiHealthDeepRouteImport } from './routes/api/health/deep'
 import { Route as ApiHealthLiveRouteImport } from './routes/api/health/live'
 import { Route as ApiHealthReadyRouteImport } from './routes/api/health/ready'
+import { Route as ApiV1IsabellaRouteImport } from './routes/api/v1/isabella'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -74,6 +76,11 @@ const ApiIsabellaVoiceRoute = ApiIsabellaVoiceRouteImport.update({
   path: '/api/isabella-voice',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMuxIntroRoute = ApiMuxIntroRouteImport.update({
+  id: '/api/mux-intro',
+  path: '/api/mux-intro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSecurityRoute = ApiSecurityRouteImport.update({
   id: '/api/security',
   path: '/api/security',
@@ -94,6 +101,11 @@ const ApiHealthReadyRoute = ApiHealthReadyRouteImport.update({
   path: '/ready',
   getParentRoute: () => ApiHealthRoute,
 } as any)
+const ApiV1IsabellaRoute = ApiV1IsabellaRouteImport.update({
+  id: '/api/v1/isabella',
+  path: '/api/v1/isabella',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -106,10 +118,12 @@ export interface FileRoutesByFullPath {
   '/api/intelligence': typeof ApiIntelligenceRoute
   '/api/isabella': typeof ApiIsabellaRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
+  '/api/mux-intro': typeof ApiMuxIntroRoute
   '/api/security': typeof ApiSecurityRoute
   '/api/health/deep': typeof ApiHealthDeepRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/api/v1/isabella': typeof ApiV1IsabellaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -122,10 +136,12 @@ export interface FileRoutesByTo {
   '/api/intelligence': typeof ApiIntelligenceRoute
   '/api/isabella': typeof ApiIsabellaRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
+  '/api/mux-intro': typeof ApiMuxIntroRoute
   '/api/security': typeof ApiSecurityRoute
   '/api/health/deep': typeof ApiHealthDeepRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/api/v1/isabella': typeof ApiV1IsabellaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -139,10 +155,12 @@ export interface FileRoutesById {
   '/api/intelligence': typeof ApiIntelligenceRoute
   '/api/isabella': typeof ApiIsabellaRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
+  '/api/mux-intro': typeof ApiMuxIntroRoute
   '/api/security': typeof ApiSecurityRoute
   '/api/health/deep': typeof ApiHealthDeepRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/api/v1/isabella': typeof ApiV1IsabellaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -157,10 +175,12 @@ export interface FileRouteTypes {
     | '/api/intelligence'
     | '/api/isabella'
     | '/api/isabella-voice'
+    | '/api/mux-intro'
     | '/api/security'
     | '/api/health/deep'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/api/v1/isabella'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -173,10 +193,12 @@ export interface FileRouteTypes {
     | '/api/intelligence'
     | '/api/isabella'
     | '/api/isabella-voice'
+    | '/api/mux-intro'
     | '/api/security'
     | '/api/health/deep'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/api/v1/isabella'
   id:
     | '__root__'
     | '/'
@@ -189,10 +211,12 @@ export interface FileRouteTypes {
     | '/api/intelligence'
     | '/api/isabella'
     | '/api/isabella-voice'
+    | '/api/mux-intro'
     | '/api/security'
     | '/api/health/deep'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/api/v1/isabella'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -206,7 +230,9 @@ export interface RootRouteChildren {
   ApiIntelligenceRoute: typeof ApiIntelligenceRoute
   ApiIsabellaRoute: typeof ApiIsabellaRoute
   ApiIsabellaVoiceRoute: typeof ApiIsabellaVoiceRoute
+  ApiMuxIntroRoute: typeof ApiMuxIntroRoute
   ApiSecurityRoute: typeof ApiSecurityRoute
+  ApiV1IsabellaRoute: typeof ApiV1IsabellaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -281,6 +307,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiIsabellaVoiceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mux-intro': {
+      id: '/api/mux-intro'
+      path: '/api/mux-intro'
+      fullPath: '/api/mux-intro'
+      preLoaderRoute: typeof ApiMuxIntroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/security': {
       id: '/api/security'
       path: '/api/security'
@@ -308,6 +341,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/health/ready'
       preLoaderRoute: typeof ApiHealthReadyRouteImport
       parentRoute: typeof ApiHealthRoute
+    }
+    '/api/v1/isabella': {
+      id: '/api/v1/isabella'
+      path: '/api/v1/isabella'
+      fullPath: '/api/v1/isabella'
+      preLoaderRoute: typeof ApiV1IsabellaRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -339,7 +379,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiIntelligenceRoute: ApiIntelligenceRoute,
   ApiIsabellaRoute: ApiIsabellaRoute,
   ApiIsabellaVoiceRoute: ApiIsabellaVoiceRoute,
+  ApiMuxIntroRoute: ApiMuxIntroRoute,
   ApiSecurityRoute: ApiSecurityRoute,
+  ApiV1IsabellaRoute: ApiV1IsabellaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

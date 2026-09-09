@@ -689,7 +689,8 @@ export class SovereignDB {
         continue;
       }
 
-      if (block.signatureAlgorithm !== "ECDSA-P384" || !config().BOOKPI_SIGNING_KEY) {
+      const signingKey = config().BOOKPI_SIGNING_KEY;
+      if (block.signatureAlgorithm !== "ECDSA-P384" || !signingKey) {
         return {
           success: false,
           error: `Algoritmo o clave BookPI inválidos en bloque ${i}.`,
@@ -701,7 +702,7 @@ export class SovereignDB {
         !crypto.verify(
           "sha384",
           Buffer.from(blockContent),
-          config().BOOKPI_SIGNING_KEY,
+          signingKey,
           Buffer.from(block.pqcSignature, "base64url"),
         )
       ) {
