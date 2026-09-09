@@ -86,8 +86,8 @@ export function withSecurityHeaders(response: Response): Response {
   setIfMissing("Cross-Origin-Resource-Policy", "same-origin");
 
   const production = process.env.NODE_ENV === "production";
-  // Production does not permit inline scripts. Development keeps the less
-  // restrictive policy so local tooling can run without a framework nonce.
+  // Production enforces the policy. Development keeps the less restrictive
+  // policy so local framework tooling can run without a framework nonce.
   const scriptSource = production ? "'self'" : "'self' 'unsafe-inline'";
   const csp = [
     "default-src 'self'",
@@ -104,7 +104,5 @@ export function withSecurityHeaders(response: Response): Response {
     "worker-src 'self' blob:",
   ].join("; ");
   setIfMissing("Content-Security-Policy", csp);
-  // Report-only policy is intentionally strict and contains no fake nonce.
-  setIfMissing("Content-Security-Policy-Report-Only", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self'; worker-src 'self' blob:");
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
