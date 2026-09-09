@@ -2,229 +2,579 @@
 
 <div align="center">
 
-## FGAIS · Federated Governed Artificial Intelligence System
+# ISABELLA
 
-**Arquitectura de Inteligencia Artificial Gobernada, Federada, Auditable y Humano-Soberana**
+### FGAIS · Federated Governed Artificial Intelligence System
+
+**Plataforma de inteligencia artificial gobernada, federada, auditable, persistente y humano-soberana para coordinar inferencia, memoria, aprendizaje, skills y ejecución bajo autoridad verificable.**
 
 [![Genesis 2.0](https://img.shields.io/badge/Genesis-2.0-111827?style=for-the-badge)](./docs/governance/01-FGAIS-Governance-Constitution.md)
-[![Node](https://img.shields.io/badge/Node-%3E%3D22-1f2937?style=for-the-badge)](https://nodejs.org/)
+[![Node 22](https://img.shields.io/badge/Node-22.x-1f2937?style=for-the-badge)](https://nodejs.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-10.15.0-f97316?style=for-the-badge)](https://pnpm.io/)
-[![TanStack Start](https://img.shields.io/badge/TanStack%20Start-React-0f172a?style=for-the-badge)](https://tanstack.com/start)
+[![TanStack Start](https://img.shields.io/badge/TanStack-Start-0f172a?style=for-the-badge)](https://tanstack.com/start)
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?style=for-the-badge)](https://vercel.com/)
 
 **Nodo Cero:** Real del Monte, Hidalgo, México  
-**Operación / proyecto:** TAMV ONLINE  
+**Proyecto:** TAMV ONLINE  
 **Repositorio:** `OsoPanda1/isabella-ai-genesis`
 
 </div>
 
-> **Regla fundacional:** **La capacidad no implica autoridad.**
+> **Principio fundacional: la capacidad no implica autoridad.**
 >
-> Isabella coordina capacidades de inteligencia, pero ninguna capacidad técnica constituye por sí misma permiso para actuar. La autorización, la política, la identidad, el contexto, la aprobación requerida y la evidencia determinan qué puede ocurrir.
+> Isabella puede razonar, recordar, aprender, seleccionar modelos, utilizar capacidades y ejecutar acciones, pero ninguna capacidad técnica obtiene permiso por sí misma. Identidad, política, contexto, autorización, aprobación y evidencia determinan qué puede ocurrir.
 
 ---
 
-## 1. Naturaleza del sistema
+## 1. Qué es Isabella
 
-**Isabella Villaseñor AI — Genesis** es una arquitectura de IA gobernada que coordina inferencia federada, identidad, políticas, memoria, herramientas, seguridad, persistencia, auditoría, aprendizaje y ejecución dentro de un marco denominado **FGAIS — Federated Governed Artificial Intelligence System**.
+**Isabella Villaseñor AI — Genesis** es una arquitectura de IA gobernada denominada **FGAIS — Federated Governed Artificial Intelligence System**.
 
-El proyecto **no se declara AGI** ni presenta un foundation model propio a escala como una capacidad ya terminada. La implementación actual combina infraestructura propia de gobernanza y orquestación con proveedores externos de inferencia e infraestructura.
-
-### Sí es
-
-- Full-stack React + TanStack Start + Vite + Nitro.
-- Superficie cognitiva C.R.O.W.N.
-- Arquitectura de gobernanza con separación entre capacidad, autorización y ejecución.
-- Plano de inteligencia para registro, selección y ejecución de proveedores/modelos.
-- Controles de seguridad, identidad, validación, límites, egress y auditoría.
-- Persistencia orientada a PostgreSQL como autoridad relacional crítica.
-- BookPI y plano económico orientados a doble partida, idempotencia y reconciliación.
-- Learning Plane con datasets, modelos, runs, evaluaciones y releases.
-- Sistema de evidencia que distingue capacidad declarada de capacidad verificada.
-
-### No es
-
-- Una AGI.
-- Un sistema completamente independiente de proveedores externos.
-- Un foundation model propio ya entrenado a escala.
-- Criptografía poscuántica productiva cuando el componente está definido como simulación.
-- Un sistema de dinero real Production-Verified sin evidencia operacional.
-- Una certificación independiente derivada únicamente de CI.
-- Una afirmación de soberanía jurídica sobre infraestructura de terceros.
-
----
-
-# 2. Estado de ingeniería
-
-| Dominio | Estado | Interpretación |
-|---|---|---|
-| Código fuente | **Activo** | Desarrollo continuo sobre `main`. |
-| Arquitectura FGAIS | **Implementada en múltiples planos** | Existen contratos, gates, governance y documentación; no todo es Production-Verified. |
-| Web / SSR | **Endurecido** | El shell público separa el grafo browser-only del SSR. |
-| Interfaz Isabella | **Implementada** | C.R.O.W.N. y módulos visuales existen; la validación final depende del despliegue. |
-| Inferencia | **Federada / provider-backed** | Gemini integrado; la aprobación durable multi-instancia aún requiere infraestructura persistente. |
-| PostgreSQL | **Autoridad prevista para producción** | Requiere configuración, migraciones y evidencia operacional correctas. |
-| Auditoría | **Implementada / parcial según subsistema** | Existen hash chains, correlación y controles; ciertas propiedades requieren pruebas concurrentes/externas. |
-| Seguridad | **Endurecida / parcial** | Existen controles importantes; CSP estricto con nonce y controles de infraestructura requieren evidencia final. |
-| Economía | **Implementada por capas** | Dinero real requiere pruebas de producción, reconciliación y restore. |
-| Federación | **En evolución** | Secure-update gates existen; replay/durabilidad multi-instancia requiere persistencia. |
-| Learning Plane | **En evolución** | Contratos y release gates existen; entrenamiento fundacional requiere infraestructura externa. |
-| Foundation Model propio | **Roadmap** | GENESIS-0…GENESIS-4. |
-| Certificación | **No automática** | La evidencia determina el nivel de afirmación. |
-
-> Una capacidad puede estar `Implemented`, `Tested` o `Verified` en un subsistema sin que el sistema completo sea `Production-Verified`.
-
----
-
-# 3. Genesis 2.0 y correspondencia estricta
-
-La gobernanza del proyecto exige correspondencia entre afirmaciones y evidencia:
+No es simplemente un chatbot. Es una plataforma que coordina múltiples proveedores de inteligencia, memoria, aprendizaje, herramientas, skills, datos y sistemas externos manteniendo una frontera estricta entre:
 
 ```text
-Claim
-  ↓
-Implementation / Policy
-  ↓
-Evidence
-  ↓
-Verification
-  ↓
-Production verification
+CAPACIDAD ≠ AUTORIZACIÓN ≠ EJECUCIÓN ≠ EVIDENCIA
 ```
 
-Ninguna capacidad debe declararse `Verified` o `Production-Verified` sin evidencia reproducible apropiada.
+La visión es construir una infraestructura donde la inteligencia pueda actuar dentro de límites verificables y donde cada operación importante pueda responder:
 
-Fuentes normativas principales:
+```text
+¿Quién actuó?
+¿Para qué tenant?
+¿Con qué modelo?
+¿Con qué memoria?
+¿Bajo qué política?
+¿Quién autorizó?
+¿Qué se ejecutó?
+¿Qué cambió?
+¿Qué evidencia existe?
+¿Puede recuperarse o revertirse?
+```
 
-- `docs/governance/01-FGAIS-Governance-Constitution.md`
-- `docs/governance/EVIDENCE-MAP.md`
-- `docs/architecture/`
-- `docs/operations/`
+### Isabella sí es
+
+- Una plataforma de IA gobernada.
+- Un gateway de inferencia federada.
+- Un runtime conversacional con memoria y aprendizaje contextual.
+- Un plano de skills y ejecución gobernada.
+- Una arquitectura multi-tenant.
+- Un sistema de evidencia, trazabilidad y auditoría.
+- Una aplicación full-stack React + TanStack Start + Vite + Nitro.
+- Una base para futuras generaciones de modelos Genesis.
+
+### Isabella todavía no es
+
+- Una AGI demostrada.
+- Un foundation model propio entrenado a escala.
+- Una plataforma independiente de proveedores externos.
+- Una certificación independiente de seguridad.
+- Un sistema de pagos reales Production-Verified únicamente por tener integración Stripe.
+- Un sistema Production-Verified únicamente porque exista CI.
+- Criptografía poscuántica productiva cuando el subsistema correspondiente sea todavía experimental o simulado.
 
 ---
 
-# 4. Arquitectura FGAIS
+# 2. Estado real del proyecto — 2026-09-09
+
+Los porcentajes siguientes son una **estimación de readiness basada en la implementación existente y la evidencia disponible**. No son una certificación ni una métrica automática de CI.
+
+| Área | Avance | Estado real |
+|---|---:|---|
+| Implementación de ingeniería | **~82%** | Arquitectura y gran parte de los subsistemas críticos implementados. |
+| Isabella end-to-end | **~76%** | Conversación, gateway, aprendizaje, memoria contextual y skills integrados en código. |
+| Production Readiness | **~67%** | Código avanzado; falta evidencia operacional de producción. |
+| Deployment Readiness | **~61%** | Build/preflight/deploy path preparados; falta deployment real verificado. |
+| Production Verification | **~43%** | Evidencia estática importante; evidencia runtime/productiva todavía insuficiente. |
+| Foundation Model propio | **~15%** | Arquitectura y Learning Plane avanzados; entrenamiento fundacional pendiente. |
+
+### Por qué no se declara 100%
+
+Todavía faltan, como mínimo:
+
+1. CI reproducible con pasos, logs y resultado verde.
+2. Build productivo ejecutado sobre el commit candidato.
+3. Migración, backup y restore contra la base real.
+4. Deployment real en el target.
+5. Smoke tests HTTP de producción.
+6. Verificación de secretos/configuración en runtime.
+7. Verificación de Gemini y fallback real.
+8. Pruebas de observabilidad y recuperación.
+9. Rollback real.
+10. Auditoría final de cualquier simulación que pueda alcanzar autoridad productiva.
+
+**Porcentaje de producción recomendado para comunicar externamente: 67% de readiness, no 67% de certificación.**
+
+---
+
+# 3. Arquitectura FGAIS
 
 ```text
-┌───────────────────────────────────────────────────────────────┐
-│                    PRESENTATION PLANE                         │
-│ C.R.O.W.N. · Terminal · Dashboards · Visual Intelligence      │
-└──────────────────────────────┬────────────────────────────────┘
-                               │
-┌──────────────────────────────▼────────────────────────────────┐
-│                    INTERACTION / API PLANE                    │
-│ TanStack Routes · validation · auth · rate limits · contracts │
-└──────────────────────────────┬────────────────────────────────┘
-                               │
-┌──────────────────────────────▼────────────────────────────────┐
-│                    GOVERNANCE PLANE                           │
-│ CROWN · policy · authorization · capabilities · approvals    │
-└──────────────────────────────┬────────────────────────────────┘
-                               │
-┌──────────────────────────────▼────────────────────────────────┐
-│                    INTELLIGENCE PLANE                         │
-│ Registry · Router · Providers · Evaluation · Model Health     │
-└──────────────────────────────┬────────────────────────────────┘
-                               │
-┌───────────────┬──────────────▼──────────────┬─────────────────┐
-│ MEMORY / DATA │ LEARNING / GENESIS          │ EXECUTION       │
-│ PostgreSQL    │ datasets · runs · releases  │ tools · skills  │
-│ audit · state │ evaluation · federation    │ authority       │
-└───────────────┴──────────────┬──────────────┴─────────────────┘
-                               │
-┌──────────────────────────────▼────────────────────────────────┐
-│                 EVIDENCE / OBSERVABILITY PLANE                │
-│ traces · audit · hashes · manifests · OTLP · release gates    │
-└───────────────────────────────────────────────────────────────┘
+                         ┌─────────────────────┐
+                         │       USUARIO       │
+                         └──────────┬──────────┘
+                                    ↓
+                    ┌───────────────────────────┐
+                    │ PRESENTATION PLANE        │
+                    │ C.R.O.W.N. · UI · UX     │
+                    └────────────┬──────────────┘
+                                 ↓
+                    ┌───────────────────────────┐
+                    │ API / INTERACTION PLANE   │
+                    │ Routes · Auth · Zod       │
+                    │ Limits · Contracts        │
+                    └────────────┬──────────────┘
+                                 ↓
+                    ┌───────────────────────────┐
+                    │ GOVERNANCE PLANE          │
+                    │ CROWN · ARGUS · Policy    │
+                    │ Authorization · Approvals │
+                    └────────────┬──────────────┘
+                                 ↓
+              ┌──────────────────┴──────────────────┐
+              ↓                                     ↓
+    ┌─────────────────────┐              ┌─────────────────────┐
+    │ COGNITIVE RUNTIME   │              │ EXECUTION PLANE     │
+    │ Memory · Learning   │              │ Skills · Tools      │
+    │ Retrieval · Context │              │ Authority · BookPI  │
+    └──────────┬──────────┘              └──────────┬──────────┘
+               └────────────────┬──────────────────┘
+                                ↓
+                    ┌───────────────────────────┐
+                    │ INTELLIGENCE PLANE        │
+                    │ Router · Registry         │
+                    │ Gemini · Fallbacks        │
+                    └────────────┬──────────────┘
+                                 ↓
+                    ┌───────────────────────────┐
+                    │ PERSISTENCE PLANE         │
+                    │ PostgreSQL · Audit        │
+                    │ Learning · Economic state │
+                    └────────────┬──────────────┘
+                                 ↓
+                    ┌───────────────────────────┐
+                    │ EVIDENCE / OBSERVABILITY  │
+                    │ Trace · Audit · Hash      │
+                    │ Manifests · OTLP · Gates  │
+                    └───────────────────────────┘
 ```
 
 Flujo canónico:
 
 ```text
-Perceive → Identify → Remember → Validate → Govern → Decide
+Perceive → Identify → Retrieve → Validate → Govern → Decide
 → Authorize → Approve → Execute → Validate → Audit → Observe → Recover
 ```
 
 ---
 
-# 5. Gobernanza y autoridad
+# 4. Conversación real de Isabella
 
-CROWN y los módulos asociados concentran conceptos de política, autorización, ejecución y parada de capacidades.
+La entrada principal es:
 
-Componentes relevantes:
+```text
+/api/isabella
+```
 
-- `src/lib/crown.ts`
-- `src/lib/constitutional-gate.ts`
-- `src/lib/policy-engine.ts`
-- `src/lib/authorization.ts`
-- `src/lib/execution-authority.ts`
-- `src/lib/kill-switch.ts`
+El camino de conversación integra:
 
-Principios:
+```text
+Request
+ ↓
+Schema validation
+ ↓
+Sovereign authentication
+ ↓
+Tenant resolution
+ ↓
+Security / policy checks
+ ↓
+AEGIS firewall
+ ↓
+Learning retrieval
+ ↓
+Cognitive context
+ ↓
+CROWN / governance
+ ↓
+Provider selection
+ ↓
+Real inference
+ ↓
+SSE response
+ ↓
+Telemetry / audit
+```
 
-1. **Capability ≠ Authority.**
-2. **Deny by default.**
-3. **Human sovereignty.**
-4. **Zero Trust.**
-5. **Tenant isolation.**
-6. **Traceability.**
-7. **Explicit degradation.**
-8. **Fail closed for critical authorities.**
-9. **Evidence before certification.**
-10. **No silent provider fallback.**
+El **Cognitive Runtime Bridge** ya está conectado al gateway. Isabella puede recuperar recuerdos relevantes del tenant y proporcionarlos al modelo como **referencia no confiable**.
+
+Los recuerdos aprendidos no pueden convertirse por sí mismos en:
+
+- instrucciones del sistema;
+- permisos;
+- secretos;
+- identidad;
+- autoridad;
+- aprobaciones.
 
 ---
 
-# 6. Plano de inteligencia federada
+# 5. Learning Plane
 
-`src/lib/intelligence/` contiene contratos y componentes para proveedores y modelos.
+Isabella tiene un motor de aprendizaje provider-neutral. No pretende cambiar mágicamente los pesos de Gemini: el aprendizaje actual representa **estado durable estructurado**.
+
+Puede almacenar:
+
+- conceptos;
+- procedimientos;
+- preferencias;
+- episodios;
+- outcomes;
+- calidad;
+- reinforcement count;
+- competencia por skill;
+- snapshots versionados.
+
+Modos:
 
 ```text
-src/lib/intelligence/
-├── contracts.ts
-├── model-registry.ts
-├── router.ts
-├── gemini-provider.ts
-├── openai-compatible-provider.ts
-└── index.ts
+supervised
+contrastive
+preference
+episodic
+procedural
+reflective
+multimodal
 ```
 
-La inicialización registra Gemini sin confundir registro con autorización: el código indica que la aprobación de producción debe provenir del registro de gobernanza durable. fileciteturn543file0
+El aprendizaje durable no supervisado requiere consentimiento explícito y existen controles contra patrones conocidos de prompt injection antes de persistir material.
 
-El registro runtime actual utiliza estructuras en memoria para parte del catálogo; por ello **no debe presentarse como un registro durable de aprobación multi-instancia** hasta completar su persistencia y evidencia correspondiente. fileciteturn544file0
+---
 
-Modelo de autoridad:
+# 6. Cognitive Training
+
+Se implementaron ocho estrategias:
+
+```text
+semantic
+procedural
+contrastive
+counterfactual
+retrieval
+reflection
+preference
+multimodal
+```
+
+Capacidades:
+
+- entrenamiento individual;
+- entrenamiento batch;
+- evaluación;
+- retrieval;
+- snapshots;
+- firmas deterministas SHA3-512;
+- deduplicación;
+- sanitización;
+- quality clamping.
+
+Endpoint:
+
+```text
+POST /api/isabella-cognitive-training
+```
+
+Acciones:
+
+```text
+train
+train-batch
+retrieve
+evaluate
+snapshot
+```
+
+---
+
+# 7. Learning API
+
+Endpoint:
+
+```text
+/api/isabella-learning
+```
+
+Acciones:
+
+```text
+ingest
+retrieve
+evaluate
+snapshot
+```
+
+La API utiliza autenticación soberana y estado aislado por tenant.
+
+---
+
+# 8. Persistencia durable del aprendizaje
+
+El estado de aprendizaje puede persistirse en PostgreSQL mediante:
+
+```text
+public.isabella_learning_state
+```
+
+Migration:
+
+```text
+supabase/migrations/20260909120000_isabella_learning_state.sql
+```
+
+Servicio:
+
+```text
+src/lib/isabella-learning-persistence.ts
+```
+
+Características:
+
+- `tenant_id` como clave primaria;
+- snapshot JSONB;
+- versionado;
+- timestamp;
+- hash SHA3-512;
+- verificación de integridad;
+- canonicalización estable de JSON antes del hashing;
+- restore del runtime.
+
+Si `DATABASE_URL` no existe, el runtime puede operar en memoria para desarrollo. **Eso no cuenta como persistencia durable Production-Verified.**
+
+---
+
+# 9. Skills gobernadas
+
+Endpoint:
+
+```text
+/api/isabella-skills
+```
+
+Runtime:
+
+```text
+runIsabellaSkill
+```
+
+Flujo:
+
+```text
+Request
+ ↓
+Identity
+ ↓
+Tenant
+ ↓
+Role
+ ↓
+CROWN / ARGUS authorization
+ ↓
+Input validation
+ ↓
+Skill execution
+ ↓
+Output validation
+ ↓
+BookPI / audit
+```
+
+Skills desconocidas: **deny-by-default**.
+
+Que una skill exista en un registry no significa que tenga autorización para ejecutarse en cualquier contexto.
+
+---
+
+# 10. Inteligencia federada
+
+Arquitectura:
 
 ```text
 Provider discovered
-       ↓
+ ↓
 Registered
-       ↓
+ ↓
 Evaluated
-       ↓
-Policy / license / provenance checks
-       ↓
+ ↓
+Policy / provenance / license checks
+ ↓
 Approved
-       ↓
+ ↓
 Production enabled
-       ↓
+ ↓
 Health monitored
-       ↓
+ ↓
 Revocable
+```
+
+Proveedor principal configurado:
+
+```text
+gemini-3.8-flash
+```
+
+Fallbacks soportados cuando están configurados:
+
+```text
+Groq
+xAI
+OpenAI-compatible providers
+```
+
+La degradación debe ser explícita. Si un proveedor falla, un fallback autorizado se identifica como degradado; si no hay proveedor autorizado, el sistema debe responder indisponibilidad en vez de fabricar una respuesta generativa silenciosa.
+
+---
+
+# 11. Genesis Evidence y Claim Engine
+
+Genesis mantiene correspondencia entre:
+
+```text
+Claim
+ ↓
+Implementation / Policy
+ ↓
+Evidence
+ ↓
+Verification
+ ↓
+Production Verification
+```
+
+El `ClaimEngine` utiliza el hash real de `pnpm-lock.yaml` mediante SHA3-512 para `dependencyLockHash`.
+
+El production integrity gate rechaza hashes ausentes, inválidos, vacíos o artificialmente all-zero.
+
+### Genesis CLI
+
+```text
+audit
+claim <claimId>
+evidence list
+evidence verify
+evidence diff <commitA> <commitB>
+release-check
+sbom generate
+sign <manifestFile>
+verify-signature <signedFile>
+```
+
+El SBOM puede generarse en CycloneDX 1.6 o SPDX 2.3 a partir del árbol de dependencias instalado.
+
+---
+
+# 12. Evidencia: E0 → E4
+
+```text
+E0  DECLARED
+ ↓
+E1  STATIC VERIFIED
+ ↓
+E2  RUNTIME VERIFIED
+ ↓
+E3  PRODUCTION VERIFIED
+ ↓
+E4  INDEPENDENTLY ASSURED
+```
+
+Reglas:
+
+- Un documento no demuestra runtime.
+- Un unit test no demuestra producción.
+- Un hash no demuestra autenticidad independiente.
+- Un workflow configurado no demuestra CI verde.
+- Un deployment declarado no demuestra Production-Verified.
+
+---
+
+# 13. Seguridad
+
+| Control | Estado |
+|---|---|
+| Sovereign authentication | Implementado |
+| Tenant isolation | Implementado en rutas críticas |
+| Zod validation | Implementado |
+| Input limits | Implementado |
+| SSRF / egress controls | Implementado |
+| Trace / correlation IDs | Implementado |
+| Secret redaction | Implementado |
+| Production dev-auth protection | Implementado |
+| Kill switch | Implementado; evidencia operacional pendiente |
+| Security scan | Integrado al gate |
+| Rate limiting distribuido | Depende de infraestructura y requiere evidencia |
+| CSP strict + nonce | Implementado en código; evidencia final pendiente |
+| Sandbox fuerte | Requiere pruebas reales de aislamiento |
+| Replay protection distribuido | Parcial según subsistema |
+
+---
+
+# 14. PostgreSQL y fuentes de verdad
+
+PostgreSQL es la autoridad prevista para estado relacional crítico:
+
+```text
+PostgreSQL
+ ├── application state
+ ├── governance state
+ ├── model approvals
+ ├── audit state
+ ├── economic events
+ └── learning state
+```
+
+El repositorio contiene integraciones adicionales como Prisma, Drizzle, Supabase, Neon y Redis/Upstash. La consolidación de fuentes de verdad sigue siendo un objetivo de endurecimiento cuando exista riesgo de escrituras competidoras.
+
+Para estado crítico:
+
+```text
+AUTHORITATIVE WRITE MODEL
+ ↓
+TRANSACTION
+ ↓
+IDEMPOTENCY
+ ↓
+AUDIT
+ ↓
+RECONCILIATION
 ```
 
 ---
 
-# 7. Inferencia y modelos
+# 15. BookPI y economía
 
-En producción, la ausencia de la configuración requerida de inferencia debe producir una indisponibilidad explícita, no un fallback generativo silencioso.
+BookPI está orientado a operaciones económicas auditables mediante:
 
-`src/lib/isabella-native-ml.ts` contiene un motor local determinista de clasificación. **No es generativo y no constituye un foundation model.**
+- doble partida;
+- eventos append-only;
+- idempotencia;
+- reconciliación;
+- claims únicos;
+- refunds como eventos;
+- chargebacks explícitos;
+- holds/freeze de riesgo;
+- aprobaciones sensibles;
+- separación entre autorización y proveedor.
 
-### Genesis roadmap
+La integración de Stripe no implica por sí misma dinero real Production-Verified.
+
+Para certificar economía real deben ejecutarse pruebas de webhooks, idempotencia, concurrencia, reconciliación, recuperación, backup y restore.
+
+---
+
+# 16. Learning Plane hacia modelos propios
+
+Roadmap Genesis:
 
 ```text
-GENESIS-0  Federación y gobernanza de modelos
+GENESIS-0  Federación + gobernanza
     ↓
 GENESIS-1  Modelos especializados
     ↓
@@ -235,619 +585,605 @@ GENESIS-3  Continued pretraining + federated learning
 GENESIS-4  Foundation model propio
 ```
 
-GENESIS-4 requiere cómputo, datasets legalmente utilizables, provenance, entrenamiento reproducible, checkpoints, evaluación, artefactos firmados y release verificable.
+GENESIS-4 requiere datasets legalmente utilizables, provenance, licencias, contaminación controlada, cómputo reproducible, checkpoints, evaluación, seguridad de entrenamiento, artefactos firmados y release gates.
 
 ---
 
-# 8. Learning Plane
+# 17. Federación segura
 
-El plano de aprendizaje contempla:
-
-- dataset registry;
-- provenance;
-- curación y validación;
-- training policies;
-- training runs;
-- fine-tuning;
-- distillation;
-- preference learning;
-- synthetic data governance;
-- contamination checks;
-- evaluations;
-- model releases;
-- federation / secure update gates.
-
-Entidades de migración relevantes incluyen:
-
-```text
-fgais_datasets
-fgais_models
-fgais_training_runs
-fgais_evaluations
-fgais_model_releases
-```
-
-El aprendizaje no debe consumir indiscriminadamente Internet como dataset. Los datos de entrenamiento requieren procedencia, licencia, integridad y aprobación adecuadas al caso.
-
----
-
-# 9. Federación segura
-
-Un update federado debe controlar, como mínimo:
+Un update federado debe controlar:
 
 - identidad del nodo;
 - integridad;
 - firma;
 - freshness/timestamp;
 - replay protection;
-- límites de tamaño y magnitud;
+- límites de tamaño/magnitud;
 - provenance;
 - autorización;
 - auditoría;
 - persistencia del estado anti-replay.
 
-Un estado anti-replay solamente en memoria no constituye evidencia de federación distribuida Production-Verified.
+Un anti-replay únicamente en memoria no constituye evidencia de federación distribuida Production-Verified.
 
 ---
 
-# 10. Seguridad
+# 18. UI y SSR
 
-| Control | Estado |
-|---|---|
-| Sovereign authentication en rutas sensibles | Implemented |
-| Tenant derivado de identidad | Implemented |
-| Validación Zod | Implemented |
-| Límites de entrada | Implemented |
-| Rate limiting distribuido | Partial / depende de infraestructura |
-| Egress allowlist / SSRF controls | Implemented |
-| Idempotencia | Implemented en varios flujos; verificar por operación |
-| `traceId` / `correlationId` | Implemented |
-| Redacción de secretos | Implemented |
-| Dev-auth bloqueado en producción | Implemented |
-| CSP estricto con nonce | Partial / evidencia final pendiente |
-| Kill switch | Implemented; evidencia operacional pendiente |
-| Sandbox fuerte | Requiere pruebas reales de aislamiento |
+La aplicación utiliza React + TanStack Start + Vite.
 
-La existencia de una función llamada `sandbox`, `audit` o `authorize` no constituye por sí misma evidencia de seguridad.
-
----
-
-# 11. Persistencia y fuentes de verdad
-
-La arquitectura define PostgreSQL como autoridad relacional para estado crítico de producción.
-
-```text
-DATABASE_URL
-     ↓
-PostgreSQL
-     ├── application state
-     ├── governance state
-     ├── model approvals
-     ├── audit state
-     ├── economic events
-     └── learning metadata
-```
-
-El repositorio conserva integraciones con múltiples proveedores/ORMs. Esta coexistencia debe considerarse deuda de consolidación cuando represente fuentes de verdad competidoras.
-
-Para estado crítico:
-
-```text
-ONE AUTHORITATIVE WRITE MODEL
-        ↓
-TRANSACTION
-        ↓
-IDEMPOTENCY
-        ↓
-AUDIT
-        ↓
-RECONCILIATION
-```
-
----
-
-# 12. Auditoría y evidencia
-
-Hashes y manifests proporcionan integridad respecto de los datos que cubren; un hash por sí solo no demuestra autenticidad independiente, inmutabilidad externa ni ausencia de compromiso del generador.
-
-Niveles de evidencia:
-
-```text
-E0  DECLARED
-    ↓
-E1  STATIC VERIFIED
-    ↓
-E2  RUNTIME VERIFIED
-    ↓
-E3  PRODUCTION VERIFIED
-    ↓
-E4  INDEPENDENTLY ASSURED
-```
-
-Un test unitario no convierte una capacidad en E3.
-
----
-
-# 13. BookPI, economía y pagos
-
-BookPI está orientado a ledger durable y auditable:
-
-- doble partida;
-- eventos append-only;
-- idempotencia;
-- reconciliación;
-- claims únicos;
-- refunds como nuevos eventos;
-- chargebacks explícitos;
-- aprobaciones sensibles;
-- holds/freeze de riesgo;
-- separación entre autorización de negocio y ejecución del proveedor.
-
-**Código Stripe no equivale a pagos Production-Verified.** Se requieren pruebas de webhook, idempotencia, concurrencia, reconciliación, recuperación y restore.
-
----
-
-# 14. Interfaz visual y estabilidad SSR
-
-La interfaz es parte del producto.
-
-La entrada `/` mantiene una frontera explícita:
+La frontera SSR mantiene separado el código browser-only:
 
 ```text
 SSR
- │
  ├── metadata
  ├── accessible fallback
- └── NO browser-only graph
-          │
-          ▼
-      Browser
-          │
-          ▼
- IsabellaClientApp
-          ├── C.R.O.W.N.
-          ├── Terminal
-          ├── Navigation
-          ├── Dashboards
-          ├── Three.js / Starfield
-          └── interactive intelligence UI
-```
+ └── no browser-only graph
 
-`src/routes/index.tsx` mantiene el entrypoint SSR pequeño y carga `IsabellaClientApp` lazy únicamente cuando existe `window`. fileciteturn545file0
-
-Esto evita que código browser-only inicializado durante SSR impida entregar el documento público.
-
----
-
-# 15. Runtime HTTP
-
-`src/server.ts` funciona como frontera de correlación, validación y seguridad. El SSR público no debe depender obligatoriamente de PostgreSQL.
-
-La hidratación universal de estado soberano fue retirada del camino SSR público. Las rutas stateful deben exigir sus dependencias y fallar cerradas cuando corresponda; `/` puede renderizar su shell público sin convertir una caída de estado externo en una caída total de la superficie pública.
-
-Cadena conceptual:
-
-```text
-Request
-  ↓
-Request context
-  ↓
-Body limits
-  ↓
-Runtime integrity signal
-  ↓
-TanStack server entry
-  ↓
-Response normalization
-  ↓
-Security headers
+Browser
+ └── IsabellaClientApp
+      ├── C.R.O.W.N.
+      ├── Terminal
+      ├── Navigation
+      ├── Dashboards
+      ├── Three.js / visual layer
+      └── intelligence UI
 ```
 
 ---
 
-# 16. Stack
+# 19. Stack
 
-El proyecto usa actualmente, entre otros:
+### Runtime
 
-- TypeScript;
-- React 19;
-- TanStack Start / Router;
-- Vite;
-- Nitro;
-- Tailwind CSS;
-- Radix UI;
-- Zod;
-- Vitest;
-- PostgreSQL / `pg`;
-- Prisma;
-- Supabase integrations;
-- Neon integrations;
-- Redis / Upstash integrations;
-- Stripe;
-- Gemini provider;
-- Three.js;
-- OpenTelemetry/OTLP components.
-
-El `package.json` fija `pnpm@10.15.0`, Node `>=22`, React 19 y scripts para build, typecheck, lint, tests, DB, capabilities, route audit y security scan. fileciteturn542file0
-
----
-
-# 17. Desarrollo local
-
-Requisitos:
-
-- Node.js >= 22
+- Node.js 22.x
 - pnpm 10.15.0
-- PostgreSQL para funcionalidades stateful
-- secretos únicamente mediante entorno
+- TypeScript
+- Vite 8
+- TanStack Start
+- Nitro
+- React 19
 
-```bash
-pnpm install --frozen-lockfile
-pnpm dev
-```
+### Data / backend
 
-Producción local:
+- PostgreSQL
+- `pg`
+- Prisma
+- Drizzle
+- Supabase
+- Neon
+- Upstash Redis / rate limiting
 
-```bash
-pnpm build
-pnpm start
-```
+### AI / observability
+
+- Gemini
+- OpenAI-compatible providers
+- Groq
+- xAI
+- Braintrust
+- OTLP/telemetry components
+
+### UI
+
+- React
+- Tailwind CSS
+- Radix UI
+- Three.js
+- Recharts
+- Lucide
+
+### Economics
+
+- Stripe
+- BookPI
 
 ---
 
-# 18. Quality gates
+# 20. Scripts de ingeniería y producción
+
+El proyecto mantiene comandos reproducibles:
 
 ```bash
-pnpm install --frozen-lockfile
 pnpm typecheck
 pnpm lint
 pnpm test
-pnpm security:scan
+pnpm build
+pnpm production:integrity
+pnpm production:preflight
 pnpm capabilities
 pnpm audit:routes
+```
+
+Base de datos:
+
+```bash
+pnpm db:migrate
 pnpm db:verify
+pnpm db:backup
+pnpm db:restore
+```
+
+Seguridad:
+
+```bash
+pnpm security:scan
+```
+
+Gate integral:
+
+```bash
+pnpm production:gate
+```
+
+---
+
+# 21. FGAIS Production Gate
+
+Workflow:
+
+```text
+.github/workflows/fgais-gate.yml
+```
+
+Comprueba:
+
+```text
+Checkout
+↓
+Frozen dependency install
+↓
+Typecheck
+↓
+Lint
+↓
+Tests
+↓
+Repository hygiene
+↓
+Security scan
+↓
+Capability contract
+↓
+Route contract
+↓
+Migration verification
+↓
+Production integrity
+↓
+Production preflight
+↓
+Production build
+↓
+Vercel/Nitro output
+↓
+Build evidence
+↓
+Artifact upload
+```
+
+### Evidencia actual
+
+El último run observado del gate terminó en `failure` pero GitHub no expuso pasos/logs útiles para atribuir el fallo a una etapa concreta. Por ello **no se cuenta como CI verde ni como evidencia de que los tests/build hayan fallado**.
+
+---
+
+# 22. Producción y deployment
+
+Target principal:
+
+```text
+Vercel / Nitro
+```
+
+El repositorio ya contempla build productivo, output validation, hashing de artefactos, preflight y runtime Node 22.
+
+La verificación definitiva requiere ejecutar en el target real:
+
+```text
+Commit candidato
+ ↓
+Build
+ ↓
+Deploy
+ ↓
+Health
+ ↓
+Authentication
+ ↓
+Database
+ ↓
+Real inference
+ ↓
+Learning
+ ↓
+Skills
+ ↓
+Observability
+ ↓
+Rollback
+```
+
+---
+
+# 23. Configuración y secretos
+
+Nunca se deben commitear secretos.
+
+Dependiendo de las capacidades habilitadas, producción puede requerir:
+
+```text
+DATABASE_URL
+GEMINI_API_KEY
+GROQ_API_KEY
+XAI_API_KEY
+STRIPE_SECRET_KEY
+STRIPE_WEBHOOK_SECRET
+BOOKPI_SIGNING_KEY
+AUTH / SESSION SECRETS
+OBSERVABILITY / OTLP CONFIG
+REDIS / UPSTASH CONFIG
+```
+
+Los valores reales nunca deben aparecer en README, issues, logs ni commits.
+
+---
+
+# 24. Desarrollo local
+
+Requisitos:
+
+```text
+Node.js 22.x
+pnpm 10.15.0
+PostgreSQL para persistencia durable
+```
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Validación:
+
+```bash
+pnpm typecheck
+pnpm lint
+pnpm test
 pnpm build
 ```
 
-Suites específicas:
+Gate:
 
 ```bash
-pnpm test:unit
-pnpm test:integration
-pnpm test:bookpi
-pnpm test:security
+pnpm production:gate
 ```
-
-Con PostgreSQL se deben ejecutar además migraciones, concurrencia, idempotencia, restore y reconciliación.
 
 ---
 
-# 19. CI/CD y release engineering
-
-El gate FGAIS incluye actualmente instalación congelada, typecheck, lint, tests, sanitización, capability matrix y route audit.
-
-La madurez objetivo de release es:
+# 25. API surface
 
 ```text
-source SHA
-   =
-CI-approved SHA
-   =
-audited SHA
-   =
-artifact SHA
-   =
-deployed SHA
+/api/isabella
+/api/isabella-learning
+/api/isabella-cognitive-training
+/api/isabella-skills
 ```
 
-Y debe incorporar, según el nivel de riesgo:
-
-- SBOM;
-- provenance;
-- artifact signing;
-- dependency/secret scanning;
-- migration checks;
-- rollback;
-- restore drill;
-- deployment smoke tests;
-- runtime health checks;
-- pruebas externas de seguridad.
+La superficie principal está diseñada alrededor de contratos Zod, autenticación soberana, tenant isolation, policy checks y metadata de correlación.
 
 ---
 
-# 20. Vercel
+# 26. P0 para llegar a Production-Verified
 
-TanStack Start soporta Vercel mediante Nitro y la documentación oficial recomienda configurar explícitamente el framework `tanstack-start`; Vercel mantiene una guía específica para TanStack Start + Nitro. citeturn0search0turn0search2
+### P0.1 CI
 
-La aplicación utiliza Vite + TanStack Start + Nitro para producir el runtime compatible con Vercel.
+- ejecución real del gate;
+- pasos/logs disponibles;
+- typecheck verde;
+- lint verde;
+- tests verdes;
+- security scan verde;
+- DB verification verde;
+- integrity gate verde;
+- preflight verde;
+- build verde.
 
-### Entorno
+### P0.2 Database
 
-Los secretos privados no deben exponerse mediante código cliente ni variables `VITE_*`.
+- migración real;
+- schema verification;
+- backup;
+- restore;
+- learning snapshot integrity;
+- tenant isolation;
+- recovery.
 
-Variables críticas, según subsistema:
+### P0.3 Deployment
 
-```text
-NODE_ENV
-ISABELLA_RUNTIME_MODE
-PUBLIC_URL
-DATABASE_URL
-DATABASE_DIRECT_URL
-SUPABASE_URL
-SUPABASE_ANON_KEY
-AUTH_JWT_SECRET
-GEMINI_API_KEY
-ENCRYPTION_MASTER_KEY
-CROWN_POLICY_SIGNING_KEY
-AEGIS_AUDIT_SECRET
-BOOKPI_SIGNING_KEY
-STRIPE_SECRET_KEY
-STRIPE_WEBHOOK_SECRET
-REDIS / KV configuration
-OTEL configuration
-```
+- deployment del commit candidato;
+- deployment ID;
+- artifact verification;
+- health;
+- SSR;
+- `/api/isabella`;
+- learning;
+- cognitive training;
+- skills;
+- observability.
 
-La obligatoriedad final se determina por el esquema de entorno y el modo de runtime, no por esta lista documental.
+### P0.4 Providers
+
+- Gemini real;
+- fallback autorizado;
+- timeout;
+- rate limit;
+- degraded mode;
+- provider revocation.
+
+### P0.5 Secrets
+
+- runtime configuration;
+- secret redaction;
+- rotation;
+- failure behavior ante secret ausente.
+
+### P0.6 Rollback
+
+- release candidata;
+- rollback real;
+- health post-rollback;
+- DB compatibility;
+- learning snapshot compatibility.
+
+### P0.7 Simulation audit
+
+Toda simulación que pueda alcanzar autoridad productiva debe ser reemplazada por proveedor real, aislada fuera de producción o bloqueada de forma fail-closed.
 
 ---
 
-# 21. Health model
+# 27. P1 después de la primera producción
 
-```text
-/api/health/live
-    ↓
-¿El proceso responde?
-
-/api/health/ready
-    ↓
-¿Está preparado para tráfico que requiere dependencias críticas?
-
-/api/health/deep
-    ↓
-¿Las dependencias verificables están operativas?
-```
-
-Liveness debe permanecer independiente de PostgreSQL. Readiness puede fallar cuando una autoridad crítica no está disponible.
+- pruebas de carga;
+- chaos testing;
+- concurrencia extendida;
+- failover/multi-region;
+- disaster recovery;
+- threat modeling continuo;
+- fuzzing;
+- rotación automática de claves;
+- SLO/SLA;
+- capacity planning;
+- evaluación continua de modelos;
+- canary releases;
+- rollback automático.
 
 ---
 
-# 22. Estructura del repositorio
+# 28. P2 — evolución de Isabella
+
+- planner avanzado;
+- memoria semántica/vectorial gobernada;
+- aprendizaje federado productivo;
+- modelos especializados propios;
+- distillation;
+- continued pretraining;
+- foundation model Genesis;
+- confidential computing;
+- aceleración de hardware;
+- post-quantum cryptography donde corresponda.
+
+---
+
+# 29. Estructura principal
 
 ```text
 src/
-├── components/isabella/       # UI y experiencia cognitiva
-├── routes/                    # autoridad TanStack Start
-│   ├── index.tsx              # shell público SSR-safe
-│   ├── __root.tsx              # documento raíz / error boundary
-│   └── api/                    # rutas API
-├── server-routes/             # handlers en transición/consolidación
+├── components/
+├── routes/
+│   └── api/
+│       ├── isabella.ts
+│       ├── isabella-learning.ts
+│       ├── isabella-cognitive-training.ts
+│       └── isabella-skills.ts
 ├── lib/
-│   ├── intelligence/          # providers, registry, router
-│   ├── governance/             # governance helpers
-│   ├── repositories/           # persistencia
-│   ├── accounting/             # BookPI
-│   ├── federation/             # federated updates
-│   ├── genesis-model/          # model release contracts
-│   ├── learning/               # learning plane
-│   ├── sandbox/                # ejecución aislada
-│   └── security/               # controles
-├── server.ts                   # frontera HTTP/runtime
-└── routeTree.gen.ts             # generado
+│   ├── crown.ts
+│   ├── authorization.ts
+│   ├── policy-engine.ts
+│   ├── execution-authority.ts
+│   ├── kill-switch.ts
+│   ├── isabella-chat-gateway.ts
+│   ├── isabella-learning.ts
+│   ├── isabella-learning-api.ts
+│   ├── isabella-learning-persistence.ts
+│   ├── isabella-cognitive-training.ts
+│   ├── isabella-cognitive-runtime.ts
+│   ├── capability-registry.ts
+│   ├── skills/
+│   └── intelligence/
+└── server.ts
 
+genesis/
 docs/
-├── governance/
-├── architecture/
-├── operations/
-└── api/
-
-prisma/
-supabase/migrations/
 scripts/
-.github/workflows/
+supabase/
+test/
 ```
 
-La dirección arquitectónica es que `src/routes/**` sea la autoridad de routing y `routeTree.gen.ts` sea generado. La coexistencia de handlers bajo `src/server-routes/**` es deuda de consolidación cuando duplique autoridad.
-
 ---
 
-# 23. Gobernanza jurídica, ética y académica
+# 30. Definición de “Isabella funcionando”
 
-Este repositorio es un artefacto técnico/de investigación aplicada. Su documentación no constituye por sí sola asesoría jurídica, certificación, auditoría independiente o aprobación regulatoria.
+No basta con que la UI cargue.
 
-Las afirmaciones sobre soberanía, propiedad intelectual, privacidad, jurisdicción, cumplimiento, seguridad, originalidad, precedencia histórica o certificación requieren evidencia apropiada y, cuando corresponda, revisión profesional independiente.
-
-Para datos personales y entrenamiento se deben considerar finalidad, minimización, retención, acceso, eliminación, transferencias, licencia, provenance, copyright, consentimiento cuando aplique y riesgos de memorización/contaminación.
-
----
-
-# 24. Supply chain
-
-Un release serio debe responder:
+El mínimo end-to-end es:
 
 ```text
-¿Qué código fue desplegado?
-¿Quién lo aprobó?
-¿Qué dependencias contiene?
-¿Qué artefacto produjo CI?
-¿Qué hash tiene?
-¿Qué configuración tenía?
-¿Qué migraciones se aplicaron?
-¿Qué pruebas pasaron?
-¿Qué evidencia generaron?
-¿Qué SHA está ejecutando producción?
+Browser
+ ↓
+Authenticated request
+ ↓
+Tenant identified
+ ↓
+Security passed
+ ↓
+Governance passed
+ ↓
+Learning retrieved
+ ↓
+Authorized provider selected
+ ↓
+Real inference
+ ↓
+Response returned
+ ↓
+Telemetry recorded
+ ↓
+Optional governed skill
+ ↓
+Audit persisted
+ ↓
+Learning persisted when explicitly permitted
 ```
 
-Madurez objetivo:
-
-- SBOM;
-- provenance/SLSA cuando aplique;
-- firma de artefactos;
-- dependency scanning;
-- secret scanning bloqueante;
-- vulnerability policy;
-- build reproducible;
-- attestations;
-- deployment SHA verification.
-
----
-
-# 25. Findings y riesgo
-
-Ciclo recomendado:
+Para producción se agrega:
 
 ```text
-OPEN → ACKNOWLEDGED → MITIGATION_PLANNED → MITIGATED → VALIDATING → VERIFIED
+Backup + Restore + Rollback + Monitoring
++ Secrets verification + Provider verification
 ```
 
-Estados alternativos controlados:
+---
+
+# 31. Regla de certificación
+
+El proyecto usa una política deliberadamente estricta:
+
+> **No confundir código con capacidad verificada.**
+
+> **No confundir capacidad con autoridad.**
+
+Por ello, el estado correcto actual es:
+
+### 🟡 ENGINEERING-IMPLEMENTED
+
+La arquitectura y múltiples subsistemas críticos están implementados.
+
+### 🟡 PRE-PRODUCTION
+
+El proyecto está en fase avanzada de preparación para despliegue.
+
+### 🔴 NOT YET PRODUCTION-VERIFIED
+
+Falta evidencia operacional reproducible de CI, deployment, database, runtime, secrets y rollback.
+
+---
+
+# 32. Documentación de referencia
 
 ```text
-REOPENED · ACCEPTED_RISK · EXPIRED
+docs/governance/
+docs/architecture/
+docs/operations/
 ```
 
-Un riesgo aceptado requiere owner, aprobador, alcance, expiración y evidencia.
-
----
-
-# 26. Trabajo pendiente
-
-## P0 — Producción
-
-- Verificación real del deployment y SHA servido públicamente.
-- Smoke tests contra `/`, `/api/health/live` y `/api/health/ready`.
-- Correlación deployment SHA = commit auditado.
-- Confirmación de variables del entorno productivo.
-- Validación runtime de C.R.O.W.N.
-
-## P1 — Durabilidad y autoridad
-
-- Model Registry durable en PostgreSQL.
-- Replay protection federado durable.
-- Pruebas multi-instancia.
-- Consolidación de providers/ORMs como fuentes de verdad.
-- Transacciones financieras y reconciliación completas.
-- Restore drill verificable.
-- CSP nonce enforcement real.
-
-## P2 — Madurez
-
-- SBOM/provenance automatizados.
-- Artifact signing.
-- DAST/pentest independiente.
-- Observabilidad centralizada obligatoria.
-- Pruebas de aislamiento sandbox.
-- Evaluación sistemática de modelos/datasets.
-- Consolidación de `src/server-routes/**`.
-
-## P3 — Investigación
-
-- Modelos especializados.
-- Distillation.
-- Continued pretraining.
-- Federated learning a escala.
-- Foundation model Genesis-4.
-
----
-
-# 27. Definición de versión funcional
-
-Una versión funcional significa que el sistema tiene una superficie ejecutable y gobernada, no que todas las metas futuras estén terminadas:
+Especialmente:
 
 ```text
-[✓] Shell público independiente de DB
-[✓] Aislamiento del grafo browser-only respecto de SSR
-[✓] Health liveness
-[✓] Health readiness
-[✓] Plano de inteligencia federada
-[✓] Governance / authority gates
-[✓] Auditoría y correlación
-[✓] Build reproducible
-[✓] CI técnico
-[ ] Production-Verified requiere evidencia del entorno
-[ ] Pagos reales requieren evidencia operacional
-[ ] Federación multi-instancia requiere estado durable
+docs/governance/01-FGAIS-Governance-Constitution.md
+docs/governance/EVIDENCE-MAP.md
+docs/architecture/ISABELLA-LEARNING-ARCHITECTURE.md
+docs/architecture/ISABELLA-COGNITIVE-TRAINING.md
+docs/operations/P0-IMPLEMENTATION-STATUS-2026-09-09.md
 ```
 
-La palabra **funcional** no debe utilizarse para esconder limitaciones de producción; `Production-Verified` es una categoría de evidencia superior.
-
 ---
 
-# 28. Política de declaraciones públicas
+# 33. Resumen ejecutivo
 
-Permitido cuando exista evidencia:
+### Ya implementado
 
-- Implemented
-- Tested
-- Verified
-- Production-Verified
+- FGAIS governance architecture.
+- CROWN / ARGUS authorization layers.
+- Isabella conversation gateway.
+- Federated inference.
+- Gemini 3.8 Flash como modelo principal configurado.
+- Controlled provider fallback.
+- Security and validation layers.
+- Multi-tenant learning runtime.
+- Durable PostgreSQL learning snapshots.
+- Cognitive Runtime integrado en la conversación.
+- Ocho estrategias de cognitive training.
+- Learning API ejecutable.
+- Cognitive Training API ejecutable.
+- Governed Skills API ejecutable.
+- BookPI economic architecture.
+- Genesis Claim Engine.
+- Real dependency lock hashing.
+- SBOM generation.
+- Manifest signing/verification.
+- Production integrity gate.
+- Production preflight.
+- DB migrate/verify/backup/restore tooling.
+- Capability and route audits.
+- FGAIS CI production gate.
+- SSR/browser boundary.
 
-Requieren calificación y evidencia:
-
-- soberano;
-- autónomo;
-- seguro;
-- fundacional;
-- poscuántico;
-- certificado;
-- primero;
-- único;
-- 100%;
-- sin dependencia externa.
-
-Nunca sustituir evidencia técnica por lenguaje promocional.
-
----
-
-# 29. Contribución
-
-1. Leer `AGENTS.md` y governance.
-2. Identificar claim/control afectado.
-3. Identificar autoridad del cambio.
-4. Implementar cambio mínimo reversible.
-5. Añadir/actualizar pruebas.
-6. Actualizar evidencia.
-7. Ejecutar gates.
-8. Registrar riesgo residual.
-9. No introducir secretos.
-10. No declarar una capacidad superior a su evidencia.
-
-Prohibido:
-
-- `push --force` sobre historia publicada;
-- secrets en el repositorio;
-- datos personales innecesarios;
-- fallback silencioso;
-- simulación presentada como integración real;
-- `Verified` sin evidencia;
-- `Production-Verified` sin evidencia de producción.
-
----
-
-# 30. Referencia de despliegue
-
-La documentación oficial de TanStack Start confirma el soporte de Vercel mediante Nitro y la configuración explícita del framework; Vercel mantiene documentación específica para TanStack Start + Nitro. citeturn0search0turn0search2
-
----
-
-# 31. Declaración final
-
-**Isabella Villaseñor AI — Genesis** no se define por la cantidad de modelos que puede invocar, sino por la capacidad de gobernar aquello que puede hacer.
+### Falta para producción certificada
 
 ```text
-Capability
-    ≠
-Authority
-
-Intelligence
-    + Governance
-    + Identity
-    + Policy
-    + Evidence
-    + Audit
-    + Human sovereignty
-    = FGAIS
+CI GREEN
++
+REAL DATABASE EVIDENCE
++
+REAL DEPLOYMENT
++
+REAL HTTP SMOKE
++
+REAL PROVIDER VERIFICATION
++
+REAL SECRETS VERIFICATION
++
+BACKUP / RESTORE
++
+REAL ROLLBACK
++
+SIMULATION AUDIT
+=
+PRODUCTION-VERIFIED
 ```
 
-> **Si puede demostrarse, se declara. Si todavía no puede demostrarse, se etiqueta como pendiente.**
+---
 
-**Genesis 2.0 · FGAIS · Nodo Cero · Real del Monte, Hidalgo, México · TAMV ONLINE**
+# 34. Declaración de Isabella
+
+**Isabella Villaseñor AI — Genesis** no se define por un único modelo ni por una única interfaz.
+
+Se define por la coordinación gobernada de:
+
+```text
+INTELLIGENCE
++ MEMORY
++ LEARNING
++ SKILLS
++ GOVERNANCE
++ IDENTITY
++ SECURITY
++ PERSISTENCE
++ ECONOMICS
++ AUDIT
++ EVIDENCE
+```
+
+La visión es una infraestructura de inteligencia donde la capacidad de razonar y actuar esté acompañada por una capacidad equivalente de **saber bajo qué autoridad se está razonando, qué evidencia respalda una decisión, qué estado se está modificando y cómo recuperar el sistema cuando algo falla**.
+
+**Isabella no debe ser únicamente inteligente. Debe ser gobernable, trazable, recuperable y verificable.**
+
+<div align="center">
+
+### Isabella Villaseñor AI — Genesis
+
+**FGAIS · Federated Governed Artificial Intelligence System**
+
+**Capability does not imply authority.**
+
+</div>
