@@ -1,5 +1,5 @@
-import { config } from "@/lib/config";
 import { SecuritySystem } from "@/lib/security";
+import { localProviderConfig } from "./local-provider-config";
 import type { IntelligenceProvider, IntelligenceRequest, IntelligenceResponse } from "./contracts";
 
 /** Adapter for self-hosted vLLM/llama.cpp/LM Studio and similar OpenAI-compatible runtimes. */
@@ -11,10 +11,10 @@ export class OpenAICompatibleLocalProvider implements IntelligenceProvider {
   private readonly apiKey?: string;
 
   constructor(modelId?: string, baseUrl?: string, apiKey?: string) {
-    const runtime = config();
-    this.modelId = modelId ?? runtime.OPENAI_COMPATIBLE_MODEL ?? "Qwen/Qwen3-8B";
-    this.baseUrl = (baseUrl ?? runtime.OPENAI_COMPATIBLE_BASE_URL ?? "http://127.0.0.1:8000/v1").replace(/\/$/, "");
-    this.apiKey = apiKey ?? runtime.OPENAI_COMPATIBLE_API_KEY;
+    const runtime = localProviderConfig();
+    this.modelId = modelId ?? runtime.openaiCompatibleModel;
+    this.baseUrl = (baseUrl ?? runtime.openaiCompatibleBaseUrl).replace(/\/$/, "");
+    this.apiKey = apiKey ?? runtime.openaiCompatibleApiKey;
   }
 
   async health(): Promise<boolean> {
