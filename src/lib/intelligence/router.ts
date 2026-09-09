@@ -7,6 +7,25 @@ import { assertModelRuntimeAuthority, ensureModelRecord } from "./production-mod
 import { inspectInferenceInput } from "./inference-firewall";
 
 const providers = new Map<string, IntelligenceProvider>();
+const failures = new Map<string, { count: number; openUntil: number }>();
+const FAILURE_THRESHOLD = 3;
+const COOLDOWN_MS = 30_000;
+const MAX_CANDIDATES = 3;
+
+function circuitOpen(modelId: string): boolean {
+  const state = failures.get(modelId);
+  return Boolean(state && state.openUntil > Date.now());
+}
+
+function recordFailure(modelId: string): void {
+  const current = failures.get(modelId) ?? { count: 0, openUntil: 0 };
+  const count = current.count + 1;
+  failures.set(modelId, { count, openUntil: count >= FAILURE_THRESHOLD ? Date.now() + COOLDOWN_MS : 0 });
+}
+
+function recordSuccess(modelId: string): void {
+  failures.delete(modelId);
+}
 
 export function addProvider(provider: IntelligenceProvider, productionApproved = false): void {
   providers.set(provider.modelId, provider);
@@ -27,19 +46,17 @@ export function governIntelligence(request: IntelligenceRequest): GovernanceDeci
 export async function invokeIntelligence(input: Omit<IntelligenceRequest, "requestId"> & { requestId?: string }): Promise<IntelligenceResponse> {
   const firewall = inspectInferenceInput(input.messages);
   if (!firewall.allowed) throw new Error(`intelligence_DENY:${firewall.reasons.join(",")}`);
-  const request: IntelligenceRequest = {
-    ...input,
-    messages: firewall.sanitized,
-    requestId: input.requestId ?? randomUUID(),
-  };
+  const request: IntelligenceRequest = { ...input, messages: firewall.sanitized, requestId: input.requestId ?? randomUUID() };
   const governance = governIntelligence(request);
   if (governance.decision !== "ALLOW") throw new Error(`intelligence_${governance.decision.toLowerCase()}`);
 
   const preferred = request.preferredModel;
-  const candidates = preferred ? [preferred] : [...providers.keys()];
+  const candidates = (preferred ? [preferred] : [...providers.keys()]).slice(0, MAX_CANDIDATES);
   const production = isProductionLike(resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE));
   let lastError: unknown;
+
   for (const modelId of candidates) {
+    if (circuitOpen(modelId)) continue;
     const provider = providers.get(modelId);
     const descriptor = getModel(modelId);
     if (!provider || !descriptor || !descriptor.enabled) continue;
@@ -49,16 +66,24 @@ export async function invokeIntelligence(input: Omit<IntelligenceRequest, "reque
         await assertModelRuntimeAuthority(request.tenantId, provider);
       } catch (error) {
         lastError = error;
+        recordFailure(modelId);
         continue;
       }
     }
     try {
-      if (!(await provider.health())) continue;
-      return await provider.invoke(request);
+      if (!(await provider.health())) {
+        recordFailure(modelId);
+        continue;
+      }
+      const response = await provider.invoke(request);
+      recordSuccess(modelId);
+      return response;
     } catch (error) {
       lastError = error;
+      recordFailure(modelId);
     }
   }
+
   if (production) throw new Error("inference_unavailable: no production-approved healthy model");
   if (lastError) throw lastError;
   throw new Error("inference_unavailable: no registered model");
