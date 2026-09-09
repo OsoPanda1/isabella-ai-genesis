@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { nitro } from "nitro/vite";
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   plugins: [
     {
       name: "browser-node-crypto-shim",
@@ -18,14 +18,12 @@ export default defineConfig(({ mode }) => ({
       },
     },
     tanstackStart(),
+    nitro(),
     viteReact(),
     tailwindcss(),
     tsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
-    // Nitro is the Vercel deployment adapter. Keep it production-only because
-    // the local Vite dev server should retain TanStack Start's native dev path.
-    ...(mode === "production" ? [nitro()] : []),
   ],
   server: {
     host: "0.0.0.0",
@@ -53,4 +51,4 @@ export default defineConfig(({ mode }) => ({
     noExternal: [],
     external: ["three"],
   },
-}));
+});
