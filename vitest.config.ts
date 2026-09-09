@@ -5,8 +5,6 @@ export default defineConfig({
   plugins: [tsConfigPaths()],
   test: {
     globals: true,
-    // node por defecto: no hay tests de componentes DOM; happy-dom queda
-    // declarado pero sin instalar localmente (CI lo instala con pnpm).
     environment: "node",
     setupFiles: ["./test/setup.ts"],
     coverage: {
@@ -15,35 +13,39 @@ export default defineConfig({
     },
     projects: [
       {
-        extends: true,
+        plugins: [tsConfigPaths()],
         test: {
           name: "unit",
           environment: "node",
           include: ["test/unit/**/*.test.ts"],
+          setupFiles: ["./test/setup.ts"],
         },
       },
       {
-        extends: true,
+        plugins: [tsConfigPaths()],
         test: {
           name: "security",
           environment: "node",
           include: ["test/security/**/*.test.ts"],
+          setupFiles: ["./test/setup.ts"],
         },
       },
       {
-        extends: true,
+        plugins: [tsConfigPaths()],
         test: {
           name: "bookpi",
           environment: "node",
           include: ["test/bookpi/**/*.test.ts"],
+          setupFiles: ["./test/setup.ts"],
         },
       },
       {
-        extends: true,
+        plugins: [tsConfigPaths()],
         test: {
           name: "integration",
           environment: "node",
           include: ["test/integration/**/*.test.ts"],
+          setupFiles: ["./test/setup.ts"],
         },
       },
     ],
