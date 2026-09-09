@@ -2,7 +2,7 @@
 
 ## Current commit
 
-`7bbf504556c7cd026a7e3fa51ab0299eaed45ddd`
+`37eac06c3cd384a0735768be4138ba2057ab43bb`
 
 ## Completed in this pass
 
@@ -53,13 +53,13 @@ Added dedicated tests in `test/lib/isabella-cognitive-training.test.ts` and arch
 
 ### Production integrity hardening
 
-`production-integrity-gate.mjs` was extended to reject:
+`src/lib/genesis/engines/claim-engine.ts` no longer emits a synthetic all-zero dependency lock hash. Claim evidence now derives the SHA3-512 hash directly from the repository's `pnpm-lock.yaml` and fails closed if the lockfile cannot be read. A dedicated Vitest integrity test verifies that the generated value exactly matches the committed lockfile and is not all-zero.
 
-- placeholder all-zero `dependencyLockHash` generation in Genesis claim evidence;
-- malformed or zero-valued dependency lock hashes in committed Genesis manifests;
-- existing known synthetic-runtime and CLI implementation-stub patterns.
+`production-integrity-gate.mjs` rejects placeholder all-zero `dependencyLockHash` generation and malformed/zero-valued dependency lock hashes in committed Genesis manifests, in addition to existing synthetic-runtime and CLI implementation-stub patterns.
 
-This intentionally makes the production gate fail closed until the remaining fake lock-hash producer is replaced with the runtime-derived lockfile hash already used by the audit orchestrator.
+## CI evidence status
+
+A fresh push-triggered FGAIS run was created for commit `37eac06c3cd384a0735768be4138ba2057ab43bb` (run `34390211494`). GitHub reports the job as failed, but the job exposes no executable steps and no logs (`steps: null`, `logs_url: null`). Therefore the failure cannot be attributed to a repository test/build step and is not evidence of a green gate. This remains an external CI evidence blocker.
 
 ## External ecosystem alignment reviewed
 
@@ -69,14 +69,14 @@ The wider `OsoPanda1` ecosystem was reviewed for architectural signals. `digital
 
 These remain explicitly open until reproducible evidence exists:
 
-1. Replace the remaining all-zero `dependencyLockHash` producer inside `ClaimEngine` with the actual `pnpm-lock.yaml` SHA3-512 hash.
-2. GitHub Actions must produce an executable green FGAIS gate for the candidate commit.
-3. Vercel must produce a green deployment from the same source commit.
-4. Supabase migration replay/preview must pass against the complete current migration set.
-5. Production HTTP liveness/readiness/inference smoke tests must pass.
-6. Production provider connectivity and environment configuration must be verified without exposing secrets.
-7. Database backup/restore evidence must be executed against the real production authority.
-8. Rollback evidence must be executed against the actual deployment target.
+1. GitHub Actions must produce an executable green FGAIS gate for the candidate commit.
+2. Vercel must produce a green deployment from the same source commit.
+3. Supabase migration replay/preview must pass against the complete current migration set.
+4. Production HTTP liveness/readiness/inference smoke tests must pass.
+5. Production provider connectivity and environment configuration must be verified without exposing secrets.
+6. Database backup/restore evidence must be executed against the real production authority.
+7. Rollback evidence must be executed against the actual deployment target.
+8. Any remaining production-path stubs, simulated providers, placeholder hashes, synthetic telemetry and non-authoritative persistence adapters must be eliminated or explicitly proven non-production.
 
 ## Certification rule
 
