@@ -1,12 +1,8 @@
-import { SecuritySystem } from "@/lib/security";
 import { localProviderConfig } from "./local-provider-config";
+import { fetchSafeLocalModel } from "./local-egress";
 import type { IntelligenceProvider, IntelligenceRequest, IntelligenceResponse } from "./contracts";
 
-/**
- * Local-only provider. No paid API is required and requests stay inside the
- * configured Ollama endpoint. Production authorization is still enforced by
- * the model registry/router; availability is not authority.
- */
+/** Local-only Ollama provider. Production authorization remains external to provider availability. */
 export class OllamaProvider implements IntelligenceProvider {
   readonly providerId = "ollama-local";
   readonly modelId: string;
@@ -21,7 +17,7 @@ export class OllamaProvider implements IntelligenceProvider {
 
   async health(): Promise<boolean> {
     try {
-      const response = await SecuritySystem.fetchSafeUpstream(`${this.baseUrl}/api/tags`, { method: "GET" });
+      const response = await fetchSafeLocalModel(`${this.baseUrl}/api/tags`, { method: "GET" });
       if (!response.ok) return false;
       const payload = (await response.json()) as { models?: Array<{ name?: string }> };
       return Boolean(payload.models?.some((model) => model.name === this.modelId));
@@ -32,7 +28,7 @@ export class OllamaProvider implements IntelligenceProvider {
 
   async invoke(request: IntelligenceRequest): Promise<IntelligenceResponse> {
     const started = performance.now();
-    const response = await SecuritySystem.fetchSafeUpstream(`${this.baseUrl}/api/chat`, {
+    const response = await fetchSafeLocalModel(`${this.baseUrl}/api/chat`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
