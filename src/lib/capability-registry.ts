@@ -97,6 +97,7 @@ export function createDefaultCapabilityRegistry(): CapabilityRegistryService {
   register("sandbox", "experimental", ["src/lib/sovereign-sandbox.ts"]);
   register("pqc", "unavailable");
   register("monetization", "implemented", ["src/lib/monetization/*"]);
+  register("learning", "implemented", ["src/lib/isabella-learning.ts", "src/lib/isabella-learning-api.ts"]);
   register("heads.12", "implemented", ["12 cognitive heads configured in sovereign-engine.ts"]);
   register("nuclei.24", "simulated", ["24 cognitive nuclei modeled in sovereign-engine.ts"]);
 
