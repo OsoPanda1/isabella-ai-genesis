@@ -2,7 +2,7 @@
 
 ## Current commit
 
-`c01a0a51f24a173fa79c7b16b70273ed521a3375`
+`798df6abbdedda575a469f3a1c54aa81ce5aa6f4`
 
 ## Completed in this pass
 
@@ -26,6 +26,23 @@ Implemented the previously stubbed commands in `src/lib/genesis/cli/index.ts`:
 - Signature verification fails closed on malformed or invalid signatures.
 - Evidence commands preserve the repository's deny-by-default/evidence-before-certification model.
 
+### Isabella learning and cognition expansion
+
+Implemented a provider-neutral learning layer beyond token accumulation:
+
+- `src/lib/isabella-learning.ts` adds supervised, contrastive, preference, episodic, procedural, reflective and multimodal learning modes.
+- Learning stores durable concepts, procedures, preferences, outcomes, reinforcement counts and skill competence rather than pretending that retrieval equals model-weight training.
+- SHA3-512 stable signatures deduplicate repeated learning signals.
+- Durable non-supervised learning requires explicit consent.
+- Prompt-injection patterns are rejected before persistence.
+- Inputs are sanitized and competence scores are bounded.
+- Versioned snapshots allow auditable backup/restore of learned state.
+- `src/lib/isabella-learning-api.ts` exposes native framework-neutral ingest/retrieve/evaluate/snapshot operations with Zod validation.
+- `src/lib/isabella-learning-catalog.ts` defines the canonical native API surface without fabricating HTTP execution evidence.
+- Unit/API tests cover learning, injection rejection, consent, deduplication and request validation.
+- `capability-registry.ts` now records `learning` as implemented with direct source evidence.
+- Architecture documentation is in `docs/architecture/ISABELLA-LEARNING-ARCHITECTURE.md`.
+
 ## External ecosystem alignment reviewed
 
 The wider `OsoPanda1` ecosystem was reviewed for architectural signals. `digital-civilization-core` describes Isabella as a cognitive OS alongside ANUBIS sentinel, HORUS/SRE planning, DEKATEOTL presentation, MSR/TAMVCrums and sovereign identity. These concepts are treated as architectural inputs, not as production-verified capabilities of Genesis until their implementation and evidence exist inside the canonical runtime.
@@ -41,6 +58,7 @@ These are not solvable by repository code alone and must remain explicitly open 
 5. Production provider connectivity and environment configuration must be verified without exposing secrets.
 6. Database backup/restore evidence must be executed against the real production authority.
 7. Rollback evidence must be executed against the actual deployment target.
+8. The existing Genesis evidence path still contains a placeholder all-zero dependency-lock hash and must be replaced with a runtime-derived lockfile hash before evidence can be treated as cryptographically authoritative.
 
 ## Certification rule
 
