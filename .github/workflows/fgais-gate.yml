@@ -1,6 +1,7 @@
 name: FGAIS Production Gate
 
 on:
+  workflow_call:
   pull_request:
   push:
     branches: [main, "feat/**"]
@@ -80,7 +81,6 @@ jobs:
 
       - name: Validate Vercel/Nitro output
         run: |
-          test -d .vercel/output || true
           test -f .vercel/output/config.json || test -d .output || test -d dist
 
       - name: Build evidence
