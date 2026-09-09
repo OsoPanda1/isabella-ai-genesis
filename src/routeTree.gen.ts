@@ -23,6 +23,7 @@ import { Route as ApiSecurityRouteImport } from './routes/api/security'
 import { Route as ApiHealthDeepRouteImport } from './routes/api/health/deep'
 import { Route as ApiHealthLiveRouteImport } from './routes/api/health/live'
 import { Route as ApiHealthReadyRouteImport } from './routes/api/health/ready'
+import { Route as ApiV1IsabellaRouteImport } from './routes/api/v1/isabella'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -94,6 +95,11 @@ const ApiHealthReadyRoute = ApiHealthReadyRouteImport.update({
   path: '/ready',
   getParentRoute: () => ApiHealthRoute,
 } as any)
+const ApiV1IsabellaRoute = ApiV1IsabellaRouteImport.update({
+  id: '/api/v1/isabella',
+  path: '/api/v1/isabella',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/api/health/deep': typeof ApiHealthDeepRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/api/v1/isabella': typeof ApiV1IsabellaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/api/health/deep': typeof ApiHealthDeepRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/api/v1/isabella': typeof ApiV1IsabellaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/api/health/deep': typeof ApiHealthDeepRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/api/v1/isabella': typeof ApiV1IsabellaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/api/health/deep'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/api/v1/isabella'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/api/health/deep'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/api/v1/isabella'
   id:
     | '__root__'
     | '/'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/api/health/deep'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/api/v1/isabella'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -207,6 +219,7 @@ export interface RootRouteChildren {
   ApiIsabellaRoute: typeof ApiIsabellaRoute
   ApiIsabellaVoiceRoute: typeof ApiIsabellaVoiceRoute
   ApiSecurityRoute: typeof ApiSecurityRoute
+  ApiV1IsabellaRoute: typeof ApiV1IsabellaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -309,6 +322,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthReadyRouteImport
       parentRoute: typeof ApiHealthRoute
     }
+    '/api/v1/isabella': {
+      id: '/api/v1/isabella'
+      path: '/api/v1/isabella'
+      fullPath: '/api/v1/isabella'
+      preLoaderRoute: typeof ApiV1IsabellaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -340,6 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiIsabellaRoute: ApiIsabellaRoute,
   ApiIsabellaVoiceRoute: ApiIsabellaVoiceRoute,
   ApiSecurityRoute: ApiSecurityRoute,
+  ApiV1IsabellaRoute: ApiV1IsabellaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
