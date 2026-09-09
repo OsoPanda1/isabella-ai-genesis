@@ -1,5 +1,5 @@
-import { config } from "@/lib/config";
 import { SecuritySystem } from "@/lib/security";
+import { localProviderConfig } from "./local-provider-config";
 import type { IntelligenceProvider, IntelligenceRequest, IntelligenceResponse } from "./contracts";
 
 /**
@@ -13,9 +13,10 @@ export class OllamaProvider implements IntelligenceProvider {
   readonly capabilities = new Set(["text"] as const);
   private readonly baseUrl: string;
 
-  constructor(modelId = "qwen3:8b", baseUrl?: string) {
-    this.modelId = modelId;
-    this.baseUrl = (baseUrl ?? config().OLLAMA_BASE_URL ?? "http://127.0.0.1:11434").replace(/\/$/, "");
+  constructor(modelId?: string, baseUrl?: string) {
+    const runtime = localProviderConfig();
+    this.modelId = modelId ?? runtime.ollamaModel;
+    this.baseUrl = (baseUrl ?? runtime.ollamaBaseUrl).replace(/\/$/, "");
   }
 
   async health(): Promise<boolean> {
@@ -38,10 +39,7 @@ export class OllamaProvider implements IntelligenceProvider {
         model: this.modelId,
         stream: false,
         messages: request.messages.map((message) => ({ role: message.role, content: message.content })),
-        options: {
-          temperature: request.temperature ?? 0.7,
-          num_predict: request.maxTokens ?? 2048,
-        },
+        options: { temperature: request.temperature ?? 0.7, num_predict: request.maxTokens ?? 2048 },
       }),
     });
     if (!response.ok) throw new Error(`Ollama upstream returned ${response.status}`);
