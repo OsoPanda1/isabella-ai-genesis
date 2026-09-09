@@ -19,6 +19,11 @@ const checks = [
     label: "Production evaluation must not fabricate metrics or approval",
   },
   {
+    file: "src/lib/genesis/cli/index.ts",
+    forbidden: [/Not yet implemented/i, /Implementation would go here/i],
+    label: "Genesis production CLI must not contain implementation stubs",
+  },
+  {
     file: "src/server.ts",
     required: [/production\s*=\s*process\.env\.NODE_ENV\s*===\s*['\"]production['\"]/, /script-src \$\{scriptSource\}/],
     label: "Production server boundary must enforce strict script CSP",
@@ -49,4 +54,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log("PRODUCTION INTEGRITY GATE PASSED: no known P0 synthetic-runtime patterns detected.");
+console.log("PRODUCTION INTEGRITY GATE PASSED: no known P0 synthetic-runtime or CLI-stub patterns detected.");
