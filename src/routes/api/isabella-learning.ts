@@ -7,25 +7,7 @@ import {
   LearningIngestApiSchema,
   LearningQueryApiSchema,
 } from "@/lib/isabella-learning-api";
-import { createIsabellaLearningEngine } from "@/lib/isabella-learning";
-
-/**
- * Native Isabella learning endpoint.
- *
- * Learning state is isolated by tenant inside the process and is never shared
- * between principals. Durable persistence must be added behind the LearningStore
- * contract before this state is treated as cross-process production authority.
- */
-const engines = new Map<string, ReturnType<typeof createIsabellaLearningEngine>>();
-
-function engineFor(tenantId: string) {
-  let engine = engines.get(tenantId);
-  if (!engine) {
-    engine = createIsabellaLearningEngine();
-    engines.set(tenantId, engine);
-  }
-  return engine;
-}
+import { loadLearningRuntime, persistLearningRuntime } from "@/lib/isabella-learning-persistence";
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -39,13 +21,23 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
+async function runtimeFor(tenantId: string) {
+  try {
+    return await loadLearningRuntime(tenantId);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "LEARNING_RUNTIME_UNAVAILABLE" } as const;
+  }
+}
+
 export const Route = createFileRoute("/api/isabella-learning")({
   server: {
     handlers: {
       GET: withSovereignAuth("system", "read", async (context, request) => {
+        const runtime = await runtimeFor(context.tenantId);
+        if ("error" in runtime) return json({ error: runtime.error }, 503);
         const url = new URL(request.url);
         const action = url.searchParams.get("action") ?? "snapshot";
-        const api = createNativeLearningApi(engineFor(context.tenantId));
+        const api = createNativeLearningApi(runtime.engine);
 
         if (action === "snapshot") return api.snapshot();
         if (action === "retrieve") {
@@ -72,18 +64,22 @@ export const Route = createFileRoute("/api/isabella-learning")({
           return json({ error: "INVALID_JSON" }, 400);
         }
 
+        const runtime = await runtimeFor(context.tenantId);
+        if ("error" in runtime) return json({ error: runtime.error }, 503);
         const action = typeof body === "object" && body !== null && "action" in body
           ? (body as { action?: unknown }).action
           : "ingest";
         const payload = typeof body === "object" && body !== null && "payload" in body
           ? (body as { payload?: unknown }).payload
           : body;
-        const api = createNativeLearningApi(engineFor(context.tenantId));
+        const api = createNativeLearningApi(runtime.engine);
 
         if (action === "ingest") {
           const parsed = LearningIngestApiSchema.safeParse(payload);
           if (!parsed.success) return json({ error: "VALIDATION_ERROR", issues: parsed.error.issues }, 400);
-          return api.ingest(parsed.data);
+          const response = api.ingest(parsed.data);
+          if (response.ok && runtime.durable) await persistLearningRuntime(context.tenantId, runtime.engine);
+          return response;
         }
         if (action === "retrieve") {
           const parsed = LearningQueryApiSchema.safeParse(payload);
