@@ -1,5 +1,5 @@
-import { SecuritySystem } from "@/lib/security";
 import { localProviderConfig } from "./local-provider-config";
+import { fetchSafeLocalModel } from "./local-egress";
 import type { IntelligenceProvider, IntelligenceRequest, IntelligenceResponse } from "./contracts";
 
 /** Adapter for self-hosted vLLM/llama.cpp/LM Studio and similar OpenAI-compatible runtimes. */
@@ -19,7 +19,7 @@ export class OpenAICompatibleLocalProvider implements IntelligenceProvider {
 
   async health(): Promise<boolean> {
     try {
-      const response = await SecuritySystem.fetchSafeUpstream(`${this.baseUrl}/models`, {
+      const response = await fetchSafeLocalModel(`${this.baseUrl}/models`, {
         method: "GET",
         headers: this.apiKey ? { authorization: `Bearer ${this.apiKey}` } : undefined,
       });
@@ -33,16 +33,10 @@ export class OpenAICompatibleLocalProvider implements IntelligenceProvider {
     const started = performance.now();
     const headers: Record<string, string> = { "content-type": "application/json" };
     if (this.apiKey) headers.authorization = `Bearer ${this.apiKey}`;
-    const response = await SecuritySystem.fetchSafeUpstream(`${this.baseUrl}/chat/completions`, {
+    const response = await fetchSafeLocalModel(`${this.baseUrl}/chat/completions`, {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        model: this.modelId,
-        messages: request.messages,
-        temperature: request.temperature ?? 0.7,
-        max_tokens: request.maxTokens ?? 2048,
-        stream: false,
-      }),
+      body: JSON.stringify({ model: this.modelId, messages: request.messages, temperature: request.temperature ?? 0.7, max_tokens: request.maxTokens ?? 2048, stream: false }),
     });
     if (!response.ok) throw new Error(`OpenAI-compatible upstream returned ${response.status}`);
     const payload = (await response.json()) as {
