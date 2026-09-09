@@ -1,0 +1,14 @@
+name: CI
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  production-gate:
+    name: Canonical FGAIS gate
+    uses: ./.github/workflows/fgais-gate.yml
+    permissions:
+      contents: read
