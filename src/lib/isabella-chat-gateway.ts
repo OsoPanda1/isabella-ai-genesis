@@ -230,6 +230,7 @@ export async function handleIsabellaChat(
       400,
     );
   const { messages, temperature, context: requestContext } = validation.data;
+  void requestContext;
   const providerKeys = {
     gemini: secrets.optionalProviderKey("gemini"),
     groq: secrets.optionalProviderKey("groq"),
@@ -451,7 +452,7 @@ export async function handleIsabellaChat(
         ? {
             systemInstruction: { parts: [{ text: sanitizedCognitiveSystem.clean }] },
             contents,
-            generationConfig: { temperature, maxOutputTokens: 8192 },
+            generationConfig: { maxOutputTokens: 8192 },
           }
         : openAiCompatibleBody(messages, sanitizedCognitiveSystem.clean, temperature, attempt.model);
       const upstream = await SecuritySystem.fetchSafeUpstream(url, {
