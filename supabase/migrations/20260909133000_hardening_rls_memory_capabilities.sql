@@ -1,13 +1,9 @@
 -- HARDENING: memory rows are bound to the authenticated principal, not
 -- merely to a client-supplied tenant claim. Service-role operations remain
 -- server-side and bypass RLS by design.
-
 create or replace function public.current_user_id()
 returns varchar
-language sql
-stable
-security invoker
-set search_path = public
+language sql stable security invoker set search_path = public
 as $$
   select coalesce(
     nullif(current_setting('request.jwt.claims', true)::jsonb->>'userId', ''),
@@ -18,7 +14,7 @@ $$;
 
 drop policy if exists "Tenant multi-tenant isolation policy for memories" on public.memories;
 
-a-- Read: same tenant; sensitive rows additionally require owner or elevated role.
+-- Read: same tenant; sensitive rows additionally require owner or elevated role.
 create policy "Memory tenant read boundary" on public.memories
   for select using (
     tenant_id = public.current_tenant_id()
@@ -36,7 +32,7 @@ create policy "Memory principal-bound insert" on public.memories
     and user_id = public.current_user_id()
   );
 
--- Update/delete: owner or explicitly elevated role, never cross-tenant.
+-- Update: owner/elevated role, never cross-tenant; updated ownership remains bound.
 create policy "Memory principal-bound update" on public.memories
   for update using (
     tenant_id = public.current_tenant_id()
