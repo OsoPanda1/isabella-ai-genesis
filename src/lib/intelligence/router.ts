@@ -4,6 +4,7 @@ import { isProductionLike, resolveRuntimeMode } from "@/lib/runtime-mode";
 import type { GovernanceDecision, IntelligenceProvider, IntelligenceRequest, IntelligenceResponse } from "./contracts";
 import { approveModel, getModel, registerProvider } from "./model-registry";
 import { assertModelRuntimeAuthority, ensureModelRecord } from "./production-model-gate";
+import { inspectInferenceInput } from "./inference-firewall";
 
 const providers = new Map<string, IntelligenceProvider>();
 
@@ -18,11 +19,19 @@ export function governIntelligence(request: IntelligenceRequest): GovernanceDeci
   if (request.messages.length === 0 || request.messages.length > 40) return { decision: "DENY", reasons: ["invalid-message-count"], riskScore: 80, policyIds: [] };
   const temperature = request.temperature ?? 0.7;
   if (temperature < 0 || temperature > 2) return { decision: "DENY", reasons: ["temperature-out-of-range"], riskScore: 50, policyIds: [] };
-  return { decision: "ALLOW", reasons: [], riskScore: 0, policyIds: [] };
+  const firewall = inspectInferenceInput(request.messages);
+  if (!firewall.allowed) return { decision: "DENY", reasons: firewall.reasons, riskScore: 95, policyIds: ["inference-firewall-v1"] };
+  return { decision: "ALLOW", reasons: [], riskScore: 0, policyIds: ["inference-firewall-v1"] };
 }
 
 export async function invokeIntelligence(input: Omit<IntelligenceRequest, "requestId"> & { requestId?: string }): Promise<IntelligenceResponse> {
-  const request: IntelligenceRequest = { ...input, requestId: input.requestId ?? randomUUID() };
+  const firewall = inspectInferenceInput(input.messages);
+  if (!firewall.allowed) throw new Error(`intelligence_DENY:${firewall.reasons.join(",")}`);
+  const request: IntelligenceRequest = {
+    ...input,
+    messages: firewall.sanitized,
+    requestId: input.requestId ?? randomUUID(),
+  };
   const governance = governIntelligence(request);
   if (governance.decision !== "ALLOW") throw new Error(`intelligence_${governance.decision.toLowerCase()}`);
 
