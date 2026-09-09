@@ -94,7 +94,12 @@ function sha256(input: string): string {
 
 function getSigningKey(): crypto.KeyObject | null {
   const key = config().BOOKPI_SIGNING_KEY;
-  return key ?? null;
+  if (!key) return null;
+  try {
+    return crypto.createPrivateKey(key);
+  } catch {
+    return null;
+  }
 }
 
 class SovereignStateRepository {
