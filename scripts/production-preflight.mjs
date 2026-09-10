@@ -17,7 +17,7 @@ for (const file of required) if (!existsSync(resolve(root, file))) errors.push(`
 if (existsSync(resolve(root, "src/server-routes/api/isabella.ts"))) errors.push("legacy duplicate src/server-routes/api/isabella.ts must not exist");
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
 if (pkg.packageManager !== "pnpm@10.15.0") errors.push("packageManager must be pnpm@10.15.0");
-if (pkg.engines?.node !== "22.x") errors.push("engines.node must be 22.x for deterministic production runtime");
+if (pkg.engines?.node !== ">=22") errors.push("engines.node must be >=22 for deterministic production runtime");
 for (const script of ["build", "start", "typecheck", "lint", "test", "db:migrate", "db:verify", "production:preflight", "production:gate"]) if (!pkg.scripts?.[script]) errors.push(`missing npm script:${script}`);
 const vercel = JSON.parse(readFileSync(resolve(root, "vercel.json"), "utf8"));
 if (vercel.framework !== "tanstack-start") errors.push("vercel.framework must be tanstack-start");

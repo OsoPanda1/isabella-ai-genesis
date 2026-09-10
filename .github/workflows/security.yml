@@ -255,7 +255,7 @@ jobs:
           echo "critical=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
           echo "high=${{ steps.npm-audit.outputs.high }}" >> $GITHUB_OUTPUT
 
-      - name: Upload security artifacts (retention: 90 days)
+      - name: "Upload security artifacts (retention: 90 days)"
         uses: actions/upload-artifact@v4
         if: always()
         with:

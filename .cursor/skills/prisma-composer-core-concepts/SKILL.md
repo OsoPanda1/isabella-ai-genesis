@@ -1,36 +1,23 @@
-
-
 Perfecto. Aquí tienes la versión optimizada para Cursor IDE — enfocada en código accionable, snippets copiables y comandos listos para ejecutar mientras desarrollas:
 
 text
 ---
+
 name: prisma-composer-core-concepts
 metadata:
-  library: "@prisma/composer"
-  library_version: "0.17.0"
-  version: 2026.9.1-cursor
-  agent: cursor
-  difficulty: intermediate
-  estimated_read_time: 10-15 minutes
-  use_case: coding-assistant
-  triggers:
-    - "prisma composer"
-    - "@prisma/composer"
-    - "compute()"
-    - "module()"
-    - "service.load()"
-    - "how do I create a service"
-    - "prisma composer deploy"
-    - "prisma composer test"
-    - "prisma composer migration"
-    - "prisma composer dev"
-  related_skills:
-    - prisma-orm-fundamentals
-    - typescript-snippets
-  last_updated: 2026-09-06
+library: "@prisma/composer"
+library_version: "0.17.0"
+version: 2026.9.1-cursor
+agent: cursor
+difficulty: intermediate
+estimated_read_time: 10-15 minutes
+use_case: coding-assistant
+triggers: - "prisma composer" - "@prisma/composer" - "compute()" - "module()" - "service.load()" - "how do I create a service" - "prisma composer deploy" - "prisma composer test" - "prisma composer migration" - "prisma composer dev"
+related_skills: - prisma-orm-fundamentals - typescript-snippets
+last_updated: 2026-09-06
 description: >-
-  Code-first Prisma Composer guide for Cursor IDE. Optimized for real-time coding assistance
-  with copy-paste snippets, CLI commands, and quick troubleshooting. Less theory, more action.
+Code-first Prisma Composer guide for Cursor IDE. Optimized for real-time coding assistance
+with copy-paste snippets, CLI commands, and quick troubleshooting. Less theory, more action.
 ---
 
 # Prisma Composer — Code-First Guide (Cursor)
@@ -42,11 +29,13 @@ description: >-
 ## Core Concepts (TL;DR)
 
 **3 Node Types**:
+
 - `compute()` → Service (running code)
 - `rawPostgres()`, `bucket()` → Resource (managed dependency)
 - `module()` → Module (grouping, no runtime)
 
 **2 Golden Rules**:
+
 1. ❌ Never use `process.env` → ✅ Use `service.load()`, `service.input()`, `service.port()`
 2. ❌ Don't expect framework to build → ✅ You build, framework assembles
 
@@ -64,19 +53,19 @@ import { z } from "zod";
 
 export default compute({
   name: "auth",
-  deps: { 
-    db: rawPostgres() 
+  deps: {
+    db: rawPostgres(),
   },
   input: {
     jwtSecret: z.string().min(16),
-    sessionTtl: z.number().default(3600)
+    sessionTtl: z.number().default(3600),
   },
-  build: node({ 
-    module: import.meta.url, 
-    entry: "../dist/server.mjs" 
+  build: node({
+    module: import.meta.url,
+    entry: "../dist/server.mjs",
   }),
-  expose: { 
-    rpc: authContract 
+  expose: {
+    rpc: authContract,
   },
 });
 ```
@@ -102,14 +91,14 @@ const handler = serve(service, {
       const sql = new SQL({ url: db.url });
       const user = await sql`SELECT * FROM users WHERE email = ${email}`;
       return { ok: true, token: "jwt_here" };
-    }
-  } satisfies typeof authContract
+    },
+  } satisfies typeof authContract,
 });
 
-Bun.serve({ 
-  port: service.port(), 
-  hostname: "0.0.0.0", 
-  fetch: handler 
+Bun.serve({
+  port: service.port(),
+  hostname: "0.0.0.0",
+  fetch: handler,
 });
 ```
 
@@ -123,9 +112,9 @@ import { storefrontService } from "./services/storefront";
 
 export default module("store", ({ provision }) => {
   const auth = provision(authModule);
-  
-  provision(storefrontService, { 
-    deps: { auth: auth.rpc } 
+
+  provision(storefrontService, {
+    deps: { auth: auth.rpc },
   });
 });
 ```
@@ -142,8 +131,8 @@ const handler = serve(service, {
       const verification = await auth.verify({ token: "..." });
       if (!verification.ok) throw new Error("Unauthorized");
       return { data: "protected" };
-    }
-  }
+    },
+  },
 });
 ```
 
@@ -182,7 +171,7 @@ import { prismaCloud, nextjsBuild } from "@prisma/composer-prisma-cloud";
 
 export default {
   targets: [prismaCloud()],
-  builds: [nextjsBuild({ module: import.meta.url, appDir: "./app" })]
+  builds: [nextjsBuild({ module: import.meta.url, appDir: "./app" })],
 };
 ```
 
@@ -218,12 +207,12 @@ describe("auth service", () => {
     const mockDb = { url: "postgresql://mock:5432/test" };
     const service = mockService(authDeclaration, {
       deps: { db: mockDb },
-      input: { jwtSecret: "test-secret-key-here" }
+      input: { jwtSecret: "test-secret-key-here" },
     });
-    
+
     const { verify } = service.load().rpc;
     const result = await verify({ token: "valid-token" });
-    
+
     expect(result.ok).toBe(true);
   });
 });
@@ -238,21 +227,21 @@ import { describe, it, expect, beforeEach } from "bun:test";
 
 describe("auth integration", () => {
   let service: ReturnType<typeof bootstrapService>;
-  
+
   beforeEach(() => {
     service = bootstrapService(authDeclaration, {
       deps: { db: { url: "postgresql://localhost:5432/test_db" } },
-      input: { jwtSecret: "test-secret" }
+      input: { jwtSecret: "test-secret" },
     });
   });
-  
+
   it("handles login request", async () => {
     const response = await fetch(`http://localhost:${service.port}/rpc/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "test@example.com", password: "password123" })
+      body: JSON.stringify({ email: "test@example.com", password: "password123" }),
     });
-    
+
     expect(response.status).toBe(200);
   });
 });
@@ -308,12 +297,12 @@ prisma-composer log
 
 ### Dev vs Deploy
 
-| Aspect | `dev` | `deploy` |
-|--------|-------|----------|
-| Build required | ✅ Yes | ✅ Yes |
-| Cloud credentials | ❌ No | ✅ Yes |
-| Watch mode | ✅ Yes | ❌ No |
-| Logs | Separate `log` command | In deploy report |
+| Aspect            | `dev`                  | `deploy`         |
+| ----------------- | ---------------------- | ---------------- |
+| Build required    | ✅ Yes                 | ✅ Yes           |
+| Cloud credentials | ❌ No                  | ✅ Yes           |
+| Watch mode        | ✅ Yes                 | ❌ No            |
+| Logs              | Separate `log` command | In deploy report |
 
 ---
 
@@ -321,14 +310,14 @@ prisma-composer log
 
 ### Common Errors
 
-| Error | Fix |
-|-------|-----|
-| **`effect` version conflict** | Pin `effect` constellation in `package.json` overrides (see above) |
-| **`/rpc/<method>` returns 401** | Normal — service keys enforced. Debug through consumer or locally |
-| **`MIGRATION_PATH_NOT_FOUND`** | Run `prisma migration plan --name <slug>` before deploy |
-| **First timestamp read fails** | Add `import 'temporal-polyfill/global'` at server entry |
-| **Service unreachable** | Bind to `0.0.0.0`, not `localhost` |
-| **Name fails at load** | Use `[A-Za-z0-9]` only in names (no hyphens) |
+| Error                           | Fix                                                                |
+| ------------------------------- | ------------------------------------------------------------------ |
+| **`effect` version conflict**   | Pin `effect` constellation in `package.json` overrides (see above) |
+| **`/rpc/<method>` returns 401** | Normal — service keys enforced. Debug through consumer or locally  |
+| **`MIGRATION_PATH_NOT_FOUND`**  | Run `prisma migration plan --name <slug>` before deploy            |
+| **First timestamp read fails**  | Add `import 'temporal-polyfill/global'` at server entry            |
+| **Service unreachable**         | Bind to `0.0.0.0`, not `localhost`                                 |
+| **Name fails at load**          | Use `[A-Za-z0-9]` only in names (no hyphens)                       |
 
 ### Connection Contract Refusal
 
@@ -373,12 +362,12 @@ import { module } from "@prisma/composer";
 import { postgres } from "@prisma/composer-prisma-cloud/orm";
 
 export default module("ecommerce", ({ provision }) => {
-  const db = provision(postgres("ecommerce", { /* ... */ }));
-  
+  const db = provision(postgres("ecommerce", {/* ... */}));
+
   const products = provision(productsService, { deps: { db } });
   const orders = provision(ordersService, { deps: { db, products: products.rpc } });
   const payments = provision(paymentsService, { deps: { db, orders: orders.rpc } });
-  
+
   return { products, orders, payments };
 });
 ```
@@ -391,15 +380,15 @@ import { module, secret } from "@prisma/composer";
 
 export default module("auth", ({ provision }) => {
   provision(authService, {
-    input: { jwtSecret: secret() }
+    input: { jwtSecret: secret() },
   });
-  
+
   return { api: authService.rpc };
 });
 
 // Parent binds real source
 provision(authModule, {
-  input: { jwtSecret: envSecret("JWT_SECRET") }
+  input: { jwtSecret: envSecret("JWT_SECRET") },
 });
 ```
 
@@ -407,15 +396,15 @@ provision(authModule, {
 
 ## Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
-| `process.env.PORT` | `service.port()` |
-| `curl` deployed `/rpc/<method>` | Debug through consumer |
-| Skip `prisma migration plan` | Always author migrations first |
-| Use hyphens in names (`my-db`) | Use `[A-Za-z0-9]` only |
-| Bind to `localhost` | Bind to `0.0.0.0` |
-| Build SSE/streaming | Use polling/webhooks |
-| Edit `.prisma-composer/alchemy.run.ts` | It's generated, not config |
+| ❌ Don't                               | ✅ Do                          |
+| -------------------------------------- | ------------------------------ |
+| `process.env.PORT`                     | `service.port()`               |
+| `curl` deployed `/rpc/<method>`        | Debug through consumer         |
+| Skip `prisma migration plan`           | Always author migrations first |
+| Use hyphens in names (`my-db`)         | Use `[A-Za-z0-9]` only         |
+| Bind to `localhost`                    | Bind to `0.0.0.0`              |
+| Build SSE/streaming                    | Use polling/webhooks           |
+| Edit `.prisma-composer/alchemy.run.ts` | It's generated, not config     |
 
 ---
 
@@ -442,6 +431,7 @@ prisma-composer <command> --help
 ```
 
 ### File Structure
+
 my-app/
 ├── prisma-composer.config.ts
 ├── tsconfig.json
@@ -474,12 +464,16 @@ text
 import { module, compute, node } from "@prisma/composer";
 
 // Prisma Cloud
-import { prismaCloud, rawPostgres, bucket, envSecret, envParam } 
-  from "@prisma/composer-prisma-cloud";
+import {
+  prismaCloud,
+  rawPostgres,
+  bucket,
+  envSecret,
+  envParam,
+} from "@prisma/composer-prisma-cloud";
 
 // ORM
-import { postgres, dataContract } 
-  from "@prisma/composer-prisma-cloud/orm";
+import { postgres, dataContract } from "@prisma/composer-prisma-cloud/orm";
 
 // Modules
 import { cron } from "@prisma/composer-prisma-cloud/cron";
@@ -508,11 +502,11 @@ import { deploy, destroy, dev, log } from "@prisma/composer/control";
 ---
 
 > **Remember**: Typecheck → Build → Deploy. Never use cloud to find wiring errors.
-Características de esta versión para Cursor:
-✅ Código primero — snippets copiables inmediatamente
-✅ Comandos CLI listos — copy-paste para terminal
-✅ Tablas de errores — troubleshooting rápido mientras codificas
-✅ Patrones comunes — arquitecturas probadas
-✅ Anti-patrones — qué evitar en tiempo real
-✅ Import paths — referencia rápida de imports
-✅ Sin teoría extensa — solo lo necesario para actuar
+> Características de esta versión para Cursor:
+> ✅ Código primero — snippets copiables inmediatamente
+> ✅ Comandos CLI listos — copy-paste para terminal
+> ✅ Tablas de errores — troubleshooting rápido mientras codificas
+> ✅ Patrones comunes — arquitecturas probadas
+> ✅ Anti-patrones — qué evitar en tiempo real
+> ✅ Import paths — referencia rápida de imports
+> ✅ Sin teoría extensa — solo lo necesario para actuar

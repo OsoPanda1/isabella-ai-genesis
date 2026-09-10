@@ -249,11 +249,17 @@ function sanitizeExample(example: LearningExample): LearningExample {
 }
 
 function sanitizeText(value: string): string {
-  return value.replace(/\u0000/g, "").replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim();
+  let sanitized = "";
+  for (const character of value) {
+    const code = character.codePointAt(0) ?? 0;
+    if (code >= 0x20 || code === 0x09 || code === 0x0a || code === 0x0d) sanitized += character;
+  }
+  return sanitized.trim();
 }
 
 function containsPromptInjection(value: string): boolean {
-  return /(ignore\s+(all|previous|prior)\s+instructions|system\s+prompt|developer\s+message|reveal\s+(the\s+)?secret|jailbreak)/i.test(value);
+  const normalized = value.toLowerCase().replace(/\s+/g, " ").trim();
+  return ["ignore all instructions", "ignore previous instructions", "ignore prior instructions", "system prompt", "developer message", "reveal the secret", "reveal secret", "jailbreak"].some((term) => normalized.includes(term));
 }
 
 function extractConcepts(...values: Array<string | Record<string, unknown> | undefined>): string[] {

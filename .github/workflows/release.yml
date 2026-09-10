@@ -34,6 +34,7 @@ jobs:
           AEGIS_AUDIT_SECRET: ${{ secrets.AEGIS_AUDIT_SECRET }}
           BOOKPI_SIGNING_KEY: ${{ secrets.BOOKPI_SIGNING_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ISABELLA_RUNTIME_MODE: ${{ secrets.ISABELLA_RUNTIME_MODE }}
           PROVISION_OWNER_TOKEN: ${{ secrets.PROVISION_OWNER_TOKEN }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
@@ -42,6 +43,7 @@ jobs:
           REQUIRED_VARS=(
             DATABASE_URL
             PUBLIC_URL
+ISABELLA_RUNTIME_MODE
             ISABELLA_STORAGE_PROVIDER
             AUTH_JWT_SECRET
             ENCRYPTION_MASTER_KEY

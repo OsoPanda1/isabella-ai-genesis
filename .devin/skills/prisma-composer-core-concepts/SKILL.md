@@ -37,12 +37,14 @@ description: >-
 ## Execution Principles
 
 **Before starting any task**:
+
 1. ✅ Verify `@prisma/composer` and `@prisma/composer-prisma-cloud` are installed
 2. ✅ Check `prisma-composer.config.ts` exists
 3. ✅ Confirm `effect` constellation is pinned in `package.json`
 4. ✅ Validate environment variables set (for deploy): `PRISMA_SERVICE_TOKEN`, `PRISMA_WORKSPACE_ID`
 
 **Golden Rules**:
+
 1. ❌ Never use `process.env` → ✅ All config via `service.load()`, `service.input()`, `service.port()`
 2. ❌ Never deploy without building → ✅ Always `build` before `deploy` or `dev`
 3. ❌ Never skip migration plan → ✅ Always `prisma migration plan` before deploy
@@ -101,6 +103,7 @@ EOF
 ```
 
 **Verification**:
+
 ```bash
 # Check config is valid
 prisma-composer --help
@@ -132,7 +135,7 @@ export const authContract = {
   }).transform(async ({ token }) => {
     return { ok: true, userId: "user_123" };
   }),
-  
+
   login: z.object({
     email: z.string().email(),
     password: z.string().min(8)
@@ -150,19 +153,19 @@ import { z } from "zod";
 
 export default compute({
   name: "auth",
-  deps: { 
-    db: rawPostgres() 
+  deps: {
+    db: rawPostgres()
   },
   input: {
     jwtSecret: z.string().min(16),
     sessionTtl: z.number().default(3600)
   },
-  build: node({ 
-    module: import.meta.url, 
-    entry: "../dist/server.mjs" 
+  build: node({
+    module: import.meta.url,
+    entry: "../dist/server.mjs"
   }),
-  expose: { 
-    rpc: authContract 
+  expose: {
+    rpc: authContract
   },
 });
 EOF
@@ -190,10 +193,10 @@ const handler = serve(service, {
   } satisfies typeof authContract
 });
 
-Bun.serve({ 
-  port: service.port(), 
-  hostname: "0.0.0.0", 
-  fetch: handler 
+Bun.serve({
+  port: service.port(),
+  hostname: "0.0.0.0",
+  fetch: handler
 });
 EOF
 
@@ -205,15 +208,16 @@ import { storefrontService } from "./services/storefront";
 
 export default module("store", ({ provision }) => {
   const auth = provision(authModule);
-  
-  provision(storefrontService, { 
-    deps: { auth: auth.rpc } 
+
+  provision(storefrontService, {
+    deps: { auth: auth.rpc }
   });
 });
 EOF
 ```
 
 **Verification**:
+
 ```bash
 # Typecheck
 npx tsc --noEmit
@@ -231,6 +235,7 @@ bun build services/auth/server.ts --outdir dist --format esm
 ### Task: Deploy App to Stage
 
 **Prerequisites Check**:
+
 ```bash
 # 1. Verify env vars
 echo "PRISMA_SERVICE_TOKEN: ${PRISMA_SERVICE_TOKEN:-(not set)}"
@@ -260,6 +265,7 @@ prisma-composer deploy staging
 ```
 
 **Post-Deploy Verification**:
+
 ```bash
 # Test RPC endpoint (through consumer, not direct curl)
 # Direct curl will return 401 (expected - service keys enforced)
@@ -270,12 +276,12 @@ prisma-composer log --stage staging
 
 **Failure Recovery**:
 
-| Error | Recovery Action |
-|-------|-----------------|
-| `effect` version conflict | Reinstall with pinned versions (see Setup) |
-| `MIGRATION_PATH_NOT_FOUND` | Run `prisma migration plan --name <slug>` |
-| `DEPLOY.ENGINE_FAILED` | Run `alchemy deploy .prisma-composer/alchemy.run.ts` directly |
-| 401 on `/rpc/<method>` | Normal — debug through consumer, not direct curl |
+| Error                      | Recovery Action                                               |
+| -------------------------- | ------------------------------------------------------------- |
+| `effect` version conflict  | Reinstall with pinned versions (see Setup)                    |
+| `MIGRATION_PATH_NOT_FOUND` | Run `prisma migration plan --name <slug>`                     |
+| `DEPLOY.ENGINE_FAILED`     | Run `alchemy deploy .prisma-composer/alchemy.run.ts` directly |
+| 401 on `/rpc/<method>`     | Normal — debug through consumer, not direct curl              |
 
 ---
 
@@ -313,6 +319,7 @@ prisma-composer deploy production
 ```
 
 **Verification**:
+
 ```bash
 # Check migration was applied
 prisma-composer log --stage production
@@ -322,11 +329,11 @@ prisma-composer log --stage production
 
 **Failure Recovery**:
 
-| Error | Recovery Action |
-|-------|-----------------|
+| Error                      | Recovery Action                                       |
+| -------------------------- | ----------------------------------------------------- |
 | `MIGRATION_PATH_NOT_FOUND` | Author missing migration with `prisma migration plan` |
-| Migration fails on deploy | Check `migrations/` directory committed, retry deploy |
-| Local DB stale | Run `prisma db update` for local iteration only |
+| Migration fails on deploy  | Check `migrations/` directory committed, retry deploy |
+| Local DB stale             | Run `prisma db update` for local iteration only       |
 
 ---
 
@@ -350,10 +357,10 @@ describe("auth service", () => {
       deps: { db: mockDb },
       input: { jwtSecret: "test-secret-key-here" }
     });
-    
+
     const { verify } = service.load().rpc;
     const result = await verify({ token: "valid-token" });
-    
+
     expect(result.ok).toBe(true);
   });
 });
@@ -366,21 +373,21 @@ import { describe, it, expect, beforeEach } from "bun:test";
 
 describe("auth integration", () => {
   let service: ReturnType<typeof bootstrapService>;
-  
+
   beforeEach(() => {
     service = bootstrapService(authDeclaration, {
       deps: { db: { url: "postgresql://localhost:5432/test_db" } },
       input: { jwtSecret: "test-secret" }
     });
   });
-  
+
   it("handles login request", async () => {
     const response = await fetch(`http://localhost:${service.port}/rpc/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: "test@example.com", password: "password123" })
     });
-    
+
     expect(response.status).toBe(200);
   });
 });
@@ -392,6 +399,7 @@ bun test tests/auth.integration.test.ts
 ```
 
 **Verification**:
+
 ```bash
 # All tests should pass
 # Check test output for failures
@@ -433,13 +441,13 @@ prisma-composer log --stage staging
 
 **Common Issues & Fixes**:
 
-| Issue | Diagnostic | Fix |
-|-------|------------|-----|
-| `effect` version conflict | `Dependency conflict: alchemy resolves effect@...` | Pin effect constellation in `package.json` overrides |
-| 401 on `/rpc/<method>` | Direct curl returns 401 | Normal — service keys enforced. Debug through consumer |
-| `MIGRATION_PATH_NOT_FOUND` | Deploy refuses with this error | Run `prisma migration plan --name <slug>` |
-| Service unreachable | Can't connect to deployed service | Check binding: should be `0.0.0.0`, not `localhost` |
-| Timestamp read fails | First read of DateTime column crashes | Add `import 'temporal-polyfill/global'` at server entry |
+| Issue                      | Diagnostic                                         | Fix                                                     |
+| -------------------------- | -------------------------------------------------- | ------------------------------------------------------- |
+| `effect` version conflict  | `Dependency conflict: alchemy resolves effect@...` | Pin effect constellation in `package.json` overrides    |
+| 401 on `/rpc/<method>`     | Direct curl returns 401                            | Normal — service keys enforced. Debug through consumer  |
+| `MIGRATION_PATH_NOT_FOUND` | Deploy refuses with this error                     | Run `prisma migration plan --name <slug>`               |
+| Service unreachable        | Can't connect to deployed service                  | Check binding: should be `0.0.0.0`, not `localhost`     |
+| Timestamp read fails       | First read of DateTime column crashes              | Add `import 'temporal-polyfill/global'` at server entry |
 
 ---
 
@@ -467,6 +475,7 @@ prisma-composer dev --clean
 ```
 
 **Verification**:
+
 ```bash
 # Check services are running
 prisma-composer log
@@ -477,6 +486,7 @@ prisma-composer log
 ---
 
 ## File Structure Reference
+
 my-app/
 ├── prisma-composer.config.ts # Deploy config
 ├── tsconfig.json # TypeScript config
@@ -533,12 +543,16 @@ prisma-composer <command> --help # Show command help
 import { module, compute, node } from "@prisma/composer";
 
 // Prisma Cloud
-import { prismaCloud, rawPostgres, bucket, envSecret, envParam } 
-  from "@prisma/composer-prisma-cloud";
+import {
+  prismaCloud,
+  rawPostgres,
+  bucket,
+  envSecret,
+  envParam,
+} from "@prisma/composer-prisma-cloud";
 
 // ORM
-import { postgres, dataContract } 
-  from "@prisma/composer-prisma-cloud/orm";
+import { postgres, dataContract } from "@prisma/composer-prisma-cloud/orm";
 
 // Modules
 import { cron } from "@prisma/composer-prisma-cloud/cron";
@@ -567,11 +581,11 @@ import { deploy, destroy, dev, log } from "@prisma/composer/control";
 ---
 
 > **Execution Checklist**: Typecheck ✅ → Build ✅ → Deploy ✅ → Verify ✅
-Características de esta versión para Devin:
-✅ Tasks autónomas — pasos completos ejecutables
-✅ Verificación integrada — checks después de cada paso
-✅ Recovery procedures — qué hacer cuando falla
-✅ Comandos copy-paste — scripts listos para terminal
-✅ Diagnóstico estructurado — tablas de issues & fixes
-✅ File structure reference — para navegación autónoma
-✅ Import reference — para generación de código
+> Características de esta versión para Devin:
+> ✅ Tasks autónomas — pasos completos ejecutables
+> ✅ Verificación integrada — checks después de cada paso
+> ✅ Recovery procedures — qué hacer cuando falla
+> ✅ Comandos copy-paste — scripts listos para terminal
+> ✅ Diagnóstico estructurado — tablas de issues & fixes
+> ✅ File structure reference — para navegación autónoma
+> ✅ Import reference — para generación de código

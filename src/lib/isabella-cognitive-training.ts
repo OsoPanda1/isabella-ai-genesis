@@ -159,10 +159,19 @@ function expandStrategy(strategy: CognitiveTrainingStrategy, sample: CognitiveTr
   }
 }
 
+function stripControlCharacters(value: string): string {
+  let sanitized = "";
+  for (const character of value) {
+    const code = character.codePointAt(0) ?? 0;
+    if (code >= 0x20 || code === 0x09 || code === 0x0a || code === 0x0d) sanitized += character;
+  }
+  return sanitized;
+}
+
 function normalizeSample(sample: CognitiveTrainingSample): CognitiveTrainingSample {
-  const input = sample.input.replace(/\u0000/g, "").trim();
-  const target = sample.target?.replace(/\u0000/g, "").trim();
-  const negative = sample.negative?.replace(/\u0000/g, "").trim();
+  const input = stripControlCharacters(sample.input).trim();
+  const target = sample.target ? stripControlCharacters(sample.target).trim() : undefined;
+  const negative = sample.negative ? stripControlCharacters(sample.negative).trim() : undefined;
   if (!input) throw new Error("Cognitive training input cannot be empty");
 
   return {

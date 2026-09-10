@@ -431,7 +431,7 @@ jobs:
             diff schema-dump.sql schema-restored.sql || true
           fi
 
-      - name: Upload backup artifacts (retention: 90 days)
+      - name: "Upload backup artifacts (retention: 90 days)"
         uses: actions/upload-artifact@v4
         if: always()
         with:

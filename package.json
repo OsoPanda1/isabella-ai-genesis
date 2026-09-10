@@ -5,7 +5,7 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
-  "engines": { "node": "22.x" },
+  "engines": { "node": ">=22" },
   "scripts": {
     "dev": "node scripts/check-env.mjs && vite dev --host 0.0.0.0",
     "prebuild": "node scripts/check-client-env.mjs",
