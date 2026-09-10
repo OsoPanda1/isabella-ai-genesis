@@ -59,12 +59,12 @@ description: >-
 
 Prisma Composer is a **declarative application framework** that assembles TypeScript services, resources, and modules into deployable applications. Key differentiators:
 
-| Feature | Traditional Framework | Prisma Composer |
-|---------|----------------------|-----------------|
-| **Environment access** | `process.env` everywhere | All dependencies injected via `service` |
-| **Build process** | Framework bundles everything | You build, framework assembles |
-| **Error detection** | Runtime failures | Compile-time (`tsc`) failures |
-| **Deployment** | Environment-specific code | Identical graph, stage name only changes |
+| Feature                | Traditional Framework        | Prisma Composer                          |
+| ---------------------- | ---------------------------- | ---------------------------------------- |
+| **Environment access** | `process.env` everywhere     | All dependencies injected via `service`  |
+| **Build process**      | Framework bundles everything | You build, framework assembles           |
+| **Error detection**    | Runtime failures             | Compile-time (`tsc`) failures            |
+| **Deployment**         | Environment-specific code    | Identical graph, stage name only changes |
 
 **Two Governing Principles** (binding constraints from `docs/design/01-principles/`):
 
@@ -79,15 +79,16 @@ Prisma Composer is a **declarative application framework** that assembles TypeSc
 
 Every Prisma App is a tree of **declarations** (plain data, no execution on import):
 
-| Node Type | Declared With | Purpose | Runtime Behavior |
-|-----------|---------------|---------|------------------|
-| **Service** | `compute()` | Running unit of your code | Atomic; Composer sees only its ports |
-| **Resource** | `rawPostgres()`, `bucket()` | Stateful managed dependency | Provisioned by platform |
-| **Module** | `module()` | Grouping boundary | Runs no code; exposes typed ports |
+| Node Type    | Declared With               | Purpose                     | Runtime Behavior                     |
+| ------------ | --------------------------- | --------------------------- | ------------------------------------ |
+| **Service**  | `compute()`                 | Running unit of your code   | Atomic; Composer sees only its ports |
+| **Resource** | `rawPostgres()`, `bucket()` | Stateful managed dependency | Provisioned by platform              |
+| **Module**   | `module()`                  | Grouping boundary           | Runs no code; exposes typed ports    |
 
 ### Wiring Architecture
 
 Nodes connect through **ports**:
+
 - `deps` → what a node requires
 - `expose` → what it offers
 - Wiring happens in Module's builder via `provision()`
@@ -100,9 +101,9 @@ import { storefrontService } from "./services/storefront";
 
 export default module("store", ({ provision }) => {
   const catalog = provision(catalogModule);
-  
-  provision(storefrontService, { 
-    deps: { catalog: catalog.rpc } // Typed wiring
+
+  provision(storefrontService, {
+    deps: { catalog: catalog.rpc }, // Typed wiring
   });
 });
 ```
@@ -116,19 +117,16 @@ export default module("store", ({ provision }) => {
 import { module, compute, node } from "@prisma/composer";
 
 // Prisma Cloud target + resources
-import { 
-  prismaCloud, 
-  rawPostgres, 
-  bucket, 
-  envSecret, 
-  envParam 
+import {
+  prismaCloud,
+  rawPostgres,
+  bucket,
+  envSecret,
+  envParam,
 } from "@prisma/composer-prisma-cloud";
 
 // ORM vocabulary (separate subpath)
-import { 
-  postgres, 
-  dataContract 
-} from "@prisma/composer-prisma-cloud/orm";
+import { postgres, dataContract } from "@prisma/composer-prisma-cloud/orm";
 
 // Shared modules
 import { cron } from "@prisma/composer-prisma-cloud/cron";
@@ -154,19 +152,19 @@ import { z } from "zod";
 
 export default compute({
   name: "auth",
-  deps: { 
-    db: rawPostgres() // Declares need for Postgres
+  deps: {
+    db: rawPostgres(), // Declares need for Postgres
   },
   input: {
     jwtSecret: z.string().min(16),
-    sessionTtl: z.number().default(3600)
+    sessionTtl: z.number().default(3600),
   },
-  build: node({ 
-    module: import.meta.url, 
-    entry: "../dist/server.mjs" 
+  build: node({
+    module: import.meta.url,
+    entry: "../dist/server.mjs",
   }),
-  expose: { 
-    rpc: authContract // Typed RPC interface
+  expose: {
+    rpc: authContract, // Typed RPC interface
   },
 });
 ```
@@ -192,14 +190,14 @@ const handler = serve(service, {
       const sql = new SQL({ url: db.url });
       const user = await sql`SELECT * FROM users WHERE email = ${email}`;
       return { ok: true, token: "jwt_here" };
-    }
-  } satisfies typeof authContract // ← Compile-time exhaustive check
+    },
+  } satisfies typeof authContract, // ← Compile-time exhaustive check
 });
 
-Bun.serve({ 
+Bun.serve({
   port: service.port(), // Never process.env.PORT
-  hostname: "0.0.0.0", 
-  fetch: handler 
+  hostname: "0.0.0.0",
+  fetch: handler,
 });
 ```
 
@@ -213,9 +211,9 @@ import { storefrontService } from "./services/storefront";
 
 export default module("store", ({ provision }) => {
   const auth = provision(authModule);
-  
-  provision(storefrontService, { 
-    deps: { auth: auth.rpc } // Typed RPC client
+
+  provision(storefrontService, {
+    deps: { auth: auth.rpc }, // Typed RPC client
   });
 });
 ```
@@ -232,8 +230,8 @@ const handler = serve(service, {
       const verification = await auth.verify({ token: "..." });
       if (!verification.ok) throw new Error("Unauthorized");
       return { data: "protected" };
-    }
-  }
+    },
+  },
 });
 ```
 
@@ -243,10 +241,10 @@ const handler = serve(service, {
 
 Understanding this distinction is **critical** for correct architecture:
 
-| Value Type | Declare With | Provide At | Read Via | Example |
-|------------|--------------|------------|----------|---------|
-| **Produced by another node** | `deps: { db: rawPostgres() }` | `provision()` wiring | `service.load()` | Database, RPC client, bucket |
-| **Config or credential** | Field in `input` schema | `provision()` binding | `service.input()` | API keys, secrets, feature flags |
+| Value Type                   | Declare With                  | Provide At            | Read Via          | Example                          |
+| ---------------------------- | ----------------------------- | --------------------- | ----------------- | -------------------------------- |
+| **Produced by another node** | `deps: { db: rawPostgres() }` | `provision()` wiring  | `service.load()`  | Database, RPC client, bucket     |
+| **Config or credential**     | Field in `input` schema       | `provision()` binding | `service.input()` | API keys, secrets, feature flags |
 
 ### Input Schema with Secrets
 
@@ -257,12 +255,12 @@ import { secretString } from "@prisma/composer/arktype";
 const inputSchema = z.object({
   // Regular config (arrives as string)
   apiVersion: z.string().default("v1"),
-  
+
   // Credential (arrives as SecretString box)
   stripeKey: secretString(),
-  
+
   // Conditional: secret only if billing enabled
-  billingKey: z.union([secretString(), z.literal("disabled")])
+  billingKey: z.union([secretString(), z.literal("disabled")]),
 });
 ```
 
@@ -275,8 +273,8 @@ provision(paymentService, {
   input: {
     apiVersion: "v2", // Literal
     stripeKey: envSecret("STRIPE_SECRET_KEY"), // Platform variable
-    billingKey: envParam("BILLING_ENABLED") // Raw string from platform
-  }
+    billingKey: envParam("BILLING_ENABLED"), // Raw string from platform
+  },
 });
 ```
 
@@ -300,18 +298,22 @@ A **contract** is the typed interface through which services communicate:
 import { z } from "zod";
 
 export const authContract = {
-  verify: z.object({
-    token: z.string()
-  }).transform(async ({ token }) => {
-    return { ok: true, userId: "user_123" };
-  }),
-  
-  login: z.object({
-    email: z.string().email(),
-    password: z.string().min(8)
-  }).transform(async ({ email, password }) => {
-    return { ok: true, token: "jwt" };
-  })
+  verify: z
+    .object({
+      token: z.string(),
+    })
+    .transform(async ({ token }) => {
+      return { ok: true, userId: "user_123" };
+    }),
+
+  login: z
+    .object({
+      email: z.string().email(),
+      password: z.string().min(8),
+    })
+    .transform(async ({ email, password }) => {
+      return { ok: true, token: "jwt" };
+    }),
 };
 ```
 
@@ -323,6 +325,7 @@ export const authContract = {
 - `serve()` returns `401` to anything else before handler runs
 
 **Consequences**:
+
 - ❌ Don't build your own service-to-service auth
 - ❌ Don't `curl` deployed `/rpc/<method>` — unwired caller always gets `401`
 - ✅ Debug through consumer, or locally where nothing enforced
@@ -343,8 +346,8 @@ const handler = serve(service, {
     processPayment: async (input, deps, ctx) => {
       // ctx.idempotencyKey: string | undefined
       // Most handlers don't need this
-    }
-  }
+    },
+  },
 });
 ```
 
@@ -360,21 +363,21 @@ const handler = serve(service, {
 // service declaration
 export default compute({
   name: "api",
-  build: node({ 
-    module: import.meta.url, 
-    entry: "../dist/server.mjs" // Must be single self-contained ESM file
-  })
+  build: node({
+    module: import.meta.url,
+    entry: "../dist/server.mjs", // Must be single self-contained ESM file
+  }),
 });
 ```
 
 ### Build Rules
 
-| Rule | Consequence |
-|------|-------------|
-| Two services in one package | Two separate builds, one per entry |
-| Directory build uses `dir` + `entry` | `dir` relative to service module, `entry` file inside `dir`; `../` is error |
-| Tree must contain no symlinks | Packager rejects them, names the link, assembly fails |
-| Server resolves siblings against `import.meta.url` | Not working directory |
+| Rule                                               | Consequence                                                                 |
+| -------------------------------------------------- | --------------------------------------------------------------------------- |
+| Two services in one package                        | Two separate builds, one per entry                                          |
+| Directory build uses `dir` + `entry`               | `dir` relative to service module, `entry` file inside `dir`; `../` is error |
+| Tree must contain no symlinks                      | Packager rejects them, names the link, assembly fails                       |
+| Server resolves siblings against `import.meta.url` | Not working directory                                                       |
 
 ### Next.js Integration
 
@@ -384,13 +387,13 @@ import { prismaCloud, nextjsBuild } from "@prisma/composer-prisma-cloud";
 
 export default {
   targets: [prismaCloud()],
-  builds: [nextjsBuild({ module: import.meta.url, appDir: "./app" })]
+  builds: [nextjsBuild({ module: import.meta.url, appDir: "./app" })],
 };
 ```
 
 ```typescript
 // Any page/action calling load() needs:
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 // Runtime environment doesn't exist at build time
 ```
 
@@ -412,10 +415,10 @@ prisma-composer deploy production
 
 ### Two Kinds of Postgres Dependency
 
-| Type | Import From | Binding | Use Case |
-|------|-------------|---------|----------|
-| **`rawPostgres()`** | `@prisma/composer-prisma-cloud` | `{ url }` | You own the client |
-| **`postgres()`** | `@prisma/composer-prisma-cloud/orm` | `{ url, client }` | Prisma ORM-typed database |
+| Type                | Import From                         | Binding           | Use Case                  |
+| ------------------- | ----------------------------------- | ----------------- | ------------------------- |
+| **`rawPostgres()`** | `@prisma/composer-prisma-cloud`     | `{ url }`         | You own the client        |
+| **`postgres()`**    | `@prisma/composer-prisma-cloud/orm` | `{ url, client }` | Prisma ORM-typed database |
 
 ### Prisma ORM Flow
 
@@ -426,13 +429,15 @@ import { postgres, dataContract } from "@prisma/composer-prisma-cloud/orm";
 import { catalogData } from "./contract.prisma";
 
 export default module("catalog", ({ provision }) => {
-  const db = provision(postgres("catalog", {
-    dataContract: dataContract(catalogData),
-    prismaConfig: "./prisma.config.ts"
-  }));
-  
+  const db = provision(
+    postgres("catalog", {
+      dataContract: dataContract(catalogData),
+      prismaConfig: "./prisma.config.ts",
+    }),
+  );
+
   provision(catalogService, {
-    deps: { db } // { url, client } — compile-time checked queries
+    deps: { db }, // { url, client } — compile-time checked queries
   });
 });
 ```
@@ -457,6 +462,7 @@ prisma-composer deploy production
 ```
 
 **If no authored path reaches target contract**:
+
 - Deploy refuses with `MIGRATION_PATH_NOT_FOUND`
 - Error message lists two ways out:
   1. Author the missing migration
@@ -512,6 +518,7 @@ prisma-composer destroy staging production # ❌ Error: naming both
 ```
 
 **Key behaviors**:
+
 - Destroying production removes resources inside production Branch, never Branch itself
 - Once Project is empty, it's deleted (takes production Branch with it)
 - Project holding another stage's resources is kept
@@ -530,6 +537,7 @@ alchemy deploy .prisma-composer/alchemy.run.ts
 ```
 
 **Why this matters**:
+
 1. Failures are bisectable through that file
 2. Engine failure = `DEPLOY.ENGINE_FAILED` with exit code + reproduce command
 3. **App must be built before destroy** (evaluating stack packages assembled bundles)
@@ -551,25 +559,25 @@ prisma-composer dev
 
 **Concepts That Surprise**:
 
-| Behavior | Detail |
-|----------|--------|
-| **Same pipeline as deploy** | Build first, watches built output, restarts service on build change |
-| **Ctrl-C stops processes** | Leaves local databases, buckets, data up — next `dev` is warm start |
-| **Clean start is explicit** | Opt-in flag wipes local instances and data |
-| **No log output in `dev`** | Use separate `log` command (read-only, follows merged logs) |
-| **Unset secret = placeholder** | Warning only; code path that spends it fails at external service |
-| **Windows not supported** | Use WSL or macOS/Linux |
+| Behavior                       | Detail                                                              |
+| ------------------------------ | ------------------------------------------------------------------- |
+| **Same pipeline as deploy**    | Build first, watches built output, restarts service on build change |
+| **Ctrl-C stops processes**     | Leaves local databases, buckets, data up — next `dev` is warm start |
+| **Clean start is explicit**    | Opt-in flag wipes local instances and data                          |
+| **No log output in `dev`**     | Use separate `log` command (read-only, follows merged logs)         |
+| **Unset secret = placeholder** | Warning only; code path that spends it fails at external service    |
+| **Windows not supported**      | Use WSL or macOS/Linux                                              |
 
 ### Dev vs Deploy Comparison
 
-| Aspect | `dev` | `deploy` |
-|--------|-------|----------|
-| **Build required** | ✅ Yes | ✅ Yes |
-| **Cloud credentials** | ❌ No | ✅ Yes |
-| **Data persistence** | ✅ Local emulators | ✅ Cloud resources |
-| **Log output** | ❌ Separate `log` command | ✅ Included in deploy report |
-| **Secret handling** | Placeholder if unset | Fails if missing |
-| **Watch mode** | ✅ Yes | ❌ No |
+| Aspect                | `dev`                     | `deploy`                     |
+| --------------------- | ------------------------- | ---------------------------- |
+| **Build required**    | ✅ Yes                    | ✅ Yes                       |
+| **Cloud credentials** | ❌ No                     | ✅ Yes                       |
+| **Data persistence**  | ✅ Local emulators        | ✅ Cloud resources           |
+| **Log output**        | ❌ Separate `log` command | ✅ Included in deploy report |
+| **Secret handling**   | Placeholder if unset      | Fails if missing             |
+| **Watch mode**        | ✅ Yes                    | ❌ No                        |
 
 ---
 
@@ -579,9 +587,9 @@ prisma-composer dev
 
 A test is just another environment where you decide what `load()` and `input()` return.
 
-| Goal | Use | Import From |
-|------|-----|-------------|
-| Test page/action/handler in isolation | `mockService` | `@prisma/composer/testing` |
+| Goal                                                 | Use                | Import From                             |
+| ---------------------------------------------------- | ------------------ | --------------------------------------- |
+| Test page/action/handler in isolation                | `mockService`      | `@prisma/composer/testing`              |
 | Run real boot + request path against fake dependency | `bootstrapService` | `@prisma/composer-prisma-cloud/testing` |
 
 ### Mock Service (Unit Testing)
@@ -597,12 +605,12 @@ describe("auth service", () => {
     const mockDb = { url: "postgresql://mock:5432/test" };
     const service = mockService(authDeclaration, {
       deps: { db: mockDb },
-      input: { jwtSecret: "test-secret-key-here" }
+      input: { jwtSecret: "test-secret-key-here" },
     });
-    
+
     const { verify } = service.load().rpc;
     const result = await verify({ token: "valid-token" });
-    
+
     expect(result.ok).toBe(true);
   });
 });
@@ -617,23 +625,23 @@ import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 
 describe("auth integration", () => {
   let service: ReturnType<typeof bootstrapService>;
-  
+
   beforeEach(() => {
     service = bootstrapService(authDeclaration, {
-      deps: { 
-        db: { url: "postgresql://localhost:5432/test_db" } 
+      deps: {
+        db: { url: "postgresql://localhost:5432/test_db" },
       },
-      input: { jwtSecret: "test-secret" }
+      input: { jwtSecret: "test-secret" },
     });
   });
-  
+
   it("handles login request", async () => {
     const response = await fetch(`http://localhost:${service.port}/rpc/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "test@example.com", password: "password123" })
+      body: JSON.stringify({ email: "test@example.com", password: "password123" }),
     });
-    
+
     expect(response.status).toBe(200);
   });
 });
@@ -654,13 +662,13 @@ describe("auth integration", () => {
 
 All import from `@prisma/composer-prisma-cloud` subpaths:
 
-| Import | Path | Provisions | Exposes |
-|--------|------|------------|---------|
-| **Cron** | `/cron` | Always-on scheduler firing your schedule at runner service | nothing |
-| **Storage** | `/storage` | S3-backed blob store (own Postgres + minted credentials) | `store` |
-| **Streams** | `/streams` | Durable append-only event streams over a `store` | `streams` |
-| **Auth** | `/auth` | Signup, login, sessions, JWT verification (Better Auth, own database) | `api`, `session`, `admin` |
-| **Email** | `/email` | Transactional email with stored outbox (own service + database) | `send`, `outbox` |
+| Import      | Path       | Provisions                                                            | Exposes                   |
+| ----------- | ---------- | --------------------------------------------------------------------- | ------------------------- |
+| **Cron**    | `/cron`    | Always-on scheduler firing your schedule at runner service            | nothing                   |
+| **Storage** | `/storage` | S3-backed blob store (own Postgres + minted credentials)              | `store`                   |
+| **Streams** | `/streams` | Durable append-only event streams over a `store`                      | `streams`                 |
+| **Auth**    | `/auth`    | Signup, login, sessions, JWT verification (Better Auth, own database) | `api`, `session`, `admin` |
+| **Email**   | `/email`   | Transactional email with stored outbox (own service + database)       | `send`, `outbox`          |
 
 ### Raw Bucket
 
@@ -678,17 +686,17 @@ import { bucket } from "@prisma/composer-prisma-cloud";
 
 ### Failure Modes Quick Reference
 
-| Symptom | Cause | Solution |
-|---------|-------|----------|
-| **Every command halts on `effect` version conflict** | Another dependency floated newer `effect`, package manager hoisted it | Pin whole `effect` constellation in `package.json` `overrides` (see below) |
-| **Deployed `/rpc/<method>` returns `401`** | Not a broken deploy — service keys enforced | Debug through consumer, or locally where nothing enforced |
-| **Scale-to-zero closes idle DB connections** | Persistent client crashes into 502 restart loop | Use small, reconnect-friendly pool: `new SQL({ url, max: 1, idleTimeout: 10 })`; log `uncaughtException`/`unhandledRejection` |
-| **Cold starts reset service-to-service connections** | Call into scaled-to-zero service gets `ECONNRESET` | Retry the call |
-| **Service unreachable from outside** | Bound to loopback instead of `0.0.0.0` | Bind `0.0.0.0` — platform routes external HTTP to VM |
-| **SSE tail delivers nothing, times out at 60s** | Ingress buffers streaming responses | Don't build on streamed HTTP responses |
-| **Name passes `tsc`, fails at load** | Provision ids/names must be ASCII letters+digits only (`[A-Za-z0-9]`) | No hyphens in names; root module's name exempt; provision id ≥3 chars; service name ≠ enclosing Module name (or give explicit `id`) |
-| **`MIGRATION_PATH_NOT_FOUND`** | No authored migration path reaches target contract | Author missing migration; never skip `prisma migration plan` step |
-| **First timestamp read fails** | Date/time columns hand back `Temporal.*` values; Bun/stock Node ship no global `Temporal` | Provide global at server entry: `import 'temporal-polyfill/global'` or use string column types |
+| Symptom                                              | Cause                                                                                     | Solution                                                                                                                            |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Every command halts on `effect` version conflict** | Another dependency floated newer `effect`, package manager hoisted it                     | Pin whole `effect` constellation in `package.json` `overrides` (see below)                                                          |
+| **Deployed `/rpc/<method>` returns `401`**           | Not a broken deploy — service keys enforced                                               | Debug through consumer, or locally where nothing enforced                                                                           |
+| **Scale-to-zero closes idle DB connections**         | Persistent client crashes into 502 restart loop                                           | Use small, reconnect-friendly pool: `new SQL({ url, max: 1, idleTimeout: 10 })`; log `uncaughtException`/`unhandledRejection`       |
+| **Cold starts reset service-to-service connections** | Call into scaled-to-zero service gets `ECONNRESET`                                        | Retry the call                                                                                                                      |
+| **Service unreachable from outside**                 | Bound to loopback instead of `0.0.0.0`                                                    | Bind `0.0.0.0` — platform routes external HTTP to VM                                                                                |
+| **SSE tail delivers nothing, times out at 60s**      | Ingress buffers streaming responses                                                       | Don't build on streamed HTTP responses                                                                                              |
+| **Name passes `tsc`, fails at load**                 | Provision ids/names must be ASCII letters+digits only (`[A-Za-z0-9]`)                     | No hyphens in names; root module's name exempt; provision id ≥3 chars; service name ≠ enclosing Module name (or give explicit `id`) |
+| **`MIGRATION_PATH_NOT_FOUND`**                       | No authored migration path reaches target contract                                        | Author missing migration; never skip `prisma migration plan` step                                                                   |
+| **First timestamp read fails**                       | Date/time columns hand back `Temporal.*` values; Bun/stock Node ship no global `Temporal` | Provide global at server entry: `import 'temporal-polyfill/global'` or use string column types                                      |
 
 ### Pinning `effect` Constellation
 
@@ -751,20 +759,20 @@ import { module } from "@prisma/composer";
 import { postgres } from "@prisma/composer-prisma-cloud/orm";
 
 export default module("ecommerce", ({ provision }) => {
-  const db = provision(postgres("ecommerce", { /* ... */ }));
-  
+  const db = provision(postgres("ecommerce", {/* ... */}));
+
   const products = provision(productsService, {
-    deps: { db }
+    deps: { db },
   });
-  
+
   const orders = provision(ordersService, {
-    deps: { db, products: products.rpc }
+    deps: { db, products: products.rpc },
   });
-  
+
   const payments = provision(paymentsService, {
-    deps: { db, orders: orders.rpc }
+    deps: { db, orders: orders.rpc },
   });
-  
+
   return { products, orders, payments };
 });
 ```
@@ -778,18 +786,18 @@ import { module, secret } from "@prisma/composer";
 export default module("auth", ({ provision }) => {
   provision(authService, {
     input: {
-      jwtSecret: secret() // Forwarded without learning platform name
-    }
+      jwtSecret: secret(), // Forwarded without learning platform name
+    },
   });
-  
+
   return { api: authService.rpc };
 });
 
 // Parent binds real source
 provision(authModule, {
   input: {
-    jwtSecret: envSecret("JWT_SECRET")
-  }
+    jwtSecret: envSecret("JWT_SECRET"),
+  },
 });
 ```
 
@@ -801,11 +809,11 @@ export default compute({
   name: "analytics",
   deps: {
     // Optional: only wired if analytics enabled
-    clickhouse: rawPostgres().optional()
+    clickhouse: rawPostgres().optional(),
   },
   input: {
-    analyticsEnabled: z.boolean()
-  }
+    analyticsEnabled: z.boolean(),
+  },
 });
 ```
 
@@ -813,18 +821,18 @@ export default compute({
 
 ## Anti-Patterns to Avoid
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
-| Read `process.env` anywhere | Use `service.input()` for all config |
-| Build your own service-to-service auth | Rely on Composer's service keys |
-| `curl` deployed `/rpc/<method>` directly | Debug through consumer or locally |
-| Skip `prisma migration plan` before deploy | Always author migrations, then deploy |
-| Use hyphens in service/module names | Use `[A-Za-z0-9]` only |
-| Bind to `localhost` or `127.0.0.1` | Bind to `0.0.0.0` |
-| Build SSE/streaming responses | Use polling or webhooks instead |
-| Create persistent DB clients without reconnection logic | Use small pool + `uncaughtException` logging |
-| Import `@prisma/composer` in app code (except entry points) | Keep imports to service declarations only |
-| Edit `.prisma-composer/alchemy.run.ts` | It's generated output, not configuration |
+| ❌ Don't                                                    | ✅ Do                                        |
+| ----------------------------------------------------------- | -------------------------------------------- |
+| Read `process.env` anywhere                                 | Use `service.input()` for all config         |
+| Build your own service-to-service auth                      | Rely on Composer's service keys              |
+| `curl` deployed `/rpc/<method>` directly                    | Debug through consumer or locally            |
+| Skip `prisma migration plan` before deploy                  | Always author migrations, then deploy        |
+| Use hyphens in service/module names                         | Use `[A-Za-z0-9]` only                       |
+| Bind to `localhost` or `127.0.0.1`                          | Bind to `0.0.0.0`                            |
+| Build SSE/streaming responses                               | Use polling or webhooks instead              |
+| Create persistent DB clients without reconnection logic     | Use small pool + `uncaughtException` logging |
+| Import `@prisma/composer` in app code (except entry points) | Keep imports to service declarations only    |
+| Edit `.prisma-composer/alchemy.run.ts`                      | It's generated output, not configuration     |
 
 ---
 
@@ -851,6 +859,7 @@ prisma-composer <command> --help # Discover flags and options
 ```
 
 ### File Structure
+
 my-app/
 ├── prisma-composer.config.ts # Deploy config (extensions, builds, state backend)
 ├── tsconfig.json # TypeScript config (allowImportingTsExtensions: true)
@@ -887,6 +896,7 @@ Name the gap instead of inventing an API:
 3. **RPC over HTTP is only contract kind** — no gRPC, WebSocket, or streaming contracts
 
 **For anything else missing**:
+
 - Check `examples/` in prisma/composer repo
 - Review `docs/design/10-domains/` and `docs/design/90-decisions/`
 - File an issue rather than guessing
@@ -895,29 +905,29 @@ Name the gap instead of inventing an API:
 
 ## Support & Resources
 
-| Resource | URL |
-|----------|-----|
-| Official Docs | <https://www.prisma.io/docs/composer> |
-| GitHub Repo | <https://github.com/prisma/composer> |
-| Examples | <https://github.com/prisma/composer/tree/main/examples> |
-| Design Docs | <https://github.com/prisma/composer/tree/main/docs/design> |
-| Discord Community | <https://pris.ly/discord> |
-| npm Package | <https://www.npmjs.com/package/@prisma/composer> |
+| Resource          | URL                                                        |
+| ----------------- | ---------------------------------------------------------- |
+| Official Docs     | <https://www.prisma.io/docs/composer>                      |
+| GitHub Repo       | <https://github.com/prisma/composer>                       |
+| Examples          | <https://github.com/prisma/composer/tree/main/examples>    |
+| Design Docs       | <https://github.com/prisma/composer/tree/main/docs/design> |
+| Discord Community | <https://pris.ly/discord>                                  |
+| npm Package       | <https://www.npmjs.com/package/@prisma/composer>           |
 
 ---
 
 > **Remember**: Typecheck → Build → Deploy. Don't use the cloud to find out whether the wiring is correct.
-Mejoras Clave Implementadas (10x)
-Dimensión	Original	Versión Mejorada
-Dimensión	Original	Versión Mejorada
-Metadatos	6 líneas, básicos	30+ líneas, con triggers extendidos, prerequisitos, changelog
-Estructura visual	Párrafos densos	Tablas, código destacado, iconos, separadores claros
-Ejemplos	Fragmentos aislados	Flujo progresivo completo (declaración → implementación → wiring → consumo)
-Navegación	Sin índice	Quick Start paths, enlaces internos, tabla de contenido implícita
-Troubleshooting	Lista al final	Tabla síntoma/causa/solución integrada + sección dedicada
-Patrones	Ausentes	3 patrones comunes con código copiable
-Anti-patrones	Implícitos	Tabla explícita "❌ Don't / ✅ Do"
-Quick Reference	Enterrado en prosa	Sección dedicada con comandos y estructura de archivos
-Comparativas	Pocas	Múltiples tablas comparativas (dev vs deploy, deps vs input, etc.)
-Acción inmediata	Requiere inferencia	Código listo para copiar/pegar desde el primer ejemplo
-Esta versión está optimizada para Isabella como asistente técnico: puede responder preguntas específicas saltando a secciones concretas, proporcionar ejemplos ejecutables inmediatamente, y diagnosticar problemas usando las tablas de troubleshooting.
+> Mejoras Clave Implementadas (10x)
+> Dimensión Original Versión Mejorada
+> Dimensión Original Versión Mejorada
+> Metadatos 6 líneas, básicos 30+ líneas, con triggers extendidos, prerequisitos, changelog
+> Estructura visual Párrafos densos Tablas, código destacado, iconos, separadores claros
+> Ejemplos Fragmentos aislados Flujo progresivo completo (declaración → implementación → wiring → consumo)
+> Navegación Sin índice Quick Start paths, enlaces internos, tabla de contenido implícita
+> Troubleshooting Lista al final Tabla síntoma/causa/solución integrada + sección dedicada
+> Patrones Ausentes 3 patrones comunes con código copiable
+> Anti-patrones Implícitos Tabla explícita "❌ Don't / ✅ Do"
+> Quick Reference Enterrado en prosa Sección dedicada con comandos y estructura de archivos
+> Comparativas Pocas Múltiples tablas comparativas (dev vs deploy, deps vs input, etc.)
+> Acción inmediata Requiere inferencia Código listo para copiar/pegar desde el primer ejemplo
+> Esta versión está optimizada para Isabella como asistente técnico: puede responder preguntas específicas saltando a secciones concretas, proporcionar ejemplos ejecutables inmediatamente, y diagnosticar problemas usando las tablas de troubleshooting.

@@ -146,7 +146,7 @@ const CAPABILITIES = [
   },
   {
     capability: "Inference policy (fail-closed prod)",
-    sources: ["src/lib/inference-policy.ts", "src/server-routes/api/isabella.ts"],
+    sources: ["src/lib/inference-policy.ts", "src/server-routes/api/isabella-voice.ts"],
     tests: ["test/unit/inference-authority.test.ts"],
     runtime: "503 maintenance en prod sin proveedor; nativo declarado solo dev.",
     status: "real",

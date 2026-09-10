@@ -36,11 +36,22 @@ function assertProductionCrypto(mode: RuntimeMode, parsed: Env): void {
 export function loadConfig(source: RawEnv = process.env): Env {
   if (cached) return cached;
 
-  const parsed = resolveEnv(source);
+  const effectiveSource: RawEnv = {
+    ...source,
+    DATABASE_URL:
+      source.DATABASE_URL ??
+      source.NEON_DATABASE_POSTGRES_URL ??
+      source.NEON_DATABASE_DATABASE_URL ??
+      source.SUPABASE_DATABASE_POSTGRES_URL,
+    ISABELLA_STORAGE_PROVIDER:
+      source.ISABELLA_STORAGE_PROVIDER ??
+      ((source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL) ? "postgres" : undefined),
+  };
+  const parsed = resolveEnv(effectiveSource);
   const mode: RuntimeMode = parsed.ISABELLA_RUNTIME_MODE;
 
   try {
-    assertRequired(mode, source);
+    assertRequired(mode, effectiveSource);
     assertProductionCrypto(mode, parsed);
     if (mode === "production" || mode === "staging") {
       if (parsed.DURABLE_JSON_ALLOWED) {
