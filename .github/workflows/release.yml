@@ -43,7 +43,7 @@ jobs:
           REQUIRED_VARS=(
             DATABASE_URL
             PUBLIC_URL
-ISABELLA_RUNTIME_MODE
+            ISABELLA_RUNTIME_MODE
             ISABELLA_STORAGE_PROVIDER
             AUTH_JWT_SECRET
             ENCRYPTION_MASTER_KEY
