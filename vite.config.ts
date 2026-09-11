@@ -4,6 +4,7 @@ import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { nitro } from "nitro/vite";
+import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   plugins: [
@@ -12,7 +13,7 @@ export default defineConfig({
       enforce: "pre",
       resolveId(id, _importer, options) {
         if (!options?.ssr && id === "node:crypto") {
-          return new URL("./src/lib/browser-node-crypto.ts", import.meta.url).pathname;
+          return fileURLToPath(new URL("./src/lib/browser-node-crypto.ts", import.meta.url));
         }
         return null;
       },

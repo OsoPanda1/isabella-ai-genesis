@@ -88,8 +88,45 @@ const forbidden = [
   /\bsavepoint\b/i,
   /\brelease\s+savepoint\b/i,
 ];
+
+// SQL dollar-quoted bodies ($$...$$ or $tag$...$tag$) are function payload, not
+// top-level statements. Stripping them keeps the automatic path fail-closed
+// against real destructive SQL while allowing legitimate retention prunes
+// inside stored functions (e.g. fgais_federation_replay_prune).
+function stripDollarQuoted(sql) {
+  let out = "";
+  let i = 0;
+  while (i < sql.length) {
+    const open = sql.indexOf("$", i);
+    if (open === -1) {
+      out += sql.slice(i);
+      break;
+    }
+    let tag = null;
+    if (sql[open + 1] === "$") {
+      tag = "$$";
+    } else {
+      const match = /^[A-Za-z_][A-Za-z0-9_]*\$/.exec(sql.slice(open + 1));
+      if (match) tag = "$" + match[0];
+    }
+    if (!tag) {
+      out += sql.slice(i, open + 1);
+      i = open + 1;
+      continue;
+    }
+    out += sql.slice(i, open);
+    const close = sql.indexOf(tag, open + tag.length);
+    if (close === -1) {
+      out += sql.slice(open);
+      break;
+    }
+    i = close + tag.length;
+  }
+  return out;
+}
+
 for (const file of migrations) {
-  const sql = readFileSync(resolve(MIGRATIONS_DIR, file), "utf8");
+  const sql = stripDollarQuoted(readFileSync(resolve(MIGRATIONS_DIR, file), "utf8"));
   const violations = forbidden.filter((pattern) => pattern.test(sql));
   if (violations.length) {
     fail(`unsafe SQL detected in ${file}; automatic Neon path refuses destructive or transaction-control statements`);

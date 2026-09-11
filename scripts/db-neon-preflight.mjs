@@ -50,9 +50,45 @@ const unsafePatterns = [
   /\brelease\s+savepoint\b/i,
 ];
 
+// SQL dollar-quoted bodies ($$...$$ or $tag$...$tag$, e.g. SECURITY DEFINER
+// function bodies) are payload, not top-level statements. Stripping them keeps
+// the automatic path fail-closed against real destructive SQL while allowing
+// legitimate retention prunes inside stored functions.
+function stripDollarQuoted(sql) {
+  let out = "";
+  let i = 0;
+  while (i < sql.length) {
+    const open = sql.indexOf("$", i);
+    if (open === -1) {
+      out += sql.slice(i);
+      break;
+    }
+    let tag = null;
+    if (sql[open + 1] === "$") {
+      tag = "$$";
+    } else {
+      const match = /^[A-Za-z_][A-Za-z0-9_]*\$/.exec(sql.slice(open + 1));
+      if (match) tag = "$" + match[0];
+    }
+    if (!tag) {
+      out += sql.slice(i, open + 1);
+      i = open + 1;
+      continue;
+    }
+    out += sql.slice(i, open);
+    const close = sql.indexOf(tag, open + tag.length);
+    if (close === -1) {
+      out += sql.slice(open);
+      break;
+    }
+    i = close + tag.length;
+  }
+  return out;
+}
+
 const unsafeMigrations = [];
 for (const file of migrations) {
-  const sql = readFileSync(resolve(migrationsDir, file), "utf8");
+  const sql = stripDollarQuoted(readFileSync(resolve(migrationsDir, file), "utf8"));
   if (unsafePatterns.some((pattern) => pattern.test(sql))) unsafeMigrations.push(file);
 }
 

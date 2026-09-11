@@ -26,6 +26,7 @@
     "test:bookpi": "vitest run --project bookpi",
     "test:security": "vitest run --project security",
     "db:migrate": "node scripts/db-migrate.mjs",
+    "db:neon:preflight": "node scripts/db-neon-preflight.mjs",
     "db:verify": "node scripts/db-verify.mjs",
     "db:backup": "node scripts/db-backup.mjs",
     "db:restore": "node scripts/db-restore.mjs",
