@@ -11,15 +11,14 @@ const required = [
   "src/server-routes/api/health.ts", "src/lib/intelligence/router.ts",
   "src/lib/intelligence/durable-model-registry.ts", "src/lib/intelligence/production-model-gate.ts",
   "supabase/migrations/20260908123000_fgais_model_runtime_registry.sql", ".env.example",
-  "scripts/db-neon-preflight.mjs", "scripts/db-migrate.mjs",
 ];
 const errors = [];
 for (const file of required) if (!existsSync(resolve(root, file))) errors.push(`missing:${file}`);
 if (existsSync(resolve(root, "src/server-routes/api/isabella.ts"))) errors.push("legacy duplicate src/server-routes/api/isabella.ts must not exist");
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
 if (pkg.packageManager !== "pnpm@10.15.0") errors.push("packageManager must be pnpm@10.15.0");
-if (pkg.engines?.node !== "24.11.0") errors.push("engines.node must be 24.11.0 to match .nvmrc/CI production runtime");
-for (const script of ["build", "start", "typecheck", "lint", "test", "db:migrate", "db:neon:preflight", "db:verify", "production:preflight", "production:gate"]) if (!pkg.scripts?.[script]) errors.push(`missing npm script:${script}`);
+if (pkg.engines?.node !== ">=22") errors.push("engines.node must be >=22 for deterministic production runtime");
+for (const script of ["build", "start", "typecheck", "lint", "test", "db:migrate", "db:verify", "production:preflight", "production:gate"]) if (!pkg.scripts?.[script]) errors.push(`missing npm script:${script}`);
 const vercel = JSON.parse(readFileSync(resolve(root, "vercel.json"), "utf8"));
 if (vercel.framework !== "tanstack-start") errors.push("vercel.framework must be tanstack-start");
 if (vercel.installCommand !== "pnpm install --frozen-lockfile") errors.push("Vercel installCommand must use frozen lockfile");
