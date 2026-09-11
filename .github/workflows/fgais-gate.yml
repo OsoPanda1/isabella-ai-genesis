@@ -4,7 +4,7 @@ on:
   workflow_call:
   pull_request:
   push:
-    branches: [main, "feat/**"]
+    branches: [main, "feat/**", "chore/**"]
   workflow_dispatch:
 
 permissions:
@@ -17,6 +17,7 @@ concurrency:
 env:
   NODE_VERSION: "22.16.0"
   PNPM_VERSION: "10.15.0"
+  SANITIZE_STRICT: "true"
 
 jobs:
   verify:
