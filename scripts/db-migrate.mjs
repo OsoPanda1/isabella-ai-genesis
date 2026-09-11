@@ -9,7 +9,8 @@
  * - Uses a transaction-scoped advisory lock.
  * - Refuses checksum drift.
  * - Refuses to guess the history of an existing production schema.
- * - No DROP/TRUNCATE/DELETE migration is accepted by the production runner.
+ * - Refuses destructive table/data operations in the automatic path.
+ * - Verifies final schema invariants BEFORE COMMIT.
  */
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, mkdtempSync, writeFileSync, rmSync } from "node:fs";
@@ -26,7 +27,6 @@ const mode = process.argv[2] ?? "push";
 const planOnly = process.argv.includes("--plan");
 
 const HISTORY_TABLE = "public.isabella_schema_migrations";
-const LOCK_KEY = "isabella-schema-migrations-v2";
 const CANONICAL_TABLES = ["tenants", "profiles", "sessions", "memories", "audit_events", "bookpi_ledger"];
 
 function listMigrations() {
@@ -64,8 +64,7 @@ if (mode !== "psql" || !databaseUrl) {
 const migrations = listMigrations();
 if (!migrations.length) fail("no SQL migrations found");
 
-// Conservative production safety gate. DROP POLICY is intentionally allowed;
-// destructive table/data operations are not part of the automatic migration path.
+// Conservative production safety gate. DROP POLICY is intentionally allowed.
 const destructive = /\b(drop\s+(table|schema|database)|truncate\s+(table\s+)?|delete\s+from)\b/i;
 for (const file of migrations) {
   if (destructive.test(readFileSync(resolve(MIGRATIONS_DIR, file), "utf8"))) {
@@ -73,28 +72,22 @@ for (const file of migrations) {
   }
 }
 
-// Read state without creating or changing anything.
 const state = psql(["-tAc", `select
   exists(select 1 from information_schema.tables where table_schema='public' and table_name='isabella_schema_migrations') as history_exists,
   (select count(*) from information_schema.tables where table_schema='public' and table_name = any(array['tenants','profiles','sessions','memories','audit_events','bookpi_ledger'])) as canonical_count;`]);
 if (state.status !== 0) fail(`cannot inspect database: ${(state.stderr ?? "").trim()}`);
 
-const [historyExistsRaw, canonicalCountRaw] = (state.stdout ?? "").trim().split(/\s*\|\s*/);
-const historyExists = String(historyExistsRaw).trim() === "t";
-const canonicalCount = Number(String(canonicalCountRaw).trim());
+const stateFields = (state.stdout ?? "").trim().split(/\s*\|\s*/);
+const historyExists = String(stateFields[0] ?? "").trim() === "t";
+const canonicalCount = Number(String(stateFields[1] ?? "0").trim());
 
 if (!historyExists && canonicalCount > 0) {
   fail(
     `existing schema detected (${canonicalCount}/${CANONICAL_TABLES.length} canonical tables) but migration history is absent. ` +
-    "Automatic baseline is disabled to prevent collateral changes. Run an explicit schema reconciliation/baseline audit first.",
+    "Automatic baseline is disabled to prevent collateral changes. Run explicit schema reconciliation first.",
   );
 }
 
-if (!historyExists) {
-  console.log("No migration ledger and no canonical production schema detected: initial controlled migration is eligible.");
-}
-
-// Obtain the ledger only when it exists.
 const applied = new Map();
 if (historyExists) {
   const ledger = psql(["-tAc", `select version || E'\\t' || filename || E'\\t' || checksum_sha256 from ${HISTORY_TABLE} order by version;`]);
@@ -104,7 +97,7 @@ if (historyExists) {
     if (version && filename && checksum) applied.set(version, { filename, checksum });
   }
   if (applied.size === 0 && canonicalCount > 0) {
-    fail("migration ledger exists but is empty while the canonical schema exists; refusing to infer history");
+    fail("migration ledger is empty while the canonical schema exists; refusing to infer history");
   }
 }
 
@@ -131,8 +124,6 @@ if (!pending.length) {
   process.exit(0);
 }
 
-// Build ONE transaction. The advisory lock is transaction-scoped, so it cannot
-// be accidentally lost between Node/psql processes.
 const workDir = mkdtempSync(resolve(tmpdir(), "isabella-migrate-"));
 const transactionFile = resolve(workDir, "migration-batch.sql");
 const chunks = [
@@ -149,12 +140,78 @@ const chunks = [
 for (const file of pending) {
   const version = file.slice(0, 14);
   const checksum = sha256File(file);
+  chunks.push(`-- BEGIN ${file}`);
   chunks.push(readFileSync(resolve(MIGRATIONS_DIR, file), "utf8"));
   chunks.push(
     `insert into ${HISTORY_TABLE}(version, filename, checksum_sha256) values ` +
       `('${version}', '${file.replaceAll("'", "''")}', '${checksum}');`,
   );
+  chunks.push(`-- END ${file}`);
 }
+
+// Final-state invariants are evaluated inside the same transaction. Any failure
+// raises an exception and rolls back every schema change made in this batch.
+chunks.push(`
+DO $$
+DECLARE
+  required_table text;
+  required_column text;
+  required_policy text;
+BEGIN
+  FOREACH required_table IN ARRAY ARRAY['tenants','profiles','sessions','memories','audit_events','bookpi_ledger','isabella_learning_state'] LOOP
+    IF to_regclass('public.' || required_table) IS NULL THEN
+      RAISE EXCEPTION 'POST-MIGRATION INVARIANT FAILED: missing table %', required_table;
+    END IF;
+  END LOOP;
+
+  FOREACH required_column IN ARRAY ARRAY[
+    'tenant_id','user_id','sensitivity','purpose','consent','provenance','content_hash','expires_at'
+  ] LOOP
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema='public' AND table_name='memories' AND column_name=required_column
+    ) THEN
+      RAISE EXCEPTION 'POST-MIGRATION INVARIANT FAILED: memories.% missing', required_column;
+    END IF;
+  END LOOP;
+
+  FOREACH required_policy IN ARRAY ARRAY[
+    'Memory tenant read boundary',
+    'Memory principal-bound insert',
+    'Memory principal-bound update',
+    'Memory principal-bound delete'
+  ] LOOP
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_policies
+      WHERE schemaname='public' AND tablename='memories' AND policyname=required_policy
+    ) THEN
+      RAISE EXCEPTION 'POST-MIGRATION INVARIANT FAILED: memories policy % missing', required_policy;
+    END IF;
+  END LOOP;
+
+  IF EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname='public' AND tablename='memories'
+      AND policyname='Tenant multi-tenant isolation policy for memories'
+  ) THEN
+    RAISE EXCEPTION 'POST-MIGRATION INVARIANT FAILED: legacy broad memories policy remains';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname='current_tenant_id')
+     OR NOT EXISTS (SELECT 1 FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname='current_user_role')
+     OR NOT EXISTS (SELECT 1 FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname='current_user_id') THEN
+    RAISE EXCEPTION 'POST-MIGRATION INVARIANT FAILED: security helper function missing';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname='vector') THEN
+    RAISE EXCEPTION 'POST-MIGRATION INVARIANT FAILED: pgvector extension missing';
+  END IF;
+
+  IF (SELECT count(*) FROM ${HISTORY_TABLE}) <> ${migrations.length} THEN
+    RAISE EXCEPTION 'POST-MIGRATION INVARIANT FAILED: migration ledger count mismatch';
+  END IF;
+END $$;
+`);
 
 writeFileSync(transactionFile, `${chunks.join("\n\n")}\n`, "utf8");
 console.log(`Aplicando ${pending.length} migración(es) en una sola transacción PostgreSQL...`);
@@ -166,4 +223,4 @@ try {
   rmSync(workDir, { recursive: true, force: true });
 }
 
-console.log("Migración completada: esquema y ledger quedaron confirmados en la misma transacción.");
+console.log("MIGRATION PASS: schema, RLS, pgvector, invariants and migration ledger committed atomically.");
