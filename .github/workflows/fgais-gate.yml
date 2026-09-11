@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "22.16.0"
+  NODE_VERSION: "24.11.0"
   PNPM_VERSION: "10.15.0"
   SANITIZE_STRICT: "true"
 
