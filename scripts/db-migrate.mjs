@@ -3,13 +3,14 @@
  * db:migrate — Safe PostgreSQL migration runner for Neon/production.
  *
  * Guarantees:
- * - Never blindly replays the whole migration directory.
+ * - Never blindly replays the migration directory.
  * - Uses a version + SHA-256 ledger.
  * - Applies all pending migrations in ONE PostgreSQL transaction.
  * - Uses a transaction-scoped advisory lock.
- * - Refuses checksum drift.
+ * - Refuses checksum/history drift.
  * - Refuses to guess the history of an existing production schema.
  * - Refuses destructive table/data operations in the automatic path.
+ * - Refuses transaction-control SQL inside migration files.
  * - Verifies final schema invariants BEFORE COMMIT.
  */
 import { createHash } from "node:crypto";
@@ -28,6 +29,14 @@ const planOnly = process.argv.includes("--plan");
 
 const HISTORY_TABLE = "public.isabella_schema_migrations";
 const CANONICAL_TABLES = ["tenants", "profiles", "sessions", "memories", "audit_events", "bookpi_ledger"];
+const REQUIRED_FINAL_TABLES = [...CANONICAL_TABLES, "isabella_learning_state"];
+const REQUIRED_MEMORY_COLUMNS = ["tenant_id", "user_id", "sensitivity", "purpose", "consent", "provenance", "content_hash", "expires_at"];
+const REQUIRED_MEMORY_POLICIES = [
+  "Memory tenant read boundary",
+  "Memory principal-bound insert",
+  "Memory principal-bound update",
+  "Memory principal-bound delete",
+];
 
 function listMigrations() {
   return readdirSync(MIGRATIONS_DIR)
@@ -64,11 +73,26 @@ if (mode !== "psql" || !databaseUrl) {
 const migrations = listMigrations();
 if (!migrations.length) fail("no SQL migrations found");
 
-// Conservative production safety gate. DROP POLICY is intentionally allowed.
-const destructive = /\b(drop\s+(table|schema|database)|truncate\s+(table\s+)?|delete\s+from)\b/i;
+// Automatic production path accepts only migrations that are transaction-safe and
+// non-destructive. DROP POLICY/TRIGGER is intentionally allowed because the project
+// uses those statements for idempotent policy/trigger replacement.
+const forbidden = [
+  /\bdrop\s+(table|schema|database|view|materialized\s+view)\b/i,
+  /\btruncate\b/i,
+  /\bdelete\s+from\b/i,
+  /\balter\s+table\b[\s\S]*?\bdrop\s+(column|constraint)\b/i,
+  /\bcreate\s+index\b[\s\S]*?\bconcurrently\b/i,
+  /\bcommit\s*;/i,
+  /\brollback\s*;/i,
+  /\bbegin\s*;/i,
+  /\bsavepoint\b/i,
+  /\brelease\s+savepoint\b/i,
+];
 for (const file of migrations) {
-  if (destructive.test(readFileSync(resolve(MIGRATIONS_DIR, file), "utf8"))) {
-    fail(`destructive SQL detected in ${file}; automatic production migration is forbidden`);
+  const sql = readFileSync(resolve(MIGRATIONS_DIR, file), "utf8");
+  const violations = forbidden.filter((pattern) => pattern.test(sql));
+  if (violations.length) {
+    fail(`unsafe SQL detected in ${file}; automatic Neon path refuses destructive or transaction-control statements`);
   }
 }
 
@@ -149,8 +173,6 @@ for (const file of pending) {
   chunks.push(`-- END ${file}`);
 }
 
-// Final-state invariants are evaluated inside the same transaction. Any failure
-// raises an exception and rolls back every schema change made in this batch.
 chunks.push(`
 DO $$
 DECLARE
@@ -164,9 +186,7 @@ BEGIN
     END IF;
   END LOOP;
 
-  FOREACH required_column IN ARRAY ARRAY[
-    'tenant_id','user_id','sensitivity','purpose','consent','provenance','content_hash','expires_at'
-  ] LOOP
+  FOREACH required_column IN ARRAY ARRAY['tenant_id','user_id','sensitivity','purpose','consent','provenance','content_hash','expires_at'] LOOP
     IF NOT EXISTS (
       SELECT 1 FROM information_schema.columns
       WHERE table_schema='public' AND table_name='memories' AND column_name=required_column
@@ -175,12 +195,7 @@ BEGIN
     END IF;
   END LOOP;
 
-  FOREACH required_policy IN ARRAY ARRAY[
-    'Memory tenant read boundary',
-    'Memory principal-bound insert',
-    'Memory principal-bound update',
-    'Memory principal-bound delete'
-  ] LOOP
+  FOREACH required_policy IN ARRAY ARRAY['Memory tenant read boundary','Memory principal-bound insert','Memory principal-bound update','Memory principal-bound delete'] LOOP
     IF NOT EXISTS (
       SELECT 1 FROM pg_policies
       WHERE schemaname='public' AND tablename='memories' AND policyname=required_policy
