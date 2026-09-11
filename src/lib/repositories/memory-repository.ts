@@ -50,7 +50,10 @@ const storeLocks = new Map<string, Promise<unknown>>();
 function withStoreLock<T>(storePath: string, task: () => T | Promise<T>): Promise<T> {
   const previous = storeLocks.get(storePath) ?? Promise.resolve();
   const next = previous.catch(() => undefined).then(task);
-  storeLocks.set(storePath, next.catch(() => undefined));
+  storeLocks.set(
+    storePath,
+    next.catch(() => undefined),
+  );
   return next;
 }
 
@@ -61,10 +64,12 @@ function sha256(input: string): string {
 function assertFilePersistenceAllowed(storePath: string): void {
   const runtime = resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE);
   const production = isProductionLike(runtime);
-  const vercel = process.env.VERCEL === "1";
+  const vercel = config().VERCEL;
   const defaultStore = path.resolve(storePath) === path.resolve(STORE_PATH);
   if (defaultStore && (production || vercel) && !config().DURABLE_JSON_ALLOWED) {
-    throw new Error("memory_persistence_unavailable: durable PostgreSQL/Supabase memory repository required");
+    throw new Error(
+      "memory_persistence_unavailable: durable PostgreSQL/Supabase memory repository required",
+    );
   }
 }
 
@@ -77,7 +82,10 @@ export function createMemoryRepository(storePath: string = STORE_PATH) {
       const raw = fs.readFileSync(storePath, "utf-8");
       const parsed = JSON.parse(raw) as Partial<MemoryStoreFile>;
       const records = Array.isArray(parsed.records) ? (parsed.records as MemoryRecord[]) : [];
-      const genesisChainHash = typeof parsed.genesisChainHash === "string" && parsed.genesisChainHash.length === 64 ? parsed.genesisChainHash : GENESIS_CHAIN_HASH;
+      const genesisChainHash =
+        typeof parsed.genesisChainHash === "string" && parsed.genesisChainHash.length === 64
+          ? parsed.genesisChainHash
+          : GENESIS_CHAIN_HASH;
       return { records, genesisChainHash };
     } catch {
       return { records: [], genesisChainHash: GENESIS_CHAIN_HASH };
@@ -99,11 +107,28 @@ export function createMemoryRepository(storePath: string = STORE_PATH) {
       const store = loadStore();
       let prev = store.genesisChainHash;
       for (const record of store.records) {
-        if (record.previousChainHash && record.previousChainHash !== prev) return { success: false, error: `Cadena de memoria rota en [${record.id}].`, corruptedId: record.id };
-        const contentHash = sha256(`${record.id}|${record.tenantId}|${record.content}|${record.source}|${record.scope}|${record.sensitivity}`);
-        if (record.contentHash !== contentHash) return { success: false, error: `Contenido alterado en [${record.id}].`, corruptedId: record.id };
+        if (record.previousChainHash && record.previousChainHash !== prev)
+          return {
+            success: false,
+            error: `Cadena de memoria rota en [${record.id}].`,
+            corruptedId: record.id,
+          };
+        const contentHash = sha256(
+          `${record.id}|${record.tenantId}|${record.content}|${record.source}|${record.scope}|${record.sensitivity}`,
+        );
+        if (record.contentHash !== contentHash)
+          return {
+            success: false,
+            error: `Contenido alterado en [${record.id}].`,
+            corruptedId: record.id,
+          };
         const expectedChain = sha256(`${prev}|${record.contentHash}`);
-        if (record.chainHash !== expectedChain) return { success: false, error: `Cadena hash inválida en [${record.id}].`, corruptedId: record.id };
+        if (record.chainHash !== expectedChain)
+          return {
+            success: false,
+            error: `Cadena hash inválida en [${record.id}].`,
+            corruptedId: record.id,
+          };
         prev = record.chainHash;
       }
       return { success: true };
@@ -122,15 +147,23 @@ export function createMemoryRepository(storePath: string = STORE_PATH) {
       expiresAt?: string;
       provenance?: readonly string[];
     }): Promise<{ success: true; record: MemoryRecord } | { success: false; error: string }> {
-      if (!input.content || input.content.length === 0) return { success: false, error: "Contenido de memoria vacío." };
-      if (input.consentRequired && !input.consentGranted) return { success: false, error: "Consentimiento requerido no otorgado." };
-      if ((input.sensitivity === "personal" || input.sensitivity === "restricted") && !input.ownerId) return { success: false, error: "Dato sensible requiere propietario." };
+      if (!input.content || input.content.length === 0)
+        return { success: false, error: "Contenido de memoria vacío." };
+      if (input.consentRequired && !input.consentGranted)
+        return { success: false, error: "Consentimiento requerido no otorgado." };
+      if (
+        (input.sensitivity === "personal" || input.sensitivity === "restricted") &&
+        !input.ownerId
+      )
+        return { success: false, error: "Dato sensible requiere propietario." };
 
       return withStoreLock(storePath, () => {
         const store = loadStore();
         const id = `mem_${crypto.randomUUID()}`;
         const createdAt = new Date().toISOString();
-        const contentHash = sha256(`${id}|${input.tenantId}|${input.content}|${input.source}|${input.scope}|${input.sensitivity}`);
+        const contentHash = sha256(
+          `${id}|${input.tenantId}|${input.content}|${input.source}|${input.scope}|${input.sensitivity}`,
+        );
         const previousChainHash = lastChainHash(store.records);
         const chainHash = sha256(`${previousChainHash}|${contentHash}`);
         const record: MemoryRecord = {
@@ -171,7 +204,9 @@ export function createMemoryRepository(storePath: string = STORE_PATH) {
     prune(now: number = Date.now()): { removed: number } {
       const store = loadStore();
       const before = store.records.length;
-      store.records = store.records.filter((r) => !(r.deletable && r.expiresAt && new Date(r.expiresAt).getTime() < now));
+      store.records = store.records.filter(
+        (r) => !(r.deletable && r.expiresAt && new Date(r.expiresAt).getTime() < now),
+      );
       saveStore(store);
       return { removed: before - store.records.length };
     },

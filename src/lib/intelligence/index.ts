@@ -16,10 +16,10 @@ export function initializeIntelligencePlane(): void {
   addProvider(new GeminiProvider(model), false);
 
   // Local/open-weight fallbacks are opt-in. They never become production-authorized merely by being reachable.
-  if (process.env.OLLAMA_ENABLED === "true") {
+  if (runtime.OLLAMA_ENABLED) {
     addProvider(new OllamaProvider(), false);
   }
-  if (process.env.OPENAI_COMPATIBLE_LOCAL_ENABLED === "true") {
+  if (runtime.OPENAI_COMPATIBLE_LOCAL_ENABLED) {
     addProvider(new OpenAICompatibleLocalProvider(), false);
   }
   initialized = true;
