@@ -18,6 +18,9 @@ import { Route as ApiEconomicIntegrityRouteImport } from './routes/api/economic-
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiIntelligenceRouteImport } from './routes/api/intelligence'
 import { Route as ApiIsabellaRouteImport } from './routes/api/isabella'
+import { Route as ApiIsabellaCognitiveTrainingRouteImport } from './routes/api/isabella-cognitive-training'
+import { Route as ApiIsabellaLearningRouteImport } from './routes/api/isabella-learning'
+import { Route as ApiIsabellaSkillsRouteImport } from './routes/api/isabella-skills'
 import { Route as ApiIsabellaVoiceRouteImport } from './routes/api/isabella-voice'
 import { Route as ApiMuxIntroRouteImport } from './routes/api/mux-intro'
 import { Route as ApiSecurityRouteImport } from './routes/api/security'
@@ -71,6 +74,22 @@ const ApiIsabellaRoute = ApiIsabellaRouteImport.update({
   path: '/api/isabella',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiIsabellaCognitiveTrainingRoute =
+  ApiIsabellaCognitiveTrainingRouteImport.update({
+    id: '/api/isabella-cognitive-training',
+    path: '/api/isabella-cognitive-training',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiIsabellaLearningRoute = ApiIsabellaLearningRouteImport.update({
+  id: '/api/isabella-learning',
+  path: '/api/isabella-learning',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiIsabellaSkillsRoute = ApiIsabellaSkillsRouteImport.update({
+  id: '/api/isabella-skills',
+  path: '/api/isabella-skills',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiIsabellaVoiceRoute = ApiIsabellaVoiceRouteImport.update({
   id: '/api/isabella-voice',
   path: '/api/isabella-voice',
@@ -117,6 +136,9 @@ export interface FileRoutesByFullPath {
   '/api/health': typeof ApiHealthRouteWithChildren
   '/api/intelligence': typeof ApiIntelligenceRoute
   '/api/isabella': typeof ApiIsabellaRoute
+  '/api/isabella-cognitive-training': typeof ApiIsabellaCognitiveTrainingRoute
+  '/api/isabella-learning': typeof ApiIsabellaLearningRoute
+  '/api/isabella-skills': typeof ApiIsabellaSkillsRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/mux-intro': typeof ApiMuxIntroRoute
   '/api/security': typeof ApiSecurityRoute
@@ -135,6 +157,9 @@ export interface FileRoutesByTo {
   '/api/health': typeof ApiHealthRouteWithChildren
   '/api/intelligence': typeof ApiIntelligenceRoute
   '/api/isabella': typeof ApiIsabellaRoute
+  '/api/isabella-cognitive-training': typeof ApiIsabellaCognitiveTrainingRoute
+  '/api/isabella-learning': typeof ApiIsabellaLearningRoute
+  '/api/isabella-skills': typeof ApiIsabellaSkillsRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/mux-intro': typeof ApiMuxIntroRoute
   '/api/security': typeof ApiSecurityRoute
@@ -154,6 +179,9 @@ export interface FileRoutesById {
   '/api/health': typeof ApiHealthRouteWithChildren
   '/api/intelligence': typeof ApiIntelligenceRoute
   '/api/isabella': typeof ApiIsabellaRoute
+  '/api/isabella-cognitive-training': typeof ApiIsabellaCognitiveTrainingRoute
+  '/api/isabella-learning': typeof ApiIsabellaLearningRoute
+  '/api/isabella-skills': typeof ApiIsabellaSkillsRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/mux-intro': typeof ApiMuxIntroRoute
   '/api/security': typeof ApiSecurityRoute
@@ -174,6 +202,9 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/api/intelligence'
     | '/api/isabella'
+    | '/api/isabella-cognitive-training'
+    | '/api/isabella-learning'
+    | '/api/isabella-skills'
     | '/api/isabella-voice'
     | '/api/mux-intro'
     | '/api/security'
@@ -192,6 +223,9 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/api/intelligence'
     | '/api/isabella'
+    | '/api/isabella-cognitive-training'
+    | '/api/isabella-learning'
+    | '/api/isabella-skills'
     | '/api/isabella-voice'
     | '/api/mux-intro'
     | '/api/security'
@@ -210,6 +244,9 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/api/intelligence'
     | '/api/isabella'
+    | '/api/isabella-cognitive-training'
+    | '/api/isabella-learning'
+    | '/api/isabella-skills'
     | '/api/isabella-voice'
     | '/api/mux-intro'
     | '/api/security'
@@ -229,6 +266,9 @@ export interface RootRouteChildren {
   ApiHealthRoute: typeof ApiHealthRouteWithChildren
   ApiIntelligenceRoute: typeof ApiIntelligenceRoute
   ApiIsabellaRoute: typeof ApiIsabellaRoute
+  ApiIsabellaCognitiveTrainingRoute: typeof ApiIsabellaCognitiveTrainingRoute
+  ApiIsabellaLearningRoute: typeof ApiIsabellaLearningRoute
+  ApiIsabellaSkillsRoute: typeof ApiIsabellaSkillsRoute
   ApiIsabellaVoiceRoute: typeof ApiIsabellaVoiceRoute
   ApiMuxIntroRoute: typeof ApiMuxIntroRoute
   ApiSecurityRoute: typeof ApiSecurityRoute
@@ -298,6 +338,27 @@ declare module '@tanstack/react-router' {
       path: '/api/isabella'
       fullPath: '/api/isabella'
       preLoaderRoute: typeof ApiIsabellaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/isabella-cognitive-training': {
+      id: '/api/isabella-cognitive-training'
+      path: '/api/isabella-cognitive-training'
+      fullPath: '/api/isabella-cognitive-training'
+      preLoaderRoute: typeof ApiIsabellaCognitiveTrainingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/isabella-learning': {
+      id: '/api/isabella-learning'
+      path: '/api/isabella-learning'
+      fullPath: '/api/isabella-learning'
+      preLoaderRoute: typeof ApiIsabellaLearningRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/isabella-skills': {
+      id: '/api/isabella-skills'
+      path: '/api/isabella-skills'
+      fullPath: '/api/isabella-skills'
+      preLoaderRoute: typeof ApiIsabellaSkillsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/isabella-voice': {
@@ -378,6 +439,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiHealthRoute: ApiHealthRouteWithChildren,
   ApiIntelligenceRoute: ApiIntelligenceRoute,
   ApiIsabellaRoute: ApiIsabellaRoute,
+  ApiIsabellaCognitiveTrainingRoute: ApiIsabellaCognitiveTrainingRoute,
+  ApiIsabellaLearningRoute: ApiIsabellaLearningRoute,
+  ApiIsabellaSkillsRoute: ApiIsabellaSkillsRoute,
   ApiIsabellaVoiceRoute: ApiIsabellaVoiceRoute,
   ApiMuxIntroRoute: ApiMuxIntroRoute,
   ApiSecurityRoute: ApiSecurityRoute,

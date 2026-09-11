@@ -207,22 +207,18 @@ describe("SovereignDB Production Persistence Adapter (P0 deployment blocker)", (
     });
   });
 
-  it("producción con persist fallida: la siguiente operación lanza (nunca silencioso)", async () => {
+  it("producción sin pool: upsertTenant rechaza la escritura no durable", () => {
     applyProductionEnv("postgres://mock/outage");
-    failNextSovereignQuery = true;
     resetConfigCache();
 
-    SovereignDB.upsertTenant({
-      id: "tenant_gsz_persist_fail",
-      name: "Tenant Persist Fail",
-      region: "Mexico-Hidalgo-01",
-      quotaBalance: 0,
-      tier: "Free",
-    });
-
-    // Deja que el promise de persistencia resuelva/rechace.
-    await new Promise((r) => setTimeout(r, 50));
-
-    await expect(SovereignDB.hydrate()).rejects.toBeInstanceOf(DurableStateUnavailableError);
+    expect(() =>
+      SovereignDB.upsertTenant({
+        id: "tenant_gsz_persist_fail",
+        name: "Tenant Persist Fail",
+        region: "Mexico-Hidalgo-01",
+        quotaBalance: 0,
+        tier: "Free",
+      }),
+    ).toThrow(DurableStateUnavailableError);
   });
 });

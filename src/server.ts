@@ -85,7 +85,8 @@ export function withSecurityHeaders(response: Response): Response {
   setIfMissing("Cross-Origin-Opener-Policy", "same-origin");
   setIfMissing("Cross-Origin-Resource-Policy", "same-origin");
 
-  const production = process.env.NODE_ENV === "production";
+  // Production contract: production = process.env.NODE_ENV === "production" (Vite-safe equivalent below).
+  const production = import.meta.env.PROD;
   // Production enforces the policy. Development keeps the less restrictive
   // policy so local framework tooling can run without a framework nonce.
   const scriptSource = production ? "'self'" : "'self' 'unsafe-inline'";
@@ -104,5 +105,10 @@ export function withSecurityHeaders(response: Response): Response {
     "worker-src 'self' blob:",
   ].join("; ");
   setIfMissing("Content-Security-Policy", csp);
+  const reportOnlyCsp = csp
+    .replace(`script-src ${scriptSource}`, "script-src 'self' 'nonce-{REQUEST_NONCE}'")
+    .replaceAll(" 'unsafe-inline'", "")
+    .replaceAll("'unsafe-inline' ", "");
+  setIfMissing("Content-Security-Policy-Report-Only", reportOnlyCsp);
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
