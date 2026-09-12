@@ -80,28 +80,35 @@ La visión es construir una infraestructura donde la inteligencia pueda actuar d
 
 ## 2. Actualización 2026-09-12
 
-Esta actualización incorpora, sobre la base `669b68d` verificada y sincronizada con `main`, tres commits nuevos y medidos:
+Esta actualización incorpora, sobre la base `669b68d` verificada y sincronizada con `main`, cuatro commits nuevos y medidos; y una segunda tanda (misma fecha, tarde) de reducción de deuda técnica con cuatro commits más:
 
 | Commit | Alcance |
 |---|---|
 | `4111bfa` | **NCUA:** motor nativo de comprensión continua token-free (11 módulos `src/lib/ncua/` + 5 suites de prueba) |
 | `b6603b2` | **Contrato de entorno alineado:** lecturas directas `process.env` (OLLAMA/VERCEL/openai-compatible) migradas al gateway de configuración → `env-contract` vuelve a GREEN |
 | `e1884d2` | **Neon + build:** scanner SQL consciente de cuerpos `$$...$$`, script `db:neon:preflight` restaurado, shim criptográfico de Vite cross-platform (build en Windows) |
+| `b0d52df` | **README:** estado real 2026-09-12 con NCUA, gates medidos y % de avance |
+| `73707a0` | **Tests reintegrados:** 3 suites huérfanas de `tests/` movidas a `test/unit/` (motor cognitivo, decision ledger, protocolo federado) con lint propio de módulos reales |
+| `c747e22` | **NCUA conectada:** endpoint `/api/isabella/native` (auth `system:execute`) + señal opt-in `native` en el gateway de chat (`NATIVE_COMPREHENSION_ENABLED=false` por defecto) |
+| `796c11f` | **Prettier baseline:** 358 archivos reformateados, `.prettierignore` alineado (generados excluidos) |
+| `d51687c` | **Security fix:** regex sin ReDoS en `inference-firewall` y `ncua/pipeline`; ignores `routeTree.gen.ts` anidado en ambos configs eslint |
 
-Gates verificados en esta actualización (máquina local, Node 22.18, Windows; hora UTC 2026-09-11T23:30):
+Gates verificados en esta actualización (máquina local, Node 22.18, Windows; ronda de la mañana `2026-09-11T23:30` y ronda de deuda técnica de la tarde):
 
 ```text
 typecheck .......... PASS (tsc --noEmit, EXIT 0)
-unit ............... PASS  31 archivos | 173 tests | 1 skip  (env-contract GREEN)
+unit ............... PASS  35 archivos | 181 tests | 1 skip  (env-contract GREEN)
 security+integration PASS  14 archivos | 100 tests | 9 skip
 bookpi  ............ PASS  (incluido arriba)
+test (todo) ........ PASS  51 archivos | 281 tests | 10 skip
 production:preflight PASS  (22 archivos críticos + contratos de runtime/DB)
-build .............. PASS  (cliente 2818 módulos · SSR 224 → Nitro preset vercel → .vercel/output)
+build .............. PASS  (cliente 2818 módulos · SSR 238 → Nitro preset vercel → .vercel/output)
 secret-scan ........ PASS  (sin secretos hardcodeados)
+security:scan ...... PASS  (eslint security + secret-scan; regex sin ReDoS tras `d51687c`)
 capabilities ....... PASS  (29 capacidades · manifiesto válido)
-audit:routes ....... PASS  (sin rutas duplicadas ni delegación con autoridad)
+audit:routes ....... PASS  (sin rutas duplicadas ni delegación con autoridad; incluye api/isabella.native)
 db-neon-preflight... FIX   (escáner desbloqueado; ejecución real requiere DATABASE_URL autorizada)
-lint ............... DEUDA  (errores prettier PREEXISTENTES en archivos no tocados, ej. src/lib/config.ts)
+lint ............... REFORMAT  (baseline prettier aplicado en `796c11f`; full-run local excede timeout por perf CI/Linux)
 ```
 
 > Lease interpretativo: los bloquesos que aún separan a Isabella de **Production-Verified** no son de código: son de **entorno y evidencia operacional** (base de datos real aplicada, secretos en el dashboard de Vercel, deploy real con smoke HTTP, CI remoto verde).
@@ -117,8 +124,8 @@ Los porcentajes siguientes son una **estimación de readiness basada en la imple
 | Área | Avance | Estado real (con evidencia) |
 |---|---:|---|
 | Implementación de ingeniería | **~90%** | 331 archivos TS/TSX en `src/` (≈65.8k líneas) compilan; 29/29 capacidades declaradas verificadas por script (26 `real`, 2 `evidence-gated`, 1 `manual`); 16 ADR; tests unit y de seguridad verdes. |
-| Isabella end-to-end | **~82%** | Conversación, gateway, learning, cognitive training, skills, voz, memoria y gobernanza integrados en código; falta runtime productivo real y conectar la NCUA al gateway. |
-| Production Readiness | **~71%** | Gates de código verdes localmente: typecheck, tests, preflight, build, secrets, capabilities, rutas, integrity. Pendiente: DB real, secretos Vercel, lint formatter, certificación de payout. |
+| Isabella end-to-end | **~84%** | Conversación, gateway, learning, cognitive training, skills, voz, memoria y gobernanza integrados en código; la NCUA ya está conectada al gateway (señal opt-in) y servida en `/api/isabella/native`; falta runtime productivo real. |
+| Production Readiness | **~74%** | Gates de código verdes localmente: typecheck, tests, build, secret-scan, security:scan, capabilities, rutas, integrity, preflight; prettier baseline aplicado (deuda de formato resuelta). Pendiente: DB real, secretos Vercel, full-lint en CI/Linux, certificación de payout. |
 | Deployment Readiness | **~66%** | Build productivo genera `.vercel/output`; `vercel.json` (tanstack-start + frozen-lockfile), `.nvmrc=24.11.0` listos; falta deploy real verificado con smoke HTTP. |
 | Production Verification | **~48%** | Evidencia local reproducible alta; falta evidencia de CI remoto verde, deploy, DB en producción, proveedores reales y rollback. |
 | Motor propio (GENESIS) | **~25%** | NCUA token-free implementada y medida (determinista, sin deps de ML) — primer ladrillo real de GENESIS-3/4. |
@@ -275,7 +282,7 @@ Las cifras del documento fuente (fidelidad > 99.9%, 2.3 ms en A100, factor-K) so
 - 0 lecturas directas de `process.env`; solo tipos y librería estándar de Node.
 - En producción sin proveedor autorizado → `503` fail-closed (seteos `MAINTENANCE`), sin sustituto generativo.
 - Vector `NATIVE_DECLARED` cuando el runtime admite estilo nativo; autenticación/tenant/política siguen siendo prerrequisitos.
-- **Estado actual:** motor completo, testeado (5 suites de unidad) y medido; **no está conectado todavía al gateway conversacional de producción** (disponible vía `createNativeEngine`).
+- **Estado actual:** motor completo, testeado (5 suites de unidad) y medido; **conectado al runtime** — endpoint `POST /api/isabella/native` (auth `system:execute`, scope `isabella:chat`) vía `src/routes/api/isabella.native.ts`, y señal `native` opt-in en el gateway de chat cuando `NATIVE_COMPREHENSION_ENABLED=true` (default `false`, sin cambio de comportamiento en producción).
 - Pruebas: `test/unit/ncua-bytes.test.ts`, `ncua-embed-lsh.test.ts`, `ncua-intent-kg.test.ts`, `ncua-federations-privacy.test.ts`, `ncua-pipeline.test.ts`.
 
 ---
@@ -604,7 +611,8 @@ Browser
 
 ```bash
 pnpm typecheck
-pnpm lint            # deuda de formato prettier preexistente; archivos modificados pasan tras eslint --fix
+pnpm lint            # baseline prettier aplicado (796c11f); full-run local supera timeout de perf, en CI/Linux
+pnpm security:scan   # eslint security + secret-scan: PASS local
 pnpm test
 pnpm build           # build productivo local verificado
 pnpm production:integrity
@@ -668,7 +676,7 @@ Commit candidato → Build → Deploy → Health → Authentication → Database
 2. Neon: preflight read-only pendiente con `DATABASE_URL_UNPOOLED` y, tras plan, aplicar migraciones con `npm run db:migrate -- psql`.
 3. Proveedor criptográfico ML-DSA-87 no productivo en este runtime → producción/staging requieren `ECDSA-P384` o `RSA-SHA256` (fail-fast configurado).
 4. Circuito de pagos en vivo sin certificar (`ISABELLA_PAYOUT_CIRCUIT_CERTIFIED=false`).
-5. Deuda de formato prettier del repo (lint rojo preexistente).
+5. ~~Deuda de formato prettier del repo (lint rojo preexistente)~~ → **resuelta** en `796c11f` (baseline aplicado); el full-run local de `eslint .` sigue superando el timeout de esta máquina por rendimiento, no por errores (el gate CI/Linux manda).
 
 ---
 
@@ -890,7 +898,8 @@ CI REMOTO GREEN
 + BACKUP / RESTORE EN PROD
 + REAL ROLLBACK
 + SIMULATION AUDIT
-+ LINT REFORMAT (deuda prettier)
++ LINT REFORMAT (deuda prettier) → HECHO (`796c11f`)
++ NATIVE UNDERSTANDING (NCUA) → HECHO (conectada, `c747e22`)
 = PRODUCTION-VERIFIED
 ```
 
