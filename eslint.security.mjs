@@ -12,7 +12,7 @@ export default tseslint.config(
       "dist",
       ".output",
       ".vinxi",
-      "routeTree.gen.ts",
+      "**/routeTree.gen.ts",
       "coverage",
       "node_modules",
       "test.ts",

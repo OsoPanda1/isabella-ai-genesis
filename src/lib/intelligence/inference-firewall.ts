@@ -1,13 +1,41 @@
 import { createHash } from "node:crypto";
 import type { IntelligenceMessage } from "./contracts";
 
-const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+function stripControlChars(input: string): string {
+  let out = "";
+  for (let i = 0; i < input.length; i++) {
+    const code = input.charCodeAt(i);
+    const isControl =
+      (code >= 0x00 && code <= 0x08) ||
+      code === 0x0b ||
+      code === 0x0c ||
+      (code >= 0x0e && code <= 0x1f) ||
+      code === 0x7f;
+    if (!isControl) out += input[i];
+  }
+  return out;
+}
+
+function normalizeForScan(input: string): string {
+  return input.replace(/\s+/g, " ").toLowerCase();
+}
+
 const INJECTION_PATTERNS = [
-  /ignore\s+(?:all\s+)?previous\s+instructions/i,
-  /reveal\s+(?:the\s+)?system\s+prompt/i,
-  /show\s+(?:me\s+)?(?:your|the)\s+(?:system\s+)?instructions/i,
-  /developer\s+message\s*:/i,
-  /jailbreak/i,
+  "ignore all previous instructions",
+  "ignore previous instructions",
+  "reveal the system prompt",
+  "reveal system prompt",
+  "show me your instructions",
+  "show me the instructions",
+  "show me your system instructions",
+  "show me the system instructions",
+  "show your instructions",
+  "show the instructions",
+  "show your system instructions",
+  "show the system instructions",
+  "developer message:",
+  "developer message :",
+  "jailbreak",
 ];
 const MAX_MESSAGE_CHARS = 32_000;
 const MAX_TOTAL_CHARS = 120_000;
@@ -25,12 +53,12 @@ export function inspectInferenceInput(
   const reasons: string[] = [];
   let total = 0;
   const sanitized = messages.map((message) => {
-    const content = message.content.replace(CONTROL_CHARS, "").trim();
+    const content = stripControlChars(message.content).trim();
     total += content.length;
     if (content.length > MAX_MESSAGE_CHARS) reasons.push("message-too-large");
-    for (const pattern of INJECTION_PATTERNS) {
-      if (pattern.test(content)) reasons.push("prompt-injection-pattern");
-    }
+    const normalized = normalizeForScan(content);
+    if (INJECTION_PATTERNS.some((pattern) => normalized.includes(pattern)))
+      reasons.push("prompt-injection-pattern");
     return { ...message, content };
   });
 

@@ -91,9 +91,20 @@ export interface PipelineRunResult {
 }
 
 const EMAIL_PATTERN = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
-const CARD_PATTERN = /\b(?:\d[ -]*?){13,19}\b/;
 const DIRECTIVE_PATTERN =
   /(?:ignore|forget|omite|ignora|olvida)[^\n]{0,24}(?:previous|prior|above|instrucciones?)/i;
+
+function hasCardLikeNumber(text: string): boolean {
+  for (const span of text.split(/[^0-9 -]/)) {
+    let digits = 0;
+    for (let i = 0; i < span.length; i++) {
+      const code = span.charCodeAt(i);
+      if (code >= 0x30 && code <= 0x39) digits++;
+    }
+    if (digits >= 13 && digits <= 19) return true;
+  }
+  return false;
+}
 
 function sha256(input: string): string {
   return createHash("sha256").update(input).digest("hex");
@@ -110,7 +121,7 @@ function riskAssessment(text: string): {
       reason:
         "dato personal (correo) detectado: respuesta negada; no se persiste",
     };
-  if (CARD_PATTERN.test(text))
+  if (hasCardLikeNumber(text))
     return {
       detected: true,
       reason:
