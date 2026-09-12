@@ -27,6 +27,7 @@ import { Route as ApiSecurityRouteImport } from './routes/api/security'
 import { Route as ApiHealthDeepRouteImport } from './routes/api/health/deep'
 import { Route as ApiHealthLiveRouteImport } from './routes/api/health/live'
 import { Route as ApiHealthReadyRouteImport } from './routes/api/health/ready'
+import { Route as ApiIsabellaNativeRouteImport } from './routes/api/isabella.native'
 import { Route as ApiV1IsabellaRouteImport } from './routes/api/v1/isabella'
 
 const IndexRoute = IndexRouteImport.update({
@@ -120,6 +121,11 @@ const ApiHealthReadyRoute = ApiHealthReadyRouteImport.update({
   path: '/ready',
   getParentRoute: () => ApiHealthRoute,
 } as any)
+const ApiIsabellaNativeRoute = ApiIsabellaNativeRouteImport.update({
+  id: '/native',
+  path: '/native',
+  getParentRoute: () => ApiIsabellaRoute,
+} as any)
 const ApiV1IsabellaRoute = ApiV1IsabellaRouteImport.update({
   id: '/api/v1/isabella',
   path: '/api/v1/isabella',
@@ -135,7 +141,7 @@ export interface FileRoutesByFullPath {
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
   '/api/health': typeof ApiHealthRouteWithChildren
   '/api/intelligence': typeof ApiIntelligenceRoute
-  '/api/isabella': typeof ApiIsabellaRoute
+  '/api/isabella': typeof ApiIsabellaRouteWithChildren
   '/api/isabella-cognitive-training': typeof ApiIsabellaCognitiveTrainingRoute
   '/api/isabella-learning': typeof ApiIsabellaLearningRoute
   '/api/isabella-skills': typeof ApiIsabellaSkillsRoute
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/api/health/deep': typeof ApiHealthDeepRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/api/isabella/native': typeof ApiIsabellaNativeRoute
   '/api/v1/isabella': typeof ApiV1IsabellaRoute
 }
 export interface FileRoutesByTo {
@@ -156,7 +163,7 @@ export interface FileRoutesByTo {
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
   '/api/health': typeof ApiHealthRouteWithChildren
   '/api/intelligence': typeof ApiIntelligenceRoute
-  '/api/isabella': typeof ApiIsabellaRoute
+  '/api/isabella': typeof ApiIsabellaRouteWithChildren
   '/api/isabella-cognitive-training': typeof ApiIsabellaCognitiveTrainingRoute
   '/api/isabella-learning': typeof ApiIsabellaLearningRoute
   '/api/isabella-skills': typeof ApiIsabellaSkillsRoute
@@ -166,6 +173,7 @@ export interface FileRoutesByTo {
   '/api/health/deep': typeof ApiHealthDeepRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/api/isabella/native': typeof ApiIsabellaNativeRoute
   '/api/v1/isabella': typeof ApiV1IsabellaRoute
 }
 export interface FileRoutesById {
@@ -178,7 +186,7 @@ export interface FileRoutesById {
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
   '/api/health': typeof ApiHealthRouteWithChildren
   '/api/intelligence': typeof ApiIntelligenceRoute
-  '/api/isabella': typeof ApiIsabellaRoute
+  '/api/isabella': typeof ApiIsabellaRouteWithChildren
   '/api/isabella-cognitive-training': typeof ApiIsabellaCognitiveTrainingRoute
   '/api/isabella-learning': typeof ApiIsabellaLearningRoute
   '/api/isabella-skills': typeof ApiIsabellaSkillsRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/api/health/deep': typeof ApiHealthDeepRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/api/isabella/native': typeof ApiIsabellaNativeRoute
   '/api/v1/isabella': typeof ApiV1IsabellaRoute
 }
 export interface FileRouteTypes {
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/api/health/deep'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/api/isabella/native'
     | '/api/v1/isabella'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/api/health/deep'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/api/isabella/native'
     | '/api/v1/isabella'
   id:
     | '__root__'
@@ -253,6 +264,7 @@ export interface FileRouteTypes {
     | '/api/health/deep'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/api/isabella/native'
     | '/api/v1/isabella'
   fileRoutesById: FileRoutesById
 }
@@ -265,7 +277,7 @@ export interface RootRouteChildren {
   ApiEconomicIntegrityRoute: typeof ApiEconomicIntegrityRoute
   ApiHealthRoute: typeof ApiHealthRouteWithChildren
   ApiIntelligenceRoute: typeof ApiIntelligenceRoute
-  ApiIsabellaRoute: typeof ApiIsabellaRoute
+  ApiIsabellaRoute: typeof ApiIsabellaRouteWithChildren
   ApiIsabellaCognitiveTrainingRoute: typeof ApiIsabellaCognitiveTrainingRoute
   ApiIsabellaLearningRoute: typeof ApiIsabellaLearningRoute
   ApiIsabellaSkillsRoute: typeof ApiIsabellaSkillsRoute
@@ -403,6 +415,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthReadyRouteImport
       parentRoute: typeof ApiHealthRoute
     }
+    '/api/isabella/native': {
+      id: '/api/isabella/native'
+      path: '/native'
+      fullPath: '/api/isabella/native'
+      preLoaderRoute: typeof ApiIsabellaNativeRouteImport
+      parentRoute: typeof ApiIsabellaRoute
+    }
     '/api/v1/isabella': {
       id: '/api/v1/isabella'
       path: '/api/v1/isabella'
@@ -429,6 +448,18 @@ const ApiHealthRouteWithChildren = ApiHealthRoute._addFileChildren(
   ApiHealthRouteChildren,
 )
 
+interface ApiIsabellaRouteChildren {
+  ApiIsabellaNativeRoute: typeof ApiIsabellaNativeRoute
+}
+
+const ApiIsabellaRouteChildren: ApiIsabellaRouteChildren = {
+  ApiIsabellaNativeRoute: ApiIsabellaNativeRoute,
+}
+
+const ApiIsabellaRouteWithChildren = ApiIsabellaRoute._addFileChildren(
+  ApiIsabellaRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PakeRoute: PakeRoute,
@@ -438,7 +469,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiEconomicIntegrityRoute: ApiEconomicIntegrityRoute,
   ApiHealthRoute: ApiHealthRouteWithChildren,
   ApiIntelligenceRoute: ApiIntelligenceRoute,
-  ApiIsabellaRoute: ApiIsabellaRoute,
+  ApiIsabellaRoute: ApiIsabellaRouteWithChildren,
   ApiIsabellaCognitiveTrainingRoute: ApiIsabellaCognitiveTrainingRoute,
   ApiIsabellaLearningRoute: ApiIsabellaLearningRoute,
   ApiIsabellaSkillsRoute: ApiIsabellaSkillsRoute,
