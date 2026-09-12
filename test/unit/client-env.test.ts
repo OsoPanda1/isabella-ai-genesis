@@ -36,7 +36,9 @@ describe("client env guard", () => {
   });
 
   it("entorno limpio pasa sin errores ni warnings", () => {
-    const { errors, warnings } = auditClientEnv({ PATH: "/usr/bin" } as NodeJS.ProcessEnv);
+    const { errors, warnings } = auditClientEnv({
+      PATH: "/usr/bin",
+    } as NodeJS.ProcessEnv);
     expect(errors).toHaveLength(0);
     expect(warnings).toHaveLength(0);
   });

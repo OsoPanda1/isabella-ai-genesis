@@ -53,12 +53,19 @@ export function validateMarketplaceInput(input: {
   description: string;
 }): { valid: boolean; reason?: string } {
   if (!SKILL_ID.test(input.skillId)) {
-    return { valid: false, reason: "skillId solo admite minúsculas, números y guiones (3-64)." };
+    return {
+      valid: false,
+      reason: "skillId solo admite minúsculas, números y guiones (3-64).",
+    };
   }
   if (input.title.length < 3 || input.title.length > 120) {
     return { valid: false, reason: "Título 3-120 caracteres." };
   }
-  if (!Number.isInteger(input.costCents) || input.costCents <= 0 || input.costCents > 100_000) {
+  if (
+    !Number.isInteger(input.costCents) ||
+    input.costCents <= 0 ||
+    input.costCents > 100_000
+  ) {
     return { valid: false, reason: "costCents entero 1-100000." };
   }
   if (input.description.length < 10 || input.description.length > 2000) {
@@ -88,7 +95,13 @@ export async function createMarketplaceListing(input: {
      VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (skill_id) DO NOTHING
      RETURNING *`,
-    [input.skillId, input.title, input.costCents, input.ownerId, input.description],
+    [
+      input.skillId,
+      input.title,
+      input.costCents,
+      input.ownerId,
+      input.description,
+    ],
   );
   if (rows[0]) return { created: true, listing: mapRow(rows[0]) };
   const existing = await getPool().query(

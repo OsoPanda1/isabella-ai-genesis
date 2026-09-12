@@ -22,7 +22,8 @@ function getNodeCrypto(): NodeCrypto {
   const runtime = globalThis as typeof globalThis & {
     process?: { getBuiltinModule?: (name: string) => unknown };
   };
-  const crypto = runtime.process?.getBuiltinModule?.("node:crypto") as NodeCrypto | undefined;
+  const crypto = runtime.process?.getBuiltinModule?.("node:crypto") as
+    NodeCrypto | undefined;
   if (!crypto) {
     throw new Error("JWT crypto is only available in the server runtime.");
   }
@@ -61,13 +62,18 @@ export interface JwtClaims {
 }
 
 export type JwtVerifyResult =
-  { ok: true; payload: JwtClaims; header: Partial<JwtHeader> } | { ok: false; reason: string };
+  | { ok: true; payload: JwtClaims; header: Partial<JwtHeader> }
+  | { ok: false; reason: string };
 
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 const CLOCK_TOLERANCE_DEFAULT = 30;
 
 function base64UrlEncode(data: Buffer): string {
-  return data.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return data
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 function base64UrlDecode(segment: string): string {
@@ -75,7 +81,8 @@ function base64UrlDecode(segment: string): string {
     throw new Error("Segmento JWT no es base64url válido");
   }
   const padded = segment.replace(/-/g, "+").replace(/_/g, "/");
-  const pad = padded.length % 4 === 0 ? "" : "=".repeat(4 - (padded.length % 4));
+  const pad =
+    padded.length % 4 === 0 ? "" : "=".repeat(4 - (padded.length % 4));
   return Buffer.from(padded + pad, "base64").toString("utf-8");
 }
 
@@ -99,7 +106,10 @@ function base64UrlDecodeToBuffer(segment: string): Buffer {
 }
 
 function createHmacSig(data: string, secret: string): Buffer {
-  return getNodeCrypto().createHmac("sha256", Buffer.from(secret, "utf-8")).update(data).digest();
+  return getNodeCrypto()
+    .createHmac("sha256", Buffer.from(secret, "utf-8"))
+    .update(data)
+    .digest();
 }
 
 /**
@@ -112,8 +122,12 @@ export function signJwtHs256(
   options: { algorithm?: "HS256"; header?: Partial<JwtHeader> } = {},
 ): string {
   const header: JwtHeader = { alg: "HS256", typ: "JWT", ...options.header };
-  const headerB64 = base64UrlEncode(Buffer.from(JSON.stringify(header), "utf-8"));
-  const payloadB64 = base64UrlEncode(Buffer.from(JSON.stringify(payload), "utf-8"));
+  const headerB64 = base64UrlEncode(
+    Buffer.from(JSON.stringify(header), "utf-8"),
+  );
+  const payloadB64 = base64UrlEncode(
+    Buffer.from(JSON.stringify(payload), "utf-8"),
+  );
   const signingInput = `${headerB64}.${payloadB64}`;
   const signature = base64UrlEncode(createHmacSig(signingInput, secret));
   return `${signingInput}.${signature}`;
@@ -123,15 +137,25 @@ export function signJwtHs256(
  * Verifica criptográficamente un token JWT contra una clave.
  * Devuelve resultado estructurado; nunca lanza por token inválido.
  */
-export function verifyJwt(token: string, options: JwtVerifierOptions): JwtVerifyResult {
+export function verifyJwt(
+  token: string,
+  options: JwtVerifierOptions,
+): JwtVerifyResult {
   if (!token || typeof token !== "string") {
     return { ok: false, reason: "Token ausente." };
   }
   const parts = token.split(".");
   if (parts.length !== 3) {
-    return { ok: false, reason: "Formato JWT inválido (se esperan 3 segmentos)." };
+    return {
+      ok: false,
+      reason: "Formato JWT inválido (se esperan 3 segmentos).",
+    };
   }
-  const [headerB64, payloadB64, signatureB64] = parts as [string, string, string];
+  const [headerB64, payloadB64, signatureB64] = parts as [
+    string,
+    string,
+    string,
+  ];
   const header = decodeOptionalHeader(headerB64);
 
   let payload: JwtClaims;
@@ -145,7 +169,10 @@ export function verifyJwt(token: string, options: JwtVerifierOptions): JwtVerify
     return { ok: false, reason: "Algoritmo 'none' no admitido (fail-closed)." };
   }
   if (header.alg !== options.algorithm) {
-    return { ok: false, reason: `Algoritmo '${header.alg}' no coincide con el esperado.` };
+    return {
+      ok: false,
+      reason: `Algoritmo '${header.alg}' no coincide con el esperado.`,
+    };
   }
 
   const tolerance = options.clockToleranceSeconds ?? CLOCK_TOLERANCE_DEFAULT;
@@ -200,16 +227,23 @@ export function verifyJwt(token: string, options: JwtVerifierOptions): JwtVerify
 
 function verifyHmac(data: string, signature: Buffer, secret: string): boolean {
   const expected = createHmacSig(data, secret);
-    return signature.length === expected.length && getNodeCrypto().timingSafeEqual(signature, expected);
+  return (
+    signature.length === expected.length &&
+    getNodeCrypto().timingSafeEqual(signature, expected)
+  );
 }
 
-function verifyRsa(data: string, signature: Buffer, publicKeyPem: string): boolean {
-    const crypto = getNodeCrypto();
-    const key = crypto.createPublicKey(publicKeyPem);
-    return crypto.verify(
-      "sha256",
+function verifyRsa(
+  data: string,
+  signature: Buffer,
+  publicKeyPem: string,
+): boolean {
+  const crypto = getNodeCrypto();
+  const key = crypto.createPublicKey(publicKeyPem);
+  return crypto.verify(
+    "sha256",
     Buffer.from(data, "utf-8"),
-      key as ReturnType<NodeCrypto["createPublicKey"]>,
+    key as ReturnType<NodeCrypto["createPublicKey"]>,
     signature,
   );
 }

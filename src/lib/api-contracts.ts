@@ -37,11 +37,27 @@ export const IsabellaChatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
   content: z.union([
     z.string().min(1).max(12000),
-    z.array(z.discriminatedUnion("type", [
-      z.object({ type: z.literal("text"), text: z.string().min(1).max(12000) }),
-      z.object({ type: z.literal("image_url"), image_url: z.object({ url: z.string().max(11_000_000) }) }),
-      z.object({ type: z.literal("input_audio"), input_audio: z.object({ data: z.string().max(11_000_000), format: z.enum(["m4a", "ogg", "wav", "mp3", "webm"]) }) }),
-    ])).max(10),
+    z
+      .array(
+        z.discriminatedUnion("type", [
+          z.object({
+            type: z.literal("text"),
+            text: z.string().min(1).max(12000),
+          }),
+          z.object({
+            type: z.literal("image_url"),
+            image_url: z.object({ url: z.string().max(11_000_000) }),
+          }),
+          z.object({
+            type: z.literal("input_audio"),
+            input_audio: z.object({
+              data: z.string().max(11_000_000),
+              format: z.enum(["m4a", "ogg", "wav", "mp3", "webm"]),
+            }),
+          }),
+        ]),
+      )
+      .max(10),
   ]),
 });
 
@@ -69,12 +85,18 @@ export const IsabellaChatErrorCode = {
   INTERNAL_ERROR: "INTERNAL_ERROR",
 } as const;
 
-export function standardError(code: string, message: string, requestId: string, traceId: string, options: {
-  status: number;
-  retryable?: boolean;
-  tenantId?: string;
-  details?: Record<string, unknown>;
-}): Response {
+export function standardError(
+  code: string,
+  message: string,
+  requestId: string,
+  traceId: string,
+  options: {
+    status: number;
+    retryable?: boolean;
+    tenantId?: string;
+    details?: Record<string, unknown>;
+  },
+): Response {
   const body: StandardResponse = {
     meta: {
       request_id: requestId,
@@ -94,34 +116,92 @@ export function standardError(code: string, message: string, requestId: string, 
   };
   return new Response(JSON.stringify(body), {
     status: options.status,
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+    },
   });
 }
 
-export const AtlasInputSchema = z.object({ scenario: z.string().min(5).max(1000), variables: z.array(z.object({ id: z.string(), label: z.string(), currentValue: z.number(), projectedChange: z.number(), weight: z.number().min(0).max(1) })).min(1).max(50) });
-export const AnubisInputSchema = z.object({ artifactId: z.string().min(3).max(128), content: z.string().min(1).max(500000), expectedHash: z.string().max(128).optional() });
-export const ThemisInputSchema = z.object({ decisionId: z.string().min(1).max(128), decision: z.string().min(1).max(2000), evidence: z.array(z.object({ id: z.string(), source: z.string(), excerpt: z.string(), score: z.number().min(0).max(1) })).max(100), events: z.array(z.record(z.string(), z.unknown())).optional() });
-export const VigiaInputSchema = z.object({ text: z.string().min(1).max(100000), riskSignals: z.array(z.string()).optional() });
-export const GenericSkillInputSchema = z.record(z.string(), z.unknown()).refine((data) => Object.keys(data).length > 0, { message: "El payload de entrada no puede estar vacío." });
+export const AtlasInputSchema = z.object({
+  scenario: z.string().min(5).max(1000),
+  variables: z
+    .array(
+      z.object({
+        id: z.string(),
+        label: z.string(),
+        currentValue: z.number(),
+        projectedChange: z.number(),
+        weight: z.number().min(0).max(1),
+      }),
+    )
+    .min(1)
+    .max(50),
+});
+export const AnubisInputSchema = z.object({
+  artifactId: z.string().min(3).max(128),
+  content: z.string().min(1).max(500000),
+  expectedHash: z.string().max(128).optional(),
+});
+export const ThemisInputSchema = z.object({
+  decisionId: z.string().min(1).max(128),
+  decision: z.string().min(1).max(2000),
+  evidence: z
+    .array(
+      z.object({
+        id: z.string(),
+        source: z.string(),
+        excerpt: z.string(),
+        score: z.number().min(0).max(1),
+      }),
+    )
+    .max(100),
+  events: z.array(z.record(z.string(), z.unknown())).optional(),
+});
+export const VigiaInputSchema = z.object({
+  text: z.string().min(1).max(100000),
+  riskSignals: z.array(z.string()).optional(),
+});
+export const GenericSkillInputSchema = z
+  .record(z.string(), z.unknown())
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "El payload de entrada no puede estar vacío.",
+  });
 
 export function validateSkillInput(skillId: string, payload: unknown): unknown {
   try {
     switch (skillId.toUpperCase()) {
-      case "ATLAS": return AtlasInputSchema.parse(payload);
-      case "ANUBIS": return AnubisInputSchema.parse(payload);
-      case "THEMIS": return ThemisInputSchema.parse(payload);
-      case "VIGIA": return VigiaInputSchema.parse(payload);
-      default: return GenericSkillInputSchema.parse(payload);
+      case "ATLAS":
+        return AtlasInputSchema.parse(payload);
+      case "ANUBIS":
+        return AnubisInputSchema.parse(payload);
+      case "THEMIS":
+        return ThemisInputSchema.parse(payload);
+      case "VIGIA":
+        return VigiaInputSchema.parse(payload);
+      default:
+        return GenericSkillInputSchema.parse(payload);
     }
   } catch (error) {
-    if (error instanceof z.ZodError) throw new Error(`Validation failed for skill ${skillId}: ${error.issues.map((e) => e.message).join(", ")}`);
+    if (error instanceof z.ZodError)
+      throw new Error(
+        `Validation failed for skill ${skillId}: ${error.issues.map((e) => e.message).join(", ")}`,
+      );
     throw error;
   }
 }
 
 export function validateSkillOutput(skillId: string, output: unknown): unknown {
-  if (!output || typeof output !== "object") throw new Error(`Skill ${skillId} devolvió una salida inválida.`);
+  if (!output || typeof output !== "object")
+    throw new Error(`Skill ${skillId} devolvió una salida inválida.`);
   const jsonString = JSON.stringify(output);
-  if (/(sk_live_|pk_live_|sk_test_|pk_test_|AIza[0-9A-Za-z-_]{35})/.test(jsonString)) throw new Error(`[CRITICAL] Data Exfiltration Blocked: La salida del skill ${skillId} contiene posibles secretos.`);
+  if (
+    /(sk_live_|pk_live_|sk_test_|pk_test_|AIza[0-9A-Za-z-_]{35})/.test(
+      jsonString,
+    )
+  )
+    throw new Error(
+      `[CRITICAL] Data Exfiltration Blocked: La salida del skill ${skillId} contiene posibles secretos.`,
+    );
   return output;
 }

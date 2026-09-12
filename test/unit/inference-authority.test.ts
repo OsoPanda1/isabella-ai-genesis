@@ -11,7 +11,10 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 describe("política de inferencia", () => {
   it("con proveedor opera normal sin degradación", async () => {
     const { resolveInferencePolicy } = await import("@/lib/inference-policy");
-    const decision = resolveInferencePolicy({ productionLike: true, hasProvider: true });
+    const decision = resolveInferencePolicy({
+      productionLike: true,
+      hasProvider: true,
+    });
     expect(decision.mode).toBe("PRODUCTION_NORMAL");
     expect(decision.degraded).toBe(false);
     expect(decision.httpStatus).toBe(200);
@@ -19,7 +22,10 @@ describe("política de inferencia", () => {
 
   it("sin proveedor en producción falla a mantenimiento 503", async () => {
     const { resolveInferencePolicy } = await import("@/lib/inference-policy");
-    const decision = resolveInferencePolicy({ productionLike: true, hasProvider: false });
+    const decision = resolveInferencePolicy({
+      productionLike: true,
+      hasProvider: false,
+    });
     expect(decision.mode).toBe("MAINTENANCE");
     expect(decision.httpStatus).toBe(503);
     expect(decision.errorCode).toBe("inference_unavailable");
@@ -28,7 +34,10 @@ describe("política de inferencia", () => {
 
   it("sin proveedor en desarrollo declara nativo (no finge LLM)", async () => {
     const { resolveInferencePolicy } = await import("@/lib/inference-policy");
-    const decision = resolveInferencePolicy({ productionLike: false, hasProvider: false });
+    const decision = resolveInferencePolicy({
+      productionLike: false,
+      hasProvider: false,
+    });
     expect(decision.mode).toBe("NATIVE_DECLARED");
     expect(decision.provider).toBe("native-fallback");
     expect(decision.degraded).toBe(true);
@@ -54,9 +63,17 @@ describe("production authority (6 autoridades)", () => {
   });
 
   it("define exactamente 6 autoridades sin ambigüedad de proveedor", async () => {
-    const { PRODUCTION_AUTHORITIES } = await import("@/lib/production-authority");
+    const { PRODUCTION_AUTHORITIES } =
+      await import("@/lib/production-authority");
     const ids = PRODUCTION_AUTHORITIES.map((authority) => authority.id).sort();
-    expect(ids).toEqual(["audit", "database", "identity", "inference", "observability", "payment"]);
+    expect(ids).toEqual([
+      "audit",
+      "database",
+      "identity",
+      "inference",
+      "observability",
+      "payment",
+    ]);
     for (const authority of PRODUCTION_AUTHORITIES) {
       expect(authority.authority.length).toBeGreaterThan(0);
       expect(authority.implementations.length).toBeGreaterThan(0);
@@ -64,7 +81,8 @@ describe("production authority (6 autoridades)", () => {
   });
 
   it("en desarrollo no aborta aunque falten secretos", async () => {
-    const { assertProductionAuthorities } = await import("@/lib/production-authority");
+    const { assertProductionAuthorities } =
+      await import("@/lib/production-authority");
     const report = assertProductionAuthorities();
     expect(report.productionLike).toBe(false);
     expect(report.criticalFailed).toBe(false);
@@ -75,9 +93,12 @@ describe("production authority (6 autoridades)", () => {
     vi.stubEnv("NODE_ENV", "production");
     const { resetConfigCache } = await import("@/lib/config");
     resetConfigCache();
-    const { assertProductionAuthorities } = await import("@/lib/production-authority");
+    const { assertProductionAuthorities } =
+      await import("@/lib/production-authority");
     // Falla primero el fail-fast de configuración; la autoridad es 2ª capa.
-    expect(() => assertProductionAuthorities()).toThrow(/Fail-Fast|Autoridades críticas/);
+    expect(() => assertProductionAuthorities()).toThrow(
+      /Fail-Fast|Autoridades críticas/,
+    );
     vi.unstubAllEnvs();
     resetConfigCache();
   });
@@ -105,7 +126,8 @@ describe("production authority (6 autoridades)", () => {
     vi.stubEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "https://otel.example.com");
     const { resetConfigCache } = await import("@/lib/config");
     resetConfigCache();
-    const { assertProductionAuthorities } = await import("@/lib/production-authority");
+    const { assertProductionAuthorities } =
+      await import("@/lib/production-authority");
     const report = assertProductionAuthorities();
     expect(report.productionLike).toBe(true);
     expect(report.criticalFailed).toBe(false);

@@ -66,7 +66,8 @@ interface AuditLog {
 interface LedgerBlock {
   index: number;
   operation: string;
-  category: "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT";
+  category:
+    "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT";
   costDecimal: string;
   timestamp: string;
   status: "settled" | "pending" | "refunded";
@@ -96,10 +97,21 @@ interface UpgradeItem {
   spec: string;
 }
 
-export function MonetizationDashboard({ initialTab }: { initialTab?: string | null }) {
+export function MonetizationDashboard({
+  initialTab,
+}: {
+  initialTab?: string | null;
+}) {
   // Sub-pagination Navigation State
   const [activeTab, setActiveTab] = useState<
-    "onboarding" | "heads" | "ledger" | "sandbox" | "upgrades" | "special" | "tutorials" | "audit"
+    | "onboarding"
+    | "heads"
+    | "ledger"
+    | "sandbox"
+    | "upgrades"
+    | "special"
+    | "tutorials"
+    | "audit"
   >("onboarding");
 
   // Sincroniza sub-navegación desde RightRails monetización (retractable navbar)
@@ -306,11 +318,15 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
   const [isRoutingSimulating, setIsRoutingSimulating] = useState(false);
 
   // Special Feature 2: Forensic Block Inspector
-  const [selectedAuditLog, setSelectedAuditLog] = useState<AuditLog | null>(null);
+  const [selectedAuditLog, setSelectedAuditLog] = useState<AuditLog | null>(
+    null,
+  );
 
   // Special Feature 3: Cost & Gas Planner Simulator
   const [planTokens, setPlanTokens] = useState(50000);
-  const [planCategory, setPlanCategory] = useState<"inference" | "apis" | "skills">("inference");
+  const [planCategory, setPlanCategory] = useState<
+    "inference" | "apis" | "skills"
+  >("inference");
   const [planHdrMultiplier, setPlanHdrMultiplier] = useState(1.0); // 1.0 for local node, 1.4 for cloud redundancy
 
   // --- REINFORCED MONETIZATION STATE ---
@@ -375,24 +391,29 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
         });
         if (ledgerRes.ok) {
           const lData = await ledgerRes.json();
-          const mapped: LedgerItem[] = lData.ledger.map((block: LedgerBlock) => ({
-            id: `tx_block_${block.index}`,
-            operation: block.operation,
-            category: block.category,
-            costDecimal: block.costDecimal,
-            timestamp: new Date(block.timestamp).toLocaleTimeString("es-MX", {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
+          const mapped: LedgerItem[] = lData.ledger.map(
+            (block: LedgerBlock) => ({
+              id: `tx_block_${block.index}`,
+              operation: block.operation,
+              category: block.category,
+              costDecimal: block.costDecimal,
+              timestamp: new Date(block.timestamp).toLocaleTimeString("es-MX", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              }),
+              status: block.status,
+              node: "Nodo Cero (Hgo)",
             }),
-            status: block.status,
-            node: "Nodo Cero (Hgo)",
-          }));
+          );
           setLedger(mapped);
         }
 
         // 3. Fetch Audit Logs if authorized
-        if (data.session.role === "SovereignOwner" || data.session.role === "Auditor") {
+        if (
+          data.session.role === "SovereignOwner" ||
+          data.session.role === "Auditor"
+        ) {
           const auditRes = await fetch(`/api/db?action=audit`, {
             headers: { Authorization: `Bearer ${sessionToken}` },
           });
@@ -429,7 +450,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
     }
   }, [sessionToken]);
 
-  const handleUpdateMonetizationProfile = async (updates: Record<string, unknown>) => {
+  const handleUpdateMonetizationProfile = async (
+    updates: Record<string, unknown>,
+  ) => {
     try {
       const res = await fetch(`/api/db?action=monetization-update-profile`, {
         method: "POST",
@@ -440,7 +463,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
         body: JSON.stringify(updates),
       });
       if (res.ok) {
-        toast.success("Parámetros de elegibilidad actualizados en el servidor.");
+        toast.success(
+          "Parámetros de elegibilidad actualizados en el servidor.",
+        );
         void fetchDbState();
       } else {
         toast.error("Error al actualizar la elegibilidad en el servidor.");
@@ -462,10 +487,14 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success("¡Tarea registrada y micro-créditos acreditados en BookPI!");
+        toast.success(
+          "¡Tarea registrada y micro-créditos acreditados en BookPI!",
+        );
         void fetchDbState();
       } else {
-        toast.error(data.error || "Fallo al ejecutar la tarea de monetización.");
+        toast.error(
+          data.error || "Fallo al ejecutar la tarea de monetización.",
+        );
       }
     } catch {
       toast.error("Error de comunicación de red al procesar tarea.");
@@ -474,14 +503,17 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
 
   const handleRequestWithdrawal = async (key?: string) => {
     try {
-      const res = await fetch(`/api/db?action=monetization-request-withdrawal`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          Authorization: `Bearer ${sessionToken}`,
+      const res = await fetch(
+        `/api/db?action=monetization-request-withdrawal`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            Authorization: `Bearer ${sessionToken}`,
+          },
+          body: JSON.stringify({ idempotencyKey: key }),
         },
-        body: JSON.stringify({ idempotencyKey: key }),
-      });
+      );
       const data = await res.json();
       if (res.ok) {
         toast.success(
@@ -523,7 +555,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
           persistSessionToken(token);
           setSessionToken(token);
           if (userId) setStoredSovereignUserId(userId);
-          toast.success(`Conexión OAuth Exitosa. Bienvenido, ${username || "Soberano"}.`);
+          toast.success(
+            `Conexión OAuth Exitosa. Bienvenido, ${username || "Soberano"}.`,
+          );
         }
       }
     };
@@ -540,7 +574,11 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
       if (!response.ok) throw new Error("Fallo al construir URL de OAuth");
       const { url } = await response.json();
 
-      const authWindow = window.open(url, "isabella_oauth_popup", "width=500,height=600");
+      const authWindow = window.open(
+        url,
+        "isabella_oauth_popup",
+        "width=500,height=600",
+      );
       if (!authWindow) {
         toast.error(
           "El navegador bloqueó la ventana emergente. Por favor, habilite las ventanas emergentes.",
@@ -619,7 +657,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
     // Los roles NO pueden cambiarse acuñando tokens por cuenta propia: la
     // identidad la emite únicamente el servidor mediante flujos autorizados
     // (provision-owner con token de bootstrap o IDP OIDC/Supabase).
-    toast.info("El cambio de identidad requiere un flujo autorizado (OIDC o provisionamiento).");
+    toast.info(
+      "El cambio de identidad requiere un flujo autorizado (OIDC o provisionamiento).",
+    );
   };
 
   const handleExecuteSandbox = async () => {
@@ -652,7 +692,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
       } else {
         if (data.success) {
           setSandboxOutput(data.output);
-          toast.success("Script ejecutado exitosamente en el Sandbox del servidor!");
+          toast.success(
+            "Script ejecutado exitosamente en el Sandbox del servidor!",
+          );
         } else {
           setSandboxError(data.error);
           toast.error("Script rechazado por el Sandbox de seguridad.");
@@ -707,10 +749,13 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        toast.error(`Emisión denegada: ${data.error ?? "sin respuesta del servidor"}`);
+        toast.error(
+          `Emisión denegada: ${data.error ?? "sin respuesta del servidor"}`,
+        );
         return;
       }
-      const issued = typeof data.key === "string" ? data.key : (data.key?.apiKey ?? "");
+      const issued =
+        typeof data.key === "string" ? data.key : (data.key?.apiKey ?? "");
       setGeneratedKeys((prev) => [
         { key: String(issued), name: newKeyName, scopes: [...selectedScopes] },
         ...prev,
@@ -753,7 +798,11 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
       let consensusRate = 96.2;
       let path = ["CROWN Gateway"];
 
-      if (lower.includes("dinero") || lower.includes("pago") || lower.includes("ledger")) {
+      if (
+        lower.includes("dinero") ||
+        lower.includes("pago") ||
+        lower.includes("ledger")
+      ) {
         primaryHead = "KRONOS Ledger";
         activeCells = ["Alpha-09", "Beta-09", "Beta-10"];
         consensusRate = 99.8;
@@ -776,12 +825,20 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
         activeCells = ["Alpha-12", "Beta-12"];
         consensusRate = 92.5;
         path = ["CROWN Gateway", "SOPHIA Engine", "DEMETER Soil"];
-      } else if (lower.includes("ley") || lower.includes("legal") || lower.includes("norma")) {
+      } else if (
+        lower.includes("ley") ||
+        lower.includes("legal") ||
+        lower.includes("norma")
+      ) {
         primaryHead = "ASTRAEA Justice";
         activeCells = ["Alpha-07", "Beta-07"];
         consensusRate = 97.4;
         path = ["CROWN Gateway", "ASTRAEA Justice"];
-      } else if (lower.includes("predicción") || lower.includes("clima") || lower.includes("gis")) {
+      } else if (
+        lower.includes("predicción") ||
+        lower.includes("clima") ||
+        lower.includes("gis")
+      ) {
         primaryHead = "PYTHIA Forecast";
         activeCells = ["Alpha-08", "Beta-08"];
         consensusRate = 89.1;
@@ -795,14 +852,20 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
 
       setRoutingFlow({
         primaryHead,
-        riskScore: lower.includes("hack") ? 0.98 : lower.includes("ledger") ? 0.65 : 0.15,
+        riskScore: lower.includes("hack")
+          ? 0.98
+          : lower.includes("ledger")
+            ? 0.65
+            : 0.15,
         activeCells,
         syntheticResolution: `[Orquestador Cognitivo v4.2.0] Tránsito neuronal completo. Petición mapeada con éxito.`,
         consensusRate,
         routingPath: path,
       });
       setIsRoutingSimulating(false);
-      toast.success("Simulación ilustrativa completada (no es enrutamiento real).");
+      toast.success(
+        "Simulación ilustrativa completada (no es enrutamiento real).",
+      );
     }, 1200);
   };
 
@@ -812,7 +875,10 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
   const usageStats = (() => {
     const settled = ledger.filter((l) => l.status === "settled");
     const msgUsed = settled.length;
-    const totalCost = settled.reduce((acc, l) => acc + (parseFloat(l.costDecimal) || 0), 0);
+    const totalCost = settled.reduce(
+      (acc, l) => acc + (parseFloat(l.costDecimal) || 0),
+      0,
+    );
     const tokensUsedEst = Math.round(totalCost * 1200);
     const msgLimit =
       activePlan === "personal"
@@ -822,7 +888,12 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
           : activePlan === "enterprise"
             ? 100000
             : 50;
-    const tokenLimit = activePlan === "personal" ? 100000 : activePlan === "pro" ? 500000 : 2000000;
+    const tokenLimit =
+      activePlan === "personal"
+        ? 100000
+        : activePlan === "pro"
+          ? 500000
+          : 2000000;
     return {
       msgUsed,
       msgLimit,
@@ -831,14 +902,20 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
     };
   })();
 
-  const creditBalance = activeTenant ? activeTenant.quotaBalance.toFixed(2) : "0.00";
+  const creditBalance = activeTenant
+    ? activeTenant.quotaBalance.toFixed(2)
+    : "0.00";
 
   // Gas and Token cost calculator estimator helper
   const estimatedUSD = (
     planTokens *
     0.000015 *
     planHdrMultiplier *
-    (planCategory === "inference" ? 1.0 : planCategory === "skills" ? 0.75 : 0.5)
+    (planCategory === "inference"
+      ? 1.0
+      : planCategory === "skills"
+        ? 0.75
+        : 0.5)
   ).toFixed(5);
 
   return (
@@ -863,9 +940,10 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
               Portal de Identidades y Gobernanza (OIDC / RBAC)
             </h2>
             <p className="mt-2 text-[12.5px] text-muted-foreground leading-relaxed max-w-3xl">
-              Panel de control de acceso soberano y monitoreo en Real del Monte, Hidalgo. Simula
-              cambios de tenencia e identidades OIDC en caliente para verificar el aislamiento
-              estricto de cuotas, el ledger BookPI y la ejecución VM.
+              Panel de control de acceso soberano y monitoreo en Real del Monte,
+              Hidalgo. Simula cambios de tenencia e identidades OIDC en caliente
+              para verificar el aislamiento estricto de cuotas, el ledger BookPI
+              y la ejecución VM.
             </p>
           </div>
 
@@ -876,25 +954,27 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 Simular Rol OIDC:
               </span>
               <div className="flex gap-1">
-                {["SovereignOwner", "Auditor", "Operator", "Guest"].map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => handleSwitchRole(role)}
-                    className={`px-3 py-1 rounded-xl font-mono text-[10px] border transition-all ${
-                      activeRole === role
-                        ? "bg-electric text-platinum border-electric font-semibold shadow-[0_0_10px_rgba(112,102,249,0.3)]"
-                        : "border-border/30 text-muted-foreground hover:text-platinum hover:bg-secondary/30"
-                    }`}
-                  >
-                    {role === "SovereignOwner"
-                      ? "Owner"
-                      : role === "Auditor"
-                        ? "Auditor"
-                        : role === "Operator"
-                          ? "Operator"
-                          : "Guest"}
-                  </button>
-                ))}
+                {["SovereignOwner", "Auditor", "Operator", "Guest"].map(
+                  (role) => (
+                    <button
+                      key={role}
+                      onClick={() => handleSwitchRole(role)}
+                      className={`px-3 py-1 rounded-xl font-mono text-[10px] border transition-all ${
+                        activeRole === role
+                          ? "bg-electric text-platinum border-electric font-semibold shadow-[0_0_10px_rgba(112,102,249,0.3)]"
+                          : "border-border/30 text-muted-foreground hover:text-platinum hover:bg-secondary/30"
+                      }`}
+                    >
+                      {role === "SovereignOwner"
+                        ? "Owner"
+                        : role === "Auditor"
+                          ? "Auditor"
+                          : role === "Operator"
+                            ? "Operator"
+                            : "Guest"}
+                    </button>
+                  ),
+                )}
               </div>
             </div>
 
@@ -959,14 +1039,46 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
       {/* 2. Sub-pagination Tabs Menu */}
       <div className="flex border-b border-border/30 overflow-x-auto gap-2 pb-px scrollbar-none">
         {[
-          { id: "onboarding", label: "Consumo General", icon: <TrendingUp className="size-4" /> },
-          { id: "heads", label: "12 Núcleos Dobles", icon: <Brain className="size-4" /> },
-          { id: "ledger", label: "Libro Mayor BookPI", icon: <Database className="size-4" /> },
-          { id: "sandbox", label: "Sandbox VM", icon: <Terminal className="size-4" /> },
-          { id: "upgrades", label: "Mejoras de Motor", icon: <Sparkles className="size-4" /> },
-          { id: "special", label: "Simuladores Especiales", icon: <Sliders className="size-4" /> },
-          { id: "tutorials", label: "Guía y Tutoriales", icon: <BookOpen className="size-4" /> },
-          { id: "audit", label: "Cripto-Auditoría", icon: <Shield className="size-4" /> },
+          {
+            id: "onboarding",
+            label: "Consumo General",
+            icon: <TrendingUp className="size-4" />,
+          },
+          {
+            id: "heads",
+            label: "12 Núcleos Dobles",
+            icon: <Brain className="size-4" />,
+          },
+          {
+            id: "ledger",
+            label: "Libro Mayor BookPI",
+            icon: <Database className="size-4" />,
+          },
+          {
+            id: "sandbox",
+            label: "Sandbox VM",
+            icon: <Terminal className="size-4" />,
+          },
+          {
+            id: "upgrades",
+            label: "Mejoras de Motor",
+            icon: <Sparkles className="size-4" />,
+          },
+          {
+            id: "special",
+            label: "Simuladores Especiales",
+            icon: <Sliders className="size-4" />,
+          },
+          {
+            id: "tutorials",
+            label: "Guía y Tutoriales",
+            icon: <BookOpen className="size-4" />,
+          },
+          {
+            id: "audit",
+            label: "Cripto-Auditoría",
+            icon: <Shield className="size-4" />,
+          },
         ].map((tab) => {
           const active = activeTab === tab.id;
           return (
@@ -1014,7 +1126,10 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
           />
 
           <div className="glass rounded-3xl p-6">
-            <PlanSelector currentPlanId={activePlan} onSelectPlan={handleSelectPlan} />
+            <PlanSelector
+              currentPlanId={activePlan}
+              onSelectPlan={handleSelectPlan}
+            />
           </div>
 
           <div className="glass rounded-3xl p-6 border border-border/30 bg-gradient-to-br from-secondary/5 to-secondary/15 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -1024,9 +1139,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 Consentimiento de Identidad Constitucional
               </h4>
               <p className="text-[12px] text-muted-foreground mt-1 max-w-3xl leading-relaxed">
-                Antes de acceder a las funciones avanzadas y compartir telemetría, configure los
-                datos constitucionales del Operador de la Comunidad. Esto garantiza la trazabilidad
-                legal del nodo.
+                Antes de acceder a las funciones avanzadas y compartir
+                telemetría, configure los datos constitucionales del Operador de
+                la Comunidad. Esto garantiza la trazabilidad legal del nodo.
               </p>
             </div>
             <button
@@ -1047,12 +1162,14 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
               <div>
                 <h3 className="font-mono text-[15px] font-bold text-pearl flex items-center gap-2">
                   <Brain className="size-5 text-electric animate-pulse" />
-                  Módulo de Telemetría: 12 Heads Cognitivos Configurados (24 Núcleos Modelados)
+                  Módulo de Telemetría: 12 Heads Cognitivos Configurados (24
+                  Núcleos Modelados)
                 </h3>
                 <p className="text-[12.5px] text-muted-foreground mt-1">
-                  Monitoreo de estado de los 12 heads cognitivos configurados (con 24 núcleos
-                  independientes modelados para ejecución cognitiva). Cada head consta de un
-                  submódulo **Alpha (Razonamiento Epistémico)** y un submódulo **Beta (Ejecución
+                  Monitoreo de estado de los 12 heads cognitivos configurados
+                  (con 24 núcleos independientes modelados para ejecución
+                  cognitiva). Cada head consta de un submódulo **Alpha
+                  (Razonamiento Epistémico)** y un submódulo **Beta (Ejecución
                   Cibernética/Acción)** modelados arquitectónicamente.
                 </p>
               </div>
@@ -1062,13 +1179,17 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                   await fetchDbState();
                   setTimeout(() => {
                     setIsHeadsRefreshing(false);
-                    toast.success("Telemetría de los 12 heads configurados sincronizada.");
+                    toast.success(
+                      "Telemetría de los 12 heads configurados sincronizada.",
+                    );
                   }, 600);
                 }}
                 disabled={isHeadsRefreshing}
                 className="px-3.5 py-1.5 rounded-xl border border-border/30 bg-secondary/25 hover:bg-secondary/40 font-mono text-[10.5px] uppercase tracking-wider transition-all text-platinum flex items-center gap-2 cursor-pointer"
               >
-                <RefreshCw className={`size-3.5 ${isHeadsRefreshing ? "animate-spin" : ""}`} />
+                <RefreshCw
+                  className={`size-3.5 ${isHeadsRefreshing ? "animate-spin" : ""}`}
+                />
                 {isHeadsRefreshing ? "Sincronizando..." : "Sincronizar Heads"}
               </button>
             </div>
@@ -1076,7 +1197,10 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
             {/* Grid of 12 Heads */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {cognitiveHeads.map((head) => {
-                const totalLoad = ((head.alphaLoad + head.betaLoad) / 2).toFixed(1);
+                const totalLoad = (
+                  (head.alphaLoad + head.betaLoad) /
+                  2
+                ).toFixed(1);
                 return (
                   <div
                     key={head.name}
@@ -1118,7 +1242,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                           <span className="text-electric font-semibold">
                             Núcleo Alpha (Epistémico)
                           </span>
-                          <span className="text-platinum">{head.alphaLoad}%</span>
+                          <span className="text-platinum">
+                            {head.alphaLoad}%
+                          </span>
                         </div>
                         <div className="h-1 w-full bg-border/40 rounded-full overflow-hidden">
                           <div
@@ -1134,7 +1260,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                           <span className="text-rose-400 font-semibold">
                             Núcleo Beta (Cibernético)
                           </span>
-                          <span className="text-platinum">{head.betaLoad}%</span>
+                          <span className="text-platinum">
+                            {head.betaLoad}%
+                          </span>
                         </div>
                         <div className="h-1 w-full bg-border/40 rounded-full overflow-hidden">
                           <div
@@ -1184,8 +1312,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                     Simular Operaciones de Costo
                   </h4>
                   <p className="text-[11.5px] text-muted-foreground mt-1 leading-relaxed">
-                    Ejecute operaciones para comprobar la deducción decimal exacta e inmediata
-                    registrada en el libro mayor persistente BookPI de Supabase.
+                    Ejecute operaciones para comprobar la deducción decimal
+                    exacta e inmediata registrada en el libro mayor persistente
+                    BookPI de Supabase.
                   </p>
                 </div>
 
@@ -1201,7 +1330,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                     className="w-full text-left p-3 rounded-xl border border-border/30 bg-secondary/15 hover:bg-secondary/35 transition-all font-mono text-[11px] flex items-center justify-between cursor-pointer"
                   >
                     <div>
-                      <span className="block text-platinum font-semibold">Agente Antigravity</span>
+                      <span className="block text-platinum font-semibold">
+                        Agente Antigravity
+                      </span>
                       <span className="block text-[9.5px] text-muted-foreground mt-0.5">
                         Llamada a modelo interactivo
                       </span>
@@ -1247,7 +1378,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                           }),
                         });
                         if (res.ok) {
-                          toast.success("Saldo recargado exitosamente! (+$25.00 USD)");
+                          toast.success(
+                            "Saldo recargado exitosamente! (+$25.00 USD)",
+                          );
                           void fetchDbState();
                         }
                       } catch {
@@ -1262,8 +1395,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
               </div>
 
               <div className="mt-5 pt-3.5 border-t border-border/20 text-[10.5px] text-muted-foreground font-mono leading-relaxed">
-                *Las transacciones con saldo insuficiente serán rechazadas automáticamente por el
-                validador del ledger BookPI en el lado del servidor.
+                *Las transacciones con saldo insuficiente serán rechazadas
+                automáticamente por el validador del ledger BookPI en el lado
+                del servidor.
               </div>
             </div>
           </div>
@@ -1281,9 +1415,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 API & Claves de Acceso con Scopes
               </h3>
               <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">
-                Defina credenciales seguras para interactuar con los endpoints del Nodo Cero. Cada
-                clave generada posee permisos limitados y restrictivos en base a su nivel de
-                auditoría.
+                Defina credenciales seguras para interactuar con los endpoints
+                del Nodo Cero. Cada clave generada posee permisos limitados y
+                restrictivos en base a su nivel de auditoría.
               </p>
 
               <div className="mt-4 bg-secondary/15 border border-border/30 rounded-2xl p-3.5 space-y-3">
@@ -1367,13 +1501,15 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 Ejecución Real en Sandbox Segura (Sovereign Sandbox VM)
               </h3>
               <p className="text-[12px] text-muted-foreground leading-relaxed">
-                Ejecuta lógica algorítmica aislada directamente en la VM protegida del servidor. La
-                VM restringe inyecciones terminales, comandos del sistema y caracteres no-ASCII.
+                Ejecuta lógica algorítmica aislada directamente en la VM
+                protegida del servidor. La VM restringe inyecciones terminales,
+                comandos del sistema y caracteres no-ASCII.
               </p>
 
               <div className="bg-secondary/20 rounded-2xl border border-border/30 p-3 flex flex-col gap-2.5">
                 <span className="font-mono text-[10px] text-muted-foreground">
-                  Variables disponibles: PI, MAX_INF_LIMIT, ACTIVE_COGNITIVE_HEADS, currentTime
+                  Variables disponibles: PI, MAX_INF_LIMIT,
+                  ACTIVE_COGNITIVE_HEADS, currentTime
                 </span>
 
                 <textarea
@@ -1390,7 +1526,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 >
                   {isSandboxRunning ? (
                     <>
-                      <RefreshCw className="size-3.5 animate-spin" /> Procesando VM...
+                      <RefreshCw className="size-3.5 animate-spin" /> Procesando
+                      VM...
                     </>
                   ) : (
                     <>
@@ -1404,7 +1541,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                   <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl font-mono text-[11px] text-emerald-400 flex items-center gap-2">
                     <CheckCircle2 className="size-4 shrink-0" />
                     <span>
-                      Resultado VM: <strong>{JSON.stringify(sandboxOutput)}</strong>
+                      Resultado VM:{" "}
+                      <strong>{JSON.stringify(sandboxOutput)}</strong>
                     </span>
                   </div>
                 )}
@@ -1430,8 +1568,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
               Integraciones de Seguridad y Mejoras Soberanas
             </h3>
             <p className="text-[12.5px] text-muted-foreground mt-1">
-              Hoja de ruta de capacidades soberanas para el Nodo Cero. Ninguna está disponible para
-              compra o activación: requieren backend real. No se realiza ningún cobro.
+              Hoja de ruta de capacidades soberanas para el Nodo Cero. Ninguna
+              está disponible para compra o activación: requieren backend real.
+              No se realiza ningún cobro.
             </p>
           </div>
 
@@ -1491,11 +1630,13 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
           <div className="glass rounded-3xl p-6 border border-border/30">
             <h3 className="font-mono text-[14px] font-bold text-pearl flex items-center gap-2 mb-1">
               <Brain className="size-5 text-electric" />
-              Característica Especial 1: Visualizador Interactivo de Enrutamiento Neural
+              Característica Especial 1: Visualizador Interactivo de
+              Enrutamiento Neural
             </h3>
             <p className="text-[12px] text-muted-foreground leading-relaxed mb-4">
-              Simulación ilustrativa local por palabras clave (no es el enrutador real ni evidencia
-              de consenso). Muestra una ruta aproximada con fines didácticos.
+              Simulación ilustrativa local por palabras clave (no es el
+              enrutador real ni evidencia de consenso). Muestra una ruta
+              aproximada con fines didácticos.
             </p>
 
             <div className="grid gap-4 md:grid-cols-[1fr_320px]">
@@ -1566,7 +1707,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                           </span>
                           <span
                             className={`text-[11.5px] font-mono font-bold ${
-                              routingFlow.riskScore > 0.5 ? "text-rose-400" : "text-emerald-400"
+                              routingFlow.riskScore > 0.5
+                                ? "text-rose-400"
+                                : "text-emerald-400"
                             }`}
                           >
                             {(routingFlow.riskScore * 100).toFixed(0)}%
@@ -1578,8 +1721,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                     <div className="text-center text-muted-foreground space-y-1 py-4">
                       <Brain className="size-7 mx-auto text-muted-foreground/30 animate-bounce" />
                       <p className="font-mono text-[11px]">
-                        Ingresa un prompt de prueba y presiona Ejecutar para ver el mapa neural de
-                        Isabella.
+                        Ingresa un prompt de prueba y presiona Ejecutar para ver
+                        el mapa neural de Isabella.
                       </p>
                     </div>
                   )}
@@ -1596,7 +1739,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                     Demos de Análisis
                   </h4>
                   <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">
-                    Selecciona un prompt pre-diseñado para ver cómo responde el orquestador ético:
+                    Selecciona un prompt pre-diseñado para ver cómo responde el
+                    orquestador ético:
                   </p>
                 </div>
                 <div className="space-y-1.5 mt-3">
@@ -1609,7 +1753,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       key={demo}
                       onClick={() => {
                         setSimulatedPrompt(demo);
-                        toast.info("Prompt de demo cargado. Presiona Ejecutar Ruta.");
+                        toast.info(
+                          "Prompt de demo cargado. Presiona Ejecutar Ruta.",
+                        );
                       }}
                       className="w-full text-left p-2 rounded-xl border border-border/20 bg-secondary/10 hover:bg-secondary/20 transition-all font-mono text-[10.5px] text-muted-foreground hover:text-platinum truncate cursor-pointer"
                     >
@@ -1628,9 +1774,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
               Característica Especial 2: Calculador Estimador de Gas y Cuotas
             </h3>
             <p className="text-[12px] text-muted-foreground leading-relaxed mb-4">
-              Calcule los costos de inferencia y operación proyectados antes de lanzar una
-              integración a gran escala en el Nodo Cero. Optimice las llamadas con tarifas
-              regionales diferenciadas.
+              Calcule los costos de inferencia y operación proyectados antes de
+              lanzar una integración a gran escala en el Nodo Cero. Optimice las
+              llamadas con tarifas regionales diferenciadas.
             </p>
 
             <div className="grid gap-6 md:grid-cols-3">
@@ -1671,7 +1817,11 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       ].map((cat) => (
                         <button
                           key={cat.id}
-                          onClick={() => setPlanCategory(cat.id as "inference" | "skills" | "apis")}
+                          onClick={() =>
+                            setPlanCategory(
+                              cat.id as "inference" | "skills" | "apis",
+                            )
+                          }
                           className={`font-mono text-[10px] py-1.5 rounded-lg transition-all cursor-pointer ${
                             planCategory === cat.id
                               ? "bg-electric text-platinum font-semibold"
@@ -1722,12 +1872,14 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                     </span>
                     <span className="text-[24px] font-mono font-bold text-rose-400 block mt-1">
                       ${estimatedUSD}{" "}
-                      <span className="text-[12px] text-muted-foreground font-normal">USD</span>
+                      <span className="text-[12px] text-muted-foreground font-normal">
+                        USD
+                      </span>
                     </span>
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-relaxed mt-2">
-                    Costo neto de procesamiento basado en gas informático inyectado, tasa de
-                    enrutamiento y hardware local.
+                    Costo neto de procesamiento basado en gas informático
+                    inyectado, tasa de enrutamiento y hardware local.
                   </p>
                 </div>
 
@@ -1736,8 +1888,13 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                     onClick={() => {
                       // Sin mutación local: el saldo solo cambia cuando el servidor
                       // registra el bloque y fetchDbState refresca el estado real.
-                      if (activeTenant && activeTenant.quotaBalance >= parseFloat(estimatedUSD)) {
-                        toast.info("Registrando plan en el ledger del servidor...");
+                      if (
+                        activeTenant &&
+                        activeTenant.quotaBalance >= parseFloat(estimatedUSD)
+                      ) {
+                        toast.info(
+                          "Registrando plan en el ledger del servidor...",
+                        );
                         void handleSimulateCreditUsage(
                           `Plan de Inferencia Proyectado (${planTokens.toLocaleString()} tokens)`,
                           planCategory as
@@ -1750,7 +1907,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                           estimatedUSD,
                         );
                       } else {
-                        toast.error("Saldo insuficiente en tenant para reservar este plan.");
+                        toast.error(
+                          "Saldo insuficiente en tenant para reservar este plan.",
+                        );
                       }
                     }}
                     className="w-full py-2 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/25 text-rose-400 rounded-xl font-mono text-[10px] uppercase tracking-wider transition-all cursor-pointer font-bold"
@@ -1769,8 +1928,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
               Característica Especial 3: Inspector Forense Criptográfico de Logs
             </h3>
             <p className="text-[12px] text-muted-foreground leading-relaxed mb-4">
-              Haga clic sobre cualquier registro en la pestaña **Cripto-Auditoría** para cargarlo en
-              este visor avanzado. Inspeccione las firmas SHA-256 encadenadas para garantizar la
+              Haga clic sobre cualquier registro en la pestaña
+              **Cripto-Auditoría** para cargarlo en este visor avanzado.
+              Inspeccione las firmas SHA-256 encadenadas para garantizar la
               inmutabilidad absoluta del sistema.
             </p>
 
@@ -1791,7 +1951,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                         Correlation ID
                       </span>
                       <span className="text-electric truncate block">
-                        {selectedAuditLog.correlationId || "cor_session_default"}
+                        {selectedAuditLog.correlationId ||
+                          "cor_session_default"}
                       </span>
                     </div>
                     <div>
@@ -1809,7 +1970,10 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                     </span>
                     <span className="text-amber-400 block select-all truncate bg-secondary/30 border border-border/30 p-1.5 rounded-xl text-[10px]">
                       {/* Live generated SHA256 simulation representation */}
-                      {Math.random().toString(36).slice(2, 10).padStart(64, "abcdef0123456789")}
+                      {Math.random()
+                        .toString(36)
+                        .slice(2, 10)
+                        .padStart(64, "abcdef0123456789")}
                     </span>
                   </div>
                   <div className="space-y-1">
@@ -1817,7 +1981,10 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       Firma del Log Anterior (Chaining)
                     </span>
                     <span className="text-emerald-400 block select-all truncate bg-secondary/30 border border-border/30 p-1.5 rounded-xl text-[10px]">
-                      {Math.random().toString(36).slice(2, 10).padStart(64, "9876543210fedcba")}
+                      {Math.random()
+                        .toString(36)
+                        .slice(2, 10)
+                        .padStart(64, "9876543210fedcba")}
                     </span>
                   </div>
                   <div className="text-muted-foreground leading-relaxed pt-1.5 text-[10px]">
@@ -1828,8 +1995,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 <div className="text-center text-muted-foreground space-y-1 py-4">
                   <ShieldAlert className="size-7 mx-auto text-muted-foreground/30 animate-bounce" />
                   <p className="font-mono text-[11px]">
-                    No se ha cargado ningún registro. Diríjase a la pestaña **Cripto-Auditoría**,
-                    presione sobre un log y aparecerá aquí.
+                    No se ha cargado ningún registro. Diríjase a la pestaña
+                    **Cripto-Auditoría**, presione sobre un log y aparecerá
+                    aquí.
                   </p>
                 </div>
               )}
@@ -1849,8 +2017,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 Soberanía Económica y Guía de Monetización de Isabella AI
               </h3>
               <p className="text-[12.5px] text-muted-foreground mt-1">
-                Aprenda cómo operar nodos, registrar habilidades y generar ingresos mediante la
-                economía local de Real del Monte.
+                Aprenda cómo operar nodos, registrar habilidades y generar
+                ingresos mediante la economía local de Real del Monte.
               </p>
             </div>
             <div className="flex items-center gap-1.5 bg-secondary/30 px-3 py-1.5 rounded-xl border border-border/30 font-mono text-[11px] text-platinum">
@@ -1886,7 +2054,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
             <div className="flex justify-between items-center pt-4 border-t border-border/20">
               <button
                 disabled={activeTutorialStep === 0}
-                onClick={() => setActiveTutorialStep((prev) => Math.max(0, prev - 1))}
+                onClick={() =>
+                  setActiveTutorialStep((prev) => Math.max(0, prev - 1))
+                }
                 className="px-4 py-1.5 rounded-xl border border-border/30 text-platinum hover:bg-secondary/30 font-mono text-[11px] transition-all disabled:opacity-40 cursor-pointer"
               >
                 Anterior
@@ -1897,13 +2067,17 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                   if (activeTutorialStep < TUTORIAL_STEPS.length - 1) {
                     setActiveTutorialStep((prev) => prev + 1);
                   } else {
-                    toast.success("¡Has completado toda la guía económica oficial de Isabella!");
+                    toast.success(
+                      "¡Has completado toda la guía económica oficial de Isabella!",
+                    );
                     setActiveTutorialStep(0);
                   }
                 }}
                 className="px-5 py-1.5 bg-electric text-platinum border border-electric rounded-xl font-mono text-[11px] hover:bg-electric-light transition-all cursor-pointer font-semibold"
               >
-                {activeTutorialStep === TUTORIAL_STEPS.length - 1 ? "Completar Guía" : "Siguiente"}
+                {activeTutorialStep === TUTORIAL_STEPS.length - 1
+                  ? "Completar Guía"
+                  : "Siguiente"}
               </button>
             </div>
           </div>
@@ -1918,8 +2092,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                   1. Canales de Monetización Activos
                 </h4>
                 <p className="text-[11.5px] text-muted-foreground mt-0.5">
-                  Simule actividades de provisión real y verifique el flujo de caja acreditado e
-                  inmutable.
+                  Simule actividades de provisión real y verifique el flujo de
+                  caja acreditado e inmutable.
                 </p>
               </div>
 
@@ -1937,18 +2111,21 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       Provisión de Mapas GIS
                     </h5>
                     <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                      Cobre micro-transacciones catastrales por consultas espaciales en tiempo real
-                      en Real del Monte.
+                      Cobre micro-transacciones catastrales por consultas
+                      espaciales en tiempo real en Real del Monte.
                     </p>
                   </div>
                   {activeProvisionedKey && (
                     <div className="p-2.5 rounded-lg bg-black/40 border border-emerald-500/30 font-mono text-[10px] text-emerald-400 break-all">
-                      Key Activa: <span className="underline">{activeProvisionedKey}</span>
+                      Key Activa:{" "}
+                      <span className="underline">{activeProvisionedKey}</span>
                     </div>
                   )}
                   <button
                     onClick={async () => {
-                      const nextKey = "isabella_gis_pk_" + Math.random().toString(16).slice(2, 10);
+                      const nextKey =
+                        "isabella_gis_pk_" +
+                        Math.random().toString(16).slice(2, 10);
                       setActiveProvisionedKey(nextKey);
                       setSimulationLogs((prev) => [
                         `[GIS] Generada clave GIS de simulación: ${nextKey}`,
@@ -1975,18 +2152,24 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       Nodo de Cómputo Compartido
                     </h5>
                     <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                      Sincronice potencia de hardware local para computar inferencias de token de
-                      SOPHIA.
+                      Sincronice potencia de hardware local para computar
+                      inferencias de token de SOPHIA.
                     </p>
                   </div>
                   <div className="flex items-center justify-between p-2.5 rounded-lg bg-black/40 border border-border/30 font-mono text-[10px]">
-                    <span className="text-muted-foreground">Estado del Daemon:</span>
+                    <span className="text-muted-foreground">
+                      Estado del Daemon:
+                    </span>
                     <span
                       className={
-                        activeComputeNode ? "text-emerald-400 font-bold" : "text-amber-500"
+                        activeComputeNode
+                          ? "text-emerald-400 font-bold"
+                          : "text-amber-500"
                       }
                     >
-                      {activeComputeNode ? "● ACTIVO (85.4%)" : "○ DESCONECTADO"}
+                      {activeComputeNode
+                        ? "● ACTIVO (85.4%)"
+                        : "○ DESCONECTADO"}
                     </span>
                   </div>
                   <button
@@ -2000,12 +2183,17 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                         ]);
                         await handleExecuteMonetizationTask("compute");
                       } else {
-                        setSimulationLogs((prev) => ["[COMPUTE] Daemon desconectado.", ...prev]);
+                        setSimulationLogs((prev) => [
+                          "[COMPUTE] Daemon desconectado.",
+                          ...prev,
+                        ]);
                       }
                     }}
                     className="w-full py-2 bg-secondary/40 hover:bg-secondary/60 text-platinum border border-border/30 font-mono text-[11px] font-semibold rounded-xl transition-all cursor-pointer"
                   >
-                    {activeComputeNode ? "Desconectar Daemon" : "Compartir Hardware (+$3.00)"}
+                    {activeComputeNode
+                      ? "Desconectar Daemon"
+                      : "Compartir Hardware (+$3.00)"}
                   </button>
                 </div>
 
@@ -2022,11 +2210,14 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       Venta de Habilidades (Skills)
                     </h5>
                     <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                      Exponga habilidades cognitivas certificadas del sandbox para otros Tenants.
+                      Exponga habilidades cognitivas certificadas del sandbox
+                      para otros Tenants.
                     </p>
                   </div>
                   <div className="flex items-center justify-between p-2.5 rounded-lg bg-black/40 border border-border/30 font-mono text-[10px]">
-                    <span className="text-muted-foreground">Skills Publicados:</span>
+                    <span className="text-muted-foreground">
+                      Skills Publicados:
+                    </span>
                     <span className="text-purple-400 font-bold">
                       {activePremiumSkill ? "1 (Activo)" : "0"}
                     </span>
@@ -2059,8 +2250,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       Optimizador Quántico
                     </h5>
                     <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                      Resuelva códigos correctores de errores cuánticos (QEC) para reducir ruido
-                      neural.
+                      Resuelva códigos correctores de errores cuánticos (QEC)
+                      para reducir ruido neural.
                     </p>
                   </div>
                   <button
@@ -2090,8 +2281,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       Validación de Patrimonio
                     </h5>
                     <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                      Firme digitalmente e inmutabilice archivos de bienes históricos de Real del
-                      Monte en el Libro Mayor.
+                      Firme digitalmente e inmutabilice archivos de bienes
+                      históricos de Real del Monte en el Libro Mayor.
                     </p>
                   </div>
                   <button
@@ -2143,7 +2334,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                   {/* Micro checklist indicators */}
                   <div className="space-y-2 pt-2 border-t border-border/10 font-mono text-[11px]">
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">1. Identidad OIDC:</span>
+                      <span className="text-muted-foreground">
+                        1. Identidad OIDC:
+                      </span>
                       <span
                         className={
                           monetizationAccount.identityVerified
@@ -2151,11 +2344,15 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                             : "text-rose-400"
                         }
                       >
-                        {monetizationAccount.identityVerified ? "Verificada" : "Pendiente"}
+                        {monetizationAccount.identityVerified
+                          ? "Verificada"
+                          : "Pendiente"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">2. Cuenta de Pago:</span>
+                      <span className="text-muted-foreground">
+                        2. Cuenta de Pago:
+                      </span>
                       <span
                         className={
                           monetizationAccount.paymentAccountVerified
@@ -2169,7 +2366,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">3. Capacitación Antifraude:</span>
+                      <span className="text-muted-foreground">
+                        3. Capacitación Antifraude:
+                      </span>
                       <span
                         className={
                           monetizationAccount.trainingCompleted
@@ -2177,17 +2376,25 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                             : "text-rose-400"
                         }
                       >
-                        {monetizationAccount.trainingCompleted ? "Completada" : "Pendiente"}
+                        {monetizationAccount.trainingCompleted
+                          ? "Completada"
+                          : "Pendiente"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">4. Perfil de Operador:</span>
+                      <span className="text-muted-foreground">
+                        4. Perfil de Operador:
+                      </span>
                       <span
                         className={
-                          monetizationAccount.profileComplete ? "text-emerald-400" : "text-rose-400"
+                          monetizationAccount.profileComplete
+                            ? "text-emerald-400"
+                            : "text-rose-400"
                         }
                       >
-                        {monetizationAccount.profileComplete ? "Completo" : "Incompleto"}
+                        {monetizationAccount.profileComplete
+                          ? "Completo"
+                          : "Incompleto"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -2201,12 +2408,22 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                             : "text-emerald-400"
                         }
                       >
-                        {monetizationAccount.underFraudReview ? "REVISIÓN ACTIVA" : "Sin Alertas"}
+                        {monetizationAccount.underFraudReview
+                          ? "REVISIÓN ACTIVA"
+                          : "Sin Alertas"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">6. Saldo Mínimo ($50.00):</span>
-                      <span className={earnedBalance >= 50 ? "text-emerald-400" : "text-amber-400"}>
+                      <span className="text-muted-foreground">
+                        6. Saldo Mínimo ($50.00):
+                      </span>
+                      <span
+                        className={
+                          earnedBalance >= 50
+                            ? "text-emerald-400"
+                            : "text-amber-400"
+                        }
+                      >
                         {earnedBalance >= 50
                           ? "Satisfecho"
                           : `Faltan $${(50 - earnedBalance).toFixed(2)} USD`}
@@ -2215,37 +2432,41 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                   </div>
 
                   {/* Blocked reasons visual feedback */}
-                  {!eligibilityInfo.eligible && eligibilityInfo.blockedReasons.length > 0 && (
-                    <div className="p-3 bg-rose-500/5 border border-rose-500/25 rounded-xl space-y-1.5 mt-2">
-                      <span className="block font-mono text-[9px] uppercase font-bold text-rose-400">
-                        Motivos del Bloqueo:
-                      </span>
-                      <ul className="list-disc list-inside text-[10px] text-muted-foreground font-mono space-y-1">
-                        {eligibilityInfo.blockedReasons.map((reason: string) => {
-                          let label = reason;
-                          if (reason === "IDENTITY_UNVERIFIED")
-                            label = "Falta de Consentimiento OIDC";
-                          else if (reason === "PAYMENT_ACCOUNT_UNVERIFIED")
-                            label = "Cuenta de pagos no vinculada";
-                          else if (reason === "TRAINING_INCOMPLETE")
-                            label = "Capacitación de Cumplimiento faltante";
-                          else if (reason === "PROFILE_INCOMPLETE")
-                            label = "Perfil de Operador incompleto";
-                          else if (reason === "UNDER_FRAUD_REVIEW")
-                            label = "Sujeto a hold preventivo de seguridad";
-                          else if (reason === "MINIMUM_BALANCE_NOT_MET")
-                            label = "Saldo menor al mínimo de retiro ($50.00)";
-                          else if (reason === "NO_RECENT_ACTIVITY")
-                            label = "Sin actividad reciente de provisión";
-                          return (
-                            <li key={reason} className="truncate">
-                              {label}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  )}
+                  {!eligibilityInfo.eligible &&
+                    eligibilityInfo.blockedReasons.length > 0 && (
+                      <div className="p-3 bg-rose-500/5 border border-rose-500/25 rounded-xl space-y-1.5 mt-2">
+                        <span className="block font-mono text-[9px] uppercase font-bold text-rose-400">
+                          Motivos del Bloqueo:
+                        </span>
+                        <ul className="list-disc list-inside text-[10px] text-muted-foreground font-mono space-y-1">
+                          {eligibilityInfo.blockedReasons.map(
+                            (reason: string) => {
+                              let label = reason;
+                              if (reason === "IDENTITY_UNVERIFIED")
+                                label = "Falta de Consentimiento OIDC";
+                              else if (reason === "PAYMENT_ACCOUNT_UNVERIFIED")
+                                label = "Cuenta de pagos no vinculada";
+                              else if (reason === "TRAINING_INCOMPLETE")
+                                label = "Capacitación de Cumplimiento faltante";
+                              else if (reason === "PROFILE_INCOMPLETE")
+                                label = "Perfil de Operador incompleto";
+                              else if (reason === "UNDER_FRAUD_REVIEW")
+                                label = "Sujeto a hold preventivo de seguridad";
+                              else if (reason === "MINIMUM_BALANCE_NOT_MET")
+                                label =
+                                  "Saldo menor al mínimo de retiro ($50.00)";
+                              else if (reason === "NO_RECENT_ACTIVITY")
+                                label = "Sin actividad reciente de provisión";
+                              return (
+                                <li key={reason} className="truncate">
+                                  {label}
+                                </li>
+                              );
+                            },
+                          )}
+                        </ul>
+                      </div>
+                    )}
                 </div>
               )}
 
@@ -2262,7 +2483,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                         type="checkbox"
                         checked={monetizationAccount.identityVerified}
                         onChange={(e) =>
-                          handleUpdateMonetizationProfile({ identityVerified: e.target.checked })
+                          handleUpdateMonetizationProfile({
+                            identityVerified: e.target.checked,
+                          })
                         }
                         className="rounded border-border/40 text-electric bg-secondary/30 focus:ring-0 size-3.5 cursor-pointer"
                       />
@@ -2288,7 +2511,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                         type="checkbox"
                         checked={monetizationAccount.trainingCompleted}
                         onChange={(e) =>
-                          handleUpdateMonetizationProfile({ trainingCompleted: e.target.checked })
+                          handleUpdateMonetizationProfile({
+                            trainingCompleted: e.target.checked,
+                          })
                         }
                         className="rounded border-border/40 text-electric bg-secondary/30 focus:ring-0 size-3.5 cursor-pointer"
                       />
@@ -2300,7 +2525,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                         type="checkbox"
                         checked={monetizationAccount.profileComplete}
                         onChange={(e) =>
-                          handleUpdateMonetizationProfile({ profileComplete: e.target.checked })
+                          handleUpdateMonetizationProfile({
+                            profileComplete: e.target.checked,
+                          })
                         }
                         className="rounded border-border/40 text-electric bg-secondary/30 focus:ring-0 size-3.5 cursor-pointer"
                       />
@@ -2312,7 +2539,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                         type="checkbox"
                         checked={monetizationAccount.underFraudReview}
                         onChange={(e) =>
-                          handleUpdateMonetizationProfile({ underFraudReview: e.target.checked })
+                          handleUpdateMonetizationProfile({
+                            underFraudReview: e.target.checked,
+                          })
                         }
                         className="rounded border-border/40 text-rose-500 bg-secondary/30 focus:ring-0 size-3.5 cursor-pointer"
                       />
@@ -2333,11 +2562,14 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                   </div>
                   <div className="font-mono text-[28px] font-bold text-white tracking-tight mt-1">
                     ${earnedBalance.toFixed(4)}{" "}
-                    <span className="text-[12px] text-muted-foreground font-normal">USD</span>
+                    <span className="text-[12px] text-muted-foreground font-normal">
+                      USD
+                    </span>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    División Canónica del Fideicomiso Contable: 85% para el Operador del Nodo, 15%
-                    de comisión para reinversión en el Nodo Cero de Hidalgo.
+                    División Canónica del Fideicomiso Contable: 85% para el
+                    Operador del Nodo, 15% de comisión para reinversión en el
+                    Nodo Cero de Hidalgo.
                   </p>
                 </div>
                 <button
@@ -2352,7 +2584,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                       ]);
                       return;
                     }
-                    const key = "with_idemp_" + Math.random().toString(36).slice(2, 12);
+                    const key =
+                      "with_idemp_" + Math.random().toString(36).slice(2, 12);
                     await handleRequestWithdrawal(key);
                   }}
                   className="w-full py-2.5 bg-electric text-platinum border border-electric rounded-xl font-mono text-[11px] hover:bg-electric-light transition-all cursor-pointer font-bold uppercase tracking-wider"
@@ -2399,8 +2632,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 3. Preguntas Frecuentes y Blindaje Legal (FAQ)
               </h4>
               <p className="text-[11.5px] text-muted-foreground mt-0.5">
-                Respuestas oficiales sobre el cumplimiento, retiro, licencias y reglamentaciones del
-                sistema de ingresos.
+                Respuestas oficiales sobre el cumplimiento, retiro, licencias y
+                reglamentaciones del sistema de ingresos.
               </p>
             </div>
 
@@ -2458,9 +2691,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 Flujo de Auditoría de Seguridad Real-Time (ARGUS Telemetry)
               </h3>
               <p className="text-[11.5px] text-muted-foreground mt-0.5">
-                Eventos auditables de seguridad y telemetría capturados del pipeline transaccional.
-                Haga clic sobre cualquier registro para cargarlo en el **Inspector Forense**
-                (pestaña Simuladores).
+                Eventos auditables de seguridad y telemetría capturados del
+                pipeline transaccional. Haga clic sobre cualquier registro para
+                cargarlo en el **Inspector Forense** (pestaña Simuladores).
               </p>
             </div>
             <div className="flex items-center gap-2.5 flex-wrap">
@@ -2485,17 +2718,22 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                         );
                       }
                     } else {
-                      toast.error(`Error de ejecución: ${data.error || "Sin autorización"}`);
+                      toast.error(
+                        `Error de ejecución: ${data.error || "Sin autorización"}`,
+                      );
                     }
                   } catch {
-                    toast.error("No se pudo contactar con la suite de pruebas automatizadas.");
+                    toast.error(
+                      "No se pudo contactar con la suite de pruebas automatizadas.",
+                    );
                   } finally {
                     setIsTesting(false);
                     void fetchDbState();
                   }
                 }}
                 disabled={
-                  isTesting || (activeRole !== "SovereignOwner" && activeRole !== "Auditor")
+                  isTesting ||
+                  (activeRole !== "SovereignOwner" && activeRole !== "Auditor")
                 }
                 className={`font-mono text-[10px] uppercase tracking-wider px-3.5 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 ${
                   activeRole !== "SovereignOwner" && activeRole !== "Auditor"
@@ -2503,17 +2741,24 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                     : "bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border-rose-500/30 cursor-pointer font-semibold"
                 }`}
               >
-                <RefreshCw className={`size-3.5 ${isTesting ? "animate-spin" : ""}`} />
-                {isTesting ? "Verificando..." : "Auditoría Forense Criptográfica"}
+                <RefreshCw
+                  className={`size-3.5 ${isTesting ? "animate-spin" : ""}`}
+                />
+                {isTesting
+                  ? "Verificando..."
+                  : "Auditoría Forense Criptográfica"}
               </button>
 
               <button
                 onClick={async () => {
                   setIsVerifyingAudit(true);
                   try {
-                    const res = await fetch(`/api/db?action=verify-audit-chain`, {
-                      headers: { Authorization: `Bearer ${sessionToken}` },
-                    });
+                    const res = await fetch(
+                      `/api/db?action=verify-audit-chain`,
+                      {
+                        headers: { Authorization: `Bearer ${sessionToken}` },
+                      },
+                    );
                     const data = await res.json();
                     if (res.ok) {
                       if (data.success) {
@@ -2521,20 +2766,25 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                           "¡Cadena de Auditoría Criptográfica Verificada e Intacta (SHA-256)!",
                         );
                       } else {
-                        toast.error(`¡Fallo de Integridad en Cadena de Auditoría!: ${data.error}`);
+                        toast.error(
+                          `¡Fallo de Integridad en Cadena de Auditoría!: ${data.error}`,
+                        );
                       }
                     } else {
                       toast.error(`Error: ${data.error || "Sin autorización"}`);
                     }
                   } catch {
-                    toast.error("Fallo al contactar el servicio de validación de auditoría.");
+                    toast.error(
+                      "Fallo al contactar el servicio de validación de auditoría.",
+                    );
                   } finally {
                     setIsVerifyingAudit(false);
                     void fetchDbState();
                   }
                 }}
                 disabled={
-                  isVerifyingAudit || (activeRole !== "SovereignOwner" && activeRole !== "Auditor")
+                  isVerifyingAudit ||
+                  (activeRole !== "SovereignOwner" && activeRole !== "Auditor")
                 }
                 className={`font-mono text-[10px] uppercase tracking-wider px-3.5 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 ${
                   activeRole !== "SovereignOwner" && activeRole !== "Auditor"
@@ -2542,8 +2792,12 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                     : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/30 cursor-pointer font-semibold"
                 }`}
               >
-                <Shield className={`size-3.5 ${isVerifyingAudit ? "animate-spin" : ""}`} />
-                {isVerifyingAudit ? "Verificando..." : "Validar Cadena Audit (SHA-256)"}
+                <Shield
+                  className={`size-3.5 ${isVerifyingAudit ? "animate-spin" : ""}`}
+                />
+                {isVerifyingAudit
+                  ? "Verificando..."
+                  : "Validar Cadena Audit (SHA-256)"}
               </button>
 
               <span className="font-mono text-[9.5px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2.5 py-1 rounded-xl font-semibold">
@@ -2570,7 +2824,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-bold truncate max-w-[80%]">{r.name}</span>
+                      <span className="font-bold truncate max-w-[80%]">
+                        {r.name}
+                      </span>
                       <span className="text-[10px] font-bold uppercase">
                         {r.passed ? "PASÓ" : "FALLÓ"}
                       </span>
@@ -2592,7 +2848,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 key={log.id}
                 onClick={() => {
                   setSelectedAuditLog(log);
-                  toast.success(`Cargado log '${log.event}' en el Inspector Forense`);
+                  toast.success(
+                    `Cargado log '${log.event}' en el Inspector Forense`,
+                  );
                   // Jump to special tab to see details
                   setActiveTab("special");
                 }}
@@ -2611,10 +2869,16 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                     >
                       {log.severity}
                     </span>
-                    <span className="text-platinum font-semibold">{log.event}</span>
-                    <span className="text-[10px] text-muted-foreground">Trace: {log.traceId}</span>
+                    <span className="text-platinum font-semibold">
+                      {log.event}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Trace: {log.traceId}
+                    </span>
                   </div>
-                  <span className="text-muted-foreground text-[10.5px]">{log.details}</span>
+                  <span className="text-muted-foreground text-[10.5px]">
+                    {log.details}
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 self-end sm:self-center">
                   <span className="text-[10px] text-muted-foreground">
@@ -2639,8 +2903,8 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
           Plan y Hoja de Ruta de Expansión Territorial
         </h3>
         <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">
-          Navegue por las etapas previstas para la autonomía y distribución económica del Nodo Cero
-          en Real del Monte, Hidalgo.
+          Navegue por las etapas previstas para la autonomía y distribución
+          económica del Nodo Cero en Real del Monte, Hidalgo.
         </p>
 
         {/* Stages Selector */}
@@ -2668,8 +2932,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 Etapa 1: Activación Freemium y Stripe Soberano
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                Despliegue del plan gratuito constitucional, registro seguro de consentimiento del
-                usuario y políticas transparentes de telemetría auditada por hardware local.
+                Despliegue del plan gratuito constitucional, registro seguro de
+                consentimiento del usuario y políticas transparentes de
+                telemetría auditada por hardware local.
               </p>
             </div>
           )}
@@ -2679,8 +2944,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 Etapa 2: Consumo y API de Integración
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                Habilitación de créditos de consumo exacto en BookPI, generación dinámica de claves
-                de API con alcances y validaciones robustas de RBAC.
+                Habilitación de créditos de consumo exacto en BookPI, generación
+                dinámica de claves de API con alcances y validaciones robustas
+                de RBAC.
               </p>
             </div>
           )}
@@ -2690,8 +2956,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 Etapa 3: Skills Marketplace y BookPI Ledger
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                Ejecución y comercialización de Skills validadas previamente mediante análisis SAST
-                automatizado, estableciendo regalías justas de coinversión.
+                Ejecución y comercialización de Skills validadas previamente
+                mediante análisis SAST automatizado, estableciendo regalías
+                justas de coinversión.
               </p>
             </div>
           )}
@@ -2701,8 +2968,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 Etapa 4: Soluciones Enterprise y Gubernamentales
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                Despliegue de mallas dedicadas CITEMESH, resguardo de datos soberanos de
-                administraciones locales y simulación territorial avanzada GEMET.
+                Despliegue de mallas dedicadas CITEMESH, resguardo de datos
+                soberanos de administraciones locales y simulación territorial
+                avanzada GEMET.
               </p>
             </div>
           )}
@@ -2712,8 +2980,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 Etapa 5: Formación y Ciencia Abierta
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                Certificaciones técnicas presenciales en Real del Monte sobre resguardo de datos,
-                becas de investigación y datasets libres y soberanos.
+                Certificaciones técnicas presenciales en Real del Monte sobre
+                resguardo de datos, becas de investigación y datasets libres y
+                soberanos.
               </p>
             </div>
           )}
@@ -2723,8 +2992,9 @@ export function MonetizationDashboard({ initialTab }: { initialTab?: string | nu
                 Etapa 6: Tokenización Responsable y Sostenible
               </span>
               <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-                Pilotos cerrados de participación financiera tras un vasto análisis regulatorio y
-                mitigación estricta de riesgos de lavado de activos y KYC local.
+                Pilotos cerrados de participación financiera tras un vasto
+                análisis regulatorio y mitigación estricta de riesgos de lavado
+                de activos y KYC local.
               </p>
             </div>
           )}

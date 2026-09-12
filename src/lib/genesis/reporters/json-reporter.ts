@@ -19,7 +19,8 @@ export class JSONReporter {
 
   constructor(config: ReporterConfig = {}) {
     this.config = {
-      outputDir: config.outputDir ?? path.join(process.cwd(), "genesis", "reports"),
+      outputDir:
+        config.outputDir ?? path.join(process.cwd(), "genesis", "reports"),
     };
     if (!fs.existsSync(this.config.outputDir)) {
       fs.mkdirSync(this.config.outputDir, { recursive: true });
@@ -77,7 +78,8 @@ export class MarkdownReporter {
 
   constructor(config: ReporterConfig = {}) {
     this.config = {
-      outputDir: config.outputDir ?? path.join(process.cwd(), "genesis", "reports"),
+      outputDir:
+        config.outputDir ?? path.join(process.cwd(), "genesis", "reports"),
     };
     if (!fs.existsSync(this.config.outputDir)) {
       fs.mkdirSync(this.config.outputDir, { recursive: true });
@@ -180,7 +182,13 @@ ${summary.releaseDecision.justification}
       {} as Record<string, Finding[]>,
     );
 
-    for (const severity of ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFORMATIONAL"]) {
+    for (const severity of [
+      "CRITICAL",
+      "HIGH",
+      "MEDIUM",
+      "LOW",
+      "INFORMATIONAL",
+    ]) {
       const sevFindings = bySeverity[severity] ?? [];
       if (sevFindings.length === 0) continue;
 
@@ -264,7 +272,8 @@ export class HTMLReporter {
 
   constructor(config: ReporterConfig = {}) {
     this.config = {
-      outputDir: config.outputDir ?? path.join(process.cwd(), "genesis", "reports"),
+      outputDir:
+        config.outputDir ?? path.join(process.cwd(), "genesis", "reports"),
     };
     if (!fs.existsSync(this.config.outputDir)) {
       fs.mkdirSync(this.config.outputDir, { recursive: true });
@@ -400,7 +409,8 @@ export class SARIFReporter {
 
   constructor(config: ReporterConfig = {}) {
     this.config = {
-      outputDir: config.outputDir ?? path.join(process.cwd(), "genesis", "reports"),
+      outputDir:
+        config.outputDir ?? path.join(process.cwd(), "genesis", "reports"),
     };
     if (!fs.existsSync(this.config.outputDir)) {
       fs.mkdirSync(this.config.outputDir, { recursive: true });
@@ -421,7 +431,8 @@ export class SARIFReporter {
             driver: {
               name: "Genesis 2.0 Evidence Assurance Engine",
               version: "2.0.1",
-              informationUri: "https://github.com/tamv-online/isabella-ai-genesis",
+              informationUri:
+                "https://github.com/tamv-online/isabella-ai-genesis",
               rules: this.generateRules(findings),
             },
           },
@@ -447,10 +458,13 @@ export class SARIFReporter {
         name: finding.title,
         shortDescription: { text: finding.title },
         fullDescription: { text: finding.description },
-        defaultConfiguration: { level: this.mapSeverityToLevel(finding.severity) },
+        defaultConfiguration: {
+          level: this.mapSeverityToLevel(finding.severity),
+        },
         help: {
           text: finding.remediation?.description ?? "No remediation provided",
-          markdown: finding.remediation?.description ?? "No remediation provided",
+          markdown:
+            finding.remediation?.description ?? "No remediation provided",
         },
         properties: {
           category: finding.category,
@@ -474,7 +488,9 @@ export class SARIFReporter {
             {
               physicalLocation: {
                 artifactLocation: { uri: f.location.file },
-                region: f.location.line ? { startLine: f.location.line } : undefined,
+                region: f.location.line
+                  ? { startLine: f.location.line }
+                  : undefined,
               },
             },
           ]
@@ -487,7 +503,9 @@ export class SARIFReporter {
     }));
   }
 
-  private mapSeverityToLevel(severity: string): "error" | "warning" | "note" | "none" {
+  private mapSeverityToLevel(
+    severity: string,
+  ): "error" | "warning" | "note" | "none" {
     switch (severity) {
       case "CRITICAL":
         return "error";
@@ -507,7 +525,9 @@ export function createJSONReporter(config?: ReporterConfig): JSONReporter {
   return new JSONReporter(config);
 }
 
-export function createMarkdownReporter(config?: ReporterConfig): MarkdownReporter {
+export function createMarkdownReporter(
+  config?: ReporterConfig,
+): MarkdownReporter {
   return new MarkdownReporter(config);
 }
 

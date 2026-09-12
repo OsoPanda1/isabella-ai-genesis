@@ -9,7 +9,9 @@ function json(headers: Headers, body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
-      ...Object.fromEntries(SecuritySystem.injectSecureHeaders(new Headers()).entries()),
+      ...Object.fromEntries(
+        SecuritySystem.injectSecureHeaders(new Headers()).entries(),
+      ),
       "content-type": "application/json",
     },
   });

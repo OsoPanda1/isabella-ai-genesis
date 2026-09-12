@@ -35,7 +35,8 @@ const FLAGS = {
   "experimental.pqc": {
     key: "experimental.pqc",
     default: false,
-    description: "Habilita firma post-cuántica si hay implementación real integrada.",
+    description:
+      "Habilita firma post-cuántica si hay implementación real integrada.",
     requiresExplicitEnable: true,
   },
   "audit.record": {
@@ -47,7 +48,8 @@ const FLAGS = {
   "monetization.enabled": {
     key: "monetization.enabled",
     default: true,
-    description: "Habilita los programas de monetización para usuarios elegibles.",
+    description:
+      "Habilita los programas de monetización para usuarios elegibles.",
     requiresExplicitEnable: false,
   },
 } satisfies Record<string, FlagDefinition>;
@@ -71,7 +73,9 @@ function parseOverrides(source: string | undefined): Record<string, string> {
   return out;
 }
 
-export function createFeatureFlagsService(overrides?: Record<string, string>): FeatureFlagService {
+export function createFeatureFlagsService(
+  overrides?: Record<string, string>,
+): FeatureFlagService {
   const cfg = config();
   // Fuente única: ISABELLA_FEATURE_FLAGS validada en env-schema (§12).
   // En producción se ignoran overrides por parámetro y se relee del entorno

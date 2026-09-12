@@ -23,7 +23,8 @@ describe("dev-auth guard", () => {
     vi.stubEnv("DURABLE_JSON_ALLOWED", "false");
     const { resetConfigCache } = await import("@/lib/config");
     resetConfigCache();
-    const { devAuthNotFound, isDevAuthAction } = await import("@/lib/dev-auth-guard");
+    const { devAuthNotFound, isDevAuthAction } =
+      await import("@/lib/dev-auth-guard");
     expect(isDevAuthAction("dev-session")).toBe(true);
     expect(isDevAuthAction("session")).toBe(false);
     const response = devAuthNotFound("dev-session");
@@ -41,9 +42,8 @@ describe("dev-auth guard", () => {
 
 describe("marketplace validate (puro)", () => {
   it("acepta listing válido y rechaza inválidos", async () => {
-    const { validateMarketplaceInput } = await import(
-      "@/lib/repositories/marketplace-repository"
-    );
+    const { validateMarketplaceInput } =
+      await import("@/lib/repositories/marketplace-repository");
     expect(
       validateMarketplaceInput({
         skillId: "gis-cadastre",
@@ -53,8 +53,12 @@ describe("marketplace validate (puro)", () => {
       }).valid,
     ).toBe(true);
     expect(
-      validateMarketplaceInput({ skillId: "BAD ID!", title: "T", costCents: -5, description: "x" })
-        .valid,
+      validateMarketplaceInput({
+        skillId: "BAD ID!",
+        title: "T",
+        costCents: -5,
+        description: "x",
+      }).valid,
     ).toBe(false);
     expect(
       validateMarketplaceInput({

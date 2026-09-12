@@ -69,7 +69,8 @@ export function SovereignCompliancePanel() {
           setVerifyResult({
             status: "success",
             sha256: (result.data as { sha256: string }).sha256,
-            message: "Firma verificada exitosamente en el Ledger Soberano de Isabella.",
+            message:
+              "Firma verificada exitosamente en el Ledger Soberano de Isabella.",
           });
         } else {
           setVerifyResult({
@@ -106,7 +107,8 @@ export function SovereignCompliancePanel() {
                 Auditoría Soberana de Cumplimiento (Compliance)
               </h3>
               <p className="text-xs text-muted-foreground mt-1 font-mono">
-                Trazabilidad inmutable de eventos de gobernanza, federaciones e intervención.
+                Trazabilidad inmutable de eventos de gobernanza, federaciones e
+                intervención.
               </p>
             </div>
             <button
@@ -125,24 +127,64 @@ export function SovereignCompliancePanel() {
             </h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 font-mono text-xs">
               <div className="space-y-1">
-                <span className="text-muted-foreground block text-[10px] uppercase">Arquitectura</span>
-                <div className="flex justify-between text-platinum"><span className="text-amber-400">82%</span><span className="text-muted-foreground/60">/ 90%</span></div>
-                <div className="w-full bg-border/20 h-1 rounded-full"><div className="bg-amber-400 h-1 rounded-full" style={{ width: "82%" }}></div></div>
+                <span className="text-muted-foreground block text-[10px] uppercase">
+                  Arquitectura
+                </span>
+                <div className="flex justify-between text-platinum">
+                  <span className="text-amber-400">82%</span>
+                  <span className="text-muted-foreground/60">/ 90%</span>
+                </div>
+                <div className="w-full bg-border/20 h-1 rounded-full">
+                  <div
+                    className="bg-amber-400 h-1 rounded-full"
+                    style={{ width: "82%" }}
+                  ></div>
+                </div>
               </div>
               <div className="space-y-1">
-                <span className="text-muted-foreground block text-[10px] uppercase">Seguridad / Identidad</span>
-                <div className="flex justify-between text-platinum"><span className="text-amber-400">78%</span><span className="text-muted-foreground/60">/ 95%</span></div>
-                <div className="w-full bg-border/20 h-1 rounded-full"><div className="bg-amber-400 h-1 rounded-full" style={{ width: "78%" }}></div></div>
+                <span className="text-muted-foreground block text-[10px] uppercase">
+                  Seguridad / Identidad
+                </span>
+                <div className="flex justify-between text-platinum">
+                  <span className="text-amber-400">78%</span>
+                  <span className="text-muted-foreground/60">/ 95%</span>
+                </div>
+                <div className="w-full bg-border/20 h-1 rounded-full">
+                  <div
+                    className="bg-amber-400 h-1 rounded-full"
+                    style={{ width: "78%" }}
+                  ></div>
+                </div>
               </div>
               <div className="space-y-1">
-                <span className="text-muted-foreground block text-[10px] uppercase">IA Segura / CROWN</span>
-                <div className="flex justify-between text-platinum"><span className="text-red-400">68%</span><span className="text-muted-foreground/60">/ 95%</span></div>
-                <div className="w-full bg-border/20 h-1 rounded-full"><div className="bg-red-400 h-1 rounded-full" style={{ width: "68%" }}></div></div>
+                <span className="text-muted-foreground block text-[10px] uppercase">
+                  IA Segura / CROWN
+                </span>
+                <div className="flex justify-between text-platinum">
+                  <span className="text-red-400">68%</span>
+                  <span className="text-muted-foreground/60">/ 95%</span>
+                </div>
+                <div className="w-full bg-border/20 h-1 rounded-full">
+                  <div
+                    className="bg-red-400 h-1 rounded-full"
+                    style={{ width: "68%" }}
+                  ></div>
+                </div>
               </div>
               <div className="space-y-1">
-                <span className="text-muted-foreground block text-[10px] uppercase">BookPI / DB / Pagos</span>
-                <div className="flex justify-between text-platinum"><span className="text-red-400">65%</span><span className="text-muted-foreground/60">/ 95%</span></div>
-                <div className="w-full bg-border/20 h-1 rounded-full"><div className="bg-red-400 h-1 rounded-full" style={{ width: "65%" }}></div></div>
+                <span className="text-muted-foreground block text-[10px] uppercase">
+                  BookPI / DB / Pagos
+                </span>
+                <div className="flex justify-between text-platinum">
+                  <span className="text-red-400">65%</span>
+                  <span className="text-muted-foreground/60">/ 95%</span>
+                </div>
+                <div className="w-full bg-border/20 h-1 rounded-full">
+                  <div
+                    className="bg-red-400 h-1 rounded-full"
+                    style={{ width: "65%" }}
+                  ></div>
+                </div>
               </div>
             </div>
             <div className="mt-4 flex gap-2">
@@ -158,15 +200,25 @@ export function SovereignCompliancePanel() {
           {/* Quick Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono text-xs">
             <div className="p-4 rounded-xl bg-black/35 border border-border/10">
-              <span className="text-muted-foreground block mb-1">Estatus del Ledger:</span>
-              <span className="text-emerald-400 font-bold block text-lg">🟢 EN VIGENCIA</span>
+              <span className="text-muted-foreground block mb-1">
+                Estatus del Ledger:
+              </span>
+              <span className="text-emerald-400 font-bold block text-lg">
+                🟢 EN VIGENCIA
+              </span>
             </div>
             <div className="p-4 rounded-xl bg-black/35 border border-border/10">
-              <span className="text-muted-foreground block mb-1">Registros de Seguridad:</span>
-              <span className="text-platinum font-bold block text-lg">{logs.length} Eventos</span>
+              <span className="text-muted-foreground block mb-1">
+                Registros de Seguridad:
+              </span>
+              <span className="text-platinum font-bold block text-lg">
+                {logs.length} Eventos
+              </span>
             </div>
             <div className="p-4 rounded-xl bg-black/35 border border-border/10">
-              <span className="text-muted-foreground block mb-1">Certificación DOI:</span>
+              <span className="text-muted-foreground block mb-1">
+                Certificación DOI:
+              </span>
               <span className="text-amber-400 font-bold block text-[10.5px] truncate">
                 10.5281/zenodo.isabella
               </span>
@@ -198,8 +250,12 @@ export function SovereignCompliancePanel() {
                     className="p-3.5 rounded-xl bg-black/45 border border-border/10 hover:border-border/20 transition-all font-mono text-[10.5px]"
                   >
                     <div className="flex justify-between items-center pb-2 border-b border-white/5 mb-2">
-                      <span className="font-bold text-emerald-400">[{log.eventName}]</span>
-                      <span className="text-[9.5px] text-muted-foreground">{log.timestamp}</span>
+                      <span className="font-bold text-emerald-400">
+                        [{log.eventName}]
+                      </span>
+                      <span className="text-[9.5px] text-muted-foreground">
+                        {log.timestamp}
+                      </span>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-muted-foreground">
                       <div>
@@ -244,8 +300,8 @@ export function SovereignCompliancePanel() {
               </h3>
             </div>
             <p className="text-[10.5px] text-muted-foreground font-mono leading-relaxed">
-              Ingrese una firma o hash SHA-256 para verificar su integridad y procedencia contra la
-              autoridad soberana.
+              Ingrese una firma o hash SHA-256 para verificar su integridad y
+              procedencia contra la autoridad soberana.
             </p>
 
             <div className="space-y-3 font-mono text-xs">
@@ -282,7 +338,9 @@ export function SovereignCompliancePanel() {
                       <CheckCircle className="size-4 text-emerald-400" />
                       <span>FIRMA VÁLIDA</span>
                     </div>
-                    <p className="text-[9.5px] leading-relaxed">{verifyResult.message}</p>
+                    <p className="text-[9.5px] leading-relaxed">
+                      {verifyResult.message}
+                    </p>
                     <p className="text-[9px] text-muted-foreground truncate pt-1">
                       Computed Hash: {verifyResult.sha256}
                     </p>
@@ -295,7 +353,9 @@ export function SovereignCompliancePanel() {
                       <AlertTriangle className="size-4 text-rose-400" />
                       <span>FIRMA INVÁLIDA o DISCREPANCIA</span>
                     </div>
-                    <p className="text-[9.5px] leading-relaxed">{verifyResult.message}</p>
+                    <p className="text-[9.5px] leading-relaxed">
+                      {verifyResult.message}
+                    </p>
                   </div>
                 )}
               </div>
@@ -312,8 +372,9 @@ export function SovereignCompliancePanel() {
             </div>
             <div className="space-y-2.5 font-mono text-[10px] text-muted-foreground leading-relaxed">
               <p>
-                La arquitectura cognitiva de Isabella está registrada oficialmente en el índice
-                global de Open Science de forma auditable.
+                La arquitectura cognitiva de Isabella está registrada
+                oficialmente en el índice global de Open Science de forma
+                auditable.
               </p>
               <div className="p-3 bg-black/45 rounded-xl border border-border/5 text-[9.5px] text-platinum space-y-1">
                 <p>
@@ -328,7 +389,9 @@ export function SovereignCompliancePanel() {
                 </p>
                 <p>
                   <span className="text-muted-foreground">Autor:</span>{" "}
-                  <span className="font-bold">Edwin O. Castillo Trejo (Anubis)</span>
+                  <span className="font-bold">
+                    Edwin O. Castillo Trejo (Anubis)
+                  </span>
                 </p>
               </div>
             </div>

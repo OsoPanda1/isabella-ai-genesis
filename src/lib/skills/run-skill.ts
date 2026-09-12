@@ -2,7 +2,11 @@ import { randomUUID } from "node:crypto";
 import { isabellaSkills, IsabellaSkillId } from "./registry";
 import { evaluateAuthorization, AuthorizationContext } from "../authorization";
 import { createBookpiPostgresRepository } from "../repositories/bookpi-postgres-repository";
-import { validateSkillInput, validateSkillOutput, StandardResponse } from "../api-contracts";
+import {
+  validateSkillInput,
+  validateSkillOutput,
+  StandardResponse,
+} from "../api-contracts";
 
 /**
  * ISA-API Hardened Pipeline (v3.0)
@@ -48,7 +52,12 @@ export async function runIsabellaSkill(
   let decisionId: string | null = null;
 
   try {
-    if (!subjectId || !tenantId || !context.role || context.authenticated === undefined) {
+    if (
+      !subjectId ||
+      !tenantId ||
+      !context.role ||
+      context.authenticated === undefined
+    ) {
       throw new SecurityError(
         "IDENTITY_REQUIRED",
         "Ejecución denegada: se requiere identidad explícita (actorId, tenantId, role, authenticated).",
@@ -91,12 +100,16 @@ export async function runIsabellaSkill(
     // ========================================================================
     const skill = isabellaSkills[skillId];
     if (!skill) {
-      throw new SecurityError("TOOL_NOT_FOUND", `Skill '${skillId}' no registrado en el sistema.`);
+      throw new SecurityError(
+        "TOOL_NOT_FOUND",
+        `Skill '${skillId}' no registrado en el sistema.`,
+      );
     }
 
     const skillContext: import("./contracts").SkillContext = {
       actorId: subjectId,
-      federation: (context.federation || skill.federation) as import("./contracts").FederationId,
+      federation: (context.federation ||
+        skill.federation) as import("./contracts").FederationId,
       requestId,
       locale: context.locale || "es",
       intent: context.intent || "Unknown intent",
@@ -124,7 +137,8 @@ export async function runIsabellaSkill(
     const bookpiRepo = createBookpiPostgresRepository();
 
     // Registrar el costo computacional del skill como transacción en el Ledger
-    const costUsd = skill.risk === "CRITICAL" ? 0.5 : skill.risk === "HIGH" ? 0.1 : 0.02;
+    const costUsd =
+      skill.risk === "CRITICAL" ? 0.5 : skill.risk === "HIGH" ? 0.1 : 0.02;
 
     const blockRes = await bookpiRepo.append({
       tenantId: tenantId,
@@ -162,7 +176,9 @@ export async function runIsabellaSkill(
     const isSecurityError = err instanceof SecurityError;
     const errorCode = isSecurityError ? err.code : "SYSTEM_INTERNAL_ERROR";
     const errorMessage =
-      err instanceof Error ? err.message : "Error fatal de procesamiento cognitivo.";
+      err instanceof Error
+        ? err.message
+        : "Error fatal de procesamiento cognitivo.";
 
     console.error(`[Pipeline Error] [${traceId}]`, err);
 

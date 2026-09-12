@@ -45,7 +45,16 @@ export interface CognitiveTrainingBatchResult {
   byStrategy: Record<CognitiveTrainingStrategy, CognitiveTrainingResult>;
 }
 
-const strategyModes: Record<CognitiveTrainingStrategy, "supervised" | "contrastive" | "preference" | "episodic" | "procedural" | "reflective" | "multimodal"> = {
+const strategyModes: Record<
+  CognitiveTrainingStrategy,
+  | "supervised"
+  | "contrastive"
+  | "preference"
+  | "episodic"
+  | "procedural"
+  | "reflective"
+  | "multimodal"
+> = {
   semantic: "supervised",
   procedural: "procedural",
   contrastive: "contrastive",
@@ -57,9 +66,14 @@ const strategyModes: Record<CognitiveTrainingStrategy, "supervised" | "contrasti
 };
 
 export class IsabellaCognitiveTrainingEngine {
-  constructor(private readonly learning: IsabellaLearningEngine = createIsabellaLearningEngine()) {}
+  constructor(
+    private readonly learning: IsabellaLearningEngine = createIsabellaLearningEngine(),
+  ) {}
 
-  train(strategy: CognitiveTrainingStrategy, sample: CognitiveTrainingSample): CognitiveTrainingResult {
+  train(
+    strategy: CognitiveTrainingStrategy,
+    sample: CognitiveTrainingSample,
+  ): CognitiveTrainingResult {
     const normalized = normalizeSample(sample);
     const expanded = expandStrategy(strategy, normalized);
     const results: LearningResult[] = [];
@@ -75,7 +89,8 @@ export class IsabellaCognitiveTrainingEngine {
         consent: normalized.consent ?? false,
       });
       results.push(result);
-      if (result.accepted && result.memory) signatures.push(result.memory.signature);
+      if (result.accepted && result.memory)
+        signatures.push(result.memory.signature);
     }
 
     return {
@@ -87,8 +102,16 @@ export class IsabellaCognitiveTrainingEngine {
     };
   }
 
-  trainBatch(samples: Array<{ strategy: CognitiveTrainingStrategy; sample: CognitiveTrainingSample }>): CognitiveTrainingBatchResult {
-    const byStrategy = {} as Record<CognitiveTrainingStrategy, CognitiveTrainingResult>;
+  trainBatch(
+    samples: Array<{
+      strategy: CognitiveTrainingStrategy;
+      sample: CognitiveTrainingSample;
+    }>,
+  ): CognitiveTrainingBatchResult {
+    const byStrategy = {} as Record<
+      CognitiveTrainingStrategy,
+      CognitiveTrainingResult
+    >;
     let accepted = 0;
     let rejected = 0;
 
@@ -96,7 +119,10 @@ export class IsabellaCognitiveTrainingEngine {
       const result = this.train(item.strategy, item.sample);
       accepted += result.accepted;
       rejected += result.rejected;
-      byStrategy[item.strategy] = mergeTrainingResults(byStrategy[item.strategy], result);
+      byStrategy[item.strategy] = mergeTrainingResults(
+        byStrategy[item.strategy],
+        result,
+      );
     }
 
     return { accepted, rejected, byStrategy };
@@ -115,46 +141,103 @@ export class IsabellaCognitiveTrainingEngine {
   }
 }
 
-export function createIsabellaCognitiveTrainingEngine(learning?: IsabellaLearningEngine): IsabellaCognitiveTrainingEngine {
+export function createIsabellaCognitiveTrainingEngine(
+  learning?: IsabellaLearningEngine,
+): IsabellaCognitiveTrainingEngine {
   return new IsabellaCognitiveTrainingEngine(learning);
 }
 
-function expandStrategy(strategy: CognitiveTrainingStrategy, sample: CognitiveTrainingSample) {
+function expandStrategy(
+  strategy: CognitiveTrainingStrategy,
+  sample: CognitiveTrainingSample,
+) {
   switch (strategy) {
     case "counterfactual":
       return [
-        { input: sample.input, target: sample.target, negative: sample.negative ?? "Alternative outcome to avoid.", context: { ...sample.context, trainingSignal: "counterfactual" } },
-        { input: `What would change if the assumptions were reversed? ${sample.input}`, target: sample.negative ?? sample.target, context: { ...sample.context, trainingSignal: "assumption-reversal" } },
+        {
+          input: sample.input,
+          target: sample.target,
+          negative: sample.negative ?? "Alternative outcome to avoid.",
+          context: { ...sample.context, trainingSignal: "counterfactual" },
+        },
+        {
+          input: `What would change if the assumptions were reversed? ${sample.input}`,
+          target: sample.negative ?? sample.target,
+          context: { ...sample.context, trainingSignal: "assumption-reversal" },
+        },
       ];
     case "retrieval":
       return [
-        { input: sample.input, target: sample.target, context: { ...sample.context, trainingSignal: "retrieval-practice" } },
-        { input: `Recall the relevant procedure or concept for: ${sample.input}`, target: sample.target, context: { ...sample.context, trainingSignal: "active-recall" } },
+        {
+          input: sample.input,
+          target: sample.target,
+          context: { ...sample.context, trainingSignal: "retrieval-practice" },
+        },
+        {
+          input: `Recall the relevant procedure or concept for: ${sample.input}`,
+          target: sample.target,
+          context: { ...sample.context, trainingSignal: "active-recall" },
+        },
       ];
     case "reflection":
       return [
-        { input: sample.input, target: sample.target, context: { ...sample.context, trainingSignal: "reflection" } },
-        { input: `Critically review the reasoning behind: ${sample.input}`, target: sample.target, context: { ...sample.context, trainingSignal: "self-critique" } },
+        {
+          input: sample.input,
+          target: sample.target,
+          context: { ...sample.context, trainingSignal: "reflection" },
+        },
+        {
+          input: `Critically review the reasoning behind: ${sample.input}`,
+          target: sample.target,
+          context: { ...sample.context, trainingSignal: "self-critique" },
+        },
       ];
     case "semantic":
       return [
-        { input: sample.input, target: sample.target, context: { ...sample.context, trainingSignal: "semantic-grounding" } },
+        {
+          input: sample.input,
+          target: sample.target,
+          context: { ...sample.context, trainingSignal: "semantic-grounding" },
+        },
       ];
     case "procedural":
       return [
-        { input: sample.input, target: sample.target, context: { ...sample.context, trainingSignal: "procedure-acquisition" } },
+        {
+          input: sample.input,
+          target: sample.target,
+          context: {
+            ...sample.context,
+            trainingSignal: "procedure-acquisition",
+          },
+        },
       ];
     case "contrastive":
       return [
-        { input: sample.input, target: sample.target, negative: sample.negative, context: { ...sample.context, trainingSignal: "contrastive-ranking" } },
+        {
+          input: sample.input,
+          target: sample.target,
+          negative: sample.negative,
+          context: { ...sample.context, trainingSignal: "contrastive-ranking" },
+        },
       ];
     case "preference":
       return [
-        { input: sample.input, target: sample.target, context: { ...sample.context, trainingSignal: "preference-learning" } },
+        {
+          input: sample.input,
+          target: sample.target,
+          context: { ...sample.context, trainingSignal: "preference-learning" },
+        },
       ];
     case "multimodal":
       return [
-        { input: sample.input, target: sample.target, context: { ...sample.context, trainingSignal: "multimodal-grounding" } },
+        {
+          input: sample.input,
+          target: sample.target,
+          context: {
+            ...sample.context,
+            trainingSignal: "multimodal-grounding",
+          },
+        },
       ];
   }
 }
@@ -163,15 +246,22 @@ function stripControlCharacters(value: string): string {
   let sanitized = "";
   for (const character of value) {
     const code = character.codePointAt(0) ?? 0;
-    if (code >= 0x20 || code === 0x09 || code === 0x0a || code === 0x0d) sanitized += character;
+    if (code >= 0x20 || code === 0x09 || code === 0x0a || code === 0x0d)
+      sanitized += character;
   }
   return sanitized;
 }
 
-function normalizeSample(sample: CognitiveTrainingSample): CognitiveTrainingSample {
+function normalizeSample(
+  sample: CognitiveTrainingSample,
+): CognitiveTrainingSample {
   const input = stripControlCharacters(sample.input).trim();
-  const target = sample.target ? stripControlCharacters(sample.target).trim() : undefined;
-  const negative = sample.negative ? stripControlCharacters(sample.negative).trim() : undefined;
+  const target = sample.target
+    ? stripControlCharacters(sample.target).trim()
+    : undefined;
+  const negative = sample.negative
+    ? stripControlCharacters(sample.negative).trim()
+    : undefined;
   if (!input) throw new Error("Cognitive training input cannot be empty");
 
   return {
@@ -180,12 +270,21 @@ function normalizeSample(sample: CognitiveTrainingSample): CognitiveTrainingSamp
     target,
     negative,
     source: sample.source.trim().slice(0, 256),
-    skillIds: [...new Set((sample.skillIds ?? []).map((id) => id.trim().toLowerCase()).filter(Boolean))],
+    skillIds: [
+      ...new Set(
+        (sample.skillIds ?? [])
+          .map((id) => id.trim().toLowerCase())
+          .filter(Boolean),
+      ),
+    ],
     quality: Math.min(1, Math.max(0, sample.quality ?? 0.5)),
   };
 }
 
-function mergeTrainingResults(existing: CognitiveTrainingResult | undefined, incoming: CognitiveTrainingResult): CognitiveTrainingResult {
+function mergeTrainingResults(
+  existing: CognitiveTrainingResult | undefined,
+  incoming: CognitiveTrainingResult,
+): CognitiveTrainingResult {
   if (!existing) return incoming;
   return {
     strategy: incoming.strategy,
@@ -196,6 +295,11 @@ function mergeTrainingResults(existing: CognitiveTrainingResult | undefined, inc
   };
 }
 
-export function trainingSampleSignature(strategy: CognitiveTrainingStrategy, sample: CognitiveTrainingSample): string {
-  return createHash("sha3-512").update(JSON.stringify({ strategy, sample: normalizeSample(sample) })).digest("hex");
+export function trainingSampleSignature(
+  strategy: CognitiveTrainingStrategy,
+  sample: CognitiveTrainingSample,
+): string {
+  return createHash("sha3-512")
+    .update(JSON.stringify({ strategy, sample: normalizeSample(sample) }))
+    .digest("hex");
 }

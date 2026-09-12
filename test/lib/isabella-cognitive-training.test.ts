@@ -30,7 +30,9 @@ describe("Isabella cognitive training", () => {
 
     expect(retrieval.accepted).toBeGreaterThan(0);
     expect(reflection.accepted).toBeGreaterThan(0);
-    expect(engine.evaluateUnderstanding("migración producción").concepts.length).toBeGreaterThan(0);
+    expect(
+      engine.evaluateUnderstanding("migración producción").concepts.length,
+    ).toBeGreaterThan(0);
   });
 
   it("produces stable strategy signatures", () => {

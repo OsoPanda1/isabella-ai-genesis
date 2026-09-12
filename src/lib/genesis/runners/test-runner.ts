@@ -18,7 +18,8 @@ export interface TestDiscoveryResult {
 
 export interface TestFile {
   file: string;
-  category: "unit" | "integration" | "security" | "concurrency" | "e2e" | "performance";
+  category:
+    "unit" | "integration" | "security" | "concurrency" | "e2e" | "performance";
   framework: "vitest" | "jest" | "playwright" | "cypress" | "k6" | "unknown";
   tests: TestCase[];
 }
@@ -105,21 +106,21 @@ export class TestDiscovery {
   discover(): TestDiscoveryResult {
     const testFiles: TestFile[] = [];
     const files = this.collectTestFiles(this.config.rootDir);
-    
+
     for (const file of files) {
       try {
         const content = fs.readFileSync(file, "utf8");
         const testFile = this.analyzeTestFile(file, content);
         testFiles.push(testFile);
-      } catch {
-      }
+      } catch {}
     }
-    
+
     const byCategory: Record<string, number> = {};
     for (const tf of testFiles) {
-      byCategory[tf.category] = (byCategory[tf.category] ?? 0) + tf.tests.length;
+      byCategory[tf.category] =
+        (byCategory[tf.category] ?? 0) + tf.tests.length;
     }
-    
+
     return {
       testFiles,
       totalTests: testFiles.reduce((sum, tf) => sum + tf.tests.length, 0),
@@ -129,31 +130,46 @@ export class TestDiscovery {
 
   private collectTestFiles(dir: string): string[] {
     const files: string[] = [];
-    const patterns = ["**/*.test.ts", "**/*.spec.ts", "**/*.test.tsx", "**/*.spec.tsx"];
-    const excludePatterns = ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.git/**", "**/coverage/**", "**/genesis/**"];
-    
+    const patterns = [
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      "**/*.test.tsx",
+      "**/*.spec.tsx",
+    ];
+    const excludePatterns = [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.git/**",
+      "**/coverage/**",
+      "**/genesis/**",
+    ];
+
     const walk = (currentDir: string): void => {
       try {
         const entries = fs.readdirSync(currentDir, { withFileTypes: true });
-        
+
         for (const entry of entries) {
           const fullPath = path.join(currentDir, entry.name);
           const relativePath = path.relative(this.config.rootDir, fullPath);
-          
-          const excluded = excludePatterns.some(p => this.matchPattern(relativePath, p));
+
+          const excluded = excludePatterns.some((p) =>
+            this.matchPattern(relativePath, p),
+          );
           if (excluded) continue;
-          
+
           if (entry.isDirectory()) {
             walk(fullPath);
           } else if (entry.isFile()) {
-            const included = patterns.some(p => this.matchPattern(relativePath, p));
+            const included = patterns.some((p) =>
+              this.matchPattern(relativePath, p),
+            );
             if (included) files.push(fullPath);
           }
         }
-      } catch {
-      }
+      } catch {}
     };
-    
+
     walk(dir);
     return files;
   }
@@ -161,11 +177,14 @@ export class TestDiscovery {
   private analyzeTestFile(file: string, content: string): TestFile {
     const relativePath = path.relative(this.config.rootDir, file);
     const lines = content.split("\n");
-    
+
     let category: TestFile["category"] = "unit";
     let framework: TestFile["framework"] = "unknown";
-    
-    if (content.includes("playwright") || content.includes("@playwright/test")) {
+
+    if (
+      content.includes("playwright") ||
+      content.includes("@playwright/test")
+    ) {
       framework = "playwright";
       category = "e2e";
     } else if (content.includes("cypress")) {
@@ -174,26 +193,48 @@ export class TestDiscovery {
     } else if (content.includes("k6")) {
       framework = "k6";
       category = "performance";
-    } else if (content.includes("vitest") || content.includes("vi.test") || content.includes("describe(") || content.includes("it(")) {
+    } else if (
+      content.includes("vitest") ||
+      content.includes("vi.test") ||
+      content.includes("describe(") ||
+      content.includes("it(")
+    ) {
       framework = "vitest";
-      if (relativePath.includes("integration") || content.includes("integration")) category = "integration";
-      else if (relativePath.includes("security") || content.includes("security")) category = "security";
-      else if (relativePath.includes("concurrency") || content.includes("concurrency")) category = "concurrency";
-      else if (relativePath.includes("performance") || content.includes("performance")) category = "performance";
+      if (
+        relativePath.includes("integration") ||
+        content.includes("integration")
+      )
+        category = "integration";
+      else if (
+        relativePath.includes("security") ||
+        content.includes("security")
+      )
+        category = "security";
+      else if (
+        relativePath.includes("concurrency") ||
+        content.includes("concurrency")
+      )
+        category = "concurrency";
+      else if (
+        relativePath.includes("performance") ||
+        content.includes("performance")
+      )
+        category = "performance";
     } else if (content.includes("jest") || content.includes("test(")) {
       framework = "jest";
     }
-    
+
     const tests: TestCase[] = [];
     const testPatterns = [
       /(?:it|test|describe)\s*\(\s*['"`]([^'"`]+)['"`]/g,
       /(?:it|test)\.only\s*\(\s*['"`]([^'"`]+)['"`]/g,
     ];
-    
+
     for (const pattern of testPatterns) {
       let match;
       while ((match = pattern.exec(content)) !== null) {
-        const lineIndex = content.substring(0, match.index).split("\n").length - 1;
+        const lineIndex =
+          content.substring(0, match.index).split("\n").length - 1;
         const lineContent = lines[lineIndex] ?? "";
         tests.push({
           name: match[1],
@@ -202,7 +243,7 @@ export class TestDiscovery {
         });
       }
     }
-    
+
     return { file: relativePath, category, framework, tests };
   }
 
@@ -230,16 +271,17 @@ export class TestExecutor {
   async execute(testFiles: TestFile[]): Promise<TestExecutionResult> {
     const results: TestResult[] = [];
     const outputs: TestOutput[] = [];
-    let passed = 0, failed = 0;
+    let passed = 0,
+      failed = 0;
     const skipped = 0;
     const startTime = Date.now();
-    
+
     for (const testFile of testFiles) {
       try {
         const fileResult = await this.executeTestFile(testFile);
         results.push(...fileResult.results);
         outputs.push(...fileResult.outputs);
-        
+
         for (const r of fileResult.results) {
           if (r.passed) passed++;
           else failed++;
@@ -256,9 +298,9 @@ export class TestExecutor {
         });
       }
     }
-    
+
     const durationMs = Date.now() - startTime;
-    
+
     return {
       results,
       summary: { total: results.length, passed, failed, skipped, durationMs },
@@ -266,33 +308,41 @@ export class TestExecutor {
     };
   }
 
-  private async executeTestFile(testFile: TestFile): Promise<{ results: TestResult[]; outputs: TestOutput[] }> {
+  private async executeTestFile(
+    testFile: TestFile,
+  ): Promise<{ results: TestResult[]; outputs: TestOutput[] }> {
     const results: TestResult[] = [];
     const outputs: TestOutput[] = [];
-    
+
     const command = this.getTestCommand(testFile);
     if (!command) {
       return { results, outputs };
     }
-    
+
     const [cmd, ...args] = command.split(" ");
-    
+
     return new Promise((resolve) => {
       const child = spawn(cmd, args, {
         cwd: this.config.rootDir,
         timeout: this.config.timeoutMs,
         stdio: ["pipe", "pipe", "pipe"],
       });
-      
+
       let stdout = "";
       let stderr = "";
-      
-      child.stdout?.on("data", (data) => { stdout += data.toString(); });
-      child.stderr?.on("data", (data) => { stderr += data.toString(); });
-      
+
+      child.stdout?.on("data", (data) => {
+        stdout += data.toString();
+      });
+      child.stderr?.on("data", (data) => {
+        stderr += data.toString();
+      });
+
       child.on("close", (code) => {
-        const hash = createHash("sha3-512").update(stdout + stderr).digest("hex");
-        
+        const hash = createHash("sha3-512")
+          .update(stdout + stderr)
+          .digest("hex");
+
         outputs.push({
           file: testFile.file,
           testName: "ALL",
@@ -300,11 +350,11 @@ export class TestExecutor {
           stderr,
           hash,
         });
-        
+
         const parsedResults = this.parseTestOutput(stdout, stderr, testFile);
         resolve({ results: parsedResults, outputs });
       });
-      
+
       child.on("error", (error) => {
         const hash = createHash("sha3-512").update(error.message).digest("hex");
         outputs.push({
@@ -314,14 +364,19 @@ export class TestExecutor {
           stderr: error.message,
           hash,
         });
-        resolve({ results: [{
-          file: testFile.file,
-          testName: "SPAWN_ERROR",
-          passed: false,
-          durationMs: 0,
-          error: error.message,
-          category: testFile.category,
-        }], outputs });
+        resolve({
+          results: [
+            {
+              file: testFile.file,
+              testName: "SPAWN_ERROR",
+              passed: false,
+              durationMs: 0,
+              error: error.message,
+              category: testFile.category,
+            },
+          ],
+          outputs,
+        });
       });
     });
   }
@@ -343,9 +398,13 @@ export class TestExecutor {
     }
   }
 
-  private parseTestOutput(stdout: string, stderr: string, testFile: TestFile): TestResult[] {
+  private parseTestOutput(
+    stdout: string,
+    stderr: string,
+    testFile: TestFile,
+  ): TestResult[] {
     const results: TestResult[] = [];
-    
+
     try {
       if (testFile.framework === "vitest" || testFile.framework === "jest") {
         const jsonStart = stdout.indexOf("{");
@@ -368,9 +427,8 @@ export class TestExecutor {
           }
         }
       }
-    } catch {
-    }
-    
+    } catch {}
+
     return results;
   }
 }
@@ -386,17 +444,22 @@ export class ConcurrencyTestRunner {
     };
   }
 
-  async runConcurrencyTest(testConfig: ConcurrencyTestConfig): Promise<ConcurrencyTestResult> {
+  async runConcurrencyTest(
+    testConfig: ConcurrencyTestConfig,
+  ): Promise<ConcurrencyTestResult> {
     await testConfig.setup();
-    
+
     try {
       const result = await Promise.race([
         testConfig.execute(),
-        new Promise<ConcurrencyTestResult>((_, reject) => 
-          setTimeout(() => reject(new Error("Concurrency test timeout")), testConfig.timeoutMs)
+        new Promise<ConcurrencyTestResult>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Concurrency test timeout")),
+            testConfig.timeoutMs,
+          ),
         ),
       ]);
-      
+
       await testConfig.teardown();
       return result;
     } catch (error) {
@@ -464,7 +527,8 @@ export class ConcurrencyTestRunner {
           return {
             passed: false,
             actualResult: "pending_implementation",
-            expectedResult: "all_processed = true, idempotency_maintained = true",
+            expectedResult:
+              "all_processed = true, idempotency_maintained = true",
             metrics: {
               operationsCompleted: 0,
               operationsFailed: 0,
@@ -481,7 +545,7 @@ export class ConcurrencyTestRunner {
         timeoutMs: 60000,
       },
     ];
-    
+
     const results: ConcurrencyTestResult[] = [];
     for (const test of tests) {
       try {
@@ -504,7 +568,7 @@ export class ConcurrencyTestRunner {
         });
       }
     }
-    
+
     return results;
   }
 }
@@ -517,6 +581,8 @@ export function createTestExecutor(config?: TestRunnerConfig): TestExecutor {
   return new TestExecutor(config);
 }
 
-export function createConcurrencyTestRunner(config?: TestRunnerConfig): ConcurrencyTestRunner {
+export function createConcurrencyTestRunner(
+  config?: TestRunnerConfig,
+): ConcurrencyTestRunner {
   return new ConcurrencyTestRunner(config);
 }

@@ -61,7 +61,10 @@ export async function escalateToHuman<T>(
     ...result,
     status: "ESCALATED",
     requiresHumanReview: true,
-    warnings: [...result.warnings, "La decisión requiere revisión humana explícita."],
+    warnings: [
+      ...result.warnings,
+      "La decisión requiere revisión humana explícita.",
+    ],
     auditEvents: [
       ...result.auditEvents,
       createAuditEvent(

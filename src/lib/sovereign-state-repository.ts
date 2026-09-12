@@ -9,7 +9,8 @@ export interface BookPILedgerBlock {
   tenantId: string;
   userId: string;
   operation: string;
-  category: "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT";
+  category:
+    "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT";
   costDecimal: string;
   tokensConsumed: number;
   previousHash: string;
@@ -73,7 +74,8 @@ export interface MonetizationAccount {
   }[];
 }
 
-const GENESIS_PREVIOUS_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
+const GENESIS_PREVIOUS_HASH =
+  "0000000000000000000000000000000000000000000000000000000000000000";
 
 function isProductionRuntime(): boolean {
   try {
@@ -115,7 +117,9 @@ class SovereignStateRepository {
     this.sessionRepo = new NeonRepository<UserSession>("session");
     this.ledgerRepo = new NeonRepository<BookPILedgerBlock>("ledger");
     this.auditRepo = new NeonRepository<AuditLog>("audit");
-    this.monetizationRepo = new NeonRepository<MonetizationAccount>("monetization");
+    this.monetizationRepo = new NeonRepository<MonetizationAccount>(
+      "monetization",
+    );
   }
 
   private async ensureInit(): Promise<void> {
@@ -163,7 +167,12 @@ class SovereignStateRepository {
 
   async getLedger(tenantId: string): Promise<BookPILedgerBlock[]> {
     await this.ensureInit();
-    const { items } = await this.ledgerRepo.list(tenantId, { tenantId }, 1000, 0);
+    const { items } = await this.ledgerRepo.list(
+      tenantId,
+      { tenantId },
+      1000,
+      0,
+    );
     return items;
   }
 
@@ -201,7 +210,9 @@ class SovereignStateRepository {
       const blockContent = `${index}-${timestamp}-${tenantId}-${userId}-${operation}-${category}-${costDecimal}-${tokens}-${prevHash}`;
       const blockHash = sha256(blockContent);
       const pqcSignature = signingKey
-        ? crypto.sign("sha384", Buffer.from(blockContent), signingKey).toString("base64url")
+        ? crypto
+            .sign("sha384", Buffer.from(blockContent), signingKey)
+            .toString("base64url")
         : null;
 
       const newBlock: BookPILedgerBlock = {
@@ -246,11 +257,14 @@ class SovereignStateRepository {
         [tenantId],
       );
       if (tenantRows[0]) {
-        const newBalance = Math.max(0, Number(tenantRows[0].quota_balance) - cost);
-        await client.query(`UPDATE tenants SET quota_balance = $1 WHERE id = $2`, [
-          newBalance,
-          tenantId,
-        ]);
+        const newBalance = Math.max(
+          0,
+          Number(tenantRows[0].quota_balance) - cost,
+        );
+        await client.query(
+          `UPDATE tenants SET quota_balance = $1 WHERE id = $2`,
+          [newBalance, tenantId],
+        );
       }
 
       return newBlock;
@@ -265,7 +279,10 @@ class SovereignStateRepository {
     const signingKey = getSigningKey();
     const isProduction = isProductionRuntime();
     if (isProduction && !signingKey) {
-      return { success: false, error: "BookPI requiere BOOKPI_SIGNING_KEY en producción." };
+      return {
+        success: false,
+        error: "BookPI requiere BOOKPI_SIGNING_KEY en producción.",
+      };
     }
 
     return this.ledgerRepo.withTransaction(async (client) => {
@@ -273,7 +290,8 @@ class SovereignStateRepository {
         `SELECT * FROM ledger WHERE index = $1 AND tenant_id = $2 LIMIT 1`,
         [index, tenantId],
       );
-      if (!blockRows[0]) return { success: false, error: "Transacción no encontrada." };
+      if (!blockRows[0])
+        return { success: false, error: "Transacción no encontrada." };
       const block = blockRows[0];
 
       const { rows: refundCheck } = await client.query(
@@ -281,7 +299,10 @@ class SovereignStateRepository {
         [`REFUND_EVENT: Reembolso de transacción index ${index}`, tenantId],
       );
       if (refundCheck[0] || block.status === "refunded") {
-        return { success: false, error: "Esta transacción ya ha sido reembolsada." };
+        return {
+          success: false,
+          error: "Esta transacción ya ha sido reembolsada.",
+        };
       }
 
       const { rows: lastBlocks } = await client.query(
@@ -298,7 +319,9 @@ class SovereignStateRepository {
       const blockData = `${newIndex}-${timestamp}-${tenantId}-${block.user_id}-REFUND_EVENT: Reembolso de transacción index ${index}-REFUND_EVENT-${costDecimal}-0-${prevHash}`;
       const blockHash = sha256(blockData);
       const pqcSignature = signingKey
-        ? crypto.sign("sha384", Buffer.from(blockData), signingKey).toString("base64url")
+        ? crypto
+            .sign("sha384", Buffer.from(blockData), signingKey)
+            .toString("base64url")
         : null;
 
       await client.query(
@@ -328,10 +351,10 @@ class SovereignStateRepository {
       );
       if (tenantRows[0]) {
         const newBalance = Number(tenantRows[0].quota_balance) + cost;
-        await client.query(`UPDATE tenants SET quota_balance = $1 WHERE id = $2`, [
-          newBalance,
-          tenantId,
-        ]);
+        await client.query(
+          `UPDATE tenants SET quota_balance = $1 WHERE id = $2`,
+          [newBalance, tenantId],
+        );
       }
 
       return { success: true };
@@ -340,7 +363,12 @@ class SovereignStateRepository {
 
   async getAuditLogs(tenantId: string, limit = 100): Promise<AuditLog[]> {
     await this.ensureInit();
-    const { items } = await this.auditRepo.list(tenantId, { tenantId }, limit, 0);
+    const { items } = await this.auditRepo.list(
+      tenantId,
+      { tenantId },
+      limit,
+      0,
+    );
     return items;
   }
 
@@ -359,7 +387,8 @@ class SovereignStateRepository {
         `SELECT verification_hash FROM audit_events WHERE tenant_id = $1 ORDER BY timestamp DESC LIMIT 1`,
         [tenantId],
       );
-      const previousLogHash = (lastLogs[0]?.verification_hash as string) ?? "0".repeat(64);
+      const previousLogHash =
+        (lastLogs[0]?.verification_hash as string) ?? "0".repeat(64);
       const timestamp = new Date().toISOString();
       const remediated = severity === "S3" || severity === "S2";
       const id = `evt_${crypto.randomUUID().slice(0, 8)}`;
@@ -409,11 +438,20 @@ class SovereignStateRepository {
     corruptedIndex?: number;
   }> {
     await this.ensureInit();
-    const { items: ledger } = await this.ledgerRepo.list("system", {}, 10000, 0);
+    const { items: ledger } = await this.ledgerRepo.list(
+      "system",
+      {},
+      10000,
+      0,
+    );
     for (let i = 0; i < ledger.length; i++) {
       const block = ledger[i];
       if (!block) {
-        return { success: false, error: `Bloque ausente en índice ${i}.`, corruptedIndex: i };
+        return {
+          success: false,
+          error: `Bloque ausente en índice ${i}.`,
+          corruptedIndex: i,
+        };
       }
       if (block.index !== i) {
         return {
@@ -451,7 +489,8 @@ class SovereignStateRepository {
       }
       if (
         isProductionRuntime() &&
-        (block.signatureAlgorithm === "UNSIGNED_DEV" || block.pqcSignature === null)
+        (block.signatureAlgorithm === "UNSIGNED_DEV" ||
+          block.pqcSignature === null)
       ) {
         return {
           success: false,
@@ -463,16 +502,22 @@ class SovereignStateRepository {
     return { success: true };
   }
 
-  async verifyAuditChain(): Promise<{ success: boolean; error?: string; corruptedId?: string }> {
+  async verifyAuditChain(): Promise<{
+    success: boolean;
+    error?: string;
+    corruptedId?: string;
+  }> {
     await this.ensureInit();
     const { items: logs } = await this.auditRepo.list("system", {}, 10000, 0);
     const sorted = [...logs].sort(
-      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
     for (let i = 0; i < sorted.length; i++) {
       const log = sorted[i];
       const prevLog = sorted[i - 1];
-      const expectedPrevHash = i === 0 ? GENESIS_PREVIOUS_HASH : (prevLog?.verificationHash ?? "");
+      const expectedPrevHash =
+        i === 0 ? GENESIS_PREVIOUS_HASH : (prevLog?.verificationHash ?? "");
       if (log.previousLogHash !== expectedPrevHash) {
         return {
           success: false,
@@ -527,7 +572,12 @@ class SovereignStateRepository {
 
   async getMarketplaceListings(): Promise<unknown[]> {
     await this.ensureInit();
-    const { items } = await this.tenantRepo.list("system", { slug: "marketplace" }, 1, 0);
+    const { items } = await this.tenantRepo.list(
+      "system",
+      { slug: "marketplace" },
+      1,
+      0,
+    );
     if (items[0]?.metadata?.marketplaceListings) {
       return items[0].metadata.marketplaceListings as unknown[];
     }
@@ -536,7 +586,12 @@ class SovereignStateRepository {
 
   async saveMarketplaceListings(listings: unknown[]): Promise<void> {
     await this.ensureInit();
-    const { items } = await this.tenantRepo.list("system", { slug: "marketplace" }, 1, 0);
+    const { items } = await this.tenantRepo.list(
+      "system",
+      { slug: "marketplace" },
+      1,
+      0,
+    );
     if (items[0]) {
       await this.tenantRepo.update("system", items[0].id, {
         metadata: { ...items[0].metadata, marketplaceListings: listings },

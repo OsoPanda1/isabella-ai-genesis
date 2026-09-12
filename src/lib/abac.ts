@@ -60,7 +60,8 @@ export interface AbacPolicy {
 function territorialPolicy(context: AttributeContext): AbacDecision {
   if (!context.resourceTenant) return "notApplied";
   if (context.subjectTenant === context.resourceTenant) return "notApplied";
-  if (context.role === "SovereignOwner" || context.role === "Auditor") return "notApplied";
+  if (context.role === "SovereignOwner" || context.role === "Auditor")
+    return "notApplied";
   return "deny";
 }
 
@@ -71,7 +72,10 @@ function territorialPolicy(context: AttributeContext): AbacDecision {
 function personalDataPolicy(context: AttributeContext): AbacDecision {
   if (!context.resource.startsWith("data:personal")) return "notApplied";
   if (context.resourceOwner && context.resourceOwner !== context.subject) {
-    if (context.role === "SovereignOwner" || context.role === "governance_admin") {
+    if (
+      context.role === "SovereignOwner" ||
+      context.role === "governance_admin"
+    ) {
       return "notApplied";
     }
     return "deny";
@@ -117,7 +121,11 @@ export function evaluateAbac(
       };
     }
   }
-  return { decision: "notApplied", policy: null, reason: "Ninguna política ABAC aplicable." };
+  return {
+    decision: "notApplied",
+    policy: null,
+    reason: "Ninguna política ABAC aplicable.",
+  };
 }
 
 export const ABAC = {

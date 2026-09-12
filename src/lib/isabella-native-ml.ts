@@ -104,7 +104,10 @@ const MEXICAN_SLANG_NEGATIVE = [
 ];
 
 // TF-IDF Multi-Weighted Intent Dictionary
-const INTENT_DICTIONARY: Record<NativeIntent, { keywords: string[]; weight: number }> = {
+const INTENT_DICTIONARY: Record<
+  NativeIntent,
+  { keywords: string[]; weight: number }
+> = {
   saludo: {
     keywords: [
       "hola",
@@ -360,10 +363,18 @@ export function analyzeMexicanSentiment(text: string): {
   let negCount = 0;
 
   words.forEach((w) => {
-    if (MEXICAN_SLANG_POSITIVE.some((p) => w === normalize(p) || n.includes(normalize(p)))) {
+    if (
+      MEXICAN_SLANG_POSITIVE.some(
+        (p) => w === normalize(p) || n.includes(normalize(p)),
+      )
+    ) {
       posCount += 1.2;
     }
-    if (MEXICAN_SLANG_NEGATIVE.some((neg) => w === normalize(neg) || n.includes(normalize(neg)))) {
+    if (
+      MEXICAN_SLANG_NEGATIVE.some(
+        (neg) => w === normalize(neg) || n.includes(normalize(neg)),
+      )
+    ) {
       negCount += 1.2;
     }
   });
@@ -381,7 +392,10 @@ export function analyzeMexicanSentiment(text: string): {
 /**
  * Clasificador Vectorial Heurístico TF-IDF para categorización de intenciones
  */
-function classifyIntentHeuristic(text: string): { intent: NativeIntent; confidence: number } {
+function classifyIntentHeuristic(text: string): {
+  intent: NativeIntent;
+  confidence: number;
+} {
   const n = normalize(text);
 
   // Intent classification
@@ -418,7 +432,10 @@ function classifyIntentHeuristic(text: string): { intent: NativeIntent; confiden
   } else {
     // Basic fallback heuristics
     const words = n.split(" ");
-    if (words.length < 3 && words.some((w) => ["hola", "que", "buen"].includes(w))) {
+    if (
+      words.length < 3 &&
+      words.some((w) => ["hola", "que", "buen"].includes(w))
+    ) {
       return { intent: "saludo", confidence: 0.85 };
     }
   }
@@ -426,7 +443,10 @@ function classifyIntentHeuristic(text: string): { intent: NativeIntent; confiden
   return { intent: selectedIntent, confidence };
 }
 
-const RESPONSES: Record<NativeIntent, Array<(ctx: NativeMLRequest) => string>> = {
+const RESPONSES: Record<
+  NativeIntent,
+  Array<(ctx: NativeMLRequest) => string>
+> = {
   saludo: [
     () =>
       `¡Hola qué tal! Soy **Isabella Villaseñor AI**, tu guía e infraestructura cognitiva soberana en Real del Monte — Nodo Cero. Estoy completamente conectada, operando localmente en español de México. ¿Qué onda, en qué te puedo echar la mano hoy?`,
@@ -488,12 +508,16 @@ const RESPONSES: Record<NativeIntent, Array<(ctx: NativeMLRequest) => string>> =
 export function nativeInference(request: NativeMLRequest): NativeMLResponse {
   const start = Date.now();
   const { intent, confidence } = classifyIntentHeuristic(request.text);
-  const { sentiment, score: sentimentScore } = analyzeMexicanSentiment(request.text);
+  const { sentiment, score: sentimentScore } = analyzeMexicanSentiment(
+    request.text,
+  );
 
   const templates = RESPONSES[intent] ?? RESPONSES.general;
   // Deterministic select based on request text hash
   const hash = [...request.text].reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  const template = templates[hash % templates.length] as (ctx: NativeMLRequest) => string;
+  const template = templates[hash % templates.length] as (
+    ctx: NativeMLRequest,
+  ) => string;
   const text = template(request);
 
   return {
@@ -529,8 +553,18 @@ export const OPEN_SCIENCE_MODELS = [
     license: "Apache-2.0",
     use: "embeddings",
   },
-  { id: "m2m100-418M", provider: "facebook/m2m100_418M", license: "MIT", use: "traducción" },
-  { id: "whisper-small-es", provider: "openai/whisper-small", license: "MIT", use: "STT es-MX" },
+  {
+    id: "m2m100-418M",
+    provider: "facebook/m2m100_418M",
+    license: "MIT",
+    use: "traducción",
+  },
+  {
+    id: "whisper-small-es",
+    provider: "openai/whisper-small",
+    license: "MIT",
+    use: "STT es-MX",
+  },
   {
     id: "coqui-tts-es-mx",
     provider: "coqui/XTTS-v2",

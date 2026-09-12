@@ -38,7 +38,10 @@ export class ApiKeyCrypto {
   public static hashSecret(secret: string): string {
     const salt = crypto.randomBytes(16).toString("hex");
     const masterKey = secrets.apiKeyHashSecret();
-    const boundSecret = crypto.createHmac("sha512", masterKey).update(secret).digest("hex");
+    const boundSecret = crypto
+      .createHmac("sha512", masterKey)
+      .update(secret)
+      .digest("hex");
     const derivedKey = crypto
       .pbkdf2Sync(boundSecret, salt, this.ITERATIONS, this.KEYLEN, this.DIGEST)
       .toString("hex");
@@ -58,7 +61,10 @@ export class ApiKeyCrypto {
       return false;
     }
     const masterKey = secrets.apiKeyHashSecret();
-    const boundSecret = crypto.createHmac("sha512", masterKey).update(secret).digest("hex");
+    const boundSecret = crypto
+      .createHmac("sha512", masterKey)
+      .update(secret)
+      .digest("hex");
     const computedDerivedKey = crypto
       .pbkdf2Sync(boundSecret, salt, this.ITERATIONS, this.KEYLEN, this.DIGEST)
       .toString("hex");

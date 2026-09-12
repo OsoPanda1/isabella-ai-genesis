@@ -21,7 +21,8 @@ import {
   type MemoryScope,
 } from "./repositories/memory-repository";
 
-export type MemoryActorRole = "SovereignOwner" | "Operator" | "Auditor" | "Guest" | "System";
+export type MemoryActorRole =
+  "SovereignOwner" | "Operator" | "Auditor" | "Guest" | "System";
 
 export interface MemoryAccessRequest {
   tenantId: string;
@@ -41,26 +42,42 @@ export interface MemoryDecision {
 /** Comprueba si el actor posee el scope requerido (mínimo privilegio). */
 export function canAccessScope(request: MemoryAccessRequest): MemoryDecision {
   if (!request.authenticated) {
-    return { allowed: false, reason: "Actor no autenticado: memoria denegada." };
+    return {
+      allowed: false,
+      reason: "Actor no autenticado: memoria denegada.",
+    };
   }
   if (!request.grantedScopes.includes(request.scope)) {
-    return { allowed: false, reason: `Falta el scope de memoria '${request.scope}'.` };
+    return {
+      allowed: false,
+      reason: `Falta el scope de memoria '${request.scope}'.`,
+    };
   }
   return { allowed: true, reason: `Scope '${request.scope}' concedido.` };
 }
 
 /** Comprueba si el actor puede leer un registro según sensibilidad y tenant. */
-export function canReadRecord(request: MemoryAccessRequest, record: MemoryRecord): MemoryDecision {
+export function canReadRecord(
+  request: MemoryAccessRequest,
+  record: MemoryRecord,
+): MemoryDecision {
   if (record.tenantId !== request.tenantId) {
-    return { allowed: false, reason: "Frontera de tenant violada al leer memoria." };
+    return {
+      allowed: false,
+      reason: "Frontera de tenant violada al leer memoria.",
+    };
   }
 
-  if (record.sensitivity === "personal" || record.sensitivity === "restricted") {
+  if (
+    record.sensitivity === "personal" ||
+    record.sensitivity === "restricted"
+  ) {
     const isOwner = record.ownerId === request.actorId;
     if (record.sensitivity === "restricted") {
       if (request.role === "SovereignOwner")
         return { allowed: true, reason: "Propietario soberano." };
-      if (request.role === "Auditor") return { allowed: true, reason: "Auditoría autorizada." };
+      if (request.role === "Auditor")
+        return { allowed: true, reason: "Auditoría autorizada." };
       return isOwner
         ? { allowed: true, reason: "Propietario del registro restringido." }
         : { allowed: false, reason: "Registro restringido ajeno." };
@@ -68,7 +85,10 @@ export function canReadRecord(request: MemoryAccessRequest, record: MemoryRecord
     // personal
     if (!isOwner) {
       if (request.role === "SovereignOwner" || request.role === "Auditor") {
-        return { allowed: true, reason: "Acceso autorizado por rol de alto nivel." };
+        return {
+          allowed: true,
+          reason: "Acceso autorizado por rol de alto nivel.",
+        };
       }
       return { allowed: false, reason: "Dato personal ajeno." };
     }
@@ -79,10 +99,15 @@ export function canReadRecord(request: MemoryAccessRequest, record: MemoryRecord
 /**
  * Crea un motor de memoria con un repositorio inyectable (para test/aislamiento).
  */
-export function createMemoryEngine(repository: MemoryRepository = createMemoryRepository()) {
+export function createMemoryEngine(
+  repository: MemoryRepository = createMemoryRepository(),
+) {
   return {
     /** Recupera memoria de un scope, aplicando autorización real por registro. */
-    retrieve(request: MemoryAccessRequest): { records: MemoryRecord[]; denied: number } {
+    retrieve(request: MemoryAccessRequest): {
+      records: MemoryRecord[];
+      denied: number;
+    } {
       const scopeDecision = canAccessScope(request);
       if (!scopeDecision.allowed) {
         return { records: [], denied: 0 };
@@ -104,7 +129,11 @@ export function createMemoryEngine(repository: MemoryRepository = createMemoryRe
     },
 
     /** Verifica la integridad de la cadena de memoria. */
-    verifyIntegrity(): { success: boolean; error?: string; corruptedId?: string } {
+    verifyIntegrity(): {
+      success: boolean;
+      error?: string;
+      corruptedId?: string;
+    } {
       return repository.verifyIntegrity();
     },
   };

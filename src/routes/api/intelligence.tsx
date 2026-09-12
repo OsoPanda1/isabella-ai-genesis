@@ -15,10 +15,11 @@ const messageSchema = z.object({
     .min(1)
     .max(12000)
     .refine(
-      (value) => [...value].every((character) => {
-        const code = character.codePointAt(0) ?? 0;
-        return code >= 0x20 && code !== 0x7f;
-      }),
+      (value) =>
+        [...value].every((character) => {
+          const code = character.codePointAt(0) ?? 0;
+          return code >= 0x20 && code !== 0x7f;
+        }),
       "control characters are not allowed",
     ),
 });
@@ -27,7 +28,11 @@ const requestSchema = z.object({
   messages: z.array(messageSchema).min(1).max(40),
   temperature: z.number().finite().min(0).max(2).optional(),
   maxTokens: z.number().int().min(1).max(32768).optional(),
-  preferredModel: z.string().max(160).regex(/^[a-zA-Z0-9._:/-]+$/).optional(),
+  preferredModel: z
+    .string()
+    .max(160)
+    .regex(/^[a-zA-Z0-9._:/-]+$/)
+    .optional(),
 });
 
 function json(data: unknown, status = 200): Response {
@@ -40,7 +45,9 @@ function json(data: unknown, status = 200): Response {
 }
 
 function requestContentBytes(messages: Array<{ content: string }>): number {
-  return new TextEncoder().encode(messages.map((message) => message.content).join("\n")).byteLength;
+  return new TextEncoder().encode(
+    messages.map((message) => message.content).join("\n"),
+  ).byteLength;
 }
 
 export const Route = createFileRoute("/api/intelligence")({
@@ -61,11 +68,17 @@ export const Route = createFileRoute("/api/intelligence")({
 
         const parsed = requestSchema.safeParse(body);
         if (!parsed.success) {
-          return json({ error: "invalid_request", traceId: context.traceId }, 400);
+          return json(
+            { error: "invalid_request", traceId: context.traceId },
+            400,
+          );
         }
 
         if (requestContentBytes(parsed.data.messages) > 131072) {
-          return json({ error: "request_too_large", traceId: context.traceId }, 413);
+          return json(
+            { error: "request_too_large", traceId: context.traceId },
+            413,
+          );
         }
 
         try {
@@ -76,10 +89,13 @@ export const Route = createFileRoute("/api/intelligence")({
           });
           return json(result);
         } catch (error) {
-          const message = error instanceof Error ? error.message : "inference_unavailable";
+          const message =
+            error instanceof Error ? error.message : "inference_unavailable";
           return json(
             {
-              error: message.startsWith("inference_") ? message.split(":")[0] : "inference_unavailable",
+              error: message.startsWith("inference_")
+                ? message.split(":")[0]
+                : "inference_unavailable",
               traceId: context.traceId,
             },
             503,

@@ -1,5 +1,8 @@
 import { config } from "@/lib/config";
-import { getSigningAlgorithm, isSimulatedAlgorithm } from "@/lib/crypto/bookpi-signer";
+import {
+  getSigningAlgorithm,
+  isSimulatedAlgorithm,
+} from "@/lib/crypto/bookpi-signer";
 
 export interface EconomicIntegrityReport {
   status: "ok" | "economic_integrity_failure";
@@ -31,9 +34,8 @@ export async function checkEconomicIntegrity(): Promise<EconomicIntegrityReport>
   // Cadena BookPI válida (si la DB canónica está disponible).
   let bookpi = { available: false, valid: false };
   try {
-    const { createBookpiPostgresRepository } = await import(
-      "@/lib/repositories/bookpi-postgres-repository"
-    );
+    const { createBookpiPostgresRepository } =
+      await import("@/lib/repositories/bookpi-postgres-repository");
     const repo = createBookpiPostgresRepository();
     const integrity = await repo.verifyIntegrity();
     bookpi = { available: true, valid: integrity.success };
@@ -59,7 +61,11 @@ export async function checkEconomicIntegrity(): Promise<EconomicIntegrityReport>
     projection = { available: false, rebuildable: false };
   }
 
-  const ok = signerAvailable && bookpi.valid && projection.available && projection.rebuildable;
+  const ok =
+    signerAvailable &&
+    bookpi.valid &&
+    projection.available &&
+    projection.rebuildable;
   return {
     status: ok ? "ok" : "economic_integrity_failure",
     httpStatus: ok ? 200 : 503,
@@ -67,7 +73,10 @@ export async function checkEconomicIntegrity(): Promise<EconomicIntegrityReport>
       signerAvailable,
       signatureSimulated: simulated,
       bookpi: { available: bookpi.available, chainValid: bookpi.valid },
-      projection: { available: projection.available, rebuildable: projection.rebuildable },
+      projection: {
+        available: projection.available,
+        rebuildable: projection.rebuildable,
+      },
     },
   };
 }

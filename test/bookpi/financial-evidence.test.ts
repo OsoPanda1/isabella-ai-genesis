@@ -22,30 +22,42 @@ beforeAll(async () => {
   vi.stubEnv("ISABELLA_RUNTIME_MODE", "development");
   const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   vi.stubEnv("BOOKPI_SIGNATURE_ALGORITHM", "RSA-SHA256");
-  vi.stubEnv("BOOKPI_SIGNING_KEY", privateKey.export({ type: "pkcs8", format: "pem" }).toString());
+  vi.stubEnv(
+    "BOOKPI_SIGNING_KEY",
+    privateKey.export({ type: "pkcs8", format: "pem" }).toString(),
+  );
   const { resetConfigCache } = await import("@/lib/config");
   resetConfigCache();
 });
 
 describe("Stripe webhook signature verification (real, sin red)", () => {
-  it("acepta evento firmado y rechaza payload manipulado", { timeout: 30000 }, async () => {
-    const Stripe = (await import("stripe")).default;
-    const stripe = new Stripe("sk_test_evidence", { apiVersion: "2022-11-15" as never });
-    const secret = "whsec_evidence_secret";
-    const payload = JSON.stringify({
-      id: "evt_evidence_1",
-      type: "checkout.session.completed",
-      data: { object: { id: "cs_test", metadata: { planId: "pro" } } },
-    });
-    const header = stripe.webhooks.generateTestHeaderString({ payload, secret });
-    const event = stripe.webhooks.constructEvent(payload, header, secret);
-    expect(event.id).toBe("evt_evidence_1");
-    expect(event.type).toBe("checkout.session.completed");
+  it(
+    "acepta evento firmado y rechaza payload manipulado",
+    { timeout: 30000 },
+    async () => {
+      const Stripe = (await import("stripe")).default;
+      const stripe = new Stripe("sk_test_evidence", {
+        apiVersion: "2022-11-15" as never,
+      });
+      const secret = "whsec_evidence_secret";
+      const payload = JSON.stringify({
+        id: "evt_evidence_1",
+        type: "checkout.session.completed",
+        data: { object: { id: "cs_test", metadata: { planId: "pro" } } },
+      });
+      const header = stripe.webhooks.generateTestHeaderString({
+        payload,
+        secret,
+      });
+      const event = stripe.webhooks.constructEvent(payload, header, secret);
+      expect(event.id).toBe("evt_evidence_1");
+      expect(event.type).toBe("checkout.session.completed");
 
-    expect(() =>
-      stripe.webhooks.constructEvent(`${payload} `, header, secret),
-    ).toThrow();
-  });
+      expect(() =>
+        stripe.webhooks.constructEvent(`${payload} `, header, secret),
+      ).toThrow();
+    },
+  );
 });
 
 describe.skipIf(!HAS_DB)("idempotencia concurrente (PostgreSQL real)", () => {
@@ -54,11 +66,17 @@ describe.skipIf(!HAS_DB)("idempotencia concurrente (PostgreSQL real)", () => {
     const eventId = `evt_conc_${randomUUID()}`;
     const results = await Promise.all(
       Array.from({ length: 10 }, () =>
-        claimWebhookEvent({ provider: "stripe", providerEventId: eventId, eventType: "charge.succeeded" }),
+        claimWebhookEvent({
+          provider: "stripe",
+          providerEventId: eventId,
+          eventType: "charge.succeeded",
+        }),
       ),
     );
     const processed = results.filter((result) => result.status === "processed");
-    const duplicates = results.filter((result) => result.status === "duplicate");
+    const duplicates = results.filter(
+      (result) => result.status === "duplicate",
+    );
     expect(processed).toHaveLength(1);
     expect(duplicates).toHaveLength(9);
   });
@@ -89,7 +107,8 @@ describe.skipIf(!HAS_DB)("idempotencia concurrente (PostgreSQL real)", () => {
   });
 
   it("reconciliación: CREDIT − DEBIT = balance proyectado", async () => {
-    const { recordEconomicEvent, sumEconomicBalance } = await import("@/lib/economic-events");
+    const { recordEconomicEvent, sumEconomicBalance } =
+      await import("@/lib/economic-events");
     const tenant = `tenant_rec_${randomUUID().slice(0, 8)}`;
     const first = await recordEconomicEvent({
       tenantId: tenant,
@@ -113,61 +132,62 @@ describe.skipIf(!HAS_DB)("idempotencia concurrente (PostgreSQL real)", () => {
   });
 });
 
-describe.skipIf(!HAS_DB)("BookPI concurrente + refund único (PostgreSQL real)", () => {
-  it("appends concurrentes → índices contiguos y cadena válida", async () => {
-    const { createBookpiPostgresRepository } = await import(
-      "@/lib/repositories/bookpi-postgres-repository"
-    );
-    const repo = createBookpiPostgresRepository();
-    const tenant = `tenant_ledger_${randomUUID().slice(0, 8)}`;
-    const results = await Promise.all(
-      Array.from({ length: 6 }, (_, index) =>
-        repo.append({
-          tenantId: tenant,
-          userId: "u1",
-          operation: `CONCURRENT_OP_${index}`,
-          category: "processing",
-          cost: 1.5,
-          tokens: 10,
-        }),
-      ),
-    );
-    expect(results.every((result) => result.success)).toBe(true);
-    const blocks = await repo.list(tenant);
-    expect(blocks).toHaveLength(6);
-    const indexes = blocks.map((block) => block.index).sort((a, b) => a - b);
-    expect(indexes).toEqual([0, 1, 2, 3, 4, 5]);
-    const integrity = await repo.verifyIntegrity(tenant);
-    expect(integrity.success).toBe(true);
-  });
-
-  it("doble refund simultáneo → 1 éxito + original intacto", async () => {
-    const { createBookpiPostgresRepository } = await import(
-      "@/lib/repositories/bookpi-postgres-repository"
-    );
-    const repo = createBookpiPostgresRepository();
-    const tenant = `tenant_refund_${randomUUID().slice(0, 8)}`;
-    const appended = await repo.append({
-      tenantId: tenant,
-      userId: "u1",
-      operation: "CHARGE_ME",
-      category: "processing",
-      cost: 5,
-      tokens: 10,
+describe.skipIf(!HAS_DB)(
+  "BookPI concurrente + refund único (PostgreSQL real)",
+  () => {
+    it("appends concurrentes → índices contiguos y cadena válida", async () => {
+      const { createBookpiPostgresRepository } =
+        await import("@/lib/repositories/bookpi-postgres-repository");
+      const repo = createBookpiPostgresRepository();
+      const tenant = `tenant_ledger_${randomUUID().slice(0, 8)}`;
+      const results = await Promise.all(
+        Array.from({ length: 6 }, (_, index) =>
+          repo.append({
+            tenantId: tenant,
+            userId: "u1",
+            operation: `CONCURRENT_OP_${index}`,
+            category: "processing",
+            cost: 1.5,
+            tokens: 10,
+          }),
+        ),
+      );
+      expect(results.every((result) => result.success)).toBe(true);
+      const blocks = await repo.list(tenant);
+      expect(blocks).toHaveLength(6);
+      const indexes = blocks.map((block) => block.index).sort((a, b) => a - b);
+      expect(indexes).toEqual([0, 1, 2, 3, 4, 5]);
+      const integrity = await repo.verifyIntegrity(tenant);
+      expect(integrity.success).toBe(true);
     });
-    expect(appended.success).toBe(true);
 
-    const results = await Promise.all([
-      repo.refund("0", { tenantId: tenant, userId: "u1" }, "test"),
-      repo.refund("0", { tenantId: tenant, userId: "u1" }, "test"),
-    ]);
-    const succeeded = results.filter((result) => result.success);
-    expect(succeeded).toHaveLength(1);
+    it("doble refund simultáneo → 1 éxito + original intacto", async () => {
+      const { createBookpiPostgresRepository } =
+        await import("@/lib/repositories/bookpi-postgres-repository");
+      const repo = createBookpiPostgresRepository();
+      const tenant = `tenant_refund_${randomUUID().slice(0, 8)}`;
+      const appended = await repo.append({
+        tenantId: tenant,
+        userId: "u1",
+        operation: "CHARGE_ME",
+        category: "processing",
+        cost: 5,
+        tokens: 10,
+      });
+      expect(appended.success).toBe(true);
 
-    const blocks = await repo.list(tenant);
-    const original = blocks.find((block) => block.index === 0);
-    expect(original?.costDecimal).toBe("5.00");
-    const integrity = await repo.verifyIntegrity(tenant);
-    expect(integrity.success).toBe(true);
-  });
-});
+      const results = await Promise.all([
+        repo.refund("0", { tenantId: tenant, userId: "u1" }, "test"),
+        repo.refund("0", { tenantId: tenant, userId: "u1" }, "test"),
+      ]);
+      const succeeded = results.filter((result) => result.success);
+      expect(succeeded).toHaveLength(1);
+
+      const blocks = await repo.list(tenant);
+      const original = blocks.find((block) => block.index === 0);
+      expect(original?.costDecimal).toBe("5.00");
+      const integrity = await repo.verifyIntegrity(tenant);
+      expect(integrity.success).toBe(true);
+    });
+  },
+);

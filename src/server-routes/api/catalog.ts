@@ -22,7 +22,9 @@ export const Route = createFileRoute("/api/catalog")({
             new Headers({ "content-type": "application/json" }),
           );
           return new Response(
-            JSON.stringify({ error: "Límite de solicitudes de catálogo excedido (60/min)." }),
+            JSON.stringify({
+              error: "Límite de solicitudes de catálogo excedido (60/min).",
+            }),
             { status: 429, headers },
           );
         }
@@ -39,7 +41,9 @@ export const Route = createFileRoute("/api/catalog")({
               new Headers({ "content-type": "application/json" }),
             );
             return new Response(
-              JSON.stringify({ error: "Contenido de búsqueda sospechoso bloqueado." }),
+              JSON.stringify({
+                error: "Contenido de búsqueda sospechoso bloqueado.",
+              }),
               {
                 status: 403,
                 headers,
@@ -90,7 +94,9 @@ export const Route = createFileRoute("/api/catalog")({
             new Headers({ "content-type": "application/json" }),
           );
           return new Response(
-            JSON.stringify({ error: "Límite de ejecución de contratos excedido (30/min)." }),
+            JSON.stringify({
+              error: "Límite de ejecución de contratos excedido (30/min).",
+            }),
             { status: 429, headers },
           );
         }
@@ -104,14 +110,20 @@ export const Route = createFileRoute("/api/catalog")({
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({ "content-type": "application/json" }),
             );
-            return new Response(JSON.stringify({ error: "Percepción de contrato corrupta." }), {
-              status: 400,
-              headers,
-            });
+            return new Response(
+              JSON.stringify({ error: "Percepción de contrato corrupta." }),
+              {
+                status: 400,
+                headers,
+              },
+            );
           }
 
           // --- LAYER 1: Schema Integrity ---
-          const validation = SecuritySystem.validateInput(executeSchema, rawBody);
+          const validation = SecuritySystem.validateInput(
+            executeSchema,
+            rawBody,
+          );
           if (!validation.success) {
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({ "content-type": "application/json" }),
@@ -146,19 +158,27 @@ export const Route = createFileRoute("/api/catalog")({
               new Headers({ "content-type": "application/json" }),
             );
             return new Response(
-              JSON.stringify({ error: "Contrato no registrado en el catálogo de Isabella." }),
+              JSON.stringify({
+                error: "Contrato no registrado en el catálogo de Isabella.",
+              }),
               { status: 404, headers },
             );
           }
 
           const expectedMethod = entry.method.toUpperCase();
           const expectedPath = entry.path;
-          if (method.toUpperCase() !== expectedMethod || path !== expectedPath) {
+          if (
+            method.toUpperCase() !== expectedMethod ||
+            path !== expectedPath
+          ) {
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({ "content-type": "application/json" }),
             );
             return new Response(
-              JSON.stringify({ error: "El método o path no coincide con el contrato registrado." }),
+              JSON.stringify({
+                error:
+                  "El método o path no coincide con el contrato registrado.",
+              }),
               { status: 409, headers },
             );
           }
@@ -209,10 +229,13 @@ export const Route = createFileRoute("/api/catalog")({
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );
-          return new Response(JSON.stringify({ error: "Error en la evaluación del contrato." }), {
-            status: 500,
-            headers,
-          });
+          return new Response(
+            JSON.stringify({ error: "Error en la evaluación del contrato." }),
+            {
+              status: 500,
+              headers,
+            },
+          );
         }
       },
     },

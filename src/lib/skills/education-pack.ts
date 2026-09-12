@@ -35,8 +35,10 @@ export const UTAMV: IsabellaSkill<UtamvInput, UtamvOutput> = {
   version: "v.GENESIS",
   federation: "EDUCATION",
   risk: "LOW",
-  description: "Diseña rutas de aprendizaje y proyectos aplicados con evidencia de competencia.",
-  canRun: (input) => Boolean(input.learnerGoal?.trim() && input.availableModules?.length),
+  description:
+    "Diseña rutas de aprendizaje y proyectos aplicados con evidencia de competencia.",
+  canRun: (input) =>
+    Boolean(input.learnerGoal?.trim() && input.availableModules?.length),
   async run(input, context): Promise<SkillResult<UtamvOutput>> {
     const currentOrder = LEVEL_ORDER[input.currentLevel];
 

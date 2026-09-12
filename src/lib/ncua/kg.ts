@@ -49,7 +49,11 @@ export class SovereignKnowledgeGraph {
     subject: string,
     predicate: string,
     object: string,
-    options: { weight?: number; source?: KGFactSource; confidence?: number } = {},
+    options: {
+      weight?: number;
+      source?: KGFactSource;
+      confidence?: number;
+    } = {},
   ): KGFact {
     const fact: KGFact = {
       id: `kg:${this.facts.length}:${hashOf(subject + predicate + object)}`,
@@ -100,7 +104,9 @@ export class SovereignKnowledgeGraph {
         if (!fact) continue;
         const neighbors = this.adjacency.get(fact.object) ?? [];
         for (const neighborId of neighbors) {
-          const neighbor = this.facts.find((candidate) => candidate.id === neighborId);
+          const neighbor = this.facts.find(
+            (candidate) => candidate.id === neighborId,
+          );
           if (neighbor && !selected.has(neighbor.id)) {
             selected.set(neighbor.id, neighbor);
             next.push(neighbor.id);
@@ -109,7 +115,9 @@ export class SovereignKnowledgeGraph {
       }
       frontier = next;
     }
-    const ordered = Array.from(scored).filter((item) => selected.has(item.fact.id));
+    const ordered = Array.from(scored).filter((item) =>
+      selected.has(item.fact.id),
+    );
     return ordered.slice(0, topK).sort((a, b) => b.score - a.score);
   }
 
@@ -117,7 +125,10 @@ export class SovereignKnowledgeGraph {
     return this.facts.filter((fact) => fact.predicate === predicate);
   }
 
-  createNarrative(query: string, options: { topK?: number; minScore?: number } = {}): KGNarrative {
+  createNarrative(
+    query: string,
+    options: { topK?: number; minScore?: number } = {},
+  ): KGNarrative {
     const hits = this.retrieve(query, options);
     const sentences: string[] = [];
     for (const hit of hits) {
@@ -153,10 +164,17 @@ function hashOf(input: string): number {
   return hash >>> 0;
 }
 
-export function seedRdmKnowledgeGraph(options: { dim?: number } = {}): SovereignKnowledgeGraph {
+export function seedRdmKnowledgeGraph(
+  options: { dim?: number } = {},
+): SovereignKnowledgeGraph {
   const graph = new SovereignKnowledgeGraph(options);
   const seeded: Array<
-    [string, string, string, { weight?: number; source?: KGFactSource; confidence?: number }]
+    [
+      string,
+      string,
+      string,
+      { weight?: number; source?: KGFactSource; confidence?: number },
+    ]
   > = [
     [
       "Real del Monte",

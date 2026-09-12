@@ -53,7 +53,14 @@ const FEDERATION_SKILLS: Record<FederationId, string[]> = {
   INFRASTRUCTURE: ["VIGIA", "GEMET", "ARGUS", "CITEMESH", "HEPHAESTUS"],
   SOVEREIGNTY: ["VIGIA", "GEMET", "ANUBIS", "THEMIS", "SENTINEL"],
   ETHICS_CULTURE: ["VIGIA", "GEMET", "HERMES", "LYRA", "EIRENE"],
-  CIVILIZATIONAL_ARCHIVE: ["VIGIA", "GEMET", "ORION", "MNEMOSYNE", "CHRONOS", "PROMETEO"],
+  CIVILIZATIONAL_ARCHIVE: [
+    "VIGIA",
+    "GEMET",
+    "ORION",
+    "MNEMOSYNE",
+    "CHRONOS",
+    "PROMETEO",
+  ],
 };
 
 export const HEPTA: IsabellaSkill<HeptaInput, HeptaOutput> = {
@@ -62,7 +69,8 @@ export const HEPTA: IsabellaSkill<HeptaInput, HeptaOutput> = {
   version: "v.GENESIS",
   federation: "CIVILIZATIONAL_ARCHIVE",
   risk: "HIGH",
-  description: "Identifica la federación dominante y compone planes cognitivos gobernados.",
+  description:
+    "Identifica la federación dominante y compone planes cognitivos gobernados.",
   canRun: (input) => Boolean(input.request?.trim()),
   async run(input, context): Promise<SkillResult<HeptaOutput>> {
     const dominantFederation = detectFederation(input.request);
@@ -80,7 +88,12 @@ export const HEPTA: IsabellaSkill<HeptaInput, HeptaOutput> = {
       evidence: [],
       warnings: [],
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "HEPTA", { request: input.request }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "HEPTA",
+          { request: input.request },
+          context.actorId,
+        ),
         createAuditEvent(
           "SKILL_COMPLETED",
           "HEPTA",

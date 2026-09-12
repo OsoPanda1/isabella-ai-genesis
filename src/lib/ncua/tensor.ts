@@ -21,7 +21,11 @@ export function mulberry32(seed: number): () => number {
 }
 
 export function gelu(x: number): number {
-  return 0.5 * x * (1 + Math.tanh(Math.sqrt(2 / Math.PI) * (x + 0.044715 * x * x * x)));
+  return (
+    0.5 *
+    x *
+    (1 + Math.tanh(Math.sqrt(2 / Math.PI) * (x + 0.044715 * x * x * x)))
+  );
 }
 
 export function sigmoid(x: number): number {
@@ -80,7 +84,11 @@ export function xavierScale(fanIn: number, fanOut: number): number {
   return Math.sqrt(6 / (fanIn + fanOut));
 }
 
-export function createLinear(fanIn: number, fanOut: number, rng: () => number): LinearLayer {
+export function createLinear(
+  fanIn: number,
+  fanOut: number,
+  rng: () => number,
+): LinearLayer {
   const scale = xavierScale(fanIn, fanOut);
   const weights = new Float64Array(fanIn * fanOut);
   for (let index = 0; index < weights.length; index += 1) {
@@ -89,12 +97,17 @@ export function createLinear(fanIn: number, fanOut: number, rng: () => number): 
   return { weights, bias: new Float64Array(fanOut), fanIn, fanOut };
 }
 
-export function linearForward(input: Float64Array, layer: LinearLayer): Float64Array {
+export function linearForward(
+  input: Float64Array,
+  layer: LinearLayer,
+): Float64Array {
   const out = new Float64Array(layer.fanOut);
   for (let col = 0; col < layer.fanOut; col += 1) {
     let sum = layer.bias[col] as number;
     for (let row = 0; row < layer.fanIn; row += 1) {
-      sum += (input[row] as number) * (layer.weights[row * layer.fanOut + col] as number);
+      sum +=
+        (input[row] as number) *
+        (layer.weights[row * layer.fanOut + col] as number);
     }
     out[col] = sum;
   }
@@ -109,7 +122,10 @@ export function elementwiseAdd(a: Float64Array, b: Float64Array): Float64Array {
   return out;
 }
 
-export function elementwiseMult(a: Float64Array, b: Float64Array): Float64Array {
+export function elementwiseMult(
+  a: Float64Array,
+  b: Float64Array,
+): Float64Array {
   const out = new Float64Array(a.length);
   for (let index = 0; index < a.length; index += 1) {
     out[index] = (a[index] as number) * (b[index] as number);

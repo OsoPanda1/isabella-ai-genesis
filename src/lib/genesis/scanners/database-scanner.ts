@@ -20,7 +20,14 @@ export interface DatabaseScanResult {
 }
 
 export interface DetectedEngine {
-  type: "postgresql" | "supabase" | "neon" | "firebase_firestore" | "redis" | "json_files" | "in_memory";
+  type:
+    | "postgresql"
+    | "supabase"
+    | "neon"
+    | "firebase_firestore"
+    | "redis"
+    | "json_files"
+    | "in_memory";
   detected: boolean;
   connectionInfo?: string;
   tables?: string[];
@@ -50,7 +57,11 @@ export interface AuthorityEdge {
 }
 
 export interface CriticalFinding {
-  type: "MULTIPLE_PRIMARY_AUTHORITIES" | "AUTHORITY_AMBIGUITY" | "CIRCULAR_DEPENDENCIES" | "MISSING_AUTHORITY";
+  type:
+    | "MULTIPLE_PRIMARY_AUTHORITIES"
+    | "AUTHORITY_AMBIGUITY"
+    | "CIRCULAR_DEPENDENCIES"
+    | "MISSING_AUTHORITY";
   state: string;
   authorities?: string[];
   possibleAuthorities?: string[];
@@ -132,39 +143,45 @@ export class DatabaseScanner {
   scan(): DatabaseScanResult {
     const files = this.collectFiles(this.config.rootDir);
     const allContent = new Map<string, string>();
-    
+
     for (const file of files) {
       try {
         const content = fs.readFileSync(file, "utf8");
         allContent.set(file, content);
-      } catch {
-      }
+      } catch {}
     }
-    
+
     const engines = this.detectEngines(allContent);
     const authorityGraph = this.buildAuthorityGraph(engines, allContent);
     const criticalFindings = this.findCriticalIssues(engines, authorityGraph);
-    
+
     return {
       engines,
       authorityGraph,
       criticalFindings,
       statistics: {
-        totalEngines: engines.filter(e => e.detected).length,
-        primaryAuthorities: authorityGraph.nodes.filter(n => n.criticality === "CRITICAL").length,
-        cacheLayers: engines.filter(e => e.detected && e.isAuthorityFor.some(s => s.includes("cache"))).length,
-        ambiguousStates: criticalFindings.filter(f => f.type === "AUTHORITY_AMBIGUITY").length,
+        totalEngines: engines.filter((e) => e.detected).length,
+        primaryAuthorities: authorityGraph.nodes.filter(
+          (n) => n.criticality === "CRITICAL",
+        ).length,
+        cacheLayers: engines.filter(
+          (e) =>
+            e.detected && e.isAuthorityFor.some((s) => s.includes("cache")),
+        ).length,
+        ambiguousStates: criticalFindings.filter(
+          (f) => f.type === "AUTHORITY_AMBIGUITY",
+        ).length,
       },
     };
   }
 
   private detectEngines(allContent: Map<string, string>): DetectedEngine[] {
     const engines: DetectedEngine[] = [];
-    
+
     for (const [engineType, patterns] of Object.entries(DB_PATTERNS)) {
       let detected = false;
       const files: string[] = [];
-      
+
       for (const [file, content] of allContent) {
         for (const pattern of patterns) {
           if (pattern.test(content)) {
@@ -174,25 +191,31 @@ export class DatabaseScanner {
           }
         }
       }
-      
+
       let connectionInfo: string | undefined;
       const tables: string[] = [];
-      
+
       if (detected) {
         for (const file of files) {
           const content = allContent.get(file) ?? "";
-          
+
           if (engineType === "postgresql" || engineType === "neon") {
-            const urlMatch = content.match(/(?:DATABASE_URL|NEON_DATABASE_URL)\s*[:=]\s*['"]([^'"]+)['"]/);
+            const urlMatch = content.match(
+              /(?:DATABASE_URL|NEON_DATABASE_URL)\s*[:=]\s*['"]([^'"]+)['"]/,
+            );
             if (urlMatch) connectionInfo = urlMatch[1];
           } else if (engineType === "supabase") {
-            const urlMatch = content.match(/SUPABASE_URL\s*[:=]\s*['"]([^'"]+)['"]/);
+            const urlMatch = content.match(
+              /SUPABASE_URL\s*[:=]\s*['"]([^'"]+)['"]/,
+            );
             if (urlMatch) connectionInfo = urlMatch[1];
           } else if (engineType === "redis") {
-            const urlMatch = content.match(/(?:REDIS_URL|KV_URL)\s*[:=]\s*['"]([^'"]+)['"]/);
+            const urlMatch = content.match(
+              /(?:REDIS_URL|KV_URL)\s*[:=]\s*['"]([^'"]+)['"]/,
+            );
             if (urlMatch) connectionInfo = urlMatch[1];
           }
-          
+
           for (const pattern of TABLE_PATTERNS) {
             const matches = [...content.matchAll(pattern)];
             for (const match of matches) {
@@ -201,7 +224,7 @@ export class DatabaseScanner {
           }
         }
       }
-      
+
       engines.push({
         type: engineType as DetectedEngine["type"],
         detected,
@@ -214,42 +237,61 @@ export class DatabaseScanner {
         variables: engineType === "in_memory" ? tables : undefined,
       });
     }
-    
+
     return engines;
   }
 
   private inferAuthority(engineType: string, tables: string[]): string[] {
     const authorityMap: Record<string, string[]> = {
-      postgresql: ["EconomicState", "UserState", "AuditState", "SessionState", "LedgerState"],
-      neon: ["EconomicState", "UserState", "AuditState", "SessionState", "LedgerState"],
+      postgresql: [
+        "EconomicState",
+        "UserState",
+        "AuditState",
+        "SessionState",
+        "LedgerState",
+      ],
+      neon: [
+        "EconomicState",
+        "UserState",
+        "AuditState",
+        "SessionState",
+        "LedgerState",
+      ],
       supabase: ["IdentityState", "AuthState", "RLSPolicies"],
       firebase_firestore: ["DocumentState", "RealTimeState"],
       redis: ["CacheState", "SessionCache", "RateLimitState"],
       json_files: ["DevState", "TestState", "ConfigState"],
       in_memory: ["HotCache", "TransientState"],
     };
-    
+
     return authorityMap[engineType] ?? [];
   }
 
-  private buildAuthorityGraph(engines: DetectedEngine[], allContent: Map<string, string>): AuthorityGraph {
+  private buildAuthorityGraph(
+    engines: DetectedEngine[],
+    allContent: Map<string, string>,
+  ): AuthorityGraph {
     const nodes: AuthorityNode[] = [];
     const edges: AuthorityEdge[] = [];
     const stateToAuthorities = new Map<string, string[]>();
-    
+
     for (const engine of engines) {
       if (!engine.detected) continue;
-      
+
       for (const state of engine.isAuthorityFor) {
         const existing = stateToAuthorities.get(state) ?? [];
         existing.push(engine.type);
         stateToAuthorities.set(state, existing);
       }
     }
-    
+
     for (const [state, authorities] of stateToAuthorities) {
-      nodes.push({ id: state, type: "state", criticality: this.getStateCriticality(state) });
-      
+      nodes.push({
+        id: state,
+        type: "state",
+        criticality: this.getStateCriticality(state),
+      });
+
       if (authorities.length === 1) {
         edges.push({
           source: state,
@@ -262,41 +304,64 @@ export class DatabaseScanner {
           edges.push({
             source: state,
             target: auth,
-            relationship: auth === "postgresql" || auth === "neon" ? "PRIMARY" : "REPLICA",
-            consistencyModel: auth === "postgresql" || auth === "neon" ? "STRONG" : "EVENTUAL",
+            relationship:
+              auth === "postgresql" || auth === "neon" ? "PRIMARY" : "REPLICA",
+            consistencyModel:
+              auth === "postgresql" || auth === "neon" ? "STRONG" : "EVENTUAL",
           });
         }
       }
     }
-    
+
     for (const engine of engines) {
       if (!engine.detected) continue;
-      nodes.push({ 
-        id: engine.type, 
-        type: "engine", 
-        criticality: engine.type === "postgresql" || engine.type === "neon" ? "CRITICAL" : 
-                     engine.type === "supabase" ? "HIGH" : "MEDIUM" 
+      nodes.push({
+        id: engine.type,
+        type: "engine",
+        criticality:
+          engine.type === "postgresql" || engine.type === "neon"
+            ? "CRITICAL"
+            : engine.type === "supabase"
+              ? "HIGH"
+              : "MEDIUM",
       });
     }
-    
+
     return { nodes, edges };
   }
 
-  private getStateCriticality(state: string): "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" {
-    const criticalStates = ["EconomicState", "UserState", "AuditState", "LedgerState", "SessionState"];
+  private getStateCriticality(
+    state: string,
+  ): "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" {
+    const criticalStates = [
+      "EconomicState",
+      "UserState",
+      "AuditState",
+      "LedgerState",
+      "SessionState",
+    ];
     const highStates = ["IdentityState", "AuthState", "ConfigState"];
-    const mediumStates = ["CacheState", "SessionCache", "RateLimitState", "DocumentState", "RealTimeState"];
-    
+    const mediumStates = [
+      "CacheState",
+      "SessionCache",
+      "RateLimitState",
+      "DocumentState",
+      "RealTimeState",
+    ];
+
     if (criticalStates.includes(state)) return "CRITICAL";
     if (highStates.includes(state)) return "HIGH";
     if (mediumStates.includes(state)) return "MEDIUM";
     return "LOW";
   }
 
-  private findCriticalIssues(engines: DetectedEngine[], authorityGraph: AuthorityGraph): CriticalFinding[] {
+  private findCriticalIssues(
+    engines: DetectedEngine[],
+    authorityGraph: AuthorityGraph,
+  ): CriticalFinding[] {
     const findings: CriticalFinding[] = [];
     const stateToAuthorities = new Map<string, string[]>();
-    
+
     for (const engine of engines) {
       if (!engine.detected) continue;
       for (const state of engine.isAuthorityFor) {
@@ -305,10 +370,12 @@ export class DatabaseScanner {
         stateToAuthorities.set(state, existing);
       }
     }
-    
+
     for (const [state, authorities] of stateToAuthorities) {
       if (authorities.length > 1) {
-        const primaryAuthorities = authorities.filter(a => a === "postgresql" || a === "neon");
+        const primaryAuthorities = authorities.filter(
+          (a) => a === "postgresql" || a === "neon",
+        );
         if (primaryAuthorities.length > 1) {
           findings.push({
             type: "MULTIPLE_PRIMARY_AUTHORITIES",
@@ -328,8 +395,14 @@ export class DatabaseScanner {
         }
       }
     }
-    
-    const missingAuthorityStates = ["EconomicState", "UserState", "AuditState", "LedgerState", "SessionState"];
+
+    const missingAuthorityStates = [
+      "EconomicState",
+      "UserState",
+      "AuditState",
+      "LedgerState",
+      "SessionState",
+    ];
     for (const state of missingAuthorityStates) {
       if (!stateToAuthorities.has(state)) {
         findings.push({
@@ -340,37 +413,56 @@ export class DatabaseScanner {
         });
       }
     }
-    
+
     return findings;
   }
 
   private collectFiles(dir: string): string[] {
     const files: string[] = [];
-    const includePatterns = ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.sql", "**/*.prisma"];
-    const excludePatterns = ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.git/**", "**/coverage/**", "**/genesis/**", "**/*.test.ts", "**/*.spec.ts"];
-    
+    const includePatterns = [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.sql",
+      "**/*.prisma",
+    ];
+    const excludePatterns = [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.git/**",
+      "**/coverage/**",
+      "**/genesis/**",
+      "**/*.test.ts",
+      "**/*.spec.ts",
+    ];
+
     const walk = (currentDir: string): void => {
       try {
         const entries = fs.readdirSync(currentDir, { withFileTypes: true });
-        
+
         for (const entry of entries) {
           const fullPath = path.join(currentDir, entry.name);
           const relativePath = path.relative(this.config.rootDir, fullPath);
-          
-          const excluded = excludePatterns.some(p => this.matchPattern(relativePath, p));
+
+          const excluded = excludePatterns.some((p) =>
+            this.matchPattern(relativePath, p),
+          );
           if (excluded) continue;
-          
+
           if (entry.isDirectory()) {
             walk(fullPath);
           } else if (entry.isFile()) {
-            const included = includePatterns.some(p => this.matchPattern(relativePath, p));
+            const included = includePatterns.some((p) =>
+              this.matchPattern(relativePath, p),
+            );
             if (included) files.push(fullPath);
           }
         }
-      } catch {
-      }
+      } catch {}
     };
-    
+
     walk(dir);
     return files;
   }
@@ -385,6 +477,8 @@ export class DatabaseScanner {
   }
 }
 
-export function createDatabaseScanner(config?: DatabaseScannerConfig): DatabaseScanner {
+export function createDatabaseScanner(
+  config?: DatabaseScannerConfig,
+): DatabaseScanner {
   return new DatabaseScanner(config);
 }

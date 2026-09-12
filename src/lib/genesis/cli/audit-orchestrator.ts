@@ -16,14 +16,32 @@ import {
 } from "../graph/evidence-graph";
 import { createEvidenceStorage, EvidenceStorage } from "../evidence/storage";
 import { createSourceScanner, SourceScanner } from "../scanners/source-scanner";
-import { createEnvironmentScanner, EnvironmentScanner } from "../scanners/environment-scanner";
-import { createSecurityScanner, SecurityScanner } from "../scanners/security-scanner";
-import { createDatabaseScanner, DatabaseScanner } from "../scanners/database-scanner";
-import { createFinancialScanner, FinancialScanner } from "../scanners/financial-scanner";
+import {
+  createEnvironmentScanner,
+  EnvironmentScanner,
+} from "../scanners/environment-scanner";
+import {
+  createSecurityScanner,
+  SecurityScanner,
+} from "../scanners/security-scanner";
+import {
+  createDatabaseScanner,
+  DatabaseScanner,
+} from "../scanners/database-scanner";
+import {
+  createFinancialScanner,
+  FinancialScanner,
+} from "../scanners/financial-scanner";
 import { createAuthScanner, AuthScanner } from "../scanners/auth-scanner";
 import { createCIScanner, CIScanner } from "../scanners/ci-scanner";
-import { createSupplyChainScanner, SupplyChainScanner } from "../scanners/supply-chain-scanner";
-import { createGovernanceScanner, GovernanceScanner } from "../scanners/governance-scanner";
+import {
+  createSupplyChainScanner,
+  SupplyChainScanner,
+} from "../scanners/supply-chain-scanner";
+import {
+  createGovernanceScanner,
+  GovernanceScanner,
+} from "../scanners/governance-scanner";
 import {
   createTestDiscovery,
   TestDiscovery,
@@ -31,8 +49,14 @@ import {
   TestExecutor,
   TestExecutionResult,
 } from "../runners/test-runner";
-import { createStatusDeterminator, StatusDeterminator } from "../verification/status-determinator";
-import { createCriteriaEvaluator, CriteriaEvaluator } from "../verification/status-determinator";
+import {
+  createStatusDeterminator,
+  StatusDeterminator,
+} from "../verification/status-determinator";
+import {
+  createCriteriaEvaluator,
+  CriteriaEvaluator,
+} from "../verification/status-determinator";
 import {
   createEvidenceQualityChecker,
   EvidenceQualityChecker,
@@ -41,9 +65,15 @@ import {
   createContradictionDetector,
   ContradictionDetector,
 } from "../verification/status-determinator";
-import { createFindingGenerator, FindingGenerator } from "../findings/finding-generator";
+import {
+  createFindingGenerator,
+  FindingGenerator,
+} from "../findings/finding-generator";
 import { createJSONReporter, JSONReporter } from "../reporters/json-reporter";
-import { createMarkdownReporter, MarkdownReporter } from "../reporters/json-reporter";
+import {
+  createMarkdownReporter,
+  MarkdownReporter,
+} from "../reporters/json-reporter";
 import { createHTMLReporter, HTMLReporter } from "../reporters/json-reporter";
 import { createSARIFReporter, SARIFReporter } from "../reporters/json-reporter";
 import {
@@ -124,18 +154,30 @@ export class AuditOrchestrator {
 
     // Initialize engines
     this.findingEngine = createFindingEngine({ claimEngine: this.claimEngine });
-    this.evidenceStorage = createEvidenceStorage({ baseDir: this.config.outputDir });
+    this.evidenceStorage = createEvidenceStorage({
+      baseDir: this.config.outputDir,
+    });
 
     // Initialize scanners
     this.sourceScanner = createSourceScanner({ rootDir: this.config.rootDir });
-    this.envScanner = createEnvironmentScanner({ rootDir: this.config.rootDir });
-    this.securityScanner = createSecurityScanner({ rootDir: this.config.rootDir });
+    this.envScanner = createEnvironmentScanner({
+      rootDir: this.config.rootDir,
+    });
+    this.securityScanner = createSecurityScanner({
+      rootDir: this.config.rootDir,
+    });
     this.dbScanner = createDatabaseScanner({ rootDir: this.config.rootDir });
-    this.financialScanner = createFinancialScanner({ rootDir: this.config.rootDir });
+    this.financialScanner = createFinancialScanner({
+      rootDir: this.config.rootDir,
+    });
     this.authScanner = createAuthScanner({ rootDir: this.config.rootDir });
     this.ciScanner = createCIScanner({ rootDir: this.config.rootDir });
-    this.supplyChainScanner = createSupplyChainScanner({ rootDir: this.config.rootDir });
-    this.governanceScanner = createGovernanceScanner({ rootDir: this.config.rootDir });
+    this.supplyChainScanner = createSupplyChainScanner({
+      rootDir: this.config.rootDir,
+    });
+    this.governanceScanner = createGovernanceScanner({
+      rootDir: this.config.rootDir,
+    });
 
     // Initialize runners
     this.testDiscovery = createTestDiscovery({ rootDir: this.config.rootDir });
@@ -171,7 +213,9 @@ export class AuditOrchestrator {
 
   async runFullAudit(): Promise<{ manifest: Manifest; success: boolean }> {
     const startTime = Date.now();
-    console.log("🌸 Genesis 2.0 Evidence Assurance Engine - Starting Full Audit");
+    console.log(
+      "🌸 Genesis 2.0 Evidence Assurance Engine - Starting Full Audit",
+    );
     console.log("=".repeat(60));
 
     try {
@@ -202,8 +246,12 @@ export class AuditOrchestrator {
       const duration = Date.now() - startTime;
       console.log("\n" + "=".repeat(60));
       console.log(`✅ Audit completed in ${(duration / 1000).toFixed(1)}s`);
-      console.log(`📁 Reports saved to: ${path.join(this.config.outputDir, "reports")}`);
-      console.log(`📋 Manifest saved to: ${path.join(this.config.outputDir, "manifests")}`);
+      console.log(
+        `📁 Reports saved to: ${path.join(this.config.outputDir, "reports")}`,
+      );
+      console.log(
+        `📋 Manifest saved to: ${path.join(this.config.outputDir, "manifests")}`,
+      );
       console.log("=".repeat(60));
 
       return { manifest, success: true };
@@ -244,7 +292,11 @@ export class AuditOrchestrator {
       { name: "Financial", scanner: this.financialScanner, method: "scan" },
       { name: "Auth", scanner: this.authScanner, method: "scan" },
       { name: "CI/CD", scanner: this.ciScanner, method: "scan" },
-      { name: "Supply Chain", scanner: this.supplyChainScanner, method: "scan" },
+      {
+        name: "Supply Chain",
+        scanner: this.supplyChainScanner,
+        method: "scan",
+      },
       { name: "Governance", scanner: this.governanceScanner, method: "scan" },
     ];
 
@@ -257,10 +309,12 @@ export class AuditOrchestrator {
 
         if (this.config.failFast && result.statistics) {
           const critical =
-            result.findings?.filter((f: any) => f.severity === "CRITICAL").length ?? 0;
+            result.findings?.filter((f: any) => f.severity === "CRITICAL")
+              .length ?? 0;
           if (critical > 0) {
             console.log(`    ⚠️ ${critical} critical findings - failing fast`);
-            if (this.config.failFast) throw new Error(`Critical findings in ${name} scanner`);
+            if (this.config.failFast)
+              throw new Error(`Critical findings in ${name} scanner`);
           }
         }
       } catch (error) {
@@ -279,12 +333,16 @@ export class AuditOrchestrator {
   private async runTests(): Promise<any> {
     console.log("  🔍 Discovering tests...");
     const discovery = this.testDiscovery.discover();
-    console.log(`    Found ${discovery.totalTests} tests in ${discovery.testFiles.length} files`);
+    console.log(
+      `    Found ${discovery.totalTests} tests in ${discovery.testFiles.length} files`,
+    );
 
     let execution: TestExecutionResult | undefined;
     const filesToRun = discovery.testFiles.slice(0, this.maxTestFilesToExecute);
     if (filesToRun.length > 0) {
-      console.log(`  🏃 Executing tests in sandbox (${filesToRun.length} files, best-effort)...`);
+      console.log(
+        `  🏃 Executing tests in sandbox (${filesToRun.length} files, best-effort)...`,
+      );
       try {
         execution = await this.testExecutor.execute(filesToRun);
         console.log(
@@ -306,7 +364,10 @@ export class AuditOrchestrator {
     return { ...discovery, execution };
   }
 
-  private async correlateEvidence(scanResults: any, testResults: any): Promise<void> {
+  private async correlateEvidence(
+    scanResults: any,
+    testResults: any,
+  ): Promise<void> {
     // Add claims to graph
     for (const claim of DEFAULT_CLAIMS) {
       this.evidenceGraphBuilder.addClaim(claim);
@@ -335,17 +396,26 @@ export class AuditOrchestrator {
       const findings = this.claimEngine.getFindings(claim.id);
 
       // Determine status
-      const verification = this.statusDeterminator.determineStatus(claim, evidences, findings);
+      const verification = this.statusDeterminator.determineStatus(
+        claim,
+        evidences,
+        findings,
+      );
 
       // Evaluate criteria
-      const criteria = this.criteriaEvaluator.evaluateClaimCriteria(claim, evidences, findings);
+      const criteria = this.criteriaEvaluator.evaluateClaimCriteria(
+        claim,
+        evidences,
+        findings,
+      );
 
       // Generate findings from gaps
       if (!verification.meetsRequirements) {
-        const generatedFindings = this.findingGenerator.generateFromClaimEvaluation(
-          claim,
-          verification,
-        );
+        const generatedFindings =
+          this.findingGenerator.generateFromClaimEvaluation(
+            claim,
+            verification,
+          );
         for (const f of generatedFindings) {
           this.findingEngine.createFinding(f);
         }
@@ -353,10 +423,11 @@ export class AuditOrchestrator {
 
       // Generate findings from low confidence
       if (verification.confidenceScore < 0.7) {
-        const generatedFindings = this.findingGenerator.generateFromClaimEvaluation(
-          claim,
-          verification,
-        );
+        const generatedFindings =
+          this.findingGenerator.generateFromClaimEvaluation(
+            claim,
+            verification,
+          );
         for (const f of generatedFindings) {
           this.findingEngine.createFinding(f);
         }
@@ -369,7 +440,8 @@ export class AuditOrchestrator {
     // Check contradictions
     const contradictions = this.contradictionDetector.detect();
     for (const contradiction of contradictions.contradictions) {
-      const finding = this.findingGenerator.generateFromContradiction(contradiction);
+      const finding =
+        this.findingGenerator.generateFromContradiction(contradiction);
       this.findingEngine.createFinding(finding);
     }
   }
@@ -391,9 +463,15 @@ export class AuditOrchestrator {
       evidenceCoverage: coverageMeasurer.overallCoverage,
       claimSatisfied: (claimId) =>
         isClaimSatisfiedByStatus(this.claimEngine.evaluateClaimStatus(claimId)),
-      domainEvidenceCoverage: (domainId) => coverageMeasurer.domainEvidenceCoverage(domainId),
+      domainEvidenceCoverage: (domainId) =>
+        coverageMeasurer.domainEvidenceCoverage(domainId),
     };
-    const summary = this.calculateSummary(claims, findings, graphAnalysis, gateInput);
+    const summary = this.calculateSummary(
+      claims,
+      findings,
+      graphAnalysis,
+      gateInput,
+    );
 
     // Create context
     const context: ManifestContext = {
@@ -492,21 +570,32 @@ export class AuditOrchestrator {
         notApplicable: byStatus.notapplicable ?? 0,
       },
       scores: {
-        engineeringMaturity: this.calculateEngineeringMaturity(claims, findings),
+        engineeringMaturity: this.calculateEngineeringMaturity(
+          claims,
+          findings,
+        ),
         evidenceMaturity: this.calculateEvidenceMaturity(gateInput),
-        productionReadiness: this.calculateProductionReadiness(claims, findings),
+        productionReadiness: this.calculateProductionReadiness(
+          claims,
+          findings,
+        ),
       },
       releaseDecision,
     };
   }
 
-  private calculateEngineeringMaturity(claims: Claim[], findings: Finding[]): number {
+  private calculateEngineeringMaturity(
+    claims: Claim[],
+    findings: Finding[],
+  ): number {
     const implemented = claims.filter((c) =>
       ["IMPLEMENTED", "TESTED", "VERIFIED", "PRODUCTION-VERIFIED"].includes(
         this.claimEngine.evaluateClaimStatus(c.id),
       ),
     ).length;
-    const criticalFindings = findings.filter((f) => f.severity === "CRITICAL").length;
+    const criticalFindings = findings.filter(
+      (f) => f.severity === "CRITICAL",
+    ).length;
     const highFindings = findings.filter((f) => f.severity === "HIGH").length;
 
     let score = (implemented / Math.max(claims.length, 1)) * 100;
@@ -521,11 +610,17 @@ export class AuditOrchestrator {
     return Math.max(0, Math.min(100, Math.round(gateInput.evidenceCoverage)));
   }
 
-  private calculateProductionReadiness(claims: Claim[], findings: Finding[]): number {
+  private calculateProductionReadiness(
+    claims: Claim[],
+    findings: Finding[],
+  ): number {
     const productionVerified = claims.filter(
-      (c) => this.claimEngine.evaluateClaimStatus(c.id) === "PRODUCTION-VERIFIED",
+      (c) =>
+        this.claimEngine.evaluateClaimStatus(c.id) === "PRODUCTION-VERIFIED",
     ).length;
-    const criticalFindings = findings.filter((f) => f.severity === "CRITICAL").length;
+    const criticalFindings = findings.filter(
+      (f) => f.severity === "CRITICAL",
+    ).length;
     const highFindings = findings.filter((f) => f.severity === "HIGH").length;
 
     let score = (productionVerified / Math.max(claims.length, 1)) * 100;
@@ -540,18 +635,26 @@ export class AuditOrchestrator {
     graph: EvidenceGraph,
   ): ManifestIntegrity {
     const claimsContent = JSON.stringify(
-      claims.map((c) => ({ id: c.id, status: this.claimEngine.evaluateClaimStatus(c.id) })),
+      claims.map((c) => ({
+        id: c.id,
+        status: this.claimEngine.evaluateClaimStatus(c.id),
+      })),
     );
     const findingsContent = JSON.stringify(
       findings.map((f) => ({ id: f.id, severity: f.severity })),
     );
     const controlsContent = JSON.stringify(
-      graph.nodes.filter((node) => node.type === "control").map((node) => node.data),
+      graph.nodes
+        .filter((node) => node.type === "control")
+        .map((node) => node.data),
     );
     const evidenceContent = JSON.stringify(
-      graph.nodes.filter((node) => node.type === "evidence").map((node) => node.data),
+      graph.nodes
+        .filter((node) => node.type === "evidence")
+        .map((node) => node.data),
     );
-    const hash = (content: string) => createHash("sha3-512").update(content).digest("hex");
+    const hash = (content: string) =>
+      createHash("sha3-512").update(content).digest("hex");
     const claimsHash = hash(claimsContent);
     const controlsHash = hash(controlsContent);
     const findingsHash = hash(findingsContent);
@@ -562,13 +665,18 @@ export class AuditOrchestrator {
       findingsHash,
       evidenceHash,
       manifestHash: hash(
-        [claimsHash, controlsHash, findingsHash, evidenceHash, graph.edges].map(String).join("|"),
+        [claimsHash, controlsHash, findingsHash, evidenceHash, graph.edges]
+          .map(String)
+          .join("|"),
       ),
     };
   }
 
   private async calculateSnapshotHash(): Promise<string> {
-    const files = execSync("git ls-files -z", { cwd: this.config.rootDir, encoding: "buffer" })
+    const files = execSync("git ls-files -z", {
+      cwd: this.config.rootDir,
+      encoding: "buffer",
+    })
       .toString("utf8")
       .split("\0")
       .filter(Boolean)
@@ -589,7 +697,8 @@ export class AuditOrchestrator {
     const hash = createHash("sha3-512");
     for (const file of files) {
       const absolute = path.join(this.config.rootDir, file);
-      if (fs.existsSync(absolute)) hash.update(file).update("\0").update(fs.readFileSync(absolute));
+      if (fs.existsSync(absolute))
+        hash.update(file).update("\0").update(fs.readFileSync(absolute));
     }
     return hash.digest("hex");
   }
@@ -605,7 +714,10 @@ export class AuditOrchestrator {
 
   private getGitCommit(): string {
     try {
-      return execSync("git rev-parse HEAD", { cwd: this.config.rootDir, encoding: "utf8" }).trim();
+      return execSync("git rev-parse HEAD", {
+        cwd: this.config.rootDir,
+        encoding: "utf8",
+      }).trim();
     } catch {
       return "unknown";
     }
@@ -624,7 +736,10 @@ export class AuditOrchestrator {
 
   private getPnpmVersion(): string {
     try {
-      return execSync("pnpm --version", { cwd: this.config.rootDir, encoding: "utf8" }).trim();
+      return execSync("pnpm --version", {
+        cwd: this.config.rootDir,
+        encoding: "utf8",
+      }).trim();
     } catch {
       return "unknown";
     }
@@ -644,6 +759,8 @@ export class AuditOrchestrator {
   }
 }
 
-export function createAuditOrchestrator(config?: AuditOrchestratorConfig): AuditOrchestrator {
+export function createAuditOrchestrator(
+  config?: AuditOrchestratorConfig,
+): AuditOrchestrator {
   return new AuditOrchestrator(config);
 }

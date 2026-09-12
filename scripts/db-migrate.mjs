@@ -14,7 +14,13 @@
  * - Verifies final schema invariants BEFORE COMMIT.
  */
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync, mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import {
+  readFileSync,
+  readdirSync,
+  mkdtempSync,
+  writeFileSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -28,9 +34,25 @@ const mode = process.argv[2] ?? "push";
 const planOnly = process.argv.includes("--plan");
 
 const HISTORY_TABLE = "public.isabella_schema_migrations";
-const CANONICAL_TABLES = ["tenants", "profiles", "sessions", "memories", "audit_events", "bookpi_ledger"];
+const CANONICAL_TABLES = [
+  "tenants",
+  "profiles",
+  "sessions",
+  "memories",
+  "audit_events",
+  "bookpi_ledger",
+];
 const REQUIRED_FINAL_TABLES = [...CANONICAL_TABLES, "isabella_learning_state"];
-const REQUIRED_MEMORY_COLUMNS = ["tenant_id", "user_id", "sensitivity", "purpose", "consent", "provenance", "content_hash", "expires_at"];
+const REQUIRED_MEMORY_COLUMNS = [
+  "tenant_id",
+  "user_id",
+  "sensitivity",
+  "purpose",
+  "consent",
+  "provenance",
+  "content_hash",
+  "expires_at",
+];
 const REQUIRED_MEMORY_POLICIES = [
   "Memory tenant read boundary",
   "Memory principal-bound insert",
@@ -45,14 +67,20 @@ function listMigrations() {
 }
 
 function sha256File(file) {
-  return createHash("sha256").update(readFileSync(resolve(MIGRATIONS_DIR, file))).digest("hex");
+  return createHash("sha256")
+    .update(readFileSync(resolve(MIGRATIONS_DIR, file)))
+    .digest("hex");
 }
 
 function psql(args, options = {}) {
-  return spawnSync("psql", [databaseUrl, "-v", "ON_ERROR_STOP=1", "-X", ...args], {
-    encoding: "utf8",
-    ...options,
-  });
+  return spawnSync(
+    "psql",
+    [databaseUrl, "-v", "ON_ERROR_STOP=1", "-X", ...args],
+    {
+      encoding: "utf8",
+      ...options,
+    },
+  );
 }
 
 function fail(message) {
@@ -61,12 +89,17 @@ function fail(message) {
 }
 
 if (mode === "local") {
-  const res = spawnSync("supabase", ["db", "reset"], { stdio: "inherit", cwd: ROOT });
+  const res = spawnSync("supabase", ["db", "reset"], {
+    stdio: "inherit",
+    cwd: ROOT,
+  });
   process.exit(res.status ?? 1);
 }
 
 if (mode !== "psql" || !databaseUrl) {
-  console.error("Producción/Neon: DATABASE_URL=... npm run db:migrate -- psql [--plan]");
+  console.error(
+    "Producción/Neon: DATABASE_URL=... npm run db:migrate -- psql [--plan]",
+  );
   process.exit(1);
 }
 
@@ -126,17 +159,25 @@ function stripDollarQuoted(sql) {
 }
 
 for (const file of migrations) {
-  const sql = stripDollarQuoted(readFileSync(resolve(MIGRATIONS_DIR, file), "utf8"));
+  const sql = stripDollarQuoted(
+    readFileSync(resolve(MIGRATIONS_DIR, file), "utf8"),
+  );
   const violations = forbidden.filter((pattern) => pattern.test(sql));
   if (violations.length) {
-    fail(`unsafe SQL detected in ${file}; automatic Neon path refuses destructive or transaction-control statements`);
+    fail(
+      `unsafe SQL detected in ${file}; automatic Neon path refuses destructive or transaction-control statements`,
+    );
   }
 }
 
-const state = psql(["-tAc", `select
+const state = psql([
+  "-tAc",
+  `select
   exists(select 1 from information_schema.tables where table_schema='public' and table_name='isabella_schema_migrations') as history_exists,
-  (select count(*) from information_schema.tables where table_schema='public' and table_name = any(array['tenants','profiles','sessions','memories','audit_events','bookpi_ledger'])) as canonical_count;`]);
-if (state.status !== 0) fail(`cannot inspect database: ${(state.stderr ?? "").trim()}`);
+  (select count(*) from information_schema.tables where table_schema='public' and table_name = any(array['tenants','profiles','sessions','memories','audit_events','bookpi_ledger'])) as canonical_count;`,
+]);
+if (state.status !== 0)
+  fail(`cannot inspect database: ${(state.stderr ?? "").trim()}`);
 
 const stateFields = (state.stdout ?? "").trim().split(/\s*\|\s*/);
 const historyExists = String(stateFields[0] ?? "").trim() === "t";
@@ -145,20 +186,27 @@ const canonicalCount = Number(String(stateFields[1] ?? "0").trim());
 if (!historyExists && canonicalCount > 0) {
   fail(
     `existing schema detected (${canonicalCount}/${CANONICAL_TABLES.length} canonical tables) but migration history is absent. ` +
-    "Automatic baseline is disabled to prevent collateral changes. Run explicit schema reconciliation first.",
+      "Automatic baseline is disabled to prevent collateral changes. Run explicit schema reconciliation first.",
   );
 }
 
 const applied = new Map();
 if (historyExists) {
-  const ledger = psql(["-tAc", `select version || E'\\t' || filename || E'\\t' || checksum_sha256 from ${HISTORY_TABLE} order by version;`]);
-  if (ledger.status !== 0) fail(`cannot read migration ledger: ${(ledger.stderr ?? "").trim()}`);
+  const ledger = psql([
+    "-tAc",
+    `select version || E'\\t' || filename || E'\\t' || checksum_sha256 from ${HISTORY_TABLE} order by version;`,
+  ]);
+  if (ledger.status !== 0)
+    fail(`cannot read migration ledger: ${(ledger.stderr ?? "").trim()}`);
   for (const line of (ledger.stdout ?? "").split("\n")) {
     const [version, filename, checksum] = line.trim().split("\t");
-    if (version && filename && checksum) applied.set(version, { filename, checksum });
+    if (version && filename && checksum)
+      applied.set(version, { filename, checksum });
   }
   if (applied.size === 0 && canonicalCount > 0) {
-    fail("migration ledger is empty while the canonical schema exists; refusing to infer history");
+    fail(
+      "migration ledger is empty while the canonical schema exists; refusing to infer history",
+    );
   }
 }
 
@@ -166,17 +214,28 @@ for (const file of migrations) {
   const version = file.slice(0, 14);
   const checksum = sha256File(file);
   const existing = applied.get(version);
-  if (existing && (existing.filename !== file || existing.checksum !== checksum)) {
-    fail(`checksum/history drift for ${file}; recorded=${existing.filename}:${existing.checksum} current=${checksum}`);
+  if (
+    existing &&
+    (existing.filename !== file || existing.checksum !== checksum)
+  ) {
+    fail(
+      `checksum/history drift for ${file}; recorded=${existing.filename}:${existing.checksum} current=${checksum}`,
+    );
   }
 }
 
 const pending = migrations.filter((file) => !applied.has(file.slice(0, 14)));
-console.log(`Ledger: ${applied.size} applied / ${migrations.length} repository migrations / ${pending.length} pending.`);
+console.log(
+  `Ledger: ${applied.size} applied / ${migrations.length} repository migrations / ${pending.length} pending.`,
+);
 
 if (planOnly) {
-  if (!pending.length) console.log("PLAN: database schema is aligned with the repository ledger.");
-  else pending.forEach((file) => console.log(`PLAN: pending ${file} sha256=${sha256File(file)}`));
+  if (!pending.length)
+    console.log("PLAN: database schema is aligned with the repository ledger.");
+  else
+    pending.forEach((file) =>
+      console.log(`PLAN: pending ${file} sha256=${sha256File(file)}`),
+    );
   process.exit(0);
 }
 
@@ -266,13 +325,22 @@ END $$;
 `);
 
 writeFileSync(transactionFile, `${chunks.join("\n\n")}\n`, "utf8");
-console.log(`Aplicando ${pending.length} migración(es) en una sola transacción PostgreSQL...`);
+console.log(
+  `Aplicando ${pending.length} migración(es) en una sola transacción PostgreSQL...`,
+);
 
 try {
-  const result = psql(["--single-transaction", "-f", transactionFile], { stdio: "inherit" });
-  if (result.status !== 0) fail("transaction failed; PostgreSQL rolled back the complete migration batch");
+  const result = psql(["--single-transaction", "-f", transactionFile], {
+    stdio: "inherit",
+  });
+  if (result.status !== 0)
+    fail(
+      "transaction failed; PostgreSQL rolled back the complete migration batch",
+    );
 } finally {
   rmSync(workDir, { recursive: true, force: true });
 }
 
-console.log("MIGRATION PASS: schema, RLS, pgvector, invariants and migration ledger committed atomically.");
+console.log(
+  "MIGRATION PASS: schema, RLS, pgvector, invariants and migration ledger committed atomically.",
+);

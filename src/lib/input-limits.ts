@@ -31,25 +31,41 @@ export function getInputLimits(): InputLimits {
 
 export function assertBodyWithinLimits(length: number): void {
   if (length > getInputLimits().maxBodyBytes) {
-    throw new LimitError("BODY_TOO_LARGE", getInputLimits().maxBodyBytes, length);
+    throw new LimitError(
+      "BODY_TOO_LARGE",
+      getInputLimits().maxBodyBytes,
+      length,
+    );
   }
 }
 
 export function assertMessagesWithinLimits(count: number): void {
   if (count > getInputLimits().maxMessages) {
-    throw new LimitError("TOO_MANY_MESSAGES", getInputLimits().maxMessages, count);
+    throw new LimitError(
+      "TOO_MANY_MESSAGES",
+      getInputLimits().maxMessages,
+      count,
+    );
   }
 }
 
 export function assertAttachmentWithinLimits(bytes: number): void {
   if (bytes > getInputLimits().maxAttachmentBytes) {
-    throw new LimitError("ATTACHMENT_TOO_LARGE", getInputLimits().maxAttachmentBytes, bytes);
+    throw new LimitError(
+      "ATTACHMENT_TOO_LARGE",
+      getInputLimits().maxAttachmentBytes,
+      bytes,
+    );
   }
 }
 
 export function assertToolsWithinLimits(count: number): void {
   if (count > getInputLimits().maxToolsPerRequest) {
-    throw new LimitError("TOO_MANY_TOOLS", getInputLimits().maxToolsPerRequest, count);
+    throw new LimitError(
+      "TOO_MANY_TOOLS",
+      getInputLimits().maxToolsPerRequest,
+      count,
+    );
   }
 }
 

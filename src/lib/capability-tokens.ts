@@ -47,7 +47,9 @@ export function issueCapabilityToken(input: {
   ttlMs?: number;
 }): string {
   if (!input.actorId || !input.tenantId || !input.tool || !input.traceId) {
-    throw new Error("Capability incompleta: actor, tenant, tool y traceId son obligatorios.");
+    throw new Error(
+      "Capability incompleta: actor, tenant, tool y traceId son obligatorios.",
+    );
   }
   const now = Date.now();
   const claims: CapabilityClaims = {
@@ -73,7 +75,12 @@ export interface CapabilityVerification {
 /** Verifica firma, binding, expiración y forma. Nunca lanza. */
 export function verifyCapabilityToken(
   token: string,
-  expected: { actorId: string; tenantId: string; tool: string; traceId: string },
+  expected: {
+    actorId: string;
+    tenantId: string;
+    tool: string;
+    traceId: string;
+  },
   now: number = Date.now(),
 ): CapabilityVerification {
   const parts = token.split(".");
@@ -95,7 +102,10 @@ export function verifyCapabilityToken(
   }
   const expectedMac = macFor(payload, secret);
   const presented = Buffer.from(mac, "base64url");
-  if (presented.length !== expectedMac.length || !timingSafeEqual(presented, expectedMac)) {
+  if (
+    presented.length !== expectedMac.length ||
+    !timingSafeEqual(presented, expectedMac)
+  ) {
     return { valid: false, reason: "Firma inválida." };
   }
   if (
@@ -104,7 +114,10 @@ export function verifyCapabilityToken(
     claims.tool !== expected.tool ||
     claims.traceId !== expected.traceId
   ) {
-    return { valid: false, reason: "Binding (actor/tenant/tool/trace) no coincide." };
+    return {
+      valid: false,
+      reason: "Binding (actor/tenant/tool/trace) no coincide.",
+    };
   }
   if (typeof claims.expiresAt !== "number" || claims.expiresAt <= now) {
     return { valid: false, reason: "Token expirado." };

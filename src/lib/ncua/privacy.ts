@@ -75,8 +75,15 @@ export function laplaceNoise(scale: number): number {
   return scale * Math.log(2 * adjusted);
 }
 
-export function gaussianSigma(sensitivity: number, epsilonPerQuery: number, delta = 1e-5): number {
-  return (sensitivity * Math.sqrt(2 * Math.log(1.25 / delta))) / Math.max(1e-12, epsilonPerQuery);
+export function gaussianSigma(
+  sensitivity: number,
+  epsilonPerQuery: number,
+  delta = 1e-5,
+): number {
+  return (
+    (sensitivity * Math.sqrt(2 * Math.log(1.25 / delta))) /
+    Math.max(1e-12, epsilonPerQuery)
+  );
 }
 
 export function gaussianNoise(sigma: number): number {
@@ -100,12 +107,18 @@ export function kAnonymity(
 ): AnonymityReport {
   const groups = new Map<string, number>();
   for (const row of rows) {
-    const key = quasiIdentifiers.map((column) => row[column] ?? "").join("\u0001");
+    const key = quasiIdentifiers
+      .map((column) => row[column] ?? "")
+      .join("\u0001");
     groups.set(key, (groups.get(key) ?? 0) + 1);
   }
   const groupSizes = Array.from(groups.values());
   const minGroupSize = groupSizes.length === 0 ? 0 : Math.min(...groupSizes);
-  return { satisfiesK: minGroupSize >= k, minGroupSize, groups: groupSizes.length };
+  return {
+    satisfiesK: minGroupSize >= k,
+    minGroupSize,
+    groups: groupSizes.length,
+  };
 }
 
 export interface DiversityReport {
@@ -122,15 +135,26 @@ export function lDiversity(
 ): DiversityReport {
   const groups = new Map<string, Set<string>>();
   for (const row of rows) {
-    const key = quasiIdentifiers.map((column) => row[column] ?? "").join("\u0001");
+    const key = quasiIdentifiers
+      .map((column) => row[column] ?? "")
+      .join("\u0001");
     const set = groups.get(key) ?? new Set<string>();
     set.add(row[sensitiveColumn] ?? "");
     groups.set(key, set);
   }
-  const distinctValues = Array.from(groups.values()).reduce((sum, set) => sum + set.size, 0);
+  const distinctValues = Array.from(groups.values()).reduce(
+    (sum, set) => sum + set.size,
+    0,
+  );
   const weakest =
-    groups.size === 0 ? 0 : Math.min(...Array.from(groups.values(), (set) => set.size));
-  return { satisfiesL: weakest >= l, sensitiveGroups: groups.size, distinctValues };
+    groups.size === 0
+      ? 0
+      : Math.min(...Array.from(groups.values(), (set) => set.size));
+  return {
+    satisfiesL: weakest >= l,
+    sensitiveGroups: groups.size,
+    distinctValues,
+  };
 }
 
 export function membershipRiskBound(epsilon: number): number {

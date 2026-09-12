@@ -31,12 +31,18 @@ describe("production capability manifest", () => {
     manifest.capabilities[1].last_verified = null;
     writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 
-    const result = spawnSync("node", ["scripts/capability-matrix.mjs", "--check"], {
-      cwd: root,
-      encoding: "utf8",
-    });
+    const result = spawnSync(
+      "node",
+      ["scripts/capability-matrix.mjs", "--check"],
+      {
+        cwd: root,
+        encoding: "utf8",
+      },
+    );
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain("last_verified debe ser una fecha ISO válida");
+    expect(result.stderr).toContain(
+      "last_verified debe ser una fecha ISO válida",
+    );
   });
 });

@@ -82,7 +82,10 @@ export class NativeIntentClassifier {
     }
     const second = scores[1];
     const margin = second ? first.score - second.score : first.score;
-    if (first.score < this.options.minConfidence || margin < this.options.minMargin) {
+    if (
+      first.score < this.options.minConfidence ||
+      margin < this.options.minMargin
+    ) {
       return { intent: "desconocido", confidence: first.score, margin, scores };
     }
     return { intent: first.intent, confidence: first.score, margin, scores };
@@ -109,7 +112,9 @@ function magnitude(vector: Float64Array): number {
   return Math.sqrt(sum);
 }
 
-export function seedRdmIntents(options: IntentClassifierOptions = {}): NativeIntentClassifier {
+export function seedRdmIntents(
+  options: IntentClassifierOptions = {},
+): NativeIntentClassifier {
   const classifier = new NativeIntentClassifier(options);
   const seeds: IntentSeed[] = [
     {

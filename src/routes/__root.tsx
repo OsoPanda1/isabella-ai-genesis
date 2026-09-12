@@ -16,10 +16,17 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Página no encontrada</h2>
-        <p className="mt-2 text-sm text-muted-foreground">La ruta solicitada no existe.</p>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">
+          Página no encontrada
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          La ruta solicitada no existe.
+        </p>
         <div className="mt-6">
-          <Link to="/" className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          >
             Volver a Isabella
           </Link>
         </div>
@@ -32,16 +39,24 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error("[Isabella] root error", error);
   const router = useRouter();
   useEffect(() => {
-    console.error("[Isabella] root error detail", { message: error.message, stack: error.stack });
+    console.error("[Isabella] root error detail", {
+      message: error.message,
+      stack: error.stack,
+    });
   }, [error]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
       <section className="glass-strong w-full max-w-xl rounded-3xl p-8 text-center">
-        <p className="font-mono text-xs uppercase tracking-[0.24em] text-electric">C.R.O.W.N. Recovery</p>
-        <h1 className="mt-4 text-2xl font-semibold">Isabella encontró un error de montaje</h1>
+        <p className="font-mono text-xs uppercase tracking-[0.24em] text-electric">
+          C.R.O.W.N. Recovery
+        </p>
+        <h1 className="mt-4 text-2xl font-semibold">
+          Isabella encontró un error de montaje
+        </h1>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          El servidor respondió, pero la ruta o uno de sus módulos no pudo montarse. El detalle técnico permanece en los logs del runtime.
+          El servidor respondió, pero la ruta o uno de sus módulos no pudo
+          montarse. El detalle técnico permanece en los logs del runtime.
         </p>
         <div className="mt-6 flex justify-center gap-2">
           <button
@@ -54,11 +69,16 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           >
             Reintentar
           </button>
-          <a href="/api/health/live" className="rounded-xl border border-border px-5 py-3 font-mono text-xs uppercase tracking-wider">
+          <a
+            href="/api/health/live"
+            className="rounded-xl border border-border px-5 py-3 font-mono text-xs uppercase tracking-wider"
+          >
             Health
           </a>
         </div>
-        <p className="mt-5 font-mono text-[10px] text-muted-foreground">CROWN-RENDER-01</p>
+        <p className="mt-5 font-mono text-[10px] text-muted-foreground">
+          CROWN-RENDER-01
+        </p>
       </section>
     </main>
   );
@@ -72,7 +92,8 @@ export const Route = createRootRouteWithContext()({
       { title: "Isabella Villaseñor AI" },
       {
         name: "description",
-        content: "Isabella Villaseñor AI — sistema federado de inteligencia artificial gobernada.",
+        content:
+          "Isabella Villaseñor AI — sistema federado de inteligencia artificial gobernada.",
       },
       { property: "og:title", content: "Isabella Villaseñor AI" },
       { property: "og:type", content: "website" },
@@ -92,7 +113,9 @@ export const Route = createRootRouteWithContext()({
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className="bg-background">
-      <head><HeadContent /></head>
+      <head>
+        <HeadContent />
+      </head>
       <body>
         {children}
         <SpeedInsights />
@@ -111,12 +134,18 @@ class ClientErrorBoundary extends Component<
   static getDerivedStateFromError(error: unknown) {
     return {
       hasError: true,
-      message: error instanceof Error ? error.message : "Error de renderizado del cliente",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Error de renderizado del cliente",
     };
   }
 
   override componentDidCatch(error: unknown, info: ErrorInfo) {
-    console.error("[Isabella] client render failure", { error, componentStack: info.componentStack });
+    console.error("[Isabella] client render failure", {
+      error,
+      componentStack: info.componentStack,
+    });
   }
 
   override render() {
@@ -124,11 +153,26 @@ class ClientErrorBoundary extends Component<
       return (
         <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
           <section className="glass-strong w-full max-w-xl rounded-3xl p-8 text-center">
-            <p className="font-mono text-xs uppercase tracking-[0.24em] text-electric">C.R.O.W.N. Recovery</p>
-            <h1 className="mt-4 text-2xl font-semibold">La interfaz encontró un error</h1>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">El backend permanece protegido. Recarga la interfaz para reintentar el montaje.</p>
-            <button type="button" onClick={() => window.location.reload()} className="mt-6 rounded-xl bg-primary px-5 py-3 font-mono text-xs uppercase tracking-wider text-primary-foreground">Reintentar interfaz</button>
-            <p className="mt-4 font-mono text-[10px] text-muted-foreground">CROWN-RENDER-01</p>
+            <p className="font-mono text-xs uppercase tracking-[0.24em] text-electric">
+              C.R.O.W.N. Recovery
+            </p>
+            <h1 className="mt-4 text-2xl font-semibold">
+              La interfaz encontró un error
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              El backend permanece protegido. Recarga la interfaz para
+              reintentar el montaje.
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-6 rounded-xl bg-primary px-5 py-3 font-mono text-xs uppercase tracking-wider text-primary-foreground"
+            >
+              Reintentar interfaz
+            </button>
+            <p className="mt-4 font-mono text-[10px] text-muted-foreground">
+              CROWN-RENDER-01
+            </p>
           </section>
         </main>
       );
@@ -138,5 +182,9 @@ class ClientErrorBoundary extends Component<
 }
 
 function RootComponent() {
-  return <ClientErrorBoundary><Outlet /></ClientErrorBoundary>;
+  return (
+    <ClientErrorBoundary>
+      <Outlet />
+    </ClientErrorBoundary>
+  );
 }

@@ -1,4 +1,7 @@
-import type { AccountingRepository, CreateJournalEntryDTO } from "./accounting-repository";
+import type {
+  AccountingRepository,
+  CreateJournalEntryDTO,
+} from "./accounting-repository";
 import type {
   JournalEntry,
   LedgerLine,
@@ -27,12 +30,20 @@ export interface DoubleEntryService {
     error?: string;
   }>;
   validateDoubleEntry(dto: CreateJournalEntryDTO): DoubleEntryValidation;
-  getTrialBalance(tenantId: string, periodStart: Date, periodEnd: Date): Promise<TrialBalance>;
+  getTrialBalance(
+    tenantId: string,
+    periodStart: Date,
+    periodEnd: Date,
+  ): Promise<TrialBalance>;
   getBalanceSheet(tenantId: string, asOfDate: Date): Promise<BalanceSheet>;
 }
 
-export function createDoubleEntryService(repository: AccountingRepository): DoubleEntryService {
-  function validateDoubleEntry(dto: CreateJournalEntryDTO): DoubleEntryValidation {
+export function createDoubleEntryService(
+  repository: AccountingRepository,
+): DoubleEntryService {
+  function validateDoubleEntry(
+    dto: CreateJournalEntryDTO,
+  ): DoubleEntryValidation {
     const errors: string[] = [];
     let totalDebitsCents = 0;
     let totalCreditsCents = 0;
@@ -49,7 +60,9 @@ export function createDoubleEntryService(repository: AccountingRepository): Doub
     }
 
     if (dto.lines.length < 2) {
-      errors.push("La contabilidad de doble entrada requiere al menos dos líneas.");
+      errors.push(
+        "La contabilidad de doble entrada requiere al menos dos líneas.",
+      );
     }
 
     for (const line of dto.lines) {
@@ -63,8 +76,10 @@ export function createDoubleEntryService(repository: AccountingRepository): Doub
         errors.push("Los créditos no pueden ser negativos.");
       }
       if (
-        (line.debitCents !== undefined && line.debitCents > 0) &&
-        (line.creditCents !== undefined && line.creditCents > 0)
+        line.debitCents !== undefined &&
+        line.debitCents > 0 &&
+        line.creditCents !== undefined &&
+        line.creditCents > 0
       ) {
         errors.push("Una línea no puede tener tanto débito como crédito.");
       }
@@ -95,7 +110,9 @@ export function createDoubleEntryService(repository: AccountingRepository): Doub
     };
   }
 
-  async function createDoubleEntryTransaction(dto: CreateJournalEntryDTO): Promise<{
+  async function createDoubleEntryTransaction(
+    dto: CreateJournalEntryDTO,
+  ): Promise<{
     success: boolean;
     error?: string;
     entry?: JournalEntry;
@@ -166,7 +183,10 @@ export function createDoubleEntryService(repository: AccountingRepository): Doub
       }
 
       if (entry.status !== "pending") {
-        return { success: false, error: "La entrada ya está publicada o reversada" };
+        return {
+          success: false,
+          error: "La entrada ya está publicada o reversada",
+        };
       }
 
       const lines = await repository.getLedgerLinesByEntry(entryId);
@@ -208,7 +228,10 @@ export function createDoubleEntryService(repository: AccountingRepository): Doub
       }
 
       if (entry.status !== "posted") {
-        return { success: false, error: "Solo se pueden reversar entradas publicadas" };
+        return {
+          success: false,
+          error: "Solo se pueden reversar entradas publicadas",
+        };
       }
 
       const lines = await repository.getLedgerLinesByEntry(entryId);
@@ -250,7 +273,10 @@ export function createDoubleEntryService(repository: AccountingRepository): Doub
     return repository.generateTrialBalance(tenantId, periodStart, periodEnd);
   }
 
-  async function getBalanceSheet(tenantId: string, asOfDate: Date): Promise<BalanceSheet> {
+  async function getBalanceSheet(
+    tenantId: string,
+    asOfDate: Date,
+  ): Promise<BalanceSheet> {
     return repository.generateBalanceSheet(tenantId, asOfDate);
   }
 

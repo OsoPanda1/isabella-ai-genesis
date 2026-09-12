@@ -44,7 +44,12 @@ const AI_ROUTING_STRATEGIES = [
     icon: BrainCircuit,
     color: "text-amber-400",
   },
-  { id: "agentic_swarm", label: "Swarm Multi-Agent (AutoGen)", icon: Bot, color: "text-blue-400" },
+  {
+    id: "agentic_swarm",
+    label: "Swarm Multi-Agent (AutoGen)",
+    icon: Bot,
+    color: "text-blue-400",
+  },
   {
     id: "rag_memory",
     label: "Episodic RAG Memory (MemGPT)",
@@ -80,7 +85,8 @@ interface SimulationResult {
 export function ApiCatalogExplorer() {
   const [selectedDomain, setSelectedDomain] = useState<string>("all");
   const [selectedMethod, setSelectedMethod] = useState<string>("all");
-  const [selectedStrategy, setSelectedStrategy] = useState<string>("moe_dynamic");
+  const [selectedStrategy, setSelectedStrategy] =
+    useState<string>("moe_dynamic");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeEntry, setActiveEntry] = useState<CatalogEntry | null>(null);
 
@@ -89,9 +95,12 @@ export function ApiCatalogExplorer() {
   );
 
   const [isSimulating, setIsProcessing] = useState(false);
-  const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
+  const [simulationResult, setSimulationResult] =
+    useState<SimulationResult | null>(null);
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"schemas" | "simulator" | "cot">("simulator");
+  const [activeTab, setActiveTab] = useState<"schemas" | "simulator" | "cot">(
+    "simulator",
+  );
   const [copied, setCopied] = useState(false);
 
   // Inicialización inteligente del primer contrato activo
@@ -104,8 +113,10 @@ export function ApiCatalogExplorer() {
   // Filtrado multivariable memoiado
   const filteredEntries = useMemo(() => {
     return CATALOG_ENTRIES.filter((entry) => {
-      const matchDomain = selectedDomain === "all" || entry.domain === selectedDomain;
-      const matchMethod = selectedMethod === "all" || entry.method === selectedMethod;
+      const matchDomain =
+        selectedDomain === "all" || entry.domain === selectedDomain;
+      const matchMethod =
+        selectedMethod === "all" || entry.method === selectedMethod;
       const matchQuery =
         searchQuery === "" ||
         entry.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -192,7 +203,9 @@ export function ApiCatalogExplorer() {
               <span>Todos ({CATALOG_ENTRIES.length})</span>
             </button>
             {DOMAINS.map((dom) => {
-              const count = CATALOG_ENTRIES.filter((e) => e.domain === dom.id).length;
+              const count = CATALOG_ENTRIES.filter(
+                (e) => e.domain === dom.id,
+              ).length;
               return (
                 <button
                   key={dom.id}
@@ -210,7 +223,9 @@ export function ApiCatalogExplorer() {
                     />
                     <span className="truncate">{dom.name}</span>
                   </span>
-                  <span className="text-[10px] opacity-60 font-mono ml-1">{count}</span>
+                  <span className="text-[10px] opacity-60 font-mono ml-1">
+                    {count}
+                  </span>
                 </button>
               );
             })}
@@ -293,8 +308,10 @@ export function ApiCatalogExplorer() {
           </div>
           <div className="font-mono text-[11px] text-muted-foreground text-right w-full md:w-auto">
             Catálogo Activo:{" "}
-            <span className="text-electric font-semibold">{filteredEntries.length}</span> de{" "}
-            <span className="text-platinum">{CATALOG_ENTRIES.length}</span>
+            <span className="text-electric font-semibold">
+              {filteredEntries.length}
+            </span>{" "}
+            de <span className="text-platinum">{CATALOG_ENTRIES.length}</span>
           </div>
         </div>
 
@@ -519,7 +536,11 @@ export function ApiCatalogExplorer() {
                               <button
                                 onClick={() =>
                                   copyPayload(
-                                    JSON.stringify(simulationResult.responsePayload, null, 2),
+                                    JSON.stringify(
+                                      simulationResult.responsePayload,
+                                      null,
+                                      2,
+                                    ),
                                   )
                                 }
                                 className="text-muted-foreground hover:text-platinum flex items-center gap-1 font-mono text-[9px]"
@@ -533,15 +554,19 @@ export function ApiCatalogExplorer() {
                               </button>
                             </div>
                             <pre className="bg-secondary/35 border border-border/40 rounded-xl p-3 font-mono text-[10px] text-teal-300 overflow-x-auto max-h-[22vh] custom-scrollbar">
-                              {JSON.stringify(simulationResult.responsePayload, null, 2)}
+                              {JSON.stringify(
+                                simulationResult.responsePayload,
+                                null,
+                                2,
+                              )}
                             </pre>
                           </div>
                         </div>
                       ) : (
                         <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground font-mono text-[11px] border border-dashed border-border/30 rounded-xl">
                           <Activity className="size-6 text-muted-foreground/40 mb-2 animate-pulse" />
-                          Ejecuta una simulación para observar métricas de latencia, gobernanza y
-                          payload.
+                          Ejecuta una simulación para observar métricas de
+                          latencia, gobernanza y payload.
                         </div>
                       )}
                     </div>
@@ -557,7 +582,8 @@ export function ApiCatalogExplorer() {
                         Esquema de Respuesta
                       </h4>
                       <pre className="bg-secondary/25 border border-border/40 rounded-xl p-3.5 font-mono text-[10.5px] text-platinum overflow-x-auto max-h-[35vh] custom-scrollbar">
-                        {activeEntry.responseSchema || '{\n  "status": "success"\n}'}
+                        {activeEntry.responseSchema ||
+                          '{\n  "status": "success"\n}'}
                       </pre>
                     </div>
                     {activeEntry.requestSchema && (
@@ -592,10 +618,14 @@ export function ApiCatalogExplorer() {
                           </span>
                           <div className="flex-1">
                             <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-0.5">
-                              <span className="text-electric font-semibold">{st.agent}</span>
+                              <span className="text-electric font-semibold">
+                                {st.agent}
+                              </span>
                               <span>{st.durationMs} ms</span>
                             </div>
-                            <p className="text-platinum leading-relaxed">{st.thought}</p>
+                            <p className="text-platinum leading-relaxed">
+                              {st.thought}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -605,7 +635,8 @@ export function ApiCatalogExplorer() {
               </div>
             ) : (
               <div className="glass rounded-2xl p-12 text-center text-muted-foreground font-mono text-[12px] border border-border/40">
-                Selecciona un contrato de la lista para ver sus esquemas y ejecutar pruebas.
+                Selecciona un contrato de la lista para ver sus esquemas y
+                ejecutar pruebas.
               </div>
             )}
           </div>

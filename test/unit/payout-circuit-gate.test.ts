@@ -39,7 +39,13 @@ describe("payout circuit gate", () => {
   });
 
   it("fuente inyectada sin contaminar process.env", () => {
-    expect(isPayoutCircuitCertified({ ISABELLA_PAYOUT_CIRCUIT_CERTIFIED: "true" })).toBe(true);
-    expect(isPayoutCircuitCertified({ ISABELLA_PAYOUT_CIRCUIT_CERTIFIED: undefined })).toBe(false);
+    expect(
+      isPayoutCircuitCertified({ ISABELLA_PAYOUT_CIRCUIT_CERTIFIED: "true" }),
+    ).toBe(true);
+    expect(
+      isPayoutCircuitCertified({
+        ISABELLA_PAYOUT_CIRCUIT_CERTIFIED: undefined,
+      }),
+    ).toBe(false);
   });
 });

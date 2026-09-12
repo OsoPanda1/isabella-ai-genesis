@@ -9,7 +9,11 @@ import type {
   AccountType,
   TransactionStatus,
 } from "./types";
-import type { AccountingRepository, CreateAccountDTO, CreateJournalEntryDTO } from "./accounting-repository";
+import type {
+  AccountingRepository,
+  CreateAccountDTO,
+  CreateJournalEntryDTO,
+} from "./accounting-repository";
 import { randomUUID } from "node:crypto";
 
 export class PrismaAccountingRepository implements AccountingRepository {
@@ -19,7 +23,10 @@ export class PrismaAccountingRepository implements AccountingRepository {
     this.prisma = prismaClient || new PrismaClient();
   }
 
-  async createAccount(dto: CreateAccountDTO, tx: any = this.prisma): Promise<Account> {
+  async createAccount(
+    dto: CreateAccountDTO,
+    tx: any = this.prisma,
+  ): Promise<Account> {
     const account = await tx.accountingAccount.create({
       data: {
         tenantId: dto.tenantId,
@@ -33,17 +40,29 @@ export class PrismaAccountingRepository implements AccountingRepository {
     return this.mapAccount(account);
   }
 
-  async getAccountById(id: string, tx: any = this.prisma): Promise<Account | null> {
+  async getAccountById(
+    id: string,
+    tx: any = this.prisma,
+  ): Promise<Account | null> {
     const account = await tx.accountingAccount.findUnique({ where: { id } });
     return account ? this.mapAccount(account) : null;
   }
 
-  async getAccountsByTenant(tenantId: string, tx: any = this.prisma): Promise<Account[]> {
-    const accounts = await tx.accountingAccount.findMany({ where: { tenantId } });
+  async getAccountsByTenant(
+    tenantId: string,
+    tx: any = this.prisma,
+  ): Promise<Account[]> {
+    const accounts = await tx.accountingAccount.findMany({
+      where: { tenantId },
+    });
     return accounts.map((a: any) => this.mapAccount(a));
   }
 
-  async updateAccount(id: string, updates: Partial<Account>, tx: any = this.prisma): Promise<Account> {
+  async updateAccount(
+    id: string,
+    updates: Partial<Account>,
+    tx: any = this.prisma,
+  ): Promise<Account> {
     const account = await tx.accountingAccount.update({
       where: { id },
       data: {
@@ -54,7 +73,10 @@ export class PrismaAccountingRepository implements AccountingRepository {
     return this.mapAccount(account);
   }
 
-  async createJournalEntry(dto: CreateJournalEntryDTO, tx: any = this.prisma): Promise<JournalEntry> {
+  async createJournalEntry(
+    dto: CreateJournalEntryDTO,
+    tx: any = this.prisma,
+  ): Promise<JournalEntry> {
     const entryNumber = `JE-${Date.now()}-${randomUUID().slice(0, 8)}`;
     const entry = await tx.accountingJournalEntry.create({
       data: {
@@ -63,23 +85,37 @@ export class PrismaAccountingRepository implements AccountingRepository {
         description: dto.description,
         status: "pending",
         createdBy: dto.createdBy,
-        metadata: dto.metadata ? JSON.parse(JSON.stringify(dto.metadata)) : undefined,
+        metadata: dto.metadata
+          ? JSON.parse(JSON.stringify(dto.metadata))
+          : undefined,
       },
     });
     return this.mapJournalEntry(entry);
   }
 
-  async getJournalEntryById(id: string, tx: any = this.prisma): Promise<JournalEntry | null> {
+  async getJournalEntryById(
+    id: string,
+    tx: any = this.prisma,
+  ): Promise<JournalEntry | null> {
     const entry = await tx.accountingJournalEntry.findUnique({ where: { id } });
     return entry ? this.mapJournalEntry(entry) : null;
   }
 
-  async getJournalEntriesByTenant(tenantId: string, tx: any = this.prisma): Promise<JournalEntry[]> {
-    const entries = await tx.accountingJournalEntry.findMany({ where: { tenantId } });
+  async getJournalEntriesByTenant(
+    tenantId: string,
+    tx: any = this.prisma,
+  ): Promise<JournalEntry[]> {
+    const entries = await tx.accountingJournalEntry.findMany({
+      where: { tenantId },
+    });
     return entries.map((e: any) => this.mapJournalEntry(e));
   }
 
-  async updateJournalEntryStatus(id: string, status: TransactionStatus, tx: any = this.prisma): Promise<JournalEntry> {
+  async updateJournalEntryStatus(
+    id: string,
+    status: TransactionStatus,
+    tx: any = this.prisma,
+  ): Promise<JournalEntry> {
     const entry = await tx.accountingJournalEntry.update({
       where: { id },
       data: {
@@ -90,7 +126,10 @@ export class PrismaAccountingRepository implements AccountingRepository {
     return this.mapJournalEntry(entry);
   }
 
-  async createLedgerLines(lines: Omit<LedgerLine, "id" | "createdAt">[], tx: any = this.prisma): Promise<LedgerLine[]> {
+  async createLedgerLines(
+    lines: Omit<LedgerLine, "id" | "createdAt">[],
+    tx: any = this.prisma,
+  ): Promise<LedgerLine[]> {
     const createdLines = await tx.$transaction(
       lines.map((line) =>
         tx.accountingLedgerLine.create({
@@ -101,25 +140,42 @@ export class PrismaAccountingRepository implements AccountingRepository {
             debitCents: line.debitCents,
             creditCents: line.creditCents,
             description: line.description,
-            metadata: line.metadata ? JSON.parse(JSON.stringify(line.metadata)) : undefined,
+            metadata: line.metadata
+              ? JSON.parse(JSON.stringify(line.metadata))
+              : undefined,
           },
-        })
-      )
+        }),
+      ),
     );
     return createdLines.map((l: any) => this.mapLedgerLine(l));
   }
 
-  async getLedgerLinesByEntry(entryId: string, tx: any = this.prisma): Promise<LedgerLine[]> {
-    const lines = await tx.accountingLedgerLine.findMany({ where: { entryId } });
+  async getLedgerLinesByEntry(
+    entryId: string,
+    tx: any = this.prisma,
+  ): Promise<LedgerLine[]> {
+    const lines = await tx.accountingLedgerLine.findMany({
+      where: { entryId },
+    });
     return lines.map((l: any) => this.mapLedgerLine(l));
   }
 
-  async getLedgerLinesByAccount(accountId: string, tx: any = this.prisma): Promise<LedgerLine[]> {
-    const lines = await tx.accountingLedgerLine.findMany({ where: { accountId } });
+  async getLedgerLinesByAccount(
+    accountId: string,
+    tx: any = this.prisma,
+  ): Promise<LedgerLine[]> {
+    const lines = await tx.accountingLedgerLine.findMany({
+      where: { accountId },
+    });
     return lines.map((l: any) => this.mapLedgerLine(l));
   }
 
-  async calculateAccountBalance(accountId: string, periodStart: Date, periodEnd: Date, tx: any = this.prisma): Promise<AccountBalance> {
+  async calculateAccountBalance(
+    accountId: string,
+    periodStart: Date,
+    periodEnd: Date,
+    tx: any = this.prisma,
+  ): Promise<AccountBalance> {
     const account = await this.getAccountById(accountId, tx);
     if (!account) throw new Error("Account not found");
 
@@ -156,10 +212,17 @@ export class PrismaAccountingRepository implements AccountingRepository {
     };
   }
 
-  async generateTrialBalance(tenantId: string, periodStart: Date, periodEnd: Date, tx: any = this.prisma): Promise<TrialBalance> {
+  async generateTrialBalance(
+    tenantId: string,
+    periodStart: Date,
+    periodEnd: Date,
+    tx: any = this.prisma,
+  ): Promise<TrialBalance> {
     const accounts = await this.getAccountsByTenant(tenantId, tx);
     const balances = await Promise.all(
-      accounts.map((acc) => this.calculateAccountBalance(acc.id, periodStart, periodEnd, tx))
+      accounts.map((acc) =>
+        this.calculateAccountBalance(acc.id, periodStart, periodEnd, tx),
+      ),
     );
 
     let totalDebits = 0;
@@ -190,18 +253,29 @@ export class PrismaAccountingRepository implements AccountingRepository {
     };
   }
 
-  async generateBalanceSheet(tenantId: string, asOfDate: Date, tx: any = this.prisma): Promise<BalanceSheet> {
+  async generateBalanceSheet(
+    tenantId: string,
+    asOfDate: Date,
+    tx: any = this.prisma,
+  ): Promise<BalanceSheet> {
     const periodStart = new Date(asOfDate.getFullYear(), 0, 1);
     const accounts = await this.getAccountsByTenant(tenantId, tx);
     const balances = await Promise.all(
-      accounts.map((acc) => this.calculateAccountBalance(acc.id, periodStart, asOfDate, tx))
+      accounts.map((acc) =>
+        this.calculateAccountBalance(acc.id, periodStart, asOfDate, tx),
+      ),
     );
 
-    type BalanceItem = { accountId: string; name: string; balanceCents: number };
+    type BalanceItem = {
+      accountId: string;
+      name: string;
+      balanceCents: number;
+    };
     const assets: BalanceItem[] = [];
     const liabilities: BalanceItem[] = [];
     const equity: BalanceItem[] = [];
-    let totalAssets = 0, totalLiabilitiesEquity = 0;
+    let totalAssets = 0,
+      totalLiabilitiesEquity = 0;
 
     balances.forEach((balance, idx) => {
       const item = {
@@ -209,9 +283,18 @@ export class PrismaAccountingRepository implements AccountingRepository {
         name: accounts[idx].name,
         balanceCents: balance.closingBalanceCents,
       };
-      if (accounts[idx].type === "asset") { assets.push(item); totalAssets += item.balanceCents; }
-      if (accounts[idx].type === "liability") { liabilities.push(item); totalLiabilitiesEquity += item.balanceCents; }
-      if (accounts[idx].type === "equity") { equity.push(item); totalLiabilitiesEquity += item.balanceCents; }
+      if (accounts[idx].type === "asset") {
+        assets.push(item);
+        totalAssets += item.balanceCents;
+      }
+      if (accounts[idx].type === "liability") {
+        liabilities.push(item);
+        totalLiabilitiesEquity += item.balanceCents;
+      }
+      if (accounts[idx].type === "equity") {
+        equity.push(item);
+        totalLiabilitiesEquity += item.balanceCents;
+      }
     });
 
     return {

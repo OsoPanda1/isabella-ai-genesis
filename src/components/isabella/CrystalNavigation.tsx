@@ -112,7 +112,11 @@ function AccordionGroup({
             <group.Icon className={`size-3.5 ${group.colorClass}`} />
             {group.label}
           </span>
-          {isOpen ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+          {isOpen ? (
+            <ChevronDown className="size-3" />
+          ) : (
+            <ChevronRight className="size-3" />
+          )}
         </button>
       )}
 
@@ -136,11 +140,16 @@ function AccordionGroup({
                   if (e.key === "ArrowDown" || e.key === "ArrowUp") {
                     e.preventDefault();
                     const all =
-                      listRef.current?.querySelectorAll<HTMLButtonElement>("[data-nav-item]");
+                      listRef.current?.querySelectorAll<HTMLButtonElement>(
+                        "[data-nav-item]",
+                      );
                     if (!all || all.length === 0) return;
                     let next = index;
-                    if (e.key === "ArrowDown") next = (index + 1) % group.items.length;
-                    else next = (index - 1 + group.items.length) % group.items.length;
+                    if (e.key === "ArrowDown")
+                      next = (index + 1) % group.items.length;
+                    else
+                      next =
+                        (index - 1 + group.items.length) % group.items.length;
                     all[next]?.focus();
                   } else if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();

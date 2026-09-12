@@ -1,4 +1,10 @@
-import { createAuditEvent, Evidence, IsabellaSkill, SkillResult, normalizeText } from "./contracts";
+import {
+  createAuditEvent,
+  Evidence,
+  IsabellaSkill,
+  SkillResult,
+  normalizeText,
+} from "./contracts";
 
 // ============================================================================
 // 1. ORION (Cognitive Archaeology Engine)
@@ -33,7 +39,8 @@ export const ORION: IsabellaSkill<OrionInput, OrionOutput> = {
   version: "v.GENESIS",
   federation: "CIVILIZATIONAL_ARCHIVE",
   risk: "MEDIUM",
-  description: "Recupera artefactos, reconstruye relaciones y detecta vacíos de memoria.",
+  description:
+    "Recupera artefactos, reconstruye relaciones y detecta vacíos de memoria.",
   canRun: (input) => Boolean(input.query?.trim() && input.artifacts?.length),
   async run(input, context): Promise<SkillResult<OrionOutput>> {
     const maxResults = input.maxResults ?? 8;
@@ -45,7 +52,11 @@ export const ORION: IsabellaSkill<OrionInput, OrionOutput> = {
           `${artifact.title} ${artifact.content} ${(artifact.tags ?? []).join(" ")}`.toLowerCase();
         const matched = tokens.filter((token) => searchable.includes(token));
         const score = tokens.length ? matched.length / tokens.length : 0;
-        const relationships = [...(artifact.tags ?? []), context.federation, artifact.source];
+        const relationships = [
+          ...(artifact.tags ?? []),
+          context.federation,
+          artifact.source,
+        ];
 
         return {
           artifactId: artifact.id,
@@ -74,7 +85,9 @@ export const ORION: IsabellaSkill<OrionInput, OrionOutput> = {
             "Se recomienda indexar documentos, repositorios o memoria territorial relacionada.",
           ]
         : findings.some((f) => f.score < 0.5)
-          ? ["La evidencia es parcial; requiere validación o ampliación documental."]
+          ? [
+              "La evidencia es parcial; requiere validación o ampliación documental.",
+            ]
           : [];
 
     return {
@@ -85,12 +98,14 @@ export const ORION: IsabellaSkill<OrionInput, OrionOutput> = {
         : "ORION no encontró artefactos suficientes para sostener una reconstrucción.",
       data: {
         query: input.query,
-        findings: findings.map(({ artifactId, title, score, relationships }) => ({
-          artifactId,
-          title,
-          score,
-          relationships,
-        })),
+        findings: findings.map(
+          ({ artifactId, title, score, relationships }) => ({
+            artifactId,
+            title,
+            score,
+            relationships,
+          }),
+        ),
         knowledgeGaps: gaps,
       },
       evidence,
@@ -168,7 +183,8 @@ export const SOPHIA: IsabellaSkill<SophiaInput, SophiaOutput> = {
         ? "No hay evidencia verificable disponible para elaborar una síntesis."
         : `La síntesis se fundamenta en ${validEvidence.length} fuentes disponibles. Debe leerse como análisis trazable y no como certeza absoluta.`;
 
-    const requiresHumanReview = confidence < 0.65 || context.federation === "SOVEREIGNTY";
+    const requiresHumanReview =
+      confidence < 0.65 || context.federation === "SOVEREIGNTY";
 
     return {
       skillId: "SOPHIA",
@@ -243,7 +259,8 @@ export const ARGUS: IsabellaSkill<ArgusInput, ArgusOutput> = {
   version: "v.GENESIS",
   federation: "INFRASTRUCTURE",
   risk: "HIGH",
-  description: "Detecta anomalías, degradación operativa, abuso y riesgos de infraestructura.",
+  description:
+    "Detecta anomalías, degradación operativa, abuso y riesgos de infraestructura.",
   canRun: (input) => Boolean(input.metrics),
   async run(input, context): Promise<SkillResult<ArgusOutput>> {
     const t = {
@@ -271,7 +288,11 @@ export const ARGUS: IsabellaSkill<ArgusInput, ArgusOutput> = {
     }
 
     const health =
-      anomalies.length >= 3 ? "CRITICAL" : anomalies.length > 0 ? "DEGRADED" : "HEALTHY";
+      anomalies.length >= 3
+        ? "CRITICAL"
+        : anomalies.length > 0
+          ? "DEGRADED"
+          : "HEALTHY";
 
     const recommendedActions =
       health === "CRITICAL"
@@ -296,9 +317,21 @@ export const ARGUS: IsabellaSkill<ArgusInput, ArgusOutput> = {
       warnings: anomalies,
       requiresHumanReview: health === "CRITICAL",
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "ARGUS", { metrics }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "ARGUS",
+          { metrics },
+          context.actorId,
+        ),
         ...(health === "CRITICAL"
-          ? [createAuditEvent("HUMAN_REVIEW_REQUIRED", "ARGUS", { anomalies }, context.actorId)]
+          ? [
+              createAuditEvent(
+                "HUMAN_REVIEW_REQUIRED",
+                "ARGUS",
+                { anomalies },
+                context.actorId,
+              ),
+            ]
           : []),
         createAuditEvent(
           "SKILL_COMPLETED",
@@ -317,7 +350,13 @@ export const ARGUS: IsabellaSkill<ArgusInput, ArgusOutput> = {
 export interface HermesInput {
   subject: string;
   keyPoints: string[];
-  audience: "VISITOR" | "CITIZEN" | "MERCHANT" | "STUDENT" | "TECHNICAL" | "INSTITUTIONAL";
+  audience:
+    | "VISITOR"
+    | "CITIZEN"
+    | "MERCHANT"
+    | "STUDENT"
+    | "TECHNICAL"
+    | "INSTITUTIONAL";
   tone?: "CLEAR" | "WARM" | "FORMAL" | "TECHNICAL";
 }
 
@@ -333,7 +372,8 @@ export const HERMES: IsabellaSkill<HermesInput, HermesOutput> = {
   version: "v.GENESIS",
   federation: "ETHICS_CULTURE",
   risk: "LOW",
-  description: "Traduce información compleja en mensajes claros, responsables y contextuales.",
+  description:
+    "Traduce información compleja en mensajes claros, responsables y contextuales.",
   canRun: (input) => Boolean(input.subject?.trim() && input.keyPoints?.length),
   async run(input, context): Promise<SkillResult<HermesOutput>> {
     const tone = input.tone ?? "CLEAR";
@@ -371,7 +411,12 @@ export const HERMES: IsabellaSkill<HermesInput, HermesOutput> = {
           { audience: input.audience, tone },
           context.actorId,
         ),
-        createAuditEvent("SKILL_COMPLETED", "HERMES", { title }, context.actorId),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "HERMES",
+          { title },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -414,11 +459,17 @@ export const ATLAS: IsabellaSkill<AtlasInput, AtlasOutput> = {
     );
 
     const interpretation =
-      territorialImpact > 0.1 ? "POSITIVE" : territorialImpact < -0.1 ? "NEGATIVE" : "NEUTRAL";
+      territorialImpact > 0.1
+        ? "POSITIVE"
+        : territorialImpact < -0.1
+          ? "NEGATIVE"
+          : "NEUTRAL";
 
     const leveragePoints = [...input.variables]
       .sort(
-        (a, b) => Math.abs(b.projectedChange * b.weight) - Math.abs(a.projectedChange * a.weight),
+        (a, b) =>
+          Math.abs(b.projectedChange * b.weight) -
+          Math.abs(a.projectedChange * a.weight),
       )
       .slice(0, 3)
       .map((item) => item.label);
@@ -436,11 +487,18 @@ export const ATLAS: IsabellaSkill<AtlasInput, AtlasOutput> = {
       evidence: context.evidence ?? [],
       warnings:
         interpretation === "NEGATIVE"
-          ? ["El escenario proyecta un impacto adverso; requiere revisión comunitaria y humana."]
+          ? [
+              "El escenario proyecta un impacto adverso; requiere revisión comunitaria y humana.",
+            ]
           : [],
       requiresHumanReview: interpretation === "NEGATIVE",
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "ATLAS", { scenario: input.scenario }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "ATLAS",
+          { scenario: input.scenario },
+          context.actorId,
+        ),
         createAuditEvent(
           "SKILL_COMPLETED",
           "ATLAS",
@@ -476,7 +534,9 @@ export interface AnubisOutput {
 async function sha256(value: string): Promise<string> {
   const bytes = new TextEncoder().encode(value);
   const buffer = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(buffer)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  return [...new Uint8Array(buffer)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 export const ANUBIS: IsabellaSkill<AnubisInput, AnubisOutput> = {
@@ -485,7 +545,8 @@ export const ANUBIS: IsabellaSkill<AnubisInput, AnubisOutput> = {
   version: "v.GENESIS",
   federation: "SOVEREIGNTY",
   risk: "CRITICAL",
-  description: "Verifica integridad, procedencia y trazabilidad de artefactos críticos.",
+  description:
+    "Verifica integridad, procedencia y trazabilidad de artefactos críticos.",
   canRun: (input) => Boolean(input.artifactId && input.content),
   async run(input, context): Promise<SkillResult<AnubisOutput>> {
     const hash = await sha256(input.content);
@@ -583,7 +644,8 @@ export const GEMET: IsabellaSkill<GemetInput, GemetOutput> = {
         passed: !data.some((item) =>
           /biometr|salud|ubicacion exacta|menor/.test(normalizeText(item)),
         ),
-        reason: "Los datos sensibles requieren base legal, consentimiento y revisión humana.",
+        reason:
+          "Los datos sensibles requieren base legal, consentimiento y revisión humana.",
       },
       {
         name: "Soberanía territorial",
@@ -594,18 +656,29 @@ export const GEMET: IsabellaSkill<GemetInput, GemetOutput> = {
     ];
 
     const failed = principles.filter((item) => !item.passed);
-    const verdict = failed.length >= 2 ? "DENY" : failed.length === 1 ? "REVIEW" : "ALLOW";
+    const verdict =
+      failed.length >= 2 ? "DENY" : failed.length === 1 ? "REVIEW" : "ALLOW";
 
     return {
       skillId: "GEMET",
-      status: verdict === "DENY" ? "BLOCKED" : verdict === "REVIEW" ? "ESCALATED" : "SUCCESS",
+      status:
+        verdict === "DENY"
+          ? "BLOCKED"
+          : verdict === "REVIEW"
+            ? "ESCALATED"
+            : "SUCCESS",
       summary: `GEMET emitió veredicto ${verdict}.`,
       data: { verdict, principles },
       evidence: context.evidence ?? [],
       warnings: failed.map((item) => item.reason),
       requiresHumanReview: verdict !== "ALLOW",
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "GEMET", { action: input.action }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "GEMET",
+          { action: input.action },
+          context.actorId,
+        ),
         createAuditEvent(
           verdict === "DENY"
             ? "POLICY_VIOLATION"

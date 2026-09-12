@@ -9,7 +9,8 @@ export type FederationId =
 
 export type SkillRisk = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
-export type SkillStatus = "SUCCESS" | "PARTIAL" | "BLOCKED" | "ESCALATED" | "FAILED";
+export type SkillStatus =
+  "SUCCESS" | "PARTIAL" | "BLOCKED" | "ESCALATED" | "FAILED";
 
 export interface Evidence {
   id: string;

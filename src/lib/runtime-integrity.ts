@@ -83,7 +83,9 @@ export function verifyRuntimeIntegrity(options?: {
 export function ensureRuntimeReady(strict = false): IntegrityResult {
   const result = verifyRuntimeIntegrity({ strict });
   if (result.status === "failed" && strict) {
-    throw new Error(`Runtime no listo: ${result.configError ?? "capacidades faltantes"}`);
+    throw new Error(
+      `Runtime no listo: ${result.configError ?? "capacidades faltantes"}`,
+    );
   }
   return result;
 }

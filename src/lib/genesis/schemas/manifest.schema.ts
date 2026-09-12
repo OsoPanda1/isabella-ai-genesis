@@ -105,7 +105,10 @@ export function validateManifest(manifest: unknown): Manifest {
   return ManifestSchema.parse(manifest);
 }
 
-export function createEmptyManifest(generatorHash: string, context: ManifestContext): Manifest {
+export function createEmptyManifest(
+  generatorHash: string,
+  context: ManifestContext,
+): Manifest {
   return {
     manifest: {
       version: "2.0.1",
@@ -122,9 +125,28 @@ export function createEmptyManifest(generatorHash: string, context: ManifestCont
       totalEvidence: 0,
       totalFindings: 0,
       bySeverity: { critical: 0, high: 0, medium: 0, low: 0, informational: 0 },
-      byStatus: { planned: 0, designed: 0, partial: 0, implemented: 0, tested: 0, verified: 0, productionVerified: 0, failed: 0, unknown: 0, notApplicable: 0 },
-      scores: { engineeringMaturity: 0, evidenceMaturity: 0, productionReadiness: 0 },
-      releaseDecision: { decision: "NO-GO", blockingFindings: 0, justification: "Audit not executed" },
+      byStatus: {
+        planned: 0,
+        designed: 0,
+        partial: 0,
+        implemented: 0,
+        tested: 0,
+        verified: 0,
+        productionVerified: 0,
+        failed: 0,
+        unknown: 0,
+        notApplicable: 0,
+      },
+      scores: {
+        engineeringMaturity: 0,
+        evidenceMaturity: 0,
+        productionReadiness: 0,
+      },
+      releaseDecision: {
+        decision: "NO-GO",
+        blockingFindings: 0,
+        justification: "Audit not executed",
+      },
     },
     claims: [],
     controls: [],

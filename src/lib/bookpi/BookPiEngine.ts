@@ -12,7 +12,11 @@
  * en producción (esta función NO produce autoridad criptográfica simulada).
  */
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { signBlockHash, getSigningAlgorithm, isSimulatedAlgorithm } from "../crypto/bookpi-signer";
+import {
+  signBlockHash,
+  getSigningAlgorithm,
+  isSimulatedAlgorithm,
+} from "../crypto/bookpi-signer";
 
 export interface ChunkProof {
   chunkIndex: number;
@@ -55,7 +59,10 @@ export class BookPiEngine {
   private static readonly CHUNK_SIZE = 64 * 1024; // 64 KiB
 
   /** Divide un buffer en fragmentos de 64 KB y calcula su hash SHA-256. */
-  public static chunkBuffer(buffer: Buffer): { hashes: string[]; rawChunks: Buffer[] } {
+  public static chunkBuffer(buffer: Buffer): {
+    hashes: string[];
+    rawChunks: Buffer[];
+  } {
     const hashes: string[] = [];
     const rawChunks: Buffer[] = [];
     let offset = 0;
@@ -69,9 +76,14 @@ export class BookPiEngine {
   }
 
   /** Construye el árbol binario de Merkle y retorna la raíz + niveles. */
-  public static buildMerkleTree(leafHashes: string[]): { root: string; tree: string[][] } {
+  public static buildMerkleTree(leafHashes: string[]): {
+    root: string;
+    tree: string[][];
+  } {
     if (leafHashes.length === 0) {
-      throw new Error("No se pueden procesar hojas vacías para el árbol de Merkle.");
+      throw new Error(
+        "No se pueden procesar hojas vacías para el árbol de Merkle.",
+      );
     }
     const tree: string[][] = [leafHashes];
     let currentLevel = leafHashes;
@@ -89,7 +101,10 @@ export class BookPiEngine {
   }
 
   /** Prueba de inclusión de Merkle para un chunk (O(log N)). */
-  public static generateMerkleProof(leafHashes: string[], targetIndex: number): ChunkProof {
+  public static generateMerkleProof(
+    leafHashes: string[],
+    targetIndex: number,
+  ): ChunkProof {
     if (targetIndex < 0 || targetIndex >= leafHashes.length) {
       throw new Error("Índice de chunk fuera de rango.");
     }
@@ -128,7 +143,10 @@ export class BookPiEngine {
   public static verifyChunkProof(proof: ChunkProof): boolean {
     let currentHash = proof.chunkHash;
     for (const step of proof.proofPath) {
-      const concatenated = step.position === "left" ? step.hash + currentHash : currentHash + step.hash;
+      const concatenated =
+        step.position === "left"
+          ? step.hash + currentHash
+          : currentHash + step.hash;
       currentHash = sha256Hex(concatenated);
     }
     return currentHash.toLowerCase() === proof.root.toLowerCase();
@@ -149,7 +167,9 @@ export class BookPiEngine {
   }
 
   /** Procesa y firma una obra para BookPI (registro sin persistencia aquí). */
-  public static processManuscript(payload: BookPiRegistrationPayload): BookPiRegistrationResult {
+  public static processManuscript(
+    payload: BookPiRegistrationPayload,
+  ): BookPiRegistrationResult {
     if (isSimulatedAlgorithm()) {
       throw new Error(
         "CRITICAL_SECURITY_ERROR: algoritmo de firma simulado no puede registrar obras en producción.",
@@ -158,7 +178,9 @@ export class BookPiEngine {
     const { hashes } = this.chunkBuffer(payload.fileBuffer);
     const { root: merkleRoot } = this.buildMerkleTree(hashes);
 
-    const payloadHash = sha256Hex(`${merkleRoot}:${payload.authorId}:${payload.title}:${payload.category}`);
+    const payloadHash = sha256Hex(
+      `${merkleRoot}:${payload.authorId}:${payload.title}:${payload.category}`,
+    );
 
     const { commitment: zkCommitment } = this.generateZKCommitment(
       merkleRoot,

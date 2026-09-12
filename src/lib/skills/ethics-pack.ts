@@ -1,4 +1,9 @@
-import { createAuditEvent, IsabellaSkill, SkillResult, normalizeText } from "./contracts";
+import {
+  createAuditEvent,
+  IsabellaSkill,
+  SkillResult,
+  normalizeText,
+} from "./contracts";
 
 export type LockLevel = "ONTOLOGIC_LOCK" | "SEMANTIC_LOCK" | "BEHAVIORAL_LOCK";
 
@@ -42,15 +47,20 @@ export const VIGIA: IsabellaSkill<VigiaInput, VigiaOutput> = {
   version: "v.GENESIS",
   federation: "ETHICS_CULTURE",
   risk: "CRITICAL",
-  description: "Aplica protección ontológica, semántica y conductual a las interacciones.",
+  description:
+    "Aplica protección ontológica, semántica y conductual a las interacciones.",
   canRun: (input) => Boolean(input.text?.trim()),
   async run(input, context): Promise<SkillResult<VigiaOutput>> {
     const text = normalizeText(input.text);
     const lockLevels: LockLevel[] = [];
     const flags: string[] = [];
 
-    const hasSexualization = SEXUALIZATION_PATTERNS.some((pattern) => pattern.test(text));
-    const hasIdentityTampering = IDENTITY_TAMPERING_PATTERNS.some((pattern) => pattern.test(text));
+    const hasSexualization = SEXUALIZATION_PATTERNS.some((pattern) =>
+      pattern.test(text),
+    );
+    const hasIdentityTampering = IDENTITY_TAMPERING_PATTERNS.some((pattern) =>
+      pattern.test(text),
+    );
 
     if (hasSexualization || hasIdentityTampering) {
       lockLevels.push("ONTOLOGIC_LOCK");
@@ -62,7 +72,10 @@ export const VIGIA: IsabellaSkill<VigiaInput, VigiaOutput> = {
       flags.push("SEXUALIZATION_ATTEMPT");
     }
 
-    if ((input.previousViolations ?? 0) >= 2 || input.attemptedBypass === true) {
+    if (
+      (input.previousViolations ?? 0) >= 2 ||
+      input.attemptedBypass === true
+    ) {
       lockLevels.push("BEHAVIORAL_LOCK");
       flags.push("REPEATED_OR_BYPASS_BEHAVIOR");
     }
@@ -94,8 +107,20 @@ export const VIGIA: IsabellaSkill<VigiaInput, VigiaOutput> = {
         ),
         ...(allowed
           ? []
-          : [createAuditEvent("SKILL_BLOCKED", "VIGIA", { lockLevels, flags }, context.actorId)]),
-        createAuditEvent("SKILL_COMPLETED", "VIGIA", { allowed, lockLevels }, context.actorId),
+          : [
+              createAuditEvent(
+                "SKILL_BLOCKED",
+                "VIGIA",
+                { lockLevels, flags },
+                context.actorId,
+              ),
+            ]),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "VIGIA",
+          { allowed, lockLevels },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -144,7 +169,8 @@ export const LYRA: IsabellaSkill<LyraInput, LyraOutput> = {
       );
     }
 
-    const coherence = findings.length === 0 ? "HIGH" : findings.length === 1 ? "MEDIUM" : "LOW";
+    const coherence =
+      findings.length === 0 ? "HIGH" : findings.length === 1 ? "MEDIUM" : "LOW";
 
     return {
       skillId: "LYRA",
@@ -154,8 +180,18 @@ export const LYRA: IsabellaSkill<LyraInput, LyraOutput> = {
       evidence: context.evidence ?? [],
       warnings: findings,
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "LYRA", { audience: input.audience }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "LYRA", { coherence }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "LYRA",
+          { audience: input.audience },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "LYRA",
+          { coherence },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -184,10 +220,14 @@ export const EIRENE: IsabellaSkill<EireneInput, EireneOutput> = {
   risk: "HIGH",
   description:
     "Facilita diálogo básico y deriva situaciones de riesgo hacia atención humana adecuada.",
-  canRun: (input) => Boolean(input.situation?.trim() && input.parties?.length >= 2),
+  canRun: (input) =>
+    Boolean(input.situation?.trim() && input.parties?.length >= 2),
   async run(input, context): Promise<SkillResult<EireneOutput>> {
-    const text = normalizeText(`${input.situation} ${(input.riskSignals ?? []).join(" ")}`);
-    const risky = /(violencia|amenaza|arma|autolesion|suicidio|emergencia)/.test(text);
+    const text = normalizeText(
+      `${input.situation} ${(input.riskSignals ?? []).join(" ")}`,
+    );
+    const risky =
+      /(violencia|amenaza|arma|autolesion|suicidio|emergencia)/.test(text);
     const mode = risky ? "ESCALATE" : "FACILITATE";
 
     const nextSteps =
@@ -213,7 +253,9 @@ export const EIRENE: IsabellaSkill<EireneInput, EireneOutput> = {
         nextSteps,
       },
       evidence: [],
-      warnings: risky ? ["Se detectaron señales de riesgo; requiere intervención humana."] : [],
+      warnings: risky
+        ? ["Se detectaron señales de riesgo; requiere intervención humana."]
+        : [],
       requiresHumanReview: risky,
       auditEvents: [
         createAuditEvent(

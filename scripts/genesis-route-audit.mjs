@@ -10,7 +10,8 @@ const walk = (dir) => {
     const file = path.join(dir, name);
     const stat = fs.statSync(file);
     if (stat.isDirectory()) walk(file);
-    else if (/\.(ts|tsx)$/.test(name) && !name.startsWith("README")) entries.push(file);
+    else if (/\.(ts|tsx)$/.test(name) && !name.startsWith("README"))
+      entries.push(file);
   }
 };
 roots.forEach((dir) => walk(path.join(root, dir)));
@@ -41,8 +42,13 @@ for (const file of entries) {
 const active = new Map();
 const internal = new Map();
 for (const [key, files] of grouped)
-  (key.startsWith("active:") ? active : internal).set(key.slice(key.indexOf(":") + 1), files);
-const duplicates = [...grouped.entries()].filter(([, files]) => files.length > 1);
+  (key.startsWith("active:") ? active : internal).set(
+    key.slice(key.indexOf(":") + 1),
+    files,
+  );
+const duplicates = [...grouped.entries()].filter(
+  ([, files]) => files.length > 1,
+);
 const delegated = [...active.keys()].filter((route) => internal.has(route));
 const report = {
   generatedAt: new Date().toISOString(),

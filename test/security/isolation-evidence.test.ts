@@ -24,7 +24,10 @@ function isolated(paths: string[]) {
 beforeAll(async () => {
   const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   vi.stubEnv("BOOKPI_SIGNATURE_ALGORITHM", "RSA-SHA256");
-  vi.stubEnv("BOOKPI_SIGNING_KEY", privateKey.export({ type: "pkcs8", format: "pem" }).toString());
+  vi.stubEnv(
+    "BOOKPI_SIGNING_KEY",
+    privateKey.export({ type: "pkcs8", format: "pem" }).toString(),
+  );
   vi.stubEnv("ISABELLA_RUNTIME_MODE", "development");
   const { resetConfigCache } = await import("@/lib/config");
   resetConfigCache();
@@ -32,7 +35,8 @@ beforeAll(async () => {
 
 describe("concurrencia sin bifurcación", () => {
   it("20 adds paralelos de memoria → cadena única válida", async () => {
-    const { createMemoryRepository } = await import("@/lib/repositories/memory-repository");
+    const { createMemoryRepository } =
+      await import("@/lib/repositories/memory-repository");
     const paths = isolated(["mem"]);
     const repo = createMemoryRepository(paths.mem);
     const results = await Promise.all(
@@ -55,7 +59,8 @@ describe("concurrencia sin bifurcación", () => {
   });
 
   it("20 appends paralelos de auditoría → cadena única válida", async () => {
-    const { createAuditRepository } = await import("@/lib/repositories/audit-repository");
+    const { createAuditRepository } =
+      await import("@/lib/repositories/audit-repository");
     const paths = isolated(["audit"]);
     const repo = createAuditRepository(paths.audit);
     await Promise.all(
@@ -77,7 +82,8 @@ describe("concurrencia sin bifurcación", () => {
 
 describe("detección de manipulación", () => {
   it("contenido alterado en memoria se detecta con corruptedId", async () => {
-    const { createMemoryRepository } = await import("@/lib/repositories/memory-repository");
+    const { createMemoryRepository } =
+      await import("@/lib/repositories/memory-repository");
     const paths = isolated(["mem"]);
     const repo = createMemoryRepository(paths.mem);
     const added = await repo.add({
@@ -105,7 +111,8 @@ describe("detección de manipulación", () => {
   });
 
   it("evento de auditoría alterado rompe la cadena", async () => {
-    const { createAuditRepository } = await import("@/lib/repositories/audit-repository");
+    const { createAuditRepository } =
+      await import("@/lib/repositories/audit-repository");
     const paths = isolated(["audit"]);
     const repo = createAuditRepository(paths.audit);
     await repo.append({
@@ -138,7 +145,8 @@ describe("detección de manipulación", () => {
 
 describe("crossover de tenant", () => {
   it("tenant B no lee memoria de tenant A (incluye personal/restringida)", async () => {
-    const { createMemoryRepository } = await import("@/lib/repositories/memory-repository");
+    const { createMemoryRepository } =
+      await import("@/lib/repositories/memory-repository");
     const { createMemoryEngine } = await import("@/lib/memory-engine");
     const paths = isolated(["mem"]);
     const repository = createMemoryRepository(paths.mem);
@@ -178,10 +186,14 @@ describe("crossover de tenant", () => {
   });
 
   it("tenant B no lista bloques BookPI de tenant A", async () => {
-    const { createBookpiRepository } = await import("@/lib/repositories/bookpi-repository");
+    const { createBookpiRepository } =
+      await import("@/lib/repositories/bookpi-repository");
     const paths = isolated(["bookpi"]);
     const { writeFileSync: write } = await import("node:fs");
-    write(paths.bookpi, JSON.stringify({ blocks: [], genesisPreviousHash: "0".repeat(64) }));
+    write(
+      paths.bookpi,
+      JSON.stringify({ blocks: [], genesisPreviousHash: "0".repeat(64) }),
+    );
     const repo = createBookpiRepository(paths.bookpi);
     const appended = await repo.append({
       tenantId: "tenant_a",

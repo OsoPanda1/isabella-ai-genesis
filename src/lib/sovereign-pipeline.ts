@@ -13,7 +13,10 @@ import * as CROWN from "./crown";
 import { evaluateConstitutionalGate } from "./constitutional-gate";
 import { evaluatePolicy, type PolicyEvaluationResult } from "./policy-engine";
 import { createToolRegistry } from "./tool-registry";
-import { createExecutionAuthority, type ApprovalGrant } from "./execution-authority";
+import {
+  createExecutionAuthority,
+  type ApprovalGrant,
+} from "./execution-authority";
 import { createMemoryEngine, type MemoryActorRole } from "./memory-engine";
 import type { MemoryRepository } from "./repositories/memory-repository";
 import type { AuditRepository } from "./repositories/audit-repository";
@@ -77,7 +80,12 @@ export function createSovereignPipeline(opts?: {
       });
 
       // ── FASE 2: CONSTITUTIONAL GATE ──────────────────────────
-      const gate = evaluateConstitutionalGate(context, input.identity, input.evidence, intent);
+      const gate = evaluateConstitutionalGate(
+        context,
+        input.identity,
+        input.evidence,
+        intent,
+      );
 
       if (!gate.passed) {
         const auditEvent = await opts?.auditRepository?.append({
@@ -101,7 +109,9 @@ export function createSovereignPipeline(opts?: {
             policy: {
               ...routing.policy,
               status: "denied",
-              reasons: [`Puerta constitucional denegada: ${gate.deniedArticles.join(", ")}`],
+              reasons: [
+                `Puerta constitucional denegada: ${gate.deniedArticles.join(", ")}`,
+              ],
             },
           }),
           denied: true,
@@ -110,7 +120,10 @@ export function createSovereignPipeline(opts?: {
       }
 
       // ── FASE 3: REMEMBER ─────────────────────────────────────
-      const allowedScopes = CROWN.resolveAllowedMemoryScopes(intent, input.identity);
+      const allowedScopes = CROWN.resolveAllowedMemoryScopes(
+        intent,
+        input.identity,
+      );
       const roleNames = input.identity.roles.map((role) => role.toLowerCase());
       const actorRole: MemoryActorRole = roleNames.includes("sovereignowner")
         ? "SovereignOwner"
@@ -195,7 +208,8 @@ export function createSovereignPipeline(opts?: {
           actorId: input.actorId,
           tenantId: input.tenantId,
           role: input.toolRole ?? (actorRole as string),
-          authenticated: input.toolAuthenticated ?? input.identity.authenticated,
+          authenticated:
+            input.toolAuthenticated ?? input.identity.authenticated,
           traceId: input.traceId,
           ip: input.actorIp,
           approvals: input.approvals,

@@ -17,7 +17,8 @@ export class PolicyEngine {
 
   constructor(config: PolicyEngineConfig = {}) {
     this.policyPath =
-      config.policyPath ?? path.join(process.cwd(), "src/lib/genesis/policy/genesis-2.0.yaml");
+      config.policyPath ??
+      path.join(process.cwd(), "src/lib/genesis/policy/genesis-2.0.yaml");
     this.policy = config.customPolicy ?? this.loadPolicy();
   }
 
@@ -45,7 +46,10 @@ export class PolicyEngine {
       },
       claimRequirements: {
         PLANNED: { minEvidence: 0, requiredEvidenceTypes: [] },
-        DESIGNED: { minEvidence: 1, requiredEvidenceTypes: ["ARCHITECTURE_DOCUMENT", "ADR"] },
+        DESIGNED: {
+          minEvidence: 1,
+          requiredEvidenceTypes: ["ARCHITECTURE_DOCUMENT", "ADR"],
+        },
         IMPLEMENTED: {
           minEvidence: 2,
           requiredEvidenceTypes: ["SOURCE_CODE", "UNIT_TEST"],
@@ -53,7 +57,12 @@ export class PolicyEngine {
         },
         TESTED: {
           minEvidence: 4,
-          requiredEvidenceTypes: ["SOURCE_CODE", "UNIT_TEST", "INTEGRATION_TEST", "SECURITY_TEST"],
+          requiredEvidenceTypes: [
+            "SOURCE_CODE",
+            "UNIT_TEST",
+            "INTEGRATION_TEST",
+            "SECURITY_TEST",
+          ],
           minCodeCoverage: 0.9,
           stabilityDays: 30,
         },
@@ -97,7 +106,11 @@ export class PolicyEngine {
         high: {
           maxOpen: 0,
           maxAccepted: 3,
-          acceptanceRequires: ["risk_assessment", "mitigation_plan", "owner_approval"],
+          acceptanceRequires: [
+            "risk_assessment",
+            "mitigation_plan",
+            "owner_approval",
+          ],
         },
         medium: { maxOpen: 5, maxAccepted: 10 },
         low: { maxOpen: 20, maxAccepted: 50 },
@@ -142,7 +155,12 @@ export class PolicyEngine {
   }
 
   getClaimRequirements(status: ClaimStatus) {
-    return this.policy.claimRequirements[status] ?? { minEvidence: 0, requiredEvidenceTypes: [] };
+    return (
+      this.policy.claimRequirements[status] ?? {
+        minEvidence: 0,
+        requiredEvidenceTypes: [],
+      }
+    );
   }
 
   getReleaseThresholds() {
@@ -171,7 +189,9 @@ export class PolicyEngine {
     const gaps: string[] = [];
 
     if (evidences.length < requirements.minEvidence) {
-      gaps.push(`Insufficient evidence: ${evidences.length}/${requirements.minEvidence}`);
+      gaps.push(
+        `Insufficient evidence: ${evidences.length}/${requirements.minEvidence}`,
+      );
     }
 
     const coveredTypes = new Set<string>(evidences.map((e) => e.type));
@@ -182,10 +202,13 @@ export class PolicyEngine {
     }
 
     if (requirements.minCodeCoverage !== undefined) {
-      const coverageEvidence = evidences.find((e) => e.metadata.testResult?.coverage !== undefined);
+      const coverageEvidence = evidences.find(
+        (e) => e.metadata.testResult?.coverage !== undefined,
+      );
       if (
         coverageEvidence &&
-        coverageEvidence.metadata.testResult!.coverage! < requirements.minCodeCoverage
+        coverageEvidence.metadata.testResult!.coverage! <
+          requirements.minCodeCoverage
       ) {
         gaps.push(
           `Code coverage below threshold: ${coverageEvidence.metadata.testResult!.coverage} < ${requirements.minCodeCoverage}`,
@@ -193,7 +216,9 @@ export class PolicyEngine {
       }
     }
 
-    const blockingFindings = findings.filter((f) => f.priority?.shouldBlockRelease === true);
+    const blockingFindings = findings.filter(
+      (f) => f.priority?.shouldBlockRelease === true,
+    );
 
     return {
       status: claim.requiredStatus,
@@ -211,14 +236,24 @@ export class PolicyEngine {
   } {
     const thresholds = this.policy.releaseThresholds;
 
-    const criticalOpen = findings.filter((f) => f.severity === "CRITICAL" && f.status === "OPEN");
-    const highOpen = findings.filter((f) => f.severity === "HIGH" && f.status === "OPEN");
-    const highAccepted = findings.filter((f) => f.severity === "HIGH" && f.status === "ACCEPTED");
-    const mediumOpen = findings.filter((f) => f.severity === "MEDIUM" && f.status === "OPEN");
+    const criticalOpen = findings.filter(
+      (f) => f.severity === "CRITICAL" && f.status === "OPEN",
+    );
+    const highOpen = findings.filter(
+      (f) => f.severity === "HIGH" && f.status === "OPEN",
+    );
+    const highAccepted = findings.filter(
+      (f) => f.severity === "HIGH" && f.status === "ACCEPTED",
+    );
+    const mediumOpen = findings.filter(
+      (f) => f.severity === "MEDIUM" && f.status === "OPEN",
+    );
     const mediumAccepted = findings.filter(
       (f) => f.severity === "MEDIUM" && f.status === "ACCEPTED",
     );
-    const lowOpen = findings.filter((f) => f.severity === "LOW" && f.status === "OPEN");
+    const lowOpen = findings.filter(
+      (f) => f.severity === "LOW" && f.status === "OPEN",
+    );
 
     const blockingFindings: Finding[] = [];
 
@@ -235,7 +270,9 @@ export class PolicyEngine {
       blockingFindings.push(...mediumOpen);
     }
     if (mediumAccepted.length > thresholds.medium.maxAccepted) {
-      blockingFindings.push(...mediumAccepted.slice(thresholds.medium.maxAccepted));
+      blockingFindings.push(
+        ...mediumAccepted.slice(thresholds.medium.maxAccepted),
+      );
     }
     if (lowOpen.length > thresholds.low.maxOpen) {
       blockingFindings.push(...lowOpen);
@@ -263,7 +300,10 @@ export class PolicyEngine {
     };
   }
 
-  validateException(exception: Record<string, unknown>): { valid: boolean; missing: string[] } {
+  validateException(exception: Record<string, unknown>): {
+    valid: boolean;
+    missing: string[];
+  } {
     const required = this.policy.exceptions.allowException.requires;
     const missing = required.filter((r) => !exception[r]);
     return { valid: missing.length === 0, missing };

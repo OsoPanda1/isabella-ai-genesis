@@ -1,4 +1,12 @@
-import { ORION, SOPHIA, ARGUS, HERMES, ATLAS, ANUBIS, GEMET } from "./core-pack";
+import {
+  ORION,
+  SOPHIA,
+  ARGUS,
+  HERMES,
+  ATLAS,
+  ANUBIS,
+  GEMET,
+} from "./core-pack";
 import { AURORA, GAIA, NODO_CERO, PHAROS } from "./territorial-pack";
 import { CITEMESH, HEPHAESTUS } from "./infrastructure-pack";
 import { MNEMOSYNE, CHRONOS, PROMETEO } from "./archive-pack";
@@ -60,7 +68,10 @@ export type RuntimeSkill = {
   readonly federation: import("./contracts").FederationId;
   readonly risk: import("./contracts").SkillRisk;
   readonly description: string;
-  canRun(input: Record<string, unknown>, context: import("./contracts").SkillContext): boolean;
+  canRun(
+    input: Record<string, unknown>,
+    context: import("./contracts").SkillContext,
+  ): boolean;
   run(
     input: Record<string, unknown>,
     context: import("./contracts").SkillContext,

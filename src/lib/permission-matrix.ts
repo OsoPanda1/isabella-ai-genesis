@@ -40,7 +40,14 @@ export const RESOURCES: readonly Resource[] = [
 
 /** Acciones estandarizadas sobre un recurso. */
 export type Action =
-  "read" | "write" | "delete" | "execute" | "verify" | "admin" | "configure" | "list";
+  | "read"
+  | "write"
+  | "delete"
+  | "execute"
+  | "verify"
+  | "admin"
+  | "configure"
+  | "list";
 
 export const ACTIONS: readonly Action[] = [
   "read",
@@ -130,7 +137,10 @@ const FALLBACK: Partial<Record<Action, Permission | null>> = {};
  * Deriva el permiso necesario para (recurso, acción). Resuelve
  * fail-closed: devuelve `null` si la combinación no está definida.
  */
-export function permissionFor(resource: Resource, action: Action): DerivedPermission {
+export function permissionFor(
+  resource: Resource,
+  action: Action,
+): DerivedPermission {
   const row = MATRIX[resource] ?? FALLBACK;
   const permission = row[action];
   if (permission === undefined) {
@@ -145,7 +155,10 @@ export function permissionFor(resource: Resource, action: Action): DerivedPermis
       reason: `La operación (${resource}, ${action}) está prohibida para toda identidad.`,
     };
   }
-  return { permission, reason: `Permiso requerido para (${resource}, ${action}).` };
+  return {
+    permission,
+    reason: `Permiso requerido para (${resource}, ${action}).`,
+  };
 }
 
 /**
@@ -161,7 +174,9 @@ export function validatePermissionMatrix(): string[] {
       const permission = row[action];
       if (permission === undefined) continue;
       if (permission !== null && !allowed.has(permission)) {
-        issues.push(`${resource}:${action} -> permiso inválido '${permission}'`);
+        issues.push(
+          `${resource}:${action} -> permiso inválido '${permission}'`,
+        );
       }
     }
   }

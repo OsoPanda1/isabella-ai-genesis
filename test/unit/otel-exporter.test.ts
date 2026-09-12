@@ -30,7 +30,9 @@ describe("OTel exporter durable", () => {
       response.writeHead(200, { "content-type": "application/json" });
       response.end("{}");
     });
-    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    await new Promise<void>((resolve) =>
+      server.listen(0, "127.0.0.1", resolve),
+    );
     const address = server.address();
     const port = typeof address === "object" && address ? address.port : 0;
     endpoint = `http://127.0.0.1:${port}`;
@@ -49,7 +51,8 @@ describe("OTel exporter durable", () => {
   });
 
   it("entrega un lote OTLP válido al collector", async () => {
-    const { enqueueOtelLog, flushOtelOutbox } = await import("@/lib/otel-exporter");
+    const { enqueueOtelLog, flushOtelOutbox } =
+      await import("@/lib/otel-exporter");
     enqueueOtelLog({
       timestamp: new Date().toISOString(),
       traceId: "tr_test_123",
@@ -84,7 +87,9 @@ describe("OTel exporter durable", () => {
     const keys = record.attributes.map((attribute) => attribute.key);
     expect(keys).toContain("isabella.trace_id");
     expect(keys).toContain("isabella.correlation_id");
-    const trace = record.attributes.find((attribute) => attribute.key === "isabella.trace_id");
+    const trace = record.attributes.find(
+      (attribute) => attribute.key === "isabella.trace_id",
+    );
     expect(trace?.value.stringValue).toBe("tr_test_123");
   });
 
@@ -92,7 +97,8 @@ describe("OTel exporter durable", () => {
     vi.stubEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "");
     const { resetConfigCache } = await import("@/lib/config");
     resetConfigCache();
-    const { enqueueOtelLog, flushOtelOutbox } = await import("@/lib/otel-exporter");
+    const { enqueueOtelLog, flushOtelOutbox } =
+      await import("@/lib/otel-exporter");
     enqueueOtelLog({
       timestamp: new Date().toISOString(),
       traceId: "tr_x",
@@ -111,7 +117,8 @@ describe("OTel exporter durable", () => {
 
   it("collector caído no rompe (fail-open con error tipado)", async () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
-    const { enqueueOtelLog, flushOtelOutbox } = await import("@/lib/otel-exporter");
+    const { enqueueOtelLog, flushOtelOutbox } =
+      await import("@/lib/otel-exporter");
     enqueueOtelLog({
       timestamp: new Date().toISOString(),
       traceId: "tr_x",

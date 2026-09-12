@@ -92,9 +92,13 @@ export class FederationController {
 
     const approveVotes = votes.filter((vote) => vote.approved).length;
     const vetoActive = votes.some((vote) => vote.veto);
-    const score = votes.reduce((sum, vote) => sum + vote.score, 0) / votes.length;
+    const score =
+      votes.reduce((sum, vote) => sum + vote.score, 0) / votes.length;
     const qualifiedMajority = approveVotes >= this.options.qualifiedMajority;
-    const consensus = score >= this.options.consensusThreshold && !vetoActive && qualifiedMajority;
+    const consensus =
+      score >= this.options.consensusThreshold &&
+      !vetoActive &&
+      qualifiedMajority;
 
     return {
       approved: consensus,
@@ -107,11 +111,16 @@ export class FederationController {
   }
 
   private voteGovernance(context: FederationContext): FederationVote {
-    const forbiddenIntents = new Set(["impersonate", "unauthorized-output", "payout"]);
+    const forbiddenIntents = new Set([
+      "impersonate",
+      "unauthorized-output",
+      "payout",
+    ]);
     const forbidden = forbiddenIntents.has(context.intent);
     const base = context.authorshipApproved ? 0.9 : 0.4;
     const violation = forbidden ? 0.1 : base;
-    const requiresPrivileged = context.wantPrivileged && !context.capabilityTokenPresent;
+    const requiresPrivileged =
+      context.wantPrivileged && !context.capabilityTokenPresent;
     const score = requiresPrivileged ? Math.min(violation, 0.35) : violation;
     return {
       id: "F1",
@@ -130,7 +139,12 @@ export class FederationController {
   private voteIdentity(context: FederationContext): FederationVote {
     const knownPrincipal = context.principalPresent;
     const cleanTenant = context.tenantBoundaryOk;
-    const score = knownPrincipal && cleanTenant ? 1 : knownPrincipal || cleanTenant ? 0.55 : 0.2;
+    const score =
+      knownPrincipal && cleanTenant
+        ? 1
+        : knownPrincipal || cleanTenant
+          ? 0.55
+          : 0.2;
     return {
       id: "F2",
       name: "Identidad",
@@ -197,7 +211,8 @@ export class FederationController {
   }
 
   private voteEconomy(context: FederationContext): FederationVote {
-    const noExternalCost = !context.wantEgress && !context.capabilityTokenPresent;
+    const noExternalCost =
+      !context.wantEgress && !context.capabilityTokenPresent;
     const score = noExternalCost ? 1 : 0.3;
     return {
       id: "F6",
@@ -311,7 +326,10 @@ export class FederatedAttentionBridge {
       createLinear(fedDim * 7 * 0.5, fedDim * 7 * 0.25, rng),
       createLinear(fedDim * 7 * 0.25, 7, rng),
     ];
-    this.outLayers = [createLinear(fedDim, fedDim, rng), createLinear(fedDim, latentDim, rng)];
+    this.outLayers = [
+      createLinear(fedDim, fedDim, rng),
+      createLinear(fedDim, latentDim, rng),
+    ];
   }
 
   forward(latentVectors: Float64Array[]): FederatedAttentionOutput {
@@ -323,11 +341,15 @@ export class FederatedAttentionBridge {
       federationRepresentations.push(linearForward(hidden, projection.w2));
     }
 
-    const attentionWeights = this.crossFederationAttention(federationRepresentations);
+    const attentionWeights = this.crossFederationAttention(
+      federationRepresentations,
+    );
     const attended = attentionWeights.attended;
     const flattened = new Float64Array(fedDimValues(attended));
     const gateHidden = geluVector(linearForward(flattened, this.gateLayers[0]));
-    const gateHidden2 = geluVector(linearForward(gateHidden, this.gateLayers[1]));
+    const gateHidden2 = geluVector(
+      linearForward(gateHidden, this.gateLayers[1]),
+    );
     const rawGates = linearForward(gateHidden2, this.gateLayers[2]);
     const consensusGates = new Float64Array(numFederations);
     for (let index = 0; index < numFederations; index += 1) {
@@ -342,7 +364,8 @@ export class FederatedAttentionBridge {
     }
     const gateContributions = new Float64Array(numFederations);
     for (let index = 0; index < numFederations; index += 1) {
-      gateContributions[index] = (consensusGates[index] as number) / Math.max(1e-8, gateSum);
+      gateContributions[index] =
+        (consensusGates[index] as number) / Math.max(1e-8, gateSum);
     }
 
     const consensusScore = gateSum / numFederations;
@@ -362,13 +385,18 @@ export class FederatedAttentionBridge {
         weightedAverage[dimIndex] += weighted[dimIndex] as number;
       }
     }
-    const outputHidden = geluVector(linearForward(weightedAverage, this.outLayers[0]));
+    const outputHidden = geluVector(
+      linearForward(weightedAverage, this.outLayers[0]),
+    );
     const outputLatent = linearForward(outputHidden, this.outLayers[1]);
 
     const vetoFederations: string[] = [];
-    if ((consensusGates[0] as number) < 0.5) vetoFederations.push(FEDERATION_NAMES[0]);
-    if ((consensusGates[1] as number) < 0.5) vetoFederations.push(FEDERATION_NAMES[1]);
-    if ((consensusGates[6] as number) < 0.5) vetoFederations.push(FEDERATION_NAMES[6]);
+    if ((consensusGates[0] as number) < 0.5)
+      vetoFederations.push(FEDERATION_NAMES[0]);
+    if ((consensusGates[1] as number) < 0.5)
+      vetoFederations.push(FEDERATION_NAMES[1]);
+    if ((consensusGates[6] as number) < 0.5)
+      vetoFederations.push(FEDERATION_NAMES[6]);
 
     return {
       federationRepresentations,
@@ -390,7 +418,11 @@ export class FederatedAttentionBridge {
     weights: number[][][];
   } {
     const numFederations = FEDERATION_NAMES.length;
-    const projections: Array<{ q: Float64Array; k: Float64Array; v: Float64Array }> = [];
+    const projections: Array<{
+      q: Float64Array;
+      k: Float64Array;
+      v: Float64Array;
+    }> = [];
     for (const representation of federationRepresentations) {
       projections.push({
         q: linearForward(representation, this.wQ),
@@ -413,9 +445,15 @@ export class FederatedAttentionBridge {
         };
         const headOffset = head * this.headDim;
         for (let dimIndex = 0; dimIndex < this.headDim; dimIndex += 1) {
-          qHead[rowIndex * this.headDim + dimIndex] = projection.q[headOffset + dimIndex] as number;
-          kHead[rowIndex * this.headDim + dimIndex] = projection.k[headOffset + dimIndex] as number;
-          vHead[rowIndex * this.headDim + dimIndex] = projection.v[headOffset + dimIndex] as number;
+          qHead[rowIndex * this.headDim + dimIndex] = projection.q[
+            headOffset + dimIndex
+          ] as number;
+          kHead[rowIndex * this.headDim + dimIndex] = projection.k[
+            headOffset + dimIndex
+          ] as number;
+          vHead[rowIndex * this.headDim + dimIndex] = projection.v[
+            headOffset + dimIndex
+          ] as number;
         }
       }
       const scale = Math.sqrt(this.headDim);
@@ -428,7 +466,10 @@ export class FederatedAttentionBridge {
       );
       const headWeights: number[][] = [];
       for (let row = 0; row < numFederations; row += 1) {
-        const rowVector = scores.subarray(row * numFederations, (row + 1) * numFederations);
+        const rowVector = scores.subarray(
+          row * numFederations,
+          (row + 1) * numFederations,
+        );
         const scaled = new Float64Array(numFederations);
         for (let col = 0; col < numFederations; col += 1) {
           scaled[col] = (rowVector[col] as number) / scale;
@@ -457,7 +498,9 @@ export class FederatedAttentionBridge {
     for (let row = 0; row < numFederations; row += 1) {
       const concatenated = new Float64Array(this.fedDim);
       for (let head = 0; head < this.heads; head += 1) {
-        const headOutput = (headOutputs[head] as Float64Array[])[row] as Float64Array;
+        const headOutput = (headOutputs[head] as Float64Array[])[
+          row
+        ] as Float64Array;
         const offset = head * this.headDim;
         for (let dimIndex = 0; dimIndex < this.headDim; dimIndex += 1) {
           concatenated[offset + dimIndex] = headOutput[dimIndex] as number;
@@ -488,7 +531,10 @@ function geluVector(vector: Float64Array): Float64Array {
   return out;
 }
 
-function scalarMultiplyVector(vector: Float64Array, scalar: number): Float64Array {
+function scalarMultiplyVector(
+  vector: Float64Array,
+  scalar: number,
+): Float64Array {
   const out = new Float64Array(vector.length);
   for (let index = 0; index < vector.length; index += 1) {
     out[index] = (vector[index] as number) * scalar;
@@ -496,7 +542,11 @@ function scalarMultiplyVector(vector: Float64Array, scalar: number): Float64Arra
   return out;
 }
 
-function transpose(matrix: Float64Array, rows: number, cols: number): Float64Array {
+function transpose(
+  matrix: Float64Array,
+  rows: number,
+  cols: number,
+): Float64Array {
   const out = new Float64Array(rows * cols);
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < cols; col += 1) {

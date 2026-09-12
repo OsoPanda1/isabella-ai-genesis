@@ -13,14 +13,39 @@ const BASE_MESSAGE =
 export function decisionDisclosure(risk: DecisionRisk): DecisionDisclosure {
   switch (risk) {
     case "L0":
-      return { risk, requiresHumanReview: false, automaticExecutionAllowed: false, message: BASE_MESSAGE };
+      return {
+        risk,
+        requiresHumanReview: false,
+        automaticExecutionAllowed: false,
+        message: BASE_MESSAGE,
+      };
     case "L1":
-      return { risk, requiresHumanReview: true, automaticExecutionAllowed: false, message: BASE_MESSAGE };
+      return {
+        risk,
+        requiresHumanReview: true,
+        automaticExecutionAllowed: false,
+        message: BASE_MESSAGE,
+      };
     case "L2":
-      return { risk, requiresHumanReview: true, automaticExecutionAllowed: false, message: `${BASE_MESSAGE} Verifica especialmente la información antes de una decisión material.` };
+      return {
+        risk,
+        requiresHumanReview: true,
+        automaticExecutionAllowed: false,
+        message: `${BASE_MESSAGE} Verifica especialmente la información antes de una decisión material.`,
+      };
     case "L3":
-      return { risk, requiresHumanReview: true, automaticExecutionAllowed: false, message: `${BASE_MESSAGE} Esta operación requiere aprobación humana explícita y auditable.` };
+      return {
+        risk,
+        requiresHumanReview: true,
+        automaticExecutionAllowed: false,
+        message: `${BASE_MESSAGE} Esta operación requiere aprobación humana explícita y auditable.`,
+      };
     case "L4":
-      return { risk, requiresHumanReview: true, automaticExecutionAllowed: false, message: `${BASE_MESSAGE} Las operaciones irreversibles o destructivas están bloqueadas por defecto.` };
+      return {
+        risk,
+        requiresHumanReview: true,
+        automaticExecutionAllowed: false,
+        message: `${BASE_MESSAGE} Las operaciones irreversibles o destructivas están bloqueadas por defecto.`,
+      };
   }
 }

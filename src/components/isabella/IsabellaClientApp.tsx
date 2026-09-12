@@ -1,59 +1,100 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { ChevronLeft, ChevronRight, Download, FolderOpen } from "lucide-react";
 import { useIsabella } from "@/lib/useIsabella";
 import type { NavTabId } from "@/components/isabella/CrystalNavigation";
 
-const CinematicIntro = lazy(() => import("@/components/isabella/CinematicIntro"));
+const CinematicIntro = lazy(
+  () => import("@/components/isabella/CinematicIntro"),
+);
 const CommandLine = lazy(() =>
-  import("@/components/isabella/CommandLine").then((m) => ({ default: m.CommandLine })),
+  import("@/components/isabella/CommandLine").then((m) => ({
+    default: m.CommandLine,
+  })),
 );
 const MessageStream = lazy(() =>
-  import("@/components/isabella/MessageStream").then((m) => ({ default: m.MessageStream })),
+  import("@/components/isabella/MessageStream").then((m) => ({
+    default: m.MessageStream,
+  })),
 );
 const RightRails = lazy(() =>
-  import("@/components/isabella/RightRails").then((m) => ({ default: m.RightRails })),
+  import("@/components/isabella/RightRails").then((m) => ({
+    default: m.RightRails,
+  })),
 );
 const Starfield = lazy(() =>
-  import("@/components/isabella/Starfield").then((m) => ({ default: m.Starfield })),
+  import("@/components/isabella/Starfield").then((m) => ({
+    default: m.Starfield,
+  })),
 );
 const CrystalNavigation = lazy(() =>
-  import("@/components/isabella/CrystalNavigation").then((m) => ({ default: m.CrystalNavigation })),
+  import("@/components/isabella/CrystalNavigation").then((m) => ({
+    default: m.CrystalNavigation,
+  })),
 );
 const ApiCatalogExplorer = lazy(() =>
-  import("@/components/isabella/ApiCatalogExplorer").then((m) => ({ default: m.ApiCatalogExplorer })),
+  import("@/components/isabella/ApiCatalogExplorer").then((m) => ({
+    default: m.ApiCatalogExplorer,
+  })),
 );
 const TerminalView = lazy(() =>
-  import("@/components/isabella/TerminalView").then((m) => ({ default: m.TerminalView })),
+  import("@/components/isabella/TerminalView").then((m) => ({
+    default: m.TerminalView,
+  })),
 );
 const MonetizationDashboard = lazy(() =>
-  import("@/components/isabella/MonetizationDashboard").then((m) => ({ default: m.MonetizationDashboard })),
+  import("@/components/isabella/MonetizationDashboard").then((m) => ({
+    default: m.MonetizationDashboard,
+  })),
 );
 const QuantumUtilityDashboard = lazy(() =>
-  import("@/components/isabella/QuantumUtilityDashboard").then((m) => ({ default: m.QuantumUtilityDashboard })),
+  import("@/components/isabella/QuantumUtilityDashboard").then((m) => ({
+    default: m.QuantumUtilityDashboard,
+  })),
 );
 const AiInterfacesHub = lazy(() =>
-  import("@/components/isabella/AiInterfacesHub").then((m) => ({ default: m.AiInterfacesHub })),
+  import("@/components/isabella/AiInterfacesHub").then((m) => ({
+    default: m.AiInterfacesHub,
+  })),
 );
 const LatamAegisDashboard = lazy(() =>
-  import("@/components/isabella/LatamAegisDashboard").then((m) => ({ default: m.LatamAegisDashboard })),
+  import("@/components/isabella/LatamAegisDashboard").then((m) => ({
+    default: m.LatamAegisDashboard,
+  })),
 );
 const CognitiveStatusDashboard = lazy(() =>
-  import("@/components/isabella/CognitiveStatusDashboard").then((m) => ({ default: m.CognitiveStatusDashboard })),
+  import("@/components/isabella/CognitiveStatusDashboard").then((m) => ({
+    default: m.CognitiveStatusDashboard,
+  })),
 );
 const FindarepoDashboard = lazy(() =>
-  import("@/components/isabella/FindarepoDashboard").then((m) => ({ default: m.FindarepoDashboard })),
+  import("@/components/isabella/FindarepoDashboard").then((m) => ({
+    default: m.FindarepoDashboard,
+  })),
 );
 
 const INTRO_SEEN_KEY = "isabella.entry.intro.v1";
 
 type NavModule = typeof import("@/components/isabella/CrystalNavigation");
 
-function ClientFallback({ label = "Cargando módulo Isabella…" }: { label?: string }) {
+function ClientFallback({
+  label = "Cargando módulo Isabella…",
+}: {
+  label?: string;
+}) {
   return (
     <div className="flex min-h-[320px] items-center justify-center rounded-3xl border border-border/20 bg-background/40">
       <div className="text-center" role="status" aria-live="polite">
         <div className="mx-auto mb-4 size-9 animate-pulse rounded-full border border-electric/40 bg-electric/10" />
-        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">{label}</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+          {label}
+        </p>
       </div>
     </div>
   );
@@ -81,7 +122,11 @@ function IndexClient() {
 
   if (!introDone) {
     return (
-      <Suspense fallback={<ClientFallback label="Inicializando experiencia Isabella…" />}>
+      <Suspense
+        fallback={
+          <ClientFallback label="Inicializando experiencia Isabella…" />
+        }
+      >
         <CinematicIntro onComplete={handleIntroComplete} />
       </Suspense>
     );
@@ -93,7 +138,9 @@ function IsabellaInterface() {
   const isabella = useIsabella();
   const [panel, setPanel] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTabId>("terminal");
-  const [monetizationSubTab, setMonetizationSubTab] = useState<string | null>(null);
+  const [monetizationSubTab, setMonetizationSubTab] = useState<string | null>(
+    null,
+  );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [upperOpen, setUpperOpen] = useState(false);
   const [middleOpen, setMiddleOpen] = useState(false);
@@ -130,7 +177,8 @@ function IsabellaInterface() {
     [isabella],
   );
 
-  if (!navModule) return <ClientFallback label="Cargando navegación soberana…" />;
+  if (!navModule)
+    return <ClientFallback label="Cargando navegación soberana…" />;
 
   const navGroups = navModule.NAV_GROUPS(
     { cognition: upperOpen, catalog: middleOpen, sovereignty: lowerOpen },
@@ -192,11 +240,15 @@ function IsabellaInterface() {
               <div className="flex flex-col gap-1.5 rounded-2xl border border-border/20 bg-secondary/15 p-2 font-mono text-[10.5px] animate-rise">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span>Operador:</span>
-                  <span className="max-w-[120px] truncate font-semibold text-platinum">Soberano</span>
+                  <span className="max-w-[120px] truncate font-semibold text-platinum">
+                    Soberano
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span>Región:</span>
-                  <span className="font-semibold text-platinum">Nodo 0 (Hgo)</span>
+                  <span className="font-semibold text-platinum">
+                    Nodo 0 (Hgo)
+                  </span>
                 </div>
               </div>
             )}
@@ -228,15 +280,23 @@ function IsabellaInterface() {
                     Isabella C.R.O.W.N. Terminal
                   </h1>
                   <p className="mt-0.5 font-mono text-[9.5px] uppercase tracking-widest text-muted-foreground">
-                    {activeTab === "terminal" && `Conexión Activa: ${isabella.preset.name}`}
+                    {activeTab === "terminal" &&
+                      `Conexión Activa: ${isabella.preset.name}`}
                     {activeTab === "cli" && "Consola Retro Directa"}
-                    {activeTab === "governance" && "Gobernanza y Salud de Módulos Cognitivos"}
-                    {activeTab === "catalog" && "Gobernanza de APIs e Invocaciones"}
-                    {activeTab === "monetization" && "Tablero de Consumo Soberano"}
-                    {activeTab === "quantum" && "Optimización y Transpilación Cuántica (qup)"}
-                    {activeTab === "interfaces" && "Interfaces de Inteligencia Artificial"}
-                    {activeTab === "aegis" && "Muro de Defensa Activa LATAM AEGIS-X"}
-                    {activeTab === "findarepo" && "Ranking Global de Agentes (Findarepo)"}
+                    {activeTab === "governance" &&
+                      "Gobernanza y Salud de Módulos Cognitivos"}
+                    {activeTab === "catalog" &&
+                      "Gobernanza de APIs e Invocaciones"}
+                    {activeTab === "monetization" &&
+                      "Tablero de Consumo Soberano"}
+                    {activeTab === "quantum" &&
+                      "Optimización y Transpilación Cuántica (qup)"}
+                    {activeTab === "interfaces" &&
+                      "Interfaces de Inteligencia Artificial"}
+                    {activeTab === "aegis" &&
+                      "Muro de Defensa Activa LATAM AEGIS-X"}
+                    {activeTab === "findarepo" &&
+                      "Ranking Global de Agentes (Findarepo)"}
                   </p>
                 </div>
               </div>
@@ -252,7 +312,10 @@ function IsabellaInterface() {
                     onChange={(event) => {
                       const file = event.target.files?.[0];
                       event.target.value = "";
-                      if (file) void isabella.openConversation(file).catch(() => undefined);
+                      if (file)
+                        void isabella
+                          .openConversation(file)
+                          .catch(() => undefined);
                     }}
                   />
                   <button
@@ -288,7 +351,9 @@ function IsabellaInterface() {
                   <div className="glass min-h-[56vh] flex-1 overflow-y-auto rounded-3xl p-1 crystal-glow-electric">
                     <MessageStream
                       messages={isabella.messages}
-                      onRetry={() => lastInput.current && send(lastInput.current)}
+                      onRetry={() =>
+                        lastInput.current && send(lastInput.current)
+                      }
                     />
                   </div>
                   <div className="rounded-2xl crystal-glow-electric">
@@ -300,7 +365,9 @@ function IsabellaInterface() {
                     />
                   </div>
                 </section>
-                <div className={`${panel ? "block animate-rise" : "hidden lg:block"} flex flex-col gap-4`}>
+                <div
+                  className={`${panel ? "block animate-rise" : "hidden lg:block"} flex flex-col gap-4`}
+                >
                   <RightRails
                     presetId={isabella.presetId}
                     setPresetId={isabella.setPresetId}
@@ -312,14 +379,46 @@ function IsabellaInterface() {
               </div>
             )}
 
-            {activeTab === "cli" && <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-electric"><TerminalView /></div>}
-            {activeTab === "governance" && <div className="mx-auto max-w-[1300px]"><CognitiveStatusDashboard /></div>}
-            {activeTab === "catalog" && <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-crown"><ApiCatalogExplorer /></div>}
-            {activeTab === "monetization" && <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-emerald"><MonetizationDashboard initialTab={monetizationSubTab} /></div>}
-            {activeTab === "quantum" && <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-crown"><QuantumUtilityDashboard /></div>}
-            {activeTab === "interfaces" && <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-crown"><AiInterfacesHub /></div>}
-            {activeTab === "aegis" && <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-crown"><LatamAegisDashboard /></div>}
-            {activeTab === "findarepo" && <div className="mx-auto h-[85vh] max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-electric"><FindarepoDashboard /></div>}
+            {activeTab === "cli" && (
+              <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-electric">
+                <TerminalView />
+              </div>
+            )}
+            {activeTab === "governance" && (
+              <div className="mx-auto max-w-[1300px]">
+                <CognitiveStatusDashboard />
+              </div>
+            )}
+            {activeTab === "catalog" && (
+              <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-crown">
+                <ApiCatalogExplorer />
+              </div>
+            )}
+            {activeTab === "monetization" && (
+              <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-emerald">
+                <MonetizationDashboard initialTab={monetizationSubTab} />
+              </div>
+            )}
+            {activeTab === "quantum" && (
+              <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-crown">
+                <QuantumUtilityDashboard />
+              </div>
+            )}
+            {activeTab === "interfaces" && (
+              <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-crown">
+                <AiInterfacesHub />
+              </div>
+            )}
+            {activeTab === "aegis" && (
+              <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-crown">
+                <LatamAegisDashboard />
+              </div>
+            )}
+            {activeTab === "findarepo" && (
+              <div className="mx-auto h-[85vh] max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-electric">
+                <FindarepoDashboard />
+              </div>
+            )}
           </main>
         </div>
       </div>

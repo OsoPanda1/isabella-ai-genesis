@@ -5,12 +5,21 @@ const root = process.cwd();
 const checks = [
   {
     file: "src/components/isabella/SystemMonitor.tsx",
-    forbidden: [/Math\.random\s*\(/, /Simulated node/i, /Escalar K8s/i, /tamv-worker-[0-9]+/i],
+    forbidden: [
+      /Math\.random\s*\(/,
+      /Simulated node/i,
+      /Escalar K8s/i,
+      /tamv-worker-[0-9]+/i,
+    ],
     label: "SystemMonitor must not fabricate infrastructure telemetry",
   },
   {
     file: "src/lib/telemetry/observability.ts",
-    forbidden: [/Math\.random\s*\(/, /startSimulation/i, /generateInitialSnapshot/i],
+    forbidden: [
+      /Math\.random\s*\(/,
+      /startSimulation/i,
+      /generateInitialSnapshot/i,
+    ],
     label: "Observability must not generate synthetic runtime metrics",
   },
   {
@@ -26,11 +35,15 @@ const checks = [
   {
     file: "src/lib/genesis/engines/claim-engine.ts",
     forbidden: [/dependencyLockHash\s*:\s*[\"']0[\"']\.repeat\(128\)/],
-    label: "Genesis claim evidence must not use a placeholder dependency lock hash",
+    label:
+      "Genesis claim evidence must not use a placeholder dependency lock hash",
   },
   {
     file: "src/server.ts",
-    required: [/production\s*=\s*process\.env\.NODE_ENV\s*===\s*[\"']production[\"']/, /script-src \$\{scriptSource\}/],
+    required: [
+      /production\s*=\s*process\.env\.NODE_ENV\s*===\s*[\"']production[\"']/,
+      /script-src \$\{scriptSource\}/,
+    ],
     label: "Production server boundary must enforce strict script CSP",
   },
 ];
@@ -42,14 +55,22 @@ for (const check of checks) {
   try {
     content = readFileSync(path, "utf8");
   } catch (error) {
-    errors.push(`${check.label}: missing/unreadable ${check.file}: ${error.message}`);
+    errors.push(
+      `${check.label}: missing/unreadable ${check.file}: ${error.message}`,
+    );
     continue;
   }
   for (const pattern of check.forbidden ?? []) {
-    if (pattern.test(content)) errors.push(`${check.label}: forbidden pattern ${pattern} in ${check.file}`);
+    if (pattern.test(content))
+      errors.push(
+        `${check.label}: forbidden pattern ${pattern} in ${check.file}`,
+      );
   }
   for (const pattern of check.required ?? []) {
-    if (!pattern.test(content)) errors.push(`${check.label}: required pattern ${pattern} missing from ${check.file}`);
+    if (!pattern.test(content))
+      errors.push(
+        `${check.label}: required pattern ${pattern} missing from ${check.file}`,
+      );
   }
 }
 
@@ -61,12 +82,22 @@ if (statSafe(manifestsRoot)?.isDirectory()) {
     if (!file.endsWith("manifest.json")) continue;
     try {
       const manifest = JSON.parse(readFileSync(file, "utf8"));
-      const hash = manifest?.context?.environment?.dependencyLockHash ?? manifest?.environment?.dependencyLockHash;
-      if (typeof hash !== "string" || !/^[0-9a-f]{128}$/i.test(hash) || /^0{128}$/i.test(hash)) {
-        errors.push(`Genesis manifest has invalid dependencyLockHash: ${relative(root, file)}`);
+      const hash =
+        manifest?.context?.environment?.dependencyLockHash ??
+        manifest?.environment?.dependencyLockHash;
+      if (
+        typeof hash !== "string" ||
+        !/^[0-9a-f]{128}$/i.test(hash) ||
+        /^0{128}$/i.test(hash)
+      ) {
+        errors.push(
+          `Genesis manifest has invalid dependencyLockHash: ${relative(root, file)}`,
+        );
       }
     } catch (error) {
-      errors.push(`Genesis manifest is unreadable/invalid JSON: ${relative(root, file)}: ${error.message}`);
+      errors.push(
+        `Genesis manifest is unreadable/invalid JSON: ${relative(root, file)}: ${error.message}`,
+      );
     }
   }
 }
@@ -77,7 +108,9 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log("PRODUCTION INTEGRITY GATE PASSED: no known P0 synthetic-runtime, CLI-stub, or placeholder-evidence patterns detected.");
+console.log(
+  "PRODUCTION INTEGRITY GATE PASSED: no known P0 synthetic-runtime, CLI-stub, or placeholder-evidence patterns detected.",
+);
 
 function statSafe(path) {
   try {

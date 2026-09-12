@@ -17,8 +17,13 @@ interface PlanSelectorProps {
   onSelectPlan: (planId: string) => void;
 }
 
-export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps) {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+export function PlanSelector({
+  currentPlanId,
+  onSelectPlan,
+}: PlanSelectorProps) {
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
+    "monthly",
+  );
 
   const plans: SubscriptionTier[] = [
     {
@@ -41,7 +46,8 @@ export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps)
       name: "Isabella Personal",
       price: billingCycle === "monthly" ? "$9.99" : "$7.99",
       billing: billingCycle === "monthly" ? "/mes" : "/mes, facturado anual",
-      description: "Ideal para operadores individuales que buscan memoria ampliada.",
+      description:
+        "Ideal para operadores individuales que buscan memoria ampliada.",
       badge: "Popular",
       icon: "personal",
       features: [
@@ -57,7 +63,8 @@ export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps)
       name: "Isabella Creator",
       price: billingCycle === "monthly" ? "$19.99" : "$15.99",
       billing: billingCycle === "monthly" ? "/mes" : "/mes, facturado anual",
-      description: "Capacidades de integración total con APIs territoriales y GIS.",
+      description:
+        "Capacidades de integración total con APIs territoriales y GIS.",
       icon: "creator",
       features: [
         "Todo lo incluido en Personal",
@@ -73,7 +80,8 @@ export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps)
       name: "Isabella Enterprise",
       price: "Personalizado",
       billing: "Contrato institucional",
-      description: "Nodos dedicados para corporaciones y administraciones públicas.",
+      description:
+        "Nodos dedicados para corporaciones y administraciones públicas.",
       icon: "enterprise",
       features: [
         "Mallas e infraestructura dedicadas CITEMESH",
@@ -95,7 +103,8 @@ export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps)
             Niveles de Membresía Constitucional
           </h4>
           <p className="text-[11.5px] text-muted-foreground mt-0.5">
-            Compara y adquiere membresías soberanas directamente. Financiación 100% ética.
+            Compara y adquiere membresías soberanas directamente. Financiación
+            100% ética.
           </p>
         </div>
         {/* Toggle billing cycle */}
@@ -126,7 +135,8 @@ export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps)
       {/* Grid of plans */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {plans.map((p) => {
-          const isCurrent = currentPlanId === p.id || (p.id === "free" && !currentPlanId);
+          const isCurrent =
+            currentPlanId === p.id || (p.id === "free" && !currentPlanId);
           return (
             <div
               key={p.id}
@@ -147,7 +157,9 @@ export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps)
                   <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                     Plan {p.id}
                   </span>
-                  <h5 className="font-display text-[16px] text-pearl font-bold mt-1">{p.name}</h5>
+                  <h5 className="font-display text-[16px] text-pearl font-bold mt-1">
+                    {p.name}
+                  </h5>
                   <p className="text-[11px] text-muted-foreground leading-relaxed mt-1.5 h-10">
                     {p.description}
                   </p>
@@ -155,8 +167,12 @@ export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps)
 
                 <div className="border-t border-border/20 pt-4">
                   <div className="flex items-baseline gap-1">
-                    <span className="font-mono text-[22px] font-bold text-platinum">{p.price}</span>
-                    <span className="font-mono text-[10px] text-muted-foreground">{p.billing}</span>
+                    <span className="font-mono text-[22px] font-bold text-platinum">
+                      {p.price}
+                    </span>
+                    <span className="font-mono text-[10px] text-muted-foreground">
+                      {p.billing}
+                    </span>
                   </div>
                 </div>
 

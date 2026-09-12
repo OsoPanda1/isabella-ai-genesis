@@ -81,7 +81,8 @@ export const DEFAULT_CLAIMS: Claim[] = [
   {
     id: "CLAIM-001",
     title: "Provenance",
-    description: "Complete provenance chain from conception to deployment with dated artifacts and design records",
+    description:
+      "Complete provenance chain from conception to deployment with dated artifacts and design records",
     requiredStatus: "VERIFIED",
     evidenceRequired: ["GIT_HISTORY", "DESIGN_RECORDS", "DATED_ARTIFACTS"],
     controls: ["CTRL-001", "CTRL-002", "CTRL-003"],
@@ -94,7 +95,8 @@ export const DEFAULT_CLAIMS: Claim[] = [
   {
     id: "CLAIM-002",
     title: "HITL for high-risk operations",
-    description: "Human-in-the-loop enforcement for all high-risk operations with approval workflow",
+    description:
+      "Human-in-the-loop enforcement for all high-risk operations with approval workflow",
     requiredStatus: "TESTED",
     evidenceRequired: ["SOURCE_CODE", "TEST_HITL", "POLICY_DOCUMENT"],
     controls: ["CTRL-010", "CTRL-011", "CTRL-012"],
@@ -107,9 +109,15 @@ export const DEFAULT_CLAIMS: Claim[] = [
   {
     id: "CLAIM-003",
     title: "Tamper-evident audit",
-    description: "Cryptographically chained audit log with hash verification and concurrency safety",
+    description:
+      "Cryptographically chained audit log with hash verification and concurrency safety",
     requiredStatus: "VERIFIED",
-    evidenceRequired: ["SOURCE_CODE", "TEST_AUDIT_CHAIN", "TEST_CONCURRENCY", "WORM_CONFIG"],
+    evidenceRequired: [
+      "SOURCE_CODE",
+      "TEST_AUDIT_CHAIN",
+      "TEST_CONCURRENCY",
+      "WORM_CONFIG",
+    ],
     controls: ["CTRL-020", "CTRL-021", "CTRL-022", "CTRL-023"],
     category: "AUDIT",
     owner: "Edwin Oswaldo Castillo Trejo",
@@ -120,7 +128,8 @@ export const DEFAULT_CLAIMS: Claim[] = [
   {
     id: "CLAIM-004",
     title: "Privacy compliance",
-    description: "GDPR/AI Act compliance with DPIA, DPA, and privacy-by-design implementation",
+    description:
+      "GDPR/AI Act compliance with DPIA, DPA, and privacy-by-design implementation",
     requiredStatus: "TESTED",
     evidenceRequired: ["DPIA", "DPA", "PRIVACY_POLICY", "TEST_DATA_HANDLING"],
     controls: ["CTRL-030", "CTRL-031", "CTRL-032"],
@@ -133,9 +142,21 @@ export const DEFAULT_CLAIMS: Claim[] = [
   {
     id: "CLAIM-005",
     title: "Financial atomicity",
-    description: "All financial mutations execute atomically with double-entry ledger and balance protection",
+    description:
+      "All financial mutations execute atomically with double-entry ledger and balance protection",
     requiredStatus: "PRODUCTION-VERIFIED",
-    evidenceRequired: ["SOURCE_CODE", "UNIT_TEST", "INTEGRATION_TEST", "SECURITY_TEST", "CONCURRENCY_TEST", "EXTERNAL_AUDIT", "DEPLOYMENT_RECORD", "HEALTH_CHECK", "MONITORING_DATA", "INCIDENT_REPORT"],
+    evidenceRequired: [
+      "SOURCE_CODE",
+      "UNIT_TEST",
+      "INTEGRATION_TEST",
+      "SECURITY_TEST",
+      "CONCURRENCY_TEST",
+      "EXTERNAL_AUDIT",
+      "DEPLOYMENT_RECORD",
+      "HEALTH_CHECK",
+      "MONITORING_DATA",
+      "INCIDENT_REPORT",
+    ],
     controls: ["CTRL-040", "CTRL-041", "CTRL-042", "CTRL-043", "CTRL-044"],
     category: "FINANCIAL",
     owner: "Edwin Oswaldo Castillo Trejo",
@@ -146,9 +167,21 @@ export const DEFAULT_CLAIMS: Claim[] = [
   {
     id: "CLAIM-006",
     title: "Database authority consolidation",
-    description: "Single authoritative PostgreSQL database (DATABASE_URL) with Supabase as Identity Provider only",
+    description:
+      "Single authoritative PostgreSQL database (DATABASE_URL) with Supabase as Identity Provider only",
     requiredStatus: "PRODUCTION-VERIFIED",
-    evidenceRequired: ["SOURCE_CODE", "UNIT_TEST", "INTEGRATION_TEST", "SECURITY_TEST", "CONCURRENCY_TEST", "EXTERNAL_AUDIT", "DEPLOYMENT_RECORD", "HEALTH_CHECK", "MONITORING_DATA", "INCIDENT_REPORT"],
+    evidenceRequired: [
+      "SOURCE_CODE",
+      "UNIT_TEST",
+      "INTEGRATION_TEST",
+      "SECURITY_TEST",
+      "CONCURRENCY_TEST",
+      "EXTERNAL_AUDIT",
+      "DEPLOYMENT_RECORD",
+      "HEALTH_CHECK",
+      "MONITORING_DATA",
+      "INCIDENT_REPORT",
+    ],
     controls: ["CTRL-050", "CTRL-051", "CTRL-052"],
     category: "DATABASE",
     owner: "Edwin Oswaldo Castillo Trejo",
@@ -159,9 +192,21 @@ export const DEFAULT_CLAIMS: Claim[] = [
   {
     id: "CLAIM-007",
     title: "Sovereign state transactional persistence",
-    description: "SovereignDB uses transactional PostgreSQL persistence with BEGIN/VALIDATE/LOCK/MUTATE/LEDGER/AUDIT/COMMIT pattern",
+    description:
+      "SovereignDB uses transactional PostgreSQL persistence with BEGIN/VALIDATE/LOCK/MUTATE/LEDGER/AUDIT/COMMIT pattern",
     requiredStatus: "PRODUCTION-VERIFIED",
-    evidenceRequired: ["SOURCE_CODE", "UNIT_TEST", "INTEGRATION_TEST", "SECURITY_TEST", "CONCURRENCY_TEST", "EXTERNAL_AUDIT", "DEPLOYMENT_RECORD", "HEALTH_CHECK", "MONITORING_DATA", "INCIDENT_REPORT"],
+    evidenceRequired: [
+      "SOURCE_CODE",
+      "UNIT_TEST",
+      "INTEGRATION_TEST",
+      "SECURITY_TEST",
+      "CONCURRENCY_TEST",
+      "EXTERNAL_AUDIT",
+      "DEPLOYMENT_RECORD",
+      "HEALTH_CHECK",
+      "MONITORING_DATA",
+      "INCIDENT_REPORT",
+    ],
     controls: ["CTRL-060", "CTRL-061", "CTRL-062"],
     category: "DATABASE",
     owner: "Edwin Oswaldo Castillo Trejo",
@@ -172,9 +217,16 @@ export const DEFAULT_CLAIMS: Claim[] = [
   {
     id: "CLAIM-008",
     title: "Kill switch durable with approval store",
-    description: "Kill switch uses durable PostgreSQL approval store in production, not in-memory Map",
+    description:
+      "Kill switch uses durable PostgreSQL approval store in production, not in-memory Map",
     requiredStatus: "TESTED",
-    evidenceRequired: ["SOURCE_CODE", "UNIT_TEST", "INTEGRATION_TEST", "SECURITY_TEST", "CONCURRENCY_TEST"],
+    evidenceRequired: [
+      "SOURCE_CODE",
+      "UNIT_TEST",
+      "INTEGRATION_TEST",
+      "SECURITY_TEST",
+      "CONCURRENCY_TEST",
+    ],
     controls: ["CTRL-070", "CTRL-071"],
     category: "SECURITY",
     owner: "Edwin Oswaldo Castillo Trejo",
@@ -187,7 +239,18 @@ export const DEFAULT_CLAIMS: Claim[] = [
     title: "MFA step-up for SovereignOwner",
     description: "Privileged operations require MFA step-up authentication",
     requiredStatus: "PLANNED",
-    evidenceRequired: ["SOURCE_CODE", "UNIT_TEST", "INTEGRATION_TEST", "SECURITY_TEST", "CONCURRENCY_TEST", "EXTERNAL_AUDIT", "DEPLOYMENT_RECORD", "HEALTH_CHECK", "MONITORING_DATA", "INCIDENT_REPORT"],
+    evidenceRequired: [
+      "SOURCE_CODE",
+      "UNIT_TEST",
+      "INTEGRATION_TEST",
+      "SECURITY_TEST",
+      "CONCURRENCY_TEST",
+      "EXTERNAL_AUDIT",
+      "DEPLOYMENT_RECORD",
+      "HEALTH_CHECK",
+      "MONITORING_DATA",
+      "INCIDENT_REPORT",
+    ],
     controls: ["CTRL-080", "CTRL-081"],
     category: "AUTH",
     owner: "Edwin Oswaldo Castillo Trejo",
@@ -198,9 +261,15 @@ export const DEFAULT_CLAIMS: Claim[] = [
   {
     id: "CLAIM-010",
     title: "CSP hardened without unsafe-inline",
-    description: "Content Security Policy enforced without 'unsafe-inline', using nonce-based script loading",
+    description:
+      "Content Security Policy enforced without 'unsafe-inline', using nonce-based script loading",
     requiredStatus: "TESTED",
-    evidenceRequired: ["SOURCE_CODE", "UNIT_TEST", "INTEGRATION_TEST", "SECURITY_TEST"],
+    evidenceRequired: [
+      "SOURCE_CODE",
+      "UNIT_TEST",
+      "INTEGRATION_TEST",
+      "SECURITY_TEST",
+    ],
     controls: ["CTRL-090", "CTRL-091"],
     category: "SECURITY",
     owner: "Edwin Oswaldo Castillo Trejo",

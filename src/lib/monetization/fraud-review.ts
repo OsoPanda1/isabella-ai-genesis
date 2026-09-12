@@ -76,7 +76,9 @@ export const PAYOUT_DUAL_APPROVAL_CENTS = 100_000;
  * Scoring determinista y explicable. Pesos calibrados para que una sola
  * señal grave (cuenta sancionada) bloquee y las leves acumulen.
  */
-export function evaluateWithdrawalRisk(input: WithdrawalRiskInput): RiskEvaluation {
+export function evaluateWithdrawalRisk(
+  input: WithdrawalRiskInput,
+): RiskEvaluation {
   const signals: string[] = [];
   const weights: number[] = [];
 
@@ -88,7 +90,10 @@ export function evaluateWithdrawalRisk(input: WithdrawalRiskInput): RiskEvaluati
     signals.push("identity-unverified");
     weights.push(0.5);
   }
-  if (input.accountAgeDays < 30 && input.amountCents >= FRAUD_HIGH_AMOUNT_CENTS) {
+  if (
+    input.accountAgeDays < 30 &&
+    input.amountCents >= FRAUD_HIGH_AMOUNT_CENTS
+  ) {
     signals.push("new-account-high-amount");
     weights.push(0.7);
   }
@@ -109,8 +114,14 @@ export function evaluateWithdrawalRisk(input: WithdrawalRiskInput): RiskEvaluati
   for (const weight of weights) complement *= 1 - weight;
   const score = Math.round((1 - complement) * 1000) / 1000;
 
-  const status: FraudStatus = score >= 0.8 ? "fraud_detected" : score >= 0.4 ? "hold" : "pass";
-  return { reviewId: `fr_${randomUUID().replace(/-/g, "")}`, status, score, signals };
+  const status: FraudStatus =
+    score >= 0.8 ? "fraud_detected" : score >= 0.4 ? "hold" : "pass";
+  return {
+    reviewId: `fr_${randomUUID().replace(/-/g, "")}`,
+    status,
+    score,
+    signals,
+  };
 }
 
 export function createFraudReviewQueue(opts?: {
@@ -124,8 +135,14 @@ export function createFraudReviewQueue(opts?: {
 
   return {
     /** Abre un caso desde una evaluación de riesgo. */
-    open(evaluation: RiskEvaluation, userId: string, amountCents: number): FraudCase {
-      const existing = [...cases.values()].find((c) => c.reviewId === evaluation.reviewId);
+    open(
+      evaluation: RiskEvaluation,
+      userId: string,
+      amountCents: number,
+    ): FraudCase {
+      const existing = [...cases.values()].find(
+        (c) => c.reviewId === evaluation.reviewId,
+      );
       if (existing) return existing;
       const fraudCase: FraudCase = {
         reviewId: evaluation.reviewId,
@@ -175,7 +192,9 @@ export function createFraudReviewQueue(opts?: {
     },
 
     pending(): FraudCase[] {
-      return [...cases.values()].filter((c) => !c.decision && c.status !== "pass");
+      return [...cases.values()].filter(
+        (c) => !c.decision && c.status !== "pass",
+      );
     },
 
     /** Disputa (chargeback): congela payouts del tenant hasta el cierre. */
@@ -187,7 +206,8 @@ export function createFraudReviewQueue(opts?: {
     }): Dispute {
       const existing = [...disputes.values()].find(
         (dispute) =>
-          dispute.provider === input.provider && dispute.providerEventId === input.providerEventId,
+          dispute.provider === input.provider &&
+          dispute.providerEventId === input.providerEventId,
       );
       if (existing) return existing;
       const dispute: Dispute = {
@@ -200,11 +220,17 @@ export function createFraudReviewQueue(opts?: {
         openedAt: new Date().toISOString(),
       };
       disputes.set(dispute.disputeId, dispute);
-      audit?.("payment.dispute.opened", { ...input, disputeId: dispute.disputeId });
+      audit?.("payment.dispute.opened", {
+        ...input,
+        disputeId: dispute.disputeId,
+      });
       return dispute;
     },
 
-    closeDispute(disputeId: string, status: Exclude<DisputeStatus, "open">): Dispute | null {
+    closeDispute(
+      disputeId: string,
+      status: Exclude<DisputeStatus, "open">,
+    ): Dispute | null {
       const dispute = disputes.get(disputeId);
       if (!dispute || dispute.status !== "open") return null;
       dispute.status = status;
@@ -253,7 +279,10 @@ export function assertPayoutAllowed(
     return { allowed: false, reason: "Caso de fraude inexistente o ajeno." };
   }
   if (fraudCase.status !== "pass") {
-    return { allowed: false, reason: `Caso en estado '${fraudCase.status}', no aprobado.` };
+    return {
+      allowed: false,
+      reason: `Caso en estado '${fraudCase.status}', no aprobado.`,
+    };
   }
   if (fraudCase.score >= 0.4 && !fraudCase.decision) {
     return { allowed: false, reason: "Hold sin decisión humana registrada." };
@@ -268,7 +297,10 @@ export function assertPayoutAllowed(
   ];
   const needsDual = request.amountCents >= PAYOUT_DUAL_APPROVAL_CENTS;
   if (needsDual && approvers.length < 2) {
-    return { allowed: false, reason: "Monto alto exige doble aprobación de revisores distintos." };
+    return {
+      allowed: false,
+      reason: "Monto alto exige doble aprobación de revisores distintos.",
+    };
   }
   if (!needsDual && fraudCase.decision && approvers.length < 1) {
     return { allowed: false, reason: "Falta aprobador registrado." };
@@ -287,12 +319,18 @@ export function assertPayoutAllowed(
     reviewId: request.reviewId,
     idempotencyKey: request.idempotencyKey,
   });
-  return { allowed: true, reason: "Payout autorizado con controles completos." };
+  return {
+    allowed: true,
+    reason: "Payout autorizado con controles completos.",
+  };
 }
 
 export const FRAUD_REVIEW = {
   evaluate: evaluateWithdrawalRisk,
   queue: createFraudReviewQueue,
   payout: assertPayoutAllowed,
-  thresholds: { highAmount: FRAUD_HIGH_AMOUNT_CENTS, dualApproval: PAYOUT_DUAL_APPROVAL_CENTS },
+  thresholds: {
+    highAmount: FRAUD_HIGH_AMOUNT_CENTS,
+    dualApproval: PAYOUT_DUAL_APPROVAL_CENTS,
+  },
 };

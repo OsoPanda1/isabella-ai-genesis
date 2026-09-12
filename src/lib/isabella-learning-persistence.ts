@@ -19,7 +19,9 @@ function getPool(): Pool {
 
 async function ensureTable(): Promise<void> {
   if (tableReady) return tableReady;
-  tableReady = getPool().query(`
+  tableReady = getPool()
+    .query(
+      `
     CREATE TABLE IF NOT EXISTS public.isabella_learning_state (
       tenant_id VARCHAR(255) PRIMARY KEY,
       version INTEGER NOT NULL DEFAULT 1,
@@ -27,10 +29,13 @@ async function ensureTable(): Promise<void> {
       snapshot_hash VARCHAR(128) NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
-  `).then(() => undefined).catch((error) => {
-    tableReady = null;
-    throw error;
-  });
+  `,
+    )
+    .then(() => undefined)
+    .catch((error) => {
+      tableReady = null;
+      throw error;
+    });
   return tableReady;
 }
 
@@ -39,29 +44,41 @@ export interface PersistedLearningRuntime {
   durable: boolean;
 }
 
-export async function loadLearningRuntime(tenantId: string): Promise<PersistedLearningRuntime> {
+export async function loadLearningRuntime(
+  tenantId: string,
+): Promise<PersistedLearningRuntime> {
   if (!tenantId) throw new Error("TENANT_REQUIRED");
   const databaseUrl = config().DATABASE_URL;
-  if (!databaseUrl) return { engine: createIsabellaLearningEngine(), durable: false };
+  if (!databaseUrl)
+    return { engine: createIsabellaLearningEngine(), durable: false };
 
   await ensureTable();
-  const result = await getPool().query<{ version: number; snapshot: LearningSnapshot; snapshot_hash: string }>(
+  const result = await getPool().query<{
+    version: number;
+    snapshot: LearningSnapshot;
+    snapshot_hash: string;
+  }>(
     `SELECT version, snapshot, snapshot_hash FROM public.isabella_learning_state WHERE tenant_id = $1`,
     [tenantId],
   );
   const engine = createIsabellaLearningEngine();
   const row = result.rows[0];
   if (row?.snapshot) {
-    if (row.version !== 1 || row.snapshot.version !== 1) throw new Error("LEARNING_SNAPSHOT_VERSION_UNSUPPORTED");
+    if (row.version !== 1 || row.snapshot.version !== 1)
+      throw new Error("LEARNING_SNAPSHOT_VERSION_UNSUPPORTED");
     const canonical = stableStringify(row.snapshot);
     const expected = createHash("sha3-512").update(canonical).digest("hex");
-    if (expected !== row.snapshot_hash) throw new Error("LEARNING_SNAPSHOT_INTEGRITY_FAILURE");
+    if (expected !== row.snapshot_hash)
+      throw new Error("LEARNING_SNAPSHOT_INTEGRITY_FAILURE");
     engine.restore(row.snapshot);
   }
   return { engine, durable: true };
 }
 
-export async function persistLearningRuntime(tenantId: string, engine: IsabellaLearningEngine): Promise<void> {
+export async function persistLearningRuntime(
+  tenantId: string,
+  engine: IsabellaLearningEngine,
+): Promise<void> {
   if (!tenantId) throw new Error("TENANT_REQUIRED");
   if (!config().DATABASE_URL) return;
   await ensureTable();
@@ -83,12 +100,19 @@ export async function persistLearningRuntime(tenantId: string, engine: IsabellaL
   );
 }
 
-export async function verifyLearningPersistence(): Promise<{ ok: boolean; durable: boolean; latencyMs: number }> {
+export async function verifyLearningPersistence(): Promise<{
+  ok: boolean;
+  durable: boolean;
+  latencyMs: number;
+}> {
   const start = performance.now();
-  if (!config().DATABASE_URL) return { ok: false, durable: false, latencyMs: performance.now() - start };
+  if (!config().DATABASE_URL)
+    return { ok: false, durable: false, latencyMs: performance.now() - start };
   try {
     await ensureTable();
-    await getPool().query("SELECT 1 FROM public.isabella_learning_state LIMIT 1");
+    await getPool().query(
+      "SELECT 1 FROM public.isabella_learning_state LIMIT 1",
+    );
     return { ok: true, durable: true, latencyMs: performance.now() - start };
   } catch {
     return { ok: false, durable: true, latencyMs: performance.now() - start };
@@ -99,5 +123,8 @@ function stableStringify(value: unknown): string {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
   const object = value as Record<string, unknown>;
-  return `{${Object.keys(object).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(object[key])}`).join(",")}}`;
+  return `{${Object.keys(object)
+    .sort()
+    .map((key) => `${JSON.stringify(key)}:${stableStringify(object[key])}`)
+    .join(",")}}`;
 }

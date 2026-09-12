@@ -46,7 +46,9 @@ export function computeSourceHash(root: string): string {
   return hashText(acc);
 }
 
-export function computeEnvFingerprint(env: NodeJS.ProcessEnv = process.env): string {
+export function computeEnvFingerprint(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
   const parts = [
     env.NODE_ENV ?? "development",
     env.PUBLIC_URL ?? "",
@@ -63,7 +65,9 @@ export function buildManifest(
 ): BuildManifest {
   let version = "0.0.0";
   try {
-    const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as {
+    const pkg = JSON.parse(
+      readFileSync(resolve(root, "package.json"), "utf8"),
+    ) as {
       version?: string;
     };
     version = pkg.version ?? "0.0.0";

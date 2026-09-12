@@ -42,7 +42,8 @@ interface MarketplaceListing {
  * repositorio falla, la operación falla (503 en producción).
  */
 async function readAllListings(): Promise<MarketplaceListing[]> {
-  const { listMarketplace } = await import("@/lib/repositories/marketplace-repository");
+  const { listMarketplace } =
+    await import("@/lib/repositories/marketplace-repository");
   return await listMarketplace();
 }
 
@@ -60,11 +61,16 @@ export const Route = createFileRoute("/api/billing")({
         // 1. OBTENER INFORMACIÓN DE CRÉDITOS / PLAN
         if (action === "credits") {
           return withSovereignAuth("system", "read", async (context) => {
-            const tenant = await sovereignStateRepository.getTenant(context.tenantId);
-            const monetizationAccount = await sovereignStateRepository.getMonetizationAccount(
-              context.userId,
+            const tenant = await sovereignStateRepository.getTenant(
+              context.tenantId,
             );
-            const ledger = await sovereignStateRepository.getLedger(context.tenantId);
+            const monetizationAccount =
+              await sovereignStateRepository.getMonetizationAccount(
+                context.userId,
+              );
+            const ledger = await sovereignStateRepository.getLedger(
+              context.tenantId,
+            );
 
             return new Response(
               JSON.stringify({
@@ -84,37 +90,50 @@ export const Route = createFileRoute("/api/billing")({
         if (action === "invoice") {
           const invoiceId = url.searchParams.get("invoiceId");
           if (!invoiceId) {
-            return new Response(JSON.stringify({ error: "Parámetro invoiceId requerido." }), {
-              status: 400,
-              headers,
-            });
+            return new Response(
+              JSON.stringify({ error: "Parámetro invoiceId requerido." }),
+              {
+                status: 400,
+                headers,
+              },
+            );
           }
 
           return withSovereignAuth("system", "read", async (context) => {
             const invoiceIndex = parseInt(invoiceId, 10);
             if (!Number.isInteger(invoiceIndex) || invoiceIndex < 0) {
               return new Response(
-                JSON.stringify({ error: "invoiceId debe ser un índice numérico válido." }),
+                JSON.stringify({
+                  error: "invoiceId debe ser un índice numérico válido.",
+                }),
                 { status: 400, headers },
               );
             }
             // Aislamiento multi-tenant: solo se consultan los bloques del tenant actual.
-            const tenantLedger = await sovereignStateRepository.getLedger(context.tenantId);
+            const tenantLedger = await sovereignStateRepository.getLedger(
+              context.tenantId,
+            );
             const block = tenantLedger.find((b) => b.index === invoiceIndex);
 
             if (!block) {
-              return new Response(JSON.stringify({ error: "Invoice/Transacción no encontrada." }), {
-                status: 404,
-                headers,
-              });
+              return new Response(
+                JSON.stringify({ error: "Invoice/Transacción no encontrada." }),
+                {
+                  status: 404,
+                  headers,
+                },
+              );
             }
 
             // Verificación de aislamiento reforzada: nunca devolver bloques de otro tenant.
             if (block.tenantId !== context.tenantId) {
-              return new Response(JSON.stringify({ error: "Invoice/Transacción no encontrada." }), {
-                status: 404,
-                headers,
-              });
+              return new Response(
+                JSON.stringify({ error: "Invoice/Transacción no encontrada." }),
+                {
+                  status: 404,
+                  headers,
+                },
+              );
             }
 
             const costAmount = parseFloat(block.costDecimal);
@@ -165,10 +184,13 @@ export const Route = createFileRoute("/api/billing")({
         if (action === "audit-block") {
           const blockIndex = url.searchParams.get("index");
           if (!blockIndex) {
-            return new Response(JSON.stringify({ error: "Índice de bloque requerido." }), {
-              status: 400,
-              headers,
-            });
+            return new Response(
+              JSON.stringify({ error: "Índice de bloque requerido." }),
+              {
+                status: 400,
+                headers,
+              },
+            );
           }
 
           return withSovereignAuth("audit", "read", async () => {
@@ -177,10 +199,13 @@ export const Route = createFileRoute("/api/billing")({
             const block = fullLedger.find((b) => b.index === indexInt);
 
             if (!block) {
-              return new Response(JSON.stringify({ error: "Bloque de auditoría no encontrado." }), {
-                status: 404,
-                headers,
-              });
+              return new Response(
+                JSON.stringify({ error: "Bloque de auditoría no encontrado." }),
+                {
+                  status: 404,
+                  headers,
+                },
+              );
             }
 
             // Recalcular para corroborar
@@ -207,10 +232,13 @@ export const Route = createFileRoute("/api/billing")({
           })({ request });
         }
 
-        return new Response(JSON.stringify({ error: "Acción GET desconocida." }), {
-          status: 400,
-          headers,
-        });
+        return new Response(
+          JSON.stringify({ error: "Acción GET desconocida." }),
+          {
+            status: 400,
+            headers,
+          },
+        );
       },
 
       POST: async ({ request }) => {
@@ -222,10 +250,13 @@ export const Route = createFileRoute("/api/billing")({
         );
 
         if (!action) {
-          return new Response(JSON.stringify({ error: "Parámetro action requerido en POST." }), {
-            status: 400,
-            headers,
-          });
+          return new Response(
+            JSON.stringify({ error: "Parámetro action requerido en POST." }),
+            {
+              status: 400,
+              headers,
+            },
+          );
         }
 
         try {
@@ -237,16 +268,21 @@ export const Route = createFileRoute("/api/billing")({
             return withSovereignAuth("system", "write", async (context) => {
               const { planId } = body as { planId?: string };
               if (!planId) {
-                return new Response(JSON.stringify({ error: "planId requerido." }), {
-                  status: 400,
-                  headers,
-                });
+                return new Response(
+                  JSON.stringify({ error: "planId requerido." }),
+                  {
+                    status: 400,
+                    headers,
+                  },
+                );
               }
 
               const stripe = getStripe();
               if (!stripe) {
                 return new Response(
-                  JSON.stringify({ error: "Stripe no configurado en el servidor." }),
+                  JSON.stringify({
+                    error: "Stripe no configurado en el servidor.",
+                  }),
                   { status: 500, headers },
                 );
               }
@@ -282,13 +318,18 @@ export const Route = createFileRoute("/api/billing")({
                   });
                   checkoutUrl = stripeSession.url ?? "";
                 } catch (stripeError) {
-                  console.error("Fallo Stripe checkout, procediendo a simulador:", stripeError);
+                  console.error(
+                    "Fallo Stripe checkout, procediendo a simulador:",
+                    stripeError,
+                  );
                 }
               }
 
               if (!checkoutUrl) {
                 return new Response(
-                  JSON.stringify({ error: "Fallo al crear sesión de checkout." }),
+                  JSON.stringify({
+                    error: "Fallo al crear sesión de checkout.",
+                  }),
                   { status: 500, headers },
                 );
               }
@@ -321,7 +362,9 @@ export const Route = createFileRoute("/api/billing")({
 
             if (!stripe || !signature) {
               return new Response(
-                JSON.stringify({ error: "Webhook requires Stripe configuration and signature." }),
+                JSON.stringify({
+                  error: "Webhook requires Stripe configuration and signature.",
+                }),
                 {
                   status: 400,
                   headers,
@@ -343,22 +386,30 @@ export const Route = createFileRoute("/api/billing")({
                 endpointSecret,
               );
               eventType = verifiedEvent.type;
-              const sessionObject = verifiedEvent.data.object as unknown as Record<string, unknown>;
-              metadata = (sessionObject.metadata as Record<string, string>) || {};
-              clientReferenceId = (sessionObject.client_reference_id as string) || "";
+              const sessionObject = verifiedEvent.data
+                .object as unknown as Record<string, unknown>;
+              metadata =
+                (sessionObject.metadata as Record<string, string>) || {};
+              clientReferenceId =
+                (sessionObject.client_reference_id as string) || "";
               eventId = verifiedEvent.id;
               disputeAmountMinor =
-                typeof sessionObject.amount === "number" ? sessionObject.amount : 0;
+                typeof sessionObject.amount === "number"
+                  ? sessionObject.amount
+                  : 0;
             } catch (verificationError: unknown) {
               const errorMsg =
                 verificationError instanceof Error
                   ? verificationError.message
                   : String(verificationError);
               console.error("Firma Webhook Stripe inválida:", errorMsg);
-              return new Response(JSON.stringify({ error: "Fallo de validación de firma." }), {
-                status: 400,
-                headers,
-              });
+              return new Response(
+                JSON.stringify({ error: "Fallo de validación de firma." }),
+                {
+                  status: 400,
+                  headers,
+                },
+              );
             }
 
             // Procesar el evento
@@ -371,16 +422,20 @@ export const Route = createFileRoute("/api/billing")({
               const targetUserId = clientReferenceId;
 
               if (!planId || !targetTenantId || !targetUserId) {
-                return new Response(JSON.stringify({ error: "Webhook metadata incompleta." }), {
-                  status: 422,
-                  headers,
-                });
+                return new Response(
+                  JSON.stringify({ error: "Webhook metadata incompleta." }),
+                  {
+                    status: 422,
+                    headers,
+                  },
+                );
               }
 
               // IDEMPOTENCIA ATÓMICA (§5): UNIQUE(provider, provider_event_id)
               // en `webhook_events`. Dos entregas simultáneas → 1 procesado.
               if (eventId) {
-                const { claimWebhookEvent } = await import("@/lib/economic-events");
+                const { claimWebhookEvent } =
+                  await import("@/lib/economic-events");
                 const claim = await claimWebhookEvent({
                   provider: "stripe",
                   providerEventId: eventId,
@@ -388,15 +443,24 @@ export const Route = createFileRoute("/api/billing")({
                 });
                 if (claim.status === "duplicate") {
                   return new Response(
-                    JSON.stringify({ success: true, processed: true, duplicate: true }),
+                    JSON.stringify({
+                      success: true,
+                      processed: true,
+                      duplicate: true,
+                    }),
                     { headers },
                   );
                 }
                 if (claim.status === "error") {
-                  console.error("[billing:webhook] claimWebhookEvent failed:", claim.message);
+                  console.error(
+                    "[billing:webhook] claimWebhookEvent failed:",
+                    claim.message,
+                  );
                   if (config().NODE_ENV === "production") {
                     return new Response(
-                      JSON.stringify({ error: "Idempotencia de webhook no disponible." }),
+                      JSON.stringify({
+                        error: "Idempotencia de webhook no disponible.",
+                      }),
                       { status: 500, headers },
                     );
                   }
@@ -405,22 +469,25 @@ export const Route = createFileRoute("/api/billing")({
               }
 
               if (targetTenantId) {
-                const tenant = await sovereignStateRepository.getTenant(targetTenantId);
+                const tenant =
+                  await sovereignStateRepository.getTenant(targetTenantId);
                 if (tenant) {
-                  tenant.tier = planId === "enterprise" ? "Enterprise" : "Sovereign";
+                  tenant.tier =
+                    planId === "enterprise" ? "Enterprise" : "Sovereign";
                   tenant.quotaBalance += 100.0;
                   await sovereignStateRepository.upsertTenant(tenant);
 
                   // La activación de suscripción se registra en el ledger (abajo),
                   // no como columna inexistente en MonetizationAccount.
-                  const block = await sovereignStateRepository.appendLedgerBlock(
-                    targetTenantId,
-                    targetUserId || "system",
-                    `ACTIVATE_SUBSCRIPTION: Plan ${planId.toUpperCase()} activado exitosamente (Créditos de bono: +$100.00 USD) ${metadata?.marker || ""}`,
-                    "other",
-                    0,
-                    0,
-                  );
+                  const block =
+                    await sovereignStateRepository.appendLedgerBlock(
+                      targetTenantId,
+                      targetUserId || "system",
+                      `ACTIVATE_SUBSCRIPTION: Plan ${planId.toUpperCase()} activado exitosamente (Créditos de bono: +$100.00 USD) ${metadata?.marker || ""}`,
+                      "other",
+                      0,
+                      0,
+                    );
 
                   await sovereignStateRepository.appendAuditLog(
                     `trc_webhook_${block.index}`,
@@ -466,10 +533,15 @@ export const Route = createFileRoute("/api/billing")({
                   metadata: { dispute: true },
                 });
                 if (!hold.ok && !hold.duplicate) {
-                  console.error("[billing:dispute] recordEconomicEvent failed:", hold.error);
+                  console.error(
+                    "[billing:dispute] recordEconomicEvent failed:",
+                    hold.error,
+                  );
                   if (config().NODE_ENV === "production") {
                     return new Response(
-                      JSON.stringify({ error: "Hold de disputa no registrado." }),
+                      JSON.stringify({
+                        error: "Hold de disputa no registrado.",
+                      }),
                       { status: 503, headers },
                     );
                   }
@@ -484,7 +556,11 @@ export const Route = createFileRoute("/api/billing")({
               });
               if (claim.status === "duplicate") {
                 return new Response(
-                  JSON.stringify({ success: true, processed: true, duplicate: true }),
+                  JSON.stringify({
+                    success: true,
+                    processed: true,
+                    duplicate: true,
+                  }),
                   { headers },
                 );
               }
@@ -521,12 +597,19 @@ export const Route = createFileRoute("/api/billing")({
                 metadata?.tenantId || "unresolved-dispute",
               );
               return new Response(
-                JSON.stringify({ success: true, processed: true, disputeClosed: true }),
+                JSON.stringify({
+                  success: true,
+                  processed: true,
+                  disputeClosed: true,
+                }),
                 { headers },
               );
             }
 
-            return new Response(JSON.stringify({ success: true, processed: true }), { headers });
+            return new Response(
+              JSON.stringify({ success: true, processed: true }),
+              { headers },
+            );
           }
 
           // 3. REGISTRAR CONSUMO REAL POR QUANTUM JOB / INFERENCIA (SERVER-TO-SERVER)
@@ -551,18 +634,22 @@ export const Route = createFileRoute("/api/billing")({
               }
 
               // Calculate exact cost
-              const costUSD = parsed.data.shots * 0.1 + parsed.data.qpu_seconds * 1.0;
+              const costUSD =
+                parsed.data.shots * 0.1 + parsed.data.qpu_seconds * 1.0;
               const opText =
                 parsed.data.operation ||
                 `QUANTUM_JOB: ${parsed.data.jobId} (Shots: ${parsed.data.shots}, Segundos QPU: ${parsed.data.qpu_seconds})`;
 
               // P0: nunca permitir saldo negativo — gate de balance explícito.
-              const tenant = await sovereignStateRepository.getTenant(context.tenantId);
+              const tenant = await sovereignStateRepository.getTenant(
+                context.tenantId,
+              );
               const currentBalance = tenant?.quotaBalance ?? 0;
               if (currentBalance < costUSD) {
                 return new Response(
                   JSON.stringify({
-                    error: "Saldo insuficiente para consumir recursos dedicados.",
+                    error:
+                      "Saldo insuficiente para consumir recursos dedicados.",
                     quotaBalance: currentBalance,
                     required: costUSD,
                   }),
@@ -584,21 +671,27 @@ export const Route = createFileRoute("/api/billing")({
               });
 
               if (!blockResult.success) {
-                return new Response(JSON.stringify({ error: blockResult.error }), {
-                  status: 500,
-                  headers,
-                });
+                return new Response(
+                  JSON.stringify({ error: blockResult.error }),
+                  {
+                    status: 500,
+                    headers,
+                  },
+                );
               }
               const block = blockResult.block;
 
               // P0: debitar el saldo operativo de forma coherente con el ledger.
               // Re-leer para evitar sobreescribir cambios concurrentes del snapshot.
-              const freshTenant = await sovereignStateRepository.getTenant(context.tenantId);
+              const freshTenant = await sovereignStateRepository.getTenant(
+                context.tenantId,
+              );
               if (freshTenant) {
                 if (freshTenant.quotaBalance < costUSD) {
                   return new Response(
                     JSON.stringify({
-                      error: "Saldo insuficiente para consumir recursos dedicados.",
+                      error:
+                        "Saldo insuficiente para consumir recursos dedicados.",
                     }),
                     { status: 402, headers },
                   );
@@ -624,7 +717,8 @@ export const Route = createFileRoute("/api/billing")({
                   blockIndex: block.index,
                   costUSD,
                   quotaBalanceRemaining:
-                    (await sovereignStateRepository.getTenant(context.tenantId))?.quotaBalance ?? 0,
+                    (await sovereignStateRepository.getTenant(context.tenantId))
+                      ?.quotaBalance ?? 0,
                 }),
                 { headers },
               );
@@ -641,10 +735,13 @@ export const Route = createFileRoute("/api/billing")({
 
               const parsed = topupSchema.safeParse(body);
               if (!parsed.success) {
-                return new Response(JSON.stringify({ error: "Monto de recarga inválido." }), {
-                  status: 400,
-                  headers,
-                });
+                return new Response(
+                  JSON.stringify({ error: "Monto de recarga inválido." }),
+                  {
+                    status: 400,
+                    headers,
+                  },
+                );
               }
 
               // IDEMPOTENCIA ATÓMICA: un PaymentIntent solo acredita una vez.
@@ -656,7 +753,9 @@ export const Route = createFileRoute("/api/billing")({
               const stripe = getStripe();
               if (!stripe) {
                 return new Response(
-                  JSON.stringify({ error: "Stripe no configurado en el servidor." }),
+                  JSON.stringify({
+                    error: "Stripe no configurado en el servidor.",
+                  }),
                   { status: 500, headers },
                 );
               }
@@ -667,10 +766,13 @@ export const Route = createFileRoute("/api/billing")({
                 );
               } catch (err) {
                 console.error("[billing:topup] PaymentIntent inválido:", err);
-                return new Response(JSON.stringify({ error: "PaymentIntent inválido." }), {
-                  status: 422,
-                  headers,
-                });
+                return new Response(
+                  JSON.stringify({ error: "PaymentIntent inválido." }),
+                  {
+                    status: 422,
+                    headers,
+                  },
+                );
               }
               if (paymentIntent.status !== "succeeded") {
                 return new Response(
@@ -683,14 +785,17 @@ export const Route = createFileRoute("/api/billing")({
               const expectedCents = Math.round(parsed.data.amountUSD * 100);
               if (paymentIntent.amount !== expectedCents) {
                 return new Response(
-                  JSON.stringify({ error: "El monto del pago no coincide con la recarga." }),
+                  JSON.stringify({
+                    error: "El monto del pago no coincide con la recarga.",
+                  }),
                   { status: 422, headers },
                 );
               }
 
               // Claim atómico POST-verificación: reintentos concurrentes del
               // mismo PI → uno acredita, el resto 409 (constraint, no scan).
-              const { recordEconomicEvent } = await import("@/lib/economic-events");
+              const { recordEconomicEvent } =
+                await import("@/lib/economic-events");
               const topupClaim = await recordEconomicEvent({
                 tenantId: context.tenantId,
                 actorId: context.userId,
@@ -712,24 +817,32 @@ export const Route = createFileRoute("/api/billing")({
                 if (topupClaim.duplicate) {
                   return new Response(
                     JSON.stringify({
-                      error: "Este PaymentIntent ya fue aplicado a una recarga previa.",
+                      error:
+                        "Este PaymentIntent ya fue aplicado a una recarga previa.",
                       duplicate: true,
                     }),
                     { status: 409, headers },
                   );
                 }
                 return new Response(
-                  JSON.stringify({ error: "Idempotencia de recarga no disponible." }),
+                  JSON.stringify({
+                    error: "Idempotencia de recarga no disponible.",
+                  }),
                   { status: 500, headers },
                 );
               }
 
-              const tenant = await sovereignStateRepository.getTenant(context.tenantId);
+              const tenant = await sovereignStateRepository.getTenant(
+                context.tenantId,
+              );
               if (!tenant) {
-                return new Response(JSON.stringify({ error: "Organización no encontrada." }), {
-                  status: 404,
-                  headers,
-                });
+                return new Response(
+                  JSON.stringify({ error: "Organización no encontrada." }),
+                  {
+                    status: 404,
+                    headers,
+                  },
+                );
               }
 
               tenant.quotaBalance += parsed.data.amountUSD;
@@ -777,7 +890,9 @@ export const Route = createFileRoute("/api/billing")({
               const parsed = runSchema.safeParse(body);
               if (!parsed.success) {
                 return new Response(
-                  JSON.stringify({ error: "Parámetros de preautorización corruptos." }),
+                  JSON.stringify({
+                    error: "Parámetros de preautorización corruptos.",
+                  }),
                   {
                     status: 400,
                     headers,
@@ -785,7 +900,9 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              const tenant = await sovereignStateRepository.getTenant(context.tenantId);
+              const tenant = await sovereignStateRepository.getTenant(
+                context.tenantId,
+              );
               const currentBalance = tenant?.quotaBalance ?? 0;
 
               // REGLA DE SEGURIDAD LUMEN / BUDGET LIMITS
@@ -812,7 +929,10 @@ export const Route = createFileRoute("/api/billing")({
               }
 
               // Elegibilidad de Monetización
-              const monAcc = await sovereignStateRepository.getMonetizationAccount(context.userId);
+              const monAcc =
+                await sovereignStateRepository.getMonetizationAccount(
+                  context.userId,
+                );
               if (monAcc.sanctioned) {
                 return new Response(
                   JSON.stringify({
@@ -848,7 +968,9 @@ export const Route = createFileRoute("/api/billing")({
               const parsed = refundSchema.safeParse(body);
               if (!parsed.success) {
                 return new Response(
-                  JSON.stringify({ error: "Índice de Ledger inválido para reembolso." }),
+                  JSON.stringify({
+                    error: "Índice de Ledger inválido para reembolso.",
+                  }),
                   {
                     status: 400,
                     headers,
@@ -878,14 +1000,20 @@ export const Route = createFileRoute("/api/billing")({
                 );
 
                 return new Response(
-                  JSON.stringify({ success: true, index: parsed.data.ledgerIndex }),
+                  JSON.stringify({
+                    success: true,
+                    index: parsed.data.ledgerIndex,
+                  }),
                   { headers },
                 );
               } else {
-                return new Response(JSON.stringify({ success: false, error: result.error }), {
-                  status: 400,
-                  headers,
-                });
+                return new Response(
+                  JSON.stringify({ success: false, error: result.error }),
+                  {
+                    status: 400,
+                    headers,
+                  },
+                );
               }
             })({ request });
           }
@@ -898,7 +1026,10 @@ export const Route = createFileRoute("/api/billing")({
                   .string()
                   .min(3)
                   .max(64)
-                  .regex(/^[a-z0-9-]+$/, "skillId solo admite minúsculas, números y guiones."),
+                  .regex(
+                    /^[a-z0-9-]+$/,
+                    "skillId solo admite minúsculas, números y guiones.",
+                  ),
                 title: z.string().min(3).max(120),
                 costCents: z.number().positive().int().max(100_000), // máx $1,000 USD
                 description: z.string().min(10).max(2000),
@@ -906,10 +1037,13 @@ export const Route = createFileRoute("/api/billing")({
 
               const parsed = listingSchema.safeParse(body);
               if (!parsed.success) {
-                return new Response(JSON.stringify({ error: "Datos del listing inválidos." }), {
-                  status: 400,
-                  headers,
-                });
+                return new Response(
+                  JSON.stringify({ error: "Datos del listing inválidos." }),
+                  {
+                    status: 400,
+                    headers,
+                  },
+                );
               }
 
               // Escritura durable en tabla (idempotente por skill_id); en dev
@@ -926,7 +1060,10 @@ export const Route = createFileRoute("/api/billing")({
                 });
                 if (!created) {
                   return new Response(
-                    JSON.stringify({ error: "Este skillId ya está listado.", duplicate: true }),
+                    JSON.stringify({
+                      error: "Este skillId ya está listado.",
+                      duplicate: true,
+                    }),
                     { status: 409, headers },
                   );
                 }
@@ -941,7 +1078,10 @@ export const Route = createFileRoute("/api/billing")({
                   context.tenantId,
                 );
 
-                return new Response(JSON.stringify({ success: true, listing }), { headers });
+                return new Response(
+                  JSON.stringify({ success: true, listing }),
+                  { headers },
+                );
               } catch {
                 // Sin DATABASE_URL (desarrollo): ERROR - no fallback a memoria en prod
                 const runtime = config();
@@ -959,7 +1099,8 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              const currentListings = await sovereignStateRepository.getMarketplaceListings();
+              const currentListings =
+                await sovereignStateRepository.getMarketplaceListings();
 
               const newListing: MarketplaceListing = {
                 skillId: parsed.data.skillId,
@@ -971,7 +1112,9 @@ export const Route = createFileRoute("/api/billing")({
               };
 
               currentListings.push(newListing);
-              await sovereignStateRepository.saveMarketplaceListings(currentListings);
+              await sovereignStateRepository.saveMarketplaceListings(
+                currentListings,
+              );
 
               await sovereignStateRepository.appendAuditLog(
                 `trc_market_list_${parsed.data.skillId}`,
@@ -983,9 +1126,12 @@ export const Route = createFileRoute("/api/billing")({
                 context.tenantId,
               );
 
-              return new Response(JSON.stringify({ success: true, listing: newListing }), {
-                headers,
-              });
+              return new Response(
+                JSON.stringify({ success: true, listing: newListing }),
+                {
+                  headers,
+                },
+              );
             })({ request });
           }
 
@@ -998,18 +1144,25 @@ export const Route = createFileRoute("/api/billing")({
 
               const parsed = purchaseSchema.safeParse(body);
               if (!parsed.success) {
-                return new Response(JSON.stringify({ error: "Parámetros de compra inválidos." }), {
-                  status: 400,
-                  headers,
-                });
+                return new Response(
+                  JSON.stringify({ error: "Parámetros de compra inválidos." }),
+                  {
+                    status: 400,
+                    headers,
+                  },
+                );
               }
 
               const customListings = await readAllListings();
-              const listing = customListings.find((l) => l.skillId === parsed.data.skillId);
+              const listing = customListings.find(
+                (l) => l.skillId === parsed.data.skillId,
+              );
 
               if (!listing) {
                 return new Response(
-                  JSON.stringify({ error: "Anuncio de marketplace no encontrado." }),
+                  JSON.stringify({
+                    error: "Anuncio de marketplace no encontrado.",
+                  }),
                   {
                     status: 404,
                     headers,
@@ -1017,7 +1170,9 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              const tenant = await sovereignStateRepository.getTenant(context.tenantId);
+              const tenant = await sovereignStateRepository.getTenant(
+                context.tenantId,
+              );
               const costUSD = listing.costCents / 100;
 
               // P0: IDEMPOTENCIA ATÓMICA — UNIQUE(tenant_id, idempotency_key)
@@ -1034,7 +1189,10 @@ export const Route = createFileRoute("/api/billing")({
                 source: "marketplace",
                 idempotencyKey: `purchase:${parsed.data.skillId}:${listing.costCents}`,
                 correlationId: context.correlationId,
-                metadata: { skillId: parsed.data.skillId, costCents: listing.costCents },
+                metadata: {
+                  skillId: parsed.data.skillId,
+                  costCents: listing.costCents,
+                },
               }).catch((error: unknown) => ({
                 ok: false as const,
                 duplicate: false as const,
@@ -1043,12 +1201,16 @@ export const Route = createFileRoute("/api/billing")({
               if (!purchaseClaim.ok) {
                 if (purchaseClaim.duplicate) {
                   return new Response(
-                    JSON.stringify({ error: "Este skill ya fue adquirido por el tenant." }),
+                    JSON.stringify({
+                      error: "Este skill ya fue adquirido por el tenant.",
+                    }),
                     { status: 409, headers },
                   );
                 }
                 return new Response(
-                  JSON.stringify({ error: "Idempotencia de compra no disponible." }),
+                  JSON.stringify({
+                    error: "Idempotencia de compra no disponible.",
+                  }),
                   { status: 500, headers },
                 );
               }
@@ -1070,7 +1232,9 @@ export const Route = createFileRoute("/api/billing")({
               const userNetCents = listing.costCents - platformFeeCents;
 
               // Descontar saldo al comprador (re-leer: evitar carreras)
-              const freshBuyer = await sovereignStateRepository.getTenant(context.tenantId);
+              const freshBuyer = await sovereignStateRepository.getTenant(
+                context.tenantId,
+              );
               if (!freshBuyer || freshBuyer.quotaBalance < costUSD) {
                 return new Response(
                   JSON.stringify({
@@ -1081,17 +1245,23 @@ export const Route = createFileRoute("/api/billing")({
                   { status: 400, headers },
                 );
               }
-              freshBuyer.quotaBalance = Math.round((freshBuyer.quotaBalance - costUSD) * 1e9) / 1e9;
+              freshBuyer.quotaBalance =
+                Math.round((freshBuyer.quotaBalance - costUSD) * 1e9) / 1e9;
               await sovereignStateRepository.upsertTenant(freshBuyer);
 
               // Acreditar saldo madurado al vendedor (owner del skill)
-              const ownerAccount = await sovereignStateRepository.getMonetizationAccount(
+              const ownerAccount =
+                await sovereignStateRepository.getMonetizationAccount(
+                  listing.ownerId,
+                );
+              await sovereignStateRepository.updateMonetizationAccount(
                 listing.ownerId,
+                {
+                  earnedBalanceCents:
+                    ownerAccount.earnedBalanceCents + userNetCents,
+                  approvedContributions: ownerAccount.approvedContributions + 1,
+                },
               );
-              await sovereignStateRepository.updateMonetizationAccount(listing.ownerId, {
-                earnedBalanceCents: ownerAccount.earnedBalanceCents + userNetCents,
-                approvedContributions: ownerAccount.approvedContributions + 1,
-              });
 
               // Registrar transacción en el Ledger (BookPI)
               const block = await sovereignStateRepository.appendLedgerBlock(
@@ -1127,7 +1297,9 @@ export const Route = createFileRoute("/api/billing")({
           }
 
           return new Response(
-            JSON.stringify({ error: "Acción POST de facturación desconocida." }),
+            JSON.stringify({
+              error: "Acción POST de facturación desconocida.",
+            }),
             {
               status: 400,
               headers,
@@ -1144,7 +1316,9 @@ export const Route = createFileRoute("/api/billing")({
           // Nunca exponer detalles internos en producción; solo en desarrollo local.
           if (isDev) {
             payload.message =
-              e instanceof Error ? e.message : "Error desconocido de backend de facturación.";
+              e instanceof Error
+                ? e.message
+                : "Error desconocido de backend de facturación.";
           }
           return new Response(JSON.stringify(payload), {
             status: 500,

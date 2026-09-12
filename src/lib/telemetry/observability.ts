@@ -1,4 +1,8 @@
-import { IsabellaCoreId, ISABELLA_MODULE_CATALOG, IsabellaModuleId } from "../latam-aegis-x";
+import {
+  IsabellaCoreId,
+  ISABELLA_MODULE_CATALOG,
+  IsabellaModuleId,
+} from "../latam-aegis-x";
 
 export interface CoreTelemetryMetric {
   id: IsabellaCoreId;
@@ -41,7 +45,9 @@ class ObservabilityEngine {
 
   private createEmptySnapshot(): ObservabilitySnapshot {
     const cores = {} as Record<IsabellaCoreId, CoreTelemetryMetric>;
-    for (const [moduleId, metadata] of Object.entries(ISABELLA_MODULE_CATALOG)) {
+    for (const [moduleId, metadata] of Object.entries(
+      ISABELLA_MODULE_CATALOG,
+    )) {
       for (const coreId of metadata.cores) {
         cores[coreId] = {
           id: coreId,
@@ -89,23 +95,45 @@ class ObservabilityEngine {
 
   /** Records a real observed application event; it does not generate events. */
   public recordEvent(latencyMs: number, score: number) {
-    if (!Number.isFinite(latencyMs) || latencyMs < 0) throw new Error("invalid_latency");
+    if (!Number.isFinite(latencyMs) || latencyMs < 0)
+      throw new Error("invalid_latency");
     if (!Number.isFinite(score)) throw new Error("invalid_anomaly_score");
     const s = this.currentSnapshot;
     const previousEvents = s.totalEventsProcessed;
     s.totalEventsProcessed += 1;
-    s.avgLatencyMs = previousEvents === 0 ? latencyMs : (s.avgLatencyMs * previousEvents + latencyMs) / s.totalEventsProcessed;
-    s.anomalyScore = previousEvents === 0 ? score : (s.anomalyScore * previousEvents + score) / s.totalEventsProcessed;
+    s.avgLatencyMs =
+      previousEvents === 0
+        ? latencyMs
+        : (s.avgLatencyMs * previousEvents + latencyMs) /
+          s.totalEventsProcessed;
+    s.anomalyScore =
+      previousEvents === 0
+        ? score
+        : (s.anomalyScore * previousEvents + score) / s.totalEventsProcessed;
     s.timestamp = new Date().toISOString();
     this.notifyListeners();
   }
 
   /** Explicit state updates are only accepted from real runtime instrumentation. */
-  public updateCoreTelemetry(coreId: IsabellaCoreId, telemetry: Partial<Omit<CoreTelemetryMetric, "id" | "moduleId">>) {
+  public updateCoreTelemetry(
+    coreId: IsabellaCoreId,
+    telemetry: Partial<Omit<CoreTelemetryMetric, "id" | "moduleId">>,
+  ) {
     const core = this.currentSnapshot.cores[coreId];
     if (!core) throw new Error(`unknown_core:${coreId}`);
-    if (telemetry.memoryUsageBytes !== undefined && (!Number.isFinite(telemetry.memoryUsageBytes) || telemetry.memoryUsageBytes < 0)) throw new Error("invalid_memory");
-    if (telemetry.loadPercentage !== undefined && (!Number.isFinite(telemetry.loadPercentage) || telemetry.loadPercentage < 0 || telemetry.loadPercentage > 100)) throw new Error("invalid_load");
+    if (
+      telemetry.memoryUsageBytes !== undefined &&
+      (!Number.isFinite(telemetry.memoryUsageBytes) ||
+        telemetry.memoryUsageBytes < 0)
+    )
+      throw new Error("invalid_memory");
+    if (
+      telemetry.loadPercentage !== undefined &&
+      (!Number.isFinite(telemetry.loadPercentage) ||
+        telemetry.loadPercentage < 0 ||
+        telemetry.loadPercentage > 100)
+    )
+      throw new Error("invalid_load");
     Object.assign(core, telemetry);
     this.currentSnapshot.timestamp = new Date().toISOString();
     this.notifyListeners();
@@ -116,12 +144,20 @@ class ObservabilityEngine {
   }
 
   public flagCoreWarning(coreId: IsabellaCoreId, load: number, stack: number) {
-    this.updateCoreTelemetry(coreId, { status: "warning", loadPercentage: load, stackDepth: stack });
+    this.updateCoreTelemetry(coreId, {
+      status: "warning",
+      loadPercentage: load,
+      stackDepth: stack,
+    });
   }
 
   public flagCoreError(coreId: IsabellaCoreId, memory: number) {
     const core = this.currentSnapshot.cores[coreId];
-    this.updateCoreTelemetry(coreId, { status: "error", memoryUsageBytes: memory, errorCount: core.errorCount + 1 });
+    this.updateCoreTelemetry(coreId, {
+      status: "error",
+      memoryUsageBytes: memory,
+      errorCount: core.errorCount + 1,
+    });
   }
 
   public dispose() {

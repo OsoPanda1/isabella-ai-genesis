@@ -62,7 +62,12 @@ export async function claimWebhookEvent(input: {
     const payloadHash =
       input.payloadHash ??
       createHash("sha256")
-        .update(JSON.stringify({ provider: input.provider, eventId: input.providerEventId }))
+        .update(
+          JSON.stringify({
+            provider: input.provider,
+            eventId: input.providerEventId,
+          }),
+        )
         .digest("hex");
     const { rows } = await client.query(
       `INSERT INTO webhook_events (provider, provider_event_id, event_type, payload_hash, status, processed_at, error)
@@ -126,7 +131,8 @@ export async function recordEconomicEvent(
       : BigInt(Math.round(input.amountMinor));
   try {
     const cfg = config();
-    const key = input.idempotencyKey ?? input.providerEventId ?? `uuid_${randomUUID()}`;
+    const key =
+      input.idempotencyKey ?? input.providerEventId ?? `uuid_${randomUUID()}`;
     const { rows } = await getPool().query(
       `INSERT INTO economic_events
          (tenant_id, actor_id, event_type, currency, amount_minor, direction,
@@ -140,7 +146,8 @@ export async function recordEconomicEvent(
         input.eventType,
         sum.toString(),
         input.direction,
-        input.source ?? (cfg.NODE_ENV === "development" ? "dev_internal" : "internal"),
+        input.source ??
+          (cfg.NODE_ENV === "development" ? "dev_internal" : "internal"),
         input.provider ?? null,
         input.providerEventId ?? null,
         key,

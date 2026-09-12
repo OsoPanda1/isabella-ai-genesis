@@ -10,7 +10,10 @@ import type { ApiKeyRecord } from "./credential-types";
 // CANONICAL SOVEREIGN COGNITIVE & DATA ENGINE - ISABELLA v4.2.0
 // ============================================================================
 
-const PERSISTENCE_FILE_PATH = path.join(process.cwd(), "isabella_sovereign_db.json");
+const PERSISTENCE_FILE_PATH = path.join(
+  process.cwd(),
+  "isabella_sovereign_db.json",
+);
 
 // 1. Core Cryptographic Chaining Schema (BookPI Ledger)
 export interface BookPILedgerBlock {
@@ -19,7 +22,8 @@ export interface BookPILedgerBlock {
   tenantId: string;
   userId: string;
   operation: string;
-  category: "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT";
+  category:
+    "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT";
   costDecimal: string;
   tokensConsumed: number;
   previousHash: string;
@@ -130,7 +134,8 @@ function emptyDatabase(): DatabaseSchema {
 }
 
 /** Hash previo canónico de génesis (bloque raíz). */
-const GENESIS_PREVIOUS_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
+const GENESIS_PREVIOUS_HASH =
+  "0000000000000000000000000000000000000000000000000000000000000000";
 
 // ============================================================================
 // HELPER METHODS: PERSISTENT STORAGE CONTROLLER
@@ -331,9 +336,16 @@ export class SovereignDB {
         if (!fs.existsSync(dir)) {
           fs.mkdirSync(dir, { recursive: true });
         }
-        fs.writeFileSync(PERSISTENCE_FILE_PATH, JSON.stringify(db, null, 2), "utf8");
+        fs.writeFileSync(
+          PERSISTENCE_FILE_PATH,
+          JSON.stringify(db, null, 2),
+          "utf8",
+        );
       } catch (e) {
-        console.error("Fallo crítico al escribir en la base de datos persistente:", e);
+        console.error(
+          "Fallo crítico al escribir en la base de datos persistente:",
+          e,
+        );
       }
       return;
     }
@@ -427,7 +439,11 @@ export class SovereignDB {
 
     // Find all refunded indexes via append-only refund event blocks
     for (const item of db.ledger) {
-      if (item.operation.startsWith("REFUND_EVENT: Reembolso de transacción index ")) {
+      if (
+        item.operation.startsWith(
+          "REFUND_EVENT: Reembolso de transacción index ",
+        )
+      ) {
         const parts = item.operation.split("index ");
         const idx = parseInt(parts[1] || "", 10);
         if (!isNaN(idx)) {
@@ -452,7 +468,11 @@ export class SovereignDB {
 
     // Find all refunded indexes via append-only refund event blocks
     for (const item of db.ledger) {
-      if (item.operation.startsWith("REFUND_EVENT: Reembolso de transacción index ")) {
+      if (
+        item.operation.startsWith(
+          "REFUND_EVENT: Reembolso de transacción index ",
+        )
+      ) {
         const parts = item.operation.split("index ");
         const idx = parseInt(parts[1] || "", 10);
         if (!isNaN(idx)) {
@@ -474,7 +494,8 @@ export class SovereignDB {
     tenantId: string,
     userId: string,
     operation: string,
-    category: "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT",
+    category:
+      "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT",
     cost: number,
     tokens: number,
   ): BookPILedgerBlock {
@@ -495,7 +516,9 @@ export class SovereignDB {
       throw new Error("BookPI requiere BOOKPI_SIGNING_KEY en producción.");
     }
     const pqcSignature = signingKey
-      ? crypto.sign("sha384", Buffer.from(blockContent), signingKey).toString("base64url")
+      ? crypto
+          .sign("sha384", Buffer.from(blockContent), signingKey)
+          .toString("base64url")
       : null;
 
     const newBlock: BookPILedgerBlock = {
@@ -534,14 +557,21 @@ export class SovereignDB {
     const block = db.ledger.find((b) => b.index === index);
     if (!block) return { success: false, error: "Transacción no encontrada." };
     if (block.tenantId !== tenantId)
-      return { success: false, error: "Violación de tenencia cruzada (Cross-Tenant violation)." };
+      return {
+        success: false,
+        error: "Violación de tenencia cruzada (Cross-Tenant violation).",
+      };
 
     // Check if already refunded by checking for the REFUND_EVENT block
     const isAlreadyRefunded = db.ledger.some(
-      (b) => b.operation === `REFUND_EVENT: Reembolso de transacción index ${index}`,
+      (b) =>
+        b.operation === `REFUND_EVENT: Reembolso de transacción index ${index}`,
     );
     if (isAlreadyRefunded || block.status === "refunded") {
-      return { success: false, error: "Esta transacción ya ha sido reembolsada." };
+      return {
+        success: false,
+        error: "Esta transacción ya ha sido reembolsada.",
+      };
     }
 
     // Append a new, secure REFUND_EVENT block to the ledger
@@ -558,10 +588,15 @@ export class SovereignDB {
     const signingKey = config().BOOKPI_SIGNING_KEY;
     const isProduction = isProductionRuntime();
     if (isProduction && !signingKey) {
-      return { success: false, error: "BookPI requiere BOOKPI_SIGNING_KEY en producción." };
+      return {
+        success: false,
+        error: "BookPI requiere BOOKPI_SIGNING_KEY en producción.",
+      };
     }
     const pqcSignature = signingKey
-      ? crypto.sign("sha384", Buffer.from(blockData), signingKey).toString("base64url")
+      ? crypto
+          .sign("sha384", Buffer.from(blockData), signingKey)
+          .toString("base64url")
       : null;
 
     const refundBlock: BookPILedgerBlock = {
@@ -599,7 +634,9 @@ export class SovereignDB {
   }
 
   // Get active session with multi-tenant OIDC and real, signature-validated JWT claims
-  public static async getSessionByToken(token: string): Promise<UserSession | undefined> {
+  public static async getSessionByToken(
+    token: string,
+  ): Promise<UserSession | undefined> {
     const db = this.load();
 
     // Try to verify as a real cryptographic token first
@@ -678,7 +715,10 @@ export class SovereignDB {
       }
 
       // 4. Validate signing policy. Production never accepts unsigned BookPI blocks.
-      if (block.signatureAlgorithm === "UNSIGNED_DEV" || block.pqcSignature === null) {
+      if (
+        block.signatureAlgorithm === "UNSIGNED_DEV" ||
+        block.pqcSignature === null
+      ) {
         if (isProductionRuntime()) {
           return {
             success: false,
@@ -728,7 +768,8 @@ export class SovereignDB {
   ): AuditLog {
     const db = this.load();
 
-    const previousLogHash = db.auditLogs[0]?.verificationHash ?? GENESIS_PREVIOUS_HASH;
+    const previousLogHash =
+      db.auditLogs[0]?.verificationHash ?? GENESIS_PREVIOUS_HASH;
 
     const id = `evt_${crypto.randomUUID()}`;
     const timestamp = new Date().toISOString();
@@ -764,7 +805,11 @@ export class SovereignDB {
    * Cryptographically validates the entire chronological chain of security audit logs.
    * Assures absolute anti-tampering and event compliance.
    */
-  public static verifyAuditChain(): { success: boolean; error?: string; corruptedId?: string } {
+  public static verifyAuditChain(): {
+    success: boolean;
+    error?: string;
+    corruptedId?: string;
+  } {
     const db = this.load();
     const logs = [...db.auditLogs].reverse(); // Verify from oldest (genesis) to newest
 
@@ -778,7 +823,8 @@ export class SovereignDB {
         };
       }
       const prevLog = logs[i - 1];
-      const expectedPrevHash = i === 0 ? GENESIS_PREVIOUS_HASH : (prevLog?.verificationHash ?? "");
+      const expectedPrevHash =
+        i === 0 ? GENESIS_PREVIOUS_HASH : (prevLog?.verificationHash ?? "");
 
       if (log.previousLogHash !== expectedPrevHash) {
         return {
@@ -854,7 +900,10 @@ export class SovereignDB {
     return db.monetization[userId];
   }
 
-  public static updateMonetizationAccount(userId: string, update: Record<string, unknown>) {
+  public static updateMonetizationAccount(
+    userId: string,
+    update: Record<string, unknown>,
+  ) {
     const db = this.load();
     db.monetization = db.monetization || {};
     const account = this.getMonetizationAccount(userId);
@@ -1114,7 +1163,10 @@ function tokenizeExpression(input: string): SandboxToken[] {
       (ch === "." && (input[i + 1] ?? "") >= "0" && (input[i + 1] ?? "") <= "9")
     ) {
       let j = i + 1;
-      while (j < input.length && ((input[j]! >= "0" && input[j]! <= "9") || input[j] === "."))
+      while (
+        j < input.length &&
+        ((input[j]! >= "0" && input[j]! <= "9") || input[j] === ".")
+      )
         j += 1;
       const raw = input.slice(i, j);
       if (!Number.isFinite(Number(raw))) {
@@ -1124,7 +1176,12 @@ function tokenizeExpression(input: string): SandboxToken[] {
       i = j;
       continue;
     }
-    if ((ch >= "a" && ch <= "z") || (ch >= "A" && ch <= "Z") || ch === "_" || ch === "$") {
+    if (
+      (ch >= "a" && ch <= "z") ||
+      (ch >= "A" && ch <= "Z") ||
+      ch === "_" ||
+      ch === "$"
+    ) {
       let j = i + 1;
       while (
         j < input.length &&
@@ -1171,7 +1228,10 @@ class ExpressionEvaluator {
     this.tokens = tokenizeExpression(input);
   }
 
-  public static run(input: string, variables: Record<string, number>): SandboxValue {
+  public static run(
+    input: string,
+    variables: Record<string, number>,
+  ): SandboxValue {
     const evaluator = new ExpressionEvaluator(input);
     const result = evaluator.parseOr(0, variables);
     evaluator.expectEnd();
@@ -1210,11 +1270,15 @@ class ExpressionEvaluator {
   }
 
   private toNumber(value: SandboxValue | undefined): number {
-    if (typeof value !== "number") throw new Error("Operación aritmética con valor no numérico.");
+    if (typeof value !== "number")
+      throw new Error("Operación aritmética con valor no numérico.");
     return value;
   }
 
-  private parseOr(depth: number, variables: Record<string, number>): SandboxValue {
+  private parseOr(
+    depth: number,
+    variables: Record<string, number>,
+  ): SandboxValue {
     let left = this.parseAnd(depth, variables);
     for (;;) {
       if (this.matchOp("||")) {
@@ -1225,7 +1289,10 @@ class ExpressionEvaluator {
     return left;
   }
 
-  private parseAnd(depth: number, variables: Record<string, number>): SandboxValue {
+  private parseAnd(
+    depth: number,
+    variables: Record<string, number>,
+  ): SandboxValue {
     let left = this.parseComparison(depth, variables);
     for (;;) {
       if (this.matchOp("&&")) {
@@ -1236,39 +1303,57 @@ class ExpressionEvaluator {
     return left;
   }
 
-  private parseComparison(depth: number, variables: Record<string, number>): SandboxValue {
+  private parseComparison(
+    depth: number,
+    variables: Record<string, number>,
+  ): SandboxValue {
     const left = this.parseSum(depth, variables);
     const t = this.peek();
     if (t?.kind === "op") {
       if (t.value === "<") {
         this.pos += 1;
-        return this.toNumber(left) < this.toNumber(this.parseSum(depth, variables));
+        return (
+          this.toNumber(left) < this.toNumber(this.parseSum(depth, variables))
+        );
       }
       if (t.value === "<=") {
         this.pos += 1;
-        return this.toNumber(left) <= this.toNumber(this.parseSum(depth, variables));
+        return (
+          this.toNumber(left) <= this.toNumber(this.parseSum(depth, variables))
+        );
       }
       if (t.value === ">") {
         this.pos += 1;
-        return this.toNumber(left) > this.toNumber(this.parseSum(depth, variables));
+        return (
+          this.toNumber(left) > this.toNumber(this.parseSum(depth, variables))
+        );
       }
       if (t.value === ">=") {
         this.pos += 1;
-        return this.toNumber(left) >= this.toNumber(this.parseSum(depth, variables));
+        return (
+          this.toNumber(left) >= this.toNumber(this.parseSum(depth, variables))
+        );
       }
       if (t.value === "==") {
         this.pos += 1;
-        return this.toNumber(left) === this.toNumber(this.parseSum(depth, variables));
+        return (
+          this.toNumber(left) === this.toNumber(this.parseSum(depth, variables))
+        );
       }
       if (t.value === "!=") {
         this.pos += 1;
-        return this.toNumber(left) !== this.toNumber(this.parseSum(depth, variables));
+        return (
+          this.toNumber(left) !== this.toNumber(this.parseSum(depth, variables))
+        );
       }
     }
     return left;
   }
 
-  private parseSum(depth: number, variables: Record<string, number>): SandboxValue {
+  private parseSum(
+    depth: number,
+    variables: Record<string, number>,
+  ): SandboxValue {
     let left = this.toNumber(this.parseProduct(depth, variables));
     for (;;) {
       if (this.matchOp("+")) {
@@ -1280,7 +1365,10 @@ class ExpressionEvaluator {
     return left;
   }
 
-  private parseProduct(depth: number, variables: Record<string, number>): SandboxValue {
+  private parseProduct(
+    depth: number,
+    variables: Record<string, number>,
+  ): SandboxValue {
     let left = this.toNumber(this.parseUnary(depth, variables));
     for (;;) {
       if (this.matchOp("*")) {
@@ -1298,13 +1386,20 @@ class ExpressionEvaluator {
     return left;
   }
 
-  private parseUnary(depth: number, variables: Record<string, number>): SandboxValue {
+  private parseUnary(
+    depth: number,
+    variables: Record<string, number>,
+  ): SandboxValue {
     if (this.matchOp("+")) return this.parseUnary(depth, variables);
-    if (this.matchOp("-")) return -this.toNumber(this.parseUnary(depth, variables));
+    if (this.matchOp("-"))
+      return -this.toNumber(this.parseUnary(depth, variables));
     return this.parsePower(depth, variables);
   }
 
-  private parsePower(depth: number, variables: Record<string, number>): SandboxValue {
+  private parsePower(
+    depth: number,
+    variables: Record<string, number>,
+  ): SandboxValue {
     const base = this.toNumber(this.parsePrimary(depth, variables));
     if (this.matchOp("^")) {
       const exponent = this.toNumber(this.parseUnary(depth, variables));
@@ -1313,7 +1408,10 @@ class ExpressionEvaluator {
     return base;
   }
 
-  private parsePrimary(depth: number, variables: Record<string, number>): SandboxValue {
+  private parsePrimary(
+    depth: number,
+    variables: Record<string, number>,
+  ): SandboxValue {
     if (depth > MAX_EXPRESSION_DEPTH) {
       throw new Error("Profundidad máxima de expresión excedida.");
     }
@@ -1321,7 +1419,8 @@ class ExpressionEvaluator {
     if (!token) throw new Error("Expresión incompleta.");
     if (token.kind === "number") {
       const value = Number(token.value);
-      if (!Number.isFinite(value)) throw new Error("Literal numérico fuera de rango.");
+      if (!Number.isFinite(value))
+        throw new Error("Literal numérico fuera de rango.");
       return value;
     }
     if (token.kind === "op") {
@@ -1330,7 +1429,9 @@ class ExpressionEvaluator {
         this.expectOp(")");
         return inner;
       }
-      throw new Error(`Operador no permitido en esta posición [${token.value}].`);
+      throw new Error(
+        `Operador no permitido en esta posición [${token.value}].`,
+      );
     }
 
     const name = token.value;
@@ -1346,7 +1447,11 @@ class ExpressionEvaluator {
     if (next?.kind === "op" && next.value === "." && name === "Math") {
       this.pos += 1;
       const fnToken = this.next();
-      if (!fnToken || fnToken.kind !== "ident" || !MATH_FN_NAMES.has(fnToken.value)) {
+      if (
+        !fnToken ||
+        fnToken.kind !== "ident" ||
+        !MATH_FN_NAMES.has(fnToken.value)
+      ) {
         throw new Error("Función Math no autorizada.");
       }
       return this.callFunction(fnToken.value, depth, variables);
@@ -1399,14 +1504,18 @@ class ExpressionEvaluator {
       case "tan":
         return Math.tan(single());
       case "min":
-        if (args.length < 1) throw new Error(`Función [${name}] requiere al menos 1 argumento.`);
+        if (args.length < 1)
+          throw new Error(`Función [${name}] requiere al menos 1 argumento.`);
         return Math.min(...args);
       case "max":
-        if (args.length < 1) throw new Error(`Función [${name}] requiere al menos 1 argumento.`);
+        if (args.length < 1)
+          throw new Error(`Función [${name}] requiere al menos 1 argumento.`);
         return Math.max(...args);
       case "pow":
         if (args.length !== 2)
-          throw new Error(`Función [${name}] requiere exactamente 2 argumentos.`);
+          throw new Error(
+            `Función [${name}] requiere exactamente 2 argumentos.`,
+          );
         return Math.pow(args[0]!, args[1]!);
       default:
         throw new Error(`Función no autorizada [${name}].`);
@@ -1447,7 +1556,8 @@ export class SovereignSandbox {
         if (charCode < 32 || charCode > 126) {
           return {
             success: false,
-            error: "Violación de sandbox: Caracteres de control o no-ASCII prohibidos.",
+            error:
+              "Violación de sandbox: Caracteres de control o no-ASCII prohibidos.",
           };
         }
       }

@@ -6,7 +6,8 @@ describe("Isabella learning core", () => {
     const engine = createIsabellaLearningEngine();
     const result = engine.ingest({
       mode: "procedural",
-      input: "Primero valida la autoridad. Luego registra evidencia. Finalmente evalua el resultado.",
+      input:
+        "Primero valida la autoridad. Luego registra evidencia. Finalmente evalua el resultado.",
       target: "La secuencia correcta es validar, registrar y evaluar.",
       outcome: "success",
       quality: 0.95,

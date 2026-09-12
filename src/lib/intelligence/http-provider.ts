@@ -1,4 +1,9 @@
-import type { IntelligenceProvider, IntelligenceRequest, IntelligenceResponse, Modality } from "./contracts";
+import type {
+  IntelligenceProvider,
+  IntelligenceRequest,
+  IntelligenceResponse,
+  Modality,
+} from "./contracts";
 
 export interface HttpProviderOptions {
   providerId: string;
@@ -11,7 +16,8 @@ export interface HttpProviderOptions {
 
 function assertHttps(url: string): void {
   const parsed = new URL(url);
-  if (parsed.protocol !== "https:" && parsed.hostname !== "localhost") throw new Error("Intelligence upstream must use HTTPS");
+  if (parsed.protocol !== "https:" && parsed.hostname !== "localhost")
+    throw new Error("Intelligence upstream must use HTTPS");
 }
 
 export class OpenAICompatibleProvider implements IntelligenceProvider {
@@ -24,7 +30,8 @@ export class OpenAICompatibleProvider implements IntelligenceProvider {
 
   constructor(options: HttpProviderOptions) {
     assertHttps(options.endpoint);
-    if (!options.apiKey) throw new Error(`Missing credential for ${options.providerId}`);
+    if (!options.apiKey)
+      throw new Error(`Missing credential for ${options.providerId}`);
     this.providerId = options.providerId;
     this.modelId = options.modelId;
     this.endpoint = options.endpoint;
@@ -45,7 +52,10 @@ export class OpenAICompatibleProvider implements IntelligenceProvider {
       const response = await fetch(this.endpoint, {
         method: "POST",
         signal: controller.signal,
-        headers: { "content-type": "application/json", authorization: `Bearer ${this.apiKey}` },
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${this.apiKey}`,
+        },
         body: JSON.stringify({
           model: this.modelId,
           messages: request.messages,
@@ -53,10 +63,17 @@ export class OpenAICompatibleProvider implements IntelligenceProvider {
           max_tokens: request.maxTokens ?? 2048,
         }),
       });
-      if (!response.ok) throw new Error(`Upstream ${this.providerId} returned ${response.status}`);
-      const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }>; usage?: { prompt_tokens?: number; completion_tokens?: number } };
+      if (!response.ok)
+        throw new Error(
+          `Upstream ${this.providerId} returned ${response.status}`,
+        );
+      const payload = (await response.json()) as {
+        choices?: Array<{ message?: { content?: string } }>;
+        usage?: { prompt_tokens?: number; completion_tokens?: number };
+      };
       const text = payload.choices?.[0]?.message?.content;
-      if (!text) throw new Error(`Upstream ${this.providerId} returned no text`);
+      if (!text)
+        throw new Error(`Upstream ${this.providerId} returned no text`);
       return {
         requestId: request.requestId,
         modelId: this.modelId,
@@ -65,7 +82,10 @@ export class OpenAICompatibleProvider implements IntelligenceProvider {
         latencyMs: performance.now() - started,
         degraded: false,
         risk: "LOW",
-        usage: { inputTokens: payload.usage?.prompt_tokens, outputTokens: payload.usage?.completion_tokens },
+        usage: {
+          inputTokens: payload.usage?.prompt_tokens,
+          outputTokens: payload.usage?.completion_tokens,
+        },
       };
     } finally {
       clearTimeout(timer);

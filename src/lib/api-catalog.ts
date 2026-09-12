@@ -50,7 +50,11 @@ const addCrudRoutes = (
       audit: false,
       status: "contract",
       description: `Listar todos los ${descName} disponibles en el espacio de trabajo del inquilino.`,
-      responseSchema: JSON.stringify({ items: [schemaFields], total: "number" }, null, 2),
+      responseSchema: JSON.stringify(
+        { items: [schemaFields], total: "number" },
+        null,
+        2,
+      ),
       mockResponse: { items: [mockObj], total: 1 },
     },
     {
@@ -121,7 +125,11 @@ const addCrudRoutes = (
         null,
         2,
       ),
-      mockResponse: { deleted: true, id: "target-id", purgedAt: new Date().toISOString() },
+      mockResponse: {
+        deleted: true,
+        id: "target-id",
+        purgedAt: new Date().toISOString(),
+      },
     },
     {
       id: `${domain}.${resource}.action`,
@@ -133,9 +141,20 @@ const addCrudRoutes = (
       audit: true,
       status: "contract",
       description: `Ejecutar una acción o procedimiento operativo especial sobre el ${descName} seleccionado.`,
-      requestSchema: JSON.stringify({ action: "string", params: "object" }, null, 2),
-      responseSchema: JSON.stringify({ status: "success", traceId: "string" }, null, 2),
-      mockResponse: { status: "success", traceId: "tr-live-execution-simulated" },
+      requestSchema: JSON.stringify(
+        { action: "string", params: "object" },
+        null,
+        2,
+      ),
+      responseSchema: JSON.stringify(
+        { status: "success", traceId: "string" },
+        null,
+        2,
+      ),
+      mockResponse: {
+        status: "success",
+        traceId: "tr-live-execution-simulated",
+      },
     },
   );
 };
@@ -159,7 +178,11 @@ addCrudRoutes(
   "/v1/identity/users",
   "usuario autenticado",
   { username: "string", email: "string", status: "string" },
-  { username: "anubisvillasenor", email: "anubisvillasenor1@gmail.com", status: "active" },
+  {
+    username: "anubisvillasenor",
+    email: "anubisvillasenor1@gmail.com",
+    status: "active",
+  },
 );
 addCrudRoutes(
   "identity",
@@ -187,7 +210,11 @@ addCrudRoutes(
   "/v1/identity/tenants",
   "inquilino o nodo soberano",
   { name: "string", location: "string", complianceTier: "string" },
-  { name: "TAMV ONLINE NETWORK", location: "Real del Monte, Hidalgo", complianceTier: "Sovereign" },
+  {
+    name: "TAMV ONLINE NETWORK",
+    location: "Real del Monte, Hidalgo",
+    complianceTier: "Sovereign",
+  },
 );
 addCrudRoutes(
   "identity",
@@ -195,7 +222,11 @@ addCrudRoutes(
   "/v1/identity/consents",
   "consentimiento explícito",
   { actorId: "string", purpose: "string", granted: "boolean" },
-  { actorId: "usr-anubis", purpose: "Uso de memoria histórica de Real del Monte", granted: true },
+  {
+    actorId: "usr-anubis",
+    purpose: "Uso de memoria histórica de Real del Monte",
+    granted: true,
+  },
 );
 addCrudRoutes(
   "identity",
@@ -203,7 +234,11 @@ addCrudRoutes(
   "/v1/identity/api-keys",
   "llave de API rotada",
   { label: "string", truncatedKey: "string", role: "string" },
-  { label: "Isabella-Integration-Key", truncatedKey: "isa_live_...9f2a", role: "orion_executor" },
+  {
+    label: "Isabella-Integration-Key",
+    truncatedKey: "isa_live_...9f2a",
+    role: "orion_executor",
+  },
 );
 addCrudRoutes(
   "identity",
@@ -211,7 +246,11 @@ addCrudRoutes(
   "/v1/identity/devices",
   "dispositivo autorizado",
   { deviceName: "string", ipAddress: "string", trustworthyScore: "number" },
-  { deviceName: "Terminal-Soberano-01", ipAddress: "192.168.10.15", trustworthyScore: 0.99 },
+  {
+    deviceName: "Terminal-Soberano-01",
+    ipAddress: "192.168.10.15",
+    trustworthyScore: 0.99,
+  },
 );
 addCrudRoutes(
   "identity",
@@ -245,7 +284,10 @@ addCrudRoutes(
   "/v1/crown/plans",
   "plan operativo propuesto",
   { steps: "string[]", estimatedLatencyMs: "number" },
-  { steps: ["Validar en ARGUS", "Consultar memoria", "Generar síntesis"], estimatedLatencyMs: 120 },
+  {
+    steps: ["Validar en ARGUS", "Consultar memoria", "Generar síntesis"],
+    estimatedLatencyMs: 120,
+  },
 );
 addCrudRoutes(
   "crown",
@@ -269,7 +311,11 @@ addCrudRoutes(
   "/v1/crown/approvals",
   "aprobación de alto impacto",
   { token: "string", action: "string", approvedBy: "string" },
-  { token: "tok-approve-991", action: "modify", approvedBy: "Edwin Oswaldo Castillo" },
+  {
+    token: "tok-approve-991",
+    action: "modify",
+    approvedBy: "Edwin Oswaldo Castillo",
+  },
 );
 addCrudRoutes(
   "crown",
@@ -335,7 +381,10 @@ addCrudRoutes(
   "/v1/heads/proposals",
   "propuesta del modelo",
   { draftId: "string", content: "string" },
-  { draftId: "prp-1129", content: "Plan de reactivación de turismo sustentable" },
+  {
+    draftId: "prp-1129",
+    content: "Plan de reactivación de turismo sustentable",
+  },
 );
 addCrudRoutes(
   "heads",

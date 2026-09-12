@@ -30,8 +30,15 @@ export const EvidenceSchema = z.object({
     "DESIGN_RECORDS",
     "DATED_ARTIFACTS",
   ]),
-  source: z.enum(["repository", "test-execution", "external", "infrastructure"]),
-  provenance: z.enum(["STATIC", "RUNTIME", "CI", "PRODUCTION", "EXTERNAL"]).default("STATIC"),
+  source: z.enum([
+    "repository",
+    "test-execution",
+    "external",
+    "infrastructure",
+  ]),
+  provenance: z
+    .enum(["STATIC", "RUNTIME", "CI", "PRODUCTION", "EXTERNAL"])
+    .default("STATIC"),
   location: z
     .object({
       file: z.string().optional(),

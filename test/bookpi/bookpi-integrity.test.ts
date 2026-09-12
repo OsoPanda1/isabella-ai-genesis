@@ -13,7 +13,9 @@ beforeAll(() => {
   // RSA-2048 bajo carga paralela puede superar el hookTimeout de 10s.
   const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   process.env.BOOKPI_SIGNATURE_ALGORITHM = "RSA-SHA256";
-  process.env.BOOKPI_SIGNING_KEY = privateKey.export({ type: "pkcs8", format: "pem" }).toString();
+  process.env.BOOKPI_SIGNING_KEY = privateKey
+    .export({ type: "pkcs8", format: "pem" })
+    .toString();
   process.env.ISABELLA_RUNTIME_MODE = "development";
   resetConfigCache();
 }, 30000);
@@ -30,9 +32,30 @@ function freshRepo() {
 }
 
 function appendThree(repo: ReturnType<typeof createBookpiRepository>) {
-  repo.append({ tenantId: "T_A", userId: "u1", operation: "OP1", category: "inference", cost: 1.5, tokens: 10 });
-  repo.append({ tenantId: "T_A", userId: "u1", operation: "OP2", category: "inference", cost: 2.25, tokens: 20 });
-  repo.append({ tenantId: "T_A", userId: "u2", operation: "OP3", category: "processing", cost: 0.5, tokens: 5 });
+  repo.append({
+    tenantId: "T_A",
+    userId: "u1",
+    operation: "OP1",
+    category: "inference",
+    cost: 1.5,
+    tokens: 10,
+  });
+  repo.append({
+    tenantId: "T_A",
+    userId: "u1",
+    operation: "OP2",
+    category: "inference",
+    cost: 2.25,
+    tokens: 20,
+  });
+  repo.append({
+    tenantId: "T_A",
+    userId: "u2",
+    operation: "OP3",
+    category: "processing",
+    cost: 0.5,
+    tokens: 5,
+  });
 }
 
 describe("BookPI invarianes (§7 manual)", () => {
@@ -91,8 +114,26 @@ describe("BookPI invarianes (§7 manual)", () => {
   it("006: dos appends concurrentes → índices 0 y 1 (nunca duplicados)", async () => {
     const repo = freshRepo();
     await Promise.all([
-      Promise.resolve().then(() => repo.append({ tenantId: "T_A", userId: "u1", operation: "A", category: "apis", cost: 1, tokens: 1 })),
-      Promise.resolve().then(() => repo.append({ tenantId: "T_A", userId: "u1", operation: "B", category: "apis", cost: 2, tokens: 2 })),
+      Promise.resolve().then(() =>
+        repo.append({
+          tenantId: "T_A",
+          userId: "u1",
+          operation: "A",
+          category: "apis",
+          cost: 1,
+          tokens: 1,
+        }),
+      ),
+      Promise.resolve().then(() =>
+        repo.append({
+          tenantId: "T_A",
+          userId: "u1",
+          operation: "B",
+          category: "apis",
+          cost: 2,
+          tokens: 2,
+        }),
+      ),
     ]);
     const ledger = repo.list("T_A");
     const indexes = ledger.map((b) => b.index).sort((a, b) => a - b);
@@ -101,7 +142,14 @@ describe("BookPI invarianes (§7 manual)", () => {
 
   it("007: dos refunds sobre el mismo evento → 1 aceptado, 1 rechazado", () => {
     const repo = freshRepo();
-    repo.append({ tenantId: "T_A", userId: "u1", operation: "PAY", category: "skills", cost: 10, tokens: 0 });
+    repo.append({
+      tenantId: "T_A",
+      userId: "u1",
+      operation: "PAY",
+      category: "skills",
+      cost: 10,
+      tokens: 0,
+    });
     const first = repo.refund(0, "T_A");
     const second = repo.refund(0, "T_A");
     expect(first.success).toBe(true);
@@ -110,7 +158,14 @@ describe("BookPI invarianes (§7 manual)", () => {
 
   it("refund respeta la frontera de tenant (nunca otro tenant)", () => {
     const repo = freshRepo();
-    repo.append({ tenantId: "T_A", userId: "u1", operation: "PAY", category: "skills", cost: 10, tokens: 0 });
+    repo.append({
+      tenantId: "T_A",
+      userId: "u1",
+      operation: "PAY",
+      category: "skills",
+      cost: 10,
+      tokens: 0,
+    });
     const cross = repo.refund(0, "T_B");
     expect(cross.success).toBe(false);
   });
@@ -119,19 +174,41 @@ describe("BookPI invarianes (§7 manual)", () => {
 describe("canonicalBookPiPayload (§6.1 determinismo)", () => {
   it("append-time (sin blockHash) == verify-time (con blockHash)", () => {
     const repo = freshRepo();
-    const res = repo.append({ tenantId: "T_A", userId: "u1", operation: "OP", category: "other", cost: 1, tokens: 1 });
+    const res = repo.append({
+      tenantId: "T_A",
+      userId: "u1",
+      operation: "OP",
+      category: "other",
+      cost: 1,
+      tokens: 1,
+    });
     if (!res.success) throw new Error(res.error);
     const block = res.block;
     const { blockHash, pqcSignature, signatureAlgorithm, ...forAppend } = block;
     void blockHash;
-    expect(canonicalBookPiPayload(forAppend)).toBe(canonicalBookPiPayload(block));
+    expect(canonicalBookPiPayload(forAppend)).toBe(
+      canonicalBookPiPayload(block),
+    );
   });
 
   it("excluye pqcSignature y signatureAlgorithm del payload canónico", () => {
     const repo = freshRepo();
-    const res = repo.append({ tenantId: "T_A", userId: "u1", operation: "OP", category: "other", cost: 1, tokens: 1 });
+    const res = repo.append({
+      tenantId: "T_A",
+      userId: "u1",
+      operation: "OP",
+      category: "other",
+      cost: 1,
+      tokens: 1,
+    });
     if (!res.success) throw new Error(res.error);
-    const base = { ...res.block, pqcSignature: null, signatureAlgorithm: "SHA-256" };
-    expect(canonicalBookPiPayload(base)).toBe(canonicalBookPiPayload(res.block));
+    const base = {
+      ...res.block,
+      pqcSignature: null,
+      signatureAlgorithm: "SHA-256",
+    };
+    expect(canonicalBookPiPayload(base)).toBe(
+      canonicalBookPiPayload(res.block),
+    );
   });
 });

@@ -5,7 +5,13 @@
  * sub-lineal en el tamaño del corpus, determinista, sin dependencias.
  */
 
-import { embedBytes, simHash, hammingDistance, cosine, SimHashSignature } from "./embed";
+import {
+  embedBytes,
+  simHash,
+  hammingDistance,
+  cosine,
+  SimHashSignature,
+} from "./embed";
 import { encodeUtf8 } from "./bytes";
 
 export interface LshDocument {
@@ -49,7 +55,8 @@ export class SimHashLshIndex {
     const bytes = encodeUtf8(text);
     const vector = embedBytes(bytes, { dim: this.dim });
     const signature = simHash(vector, 64);
-    const coarseKey = (signature.words[0] as number) & ((1 << this.coarseBits) - 1);
+    const coarseKey =
+      (signature.words[0] as number) & ((1 << this.coarseBits) - 1);
     const bucket = this.buckets.get(coarseKey) ?? [];
     bucket.push(doc.id);
     this.buckets.set(coarseKey, bucket);
@@ -68,7 +75,8 @@ export class SimHashLshIndex {
   remove(id: string): void {
     const signature = this.signatures.get(id);
     if (!signature) return;
-    const coarseKey = (signature.words[0] as number) & ((1 << this.coarseBits) - 1);
+    const coarseKey =
+      (signature.words[0] as number) & ((1 << this.coarseBits) - 1);
     const bucket = this.buckets.get(coarseKey);
     if (bucket) {
       const filtered = bucket.filter((candidate) => candidate !== id);
@@ -95,7 +103,8 @@ export class SimHashLshIndex {
     const bytes = encodeUtf8(text);
     const vector = embedBytes(bytes, { dim: this.dim });
     const signature = simHash(vector, 64);
-    const coarseKey = (signature.words[0] as number) & ((1 << this.coarseBits) - 1);
+    const coarseKey =
+      (signature.words[0] as number) & ((1 << this.coarseBits) - 1);
     const pool = this.buckets.get(coarseKey) ?? [];
 
     let hash = 2166136261 >>> 0;
@@ -119,7 +128,9 @@ export class SimHashLshIndex {
       hits.push({ id, score, hammingDistance: distance, exact });
     }
 
-    hits.sort((a, b) => b.score - a.score || a.hammingDistance - b.hammingDistance);
+    hits.sort(
+      (a, b) => b.score - a.score || a.hammingDistance - b.hammingDistance,
+    );
     return hits.slice(0, topK);
   }
 
@@ -129,7 +140,10 @@ export class SimHashLshIndex {
   }
 
   stats(): { documents: number; buckets: number; vectorsPerBucket: number } {
-    const total = Array.from(this.buckets.values()).reduce((sum, bucket) => sum + bucket.length, 0);
+    const total = Array.from(this.buckets.values()).reduce(
+      (sum, bucket) => sum + bucket.length,
+      0,
+    );
     return {
       documents: this.documentCount,
       buckets: this.buckets.size,

@@ -166,8 +166,12 @@ export function RightRails({
   const [argusOpen, setArgusOpen] = useState(false);
   const [skillsOpen, setSkillsOpen] = useState(false);
   const [monetizationOpen, setMonetizationOpen] = useState(false);
-  const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({ Orquestación: true });
-  const [openMonetizationGroups, setOpenMonetizationGroups] = useState<Record<string, boolean>>({
+  const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({
+    Orquestación: true,
+  });
+  const [openMonetizationGroups, setOpenMonetizationGroups] = useState<
+    Record<string, boolean>
+  >({
     Economía: true,
     Creador: true,
     Operación: false,
@@ -194,17 +198,26 @@ export function RightRails({
   };
 
   const handlePresetKey = (e: React.KeyboardEvent, index: number) => {
-    if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "Home" && e.key !== "End") {
+    if (
+      e.key !== "ArrowDown" &&
+      e.key !== "ArrowUp" &&
+      e.key !== "Home" &&
+      e.key !== "End"
+    ) {
       return;
     }
     e.preventDefault();
     let next = index;
     if (e.key === "ArrowDown") next = (index + 1) % presetIds.length;
-    else if (e.key === "ArrowUp") next = (index - 1 + presetIds.length) % presetIds.length;
+    else if (e.key === "ArrowUp")
+      next = (index - 1 + presetIds.length) % presetIds.length;
     else if (e.key === "Home") next = 0;
     else if (e.key === "End") next = presetIds.length - 1;
     setPresetFocusIndex(next);
-    const buttons = presetRef.current?.querySelectorAll<HTMLButtonElement>("[data-preset-btn]");
+    const buttons =
+      presetRef.current?.querySelectorAll<HTMLButtonElement>(
+        "[data-preset-btn]",
+      );
     buttons?.[next]?.focus();
   };
 
@@ -212,13 +225,18 @@ export function RightRails({
   useEffect(() => {
     if (presetOpen && presetFocusIndex >= 0) {
       const presetButtons =
-        presetRef.current?.querySelectorAll<HTMLButtonElement>("[data-preset-btn]");
+        presetRef.current?.querySelectorAll<HTMLButtonElement>(
+          "[data-preset-btn]",
+        );
       presetButtons?.[presetFocusIndex]?.focus();
     }
   }, [presetFocusIndex, presetOpen]);
 
   return (
-    <div className="flex flex-col gap-3" aria-label="Rieles laterales: Preset y Policy Gate">
+    <div
+      className="flex flex-col gap-3"
+      aria-label="Rieles laterales: Preset y Policy Gate"
+    >
       {/* ===================== RAIL 1: PRESET COGNITIVO ===================== */}
       <section className="crystal-3d crystal-3d-argus rounded-2xl">
         <button
@@ -295,7 +313,10 @@ export function RightRails({
           className="w-full flex items-center justify-between px-4 py-3 text-left"
         >
           <span className="flex items-center gap-2">
-            <span className="size-1.5 rounded-full" style={{ background: "var(--argus)" }} />
+            <span
+              className="size-1.5 rounded-full"
+              style={{ background: "var(--argus)" }}
+            />
             <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
               Policy Gate · ARGUS
             </h2>
@@ -375,7 +396,9 @@ export function RightRails({
                   }
                 >
                   <span>{group.folder}</span>
-                  <Chevron className={openFolders[group.folder] ? "rotate-180" : ""} />
+                  <Chevron
+                    className={openFolders[group.folder] ? "rotate-180" : ""}
+                  />
                 </button>
                 {openFolders[group.folder] && (
                   <div className="space-y-1 px-2 pb-2">
@@ -426,13 +449,17 @@ export function RightRails({
               {
                 key: "Economía",
                 items: MONETIZATION_OPTIONS.filter((o) =>
-                  ["onboarding", "ledger", "payouts", "analytics"].includes(o.id),
+                  ["onboarding", "ledger", "payouts", "analytics"].includes(
+                    o.id,
+                  ),
                 ),
               },
               {
                 key: "Creador",
                 items: MONETIZATION_OPTIONS.filter((o) =>
-                  ["marketplace", "offers", "upgrades", "special"].includes(o.id),
+                  ["marketplace", "offers", "upgrades", "special"].includes(
+                    o.id,
+                  ),
                 ),
               },
               {
@@ -458,7 +485,11 @@ export function RightRails({
                   }
                 >
                   <span>{group.key}</span>
-                  <Chevron className={openMonetizationGroups[group.key] ? "rotate-180" : ""} />
+                  <Chevron
+                    className={
+                      openMonetizationGroups[group.key] ? "rotate-180" : ""
+                    }
+                  />
                 </button>
                 {(openMonetizationGroups[group.key] ?? false) && (
                   <div className="space-y-1 px-2 pb-2">
@@ -469,7 +500,8 @@ export function RightRails({
                           key={opt.id}
                           type="button"
                           onClick={() => {
-                            if (onMonetizationNavigate) onMonetizationNavigate(opt.id);
+                            if (onMonetizationNavigate)
+                              onMonetizationNavigate(opt.id);
                             else window.location.hash = opt.href;
                           }}
                           className="crystal-touch w-full rounded-lg border border-emerald-500/15 bg-background/20 px-2.5 py-2 text-left hover:bg-emerald-500/10 hover:border-emerald-500/25 transition-colors"
@@ -492,8 +524,8 @@ export function RightRails({
               </div>
             ))}
             <div className="rounded-lg border border-emerald-500/10 bg-emerald-500/5 px-2.5 py-2 font-mono text-[9px] leading-snug text-muted-foreground">
-              Distribución territorial 85% operador · 15% Nodo Cero. Ledger append-only, payouts
-              idempotentes, disputas retenidas.
+              Distribución territorial 85% operador · 15% Nodo Cero. Ledger
+              append-only, payouts idempotentes, disputas retenidas.
             </div>
           </div>
         )}
@@ -516,9 +548,13 @@ function SkillRow({ skill }: { skill: IsabellaSkill }) {
     >
       <div className="flex items-center gap-2">
         <Icon className="size-3.5 text-cyan-200" />
-        <span className="font-mono text-[10px] text-foreground/90">@{skill.id}</span>
+        <span className="font-mono text-[10px] text-foreground/90">
+          @{skill.id}
+        </span>
       </div>
-      <p className="mt-1 text-[10px] leading-snug text-muted-foreground">{skill.description}</p>
+      <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
+        {skill.description}
+      </p>
     </div>
   );
 }

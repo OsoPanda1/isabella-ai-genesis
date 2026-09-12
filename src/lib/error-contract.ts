@@ -99,15 +99,23 @@ export const Errors = {
       httpStatus: 401,
     }),
   forbidden: (detail?: string) =>
-    new ContractError("FORBIDDEN", detail ?? "Sin permiso para esta operación", {
-      severity: "warn",
-      httpStatus: 403,
-    }),
+    new ContractError(
+      "FORBIDDEN",
+      detail ?? "Sin permiso para esta operación",
+      {
+        severity: "warn",
+        httpStatus: 403,
+      },
+    ),
   notFound: (resource?: string) =>
-    new ContractError("NOT_FOUND", resource ? `${resource} no encontrado` : "No encontrado", {
-      severity: "info",
-      httpStatus: 404,
-    }),
+    new ContractError(
+      "NOT_FOUND",
+      resource ? `${resource} no encontrado` : "No encontrado",
+      {
+        severity: "info",
+        httpStatus: 404,
+      },
+    ),
   validation: (details?: Record<string, unknown>) => {
     const opts: ConstructorParameters<typeof ContractError>[2] = {
       severity: "info",

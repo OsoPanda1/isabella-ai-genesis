@@ -6,15 +6,18 @@ export const Route = createFileRoute("/api/isabella")({
   server: {
     handlers: {
       POST: withSovereignAuth("system", "execute", async (context, request) =>
-        handleIsabellaChat({
-          ip: context.ip,
-          traceId: context.traceId,
-          correlationId: context.correlationId,
-          userId: context.userId,
-          tenantId: context.tenantId,
-          role: context.role,
-          scope: context.scope,
-        }, request),
+        handleIsabellaChat(
+          {
+            ip: context.ip,
+            traceId: context.traceId,
+            correlationId: context.correlationId,
+            userId: context.userId,
+            tenantId: context.tenantId,
+            role: context.role,
+            scope: context.scope,
+          },
+          request,
+        ),
       ),
     },
   },

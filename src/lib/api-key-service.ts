@@ -105,8 +105,13 @@ export class ApiKeyService {
     const rawKey = `${prefix}_${secret}`;
     const keyHash = ApiKeyCrypto.hashSecret(rawKey);
 
-    const ttl = expiresInSeconds !== undefined ? expiresInSeconds : config().API_KEY_DEFAULT_TTL;
-    const expiresAt = ttl ? new Date(Date.now() + ttl * 1000).toISOString() : undefined;
+    const ttl =
+      expiresInSeconds !== undefined
+        ? expiresInSeconds
+        : config().API_KEY_DEFAULT_TTL;
+    const expiresAt = ttl
+      ? new Date(Date.now() + ttl * 1000).toISOString()
+      : undefined;
 
     const record: ApiKeyRecord = {
       id,
@@ -201,11 +206,19 @@ export class ApiKeyService {
       return { success: false, error: `credential_${record.status}` };
     }
 
-    if (record.expires_at && new Date(record.expires_at).getTime() < Date.now()) {
+    if (
+      record.expires_at &&
+      new Date(record.expires_at).getTime() < Date.now()
+    ) {
       if (usePostgres) {
-        await createApiKeyPostgresRepository().updateStatus(record.id, "expired");
+        await createApiKeyPostgresRepository().updateStatus(
+          record.id,
+          "expired",
+        );
       } else {
-        await this.repo.update(record.tenant_id, record.id, { status: "expired" });
+        await this.repo.update(record.tenant_id, record.id, {
+          status: "expired",
+        });
       }
       return { success: false, error: "credential_expired" };
     }
@@ -213,13 +226,18 @@ export class ApiKeyService {
     if (usePostgres) {
       await createApiKeyPostgresRepository().touchLastUsed(record.id);
     } else {
-      await this.repo.update(record.tenant_id, record.id, { lastUsedAt: new Date().toISOString() });
+      await this.repo.update(record.tenant_id, record.id, {
+        lastUsedAt: new Date().toISOString(),
+      });
     }
 
     return { success: true, record };
   }
 
-  public static async revokeApiKey(id: string, tenantId: string): Promise<boolean> {
+  public static async revokeApiKey(
+    id: string,
+    tenantId: string,
+  ): Promise<boolean> {
     const existing = await this.repo.read(tenantId, id);
     if (!existing) return false;
 
@@ -277,7 +295,12 @@ export class ApiKeyService {
       rec.role,
       rec.scopes,
       rec.expires_at
-        ? Math.max(0, Math.floor((new Date(rec.expires_at).getTime() - Date.now()) / 1000))
+        ? Math.max(
+            0,
+            Math.floor(
+              (new Date(rec.expires_at).getTime() - Date.now()) / 1000,
+            ),
+          )
         : undefined,
     );
 

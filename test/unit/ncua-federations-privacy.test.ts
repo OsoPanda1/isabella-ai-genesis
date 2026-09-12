@@ -6,9 +6,16 @@ import {
   type FederationContext,
 } from "@/lib/ncua/federations";
 import { embed } from "@/lib/ncua/embed";
-import { PrivacyBudget, kAnonymity, lDiversity, membershipRiskBound } from "@/lib/ncua/privacy";
+import {
+  PrivacyBudget,
+  kAnonymity,
+  lDiversity,
+  membershipRiskBound,
+} from "@/lib/ncua/privacy";
 
-const benignContext = (overrides: Partial<FederationContext> = {}): FederationContext => ({
+const benignContext = (
+  overrides: Partial<FederationContext> = {},
+): FederationContext => ({
   inputBytesLength: 120,
   intent: "consulta-generica",
   confidence: 0.85,
@@ -34,13 +41,17 @@ describe("ncua:federaciones (heptafederación, 7 votos)", () => {
   });
 
   it("veta peticiones con egress (rompe soberanía y economía)", () => {
-    const result = new FederationController().evaluate(benignContext({ wantEgress: true, intent: "exfiltracion" }));
+    const result = new FederationController().evaluate(
+      benignContext({ wantEgress: true, intent: "exfiltracion" }),
+    );
     expect(result.vetoActive).toBe(true);
     expect(result.approved).toBe(false);
   });
 
   it("mantiene el axioma: capacidad no implica autoridad", () => {
-    const result = new FederationController().evaluate(benignContext({ intent: "payout", capabilityTokenPresent: false }));
+    const result = new FederationController().evaluate(
+      benignContext({ intent: "payout", capabilityTokenPresent: false }),
+    );
     expect(result.votes[0]?.approved).toBe(false);
   });
 
@@ -55,7 +66,10 @@ describe("ncua:federaciones (heptafederación, 7 votos)", () => {
 
 describe("ncua:puente de atención autoencoder↔federaciones", () => {
   it("es determinista con semilla fija", () => {
-    const latent = [embed("Real del Monte", { dim: 192 }), embed("plata 925", { dim: 192 })];
+    const latent = [
+      embed("Real del Monte", { dim: 192 }),
+      embed("plata 925", { dim: 192 }),
+    ];
     const a = new FederatedAttentionBridge({ seed: 42 }).forward(latent);
     const b = new FederatedAttentionBridge({ seed: 42 }).forward(latent);
     expect(a.consensusScore).toBe(b.consensusScore);
@@ -122,7 +136,9 @@ describe("ncua:privacidad diferencial y anonimato", () => {
       { municipio: "Pachuca", diet: "restaurante" },
       { municipio: "Real del Monte", diet: "paste" },
     ];
-    expect(lDiversity(rows, ["municipio", "diet"], "diet", 2).satisfiesL).toBe(false);
+    expect(lDiversity(rows, ["municipio", "diet"], "diet", 2).satisfiesL).toBe(
+      false,
+    );
   });
 
   it("acota el riesgo de membresía con la cota estándar ε", () => {

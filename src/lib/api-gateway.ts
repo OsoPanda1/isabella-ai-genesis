@@ -1,6 +1,9 @@
 import { SecuritySystem } from "./security";
 import { PrincipalContext } from "./principal-context";
-import { evaluateAuthorization, type AuthorizationContext } from "./authorization";
+import {
+  evaluateAuthorization,
+  type AuthorizationContext,
+} from "./authorization";
 import type { Resource, Action } from "./permission-matrix";
 import { runWithIdentity } from "./identity-context";
 
@@ -20,7 +23,11 @@ export class ApiGateway {
     resource: Resource,
     action: Action,
     schema: {
-      safeParse: (data: unknown) => { success: boolean; data?: T; error?: { message: string } };
+      safeParse: (data: unknown) => {
+        success: boolean;
+        data?: T;
+        error?: { message: string };
+      };
     },
     handler: (context: PrincipalContext, data: T) => Promise<Response>,
   ): Promise<Response> {
@@ -31,11 +38,18 @@ export class ApiGateway {
     const bodyMethods = new Set(["POST", "PUT", "PATCH"]);
     const maxBodyBytes = 512 * 1024;
     const contentLength = Number(request.headers.get("content-length") ?? 0);
-    if (bodyMethods.has(method) && Number.isFinite(contentLength) && contentLength > maxBodyBytes) {
-      return new Response(JSON.stringify({ error: "Payload excede el límite permitido." }), {
-        status: 413,
-        headers,
-      });
+    if (
+      bodyMethods.has(method) &&
+      Number.isFinite(contentLength) &&
+      contentLength > maxBodyBytes
+    ) {
+      return new Response(
+        JSON.stringify({ error: "Payload excede el límite permitido." }),
+        {
+          status: 413,
+          headers,
+        },
+      );
     }
 
     // 1. Autenticación y resolución de Principal Context
@@ -89,13 +103,17 @@ export class ApiGateway {
         parsedData = validation.data!;
       } catch {
         return new Response(
-          JSON.stringify({ error: "Payload corrupto detectado por la puerta de enlace." }),
+          JSON.stringify({
+            error: "Payload corrupto detectado por la puerta de enlace.",
+          }),
           { status: 400, headers },
         );
       }
     }
 
     // 4. Delegación a la lógica de negocio final (con identidad en request-context)
-    return runWithIdentity(context.toRequestIdentity(), () => handler(context, parsedData));
+    return runWithIdentity(context.toRequestIdentity(), () =>
+      handler(context, parsedData),
+    );
   }
 }

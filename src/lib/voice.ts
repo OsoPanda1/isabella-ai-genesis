@@ -49,18 +49,25 @@ export async function speakIsabella(text: string): Promise<void> {
   const token = getSessionToken();
   if (!token) {
     stopVoice();
-    throw new Error("ARGUS requiere una sesión autorizada para activar la voz.");
+    throw new Error(
+      "ARGUS requiere una sesión autorizada para activar la voz.",
+    );
   }
 
   const res = await fetch("/api/isabella-voice", {
     method: "POST",
-    headers: { "content-type": "application/json", Authorization: `Bearer ${token}` },
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     signal: controller.signal,
     body: JSON.stringify({ text: text.slice(0, 4000) }),
   });
 
   if (!res.ok || !res.body) {
-    const detail = await res.json().catch(() => ({ error: "Fallo de síntesis vocal." }));
+    const detail = await res
+      .json()
+      .catch(() => ({ error: "Fallo de síntesis vocal." }));
     stopVoice();
     throw new Error(detail.error ?? "Fallo de síntesis vocal.");
   }

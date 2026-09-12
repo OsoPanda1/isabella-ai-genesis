@@ -12,15 +12,22 @@ describe("security response headers", () => {
     expect(response.headers.get("Permissions-Policy")).toBe(
       "camera=(), microphone=(), geolocation=()",
     );
-    expect(response.headers.get("Cross-Origin-Opener-Policy")).toBe("same-origin");
-    expect(response.headers.get("Cross-Origin-Resource-Policy")).toBe("same-origin");
-    expect(response.headers.get("Referrer-Policy")).toBe("strict-origin-when-cross-origin");
+    expect(response.headers.get("Cross-Origin-Opener-Policy")).toBe(
+      "same-origin",
+    );
+    expect(response.headers.get("Cross-Origin-Resource-Policy")).toBe(
+      "same-origin",
+    );
+    expect(response.headers.get("Referrer-Policy")).toBe(
+      "strict-origin-when-cross-origin",
+    );
   });
 
   it("keeps strict CSP in report-only mode until nonces are wired", () => {
     const response = withSecurityHeaders(new Response("ok"));
     const csp = response.headers.get("Content-Security-Policy") ?? "";
-    const reportOnly = response.headers.get("Content-Security-Policy-Report-Only") ?? "";
+    const reportOnly =
+      response.headers.get("Content-Security-Policy-Report-Only") ?? "";
 
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("form-action 'self'");

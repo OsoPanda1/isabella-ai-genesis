@@ -68,13 +68,19 @@ const REDACT_METADATA_ALLOWLIST = new Set([
   "tenant_ref",
 ]);
 
-function redactMetadata(metadata: Record<string, unknown>): Record<string, unknown> {
+function redactMetadata(
+  metadata: Record<string, unknown>,
+): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const key of Object.keys(metadata)) {
     if (REDACT_METADATA_ALLOWLIST.has(key)) {
       // Sanitiza el valor: solo strings/numbers primitivos, nunca objetos anidados
       const value = metadata[key];
-      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      if (
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean"
+      ) {
         out[key] = value;
       }
     }
@@ -96,10 +102,14 @@ function calculateTsAegisResponse(event: z.infer<typeof securityEventSchema>) {
   // Rule matching
   const reasons: string[] = [];
   if (event.action === "bulk_export") reasons.push("bulk_data_export");
-  if (event.resource_class === "credential_store" || event.resource_class === "private_keys") {
+  if (
+    event.resource_class === "credential_store" ||
+    event.resource_class === "private_keys"
+  ) {
     reasons.push("sensitive_resource_access");
   }
-  if (event.metadata.secret_pattern_detected === true) reasons.push("credential_exfiltration");
+  if (event.metadata.secret_pattern_detected === true)
+    reasons.push("credential_exfiltration");
   if (event.metadata.mass_download === true) reasons.push("mass_download");
 
   // Feature scores (anomaly_rate, volume_ratio)
@@ -109,7 +119,10 @@ function calculateTsAegisResponse(event: z.infer<typeof securityEventSchema>) {
   let finalScore = baseScore;
 
   // Rules overrides
-  const criticalRules = ["credential_exfiltration", "sensitive_resource_access"];
+  const criticalRules = [
+    "credential_exfiltration",
+    "sensitive_resource_access",
+  ];
   const isCritical = reasons.some((r) => criticalRules.includes(r));
 
   if (isCritical) {
@@ -133,7 +146,8 @@ function calculateTsAegisResponse(event: z.infer<typeof securityEventSchema>) {
   }
 
   // Decisions
-  let decision: "allow" | "observe" | "challenge" | "quarantine" | "block" = "allow";
+  let decision: "allow" | "observe" | "challenge" | "quarantine" | "block" =
+    "allow";
   if (finalScore >= 0.95) {
     decision = "block";
   } else if (finalScore >= 0.82) {
@@ -171,7 +185,8 @@ export const Route = createFileRoute("/api/security")({
         if (!rateLimit.allowed) {
           return new Response(
             JSON.stringify({
-              error: "Límite de solicitudes de análisis de eventos de seguridad excedido (40/min).",
+              error:
+                "Límite de solicitudes de análisis de eventos de seguridad excedido (40/min).",
             }),
             { status: 429, headers },
           );
@@ -184,10 +199,15 @@ export const Route = createFileRoute("/api/security")({
           rawBody = await parseSafeJsonBody(request);
         } catch (e: unknown) {
           const limitError =
-            typeof e === "object" && e !== null && "code" in e && (e as { code: string }).code === "BODY_TOO_LARGE";
+            typeof e === "object" &&
+            e !== null &&
+            "code" in e &&
+            (e as { code: string }).code === "BODY_TOO_LARGE";
           return new Response(
             JSON.stringify({
-              error: limitError ? "Cuerpo de solicitud excede el límite permitido." : "Inyección o payload corrupto detectado.",
+              error: limitError
+                ? "Cuerpo de solicitud excede el límite permitido."
+                : "Inyección o payload corrupto detectado.",
             }),
             {
               status: limitError ? 413 : 400,
@@ -197,7 +217,10 @@ export const Route = createFileRoute("/api/security")({
         }
 
         // --- LAYER 1: Input Integrity Validation ---
-        const validation = SecuritySystem.validateInput(securityEventSchema, rawBody);
+        const validation = SecuritySystem.validateInput(
+          securityEventSchema,
+          rawBody,
+        );
         if (!validation.success) {
           return new Response(JSON.stringify({ error: validation.error }), {
             status: 400,
@@ -228,7 +251,8 @@ export const Route = createFileRoute("/api/security")({
             LANG: process.env.LANG ?? "C.UTF-8",
             LC_ALL: process.env.LC_ALL ?? "C.UTF-8",
             PYTHONPATH: pythonPath,
-            AEGIS_HASH_SECRET: config().API_KEY_HASH_SECRET || secrets.apiKeyHashSecret(),
+            AEGIS_HASH_SECRET:
+              config().API_KEY_HASH_SECRET || secrets.apiKeyHashSecret(),
             AEGIS_AUDIT_SECRET: secrets.aegisAuditSecret(),
           };
 
@@ -253,10 +277,13 @@ export const Route = createFileRoute("/api/security")({
           const timer = setTimeout(() => {
             child.kill("SIGKILL");
             finish(
-              new Response(JSON.stringify({ error: "AEGIS runtime timeout." }), {
-                status: 504,
-                headers,
-              }),
+              new Response(
+                JSON.stringify({ error: "AEGIS runtime timeout." }),
+                {
+                  status: 504,
+                  headers,
+                },
+              ),
             );
           }, maxRuntimeMs);
 
@@ -297,7 +324,9 @@ export const Route = createFileRoute("/api/security")({
                 `Análisis completado mediante motor de redundancia seguro por falta de dependencias Python. Decisión: ${tsResult.decision.toUpperCase()}. Score: ${tsResult.score}. Stderr: ${stderr.slice(0, 200)}`,
               );
               clearTimeout(timer);
-              return finish(new Response(JSON.stringify(tsResult), { headers }));
+              return finish(
+                new Response(JSON.stringify(tsResult), { headers }),
+              );
             }
             try {
               const pyResult = JSON.parse(stdout);
@@ -330,11 +359,15 @@ export const Route = createFileRoute("/api/security")({
                 `Análisis exitoso mediante motor nativo Python. Decisión: ${finalResult.decision.toUpperCase()}. Score: ${finalResult.score}.`,
               );
               clearTimeout(timer);
-              return finish(new Response(JSON.stringify(finalResult), { headers }));
+              return finish(
+                new Response(JSON.stringify(finalResult), { headers }),
+              );
             } catch {
               const tsResult = calculateTsAegisResponse(event);
               clearTimeout(timer);
-              return finish(new Response(JSON.stringify(tsResult), { headers }));
+              return finish(
+                new Response(JSON.stringify(tsResult), { headers }),
+              );
             }
           });
 

@@ -15,7 +15,10 @@ export interface QupExperimentInput {
     qubitCount: number;
     circuitDepth: number;
     objective:
-      "hamiltonian_spectrum" | "qml_classification" | "qec_syndrome" | "quantum_simulation";
+      | "hamiltonian_spectrum"
+      | "qml_classification"
+      | "qec_syndrome"
+      | "quantum_simulation";
     errorMitigation: ("ZNE" | "PEC" | "TREX")[];
     errorCorrection: "toric_code_L3" | "toric_code_L5" | "none";
     classicalBaseline: "xgboost" | "pytorch_mlp" | "jax_ode";
@@ -91,7 +94,9 @@ export class FeaturePlane {
   /**
    * Simple JSON Schema-like validator to enforce typed quantum dataset inputs
    */
-  public static validateSchema(features: Array<Record<string, unknown>>): boolean {
+  public static validateSchema(
+    features: Array<Record<string, unknown>>,
+  ): boolean {
     if (!Array.isArray(features) || features.length === 0) return false;
     for (const record of features) {
       if (typeof record !== "object" || record === null) return false;
@@ -105,7 +110,9 @@ export class FeaturePlane {
    * Anonymize sensitive fields in features using strict regex PII patterns.
    * Prevents leakage of IPs, emails, or system paths to quantum compilers.
    */
-  public static scrubPII(features: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  public static scrubPII(
+    features: Array<Record<string, unknown>>,
+  ): Array<Record<string, unknown>> {
     const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
     const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
     const nameRegex = /\b(Isabella|Edwin|Anubis|Villaseñor|Castillo|Trejo)\b/gi;
@@ -155,7 +162,8 @@ export class FeaturePlane {
     }
 
     const root =
-      tree[tree.length - 1][0] || crypto.createHash("sha3-512").update("empty").digest("hex");
+      tree[tree.length - 1][0] ||
+      crypto.createHash("sha3-512").update("empty").digest("hex");
 
     const getProof = (index: number): string[] => {
       const proof: string[] = [];
@@ -180,13 +188,21 @@ export class FeaturePlane {
   /**
    * Verifies a Merkle Proof against the computed Root using SHA3-512
    */
-  public static verifyProof(leaf: string, proof: string[], root: string, index: number): boolean {
+  public static verifyProof(
+    leaf: string,
+    proof: string[],
+    root: string,
+    index: number,
+  ): boolean {
     let currentHash = leaf;
     let currentIndex = index;
     for (const sibling of proof) {
       const isRight = currentIndex % 2 === 1;
       const combined = isRight ? sibling + currentHash : currentHash + sibling;
-      currentHash = crypto.createHash("sha3-512").update(combined).digest("hex");
+      currentHash = crypto
+        .createHash("sha3-512")
+        .update(combined)
+        .digest("hex");
       currentIndex = Math.floor(currentIndex / 2);
     }
     return currentHash === root;
@@ -210,7 +226,8 @@ export class QupMlRuntime {
     // 1. Raw hardware error rates based on layout parameters
     const baseDepolarizingError = 0.015; // 1.5% 2-qubit gate error
     const circuitGateFactor = Math.log10(depth * qubitCount + 10);
-    const rawErrorRate = 1 - Math.exp(-baseDepolarizingError * circuitGateFactor);
+    const rawErrorRate =
+      1 - Math.exp(-baseDepolarizingError * circuitGateFactor);
 
     // 2. Apply Error Mitigation Factor
     let mitigationFactor = 1.0;
@@ -224,12 +241,21 @@ export class QupMlRuntime {
 
     // 3. Simulating Toric Code Quantum Error Correction (MWPM)
     const hasQec = errorCorrection !== "none";
-    const L = errorCorrection === "toric_code_L5" ? 5 : errorCorrection === "toric_code_L3" ? 3 : 0;
+    const L =
+      errorCorrection === "toric_code_L5"
+        ? 5
+        : errorCorrection === "toric_code_L3"
+          ? 3
+          : 0;
     const syndromeDetected = hasQec && pseudoRandom < 0.45;
-    const syndromesCount = syndromeDetected ? Math.floor((pseudoRandom * (L * L)) / 2) + 1 : 0;
+    const syndromesCount = syndromeDetected
+      ? Math.floor((pseudoRandom * (L * L)) / 2) + 1
+      : 0;
 
     // Simulating Minimum Weight Perfect Matching (MWPM) Decoder Steps
-    const decoderSteps = syndromeDetected ? syndromesCount * 2 + Math.floor(pseudoRandom * L) : 0;
+    const decoderSteps = syndromeDetected
+      ? syndromesCount * 2 + Math.floor(pseudoRandom * L)
+      : 0;
     const recoverySuccessful = hasQec ? pseudoRandom > rawErrorRate / L : false;
 
     // Quantum Fidelity
@@ -271,8 +297,11 @@ export class QupCompilationPlane {
 
     // Simulate PassManager compilation optimizations
     const mappingStrategy =
-      qubitCount > 25 ? "SabreMap (Dense Layout)" : "TrivialMap (Direct coupling)";
-    const routingStrategy = qubitCount > 25 ? "StochasticSWAP Router" : "LookaheadSWAP Router";
+      qubitCount > 25
+        ? "SabreMap (Dense Layout)"
+        : "TrivialMap (Direct coupling)";
+    const routingStrategy =
+      qubitCount > 25 ? "StochasticSWAP Router" : "LookaheadSWAP Router";
     const optimizationLevel = isBigCircuit
       ? "PassManager Level 3 (Heavy Synthesis)"
       : "PassManager Level 2 (Local Simplify)";
@@ -280,7 +309,10 @@ export class QupCompilationPlane {
 
     // Compile-time compression
     const depthReductionFactor = isBigCircuit ? 0.55 : 0.35; // 55% reduction for heavy ansatz
-    const compiledDepth = Math.max(3, Math.round(originalDepth * (1 - depthReductionFactor)));
+    const compiledDepth = Math.max(
+      3,
+      Math.round(originalDepth * (1 - depthReductionFactor)),
+    );
     const totalGateCount = Math.round(compiledDepth * qubitCount * 1.4);
 
     const gateCount = {
@@ -331,7 +363,12 @@ export class QupAuditSealer {
     const payloadHash = SovereignAudit.hashData(payload);
     const seal = await SovereignAudit.signAuditSeal(payloadHash);
     const verified = await SovereignAudit.verifyAuditSeal(payloadHash, seal);
-    return { algorithm: "HMAC-SHA3-512/audit-seal-v1", payloadHash, seal, verified };
+    return {
+      algorithm: "HMAC-SHA3-512/audit-seal-v1",
+      payloadHash,
+      seal,
+      verified,
+    };
   }
 }
 
@@ -402,7 +439,9 @@ export class QupOrchestrator {
     });
 
     if (!governanceResult.approved) {
-      throw new Error(`Quantum Job Rejected by Governance: ${governanceResult.rejectionReason}`);
+      throw new Error(
+        `Quantum Job Rejected by Governance: ${governanceResult.rejectionReason}`,
+      );
     }
 
     const atlasRun = governanceResult.auditTrail.atlasDecision;

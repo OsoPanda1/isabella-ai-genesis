@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { resetConfigCache } from "@/lib/config";
-import { consumeCapabilityToken, issueCapabilityToken } from "@/lib/capability-token";
+import {
+  consumeCapabilityToken,
+  issueCapabilityToken,
+} from "@/lib/capability-token";
 
 describe("capability tokens", () => {
   beforeEach(() => {
@@ -10,13 +13,39 @@ describe("capability tokens", () => {
   });
 
   it("binds a token to tool, actor and tenant and is single-use", () => {
-    const token = issueCapabilityToken({ tool: "memory.retrieve", actorId: "actor-a", tenantId: "tenant-a" });
-    expect(consumeCapabilityToken(token, { tool: "memory.retrieve", actorId: "actor-a", tenantId: "tenant-a" }).tool).toBe("memory.retrieve");
-    expect(() => consumeCapabilityToken(token, { tool: "memory.retrieve", actorId: "actor-a", tenantId: "tenant-a" })).toThrow("capability_token_replayed");
+    const token = issueCapabilityToken({
+      tool: "memory.retrieve",
+      actorId: "actor-a",
+      tenantId: "tenant-a",
+    });
+    expect(
+      consumeCapabilityToken(token, {
+        tool: "memory.retrieve",
+        actorId: "actor-a",
+        tenantId: "tenant-a",
+      }).tool,
+    ).toBe("memory.retrieve");
+    expect(() =>
+      consumeCapabilityToken(token, {
+        tool: "memory.retrieve",
+        actorId: "actor-a",
+        tenantId: "tenant-a",
+      }),
+    ).toThrow("capability_token_replayed");
   });
 
   it("rejects scope substitution", () => {
-    const token = issueCapabilityToken({ tool: "memory.retrieve", actorId: "actor-a", tenantId: "tenant-a" });
-    expect(() => consumeCapabilityToken(token, { tool: "ledger.record", actorId: "actor-a", tenantId: "tenant-a" })).toThrow("capability_token_scope_mismatch");
+    const token = issueCapabilityToken({
+      tool: "memory.retrieve",
+      actorId: "actor-a",
+      tenantId: "tenant-a",
+    });
+    expect(() =>
+      consumeCapabilityToken(token, {
+        tool: "ledger.record",
+        actorId: "actor-a",
+        tenantId: "tenant-a",
+      }),
+    ).toThrow("capability_token_scope_mismatch");
   });
 });

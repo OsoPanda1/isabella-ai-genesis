@@ -42,14 +42,22 @@ export function CognitiveStatusDashboard() {
   const [boostProgress, setBoostProgress] = useState(0);
 
   // Diagnostic and custom log states
-  const [diagnosticProgress, setDiagnosticProgress] = useState<Record<string, number>>({});
-  const [diagnosticLatency, setDiagnosticLatency] = useState<Record<string, number>>({});
+  const [diagnosticProgress, setDiagnosticProgress] = useState<
+    Record<string, number>
+  >({});
+  const [diagnosticLatency, setDiagnosticLatency] = useState<
+    Record<string, number>
+  >({});
   const [isDiagnosing, setIsDiagnosing] = useState<Record<string, boolean>>({});
-  const [diagnosticStream, setDiagnosticStream] = useState<Record<string, string[]>>({});
+  const [diagnosticStream, setDiagnosticStream] = useState<
+    Record<string, string[]>
+  >({});
   const [diagnosticHistory, setDiagnosticHistory] = useState<
     Record<string, { timestamp: string; latency: number }[]>
   >({});
-  const [selectedLogModule, setSelectedLogModule] = useState<string | null>(null);
+  const [selectedLogModule, setSelectedLogModule] = useState<string | null>(
+    null,
+  );
   const [logFilterQuery, setLogFilterQuery] = useState("");
 
   // Live status states for cognitive modules
@@ -61,7 +69,8 @@ export function CognitiveStatusDashboard() {
       latency: 4,
       cpu: 18,
       memory: 24,
-      description: "Orquestación, ruteo cognitivo de intenciones y arbitraje de estado.",
+      description:
+        "Orquestación, ruteo cognitivo de intenciones y arbitraje de estado.",
       styleClass: "crystal-3d-crown",
     },
     {
@@ -71,7 +80,8 @@ export function CognitiveStatusDashboard() {
       latency: 12,
       cpu: 34,
       memory: 45,
-      description: "Interacción empática, tono de voz de México y modulación expresiva.",
+      description:
+        "Interacción empática, tono de voz de México y modulación expresiva.",
       styleClass: "crystal-3d-electric",
     },
     {
@@ -81,7 +91,8 @@ export function CognitiveStatusDashboard() {
       latency: 18,
       cpu: 28,
       memory: 52,
-      description: "Análisis lógico-epistemológico, razonamiento profundo y síntesis territorial.",
+      description:
+        "Análisis lógico-epistemológico, razonamiento profundo y síntesis territorial.",
       styleClass: "crystal-3d-emerald",
     },
     {
@@ -91,7 +102,8 @@ export function CognitiveStatusDashboard() {
       latency: 15,
       cpu: 40,
       memory: 60,
-      description: "Ejecución técnica, transpilaciones cuánticas y soporte de herramientas.",
+      description:
+        "Ejecución técnica, transpilaciones cuánticas y soporte de herramientas.",
       styleClass: "crystal-3d-iris",
     },
     {
@@ -108,14 +120,26 @@ export function CognitiveStatusDashboard() {
   ]);
 
   const [lines, setLines] = useState<TerminalLine[]>([
-    { text: "ISABELLA ARCHITECTURE TERMINAL v" + metadata.operational.version, type: "header" },
-    { text: "Licencia: Creative Commons Attribution 4.0 International", type: "system" },
-    { text: "Conexión encriptada con Nodo Cero — Real del Monte, Hidalgo.", type: "success" },
+    {
+      text: "ISABELLA ARCHITECTURE TERMINAL v" + metadata.operational.version,
+      type: "header",
+    },
+    {
+      text: "Licencia: Creative Commons Attribution 4.0 International",
+      type: "system",
+    },
+    {
+      text: "Conexión encriptada con Nodo Cero — Real del Monte, Hidalgo.",
+      type: "success",
+    },
     {
       text: 'Ingresa "help" para ver la lista de comandos cognitivos disponibles.',
       type: "system",
     },
-    { text: "----------------------------------------------------------------", type: "system" },
+    {
+      text: "----------------------------------------------------------------",
+      type: "system",
+    },
   ]);
 
   const bufferEndRef = useRef<HTMLDivElement | null>(null);
@@ -246,7 +270,10 @@ export function CognitiveStatusDashboard() {
         const msg = diagnosticSteps[stepIndex] || "Procesando...";
         setDiagnosticStream((prev) => ({
           ...prev,
-          [modId]: [...(prev[modId] || []), `[${new Date().toLocaleTimeString()}] > ${msg}`],
+          [modId]: [
+            ...(prev[modId] || []),
+            `[${new Date().toLocaleTimeString()}] > ${msg}`,
+          ],
         }));
       }
 
@@ -267,10 +294,10 @@ export function CognitiveStatusDashboard() {
           const modHistory = prev[modId] || [];
           return {
             ...prev,
-            [modId]: [{ timestamp: finalTimestamp, latency: finalLatency }, ...modHistory].slice(
-              0,
-              5,
-            ),
+            [modId]: [
+              { timestamp: finalTimestamp, latency: finalLatency },
+              ...modHistory,
+            ].slice(0, 5),
           };
         });
         toast.success(
@@ -302,7 +329,10 @@ export function CognitiveStatusDashboard() {
     switch (command) {
       case "help":
         addLine("Comandos de la Arquitectura Cognitiva:", "success");
-        addLine("  help      - Muestra la ayuda de comandos de la consola.", "output");
+        addLine(
+          "  help      - Muestra la ayuda de comandos de la consola.",
+          "output",
+        );
         addLine(
           "  status    - Realiza un barrido en vivo de las métricas de hardware de los módulos.",
           "output",
@@ -319,7 +349,10 @@ export function CognitiveStatusDashboard() {
           "  boost     - Inicia un proceso de hiper-aceleración de núcleos cognitivos.",
           "output",
         );
-        addLine("  clear     - Limpia el búfer de comandos de la pantalla.", "output");
+        addLine(
+          "  clear     - Limpia el búfer de comandos de la pantalla.",
+          "output",
+        );
         break;
 
       case "clear":
@@ -335,7 +368,10 @@ export function CognitiveStatusDashboard() {
               "output",
             );
           });
-          addLine("Diagnóstico del canal: Conexión estable con el territorio.", "success");
+          addLine(
+            "Diagnóstico del canal: Conexión estable con el territorio.",
+            "success",
+          );
         }, 400);
         break;
 
@@ -368,11 +404,17 @@ export function CognitiveStatusDashboard() {
 
       case "boost":
         if (isBoosting) {
-          addLine("Aviso: El proceso de aceleración ya se encuentra activo.", "error");
+          addLine(
+            "Aviso: El proceso de aceleración ya se encuentra activo.",
+            "error",
+          );
         } else {
           setIsBoosting(true);
           setBoostProgress(0);
-          addLine("Iniciando hyper-threading en núcleos de inferencia...", "system");
+          addLine(
+            "Iniciando hyper-threading en núcleos de inferencia...",
+            "system",
+          );
         }
         break;
 
@@ -411,9 +453,12 @@ export function CognitiveStatusDashboard() {
   const handleExportLogs = () => {
     if (!selectedLogModule || !moduleLogs[selectedLogModule]) return;
     const logs = moduleLogs[selectedLogModule];
-    const blob = new Blob([JSON.stringify({ module: selectedLogModule, logs }, null, 2)], {
-      type: "application/json",
-    });
+    const blob = new Blob(
+      [JSON.stringify({ module: selectedLogModule, logs }, null, 2)],
+      {
+        type: "application/json",
+      },
+    );
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -432,7 +477,8 @@ export function CognitiveStatusDashboard() {
     : [];
 
   const systemIntegrity = Math.round(
-    (modules.filter((m) => m.status === "active").length / modules.length) * 100,
+    (modules.filter((m) => m.status === "active").length / modules.length) *
+      100,
   );
 
   return (
@@ -449,8 +495,12 @@ export function CognitiveStatusDashboard() {
           </h2>
           <div className="flex items-center gap-3 mt-1.5">
             <span className="text-muted-foreground text-sm max-w-2xl">
-              Visualización interactiva y monitoreo criptográfico de los módulos cognitivos
-              definidos en <span className="font-mono text-electric text-xs">metadata.json</span>.
+              Visualización interactiva y monitoreo criptográfico de los módulos
+              cognitivos definidos en{" "}
+              <span className="font-mono text-electric text-xs">
+                metadata.json
+              </span>
+              .
             </span>
             <span className="text-[10px] font-mono font-bold tracking-wider uppercase px-2 py-1 rounded bg-electric/10 border border-electric/20 text-electric">
               Integridad: {systemIntegrity}%
@@ -497,11 +547,21 @@ export function CognitiveStatusDashboard() {
                 {/* Badge & Icon Header */}
                 <div className="flex items-center justify-between mb-3.5">
                   <div className="flex items-center gap-2">
-                    {mod.id === "crown" && <Activity className="size-5 text-crown animate-pulse" />}
-                    {mod.id === "isa" && <Sparkles className="size-5 text-isa" />}
-                    {mod.id === "sophia" && <Compass className="size-5 text-sophia" />}
-                    {mod.id === "orion" && <FileCode className="size-5 text-orion" />}
-                    {mod.id === "argus" && <ShieldAlert className="size-5 text-argus" />}
+                    {mod.id === "crown" && (
+                      <Activity className="size-5 text-crown animate-pulse" />
+                    )}
+                    {mod.id === "isa" && (
+                      <Sparkles className="size-5 text-isa" />
+                    )}
+                    {mod.id === "sophia" && (
+                      <Compass className="size-5 text-sophia" />
+                    )}
+                    {mod.id === "orion" && (
+                      <FileCode className="size-5 text-orion" />
+                    )}
+                    {mod.id === "argus" && (
+                      <ShieldAlert className="size-5 text-argus" />
+                    )}
                     <h3 className="font-mono text-[12px] font-bold tracking-wider text-pearl uppercase">
                       {mod.name.split(" ")[0]}
                     </h3>
@@ -511,7 +571,9 @@ export function CognitiveStatusDashboard() {
                     role="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedLogModule(selectedLogModule === mod.id ? null : mod.id);
+                      setSelectedLogModule(
+                        selectedLogModule === mod.id ? null : mod.id,
+                      );
                     }}
                     className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/15 cursor-pointer hover:bg-emerald-500/20 hover:border-emerald-500/40 transition-all select-none"
                     title="Click para ver registros de operación"
@@ -522,7 +584,9 @@ export function CognitiveStatusDashboard() {
                 </div>
 
                 {/* Title & Description */}
-                <h4 className="text-sm font-bold text-platinum/90">{mod.name}</h4>
+                <h4 className="text-sm font-bold text-platinum/90">
+                  {mod.name}
+                </h4>
                 <p className="text-[11px] text-muted-foreground line-clamp-2 mt-1 leading-relaxed h-8">
                   {mod.description}
                 </p>
@@ -532,7 +596,9 @@ export function CognitiveStatusDashboard() {
                   {/* Latency */}
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">LATENCIA:</span>
-                    <span className="text-pearl font-bold">{mod.latency} ms</span>
+                    <span className="text-pearl font-bold">
+                      {mod.latency} ms
+                    </span>
                   </div>
 
                   {/* CPU usage bar */}
@@ -553,7 +619,9 @@ export function CognitiveStatusDashboard() {
                   <div>
                     <div className="flex justify-between text-muted-foreground mb-1">
                       <span>MEMORIA:</span>
-                      <span className="text-pearl font-bold">{mod.memory}%</span>
+                      <span className="text-pearl font-bold">
+                        {mod.memory}%
+                      </span>
                     </div>
                     <div className="w-full bg-background/50 h-1.5 rounded-full overflow-hidden border border-border/10">
                       <div
@@ -574,10 +642,13 @@ export function CognitiveStatusDashboard() {
                     disabled={isDiagnosing[mod.id]}
                     className="w-full bg-secondary/25 hover:bg-secondary/45 text-[10px] text-pearl py-1.5 px-3 rounded-lg border border-border/20 hover:border-electric/40 transition-all font-mono font-bold uppercase tracking-wider flex items-center justify-center gap-1 select-none cursor-pointer"
                   >
-                    {isDiagnosing[mod.id] ? "Analizando..." : "Iniciar Diagnóstico"}
+                    {isDiagnosing[mod.id]
+                      ? "Analizando..."
+                      : "Iniciar Diagnóstico"}
                   </button>
 
-                  {(isDiagnosing[mod.id] || diagnosticProgress[mod.id] !== undefined) && (
+                  {(isDiagnosing[mod.id] ||
+                    diagnosticProgress[mod.id] !== undefined) && (
                     <div className="space-y-1 mt-1">
                       <div className="flex justify-between text-[9px] text-muted-foreground font-mono">
                         <span>TEST DE LATENCIA:</span>
@@ -589,19 +660,25 @@ export function CognitiveStatusDashboard() {
                           style={{ width: `${diagnosticProgress[mod.id]}%` }}
                         />
                       </div>
-                      {diagnosticLatency[mod.id] !== undefined && !isDiagnosing[mod.id] && (
-                        <div className="text-[9.5px] text-emerald-400 font-mono mt-1">
-                          Test Latency:{" "}
-                          <span className="font-bold">{diagnosticLatency[mod.id]} ms</span>
-                        </div>
-                      )}
+                      {diagnosticLatency[mod.id] !== undefined &&
+                        !isDiagnosing[mod.id] && (
+                          <div className="text-[9.5px] text-emerald-400 font-mono mt-1">
+                            Test Latency:{" "}
+                            <span className="font-bold">
+                              {diagnosticLatency[mod.id]} ms
+                            </span>
+                          </div>
+                        )}
 
                       {/* Real-time Diagnostic Stream Panel */}
                       {diagnosticStream[mod.id] && (
                         <div className="mt-2 h-[80px] overflow-y-auto font-mono text-[8.5px] leading-relaxed text-electric bg-black/60 rounded-lg p-2.5 border border-white/5 shadow-glass scrollbar flex flex-col justify-end">
                           <div className="space-y-1">
                             {diagnosticStream[mod.id].map((log, i) => (
-                              <div key={i} className="whitespace-pre-wrap animate-fade-in">
+                              <div
+                                key={i}
+                                className="whitespace-pre-wrap animate-fade-in"
+                              >
                                 {log}
                               </div>
                             ))}
@@ -612,24 +689,27 @@ export function CognitiveStatusDashboard() {
                   )}
 
                   {/* Diagnostic History */}
-                  {diagnosticHistory[mod.id] && diagnosticHistory[mod.id].length > 0 && (
-                    <div className="mt-3 pt-2 border-t border-border/10">
-                      <div className="text-[9px] text-muted-foreground font-mono mb-1.5 font-semibold">
-                        ÚLTIMOS DIAGNÓSTICOS:
+                  {diagnosticHistory[mod.id] &&
+                    diagnosticHistory[mod.id].length > 0 && (
+                      <div className="mt-3 pt-2 border-t border-border/10">
+                        <div className="text-[9px] text-muted-foreground font-mono mb-1.5 font-semibold">
+                          ÚLTIMOS DIAGNÓSTICOS:
+                        </div>
+                        <div className="space-y-1">
+                          {diagnosticHistory[mod.id].map((entry, idx) => (
+                            <div
+                              key={idx}
+                              className="flex justify-between items-center text-[8.5px] font-mono text-platinum/70 bg-secondary/10 px-1.5 py-0.5 rounded border border-white/5"
+                            >
+                              <span>[{entry.timestamp}]</span>
+                              <span className="text-emerald-400 font-bold">
+                                {entry.latency}ms
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        {diagnosticHistory[mod.id].map((entry, idx) => (
-                          <div
-                            key={idx}
-                            className="flex justify-between items-center text-[8.5px] font-mono text-platinum/70 bg-secondary/10 px-1.5 py-0.5 rounded border border-white/5"
-                          >
-                            <span>[{entry.timestamp}]</span>
-                            <span className="text-emerald-400 font-bold">{entry.latency}ms</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               </div>
             ))}
@@ -642,7 +722,8 @@ export function CognitiveStatusDashboard() {
                 <div className="flex items-center gap-2">
                   <span className="size-2 rounded-full bg-electric animate-ping" />
                   <h4 className="font-mono text-xs font-bold text-pearl uppercase">
-                    REGISTRO DE OPERACIÓN: {modules.find((m) => m.id === selectedLogModule)?.name}
+                    REGISTRO DE OPERACIÓN:{" "}
+                    {modules.find((m) => m.id === selectedLogModule)?.name}
                   </h4>
                 </div>
                 <div className="flex items-center gap-2 w-full md:w-auto">
@@ -677,7 +758,10 @@ export function CognitiveStatusDashboard() {
               <div className="max-h-[160px] overflow-y-auto space-y-1.5 font-mono text-[11px] text-emerald-400 bg-background/60 p-4 rounded-xl border border-border/10 scrollbar">
                 {filteredLogs && filteredLogs.length > 0 ? (
                   filteredLogs.map((log, idx) => (
-                    <div key={idx} className="whitespace-pre-wrap break-all leading-relaxed">
+                    <div
+                      key={idx}
+                      className="whitespace-pre-wrap break-all leading-relaxed"
+                    >
                       {log}
                     </div>
                   ))
@@ -780,7 +864,10 @@ export function CognitiveStatusDashboard() {
                 BOOSTING CORES: {boostProgress}%
               </span>
               <div className="w-16 bg-background h-1.5 rounded-full overflow-hidden border border-border/10">
-                <div className="bg-electric h-full" style={{ width: `${boostProgress}%` }} />
+                <div
+                  className="bg-electric h-full"
+                  style={{ width: `${boostProgress}%` }}
+                />
               </div>
             </div>
           )}
@@ -812,10 +899,12 @@ export function CognitiveStatusDashboard() {
           {lines.map((l, index) => {
             let colorClass = "text-platinum/80";
             if (l.type === "header")
-              colorClass = "text-iridescent text-[13px] font-bold tracking-wide";
+              colorClass =
+                "text-iridescent text-[13px] font-bold tracking-wide";
             if (l.type === "system") colorClass = "text-muted-foreground";
             if (l.type === "error") colorClass = "text-rose-400 font-semibold";
-            if (l.type === "success") colorClass = "text-emerald-400 font-semibold";
+            if (l.type === "success")
+              colorClass = "text-emerald-400 font-semibold";
             if (l.type === "input") colorClass = "text-electric font-semibold";
             if (l.type === "json") colorClass = "text-emerald-500/90";
 

@@ -1,5 +1,9 @@
 import { repositoryFactory } from "../persistence/repository-factory";
-import type { AuditEntry, IRepository, Tenant } from "../persistence/repository";
+import type {
+  AuditEntry,
+  IRepository,
+  Tenant,
+} from "../persistence/repository";
 import { mapTenantRowToDomain, type TenantDomain } from "../domains/tenant";
 
 // ============================================================================
@@ -66,7 +70,11 @@ export class TenantService {
       severity: "S3",
       actor: command.createdBy,
       result: "success",
-      details: { tenantId: command.id, slug: command.slug, createdBy: command.createdBy },
+      details: {
+        tenantId: command.id,
+        slug: command.slug,
+        createdBy: command.createdBy,
+      },
     });
 
     return mapTenantRowToDomain({

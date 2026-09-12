@@ -31,7 +31,8 @@ function buildState(): SupabaseState {
     return {
       client: null,
       configured: false,
-      reason: "SUPABASE_URL o SUPABASE_ANON_KEY no configurados (modo sin base de datos).",
+      reason:
+        "SUPABASE_URL o SUPABASE_ANON_KEY no configurados (modo sin base de datos).",
     };
   }
 
@@ -39,7 +40,11 @@ function buildState(): SupabaseState {
     const client = createClient(url, anonKey, {
       auth: { persistSession: true, autoRefreshToken: true },
     });
-    return { client, configured: true, reason: "Cliente Supabase configurado." };
+    return {
+      client,
+      configured: true,
+      reason: "Cliente Supabase configurado.",
+    };
   } catch (error) {
     return {
       client: null,
@@ -64,20 +69,28 @@ export function supabaseState(): SupabaseState {
   return cachedClient;
 }
 
-export async function testSupabaseConnection(): Promise<{ success: boolean; message: string }> {
+export async function testSupabaseConnection(): Promise<{
+  success: boolean;
+  message: string;
+}> {
   const state = supabaseState();
   if (!state.configured) {
     return { success: false, message: state.reason };
   }
   const client = state.client as {
     from: (table: string) => {
-      select: (q: string) => Promise<{ data: unknown; error: { message: string } | null }>;
+      select: (
+        q: string,
+      ) => Promise<{ data: unknown; error: { message: string } | null }>;
     };
   };
   try {
     const { error } = await client.from("tenants").select("count");
     if (error) {
-      return { success: false, message: `Error en la base de datos: ${error.message}` };
+      return {
+        success: false,
+        message: `Error en la base de datos: ${error.message}`,
+      };
     }
     return { success: true, message: "Conexión exitosa con Supabase." };
   } catch (err: unknown) {

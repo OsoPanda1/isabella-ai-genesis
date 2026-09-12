@@ -38,15 +38,25 @@ describe("fallos de infraestructura degradan con gracia", () => {
     resetConfigCache();
     const { SovereignAudit } = await import("@/lib/sovereign-audit");
     const hash = SovereignAudit.hashData("x");
-    expect(await SovereignAudit.verifyAuditSeal(hash, "audit-seal-v1:abc")).toBe(false);
-    await expect(SovereignAudit.signAuditSeal(hash)).rejects.toThrow(/fail-closed/);
+    expect(
+      await SovereignAudit.verifyAuditSeal(hash, "audit-seal-v1:abc"),
+    ).toBe(false);
+    await expect(SovereignAudit.signAuditSeal(hash)).rejects.toThrow(
+      /fail-closed/,
+    );
     vi.unstubAllEnvs();
     resetConfigCache();
   });
 
   it("AEGIS con basura/entradas límite no falla y permite", async () => {
     const { analyzeAegisSemantic } = await import("@/lib/aegis-semantic");
-    for (const input of ["", "   ", "a".repeat(20000), "😀🔥💀", "\u0000\u0001\u0002"]) {
+    for (const input of [
+      "",
+      "   ",
+      "a".repeat(20000),
+      "😀🔥💀",
+      "\u0000\u0001\u0002",
+    ]) {
       const analysis = analyzeAegisSemantic(input, {});
       expect(["allow", "flag", "deny"]).toContain(analysis.verdict);
       expect(Number.isFinite(analysis.score)).toBe(true);
@@ -61,7 +71,11 @@ describe("fallos de infraestructura degradan con gracia", () => {
       subject_id: "",
       action: "execute",
       resource: "tool:memory.retrieve",
-      context: { ip_address: "127.0.0.1", user_agent: "chaos", timestamp: new Date() },
+      context: {
+        ip_address: "127.0.0.1",
+        user_agent: "chaos",
+        timestamp: new Date(),
+      },
     });
     expect(decision.allow).toBe(false);
   });

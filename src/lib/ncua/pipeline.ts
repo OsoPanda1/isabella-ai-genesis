@@ -99,20 +99,28 @@ function sha256(input: string): string {
   return createHash("sha256").update(input).digest("hex");
 }
 
-function riskAssessment(text: string): { detected: boolean; reason: string | null } {
+function riskAssessment(text: string): {
+  detected: boolean;
+  reason: string | null;
+} {
   const lower = text.toLowerCase();
   if (EMAIL_PATTERN.test(text))
     return {
       detected: true,
-      reason: "dato personal (correo) detectado: respuesta negada; no se persiste",
+      reason:
+        "dato personal (correo) detectado: respuesta negada; no se persiste",
     };
   if (CARD_PATTERN.test(text))
     return {
       detected: true,
-      reason: "dato financiero (tarjeta) detectado: respuesta negada; no se persiste",
+      reason:
+        "dato financiero (tarjeta) detectado: respuesta negada; no se persiste",
     };
   if (DIRECTIVE_PATTERN.test(lower))
-    return { detected: true, reason: "posible inyección de directivas: respuesta negada" };
+    return {
+      detected: true,
+      reason: "posible inyección de directivas: respuesta negada",
+    };
   return { detected: false, reason: null };
 }
 
@@ -160,7 +168,10 @@ export function runNativePipeline(
   }
 
   const vector = embed(text);
-  pushStep("representación continua", { dim: vector.length, norm: magnitudeOf(vector) });
+  pushStep("representación continua", {
+    dim: vector.length,
+    norm: magnitudeOf(vector),
+  });
 
   const latent = compressToLatent(text, { chunkSize: 32 });
   pushStep("proyección latente", {
@@ -192,7 +203,10 @@ export function runNativePipeline(
   });
 
   const knowledgeGraph = options.knowledgeGraph ?? seedRdmKnowledgeGraph();
-  const narrative = knowledgeGraph.createNarrative(text, { topK: 3, minScore: 0.2 });
+  const narrative = knowledgeGraph.createNarrative(text, {
+    topK: 3,
+    minScore: 0.2,
+  });
   pushStep("fundamentación", { groundedFacts: narrative.groundedFacts });
 
   const classifier = options.classifier ?? seedRdmIntents();
@@ -260,7 +274,10 @@ export function runNativePipeline(
   const grounding = narrative.groundedFacts;
   const coherence =
     grounding > 0
-      ? Math.min(1, (0.6 * grounding) / 3 + 0.4 * (memoryHitsForCoherence ? 1 : 0.2))
+      ? Math.min(
+          1,
+          (0.6 * grounding) / 3 + 0.4 * (memoryHitsForCoherence ? 1 : 0.2),
+        )
       : 0.2;
   pushStep("coherencia", {
     score: coherence,
@@ -277,8 +294,14 @@ export function runNativePipeline(
     response = null;
   } else if (risk.detected) {
     response =
-      "La solicitud rechazada no fue procesada: " + (risk.reason ?? "riesgo detectado") + ".";
-  } else if (attention.consensusApproved && consensus.approved && coherence >= 0.4) {
+      "La solicitud rechazada no fue procesada: " +
+      (risk.reason ?? "riesgo detectado") +
+      ".";
+  } else if (
+    attention.consensusApproved &&
+    consensus.approved &&
+    coherence >= 0.4
+  ) {
     if (narrative.groundedFacts > 0) {
       response = narrative.text;
     } else if (topHit) {
@@ -291,7 +314,9 @@ export function runNativePipeline(
     response =
       "Consenso federado no alcanzado o coherencia insuficiente: no generaré una respuesta sin fundamento.";
   }
-  const metrics = measureOnCorpus(options.memoryCorpus ?? [], { chunkSize: 32 });
+  const metrics = measureOnCorpus(options.memoryCorpus ?? [], {
+    chunkSize: 32,
+  });
   pushStep("redacción y auditoría", {
     mode: inference.mode,
     httpStatus: inference.httpStatus,
@@ -327,13 +352,19 @@ export function runNativePipeline(
       attentionWeighted: attention.attentionWeights.length > 0,
     },
     memory: { hits: topHit ? 1 : 0, topHit: topHit?.id ?? null, exact },
-    knowledge: { groundedFacts: narrative.groundedFacts, narrative: narrative.text },
+    knowledge: {
+      groundedFacts: narrative.groundedFacts,
+      narrative: narrative.text,
+    },
     intent: {
       detected: prediction.intent,
       confidence: prediction.confidence,
       margin: prediction.margin,
     },
-    privacy: { queriesSpent: budget.state.queriesSpent, remainingEpsilon: budget.remainingEpsilon },
+    privacy: {
+      queriesSpent: budget.state.queriesSpent,
+      remainingEpsilon: budget.remainingEpsilon,
+    },
     riskDetected: risk.detected,
     response,
     httpStatus: inference.httpStatus,
@@ -354,11 +385,18 @@ function buildResult(
   message: string,
   httpStatus: number,
 ): PipelineRunResult {
-  const metrics = measureOnCorpus(options.memoryCorpus ?? [], { chunkSize: 32 });
+  const metrics = measureOnCorpus(options.memoryCorpus ?? [], {
+    chunkSize: 32,
+  });
   return {
     id,
     inference: { ...inference, httpStatus: httpStatus as 200 | 503 },
-    federations: { votesApproved: false, vetoActive: false, consensusScore: 0, approveVotes: 0 },
+    federations: {
+      votesApproved: false,
+      vetoActive: false,
+      consensusScore: 0,
+      approveVotes: 0,
+    },
     attention: {
       consensusApproved: false,
       consensusScore: 0,

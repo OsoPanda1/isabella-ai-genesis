@@ -22,7 +22,12 @@
  * responsabilidad y es el único que puede administrar gobernanza.
  */
 export type Role =
-  "SovereignOwner" | "Operator" | "Auditor" | "Guest" | "System" | "governance_admin";
+  | "SovereignOwner"
+  | "Operator"
+  | "Auditor"
+  | "Guest"
+  | "System"
+  | "governance_admin";
 
 export const ROLES: readonly Role[] = [
   "SovereignOwner",
@@ -35,7 +40,8 @@ export const ROLES: readonly Role[] = [
 
 /** Guía de responsabilidad de cada rol (documental, no autoritativa). */
 export const ROLE_DESCRIPTIONS: Record<Role, string> = {
-  SovereignOwner: "Propietario soberano del nodo: gobierno, administración y moneda.",
+  SovereignOwner:
+    "Propietario soberano del nodo: gobierno, administración y moneda.",
   Operator: "Operador comunitario autorizado para operaciones de tenant.",
   Auditor: "Auditoría y verificación de cadena / cumplimiento (solo lectura).",
   Guest: "Acceso público no autenticado con privilegios mínimos.",
@@ -48,7 +54,13 @@ export const ROLE_DESCRIPTIONS: Record<Role, string> = {
 // permisos de roles de mayor privilegio si no son estrictamente necesarios.
 const ROLE_INHERITANCE: Record<Role, readonly Role[]> = {
   // El propietario soberano es el único rol con acceso completo al sistema.
-  SovereignOwner: ["governance_admin", "Operator", "Auditor", "System", "Guest"],
+  SovereignOwner: [
+    "governance_admin",
+    "Operator",
+    "Auditor",
+    "System",
+    "Guest",
+  ],
   // governance_admin administra gobernanza y lee auditoría/ledger; NO hereda
   // privilegios de Operator (sandbox/http) ni System (telemetría de sistema).
   governance_admin: ["Auditor", "Guest"],
@@ -126,7 +138,11 @@ export function checkPermission(
   permission: string,
 ): PermissionCheck {
   if (!ROLES.includes(identity.role)) {
-    return { allowed: false, permission, reason: `Rol desconocido '${identity.role}'` };
+    return {
+      allowed: false,
+      permission,
+      reason: `Rol desconocido '${identity.role}'`,
+    };
   }
   if (identityHasPermission(identity, permission)) {
     return {
@@ -264,7 +280,9 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
 for (const role of ROLES) {
   for (const permission of ROLE_PERMISSIONS[role]) {
     if (!(permission in PERMISSIONS)) {
-      throw new Error(`RBAC: permiso '${permission}' no declarado en el catálogo`);
+      throw new Error(
+        `RBAC: permiso '${permission}' no declarado en el catálogo`,
+      );
     }
   }
 }

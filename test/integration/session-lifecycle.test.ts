@@ -15,7 +15,10 @@ const DATA_DIR = join(process.cwd(), "isabella_data");
 
 describe("ciclo de vida de sesión", () => {
   beforeEach(async () => {
-    vi.stubEnv("AUTH_JWT_SECRET", "test-jwt-secret-min-32-chars-0123456789abcdef");
+    vi.stubEnv(
+      "AUTH_JWT_SECRET",
+      "test-jwt-secret-min-32-chars-0123456789abcdef",
+    );
     vi.stubEnv("ISABELLA_RUNTIME_MODE", "development");
     vi.stubEnv("NODE_ENV", "test");
     const { resetConfigCache } = await import("@/lib/config");
@@ -26,12 +29,14 @@ describe("ciclo de vida de sesión", () => {
     vi.unstubAllEnvs();
     const { resetConfigCache } = await import("@/lib/config");
     resetConfigCache();
-    if (existsSync(DATA_DIR)) rmSync(DATA_DIR, { recursive: true, force: true });
+    if (existsSync(DATA_DIR))
+      rmSync(DATA_DIR, { recursive: true, force: true });
   });
 
   async function issueSession(overrides: Record<string, unknown> = {}) {
     const { SecuritySystem } = await import("@/lib/security");
-    const { repositoryFactory } = await import("@/lib/persistence/repository-factory");
+    const { repositoryFactory } =
+      await import("@/lib/persistence/repository-factory");
     const token = await SecuritySystem.generateSovereignToken(
       "user_sess",
       "Operator",
@@ -39,8 +44,10 @@ describe("ciclo de vida de sesión", () => {
       "isabella:chat",
     );
     const verification = await SecuritySystem.verifyToken(token);
-    if (!verification.success || !verification.claims) throw new Error("token inválido en test");
-    const jti = (verification.claims as unknown as Record<string, unknown>).jti as string;
+    if (!verification.success || !verification.claims)
+      throw new Error("token inválido en test");
+    const jti = (verification.claims as unknown as Record<string, unknown>)
+      .jti as string;
     expect(typeof jti).toBe("string");
     const sessions = repositoryFactory.getSessionRepository();
     const created = await sessions.create("tenant_sess", {
@@ -63,7 +70,8 @@ describe("ciclo de vida de sesión", () => {
     const { PrincipalContext } = await import("@/lib/principal-context");
     const { token } = await issueSession();
     // Tenant requerido por el guard: crearlo también.
-    const { repositoryFactory } = await import("@/lib/persistence/repository-factory");
+    const { repositoryFactory } =
+      await import("@/lib/persistence/repository-factory");
     await repositoryFactory.getTenantRepository().create("tenant_sess", {
       id: "tenant_sess",
       slug: "sess",
@@ -77,7 +85,8 @@ describe("ciclo de vida de sesión", () => {
 
   it("sesión expirada se rechaza (401) aunque el JWT valga", async () => {
     const { PrincipalContext } = await import("@/lib/principal-context");
-    const { repositoryFactory } = await import("@/lib/persistence/repository-factory");
+    const { repositoryFactory } =
+      await import("@/lib/persistence/repository-factory");
     await repositoryFactory.getTenantRepository().create("tenant_sess", {
       id: "tenant_sess",
       slug: "sess",
@@ -98,7 +107,8 @@ describe("ciclo de vida de sesión", () => {
 
   it("sesión revocada (is_active=false) se rechaza", async () => {
     const { PrincipalContext } = await import("@/lib/principal-context");
-    const { repositoryFactory } = await import("@/lib/persistence/repository-factory");
+    const { repositoryFactory } =
+      await import("@/lib/persistence/repository-factory");
     await repositoryFactory.getTenantRepository().create("tenant_sess", {
       id: "tenant_sess",
       slug: "sess",

@@ -7,7 +7,10 @@ import {
   LearningIngestApiSchema,
   LearningQueryApiSchema,
 } from "@/lib/isabella-learning-api";
-import { loadLearningRuntime, persistLearningRuntime } from "@/lib/isabella-learning-persistence";
+import {
+  loadLearningRuntime,
+  persistLearningRuntime,
+} from "@/lib/isabella-learning-persistence";
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -25,7 +28,10 @@ async function runtimeFor(tenantId: string) {
   try {
     return await loadLearningRuntime(tenantId);
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "LEARNING_RUNTIME_UNAVAILABLE" } as const;
+    return {
+      error:
+        error instanceof Error ? error.message : "LEARNING_RUNTIME_UNAVAILABLE",
+    } as const;
   }
 }
 
@@ -45,15 +51,31 @@ export const Route = createFileRoute("/api/isabella-learning")({
             query: url.searchParams.get("query") ?? "",
             limit: Number(url.searchParams.get("limit") ?? 8),
           });
-          if (!parsed.success) return json({ error: "VALIDATION_ERROR", issues: parsed.error.issues }, 400);
+          if (!parsed.success)
+            return json(
+              { error: "VALIDATION_ERROR", issues: parsed.error.issues },
+              400,
+            );
           return api.retrieve(parsed.data);
         }
         if (action === "evaluate") {
-          const parsed = LearningEvaluateApiSchema.safeParse({ query: url.searchParams.get("query") ?? "" });
-          if (!parsed.success) return json({ error: "VALIDATION_ERROR", issues: parsed.error.issues }, 400);
+          const parsed = LearningEvaluateApiSchema.safeParse({
+            query: url.searchParams.get("query") ?? "",
+          });
+          if (!parsed.success)
+            return json(
+              { error: "VALIDATION_ERROR", issues: parsed.error.issues },
+              400,
+            );
           return api.evaluate(parsed.data);
         }
-        return json({ error: "UNKNOWN_ACTION", allowed: ["snapshot", "retrieve", "evaluate"] }, 400);
+        return json(
+          {
+            error: "UNKNOWN_ACTION",
+            allowed: ["snapshot", "retrieve", "evaluate"],
+          },
+          400,
+        );
       }),
 
       POST: withSovereignAuth("system", "execute", async (context, request) => {
@@ -66,33 +88,54 @@ export const Route = createFileRoute("/api/isabella-learning")({
 
         const runtime = await runtimeFor(context.tenantId);
         if ("error" in runtime) return json({ error: runtime.error }, 503);
-        const action = typeof body === "object" && body !== null && "action" in body
-          ? (body as { action?: unknown }).action
-          : "ingest";
-        const payload = typeof body === "object" && body !== null && "payload" in body
-          ? (body as { payload?: unknown }).payload
-          : body;
+        const action =
+          typeof body === "object" && body !== null && "action" in body
+            ? (body as { action?: unknown }).action
+            : "ingest";
+        const payload =
+          typeof body === "object" && body !== null && "payload" in body
+            ? (body as { payload?: unknown }).payload
+            : body;
         const api = createNativeLearningApi(runtime.engine);
 
         if (action === "ingest") {
           const parsed = LearningIngestApiSchema.safeParse(payload);
-          if (!parsed.success) return json({ error: "VALIDATION_ERROR", issues: parsed.error.issues }, 400);
+          if (!parsed.success)
+            return json(
+              { error: "VALIDATION_ERROR", issues: parsed.error.issues },
+              400,
+            );
           const response = api.ingest(parsed.data);
-          if (response.ok && runtime.durable) await persistLearningRuntime(context.tenantId, runtime.engine);
+          if (response.ok && runtime.durable)
+            await persistLearningRuntime(context.tenantId, runtime.engine);
           return response;
         }
         if (action === "retrieve") {
           const parsed = LearningQueryApiSchema.safeParse(payload);
-          if (!parsed.success) return json({ error: "VALIDATION_ERROR", issues: parsed.error.issues }, 400);
+          if (!parsed.success)
+            return json(
+              { error: "VALIDATION_ERROR", issues: parsed.error.issues },
+              400,
+            );
           return api.retrieve(parsed.data);
         }
         if (action === "evaluate") {
           const parsed = LearningEvaluateApiSchema.safeParse(payload);
-          if (!parsed.success) return json({ error: "VALIDATION_ERROR", issues: parsed.error.issues }, 400);
+          if (!parsed.success)
+            return json(
+              { error: "VALIDATION_ERROR", issues: parsed.error.issues },
+              400,
+            );
           return api.evaluate(parsed.data);
         }
         if (action === "snapshot") return api.snapshot();
-        return json({ error: "UNKNOWN_ACTION", allowed: ["ingest", "retrieve", "evaluate", "snapshot"] }, 400);
+        return json(
+          {
+            error: "UNKNOWN_ACTION",
+            allowed: ["ingest", "retrieve", "evaluate", "snapshot"],
+          },
+          400,
+        );
       }),
     },
   },

@@ -26,7 +26,8 @@ export function canonicalize(value) {
   if (Array.isArray(value)) return value.map((item) => canonicalize(item));
   if (value !== null && typeof value === "object") {
     const out = {};
-    for (const key of Object.keys(value).sort()) out[key] = canonicalize(value[key]);
+    for (const key of Object.keys(value).sort())
+      out[key] = canonicalize(value[key]);
     return out;
   }
   return value;
@@ -64,7 +65,9 @@ export function verifySnapshot(snapshot) {
       continue;
     }
     if (rows.length !== entry.rows) {
-      errors.push(`Conteo divergente en ${entry.table}: manifiesto ${entry.rows}, real ${rows.length}.`);
+      errors.push(
+        `Conteo divergente en ${entry.table}: manifiesto ${entry.rows}, real ${rows.length}.`,
+      );
     }
     const digest = sha256Hex(JSON.stringify(canonicalize(rows)));
     if (digest !== entry.sha256) {

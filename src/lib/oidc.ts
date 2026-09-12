@@ -15,7 +15,11 @@
 
 import { createPublicKey } from "node:crypto";
 import { JwksCache } from "./jwks-cache";
-import { verifyJwt, type JwtClaims, type JwtVerifierOptions } from "./jwt-verifier";
+import {
+  verifyJwt,
+  type JwtClaims,
+  type JwtVerifierOptions,
+} from "./jwt-verifier";
 
 /** Documento de discovery OIDC (RFC 8414). */
 export interface OidcDiscoveryDocument {
@@ -65,12 +69,15 @@ export async function createOidcProvider(
   options: OidcProviderOptions = {},
 ): Promise<OidcProvider> {
   const baseIssuer = (options.overrides?.issuer ?? issuer).replace(/\/+$/, "");
-  const document = discovery ?? (await fetchDocument(baseIssuer, options.timeoutMs));
-  const effectiveIssuer = options.overrides?.issuer ?? document.issuer ?? baseIssuer;
+  const document =
+    discovery ?? (await fetchDocument(baseIssuer, options.timeoutMs));
+  const effectiveIssuer =
+    options.overrides?.issuer ?? document.issuer ?? baseIssuer;
 
   const jwksOptions: { ttlMs?: number; timeoutMs?: number } = {};
   if (options.jwksTtlMs !== undefined) jwksOptions.ttlMs = options.jwksTtlMs;
-  if (options.timeoutMs !== undefined) jwksOptions.timeoutMs = options.timeoutMs;
+  if (options.timeoutMs !== undefined)
+    jwksOptions.timeoutMs = options.timeoutMs;
   const jwks = new JwksCache(effectiveIssuer, jwksOptions);
 
   let cache: OidcDiscoveryDocument = document;
@@ -83,10 +90,12 @@ export async function createOidcProvider(
     async getDiscovery(): Promise<OidcDiscoveryDocument> {
       if (cache) return cache;
       if (!discoveryPromise) {
-        discoveryPromise = fetchDocument(baseIssuer, options.timeoutMs).then((doc) => {
-          cache = doc;
-          return doc;
-        });
+        discoveryPromise = fetchDocument(baseIssuer, options.timeoutMs).then(
+          (doc) => {
+            cache = doc;
+            return doc;
+          },
+        );
       }
       return discoveryPromise;
     },
@@ -106,9 +115,15 @@ export async function createOidcProvider(
   };
 }
 
-async function fetchDocument(issuer: string, timeoutMs?: number): Promise<OidcDiscoveryDocument> {
+async function fetchDocument(
+  issuer: string,
+  timeoutMs?: number,
+): Promise<OidcDiscoveryDocument> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs ?? DEFAULT_TIMEOUT_MS);
+  const timer = setTimeout(
+    () => controller.abort(),
+    timeoutMs ?? DEFAULT_TIMEOUT_MS,
+  );
   try {
     const url = `${issuer}/.well-known/openid-configuration`;
     const response = await fetch(url, {
@@ -145,7 +160,9 @@ export async function verifyIdToken(
   let kid: string | undefined;
   try {
     const normalized = headerSegment.replace(/-/g, "+").replace(/_/g, "/");
-    const header = JSON.parse(Buffer.from(normalized, "base64").toString("utf-8")) as {
+    const header = JSON.parse(
+      Buffer.from(normalized, "base64").toString("utf-8"),
+    ) as {
       kid?: string;
     };
     kid = header.kid;

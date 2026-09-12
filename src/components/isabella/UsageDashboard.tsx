@@ -60,7 +60,9 @@ export function UsageDashboard({
           className="p-1.5 rounded-lg border border-border/30 hover:border-border/50 text-muted-foreground hover:text-platinum transition-all disabled:opacity-30"
           title="Sincronizar límites"
         >
-          <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin text-electric" : ""}`} />
+          <RefreshCw
+            className={`size-3.5 ${isRefreshing ? "animate-spin text-electric" : ""}`}
+          />
         </button>
       </div>
 

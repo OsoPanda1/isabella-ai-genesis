@@ -23,11 +23,16 @@ export function runSecurityTestSuite(): SecurityTestSuiteReport {
 
   // Test 1: RBAC guest prevention
   try {
-    const adminAllowedForGuest = identityHasPermission({ role: "Guest" }, "system:admin");
+    const adminAllowedForGuest = identityHasPermission(
+      { role: "Guest" },
+      "system:admin",
+    );
     results.push({
       name: "RBAC Guest Prevented from Admin",
       success: !adminAllowedForGuest,
-      ...(adminAllowedForGuest ? { error: "Guest has administrative access" } : {}),
+      ...(adminAllowedForGuest
+        ? { error: "Guest has administrative access" }
+        : {}),
     });
   } catch (e) {
     results.push({
@@ -43,7 +48,8 @@ export function runSecurityTestSuite(): SecurityTestSuiteReport {
     // Temporarily add a secret value pattern check
     const rawText = `The secret is api_key = "${testSecret}"`;
     const redacted = redact(rawText);
-    const success = redacted.includes("[REDACTED]") && !redacted.includes(testSecret);
+    const success =
+      redacted.includes("[REDACTED]") && !redacted.includes(testSecret);
     results.push({
       name: "Automated Secret Redaction Validation",
       success,

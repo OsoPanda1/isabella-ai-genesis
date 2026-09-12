@@ -14,10 +14,18 @@ import {
 export interface OnboardingProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete: (data: { username: string; email: string; telemetryConsent: boolean }) => void;
+  onComplete: (data: {
+    username: string;
+    email: string;
+    telemetryConsent: boolean;
+  }) => void;
 }
 
-export function AccountOnboarding({ isOpen, onClose, onComplete }: OnboardingProps) {
+export function AccountOnboarding({
+  isOpen,
+  onClose,
+  onComplete,
+}: OnboardingProps) {
   const [step, setStep] = useState(1);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -46,13 +54,17 @@ export function AccountOnboarding({ isOpen, onClose, onComplete }: OnboardingPro
         return;
       }
       if (!validateEmail(cleanEmail)) {
-        setError("Ingresa una dirección de correo electrónico válida (ejemplo@dominio.com).");
+        setError(
+          "Ingresa una dirección de correo electrónico válida (ejemplo@dominio.com).",
+        );
         return;
       }
       setStep(2);
     } else if (step === 2) {
       if (!isAgreed) {
-        setError("Debes aceptar los Términos Constitucionales y Políticas de Privacidad.");
+        setError(
+          "Debes aceptar los Términos Constitucionales y Políticas de Privacidad.",
+        );
         return;
       }
       onComplete({
@@ -126,7 +138,9 @@ export function AccountOnboarding({ isOpen, onClose, onComplete }: OnboardingPro
             <div
               key={s}
               className={`h-1 flex-1 rounded-full transition-all duration-500 ${
-                s <= step ? "bg-electric shadow-[0_0_8px_rgba(110,234,255,0.4)]" : "bg-secondary/35"
+                s <= step
+                  ? "bg-electric shadow-[0_0_8px_rgba(110,234,255,0.4)]"
+                  : "bg-secondary/35"
               }`}
             />
           ))}
@@ -145,8 +159,8 @@ export function AccountOnboarding({ isOpen, onClose, onComplete }: OnboardingPro
                     Bienvenido al Nodo Cero
                   </h4>
                   <p className="text-[12.5px] text-muted-foreground leading-relaxed mt-0.5">
-                    Crea una cuenta local y configura tu identidad soberana para interactuar con
-                    Isabella.
+                    Crea una cuenta local y configura tu identidad soberana para
+                    interactuar con Isabella.
                   </p>
                 </div>
               </div>
@@ -223,8 +237,8 @@ export function AccountOnboarding({ isOpen, onClose, onComplete }: OnboardingPro
                     Gobernanza y Privacidad Ética
                   </h4>
                   <p className="text-[12.5px] text-muted-foreground leading-relaxed mt-0.5">
-                    Isabella protege tus datos. Revisa nuestras políticas constitucionales para
-                    habilitar la telemetría territorial.
+                    Isabella protege tus datos. Revisa nuestras políticas
+                    constitucionales para habilitar la telemetría territorial.
                   </p>
                 </div>
               </div>
@@ -241,15 +255,18 @@ export function AccountOnboarding({ isOpen, onClose, onComplete }: OnboardingPro
 
               <div className="bg-secondary/20 rounded-2xl p-4 border border-border/30 max-h-[16vh] overflow-y-auto space-y-2.5 custom-scrollbar">
                 <p className="font-mono text-[10.5px] text-muted-foreground leading-relaxed">
-                  <strong className="text-platinum">Principios de Soberanía Humana:</strong> El
-                  procesamiento de datos personales se limita a lo estrictamente solicitado y nunca
-                  se venderá a terceros ni se empleará para entrenar modelos sin consentimiento
-                  explícito.
+                  <strong className="text-platinum">
+                    Principios de Soberanía Humana:
+                  </strong>{" "}
+                  El procesamiento de datos personales se limita a lo
+                  estrictamente solicitado y nunca se venderá a terceros ni se
+                  empleará para entrenar modelos sin consentimiento explícito.
                 </p>
                 <p className="font-mono text-[10.5px] text-muted-foreground leading-relaxed">
-                  <strong className="text-platinum">Derecho al Olvido:</strong> En cualquier momento
-                  puedes purgar por completo tu historial de conversaciones e índices de memoria
-                  persistente de forma irreversible.
+                  <strong className="text-platinum">Derecho al Olvido:</strong>{" "}
+                  En cualquier momento puedes purgar por completo tu historial
+                  de conversaciones e índices de memoria persistente de forma
+                  irreversible.
                 </p>
               </div>
 
@@ -267,8 +284,8 @@ export function AccountOnboarding({ isOpen, onClose, onComplete }: OnboardingPro
                       Habilitar Telemetría Territorial
                     </span>
                     <span className="text-[10.5px] text-muted-foreground leading-relaxed mt-0.5">
-                      Permite que Isabella analice respuestas de forma agregada para perfeccionar el
-                      conocimiento local de Real del Monte.
+                      Permite que Isabella analice respuestas de forma agregada
+                      para perfeccionar el conocimiento local de Real del Monte.
                     </span>
                   </div>
                 </label>
@@ -306,15 +323,17 @@ export function AccountOnboarding({ isOpen, onClose, onComplete }: OnboardingPro
                   Registro Completado
                 </h4>
                 <p className="text-[13px] text-muted-foreground leading-relaxed mt-1">
-                  Tu identidad en el Nodo Cero ha sido registrada de forma segura. Bienvenido a
-                  Isabella Villaseñor AI.
+                  Tu identidad en el Nodo Cero ha sido registrada de forma
+                  segura. Bienvenido a Isabella Villaseñor AI.
                 </p>
               </div>
 
               <div className="bg-secondary/15 rounded-2xl p-4 border border-border/30 w-full font-mono text-[11px] text-left space-y-1.5 shadow-inner">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Operador:</span>
-                  <span className="text-platinum font-semibold">{username}</span>
+                  <span className="text-platinum font-semibold">
+                    {username}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">ID Cripto:</span>

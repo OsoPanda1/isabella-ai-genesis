@@ -37,18 +37,20 @@ describe("EnvKMSProvider real", () => {
       const replacement = part[middle] === "A" ? "B" : "A";
       return part.slice(0, middle) + replacement + part.slice(middle + 1);
     };
-    await expect(kms.decrypt("k", [prefix, iv, flipMid(ct), tag].join(":"))).rejects.toThrow(
-      /autenticación/i,
-    );
-    await expect(kms.decrypt("k", [prefix, iv, ct, flipMid(tag)].join(":"))).rejects.toThrow(
-      /autenticación/i,
-    );
+    await expect(
+      kms.decrypt("k", [prefix, iv, flipMid(ct), tag].join(":")),
+    ).rejects.toThrow(/autenticación/i);
+    await expect(
+      kms.decrypt("k", [prefix, iv, ct, flipMid(tag)].join(":")),
+    ).rejects.toThrow(/autenticación/i);
     await expect(kms.decrypt("k", "basura")).rejects.toThrow(/formato/i);
   });
 
   it("clave maestra errónea no descifra", async () => {
     const a = new EnvKMSProvider({ ENCRYPTION_MASTER_KEY: MASTER });
-    const b = new EnvKMSProvider({ ENCRYPTION_MASTER_KEY: "fedcba9876543210fedcba9876543210" });
+    const b = new EnvKMSProvider({
+      ENCRYPTION_MASTER_KEY: "fedcba9876543210fedcba9876543210",
+    });
     const envelope = await a.encrypt("k", "dato");
     await expect(b.decrypt("k", envelope)).rejects.toThrow();
   });
@@ -70,6 +72,8 @@ describe("EnvKMSProvider real", () => {
 
   it("sin master falla cerrado", async () => {
     const kms = new EnvKMSProvider({});
-    await expect(kms.encrypt("k", "x")).rejects.toThrow(/ENCRYPTION_MASTER_KEY/);
+    await expect(kms.encrypt("k", "x")).rejects.toThrow(
+      /ENCRYPTION_MASTER_KEY/,
+    );
   });
 });

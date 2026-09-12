@@ -21,13 +21,17 @@ function cleanUrl(value: string, fallback: string): string {
 export function localProviderConfig(): LocalProviderConfig {
   const env = config();
   return {
-    ollamaBaseUrl: cleanUrl(env.OLLAMA_BASE_URL ?? "", "http://127.0.0.1:11434"),
+    ollamaBaseUrl: cleanUrl(
+      env.OLLAMA_BASE_URL ?? "",
+      "http://127.0.0.1:11434",
+    ),
     ollamaModel: env.OLLAMA_MODEL?.trim() || "qwen3:8b",
     openaiCompatibleBaseUrl: cleanUrl(
       env.OPENAI_COMPATIBLE_BASE_URL ?? "",
       "http://127.0.0.1:8000/v1",
     ),
-    openaiCompatibleModel: env.OPENAI_COMPATIBLE_MODEL?.trim() || "Qwen/Qwen3-8B",
+    openaiCompatibleModel:
+      env.OPENAI_COMPATIBLE_MODEL?.trim() || "Qwen/Qwen3-8B",
     openaiCompatibleApiKey: env.OPENAI_COMPATIBLE_API_KEY?.trim() || undefined,
   };
 }

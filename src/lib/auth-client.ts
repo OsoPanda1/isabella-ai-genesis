@@ -62,14 +62,23 @@ export async function ensureSessionToken(): Promise<string> {
   const response = await fetch(
     `/api/db?action=oauth-url&redirect_uri=${encodeURIComponent(`${window.location.origin}/api/db?action=oauth-callback`)}`,
   );
-  const payload = (await response.json().catch(() => ({}))) as { url?: string; error?: string };
+  const payload = (await response.json().catch(() => ({}))) as {
+    url?: string;
+    error?: string;
+  };
   if (!response.ok || !payload.url)
     throw new Error(payload.error || "ARGUS requiere una sesión OIDC válida.");
 
   return new Promise((resolve, reject) => {
-    const popup = window.open(payload.url, "isabella-oidc", "width=520,height=720,resizable=yes");
+    const popup = window.open(
+      payload.url,
+      "isabella-oidc",
+      "width=520,height=720,resizable=yes",
+    );
     if (!popup) {
-      reject(new Error("El navegador bloqueó la ventana de autorización OIDC."));
+      reject(
+        new Error("El navegador bloqueó la ventana de autorización OIDC."),
+      );
       return;
     }
     const timeout = window.setTimeout(() => {
@@ -78,13 +87,15 @@ export async function ensureSessionToken(): Promise<string> {
     }, 120000);
     const handleMessage = (event: MessageEvent) => {
       if (!isTrustedOAuthEvent(event)) return;
-      const token = typeof event.data?.token === "string" ? event.data.token : "";
+      const token =
+        typeof event.data?.token === "string" ? event.data.token : "";
       if (!token) return;
       window.clearTimeout(timeout);
       window.removeEventListener("message", handleMessage);
       popup.close();
       setSessionToken(token);
-      if (typeof event.data?.userId === "string") setStoredSovereignUserId(event.data.userId);
+      if (typeof event.data?.userId === "string")
+        setStoredSovereignUserId(event.data.userId);
       resolve(token);
     };
     window.addEventListener("message", handleMessage);

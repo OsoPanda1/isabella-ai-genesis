@@ -35,7 +35,9 @@ export interface StripeLike {
 function defaultClient(): StripeLike {
   const key = config().STRIPE_SECRET_KEY;
   if (!key) {
-    throw new Error("Payout denegado: STRIPE_SECRET_KEY ausente (fail-closed).");
+    throw new Error(
+      "Payout denegado: STRIPE_SECRET_KEY ausente (fail-closed).",
+    );
   }
   const stripe = new Stripe(key, { apiVersion: "2022-11-15" as never });
   return stripe as unknown as StripeLike;

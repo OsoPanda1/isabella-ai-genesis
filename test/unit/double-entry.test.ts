@@ -80,7 +80,9 @@ describe("Double-Entry Accounting System", () => {
       });
 
       expect(validation.isValid).toBe(false);
-      expect(validation.errors.some((e) => e.includes("no son iguales"))).toBe(true);
+      expect(validation.errors.some((e) => e.includes("no son iguales"))).toBe(
+        true,
+      );
       expect(validation.differenceCents).toBe(5000);
     });
 
@@ -112,7 +114,9 @@ describe("Double-Entry Accounting System", () => {
       });
 
       expect(validation.isValid).toBe(false);
-      expect(validation.errors.some((e) => e.includes("tanto débito como crédito"))).toBe(true);
+      expect(
+        validation.errors.some((e) => e.includes("tanto débito como crédito")),
+      ).toBe(true);
     });
 
     it("debe rechazar montos negativos", () => {
@@ -138,8 +142,16 @@ describe("Double-Entry Accounting System", () => {
         description: "Venta de servicios",
         createdBy: "user-001",
         lines: [
-          { accountId: cashAccount.id, debitCents: 10000, description: "Cobro" },
-          { accountId: revenueAccount.id, creditCents: 10000, description: "Ingreso" },
+          {
+            accountId: cashAccount.id,
+            debitCents: 10000,
+            description: "Cobro",
+          },
+          {
+            accountId: revenueAccount.id,
+            creditCents: 10000,
+            description: "Ingreso",
+          },
         ],
       });
 
@@ -212,7 +224,9 @@ describe("Double-Entry Accounting System", () => {
 
       expect(reverseResult.success).toBe(true);
 
-      const originalEntry = await repository.getJournalEntryById(createResult.entry!.id);
+      const originalEntry = await repository.getJournalEntryById(
+        createResult.entry!.id,
+      );
       expect(originalEntry!.status).toBe("reversed");
     });
   });
@@ -247,7 +261,11 @@ describe("Double-Entry Accounting System", () => {
       const t2 = await repository.getJournalEntriesByTenant(tenantId);
       await service.postJournalEntry(t2[1].id);
 
-      const trialBalance = await service.getTrialBalance(tenantId, periodStart, periodEnd);
+      const trialBalance = await service.getTrialBalance(
+        tenantId,
+        periodStart,
+        periodEnd,
+      );
 
       expect(trialBalance.isBalanced).toBe(true);
       expect(trialBalance.totalDebitsCents).toBe(70000);

@@ -1,7 +1,11 @@
 import { neon } from "@neondatabase/serverless";
 import { createHash, randomUUID } from "node:crypto";
 import { config } from "../config";
-import type { MemoryRecord, MemoryScope, MemorySensitivity } from "./memory-repository";
+import type {
+  MemoryRecord,
+  MemoryScope,
+  MemorySensitivity,
+} from "./memory-repository";
 
 const GENESIS_HASH = "0".repeat(64);
 
@@ -41,7 +45,9 @@ function mapRow(row: Record<string, unknown>): MemoryRecord {
     consentGranted: Boolean(row.consent),
     createdAt: new Date(String(row.created_at)).toISOString(),
     deletable: true,
-    provenance: row.provenance ? String(row.provenance).split(",").filter(Boolean) : [],
+    provenance: row.provenance
+      ? String(row.provenance).split(",").filter(Boolean)
+      : [],
     contentHash: String(row.content_hash ?? ""),
     chainHash: GENESIS_HASH,
   };
@@ -73,7 +79,10 @@ export function createMemoryPostgresRepository() {
       consent: boolean;
       provenance: string[];
       expiresAt?: string;
-    }): Promise<{ success: true; record: MemoryRecord } | { success: false; error: string }> {
+    }): Promise<
+      | { success: true; record: MemoryRecord }
+      | { success: false; error: string }
+    > {
       if (!input.content || input.content.length === 0) {
         return { success: false, error: "Contenido de memoria vacío." };
       }
@@ -104,7 +113,8 @@ export function createMemoryPostgresRepository() {
       } catch (error) {
         return {
           success: false,
-          error: error instanceof Error ? error.message : "memory_insert_failed",
+          error:
+            error instanceof Error ? error.message : "memory_insert_failed",
         };
       }
     },
@@ -126,12 +136,21 @@ export function createMemoryPostgresRepository() {
       return { removed: rows.length };
     },
 
-    async verifyIntegrity(): Promise<{ success: boolean; error?: string; corruptedId?: string }> {
-      const rows = await sql`SELECT * FROM public.memories ORDER BY created_at ASC`;
+    async verifyIntegrity(): Promise<{
+      success: boolean;
+      error?: string;
+      corruptedId?: string;
+    }> {
+      const rows =
+        await sql`SELECT * FROM public.memories ORDER BY created_at ASC`;
       for (const row of rows) {
         const expected = sha256(String(row.content));
         if (row.content_hash && String(row.content_hash) !== expected) {
-          return { success: false, error: "Contenido alterado.", corruptedId: String(row.id) };
+          return {
+            success: false,
+            error: "Contenido alterado.",
+            corruptedId: String(row.id),
+          };
         }
       }
       return { success: true };
@@ -139,4 +158,6 @@ export function createMemoryPostgresRepository() {
   };
 }
 
-export type MemoryPostgresRepository = ReturnType<typeof createMemoryPostgresRepository>;
+export type MemoryPostgresRepository = ReturnType<
+  typeof createMemoryPostgresRepository
+>;

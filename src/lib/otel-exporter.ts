@@ -62,7 +62,10 @@ function toUnixNano(iso: string): string {
   return String(BigInt(safe) * 1_000_000n);
 }
 
-function attribute(key: string, value: unknown): { key: string; value: { stringValue: string } } {
+function attribute(
+  key: string,
+  value: unknown,
+): { key: string; value: { stringValue: string } } {
   let rendered: string;
   if (typeof value === "string") rendered = value;
   else {
@@ -103,13 +106,19 @@ function startTimer(): void {
 /** Envía lo encolado al Collector OTLP/HTTP. Nunca lanza. */
 export async function flushOtelOutbox(): Promise<OtelFlushResult> {
   const batch = outbox.splice(0, outbox.length);
-  if (batch.length === 0) return { attempted: false, delivered: false, count: 0 };
+  if (batch.length === 0)
+    return { attempted: false, delivered: false, count: 0 };
 
   const url = endpoint();
   if (!url) {
     // Sin collector configurado: se descarta el lote (el buffer en memoria
     // conserva los últimos 500 para depuración local). Documentado, no silente.
-    return { attempted: false, delivered: false, count: batch.length, error: "no-endpoint" };
+    return {
+      attempted: false,
+      delivered: false,
+      count: batch.length,
+      error: "no-endpoint",
+    };
   }
 
   const controller = new AbortController();
@@ -130,7 +139,9 @@ export async function flushOtelOutbox(): Promise<OtelFlushResult> {
               logRecords: batch.map((log) => ({
                 timeUnixNano: toUnixNano(log.timestamp),
                 severityText: log.level.toUpperCase(),
-                body: { stringValue: `${log.moduleId}:${log.coreId}:${log.eventName}` },
+                body: {
+                  stringValue: `${log.moduleId}:${log.coreId}:${log.eventName}`,
+                },
                 attributes: [
                   attribute("isabella.trace_id", log.traceId),
                   attribute("isabella.correlation_id", log.correlationId),
@@ -162,7 +173,12 @@ export async function flushOtelOutbox(): Promise<OtelFlushResult> {
     return { attempted: true, delivered: true, count: batch.length };
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown";
-    return { attempted: true, delivered: false, count: batch.length, error: message };
+    return {
+      attempted: true,
+      delivered: false,
+      count: batch.length,
+      error: message,
+    };
   } finally {
     clearTimeout(timeout);
   }

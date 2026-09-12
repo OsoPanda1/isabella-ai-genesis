@@ -16,7 +16,13 @@ import {
 describe("kill switch en memoria", () => {
   it("expone las 5 capacidades autónomas", () => {
     expect([...KILL_SWITCH_CAPABILITIES].sort()).toEqual(
-      ["inference", "payouts", "quantum-jobs", "skill-execution", "tool-execution"].sort(),
+      [
+        "inference",
+        "payouts",
+        "quantum-jobs",
+        "skill-execution",
+        "tool-execution",
+      ].sort(),
     );
   });
 
@@ -24,7 +30,11 @@ describe("kill switch en memoria", () => {
     const events: string[] = [];
     const store = createMemoryKillSwitchStore((event) => events.push(event));
     expect(await store.isKilled("inference")).toBe(false);
-    const engaged = await store.engage("inference", "prueba de emergencia", "owner_1");
+    const engaged = await store.engage(
+      "inference",
+      "prueba de emergencia",
+      "owner_1",
+    );
     expect(engaged.engaged).toBe(true);
     expect(await store.isKilled("inference")).toBe(true);
     await store.release("inference", "owner_1");
@@ -34,24 +44,35 @@ describe("kill switch en memoria", () => {
 
   it("rechaza capacidad desconocida y release sin parada", async () => {
     const store = createMemoryKillSwitchStore();
-    await expect(store.engage("naves-espaciales", "x", "o")).rejects.toThrow(/desconocida/);
-    await expect(store.release("payouts", "o")).rejects.toThrow(/Sin parada activa/);
+    await expect(store.engage("naves-espaciales", "x", "o")).rejects.toThrow(
+      /desconocida/,
+    );
+    await expect(store.release("payouts", "o")).rejects.toThrow(
+      /Sin parada activa/,
+    );
     await expect(store.engage("payouts", "", "o")).rejects.toThrow(/Motivo/);
   });
 });
 
 describe("enforcement en Execution Authority", () => {
   it("tool-execution engaged deniega antes de autorizar", async () => {
-    const { createExecutionAuthority } = await import("@/lib/execution-authority");
-    const { createMemoryRepository } = await import("@/lib/repositories/memory-repository");
-    const { createAuditRepository } = await import("@/lib/repositories/audit-repository");
+    const { createExecutionAuthority } =
+      await import("@/lib/execution-authority");
+    const { createMemoryRepository } =
+      await import("@/lib/repositories/memory-repository");
+    const { createAuditRepository } =
+      await import("@/lib/repositories/audit-repository");
     const { mkdtempSync } = await import("node:fs");
     const { tmpdir } = await import("node:os");
     const { join } = await import("node:path");
     const dir = mkdtempSync(join(tmpdir(), "isabella-kill-"));
 
     const killSwitch = createMemoryKillSwitchStore();
-    await killSwitch.engage("tool-execution", "emergencia de prueba", "owner_1");
+    await killSwitch.engage(
+      "tool-execution",
+      "emergencia de prueba",
+      "owner_1",
+    );
 
     const authority = createExecutionAuthority({
       memoryRepository: createMemoryRepository(join(dir, "mem.json")),

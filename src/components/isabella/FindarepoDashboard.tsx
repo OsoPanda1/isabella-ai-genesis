@@ -1,5 +1,12 @@
 import { useState, useMemo } from "react";
-import { Star, TrendingUp, Activity, Clock, Search, ExternalLink } from "lucide-react";
+import {
+  Star,
+  TrendingUp,
+  Activity,
+  Clock,
+  Search,
+  ExternalLink,
+} from "lucide-react";
 
 export interface RepoData {
   id: string;
@@ -102,7 +109,8 @@ const REPOS_DATA: RepoData[] = [
     rank: 8,
     owner: "firecrawl",
     name: "firecrawl",
-    description: "The context API to search, scrape, and interact with the web at scale. 🔥",
+    description:
+      "The context API to search, scrape, and interact with the web at scale. 🔥",
     stars: "177k",
     growth: "+2.7k",
     active: 100,
@@ -159,7 +167,8 @@ const REPOS_DATA: RepoData[] = [
     rank: 13,
     owner: "HKUDS",
     name: "DeepTutor",
-    description: "DeepTutor: Lifelong Personalized Tutoring. https://deeptutor.info/.",
+    description:
+      "DeepTutor: Lifelong Personalized Tutoring. https://deeptutor.info/.",
     stars: "39k",
     growth: "+937",
     active: 100,
@@ -182,7 +191,8 @@ const REPOS_DATA: RepoData[] = [
     rank: 15,
     owner: "browser-use",
     name: "browser-use",
-    description: "🌐 Make websites accessible for AI agents. Automate tasks online with ease.",
+    description:
+      "🌐 Make websites accessible for AI agents. Automate tasks online with ease.",
     stars: "112k",
     growth: "+681",
     active: 100,
@@ -252,7 +262,8 @@ const REPOS_DATA: RepoData[] = [
     rank: 21,
     owner: "decolua",
     name: "9router",
-    description: "Unlimited FREE AI coding. Connect Claude Code, Codex, Cursor, Cline, Copilot...",
+    description:
+      "Unlimited FREE AI coding. Connect Claude Code, Codex, Cursor, Cline, Copilot...",
     stars: "27k",
     growth: "+503",
     active: 100,
@@ -426,8 +437,8 @@ export function FindarepoDashboard() {
           </h1>
           <p className="text-muted-foreground text-sm md:text-base max-w-2xl leading-relaxed">
             As of Sep 5, 2026, ranked by star velocity{" "}
-            <span className="font-semibold text-foreground">findarepo</span> measures itself (not
-            editorial opinion, no paid placement).
+            <span className="font-semibold text-foreground">findarepo</span>{" "}
+            measures itself (not editorial opinion, no paid placement).
           </p>
         </div>
       </div>
@@ -503,7 +514,9 @@ export function FindarepoDashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-base font-bold text-platinum truncate group-hover:text-electric transition-colors">
-                          <span className="font-normal text-muted-foreground">{repo.owner}/</span>
+                          <span className="font-normal text-muted-foreground">
+                            {repo.owner}/
+                          </span>
                           {repo.name}
                         </h3>
                         {repo.isNew && (
@@ -579,13 +592,17 @@ export function FindarepoDashboard() {
                         FAST
                       </span>
                     </div>
-                    <div className="text-xs text-muted-foreground truncate mb-2">{repo.owner}</div>
+                    <div className="text-xs text-muted-foreground truncate mb-2">
+                      {repo.owner}
+                    </div>
                     <div className="flex justify-between items-end">
                       <span className="text-[10px] font-medium text-muted-foreground uppercase">
                         {repo.language}
                       </span>
                       <div className="text-right">
-                        <div className="text-xs font-semibold text-platinum">★ {repo.stars}</div>
+                        <div className="text-xs font-semibold text-platinum">
+                          ★ {repo.stars}
+                        </div>
                         <div className="text-[10px] text-emerald-400 font-mono">
                           ▲ {repo.growth}/7d
                         </div>

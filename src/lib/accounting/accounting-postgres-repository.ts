@@ -33,7 +33,10 @@ function deferredSql() {
 }
 
 export class PostgresAccountingRepository implements AccountingRepository {
-  async createAccount(dto: CreateAccountDTO, tx: any = deferredSql()): Promise<Account> {
+  async createAccount(
+    dto: CreateAccountDTO,
+    tx: any = deferredSql(),
+  ): Promise<Account> {
     const rows = await tx`
       INSERT INTO accounting_accounts (tenant_id, code, name, type, parent_id, currency)
       VALUES (${dto.tenantId}, ${dto.code}, ${dto.name}, ${dto.type}, ${dto.parentId || null}, ${dto.currency || "USD"})
@@ -42,13 +45,20 @@ export class PostgresAccountingRepository implements AccountingRepository {
     return this.mapAccount(rows[0]);
   }
 
-  async getAccountById(id: string, tx: any = deferredSql()): Promise<Account | null> {
+  async getAccountById(
+    id: string,
+    tx: any = deferredSql(),
+  ): Promise<Account | null> {
     const rows = await tx`SELECT * FROM accounting_accounts WHERE id = ${id}`;
     return rows[0] ? this.mapAccount(rows[0]) : null;
   }
 
-  async getAccountsByTenant(tenantId: string, tx: any = deferredSql()): Promise<Account[]> {
-    const rows = await tx`SELECT * FROM accounting_accounts WHERE tenant_id = ${tenantId}`;
+  async getAccountsByTenant(
+    tenantId: string,
+    tx: any = deferredSql(),
+  ): Promise<Account[]> {
+    const rows =
+      await tx`SELECT * FROM accounting_accounts WHERE tenant_id = ${tenantId}`;
     return rows.map((r: any) => this.mapAccount(r));
   }
 
@@ -84,8 +94,12 @@ export class PostgresAccountingRepository implements AccountingRepository {
     return this.mapJournalEntry(rows[0]);
   }
 
-  async getJournalEntryById(id: string, tx: any = deferredSql()): Promise<JournalEntry | null> {
-    const rows = await tx`SELECT * FROM accounting_journal_entries WHERE id = ${id}`;
+  async getJournalEntryById(
+    id: string,
+    tx: any = deferredSql(),
+  ): Promise<JournalEntry | null> {
+    const rows =
+      await tx`SELECT * FROM accounting_journal_entries WHERE id = ${id}`;
     return rows[0] ? this.mapJournalEntry(rows[0]) : null;
   }
 
@@ -93,7 +107,8 @@ export class PostgresAccountingRepository implements AccountingRepository {
     tenantId: string,
     tx: any = deferredSql(),
   ): Promise<JournalEntry[]> {
-    const rows = await tx`SELECT * FROM accounting_journal_entries WHERE tenant_id = ${tenantId}`;
+    const rows =
+      await tx`SELECT * FROM accounting_journal_entries WHERE tenant_id = ${tenantId}`;
     return rows.map((r: any) => this.mapJournalEntry(r));
   }
 
@@ -173,7 +188,9 @@ export class PostgresAccountingRepository implements AccountingRepository {
             line.debitCents || 0,
             line.creditCents || 0,
             line.description || null,
-            line.description ? JSON.stringify({ note: line.description }) : null,
+            line.description
+              ? JSON.stringify({ note: line.description })
+              : null,
           ],
         );
         lines.push(this.mapLedgerLine(lineRows.rows[0]));
@@ -189,13 +206,21 @@ export class PostgresAccountingRepository implements AccountingRepository {
     }
   }
 
-  async getLedgerLinesByEntry(entryId: string, tx: any = deferredSql()): Promise<LedgerLine[]> {
-    const rows = await tx`SELECT * FROM accounting_ledger_lines WHERE entry_id = ${entryId}`;
+  async getLedgerLinesByEntry(
+    entryId: string,
+    tx: any = deferredSql(),
+  ): Promise<LedgerLine[]> {
+    const rows =
+      await tx`SELECT * FROM accounting_ledger_lines WHERE entry_id = ${entryId}`;
     return rows.map((r: any) => this.mapLedgerLine(r));
   }
 
-  async getLedgerLinesByAccount(accountId: string, tx: any = deferredSql()): Promise<LedgerLine[]> {
-    const rows = await tx`SELECT * FROM accounting_ledger_lines WHERE account_id = ${accountId}`;
+  async getLedgerLinesByAccount(
+    accountId: string,
+    tx: any = deferredSql(),
+  ): Promise<LedgerLine[]> {
+    const rows =
+      await tx`SELECT * FROM accounting_ledger_lines WHERE account_id = ${accountId}`;
     return rows.map((r: any) => this.mapLedgerLine(r));
   }
 
@@ -243,7 +268,9 @@ export class PostgresAccountingRepository implements AccountingRepository {
   ): Promise<TrialBalance> {
     const accounts = await this.getAccountsByTenant(tenantId, tx);
     const accountBalances = await Promise.all(
-      accounts.map((acc) => this.calculateAccountBalance(acc.id, periodStart, periodEnd, tx)),
+      accounts.map((acc) =>
+        this.calculateAccountBalance(acc.id, periodStart, periodEnd, tx),
+      ),
     );
 
     let totalDebits = 0;
@@ -282,10 +309,16 @@ export class PostgresAccountingRepository implements AccountingRepository {
     const periodStart = new Date(asOfDate.getFullYear(), 0, 1);
     const accounts = await this.getAccountsByTenant(tenantId, tx);
     const balances = await Promise.all(
-      accounts.map((acc) => this.calculateAccountBalance(acc.id, periodStart, asOfDate, tx)),
+      accounts.map((acc) =>
+        this.calculateAccountBalance(acc.id, periodStart, asOfDate, tx),
+      ),
     );
 
-    type BalanceItem = { accountId: string; name: string; balanceCents: number };
+    type BalanceItem = {
+      accountId: string;
+      name: string;
+      balanceCents: number;
+    };
     const assets: BalanceItem[] = [],
       liabilities: BalanceItem[] = [],
       equity: BalanceItem[] = [];
@@ -330,15 +363,21 @@ export class PostgresAccountingRepository implements AccountingRepository {
     // Sin transacción interactiva real en este adaptador (neon HTTP es
     // auto-commit por query). Usar createJournalEntryAtomic() para
     // escritura atómica. Falla cerrado en lugar de fingir TX.
-    throw new Error("Transacciones interactivas no soportadas: usar createJournalEntryAtomic().");
+    throw new Error(
+      "Transacciones interactivas no soportadas: usar createJournalEntryAtomic().",
+    );
   }
 
   async commitTransaction(_tx: unknown): Promise<void> {
-    throw new Error("Transacciones interactivas no soportadas: usar createJournalEntryAtomic().");
+    throw new Error(
+      "Transacciones interactivas no soportadas: usar createJournalEntryAtomic().",
+    );
   }
 
   async rollbackTransaction(_tx: unknown): Promise<void> {
-    throw new Error("Transacciones interactivas no soportadas: usar createJournalEntryAtomic().");
+    throw new Error(
+      "Transacciones interactivas no soportadas: usar createJournalEntryAtomic().",
+    );
   }
 
   private mapAccount(row: any): Account {

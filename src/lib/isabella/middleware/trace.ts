@@ -30,7 +30,7 @@ export function injectTelemetry<T extends (...args: any[]) => any>(handler: T) {
       method: req.method,
       headers: headers,
       body: req.body,
-      duplex: 'half' // required for node fetch with body streams
+      duplex: "half", // required for node fetch with body streams
     } as any);
 
     return handler(reqWithTelemetry, ...args);

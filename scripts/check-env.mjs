@@ -34,11 +34,15 @@ const missingKeys = exampleKeys.filter((key) => !allProvidedKeys.has(key));
 
 if (missingKeys.length > 0) {
   console.error("\n❌ WARNING: Missing environment variables detected!");
-  console.error("The following variables are defined in .env.example but missing from your .env file or environment:");
+  console.error(
+    "The following variables are defined in .env.example but missing from your .env file or environment:",
+  );
   missingKeys.forEach((key) => console.error(`  - ${key}`));
-  console.error("\n💡 Please review these missing variables to ensure correct application behavior.\n");
+  console.error(
+    "\n💡 Please review these missing variables to ensure correct application behavior.\n",
+  );
   // We exit with 0 to not aggressively block the dev server in a sandboxed environment, but provide the clear feedback.
-  process.exit(0); 
+  process.exit(0);
 }
 
 console.log("✅ All environment variables from .env.example are present.\n");

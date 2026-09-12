@@ -60,7 +60,15 @@ export interface VulnerabilityFinding {
 
 export interface SupplyChainFinding {
   id: string;
-  type: "VULNERABLE_DEPENDENCY" | "MULTIPLE_LOCKFILES" | "LOCKFILE_INCONSISTENT" | "MISSING_LOCKFILE" | "UNPINNED_DEPENDENCY" | "UNUSED_DEPENDENCY" | "LICENSE_INCOMPATIBLE" | "SUPPLY_CHAIN_COMPROMISE";
+  type:
+    | "VULNERABLE_DEPENDENCY"
+    | "MULTIPLE_LOCKFILES"
+    | "LOCKFILE_INCONSISTENT"
+    | "MISSING_LOCKFILE"
+    | "UNPINNED_DEPENDENCY"
+    | "UNUSED_DEPENDENCY"
+    | "LICENSE_INCOMPATIBLE"
+    | "SUPPLY_CHAIN_COMPROMISE";
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
   description: string;
   location: string;
@@ -79,22 +87,26 @@ export class SupplyChainScanner {
   scan(): SupplyChainScanResult {
     const packageJsonPath = path.join(this.config.rootDir, "package.json");
     const lockfiles = this.findLockfiles();
-    
+
     let dependencies: DependencyAnalysis[] = [];
     const lockfileAnalyses: LockfileAnalysis[] = [];
     const vulnerabilities: VulnerabilityFinding[] = [];
-    
+
     if (fs.existsSync(packageJsonPath)) {
       const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
       dependencies = this.analyzeDependencies(pkg);
     }
-    
+
     for (const lockfile of lockfiles) {
       lockfileAnalyses.push(this.analyzeLockfile(lockfile));
     }
-    
-    const findings = this.generateFindings(dependencies, lockfileAnalyses, vulnerabilities);
-    
+
+    const findings = this.generateFindings(
+      dependencies,
+      lockfileAnalyses,
+      vulnerabilities,
+    );
+
     return {
       dependencies,
       lockfiles: lockfileAnalyses,
@@ -102,10 +114,12 @@ export class SupplyChainScanner {
       findings,
       statistics: {
         totalDependencies: dependencies.length,
-        directDependencies: dependencies.filter(d => d.type === "production").length,
-        devDependencies: dependencies.filter(d => d.type === "development").length,
-        vulnerableDependencies: dependencies.filter(d => d.vulnerable).length,
-        lockfileConsistent: lockfileAnalyses.every(l => l.consistent),
+        directDependencies: dependencies.filter((d) => d.type === "production")
+          .length,
+        devDependencies: dependencies.filter((d) => d.type === "development")
+          .length,
+        vulnerableDependencies: dependencies.filter((d) => d.vulnerable).length,
+        lockfileConsistent: lockfileAnalyses.every((l) => l.consistent),
         multipleLockfiles: lockfileAnalyses.length > 1,
       },
     };
@@ -113,33 +127,42 @@ export class SupplyChainScanner {
 
   private findLockfiles(): string[] {
     const lockfiles: string[] = [];
-    const lockfileNames = ["pnpm-lock.yaml", "package-lock.json", "yarn.lock", "bun.lockb"];
-    
+    const lockfileNames = [
+      "pnpm-lock.yaml",
+      "package-lock.json",
+      "yarn.lock",
+      "bun.lockb",
+    ];
+
     for (const name of lockfileNames) {
       const filePath = path.join(this.config.rootDir, name);
       if (fs.existsSync(filePath)) {
         lockfiles.push(filePath);
       }
     }
-    
+
     return lockfiles;
   }
 
   private analyzeDependencies(pkg: any): DependencyAnalysis[] {
     const deps: DependencyAnalysis[] = [];
-    
+
     const allDeps = {
       ...pkg.dependencies,
       ...pkg.devDependencies,
       ...pkg.peerDependencies,
       ...pkg.optionalDependencies,
     };
-    
+
     for (const [name, version] of Object.entries(allDeps)) {
-      const type = pkg.dependencies?.[name] ? "production" : 
-                   pkg.devDependencies?.[name] ? "development" :
-                   pkg.peerDependencies?.[name] ? "peer" : "optional";
-      
+      const type = pkg.dependencies?.[name]
+        ? "production"
+        : pkg.devDependencies?.[name]
+          ? "development"
+          : pkg.peerDependencies?.[name]
+            ? "peer"
+            : "optional";
+
       deps.push({
         name,
         version: version as string,
@@ -150,7 +173,7 @@ export class SupplyChainScanner {
         vulnerabilities: [],
       });
     }
-    
+
     return deps;
   }
 
@@ -158,16 +181,16 @@ export class SupplyChainScanner {
     const content = fs.readFileSync(lockfilePath, "utf8");
     const hash = createHash("sha3-512").update(content).digest("hex");
     const ext = path.extname(lockfilePath);
-    
+
     let type: LockfileAnalysis["type"] = "pnpm";
     if (ext === ".json") type = "npm";
     else if (path.basename(lockfilePath) === "yarn.lock") type = "yarn";
     else if (path.basename(lockfilePath) === "bun.lockb") type = "bun";
-    
+
     let dependencies = 0;
     let consistent = true;
     const conflicts: string[] = [];
-    
+
     if (type === "pnpm") {
       const depMatches = content.match(/^\s+\w+:/gm) ?? [];
       dependencies = depMatches.length;
@@ -181,24 +204,35 @@ export class SupplyChainScanner {
         consistent = false;
       }
     }
-    
-    return { file: lockfilePath, type, hash, dependencies, consistent, conflicts };
+
+    return {
+      file: lockfilePath,
+      type,
+      hash,
+      dependencies,
+      consistent,
+      conflicts,
+    };
   }
 
-  private generateFindings(dependencies: DependencyAnalysis[], lockfiles: LockfileAnalysis[], vulnerabilities: VulnerabilityFinding[]): SupplyChainFinding[] {
+  private generateFindings(
+    dependencies: DependencyAnalysis[],
+    lockfiles: LockfileAnalysis[],
+    vulnerabilities: VulnerabilityFinding[],
+  ): SupplyChainFinding[] {
     const findings: SupplyChainFinding[] = [];
-    
+
     if (lockfiles.length > 1) {
       findings.push({
         id: `SC-MULTI-LOCK-${Date.now().toString(36)}`,
         type: "MULTIPLE_LOCKFILES",
         severity: "HIGH",
-        description: `Múltiples lockfiles detectados: ${lockfiles.map(l => path.basename(l.file)).join(", ")}`,
+        description: `Múltiples lockfiles detectados: ${lockfiles.map((l) => path.basename(l.file)).join(", ")}`,
         location: this.config.rootDir,
         remediation: "Usar un solo gestor de paquetes y un solo lockfile",
       });
     }
-    
+
     for (const lockfile of lockfiles) {
       if (!lockfile.consistent) {
         findings.push({
@@ -207,11 +241,12 @@ export class SupplyChainScanner {
           severity: "HIGH",
           description: `Lockfile inconsistente: ${path.basename(lockfile.file)}`,
           location: lockfile.file,
-          remediation: "Regenerar lockfile con instalación limpia (pnpm install --frozen-lockfile)",
+          remediation:
+            "Regenerar lockfile con instalación limpia (pnpm install --frozen-lockfile)",
         });
       }
     }
-    
+
     if (lockfiles.length === 0) {
       findings.push({
         id: `SC-NO-LOCKFILE-${Date.now().toString(36)}`,
@@ -222,19 +257,24 @@ export class SupplyChainScanner {
         remediation: "Ejecutar pnpm install para generar pnpm-lock.yaml",
       });
     }
-    
+
     for (const dep of dependencies) {
-      if (dep.version.startsWith("^") || dep.version.startsWith("~") || dep.version === "*") {
+      if (
+        dep.version.startsWith("^") ||
+        dep.version.startsWith("~") ||
+        dep.version === "*"
+      ) {
         findings.push({
           id: `SC-UNPINNED-${dep.name}-${Date.now().toString(36)}`,
           type: "UNPINNED_DEPENDENCY",
           severity: "MEDIUM",
           description: `Dependencia sin pinning exacto: ${dep.name}@${dep.version}`,
           location: "package.json",
-          remediation: "Usar versiones exactas (sin ^, ~, *) para dependencias de producción",
+          remediation:
+            "Usar versiones exactas (sin ^, ~, *) para dependencias de producción",
         });
       }
-      
+
       if (dep.vulnerable) {
         for (const vuln of dep.vulnerabilities) {
           findings.push({
@@ -243,16 +283,20 @@ export class SupplyChainScanner {
             severity: vuln.severity,
             description: `${dep.name}@${dep.version} vulnerable: ${vuln.title} (${vuln.severity})`,
             location: "package.json",
-            remediation: vuln.fixedIn ? `Actualizar a ${vuln.fixedIn} o superior` : "Revisar avisos de seguridad y aplicar parche",
+            remediation: vuln.fixedIn
+              ? `Actualizar a ${vuln.fixedIn} o superior`
+              : "Revisar avisos de seguridad y aplicar parche",
           });
         }
       }
     }
-    
+
     return findings;
   }
 }
 
-export function createSupplyChainScanner(config?: SupplyChainScannerConfig): SupplyChainScanner {
+export function createSupplyChainScanner(
+  config?: SupplyChainScannerConfig,
+): SupplyChainScanner {
   return new SupplyChainScanner(config);
 }

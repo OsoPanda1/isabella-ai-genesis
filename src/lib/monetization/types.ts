@@ -56,8 +56,8 @@ export interface MonetizationEligibility extends MonetizationEligibilityInput {
   balanceRequirementMet: boolean;
 }
 
-/** 
- * Zero-Loss Revenue Split 
+/**
+ * Zero-Loss Revenue Split
  * Guarantees platform infrastructure costs are recovered first.
  */
 export interface RevenueSplit {

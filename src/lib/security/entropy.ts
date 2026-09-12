@@ -35,14 +35,20 @@ class QuantumEntropyService {
 
       // Dynamic core temperature and load matrix hash
       const coreMetricsStr = Object.values(snapshot.cores)
-        .map((c) => `${c.id}:${c.temperatureCelsius.toFixed(4)}:${c.loadPercentage.toFixed(2)}`)
+        .map(
+          (c) =>
+            `${c.id}:${c.temperatureCelsius.toFixed(4)}:${c.loadPercentage.toFixed(2)}`,
+        )
         .join(";");
       contributingFactors.push("core_thermal_drift");
 
       const seedSourceString = `${timestampFactor}|${throughputFactor}|${latencyFactor}|${microFactor}|${coreMetricsStr}`;
 
       // Hash the thermal-drift source string and XOR with our crypto random bytes
-      const driftHash = crypto.createHash("sha256").update(seedSourceString).digest();
+      const driftHash = crypto
+        .createHash("sha256")
+        .update(seedSourceString)
+        .digest();
 
       const mixedBuffer = Buffer.alloc(32);
       for (let i = 0; i < 32; i++) {
@@ -51,7 +57,10 @@ class QuantumEntropyService {
 
       finalBuffer = mixedBuffer;
     } catch (err) {
-      console.warn("[ENTROPY_SERVICE] Drift estimation bypass, using standard Node CSPRNG.", err);
+      console.warn(
+        "[ENTROPY_SERVICE] Drift estimation bypass, using standard Node CSPRNG.",
+        err,
+      );
       contributingFactors.push("bypass_fallback_csprng");
     }
 

@@ -62,7 +62,9 @@ export class IsabellaGovernance {
       const atlasData = atlasRes.data as any;
 
       if (atlasData?.impactLevel === "CRITICAL" && !atlasData?.approved) {
-        throw new Error("ATLAS rejected the scenario due to critical territorial impact.");
+        throw new Error(
+          "ATLAS rejected the scenario due to critical territorial impact.",
+        );
       }
 
       // 2. VIGIA: Ethical Multi-Lock Verification
@@ -95,7 +97,12 @@ export class IsabellaGovernance {
       const leaf3 = SovereignAudit.hashData(`dataset:${req.datasetName}`);
       const leaf4 = SovereignAudit.hashData(`territory:${req.territory}`);
 
-      const merkleTree = SovereignAudit.buildMerkleTree([leaf1, leaf2, leaf3, leaf4]);
+      const merkleTree = SovereignAudit.buildMerkleTree([
+        leaf1,
+        leaf2,
+        leaf3,
+        leaf4,
+      ]);
 
       const anubisRes = await runIsabellaSkill(
         "ANUBIS",

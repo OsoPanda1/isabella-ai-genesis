@@ -28,7 +28,11 @@ const canonicalFieldOrder = [
 ] as const;
 
 /** Campos que NUNCA entran al hash (mutables/derivados tras el hash). */
-const EXCLUDED_FIELDS = new Set(["blockHash", "pqcSignature", "signatureAlgorithm"]);
+const EXCLUDED_FIELDS = new Set([
+  "blockHash",
+  "pqcSignature",
+  "signatureAlgorithm",
+]);
 
 /**
  * Serializa un bloque al payload canónico determinista. Acepta el bloque

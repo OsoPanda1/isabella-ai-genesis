@@ -65,11 +65,19 @@ export interface SettlementSteps {
     category: SettlementInput["category"];
     cost: number;
     tokens: number;
-  }) => Promise<{ success: boolean; block?: { index: number }; error?: string }>;
+  }) => Promise<{
+    success: boolean;
+    block?: { index: number };
+    error?: string;
+  }>;
   appendAccounting: (input: {
     tenantId: string;
     description: string;
-    lines: Array<{ accountId: string; debitCents?: number; creditCents?: number }>;
+    lines: Array<{
+      accountId: string;
+      debitCents?: number;
+      creditCents?: number;
+    }>;
   }) => Promise<{ success: boolean; error?: string }>;
   compensate: (input: {
     tenantId: string;
@@ -86,10 +94,12 @@ async function defaultSteps(): Promise<SettlementSteps> {
   const economic = await import("./economic-events");
   const { createBookpiPostgresRepository } =
     await import("./repositories/bookpi-postgres-repository");
-  const { createAuditRepository } = await import("./repositories/audit-repository");
+  const { createAuditRepository } =
+    await import("./repositories/audit-repository");
   const { PostgresAccountingRepository } =
     await import("./accounting/accounting-postgres-repository");
-  const { createDoubleEntryService } = await import("./accounting/double-entry-service");
+  const { createDoubleEntryService } =
+    await import("./accounting/double-entry-service");
   const auditRepository = createAuditRepository();
   const bookpi = createBookpiPostgresRepository();
   return {
@@ -103,10 +113,13 @@ async function defaultSteps(): Promise<SettlementSteps> {
       if (!input.lines || input.lines.length < 2) {
         return {
           success: false,
-          error: "Asiento diferido: se requieren ≥2 líneas balanceadas (débito=crédito).",
+          error:
+            "Asiento diferido: se requieren ≥2 líneas balanceadas (débito=crédito).",
         };
       }
-      const service = createDoubleEntryService(new PostgresAccountingRepository());
+      const service = createDoubleEntryService(
+        new PostgresAccountingRepository(),
+      );
       const result = await service.createDoubleEntryTransaction({
         tenantId: input.tenantId,
         description: input.description,
@@ -175,7 +188,12 @@ export async function settlePayment(
       "settlement.claim_failed",
       `Claim fallido para ${input.providerEventId}; reintento seguro por idempotencia.`,
     );
-    return { status: "aborted", steps: [], compensations, error: "claim failed" };
+    return {
+      status: "aborted",
+      steps: [],
+      compensations,
+      error: "claim failed",
+    };
   }
   completed.push("claim");
 
@@ -192,9 +210,18 @@ export async function settlePayment(
     idempotencyKey: input.idempotencyKey,
   });
   if (!recorded.ok) {
-    if (recorded.duplicate) return { status: "duplicate", steps: completed, compensations };
-    await active.audit("settlement.record_failed", `Evento económico fallido: ${recorded.error}`);
-    return { status: "aborted", steps: completed, compensations, error: recorded.error };
+    if (recorded.duplicate)
+      return { status: "duplicate", steps: completed, compensations };
+    await active.audit(
+      "settlement.record_failed",
+      `Evento económico fallido: ${recorded.error}`,
+    );
+    return {
+      status: "aborted",
+      steps: completed,
+      compensations,
+      error: recorded.error,
+    };
   }
   completed.push("record");
 
@@ -217,8 +244,16 @@ export async function settlePayment(
       reason: `ledger append fallido: ${appended.error}`,
     });
     compensations.push("reversal-recorded");
-    await active.audit("settlement.ledger_failed", `Compensación registrada: ${appended.error}`);
-    return { status: "aborted", steps: completed, compensations, error: appended.error };
+    await active.audit(
+      "settlement.ledger_failed",
+      `Compensación registrada: ${appended.error}`,
+    );
+    return {
+      status: "aborted",
+      steps: completed,
+      compensations,
+      error: appended.error,
+    };
   }
   completed.push("ledger");
 
@@ -242,7 +277,12 @@ export async function settlePayment(
     "settlement.settled",
     `Liquidación completa: ${completed.join("+")} (bloque ${appended.block?.index ?? "?"}).`,
   );
-  return { status: "settled", steps: completed, compensations, blockIndex: appended.block?.index };
+  return {
+    status: "settled",
+    steps: completed,
+    compensations,
+    blockIndex: appended.block?.index,
+  };
 }
 
 export const FINANCIAL_SETTLEMENT = {

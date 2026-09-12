@@ -1,5 +1,10 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { IRepository, AuditEntry, RepositoryError, WriteOptions } from "../repository";
+import type {
+  IRepository,
+  AuditEntry,
+  RepositoryError,
+  WriteOptions,
+} from "../repository";
 import { config } from "../../config";
 import { getRequestIdentity } from "../../identity-context";
 import { SecuritySystem } from "../../security";
@@ -11,7 +16,11 @@ const TABLE_MAP: Record<string, string> = {
   audit: "audit_events",
 };
 
-function toRepositoryError(message: string, statusCode = 500, tenantId?: string): RepositoryError {
+function toRepositoryError(
+  message: string,
+  statusCode = 500,
+  tenantId?: string,
+): RepositoryError {
   const err = new Error(message) as RepositoryError;
   err.code = "REPOSITORY_ERROR";
   err.statusCode = statusCode;
@@ -58,7 +67,9 @@ async function requireSupabase(tenantId?: string): Promise<SupabaseClient> {
   return client;
 }
 
-export class SupabaseRepository<T extends { id: string }> implements IRepository<T> {
+export class SupabaseRepository<
+  T extends { id: string },
+> implements IRepository<T> {
   private readonly table: string;
   private readonly type: string;
 
@@ -67,21 +78,35 @@ export class SupabaseRepository<T extends { id: string }> implements IRepository
     this.table = TABLE_MAP[type] ?? type;
   }
 
-  async create(tenantId: string, data: Partial<T>, options?: WriteOptions): Promise<T> {
+  async create(
+    tenantId: string,
+    data: Partial<T>,
+    options?: WriteOptions,
+  ): Promise<T> {
     if (!tenantId) throw toRepositoryError("tenantId required for create", 400);
     const supabase = await requireSupabase(tenantId);
-    const payload = { ...data, tenant_id: tenantId, tenantId: undefined } as Record<
-      string,
-      unknown
-    >;
+    const payload = {
+      ...data,
+      tenant_id: tenantId,
+      tenantId: undefined,
+    } as Record<string, unknown>;
     // Map camelCase to snake_case for known fields
     const row = toSnake(payload);
     if (options?.idempotencyKey) {
       // Use idempotency key as id if provided and no id set
       if (!row.id) row.id = options.idempotencyKey;
     }
-    const { data: inserted, error } = await supabase.from(this.table).insert(row).select().single();
-    if (error) throw toRepositoryError(`Supabase insert failed: ${error.message}`, 500, tenantId);
+    const { data: inserted, error } = await supabase
+      .from(this.table)
+      .insert(row)
+      .select()
+      .single();
+    if (error)
+      throw toRepositoryError(
+        `Supabase insert failed: ${error.message}`,
+        500,
+        tenantId,
+      );
     return toCamel<T>(inserted);
   }
 
@@ -94,7 +119,12 @@ export class SupabaseRepository<T extends { id: string }> implements IRepository
       .eq("id", id)
       .eq("tenant_id", tenantId)
       .maybeSingle();
-    if (error) throw toRepositoryError(`Supabase read failed: ${error.message}`, 500, tenantId);
+    if (error)
+      throw toRepositoryError(
+        `Supabase read failed: ${error.message}`,
+        500,
+        tenantId,
+      );
     return data ? toCamel<T>(data) : null;
   }
 
@@ -106,17 +136,26 @@ export class SupabaseRepository<T extends { id: string }> implements IRepository
   ): Promise<{ items: T[]; total: number }> {
     if (!tenantId) throw toRepositoryError("tenantId required for list", 400);
     const supabase = await requireSupabase(tenantId);
-    let query = supabase.from(this.table).select("*", { count: "exact" }).eq("tenant_id", tenantId);
+    let query = supabase
+      .from(this.table)
+      .select("*", { count: "exact" })
+      .eq("tenant_id", tenantId);
     if (filters) {
       for (const [k, v] of Object.entries(filters)) {
         const col = toSnakeKey(k);
         if (v !== undefined) query = query.eq(col, v as string);
       }
     }
-    if (offset !== undefined) query = query.range(offset, offset + (limit ?? 50) - 1);
+    if (offset !== undefined)
+      query = query.range(offset, offset + (limit ?? 50) - 1);
     else if (limit !== undefined) query = query.limit(limit);
     const { data, error, count } = await query;
-    if (error) throw toRepositoryError(`Supabase list failed: ${error.message}`, 500, tenantId);
+    if (error)
+      throw toRepositoryError(
+        `Supabase list failed: ${error.message}`,
+        500,
+        tenantId,
+      );
     const items = (data ?? []).map(toCamel<T>);
     return { items, total: count ?? items.length };
   }
@@ -132,8 +171,14 @@ export class SupabaseRepository<T extends { id: string }> implements IRepository
       .eq("tenant_id", tenantId)
       .select()
       .single();
-    if (error) throw toRepositoryError(`Supabase update failed: ${error.message}`, 500, tenantId);
-    if (!updated) throw toRepositoryError(`Record ${id} not found`, 404, tenantId);
+    if (error)
+      throw toRepositoryError(
+        `Supabase update failed: ${error.message}`,
+        500,
+        tenantId,
+      );
+    if (!updated)
+      throw toRepositoryError(`Record ${id} not found`, 404, tenantId);
     return toCamel<T>(updated);
   }
 
@@ -145,7 +190,12 @@ export class SupabaseRepository<T extends { id: string }> implements IRepository
       .delete({ count: "exact" })
       .eq("id", id)
       .eq("tenant_id", tenantId);
-    if (error) throw toRepositoryError(`Supabase delete failed: ${error.message}`, 500, tenantId);
+    if (error)
+      throw toRepositoryError(
+        `Supabase delete failed: ${error.message}`,
+        500,
+        tenantId,
+      );
     return (count ?? 0) > 0;
   }
 
@@ -161,7 +211,8 @@ export class SupabaseRepository<T extends { id: string }> implements IRepository
       .order("timestamp", { ascending: false })
       .limit(1)
       .maybeSingle();
-    const previousLogHash = (lastRow?.verification_hash as string) ?? "0".repeat(64);
+    const previousLogHash =
+      (lastRow?.verification_hash as string) ?? "0".repeat(64);
     const timestamp = entry.timestamp ?? new Date().toISOString();
     const details = JSON.stringify(entry.details ?? {});
     const payload = `${entry.id}|${timestamp}|${entry.traceId}|${entry.action}|${entry.resource}|${entry.actor}|${entry.result}|${details}|${entry.severity}|${entry.tenantId}|${previousLogHash}`;
@@ -180,7 +231,11 @@ export class SupabaseRepository<T extends { id: string }> implements IRepository
       previous_log_hash: previousLogHash,
     });
     if (error)
-      throw toRepositoryError(`Supabase audit failed: ${error.message}`, 500, entry.tenantId);
+      throw toRepositoryError(
+        `Supabase audit failed: ${error.message}`,
+        500,
+        entry.tenantId,
+      );
   }
 
   async health(): Promise<{ ok: boolean; latencyMs: number }> {
@@ -204,7 +259,11 @@ export class SupabaseRepository<T extends { id: string }> implements IRepository
       .select("*")
       .eq("prefix", prefix)
       .maybeSingle();
-    if (error) throw toRepositoryError(`Supabase findByPrefix failed: ${error.message}`, 500);
+    if (error)
+      throw toRepositoryError(
+        `Supabase findByPrefix failed: ${error.message}`,
+        500,
+      );
     return data ? toCamel<T>(data) : null;
   }
 }

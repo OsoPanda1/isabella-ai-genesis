@@ -5,8 +5,14 @@ import { createNativeEngine } from "@/lib/ncua";
 
 describe("ncua:pipeline soberano de 12 pasos", () => {
   const memoryCorpus = [
-    { id: "mem-1", text: "El paste fue traído por los mineros córnico-alemanes a Real del Monte." },
-    { id: "mem-2", text: "La Mina de Acosta es un museo de sitio en Pachuca, Hidalgo." },
+    {
+      id: "mem-1",
+      text: "El paste fue traído por los mineros córnico-alemanes a Real del Monte.",
+    },
+    {
+      id: "mem-2",
+      text: "La Mina de Acosta es un museo de sitio en Pachuca, Hidalgo.",
+    },
   ];
   const signer = (payload: string) => `sig:${payload.length}`;
 
@@ -28,21 +34,30 @@ describe("ncua:pipeline soberano de 12 pasos", () => {
   });
 
   it("rechaza con 503 en producción sin proveedor (sin sustituto generativo)", () => {
-    const result = runNativePipeline("¿qué es el paste?", { productionLike: true, hasProvider: false });
+    const result = runNativePipeline("¿qué es el paste?", {
+      productionLike: true,
+      hasProvider: false,
+    });
     expect(result.inference.mode).toBe("MAINTENANCE");
     expect(result.httpStatus).toBe(503);
     expect(result.response).toBeNull();
   });
 
   it("declara modo nativo y degradado en desarrollo sin proveedor", () => {
-    const result = runNativePipeline("¿qué es el paste?", { productionLike: false, hasProvider: false });
+    const result = runNativePipeline("¿qué es el paste?", {
+      productionLike: false,
+      hasProvider: false,
+    });
     expect(result.inference.mode).toBe("NATIVE_DECLARED");
     expect(result.inference.degraded).toBe(true);
     expect(result.response).not.toBeNull();
   });
 
   it("en producción con proveedor pasa a PRODUCTION_NORMAL", () => {
-    const result = runNativePipeline("¿qué es el paste?", { productionLike: true, hasProvider: true });
+    const result = runNativePipeline("¿qué es el paste?", {
+      productionLike: true,
+      hasProvider: true,
+    });
     expect(result.inference.mode).toBe("PRODUCTION_NORMAL");
     expect(result.httpStatus).toBe(200);
   });
@@ -57,11 +72,14 @@ describe("ncua:pipeline soberano de 12 pasos", () => {
   });
 
   it("consenso y atención federada quedan auditables en la salida", () => {
-    const result = runNativePipeline("museo de sitio de la minería en Pachuca", {
-      productionLike: false,
-      hasProvider: false,
-      memoryCorpus,
-    });
+    const result = runNativePipeline(
+      "museo de sitio de la minería en Pachuca",
+      {
+        productionLike: false,
+        hasProvider: false,
+        memoryCorpus,
+      },
+    );
     expect(result.federations.approveVotes).toBeGreaterThanOrEqual(0);
     expect(result.federations.vetoActive).toBe(false);
     expect(result.attention).toBeDefined();

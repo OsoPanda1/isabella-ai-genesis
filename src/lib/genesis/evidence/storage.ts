@@ -104,7 +104,8 @@ export class EvidenceStorage {
     return fs.readdirSync(evidenceDir).filter((name) => {
       const itemPath = path.join(evidenceDir, name);
       return (
-        fs.statSync(itemPath).isDirectory() && fs.existsSync(path.join(itemPath, "evidence.json"))
+        fs.statSync(itemPath).isDirectory() &&
+        fs.existsSync(path.join(itemPath, "evidence.json"))
       );
     });
   }
@@ -141,7 +142,9 @@ export class EvidenceStorage {
 
     const dirs = fs
       .readdirSync(manifestsDir)
-      .filter((name) => fs.statSync(path.join(manifestsDir, name)).isDirectory())
+      .filter((name) =>
+        fs.statSync(path.join(manifestsDir, name)).isDirectory(),
+      )
       .sort()
       .reverse();
 
@@ -194,7 +197,9 @@ export class HashChain {
     let prevHash = "0".repeat(128);
     for (const item of data) {
       const combined = item + prevHash;
-      const hash = createHash(this.hashAlgorithm).update(combined).digest("hex");
+      const hash = createHash(this.hashAlgorithm)
+        .update(combined)
+        .digest("hex");
       prevHash = hash;
     }
     return prevHash === expectedFinalHash;
@@ -217,7 +222,9 @@ export class HashChain {
   }
 }
 
-export function createEvidenceStorage(config?: EvidenceStorageConfig): EvidenceStorage {
+export function createEvidenceStorage(
+  config?: EvidenceStorageConfig,
+): EvidenceStorage {
   return new EvidenceStorage(config);
 }
 

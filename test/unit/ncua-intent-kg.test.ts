@@ -6,14 +6,21 @@ import { SovereignKnowledgeGraph, seedRdmKnowledgeGraph } from "@/lib/ncua/kg";
 describe("ncua:intención (centroides online)", () => {
   it("clasifica intenciones sembradas del dominio RDM", () => {
     const classifier = seedRdmIntents();
-    const mineria = classifier.predict("¿cómo se inició la minería en Real del Monte?");
+    const mineria = classifier.predict(
+      "¿cómo se inició la minería en Real del Monte?",
+    );
     expect(mineria.intent).toBe("mineria");
-    const paste = classifier.predict("¿cuál es la receta tradicional del paste?");
+    const paste = classifier.predict(
+      "¿cuál es la receta tradicional del paste?",
+    );
     expect(paste.intent).toBe("paste");
   });
 
   it("abstiene ante intenciones ambiguas (incertidumbre estructurada)", () => {
-    const classifier = new NativeIntentClassifier({ minConfidence: 0.9, minMargin: 0.5 });
+    const classifier = new NativeIntentClassifier({
+      minConfidence: 0.9,
+      minMargin: 0.5,
+    });
     const prediction = classifier.predict("zzz qqq www vvv bbb nnn");
     expect(prediction.intent).toBe("desconocido");
   });
@@ -22,7 +29,9 @@ describe("ncua:intención (centroides online)", () => {
 describe("ncua:grafo de conocimiento soberano", () => {
   it("fundamenta narrativa con procedencia y confianza", () => {
     const graph = seedRdmKnowledgeGraph();
-    const result = graph.createNarrative("historia del paste minero", { topK: 3 });
+    const result = graph.createNarrative("historia del paste minero", {
+      topK: 3,
+    });
     expect(result.groundedFacts).toBeGreaterThan(0);
     expect(result.text).toContain("paste");
     expect(result.text).toContain("confianza");

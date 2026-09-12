@@ -19,7 +19,9 @@ export interface FirewallDecision {
   contentHash: string;
 }
 
-export function inspectInferenceInput(messages: IntelligenceMessage[]): FirewallDecision {
+export function inspectInferenceInput(
+  messages: IntelligenceMessage[],
+): FirewallDecision {
   const reasons: string[] = [];
   let total = 0;
   const sanitized = messages.map((message) => {

@@ -35,7 +35,9 @@ export const Route = {
           try {
             const response = await SecuritySystem.fetchSafeUpstream(endpoint, {
               headers: { authorization, accept: "application/json" },
-              signal: AbortSignal.timeout(Math.min(config.LLM_UPSTREAM_TIMEOUT_MS, 5000)),
+              signal: AbortSignal.timeout(
+                Math.min(config.LLM_UPSTREAM_TIMEOUT_MS, 5000),
+              ),
             });
             if (!response.ok) return json({ enabled: false }, 502);
 
@@ -47,11 +49,17 @@ export const Route = {
               };
             };
             const asset = payload.data;
-            if (!asset || asset.id !== requestedAssetId || asset.status !== "ready") {
+            if (
+              !asset ||
+              asset.id !== requestedAssetId ||
+              asset.status !== "ready"
+            ) {
               return json({ enabled: false });
             }
 
-            const playbackId = asset.playback_ids?.find((id) => id.policy === "public")?.id;
+            const playbackId = asset.playback_ids?.find(
+              (id) => id.policy === "public",
+            )?.id;
             if (!playbackId) return json({ enabled: false });
 
             return json({ enabled: true, playbackId, assetId: asset.id });

@@ -61,7 +61,10 @@ const oauthCodes = new Map<string, OAuthCodeEntry>();
  * Si falta cualquiera de las dos, la puerta queda cerrada.
  */
 function isDevSessionEnabled(): boolean {
-  return config().NODE_ENV === "development" && config().AUTH_DEV_SESSION_ENABLED === true;
+  return (
+    config().NODE_ENV === "development" &&
+    config().AUTH_DEV_SESSION_ENABLED === true
+  );
 }
 
 function timingSafeEqualStrings(a: string, b: string): boolean {
@@ -228,7 +231,8 @@ export const Route = createFileRoute("/api/db")({
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({ "content-type": "application/json" }),
             );
-            const { runSecurityTestSuite } = await import("../../../test/security/security-runner");
+            const { runSecurityTestSuite } =
+              await import("../../../test/security/security-runner");
             const testResults = runSecurityTestSuite();
 
             if (testResults.success) {
@@ -262,7 +266,9 @@ export const Route = createFileRoute("/api/db")({
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({ "content-type": "application/json" }),
             );
-            const auditLogs = await sovereignStateRepository.getAuditLogs(context.tenantId);
+            const auditLogs = await sovereignStateRepository.getAuditLogs(
+              context.tenantId,
+            );
             return new Response(JSON.stringify({ auditLogs }), { headers });
           })({ request });
         }
@@ -272,7 +278,9 @@ export const Route = createFileRoute("/api/db")({
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({ "content-type": "application/json" }),
             );
-            return new Response(JSON.stringify({ heads: COGNITIVE_HEADS }), { headers });
+            return new Response(JSON.stringify({ heads: COGNITIVE_HEADS }), {
+              headers,
+            });
           })({ request });
         }
 
@@ -303,15 +311,20 @@ export const Route = createFileRoute("/api/db")({
                 data: { userId: context.userId },
               });
             }
-            const { evaluateEligibility } = await import("@/lib/monetization/eligibility");
+            const { evaluateEligibility } =
+              await import("@/lib/monetization/eligibility");
             // subscriptionActive desde el tenant durable (repository authority),
             // jamás de proyecciones en memoria. Fallo → false (fail-closed).
             let subscriptionActive = false;
             try {
               const tenantRepo = repositoryFactory.getTenantRepository();
-              const tenant = await tenantRepo.read(context.tenantId, context.tenantId);
+              const tenant = await tenantRepo.read(
+                context.tenantId,
+                context.tenantId,
+              );
               const tier = String(tenant?.tier ?? "").toLowerCase();
-              subscriptionActive = tier === "sovereign" || tier === "enterprise";
+              subscriptionActive =
+                tier === "sovereign" || tier === "enterprise";
             } catch {
               subscriptionActive = false;
             }
@@ -331,7 +344,9 @@ export const Route = createFileRoute("/api/db")({
               underFraudReview: account.underFraudReview,
             });
 
-            return new Response(JSON.stringify({ account, eligibility }), { headers });
+            return new Response(JSON.stringify({ account, eligibility }), {
+              headers,
+            });
           })({ request });
         }
 
@@ -357,34 +372,48 @@ export const Route = createFileRoute("/api/db")({
           const rawRedirect = url.searchParams.get("redirect_uri") || "";
           if (rawRedirect && !isSameOrigin(url, rawRedirect)) {
             return new Response(
-              JSON.stringify({ error: "redirect_uri debe pertenecer al mismo origen." }),
+              JSON.stringify({
+                error: "redirect_uri debe pertenecer al mismo origen.",
+              }),
               { status: 400, headers },
             );
           }
-          const redirectUri = rawRedirect || `${url.origin}/api/db?action=oauth-callback`;
-          const clientId = url.searchParams.get("client_id") || "isabella_oauth_client";
+          const redirectUri =
+            rawRedirect || `${url.origin}/api/db?action=oauth-callback`;
+          const clientId =
+            url.searchParams.get("client_id") || "isabella_oauth_client";
 
           const providerUrl = `${url.origin}/api/db?action=oauth-provider&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${encodeURIComponent(clientId)}`;
-          return new Response(JSON.stringify({ url: providerUrl }), { headers });
+          return new Response(JSON.stringify({ url: providerUrl }), {
+            headers,
+          });
         }
 
         if (action === "oauth-provider") {
           if (!isDevSessionEnabled()) {
-            return new Response("Flujo OAuth manual deshabilitado en este modo.", {
-              status: 403,
-              headers: SecuritySystem.injectSecureHeaders(
-                new Headers({ "content-type": "text/plain" }),
-              ),
-            });
+            return new Response(
+              "Flujo OAuth manual deshabilitado en este modo.",
+              {
+                status: 403,
+                headers: SecuritySystem.injectSecureHeaders(
+                  new Headers({ "content-type": "text/plain" }),
+                ),
+              },
+            );
           }
           const redirectUri = url.searchParams.get("redirect_uri") || "";
           if (!isSameOrigin(url, redirectUri)) {
-            return new Response("redirect_uri inválido: debe pertenecer al mismo origen.", {
-              status: 400,
-            });
+            return new Response(
+              "redirect_uri inválido: debe pertenecer al mismo origen.",
+              {
+                status: 400,
+              },
+            );
           }
-          const clientId = url.searchParams.get("client_id") || "isabella_oauth_client";
-          const systemSession = await sovereignStateRepository.getSession("system");
+          const clientId =
+            url.searchParams.get("client_id") || "isabella_oauth_client";
+          const systemSession =
+            await sovereignStateRepository.getSession("system");
           const sessions = systemSession ? [systemSession] : [];
 
           const html = `
@@ -529,12 +558,15 @@ export const Route = createFileRoute("/api/db")({
         if (action === "oauth-callback") {
           const ip = SecuritySystem.resolveClientIp(request);
           if (!isDevSessionEnabled()) {
-            return new Response("Flujo OAuth manual deshabilitado en este modo.", {
-              status: 403,
-              headers: SecuritySystem.injectSecureHeaders(
-                new Headers({ "content-type": "text/plain" }),
-              ),
-            });
+            return new Response(
+              "Flujo OAuth manual deshabilitado en este modo.",
+              {
+                status: 403,
+                headers: SecuritySystem.injectSecureHeaders(
+                  new Headers({ "content-type": "text/plain" }),
+                ),
+              },
+            );
           }
           const code = url.searchParams.get("code") || "";
           const entry = oauthCodes.get(code);
@@ -559,7 +591,9 @@ export const Route = createFileRoute("/api/db")({
               "oauth.callback_expired_code",
               "Código de autorización expirado.",
             );
-            return new Response("Error: Código de autorización expirado.", { status: 400 });
+            return new Response("Error: Código de autorización expirado.", {
+              status: 400,
+            });
           }
           if (!isSameOrigin(url, entry.redirectUri)) {
             auditAccessAttempt(
@@ -568,10 +602,14 @@ export const Route = createFileRoute("/api/db")({
               "oauth.callback_origin_mismatch",
               "Origen de redirección inconsistente con el emitido.",
             );
-            return new Response("Error: Origen de redirección inválido.", { status: 400 });
+            return new Response("Error: Origen de redirección inválido.", {
+              status: 400,
+            });
           }
 
-          const session = await sovereignStateRepository.getSession(entry.userId);
+          const session = await sovereignStateRepository.getSession(
+            entry.userId,
+          );
           if (!session) {
             auditAccessAttempt(
               `trc_oauth_cb_${nodeCrypto.randomUUID().slice(0, 8)}`,
@@ -579,10 +617,14 @@ export const Route = createFileRoute("/api/db")({
               "oauth.callback_user_missing",
               "Usuario solicitado no registrado en el nodo.",
             );
-            return new Response("Error: Usuario no encontrado en base de datos.", { status: 400 });
+            return new Response(
+              "Error: Usuario no encontrado en base de datos.",
+              { status: 400 },
+            );
           }
 
-          const scope = "isabella:chat isabella:ledger:write isabella:sandbox:run";
+          const scope =
+            "isabella:chat isabella:ledger:write isabella:sandbox:run";
           const userToken = await SecuritySystem.generateSovereignToken(
             session.userId,
             session.role,
@@ -690,7 +732,9 @@ export const Route = createFileRoute("/api/db")({
                 "Intento de usar el flujo OAuth manual fuera del modo desarrollo.",
               );
               return new Response(
-                JSON.stringify({ error: "Flujo OAuth manual deshabilitado en este modo." }),
+                JSON.stringify({
+                  error: "Flujo OAuth manual deshabilitado en este modo.",
+                }),
                 { status: 403, headers },
               );
             }
@@ -701,16 +745,21 @@ export const Route = createFileRoute("/api/db")({
             const redirectUri = decodeURIComponent(redirectUriEnc);
             if (!isSameOrigin(url, redirectUri)) {
               return new Response(
-                JSON.stringify({ error: "redirect_uri inválido: mismo origen requerido." }),
+                JSON.stringify({
+                  error: "redirect_uri inválido: mismo origen requerido.",
+                }),
                 { status: 400, headers },
               );
             }
             const session = await sovereignStateRepository.getSession(userId);
             if (!session) {
-              return new Response(JSON.stringify({ error: "Usuario no registrado en el nodo." }), {
-                status: 400,
-                headers,
-              });
+              return new Response(
+                JSON.stringify({ error: "Usuario no registrado en el nodo." }),
+                {
+                  status: 400,
+                  headers,
+                },
+              );
             }
 
             const code = `authcode_${nodeCrypto.randomBytes(24).toString("hex")}`;
@@ -731,7 +780,9 @@ export const Route = createFileRoute("/api/db")({
           //    NO es un endpoint de autenticación: requiere PROVISION_OWNER_TOKEN.
           if (action === "provision-owner") {
             const expectedToken = config().PROVISION_OWNER_TOKEN;
-            const suppliedToken = (request.headers.get("x-isabella-api-key") || "").trim();
+            const suppliedToken = (
+              request.headers.get("x-isabella-api-key") || ""
+            ).trim();
 
             if (!expectedToken || suppliedToken.length === 0) {
               auditAccessAttempt(
@@ -741,7 +792,9 @@ export const Route = createFileRoute("/api/db")({
                 "Provisionamiento soberano intentado sin token de bootstrap.",
               );
               return new Response(
-                JSON.stringify({ error: "Provisionamiento de owner no autorizado." }),
+                JSON.stringify({
+                  error: "Provisionamiento de owner no autorizado.",
+                }),
                 { status: 403, headers },
               );
             }
@@ -753,45 +806,65 @@ export const Route = createFileRoute("/api/db")({
                 "provision.owner_invalid_token",
                 "Token de bootstrap inválido para aprovisionar owner.",
               );
-              return new Response(JSON.stringify({ error: "Token de bootstrap inválido." }), {
-                status: 403,
-                headers,
-              });
+              return new Response(
+                JSON.stringify({ error: "Token de bootstrap inválido." }),
+                {
+                  status: 403,
+                  headers,
+                },
+              );
             }
 
-            const contentLength = parseInt(request.headers.get("content-length") || "0", 10);
+            const contentLength = parseInt(
+              request.headers.get("content-length") || "0",
+              10,
+            );
             if (contentLength > 512 * 1024) {
               // 512KB limit for provision owner
-              return new Response(JSON.stringify({ error: "Payload too large." }), {
-                status: 413,
-                headers,
-              });
+              return new Response(
+                JSON.stringify({ error: "Payload too large." }),
+                {
+                  status: 413,
+                  headers,
+                },
+              );
             }
 
             let provBody: unknown;
             try {
               provBody = await request.json();
             } catch {
-              return new Response(JSON.stringify({ error: "Payload JSON inválido." }), {
-                status: 400,
-                headers,
-              });
+              return new Response(
+                JSON.stringify({ error: "Payload JSON inválido." }),
+                {
+                  status: 400,
+                  headers,
+                },
+              );
             }
             const parsedOwner = provisionOwnerSchema.safeParse(provBody);
             if (!parsedOwner.success) {
-              return new Response(JSON.stringify({ error: "Esquema de provisión inválido." }), {
-                status: 400,
-                headers,
-              });
+              return new Response(
+                JSON.stringify({ error: "Esquema de provisión inválido." }),
+                {
+                  status: 400,
+                  headers,
+                },
+              );
             }
-            const { tenantId, tenantName, ownerId, ownerUsername } = parsedOwner.data;
+            const { tenantId, tenantName, ownerId, ownerUsername } =
+              parsedOwner.data;
 
-            const existingTenant = await sovereignStateRepository.getTenant(tenantId);
+            const existingTenant =
+              await sovereignStateRepository.getTenant(tenantId);
             if (existingTenant) {
-              return new Response(JSON.stringify({ error: "El tenant ya existe." }), {
-                status: 409,
-                headers,
-              });
+              return new Response(
+                JSON.stringify({ error: "El tenant ya existe." }),
+                {
+                  status: 409,
+                  headers,
+                },
+              );
             }
 
             await sovereignStateRepository.upsertTenant({
@@ -817,7 +890,10 @@ export const Route = createFileRoute("/api/db")({
               "S3",
             );
 
-            return new Response(JSON.stringify({ success: true, tenantId, ownerId }), { headers });
+            return new Response(
+              JSON.stringify({ success: true, tenantId, ownerId }),
+              { headers },
+            );
           }
 
           // [ELIMINADO] action "authenticate" era una puerta trasera: acuñaba un JWT
@@ -838,7 +914,9 @@ export const Route = createFileRoute("/api/db")({
                 "Sesión de desarrollo solicitada fuera del modo desarrollo.",
               );
               return new Response(
-                JSON.stringify({ error: "Sesión de desarrollo no disponible en este modo." }),
+                JSON.stringify({
+                  error: "Sesión de desarrollo no disponible en este modo.",
+                }),
                 { status: 403, headers },
               );
             }
@@ -880,281 +958,373 @@ export const Route = createFileRoute("/api/db")({
 
           // 2. Enforce verified centralized Authorization Wrapper for ledger & tool execution actions
           if (action === "ledger-add") {
-            return withSovereignAuth("ledger", "write", async (context, req, body) => {
-              const val = addLedgerSchema.safeParse(body);
-              if (!val.success) {
-                return new Response(
-                  JSON.stringify({ error: "Esquema inválido para transacciones." }),
-                  { status: 400, headers },
+            return withSovereignAuth(
+              "ledger",
+              "write",
+              async (context, req, body) => {
+                const val = addLedgerSchema.safeParse(body);
+                if (!val.success) {
+                  return new Response(
+                    JSON.stringify({
+                      error: "Esquema inválido para transacciones.",
+                    }),
+                    { status: 400, headers },
+                  );
+                }
+
+                const bookpi = createBookpiPostgresRepository();
+                const blockRes = await bookpi.append({
+                  tenantId: context.tenantId,
+                  userId: context.userId,
+                  operation: val.data.operation,
+                  category: val.data.category as any,
+                  cost: val.data.cost,
+                  tokens: val.data.tokens,
+                });
+                const block = blockRes.success ? blockRes.block : { index: -1 };
+
+                await sovereignStateRepository.appendAuditLog(
+                  `trc_tx_${block.index}`,
+                  context.correlationId,
+                  context.ip,
+                  "Transacción Ledger Registrada",
+                  "S3",
+                  `Costo: $${(block as any).cost} debitado para el tenant aislado ${context.tenantId}`,
+                  context.tenantId,
                 );
-              }
 
-              const bookpi = createBookpiPostgresRepository();
-              const blockRes = await bookpi.append({
-                tenantId: context.tenantId,
-                userId: context.userId,
-                operation: val.data.operation,
-                category: val.data.category as any,
-                cost: val.data.cost,
-                tokens: val.data.tokens,
-              });
-              const block = blockRes.success ? blockRes.block : { index: -1 };
-
-              await sovereignStateRepository.appendAuditLog(
-                `trc_tx_${block.index}`,
-                context.correlationId,
-                context.ip,
-                "Transacción Ledger Registrada",
-                "S3",
-                `Costo: $${(block as any).cost} debitado para el tenant aislado ${context.tenantId}`,
-                context.tenantId,
-              );
-
-              return new Response(JSON.stringify({ success: true, block }), { headers });
-            })({ request });
+                return new Response(JSON.stringify({ success: true, block }), {
+                  headers,
+                });
+              },
+            )({ request });
           }
 
           if (action === "ledger-refund") {
-            return withSovereignAuth("ledger", "admin", async (context, req, body) => {
-              const { index } = (body ?? {}) as { index?: unknown };
-              if (typeof index !== "number") {
-                return new Response(JSON.stringify({ error: "Índice del bloque requerido." }), {
-                  status: 400,
+            return withSovereignAuth(
+              "ledger",
+              "admin",
+              async (context, req, body) => {
+                const { index } = (body ?? {}) as { index?: unknown };
+                if (typeof index !== "number") {
+                  return new Response(
+                    JSON.stringify({ error: "Índice del bloque requerido." }),
+                    {
+                      status: 400,
+                      headers,
+                    },
+                  );
+                }
+
+                const bookpi = createBookpiPostgresRepository();
+                const res = await bookpi.refund(
+                  String(index),
+                  { tenantId: context.tenantId, userId: context.userId },
+                  "Refund requested",
+                );
+                if (!res.success) {
+                  return new Response(JSON.stringify({ error: res.error }), {
+                    status: 400,
+                    headers,
+                  });
+                }
+
+                await sovereignStateRepository.appendAuditLog(
+                  `trc_rf_${index}`,
+                  context.correlationId,
+                  context.ip,
+                  "Reembolso Ledger Procesado",
+                  "S2",
+                  `Transacción index ${index} reembolsada para ${context.tenantId}`,
+                  context.tenantId,
+                );
+
+                return new Response(JSON.stringify({ success: true }), {
                   headers,
                 });
-              }
-
-              const bookpi = createBookpiPostgresRepository();
-              const res = await bookpi.refund(
-                String(index),
-                { tenantId: context.tenantId, userId: context.userId },
-                "Refund requested",
-              );
-              if (!res.success) {
-                return new Response(JSON.stringify({ error: res.error }), { status: 400, headers });
-              }
-
-              await sovereignStateRepository.appendAuditLog(
-                `trc_rf_${index}`,
-                context.correlationId,
-                context.ip,
-                "Reembolso Ledger Procesado",
-                "S2",
-                `Transacción index ${index} reembolsada para ${context.tenantId}`,
-                context.tenantId,
-              );
-
-              return new Response(JSON.stringify({ success: true }), { headers });
-            })({ request });
+              },
+            )({ request });
           }
 
           if (action === "execute-tool") {
-            return withSovereignAuth("sandbox", "execute", async (context, req, body) => {
-              const val = executeToolSchema.safeParse(body);
-              if (!val.success) {
-                return new Response(
-                  JSON.stringify({ error: "Fórmula matemática o parámetros corruptos." }),
-                  { status: 400, headers },
-                );
-              }
+            return withSovereignAuth(
+              "sandbox",
+              "execute",
+              async (context, req, body) => {
+                const val = executeToolSchema.safeParse(body);
+                if (!val.success) {
+                  return new Response(
+                    JSON.stringify({
+                      error: "Fórmula matemática o parámetros corruptos.",
+                    }),
+                    { status: 400, headers },
+                  );
+                }
 
-              let result;
-              if (val.data.useWasmSim) {
-                const sandbox = new SovereignSandboxService(context.traceId);
-                await sandbox.provisionInstance(context.traceId);
-                result = await sandbox.executeTask(
-                  ["wasm-process", "math-expr"],
-                  { TENANT_ID: context.tenantId },
-                  JSON.stringify({ formula: val.data.expression, vars: val.data.variables || {} }),
-                );
-                await sandbox.deprovisionInstance();
-              } else {
-                const { SovereignSandbox } = await import("@/lib/sovereign-engine");
-                result = SovereignSandbox.executeTool(
-                  val.data.expression,
-                  val.data.variables || {},
-                );
-              }
+                let result;
+                if (val.data.useWasmSim) {
+                  const sandbox = new SovereignSandboxService(context.traceId);
+                  await sandbox.provisionInstance(context.traceId);
+                  result = await sandbox.executeTask(
+                    ["wasm-process", "math-expr"],
+                    { TENANT_ID: context.tenantId },
+                    JSON.stringify({
+                      formula: val.data.expression,
+                      vars: val.data.variables || {},
+                    }),
+                  );
+                  await sandbox.deprovisionInstance();
+                } else {
+                  const { SovereignSandbox } =
+                    await import("@/lib/sovereign-engine");
+                  result = SovereignSandbox.executeTool(
+                    val.data.expression,
+                    val.data.variables || {},
+                  );
+                }
 
-              await sovereignStateRepository.appendAuditLog(
-                context.traceId,
-                context.correlationId,
-                context.ip,
-                "Herramienta Ejecutada en Sandbox",
-                result.success ? "S3" : "S1",
-                `Fórmula: [${val.data.expression}]. Simulación WASM: ${val.data.useWasmSim ? "Habilitada" : "Deshabilitada"}.`,
-                context.tenantId,
-              );
+                await sovereignStateRepository.appendAuditLog(
+                  context.traceId,
+                  context.correlationId,
+                  context.ip,
+                  "Herramienta Ejecutada en Sandbox",
+                  result.success ? "S3" : "S1",
+                  `Fórmula: [${val.data.expression}]. Simulación WASM: ${val.data.useWasmSim ? "Habilitada" : "Deshabilitada"}.`,
+                  context.tenantId,
+                );
 
-              return new Response(JSON.stringify(result), { headers });
-            })({ request });
+                return new Response(JSON.stringify(result), { headers });
+              },
+            )({ request });
           }
 
           if (action === "create-api-key") {
-            return withSovereignAuth("system", "write", async (context, req, body: unknown) => {
-              const { name, role, scopes, expiresInSeconds } = (body || {}) as {
-                name?: string;
-                role?: string;
-                scopes?: string[];
-                expiresInSeconds?: number;
-              };
-              if (!name || !role || !scopes) {
-                return new Response(
-                  JSON.stringify({
-                    error: "Faltan parámetros obligatorios (name, role, scopes).",
-                  }),
-                  { status: 400, headers },
-                );
-              }
+            return withSovereignAuth(
+              "system",
+              "write",
+              async (context, req, body: unknown) => {
+                const { name, role, scopes, expiresInSeconds } = (body ||
+                  {}) as {
+                  name?: string;
+                  role?: string;
+                  scopes?: string[];
+                  expiresInSeconds?: number;
+                };
+                if (!name || !role || !scopes) {
+                  return new Response(
+                    JSON.stringify({
+                      error:
+                        "Faltan parámetros obligatorios (name, role, scopes).",
+                    }),
+                    { status: 400, headers },
+                  );
+                }
 
-              // FASE 2.2: Validar privilegios del emisor antes de emitir la credencial.
-              // Un emisor nunca puede conceder un privilegio mayor al que posee.
-              const { validateApiKeyIssue } = await import("@/lib/privilege-validation");
-              const scopeList = Array.isArray(scopes)
-                ? scopes
-                : String(scopes).split(/\s+/).filter(Boolean);
-              const issuerScopes = context.scope ? context.scope.split(/\s+/).filter(Boolean) : [];
-              const issueParams: {
-                issuerRole: string;
-                issuerScopes: string[];
-                issuerTenantId: string;
-                requestedRole: string;
-                requestedScopes: string[];
-                requestedTenantId: string;
-                requestedTtlSeconds?: number;
-              } = {
-                issuerRole: context.role,
-                issuerScopes,
-                issuerTenantId: context.tenantId,
-                requestedRole: role,
-                requestedScopes: scopeList,
-                requestedTenantId: context.tenantId,
-              };
-              if (expiresInSeconds !== undefined)
-                issueParams.requestedTtlSeconds = expiresInSeconds;
-              const issueCheck = validateApiKeyIssue(issueParams);
-              if (!issueCheck.allowed) {
-                return new Response(
-                  JSON.stringify({
-                    error: `Emisión de credencial denegada: ${issueCheck.reason}.`,
-                  }),
-                  { status: 403, headers },
-                );
-              }
+                // FASE 2.2: Validar privilegios del emisor antes de emitir la credencial.
+                // Un emisor nunca puede conceder un privilegio mayor al que posee.
+                const { validateApiKeyIssue } =
+                  await import("@/lib/privilege-validation");
+                const scopeList = Array.isArray(scopes)
+                  ? scopes
+                  : String(scopes).split(/\s+/).filter(Boolean);
+                const issuerScopes = context.scope
+                  ? context.scope.split(/\s+/).filter(Boolean)
+                  : [];
+                const issueParams: {
+                  issuerRole: string;
+                  issuerScopes: string[];
+                  issuerTenantId: string;
+                  requestedRole: string;
+                  requestedScopes: string[];
+                  requestedTenantId: string;
+                  requestedTtlSeconds?: number;
+                } = {
+                  issuerRole: context.role,
+                  issuerScopes,
+                  issuerTenantId: context.tenantId,
+                  requestedRole: role,
+                  requestedScopes: scopeList,
+                  requestedTenantId: context.tenantId,
+                };
+                if (expiresInSeconds !== undefined)
+                  issueParams.requestedTtlSeconds = expiresInSeconds;
+                const issueCheck = validateApiKeyIssue(issueParams);
+                if (!issueCheck.allowed) {
+                  return new Response(
+                    JSON.stringify({
+                      error: `Emisión de credencial denegada: ${issueCheck.reason}.`,
+                    }),
+                    { status: 403, headers },
+                  );
+                }
 
-              const { ApiKeyService } = await import("@/lib/api-key-service");
-              const result = await ApiKeyService.createApiKey(
-                context.tenantId,
-                context.userId,
-                name,
-                role,
-                scopeList,
-                expiresInSeconds,
-              );
-              return new Response(JSON.stringify({ success: true, key: result }), { headers });
-            })({ request });
+                const { ApiKeyService } = await import("@/lib/api-key-service");
+                const result = await ApiKeyService.createApiKey(
+                  context.tenantId,
+                  context.userId,
+                  name,
+                  role,
+                  scopeList,
+                  expiresInSeconds,
+                );
+                return new Response(
+                  JSON.stringify({ success: true, key: result }),
+                  { headers },
+                );
+              },
+            )({ request });
           }
 
           if (action === "revoke-api-key") {
-            return withSovereignAuth("system", "write", async (context, req, body: unknown) => {
-              const { id } = (body || {}) as { id?: string };
-              if (!id) {
-                return new Response(JSON.stringify({ error: "ID de llave requerido." }), {
-                  status: 400,
-                  headers,
-                });
-              }
-              const { ApiKeyService } = await import("@/lib/api-key-service");
-              const success = await ApiKeyService.revokeApiKey(id, context.tenantId);
-              return new Response(JSON.stringify({ success }), { headers });
-            })({ request });
+            return withSovereignAuth(
+              "system",
+              "write",
+              async (context, req, body: unknown) => {
+                const { id } = (body || {}) as { id?: string };
+                if (!id) {
+                  return new Response(
+                    JSON.stringify({ error: "ID de llave requerido." }),
+                    {
+                      status: 400,
+                      headers,
+                    },
+                  );
+                }
+                const { ApiKeyService } = await import("@/lib/api-key-service");
+                const success = await ApiKeyService.revokeApiKey(
+                  id,
+                  context.tenantId,
+                );
+                return new Response(JSON.stringify({ success }), { headers });
+              },
+            )({ request });
           }
 
           if (action === "rotate-api-key") {
-            return withSovereignAuth("system", "write", async (context, req, body: unknown) => {
-              const { id } = (body || {}) as { id?: string };
-              if (!id) {
-                return new Response(JSON.stringify({ error: "ID de llave requerido." }), {
-                  status: 400,
-                  headers,
-                });
-              }
-              const { ApiKeyService } = await import("@/lib/api-key-service");
-              const result = await ApiKeyService.rotateApiKey(id, context.tenantId);
-              if (!result.success) {
-                return new Response(JSON.stringify({ error: result.error }), {
-                  status: 400,
-                  headers,
-                });
-              }
-              return new Response(JSON.stringify({ success: true, key: result.newKey }), {
-                headers,
-              });
-            })({ request });
+            return withSovereignAuth(
+              "system",
+              "write",
+              async (context, req, body: unknown) => {
+                const { id } = (body || {}) as { id?: string };
+                if (!id) {
+                  return new Response(
+                    JSON.stringify({ error: "ID de llave requerido." }),
+                    {
+                      status: 400,
+                      headers,
+                    },
+                  );
+                }
+                const { ApiKeyService } = await import("@/lib/api-key-service");
+                const result = await ApiKeyService.rotateApiKey(
+                  id,
+                  context.tenantId,
+                );
+                if (!result.success) {
+                  return new Response(JSON.stringify({ error: result.error }), {
+                    status: 400,
+                    headers,
+                  });
+                }
+                return new Response(
+                  JSON.stringify({ success: true, key: result.newKey }),
+                  {
+                    headers,
+                  },
+                );
+              },
+            )({ request });
           }
 
           // HITL: solicitar approval durable para ejecutar una herramienta.
           // Requiere DATABASE_URL (multi-instancia); sin ella, 503 honesto.
           if (action === "approval-request") {
-            return withSovereignAuth("system", "write", async (context, req, body: unknown) => {
-              const { traceId, tool } = (body || {}) as { traceId?: string; tool?: string };
-              if (!traceId || !tool) {
-                return new Response(JSON.stringify({ error: "traceId y tool requeridos." }), {
-                  status: 400,
-                  headers,
-                });
-              }
-              if (!config().DATABASE_URL) {
+            return withSovereignAuth(
+              "system",
+              "write",
+              async (context, req, body: unknown) => {
+                const { traceId, tool } = (body || {}) as {
+                  traceId?: string;
+                  tool?: string;
+                };
+                if (!traceId || !tool) {
+                  return new Response(
+                    JSON.stringify({ error: "traceId y tool requeridos." }),
+                    {
+                      status: 400,
+                      headers,
+                    },
+                  );
+                }
+                if (!config().DATABASE_URL) {
+                  return new Response(
+                    JSON.stringify({
+                      error:
+                        "Approvals durables requieren DATABASE_URL (multi-instancia).",
+                    }),
+                    { status: 503, headers },
+                  );
+                }
+                const { grantApprovalAsync } =
+                  await import("@/lib/repositories/approval-repository");
+                const grant = await grantApprovalAsync(
+                  traceId,
+                  tool,
+                  context.userId,
+                  context.tenantId,
+                );
                 return new Response(
                   JSON.stringify({
-                    error: "Approvals durables requieren DATABASE_URL (multi-instancia).",
+                    success: true,
+                    approvalId: grant.approvalId,
+                    expiresAt: grant.expiresAt,
                   }),
-                  { status: 503, headers },
+                  { headers },
                 );
-              }
-              const { grantApprovalAsync } = await import("@/lib/repositories/approval-repository");
-              const grant = await grantApprovalAsync(
-                traceId,
-                tool,
-                context.userId,
-                context.tenantId,
-              );
-              return new Response(
-                JSON.stringify({
-                  success: true,
-                  approvalId: grant.approvalId,
-                  expiresAt: grant.expiresAt,
-                }),
-                { headers },
-              );
-            })({ request });
+              },
+            )({ request });
           }
 
           // HITL: estado de approval (vigente/consumido/ausente).
           if (action === "approval-status") {
-            return withSovereignAuth("system", "read", async (context, req, body: unknown) => {
-              const { traceId, tool } = (body || {}) as { traceId?: string; tool?: string };
-              if (!traceId || !tool) {
-                return new Response(JSON.stringify({ error: "traceId y tool requeridos." }), {
-                  status: 400,
+            return withSovereignAuth(
+              "system",
+              "read",
+              async (context, req, body: unknown) => {
+                const { traceId, tool } = (body || {}) as {
+                  traceId?: string;
+                  tool?: string;
+                };
+                if (!traceId || !tool) {
+                  return new Response(
+                    JSON.stringify({ error: "traceId y tool requeridos." }),
+                    {
+                      status: 400,
+                      headers,
+                    },
+                  );
+                }
+                if (!config().DATABASE_URL) {
+                  return new Response(
+                    JSON.stringify({
+                      error: "Approvals durables requieren DATABASE_URL.",
+                    }),
+                    { status: 503, headers },
+                  );
+                }
+                const { hasApprovalAsync } =
+                  await import("@/lib/repositories/approval-repository");
+                const active = await hasApprovalAsync(
+                  traceId,
+                  tool,
+                  context.userId,
+                  context.tenantId,
+                );
+                return new Response(JSON.stringify({ success: true, active }), {
                   headers,
                 });
-              }
-              if (!config().DATABASE_URL) {
-                return new Response(
-                  JSON.stringify({ error: "Approvals durables requieren DATABASE_URL." }),
-                  { status: 503, headers },
-                );
-              }
-              const { hasApprovalAsync } = await import("@/lib/repositories/approval-repository");
-              const active = await hasApprovalAsync(
-                traceId,
-                tool,
-                context.userId,
-                context.tenantId,
-              );
-              return new Response(JSON.stringify({ success: true, active }), { headers });
-            })({ request });
+              },
+            )({ request });
           }
 
           // EMERGENCY (§7.1 Charter): engage/release/status del kill switch.
@@ -1165,464 +1335,568 @@ export const Route = createFileRoute("/api/db")({
             action === "emergency-release" ||
             action === "emergency-status"
           ) {
-            return withSovereignAuth("system", "admin", async (context, req, body: unknown) => {
-              if (context.role !== "SovereignOwner") {
-                return new Response(
-                  JSON.stringify({ error: "Solo SovereignOwner opera el kill switch." }),
-                  { status: 403, headers },
+            return withSovereignAuth(
+              "system",
+              "admin",
+              async (context, req, body: unknown) => {
+                if (context.role !== "SovereignOwner") {
+                  return new Response(
+                    JSON.stringify({
+                      error: "Solo SovereignOwner opera el kill switch.",
+                    }),
+                    { status: 403, headers },
+                  );
+                }
+                if (!config().DATABASE_URL) {
+                  return new Response(
+                    JSON.stringify({
+                      error: "Kill switch durable requiere DATABASE_URL.",
+                    }),
+                    { status: 503, headers },
+                  );
+                }
+                const { createPostgresKillSwitchStore } =
+                  await import("@/lib/kill-switch");
+                const store = createPostgresKillSwitchStore(
+                  (event, details) => {
+                    void sovereignStateRepository.appendAuditLog(
+                      `trc_emergency_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                      context.correlationId,
+                      context.ip,
+                      "Kill Switch Operado",
+                      "S0",
+                      `${event}: ${JSON.stringify(details)}`,
+                      context.tenantId,
+                    );
+                  },
                 );
-              }
-              if (!config().DATABASE_URL) {
-                return new Response(
-                  JSON.stringify({ error: "Kill switch durable requiere DATABASE_URL." }),
-                  { status: 503, headers },
-                );
-              }
-              const { createPostgresKillSwitchStore } = await import("@/lib/kill-switch");
-              const store = createPostgresKillSwitchStore((event, details) => {
-                void sovereignStateRepository.appendAuditLog(
-                  `trc_emergency_${nodeCrypto.randomUUID().slice(0, 8)}`,
-                  context.correlationId,
-                  context.ip,
-                  "Kill Switch Operado",
-                  "S0",
-                  `${event}: ${JSON.stringify(details)}`,
-                  context.tenantId,
-                );
-              });
-              if (action === "emergency-status") {
-                const states = await store.list();
-                return new Response(JSON.stringify({ success: true, states }), { headers });
-              }
-              const { capability, reason } = (body || {}) as {
-                capability?: string;
-                reason?: string;
-              };
-              if (!capability) {
-                return new Response(JSON.stringify({ error: "capability requerida." }), {
-                  status: 400,
-                  headers,
-                });
-              }
-              try {
-                const state =
-                  action === "emergency-engage"
-                    ? await store.engage(
-                        capability,
-                        reason || "emergencia declarada",
-                        context.userId,
-                      )
-                    : await store.release(capability, context.userId);
-                return new Response(JSON.stringify({ success: true, state }), { headers });
-              } catch (error) {
-                const message = error instanceof Error ? error.message : String(error);
-                return new Response(JSON.stringify({ error: message }), {
-                  status: 400,
-                  headers,
-                });
-              }
-            })({ request });
-          }
-
-          if (action === "monetization-execute-task") {
-            return withSovereignAuth("system", "write", async (context, _req, body: unknown) => {
-              const { task } = (body || {}) as { task?: string };
-              if (!task) {
-                return new Response(JSON.stringify({ error: "Parámetro task requerido." }), {
-                  status: 400,
-                  headers,
-                });
-              }
-
-              let centsToAdd = 0;
-              let description = "";
-
-              switch (task) {
-                case "gis":
-                  centsToAdd = 150; // $1.50 USD
-                  description = "Provisión de mapas geográficos catastrales GIS";
-                  break;
-                case "compute":
-                  centsToAdd = 300; // $3.00 USD
-                  description = "Sincronización de hardware local (Nodo de cómputo)";
-                  break;
-                case "skill":
-                  centsToAdd = 500; // $5.00 USD
-                  description = "Licenciamiento comercial de habilidad cognitiva premium";
-                  break;
-                case "qec":
-                  centsToAdd = 820; // $8.20 USD
-                  description = "Simulación correctora cuántica de errores (QEC)";
-                  break;
-                case "patrimony":
-                  centsToAdd = 75; // $0.75 USD
-                  description = "Validación de metadatos históricos contra BookPI";
-                  break;
-                default:
-                  return new Response(JSON.stringify({ error: "Task desconocida." }), {
+                if (action === "emergency-status") {
+                  const states = await store.list();
+                  return new Response(
+                    JSON.stringify({ success: true, states }),
+                    { headers },
+                  );
+                }
+                const { capability, reason } = (body || {}) as {
+                  capability?: string;
+                  reason?: string;
+                };
+                if (!capability) {
+                  return new Response(
+                    JSON.stringify({ error: "capability requerida." }),
+                    {
+                      status: 400,
+                      headers,
+                    },
+                  );
+                }
+                try {
+                  const state =
+                    action === "emergency-engage"
+                      ? await store.engage(
+                          capability,
+                          reason || "emergencia declarada",
+                          context.userId,
+                        )
+                      : await store.release(capability, context.userId);
+                  return new Response(
+                    JSON.stringify({ success: true, state }),
+                    { headers },
+                  );
+                } catch (error) {
+                  const message =
+                    error instanceof Error ? error.message : String(error);
+                  return new Response(JSON.stringify({ error: message }), {
                     status: 400,
                     headers,
                   });
-              }
-
-              let account = await prisma.monetizationAccount.findUnique({
-                where: { userId: context.userId },
-              });
-              if (!account) {
-                account = await prisma.monetizationAccount.create({
-                  data: { userId: context.userId },
-                });
-              }
-              const updated = await prisma.monetizationAccount.update({
-                where: { userId: context.userId },
-                data: {
-                  earnedBalanceCents: account.earnedBalanceCents + centsToAdd,
-                  qualifiedUses: account.qualifiedUses + 1,
-                  approvedContributions:
-                    task === "skill"
-                      ? account.approvedContributions + 1
-                      : account.approvedContributions,
-                },
-              });
-
-              // Append block to ledger BookPI
-              const bookpi = createBookpiPostgresRepository();
-              const blockRes = await bookpi.append({
-                tenantId: context.tenantId,
-                userId: context.userId,
-                operation: `MONETIZATION_CREDIT: ${description} (+$${(centsToAdd / 100).toFixed(2)} USD)`,
-                category: "other" as any,
-                cost: 0,
-                // no deduction for credits earned
-                tokens: 0,
-              });
-              const block = blockRes.success ? blockRes.block : { index: -1 };
-
-              await sovereignStateRepository.appendAuditLog(
-                `trc_mon_task_${block.index}`,
-                context.correlationId,
-                context.ip,
-                "Crédito de Monetización Acreditado",
-                "S3",
-                `Monto de $${(centsToAdd / 100).toFixed(2)} USD asignado a ${context.userId} por tarea: ${task}`,
-                context.tenantId,
-              );
-
-              return new Response(JSON.stringify({ success: true, account: updated }), { headers });
-            })({ request });
+                }
+              },
+            )({ request });
           }
 
-          if (action === "monetization-update-profile") {
-            return withSovereignAuth("system", "write", async (context, _req, body: unknown) => {
-              const {
-                identityVerified,
-                paymentAccountVerified,
-                trainingCompleted,
-                profileComplete,
-                underFraudReview,
-              } = (body || {}) as {
-                identityVerified?: boolean;
-                paymentAccountVerified?: boolean;
-                trainingCompleted?: boolean;
-                profileComplete?: boolean;
-                underFraudReview?: boolean;
-              };
-
-              const updated = await prisma.monetizationAccount.update({
-                where: { userId: context.userId },
-                data: {
-                  identityVerified: identityVerified !== undefined ? identityVerified : true,
-                  paymentAccountVerified:
-                    paymentAccountVerified !== undefined ? paymentAccountVerified : true,
-                  trainingCompleted: trainingCompleted !== undefined ? trainingCompleted : true,
-                  profileComplete: profileComplete !== undefined ? profileComplete : true,
-                  underFraudReview: underFraudReview !== undefined ? underFraudReview : false,
-                },
-              });
-
-              await sovereignStateRepository.appendAuditLog(
-                `trc_mon_prof_${context.userId}`,
-                context.correlationId,
-                context.ip,
-                "Perfil de Monetización Sincronizado",
-                "S3",
-                `Parámetros de elegibilidad actualizados para ${context.userId}`,
-                context.tenantId,
-              );
-
-              return new Response(JSON.stringify({ success: true, account: updated }), { headers });
-            })({ request });
-          }
-
-          if (action === "monetization-request-withdrawal") {
-            return withSovereignAuth("system", "write", async (context, _req, body: unknown) => {
-              // P0-C: fail-closed. En staging/production los payouts quedan
-              // FUERA DE SERVICIO hasta certificar los circuitos financieros
-              // A–J (ISABELLA_PAYOUT_CIRCUIT_CERTIFIED=true documentado en
-              // PRODUCTION_REPAIR_REGISTER). Sin certificación → 503 y cero
-              // movimiento de fondos (real o programado).
-              const payoutRuntime = config();
-              const payoutProductionLike =
-                payoutRuntime.NODE_ENV === "production" ||
-                payoutRuntime.ISABELLA_RUNTIME_MODE === "production" ||
-                payoutRuntime.ISABELLA_RUNTIME_MODE === "staging";
-              if (payoutProductionLike && !isPayoutCircuitCertified()) {
-                return new Response(
-                  JSON.stringify({
-                    error: "payouts_locked",
-                    traceId: `trc_payout_lock_${nodeCrypto.randomUUID().slice(0, 8)}`,
-                    message:
-                      "Movimientos de dinero bloqueados: circuitos financieros A–J sin certificar (ISABELLA_PAYOUT_CIRCUIT_CERTIFIED).",
-                  }),
-                  { status: 503, headers },
-                );
-              }
-
-              const { idempotencyKey, destinationAccountId } = (body || {}) as {
-                idempotencyKey?: string;
-                destinationAccountId?: string;
-              };
-
-              const { WithdrawalService } = await import("@/lib/monetization/withdrawal");
-              const deps = {
-                getEligibility: async (uid: string) => {
-                  const acc = await prisma.monetizationAccount.findUnique({
-                    where: { userId: uid },
-                  });
-                  if (!acc) throw new Error("No account");
-                  const { evaluateEligibility } = await import("@/lib/monetization/eligibility");
-                  let withdrawalSubscriptionActive = false;
-                  try {
-                    const tenantRepo = repositoryFactory.getTenantRepository();
-                    const tenant = await tenantRepo.read(context.tenantId, context.tenantId);
-                    const tier = String(tenant?.tier ?? "").toLowerCase();
-                    withdrawalSubscriptionActive = tier === "sovereign" || tier === "enterprise";
-                  } catch {
-                    withdrawalSubscriptionActive = false;
-                  }
-                  return evaluateEligibility({
-                    subscriptionActive: withdrawalSubscriptionActive,
-                    identityVerified: acc.identityVerified,
-                    paymentAccountVerified: acc.paymentAccountVerified,
-                    profileComplete: acc.profileComplete,
-                    trainingCompleted: acc.trainingCompleted,
-                    qualifiedUses: acc.qualifiedUses,
-                    minimumQualifiedUses: 10,
-                    approvedContributions: acc.approvedContributions,
-                    requiredContributions: 1,
-                    availableBalanceCents: acc.earnedBalanceCents,
-                    withdrawalMinimumCents: 5000,
-                    sanctioned: acc.sanctioned,
-                    underFraudReview: acc.underFraudReview,
-                  });
-                },
-                runRiskReview: async (uid: string) => {
-                  const acc = await prisma.monetizationAccount.findUnique({
-                    where: { userId: uid },
-                  });
-                  if (!acc) throw new Error("No account");
-                  // Riesgo REAL vía fraud-review (determinista, auditable),
-                  // no hardcoded. Velocidad desconocida aquí → 0 documentado.
-                  const { evaluateWithdrawalRisk } =
-                    await import("@/lib/monetization/fraud-review");
-                  const accountAgeDays = Math.max(
-                    0,
-                    Math.floor((Date.now() - new Date(acc.createdAt).getTime()) / 86_400_000),
+          if (action === "monetization-execute-task") {
+            return withSovereignAuth(
+              "system",
+              "write",
+              async (context, _req, body: unknown) => {
+                const { task } = (body || {}) as { task?: string };
+                if (!task) {
+                  return new Response(
+                    JSON.stringify({ error: "Parámetro task requerido." }),
+                    {
+                      status: 400,
+                      headers,
+                    },
                   );
-                  const evaluation = evaluateWithdrawalRisk({
-                    userId: uid,
-                    amountCents: acc.earnedBalanceCents,
-                    accountAgeDays,
-                    withdrawalsLast24h: 0,
-                    failedAttemptsLast24h: 0,
-                    sanctioned: acc.sanctioned,
-                    underFraudReview: acc.underFraudReview,
-                    identityVerified: acc.identityVerified,
-                  });
-                  return {
-                    reviewId: evaluation.reviewId,
-                    status: evaluation.status,
-                    score: evaluation.score,
-                    signals: evaluation.signals,
-                  };
-                },
-                isIdempotent: async (key: string) => {
-                  // Idempotencia ATÓMICA real: INSERT ... ON CONFLICT sobre
-                  // UNIQUE(tenant_id, idempotency_key) en economic_events.
-                  // El primer llamador inserta (no duplicado); los siguientes
-                  // chocan con la constraint (duplicado). Sin carreras.
-                  const { recordEconomicEvent } = await import("@/lib/economic-events");
-                  const claimed = await recordEconomicEvent({
-                    tenantId: context.tenantId,
-                    actorId: context.userId,
-                    eventType: "WITHDRAWAL_REQUEST",
-                    amountMinor: 0,
-                    direction: "DEBIT",
-                    source: "internal",
-                    idempotencyKey: `withdrawal:${key}`,
-                  });
-                  return claimed.duplicate === true;
-                },
-                // Sin efecto: el claim ya ocurrió atómicamente en isIdempotent.
-                markIdempotent: async () => {},
-                appendBookPI: async (entry: {
-                  type: string;
-                  amountCents?: number;
-                  userId: string;
-                  payoutId?: string;
-                  riskScore?: number;
-                  idempotencyKey?: string;
-                }) => {
-                  const cost = entry.amountCents ? entry.amountCents / 100 : 0;
-                  const bookpi = createBookpiPostgresRepository();
-                  await bookpi.append({
-                    tenantId: context.tenantId,
-                    userId: entry.userId,
-                    operation: `MONETIZATION_EVENT: ${entry.type} (payoutId:${entry.payoutId || "N/A"}) (risk:${entry.riskScore || 0}) (idempotencyKey:${entry.idempotencyKey || "N/A"})`,
-                    category: "other" as any,
-                    cost: cost,
-                    tokens: 0,
-                  });
-                },
-                checkLiquidityPool: async () => true,
-                createPayout: async (payoutRequest: {
-                  userId: string;
-                  amountCents: number;
-                  idempotencyKey: string;
-                }) => {
-                  // Ejecución REAL cuando el usuario provee cuenta destino
-                  // (Stripe Transfer idempotente con el monto verificado).
-                  // Sin destino: programado manual, sin movimiento de fondos.
-                  if (typeof destinationAccountId === "string" && destinationAccountId.length > 0) {
-                    const { executePayout } = await import("@/lib/monetization/payout-executor");
-                    const executed = await executePayout({
-                      amountCents: payoutRequest.amountCents,
-                      destinationAccountId,
-                      idempotencyKey: `payout:${payoutRequest.idempotencyKey}`,
-                      metadata: { tenantId: context.tenantId, userId: payoutRequest.userId },
-                    });
-                    return { payoutId: executed.payoutId, status: executed.status };
-                  }
-                  return {
-                    payoutId: `pay_${nodeCrypto.randomUUID().slice(0, 8)}`,
-                    status: "scheduled" as const,
-                  };
-                },
-              };
+                }
 
-              const service = new WithdrawalService(deps);
-              const result = await service.request(context.userId, "default-territory", {
-                idempotencyKey,
-              });
+                let centsToAdd = 0;
+                let description = "";
 
-              if (result.ok) {
-                // Reset earned balance to 0 on success
-                const currentAccount = await prisma.monetizationAccount.findUnique({
+                switch (task) {
+                  case "gis":
+                    centsToAdd = 150; // $1.50 USD
+                    description =
+                      "Provisión de mapas geográficos catastrales GIS";
+                    break;
+                  case "compute":
+                    centsToAdd = 300; // $3.00 USD
+                    description =
+                      "Sincronización de hardware local (Nodo de cómputo)";
+                    break;
+                  case "skill":
+                    centsToAdd = 500; // $5.00 USD
+                    description =
+                      "Licenciamiento comercial de habilidad cognitiva premium";
+                    break;
+                  case "qec":
+                    centsToAdd = 820; // $8.20 USD
+                    description =
+                      "Simulación correctora cuántica de errores (QEC)";
+                    break;
+                  case "patrimony":
+                    centsToAdd = 75; // $0.75 USD
+                    description =
+                      "Validación de metadatos históricos contra BookPI";
+                    break;
+                  default:
+                    return new Response(
+                      JSON.stringify({ error: "Task desconocida." }),
+                      {
+                        status: 400,
+                        headers,
+                      },
+                    );
+                }
+
+                let account = await prisma.monetizationAccount.findUnique({
                   where: { userId: context.userId },
                 });
-                if (!currentAccount) throw new Error("No account");
+                if (!account) {
+                  account = await prisma.monetizationAccount.create({
+                    data: { userId: context.userId },
+                  });
+                }
                 const updated = await prisma.monetizationAccount.update({
                   where: { userId: context.userId },
                   data: {
-                    earnedBalanceCents: 0,
+                    earnedBalanceCents: account.earnedBalanceCents + centsToAdd,
+                    qualifiedUses: account.qualifiedUses + 1,
+                    approvedContributions:
+                      task === "skill"
+                        ? account.approvedContributions + 1
+                        : account.approvedContributions,
+                  },
+                });
+
+                // Append block to ledger BookPI
+                const bookpi = createBookpiPostgresRepository();
+                const blockRes = await bookpi.append({
+                  tenantId: context.tenantId,
+                  userId: context.userId,
+                  operation: `MONETIZATION_CREDIT: ${description} (+$${(centsToAdd / 100).toFixed(2)} USD)`,
+                  category: "other" as any,
+                  cost: 0,
+                  // no deduction for credits earned
+                  tokens: 0,
+                });
+                const block = blockRes.success ? blockRes.block : { index: -1 };
+
+                await sovereignStateRepository.appendAuditLog(
+                  `trc_mon_task_${block.index}`,
+                  context.correlationId,
+                  context.ip,
+                  "Crédito de Monetización Acreditado",
+                  "S3",
+                  `Monto de $${(centsToAdd / 100).toFixed(2)} USD asignado a ${context.userId} por tarea: ${task}`,
+                  context.tenantId,
+                );
+
+                return new Response(
+                  JSON.stringify({ success: true, account: updated }),
+                  { headers },
+                );
+              },
+            )({ request });
+          }
+
+          if (action === "monetization-update-profile") {
+            return withSovereignAuth(
+              "system",
+              "write",
+              async (context, _req, body: unknown) => {
+                const {
+                  identityVerified,
+                  paymentAccountVerified,
+                  trainingCompleted,
+                  profileComplete,
+                  underFraudReview,
+                } = (body || {}) as {
+                  identityVerified?: boolean;
+                  paymentAccountVerified?: boolean;
+                  trainingCompleted?: boolean;
+                  profileComplete?: boolean;
+                  underFraudReview?: boolean;
+                };
+
+                const updated = await prisma.monetizationAccount.update({
+                  where: { userId: context.userId },
+                  data: {
+                    identityVerified:
+                      identityVerified !== undefined ? identityVerified : true,
+                    paymentAccountVerified:
+                      paymentAccountVerified !== undefined
+                        ? paymentAccountVerified
+                        : true,
+                    trainingCompleted:
+                      trainingCompleted !== undefined
+                        ? trainingCompleted
+                        : true,
+                    profileComplete:
+                      profileComplete !== undefined ? profileComplete : true,
+                    underFraudReview:
+                      underFraudReview !== undefined ? underFraudReview : false,
                   },
                 });
 
                 await sovereignStateRepository.appendAuditLog(
-                  `trc_mon_with_${result.payoutId || "N/A"}`,
+                  `trc_mon_prof_${context.userId}`,
                   context.correlationId,
                   context.ip,
-                  "Retiro de Monetización Procesado",
+                  "Perfil de Monetización Sincronizado",
                   "S3",
-                  result.payoutId?.startsWith("tr_")
-                    ? `Usuario ${context.userId} retiró $${(currentAccount.earnedBalanceCents / 100).toFixed(2)} USD vía Stripe. ID: ${result.payoutId}`
-                    : `Usuario ${context.userId} programó retiro de $${(currentAccount.earnedBalanceCents / 100).toFixed(2)} USD (ejecución manual pendiente). ID: ${result.payoutId || "N/A"}`,
+                  `Parámetros de elegibilidad actualizados para ${context.userId}`,
                   context.tenantId,
                 );
 
                 return new Response(
-                  JSON.stringify({
-                    success: true,
-                    payoutId: result.payoutId,
-                    account: updated,
-                  }),
+                  JSON.stringify({ success: true, account: updated }),
                   { headers },
                 );
-              } else {
-                return new Response(
-                  JSON.stringify({
-                    success: false,
-                    code: result.code,
-                    reasons: (result as { reasons?: string[] }).reasons || [],
-                  }),
-                  { status: 400, headers },
+              },
+            )({ request });
+          }
+
+          if (action === "monetization-request-withdrawal") {
+            return withSovereignAuth(
+              "system",
+              "write",
+              async (context, _req, body: unknown) => {
+                // P0-C: fail-closed. En staging/production los payouts quedan
+                // FUERA DE SERVICIO hasta certificar los circuitos financieros
+                // A–J (ISABELLA_PAYOUT_CIRCUIT_CERTIFIED=true documentado en
+                // PRODUCTION_REPAIR_REGISTER). Sin certificación → 503 y cero
+                // movimiento de fondos (real o programado).
+                const payoutRuntime = config();
+                const payoutProductionLike =
+                  payoutRuntime.NODE_ENV === "production" ||
+                  payoutRuntime.ISABELLA_RUNTIME_MODE === "production" ||
+                  payoutRuntime.ISABELLA_RUNTIME_MODE === "staging";
+                if (payoutProductionLike && !isPayoutCircuitCertified()) {
+                  return new Response(
+                    JSON.stringify({
+                      error: "payouts_locked",
+                      traceId: `trc_payout_lock_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                      message:
+                        "Movimientos de dinero bloqueados: circuitos financieros A–J sin certificar (ISABELLA_PAYOUT_CIRCUIT_CERTIFIED).",
+                    }),
+                    { status: 503, headers },
+                  );
+                }
+
+                const { idempotencyKey, destinationAccountId } = (body ||
+                  {}) as {
+                  idempotencyKey?: string;
+                  destinationAccountId?: string;
+                };
+
+                const { WithdrawalService } =
+                  await import("@/lib/monetization/withdrawal");
+                const deps = {
+                  getEligibility: async (uid: string) => {
+                    const acc = await prisma.monetizationAccount.findUnique({
+                      where: { userId: uid },
+                    });
+                    if (!acc) throw new Error("No account");
+                    const { evaluateEligibility } =
+                      await import("@/lib/monetization/eligibility");
+                    let withdrawalSubscriptionActive = false;
+                    try {
+                      const tenantRepo =
+                        repositoryFactory.getTenantRepository();
+                      const tenant = await tenantRepo.read(
+                        context.tenantId,
+                        context.tenantId,
+                      );
+                      const tier = String(tenant?.tier ?? "").toLowerCase();
+                      withdrawalSubscriptionActive =
+                        tier === "sovereign" || tier === "enterprise";
+                    } catch {
+                      withdrawalSubscriptionActive = false;
+                    }
+                    return evaluateEligibility({
+                      subscriptionActive: withdrawalSubscriptionActive,
+                      identityVerified: acc.identityVerified,
+                      paymentAccountVerified: acc.paymentAccountVerified,
+                      profileComplete: acc.profileComplete,
+                      trainingCompleted: acc.trainingCompleted,
+                      qualifiedUses: acc.qualifiedUses,
+                      minimumQualifiedUses: 10,
+                      approvedContributions: acc.approvedContributions,
+                      requiredContributions: 1,
+                      availableBalanceCents: acc.earnedBalanceCents,
+                      withdrawalMinimumCents: 5000,
+                      sanctioned: acc.sanctioned,
+                      underFraudReview: acc.underFraudReview,
+                    });
+                  },
+                  runRiskReview: async (uid: string) => {
+                    const acc = await prisma.monetizationAccount.findUnique({
+                      where: { userId: uid },
+                    });
+                    if (!acc) throw new Error("No account");
+                    // Riesgo REAL vía fraud-review (determinista, auditable),
+                    // no hardcoded. Velocidad desconocida aquí → 0 documentado.
+                    const { evaluateWithdrawalRisk } =
+                      await import("@/lib/monetization/fraud-review");
+                    const accountAgeDays = Math.max(
+                      0,
+                      Math.floor(
+                        (Date.now() - new Date(acc.createdAt).getTime()) /
+                          86_400_000,
+                      ),
+                    );
+                    const evaluation = evaluateWithdrawalRisk({
+                      userId: uid,
+                      amountCents: acc.earnedBalanceCents,
+                      accountAgeDays,
+                      withdrawalsLast24h: 0,
+                      failedAttemptsLast24h: 0,
+                      sanctioned: acc.sanctioned,
+                      underFraudReview: acc.underFraudReview,
+                      identityVerified: acc.identityVerified,
+                    });
+                    return {
+                      reviewId: evaluation.reviewId,
+                      status: evaluation.status,
+                      score: evaluation.score,
+                      signals: evaluation.signals,
+                    };
+                  },
+                  isIdempotent: async (key: string) => {
+                    // Idempotencia ATÓMICA real: INSERT ... ON CONFLICT sobre
+                    // UNIQUE(tenant_id, idempotency_key) en economic_events.
+                    // El primer llamador inserta (no duplicado); los siguientes
+                    // chocan con la constraint (duplicado). Sin carreras.
+                    const { recordEconomicEvent } =
+                      await import("@/lib/economic-events");
+                    const claimed = await recordEconomicEvent({
+                      tenantId: context.tenantId,
+                      actorId: context.userId,
+                      eventType: "WITHDRAWAL_REQUEST",
+                      amountMinor: 0,
+                      direction: "DEBIT",
+                      source: "internal",
+                      idempotencyKey: `withdrawal:${key}`,
+                    });
+                    return claimed.duplicate === true;
+                  },
+                  // Sin efecto: el claim ya ocurrió atómicamente en isIdempotent.
+                  markIdempotent: async () => {},
+                  appendBookPI: async (entry: {
+                    type: string;
+                    amountCents?: number;
+                    userId: string;
+                    payoutId?: string;
+                    riskScore?: number;
+                    idempotencyKey?: string;
+                  }) => {
+                    const cost = entry.amountCents
+                      ? entry.amountCents / 100
+                      : 0;
+                    const bookpi = createBookpiPostgresRepository();
+                    await bookpi.append({
+                      tenantId: context.tenantId,
+                      userId: entry.userId,
+                      operation: `MONETIZATION_EVENT: ${entry.type} (payoutId:${entry.payoutId || "N/A"}) (risk:${entry.riskScore || 0}) (idempotencyKey:${entry.idempotencyKey || "N/A"})`,
+                      category: "other" as any,
+                      cost: cost,
+                      tokens: 0,
+                    });
+                  },
+                  checkLiquidityPool: async () => true,
+                  createPayout: async (payoutRequest: {
+                    userId: string;
+                    amountCents: number;
+                    idempotencyKey: string;
+                  }) => {
+                    // Ejecución REAL cuando el usuario provee cuenta destino
+                    // (Stripe Transfer idempotente con el monto verificado).
+                    // Sin destino: programado manual, sin movimiento de fondos.
+                    if (
+                      typeof destinationAccountId === "string" &&
+                      destinationAccountId.length > 0
+                    ) {
+                      const { executePayout } =
+                        await import("@/lib/monetization/payout-executor");
+                      const executed = await executePayout({
+                        amountCents: payoutRequest.amountCents,
+                        destinationAccountId,
+                        idempotencyKey: `payout:${payoutRequest.idempotencyKey}`,
+                        metadata: {
+                          tenantId: context.tenantId,
+                          userId: payoutRequest.userId,
+                        },
+                      });
+                      return {
+                        payoutId: executed.payoutId,
+                        status: executed.status,
+                      };
+                    }
+                    return {
+                      payoutId: `pay_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                      status: "scheduled" as const,
+                    };
+                  },
+                };
+
+                const service = new WithdrawalService(deps);
+                const result = await service.request(
+                  context.userId,
+                  "default-territory",
+                  {
+                    idempotencyKey,
+                  },
                 );
-              }
-            })({ request });
+
+                if (result.ok) {
+                  // Reset earned balance to 0 on success
+                  const currentAccount =
+                    await prisma.monetizationAccount.findUnique({
+                      where: { userId: context.userId },
+                    });
+                  if (!currentAccount) throw new Error("No account");
+                  const updated = await prisma.monetizationAccount.update({
+                    where: { userId: context.userId },
+                    data: {
+                      earnedBalanceCents: 0,
+                    },
+                  });
+
+                  await sovereignStateRepository.appendAuditLog(
+                    `trc_mon_with_${result.payoutId || "N/A"}`,
+                    context.correlationId,
+                    context.ip,
+                    "Retiro de Monetización Procesado",
+                    "S3",
+                    result.payoutId?.startsWith("tr_")
+                      ? `Usuario ${context.userId} retiró $${(currentAccount.earnedBalanceCents / 100).toFixed(2)} USD vía Stripe. ID: ${result.payoutId}`
+                      : `Usuario ${context.userId} programó retiro de $${(currentAccount.earnedBalanceCents / 100).toFixed(2)} USD (ejecución manual pendiente). ID: ${result.payoutId || "N/A"}`,
+                    context.tenantId,
+                  );
+
+                  return new Response(
+                    JSON.stringify({
+                      success: true,
+                      payoutId: result.payoutId,
+                      account: updated,
+                    }),
+                    { headers },
+                  );
+                } else {
+                  return new Response(
+                    JSON.stringify({
+                      success: false,
+                      code: result.code,
+                      reasons: (result as { reasons?: string[] }).reasons || [],
+                    }),
+                    { status: 400, headers },
+                  );
+                }
+              },
+            )({ request });
           }
 
           if (action === "qup-run") {
-            return withSovereignAuth("sandbox", "execute", async (context, _req, body: unknown) => {
-              const qupRunSchema = z.object({
-                dataset: z.object({
-                  name: z.string().min(1).max(100),
-                  features: z.array(z.record(z.unknown())).min(1),
-                }),
-                backend: z.enum(["ibm_sherbrooke_qpu", "aer_simulator_local", "aws_braket_dm1"]),
-                config: z.object({
-                  qubitCount: z.number().min(2).max(100),
-                  circuitDepth: z.number().min(5).max(500),
-                  objective: z.enum([
-                    "hamiltonian_spectrum",
-                    "qml_classification",
-                    "qec_syndrome",
-                    "quantum_simulation",
-                  ]),
-                  errorMitigation: z.array(z.enum(["ZNE", "PEC", "TREX"])).default([]),
-                  errorCorrection: z
-                    .enum(["toric_code_L3", "toric_code_L5", "none"])
-                    .default("none"),
-                  classicalBaseline: z
-                    .enum(["xgboost", "pytorch_mlp", "jax_ode"])
-                    .default("xgboost"),
-                }),
-              });
-
-              const val = qupRunSchema.safeParse(body);
-              if (!val.success) {
-                return new Response(
-                  JSON.stringify({
-                    error:
-                      "Parámetros de configuración de experimento cuántico corruptos o faltantes.",
-                    details: val.error.format(),
+            return withSovereignAuth(
+              "sandbox",
+              "execute",
+              async (context, _req, body: unknown) => {
+                const qupRunSchema = z.object({
+                  dataset: z.object({
+                    name: z.string().min(1).max(100),
+                    features: z.array(z.record(z.unknown())).min(1),
                   }),
-                  { status: 400, headers },
+                  backend: z.enum([
+                    "ibm_sherbrooke_qpu",
+                    "aer_simulator_local",
+                    "aws_braket_dm1",
+                  ]),
+                  config: z.object({
+                    qubitCount: z.number().min(2).max(100),
+                    circuitDepth: z.number().min(5).max(500),
+                    objective: z.enum([
+                      "hamiltonian_spectrum",
+                      "qml_classification",
+                      "qec_syndrome",
+                      "quantum_simulation",
+                    ]),
+                    errorMitigation: z
+                      .array(z.enum(["ZNE", "PEC", "TREX"]))
+                      .default([]),
+                    errorCorrection: z
+                      .enum(["toric_code_L3", "toric_code_L5", "none"])
+                      .default("none"),
+                    classicalBaseline: z
+                      .enum(["xgboost", "pytorch_mlp", "jax_ode"])
+                      .default("xgboost"),
+                  }),
+                });
+
+                const val = qupRunSchema.safeParse(body);
+                if (!val.success) {
+                  return new Response(
+                    JSON.stringify({
+                      error:
+                        "Parámetros de configuración de experimento cuántico corruptos o faltantes.",
+                      details: val.error.format(),
+                    }),
+                    { status: 400, headers },
+                  );
+                }
+
+                const { QupOrchestrator } = await import("@/lib/qup-v3-engine");
+                const result = await QupOrchestrator.executeExperiment(
+                  context.tenantId,
+                  context.userId,
+                  context.role,
+                  context.traceId,
+                  val.data,
                 );
-              }
 
-              const { QupOrchestrator } = await import("@/lib/qup-v3-engine");
-              const result = await QupOrchestrator.executeExperiment(
-                context.tenantId,
-                context.userId,
-                context.role,
-                context.traceId,
-                val.data,
-              );
-
-              return new Response(JSON.stringify({ success: true, result }), { headers });
-            })({ request });
+                return new Response(JSON.stringify({ success: true, result }), {
+                  headers,
+                });
+              },
+            )({ request });
           }
 
-          return new Response(JSON.stringify({ error: "Acción de escritura desconocida." }), {
-            status: 400,
-            headers,
-          });
+          return new Response(
+            JSON.stringify({ error: "Acción de escritura desconocida." }),
+            {
+              status: 400,
+              headers,
+            },
+          );
         } catch (e: unknown) {
           // P0-48: no exponer detalles internos al cliente. Separar error interno
           // de un mensaje público estable, registrando el detalle en logs protegidos.
           const internalId = nodeCrypto.randomUUID().slice(0, 8);
           const internalMessage =
-            e instanceof Error ? e.message : "Error en el pipeline transaccional de base de datos.";
+            e instanceof Error
+              ? e.message
+              : "Error en el pipeline transaccional de base de datos.";
           // Registro interno (no expone el mensaje al cliente)
           console.error(`[api/db:${internalId}] ${internalMessage}`);
           return new Response(

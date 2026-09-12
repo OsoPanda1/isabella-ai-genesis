@@ -1,6 +1,10 @@
 import { localProviderConfig } from "./local-provider-config";
 import { fetchSafeLocalModel } from "./local-egress";
-import type { IntelligenceProvider, IntelligenceRequest, IntelligenceResponse } from "./contracts";
+import type {
+  IntelligenceProvider,
+  IntelligenceRequest,
+  IntelligenceResponse,
+} from "./contracts";
 
 /** Local-only Ollama provider. Production authorization remains external to provider availability. */
 export class OllamaProvider implements IntelligenceProvider {
@@ -17,10 +21,16 @@ export class OllamaProvider implements IntelligenceProvider {
 
   async health(): Promise<boolean> {
     try {
-      const response = await fetchSafeLocalModel(`${this.baseUrl}/api/tags`, { method: "GET" });
+      const response = await fetchSafeLocalModel(`${this.baseUrl}/api/tags`, {
+        method: "GET",
+      });
       if (!response.ok) return false;
-      const payload = (await response.json()) as { models?: Array<{ name?: string }> };
-      return Boolean(payload.models?.some((model) => model.name === this.modelId));
+      const payload = (await response.json()) as {
+        models?: Array<{ name?: string }>;
+      };
+      return Boolean(
+        payload.models?.some((model) => model.name === this.modelId),
+      );
     } catch {
       return false;
     }
@@ -34,12 +44,23 @@ export class OllamaProvider implements IntelligenceProvider {
       body: JSON.stringify({
         model: this.modelId,
         stream: false,
-        messages: request.messages.map((message) => ({ role: message.role, content: message.content })),
-        options: { temperature: request.temperature ?? 0.7, num_predict: request.maxTokens ?? 2048 },
+        messages: request.messages.map((message) => ({
+          role: message.role,
+          content: message.content,
+        })),
+        options: {
+          temperature: request.temperature ?? 0.7,
+          num_predict: request.maxTokens ?? 2048,
+        },
       }),
     });
-    if (!response.ok) throw new Error(`Ollama upstream returned ${response.status}`);
-    const payload = (await response.json()) as { message?: { content?: string }; prompt_eval_count?: number; eval_count?: number };
+    if (!response.ok)
+      throw new Error(`Ollama upstream returned ${response.status}`);
+    const payload = (await response.json()) as {
+      message?: { content?: string };
+      prompt_eval_count?: number;
+      eval_count?: number;
+    };
     const text = payload.message?.content?.trim();
     if (!text) throw new Error("Ollama returned no text");
     return {
@@ -50,7 +71,10 @@ export class OllamaProvider implements IntelligenceProvider {
       latencyMs: performance.now() - started,
       degraded: true,
       risk: "LOW",
-      usage: { inputTokens: payload.prompt_eval_count, outputTokens: payload.eval_count },
+      usage: {
+        inputTokens: payload.prompt_eval_count,
+        outputTokens: payload.eval_count,
+      },
     };
   }
 }

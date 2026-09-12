@@ -92,7 +92,11 @@ const SECRET_PATTERNS = [
     pattern: /(?:database[_-]?url|db[_-]?url)\s*[:=]\s*['"]([^'"]{10,})['"]/gi,
     entropy: false,
   },
-  { type: "STRIPE_SECRET" as const, pattern: /sk_(?:live|test)_[a-zA-Z0-9]{24,}/g, entropy: false },
+  {
+    type: "STRIPE_SECRET" as const,
+    pattern: /sk_(?:live|test)_[a-zA-Z0-9]{24,}/g,
+    entropy: false,
+  },
   {
     type: "SIGNING_KEY" as const,
     pattern: /(?:signing[_-]?key|signingkey)\s*[:=]\s*['"]([^'"]{16,})['"]/gi,
@@ -100,12 +104,14 @@ const SECRET_PATTERNS = [
   },
   {
     type: "ENCRYPTION_KEY" as const,
-    pattern: /(?:encryption[_-]?key|master[_-]?key)\s*[:=]\s*['"]([^'"]{16,})['"]/gi,
+    pattern:
+      /(?:encryption[_-]?key|master[_-]?key)\s*[:=]\s*['"]([^'"]{16,})['"]/gi,
     entropy: false,
   },
   {
     type: "OAUTH_SECRET" as const,
-    pattern: /(?:oauth[_-]?secret|client[_-]?secret)\s*[:=]\s*['"]([^'"]{16,})['"]/gi,
+    pattern:
+      /(?:oauth[_-]?secret|client[_-]?secret)\s*[:=]\s*['"]([^'"]{16,})['"]/gi,
     entropy: false,
   },
   {
@@ -119,15 +125,60 @@ const HIGH_ENTROPY_PATTERN = /['"]([a-zA-Z0-9+/=]{32,})['"]/g;
 
 const VULNERABILITY_PATTERNS = [
   { pattern: /\.innerHTML\s*=/g, type: "XSS", severity: "HIGH", cwe: "CWE-79" },
-  { pattern: /dangerouslySetInnerHTML/g, type: "XSS", severity: "HIGH", cwe: "CWE-79" },
-  { pattern: /eval\s*\(/g, type: "CODE_INJECTION", severity: "CRITICAL", cwe: "CWE-94" },
-  { pattern: /new\s+Function\s*\(/g, type: "CODE_INJECTION", severity: "CRITICAL", cwe: "CWE-94" },
-  { pattern: /exec\s*\(/g, type: "COMMAND_INJECTION", severity: "HIGH", cwe: "CWE-78" },
-  { pattern: /spawn\s*\(/g, type: "COMMAND_INJECTION", severity: "MEDIUM", cwe: "CWE-78" },
-  { pattern: /SELECT.*FROM.*WHERE.*\+/g, type: "SQL_INJECTION", severity: "HIGH", cwe: "CWE-89" },
-  { pattern: /INSERT.*VALUES.*\+/g, type: "SQL_INJECTION", severity: "HIGH", cwe: "CWE-89" },
-  { pattern: /UPDATE.*SET.*\+/g, type: "SQL_INJECTION", severity: "HIGH", cwe: "CWE-89" },
-  { pattern: /DELETE.*WHERE.*\+/g, type: "SQL_INJECTION", severity: "HIGH", cwe: "CWE-89" },
+  {
+    pattern: /dangerouslySetInnerHTML/g,
+    type: "XSS",
+    severity: "HIGH",
+    cwe: "CWE-79",
+  },
+  {
+    pattern: /eval\s*\(/g,
+    type: "CODE_INJECTION",
+    severity: "CRITICAL",
+    cwe: "CWE-94",
+  },
+  {
+    pattern: /new\s+Function\s*\(/g,
+    type: "CODE_INJECTION",
+    severity: "CRITICAL",
+    cwe: "CWE-94",
+  },
+  {
+    pattern: /exec\s*\(/g,
+    type: "COMMAND_INJECTION",
+    severity: "HIGH",
+    cwe: "CWE-78",
+  },
+  {
+    pattern: /spawn\s*\(/g,
+    type: "COMMAND_INJECTION",
+    severity: "MEDIUM",
+    cwe: "CWE-78",
+  },
+  {
+    pattern: /SELECT.*FROM.*WHERE.*\+/g,
+    type: "SQL_INJECTION",
+    severity: "HIGH",
+    cwe: "CWE-89",
+  },
+  {
+    pattern: /INSERT.*VALUES.*\+/g,
+    type: "SQL_INJECTION",
+    severity: "HIGH",
+    cwe: "CWE-89",
+  },
+  {
+    pattern: /UPDATE.*SET.*\+/g,
+    type: "SQL_INJECTION",
+    severity: "HIGH",
+    cwe: "CWE-89",
+  },
+  {
+    pattern: /DELETE.*WHERE.*\+/g,
+    type: "SQL_INJECTION",
+    severity: "HIGH",
+    cwe: "CWE-89",
+  },
 ];
 
 const CONFIG_PATTERNS = [
@@ -158,8 +209,16 @@ const CONFIG_PATTERNS = [
     type: "SECURE_COOKIES_MISSING" as const,
     severity: "MEDIUM",
   },
-  { pattern: /Access-Control-Allow-Origin.*\*/g, type: "CORS_WILDCARD" as const, severity: "HIGH" },
-  { pattern: /NODE_ENV.*development/g, type: "DEBUG_ENABLED" as const, severity: "LOW" },
+  {
+    pattern: /Access-Control-Allow-Origin.*\*/g,
+    type: "CORS_WILDCARD" as const,
+    severity: "HIGH",
+  },
+  {
+    pattern: /NODE_ENV.*development/g,
+    type: "DEBUG_ENABLED" as const,
+    severity: "LOW",
+  },
   {
     pattern: /crypto\.createHash\s*\(\s*['"]md5['"]\s*\)/g,
     type: "WEAK_CRYPTO" as const,
@@ -214,8 +273,12 @@ export class SecurityScanner {
         const lines = content.split("\n");
 
         secrets.push(...this.scanSecrets(relativePath, content, lines));
-        vulnerabilities.push(...this.scanVulnerabilities(relativePath, content, lines));
-        configIssues.push(...this.scanConfigIssues(relativePath, content, lines));
+        vulnerabilities.push(
+          ...this.scanVulnerabilities(relativePath, content, lines),
+        );
+        configIssues.push(
+          ...this.scanConfigIssues(relativePath, content, lines),
+        );
       } catch {}
     }
 
@@ -232,21 +295,30 @@ export class SecurityScanner {
     };
   }
 
-  private scanSecrets(filePath: string, content: string, lines: string[]): SecretFinding[] {
+  private scanSecrets(
+    filePath: string,
+    content: string,
+    lines: string[],
+  ): SecretFinding[] {
     const findings: SecretFinding[] = [];
 
     for (const { type, pattern, entropy: checkEntropy } of SECRET_PATTERNS) {
       const regex = new RegExp(pattern.source, pattern.flags);
       let match;
       while ((match = regex.exec(content)) !== null) {
-        const lineIndex = content.substring(0, match.index).split("\n").length - 1;
+        const lineIndex =
+          content.substring(0, match.index).split("\n").length - 1;
         const line = lines[lineIndex] ?? "";
         const column = match.index - content.lastIndexOf("\n", match.index);
         const secretValue = match[1] ?? match[0];
         const entropy = calculateEntropy(secretValue);
-        const fingerprint = createHash("sha3-512").update(secretValue).digest("hex").slice(0, 32);
+        const fingerprint = createHash("sha3-512")
+          .update(secretValue)
+          .digest("hex")
+          .slice(0, 32);
 
-        const severity = entropy > 4.5 ? "CRITICAL" : entropy > 3.5 ? "HIGH" : "MEDIUM";
+        const severity =
+          entropy > 4.5 ? "CRITICAL" : entropy > 3.5 ? "HIGH" : "MEDIUM";
 
         findings.push({
           id: `SEC-${type}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
@@ -267,10 +339,14 @@ export class SecurityScanner {
       const value = match[1];
       const entropy = calculateEntropy(value);
       if (entropy > 4.0) {
-        const lineIndex = content.substring(0, match.index).split("\n").length - 1;
+        const lineIndex =
+          content.substring(0, match.index).split("\n").length - 1;
         const line = lines[lineIndex] ?? "";
         const column = match.index - content.lastIndexOf("\n", match.index);
-        const fingerprint = createHash("sha3-512").update(value).digest("hex").slice(0, 32);
+        const fingerprint = createHash("sha3-512")
+          .update(value)
+          .digest("hex")
+          .slice(0, 32);
 
         findings.push({
           id: `SEC-HIGH_ENTROPY-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
@@ -300,7 +376,8 @@ export class SecurityScanner {
       const regex = new RegExp(pattern.source, pattern.flags);
       let match;
       while ((match = regex.exec(content)) !== null) {
-        const lineIndex = content.substring(0, match.index).split("\n").length - 1;
+        const lineIndex =
+          content.substring(0, match.index).split("\n").length - 1;
         const line = lines[lineIndex] ?? "";
         const column = match.index - content.lastIndexOf("\n", match.index);
 
@@ -344,7 +421,8 @@ export class SecurityScanner {
         }
       } else {
         for (const match of matches) {
-          const lineIndex = content.substring(0, match.index).split("\n").length - 1;
+          const lineIndex =
+            content.substring(0, match.index).split("\n").length - 1;
           const line = lines[lineIndex] ?? "";
 
           findings.push({
@@ -395,13 +473,17 @@ export class SecurityScanner {
           const fullPath = path.join(currentDir, entry.name);
           const relativePath = path.relative(this.config.rootDir, fullPath);
 
-          const excluded = excludePatterns.some((p) => this.matchPattern(relativePath, p));
+          const excluded = excludePatterns.some((p) =>
+            this.matchPattern(relativePath, p),
+          );
           if (excluded) continue;
 
           if (entry.isDirectory()) {
             walk(fullPath);
           } else if (entry.isFile()) {
-            const included = includePatterns.some((p) => this.matchPattern(relativePath, p));
+            const included = includePatterns.some((p) =>
+              this.matchPattern(relativePath, p),
+            );
             if (included) files.push(fullPath);
           }
         }
@@ -413,12 +495,17 @@ export class SecurityScanner {
   }
 
   private matchPattern(filePath: string, pattern: string): boolean {
-    const regexPattern = pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*").replace(/\?/g, ".");
+    const regexPattern = pattern
+      .replace(/\*\*/g, ".*")
+      .replace(/\*/g, "[^/]*")
+      .replace(/\?/g, ".");
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(filePath);
   }
 }
 
-export function createSecurityScanner(config?: SecurityScannerConfig): SecurityScanner {
+export function createSecurityScanner(
+  config?: SecurityScannerConfig,
+): SecurityScanner {
   return new SecurityScanner(config);
 }

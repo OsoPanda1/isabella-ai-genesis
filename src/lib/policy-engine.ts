@@ -50,7 +50,9 @@ function riskExceeds(tool: ToolRisk, threshold: ToolRisk): boolean {
  * Evalúa una acción contra la política ARGUS y devuelve la decisión.
  * Fail-closed: cualquier condición no satisfecha lleva a denied.
  */
-export function evaluatePolicy(request: PolicyEvaluationRequest): PolicyEvaluationResult {
+export function evaluatePolicy(
+  request: PolicyEvaluationRequest,
+): PolicyEvaluationResult {
   const { tool, territorialBoundaryEnforced } = request;
 
   // Deny-by-default: herramienta sin metadatos de política completos.

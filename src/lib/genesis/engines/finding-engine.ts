@@ -23,7 +23,10 @@ export class FindingEngine {
   }
 
   createFinding(
-    finding: Omit<Finding, "id" | "createdAt" | "updatedAt" | "cvss" | "priority">,
+    finding: Omit<
+      Finding,
+      "id" | "createdAt" | "updatedAt" | "cvss" | "priority"
+    >,
   ): Finding {
     const id = `GEN-${finding.category}-${Date.now().toString(36).toUpperCase()}`;
     const now = new Date().toISOString();
@@ -40,7 +43,11 @@ export class FindingEngine {
 
     const completeFinding: Finding = {
       ...baseFinding,
-      cvss: { ...cvss, temporalScore: cvss.baseScore, environmentalScore: cvss.baseScore },
+      cvss: {
+        ...cvss,
+        temporalScore: cvss.baseScore,
+        environmentalScore: cvss.baseScore,
+      },
       priority,
     };
 
@@ -77,7 +84,11 @@ export class FindingEngine {
 
     const complete: Finding = {
       ...updated,
-      cvss: { ...cvss, temporalScore: cvss.baseScore, environmentalScore: cvss.baseScore },
+      cvss: {
+        ...cvss,
+        temporalScore: cvss.baseScore,
+        environmentalScore: cvss.baseScore,
+      },
       priority,
     };
 
@@ -110,18 +121,31 @@ export class FindingEngine {
   }
 
   getBlockingFindings(): Finding[] {
-    return this.getAllFindings().filter((f) => f.priority?.shouldBlockRelease === true);
+    return this.getAllFindings().filter(
+      (f) => f.priority?.shouldBlockRelease === true,
+    );
   }
 
   getFindingsHash(): string {
-    const sorted = Array.from(this.findings.values()).sort((a, b) => a.id.localeCompare(b.id));
-    const content = JSON.stringify(
-      sorted.map((f) => ({ id: f.id, severity: f.severity, category: f.category })),
+    const sorted = Array.from(this.findings.values()).sort((a, b) =>
+      a.id.localeCompare(b.id),
     );
-    return require("node:crypto").createHash("sha3-512").update(content).digest("hex");
+    const content = JSON.stringify(
+      sorted.map((f) => ({
+        id: f.id,
+        severity: f.severity,
+        category: f.category,
+      })),
+    );
+    return require("node:crypto")
+      .createHash("sha3-512")
+      .update(content)
+      .digest("hex");
   }
 }
 
-export function createFindingEngine(config: FindingEngineConfig): FindingEngine {
+export function createFindingEngine(
+  config: FindingEngineConfig,
+): FindingEngine {
   return new FindingEngine(config);
 }

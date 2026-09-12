@@ -17,7 +17,8 @@
 import { createSign, createVerify, createHash } from "node:crypto";
 import { config } from "../config";
 
-export type BookPiSignatureAlgorithm = "ML-DSA-87" | "ECDSA-P384" | "RSA-SHA256";
+export type BookPiSignatureAlgorithm =
+  "ML-DSA-87" | "ECDSA-P384" | "RSA-SHA256";
 
 /** Algoritmo canónico declarado en la configuración. */
 export function getSigningAlgorithm(): BookPiSignatureAlgorithm {
@@ -26,13 +27,18 @@ export function getSigningAlgorithm(): BookPiSignatureAlgorithm {
 }
 
 /** ML-DSA-87 es simulación (telemetría/test). Nunca autoridad en producción. */
-export function isSimulatedAlgorithm(algorithm: BookPiSignatureAlgorithm = getSigningAlgorithm()): boolean {
+export function isSimulatedAlgorithm(
+  algorithm: BookPiSignatureAlgorithm = getSigningAlgorithm(),
+): boolean {
   return algorithm === "ML-DSA-87";
 }
 
 function isProductionRuntime(): boolean {
   const cfg = config();
-  return cfg.ISABELLA_RUNTIME_MODE === "production" || cfg.ISABELLA_RUNTIME_MODE === "staging";
+  return (
+    cfg.ISABELLA_RUNTIME_MODE === "production" ||
+    cfg.ISABELLA_RUNTIME_MODE === "staging"
+  );
 }
 
 function digestFor(algorithm: BookPiSignatureAlgorithm): string {
@@ -88,7 +94,10 @@ export function signBlockHash(blockHash: string): string {
  * algoritmo simulado se rechaza siempre (§17). Devuelve false ante cualquier
  * discrepancia (algoritmo desconocido, clave inválida, firma corrupta).
  */
-export function verifyBlockSignature(blockHash: string, signature: string | null | undefined): boolean {
+export function verifyBlockSignature(
+  blockHash: string,
+  signature: string | null | undefined,
+): boolean {
   if (!signature) return false;
   const algorithm = getSigningAlgorithm();
   if (isSimulatedAlgorithm(algorithm) && isProductionRuntime()) {

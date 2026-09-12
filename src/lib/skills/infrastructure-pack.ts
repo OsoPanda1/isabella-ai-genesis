@@ -26,11 +26,15 @@ export const CITEMESH: IsabellaSkill<CiteMeshInput, CiteMeshOutput> = {
   version: "v.GENESIS",
   federation: "INFRASTRUCTURE",
   risk: "HIGH",
-  description: "Evalúa salud federada, detecta particiones y propone acciones de resiliencia.",
+  description:
+    "Evalúa salud federada, detecta particiones y propone acciones de resiliencia.",
   canRun: (input) => Boolean(input.nodes?.length),
   async run(input, context): Promise<SkillResult<CiteMeshOutput>> {
     const unhealthyNodes = input.nodes
-      .filter((node) => node.meshHealth < 0.65 || !node.synchronized || node.latencyMs > 1500)
+      .filter(
+        (node) =>
+          node.meshHealth < 0.65 || !node.synchronized || node.latencyMs > 1500,
+      )
       .map((node) => node.id);
 
     const criticalFailures = input.nodes.filter(
@@ -38,7 +42,11 @@ export const CITEMESH: IsabellaSkill<CiteMeshInput, CiteMeshOutput> = {
     ).length;
 
     const networkHealth =
-      criticalFailures > 0 ? "PARTITIONED" : unhealthyNodes.length ? "DEGRADED" : "HEALTHY";
+      criticalFailures > 0
+        ? "PARTITIONED"
+        : unhealthyNodes.length
+          ? "DEGRADED"
+          : "HEALTHY";
 
     const resilienceActions =
       networkHealth === "PARTITIONED"
@@ -48,7 +56,10 @@ export const CITEMESH: IsabellaSkill<CiteMeshInput, CiteMeshOutput> = {
             "Notificar a la guardianía técnica para recuperación.",
           ]
         : networkHealth === "DEGRADED"
-          ? ["Priorizar sincronización incremental.", "Revisar rutas de baja salud."]
+          ? [
+              "Priorizar sincronización incremental.",
+              "Revisar rutas de baja salud.",
+            ]
           : ["Mantener monitoreo y réplica preventiva."];
 
     return {
@@ -103,7 +114,8 @@ export const HEPHAESTUS: IsabellaSkill<HephaestusInput, HephaestusOutput> = {
   risk: "HIGH",
   description:
     "Deriva artefactos técnicos y criterios de aceptación a partir de requerimientos gobernados.",
-  canRun: (input) => Boolean(input.feature?.trim() && input.requirements?.length),
+  canRun: (input) =>
+    Boolean(input.feature?.trim() && input.requirements?.length),
   async run(input, context): Promise<SkillResult<HephaestusOutput>> {
     const slug = input.feature
       .toLowerCase()
@@ -153,7 +165,12 @@ export const HEPHAESTUS: IsabellaSkill<HephaestusInput, HephaestusOutput> = {
           { feature: input.feature, target: input.target },
           context.actorId,
         ),
-        createAuditEvent("SKILL_COMPLETED", "HEPHAESTUS", { artifactName: slug }, context.actorId),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "HEPHAESTUS",
+          { artifactName: slug },
+          context.actorId,
+        ),
       ],
     };
   },

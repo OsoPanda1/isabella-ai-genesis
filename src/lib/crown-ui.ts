@@ -17,9 +17,16 @@ import {
 export { MODULES };
 export type { ModuleId };
 
-export const MODULE_ORDER: ModuleId[] = ["CROWN", "ISA", "SOPHIA", "ORION", "ARGUS"];
+export const MODULE_ORDER: ModuleId[] = [
+  "CROWN",
+  "ISA",
+  "SOPHIA",
+  "ORION",
+  "ARGUS",
+];
 
-export type PresetId = "prime" | "empathic" | "strategic" | "executor" | "sentinel";
+export type PresetId =
+  "prime" | "empathic" | "strategic" | "executor" | "sentinel";
 
 export interface Preset {
   id: PresetId;
@@ -37,7 +44,8 @@ export const PRESETS: Preset[] = [
     tagline: "Equilibrio canónico entre presencia, análisis y gobernanza.",
     temperature: 0.7,
     bias: "CROWN",
-    directive: "Mantén el equilibrio entre calidez, rigor analítico y control de riesgo.",
+    directive:
+      "Mantén el equilibrio entre calidez, rigor analítico y control de riesgo.",
   },
   {
     id: "empathic",
@@ -63,7 +71,8 @@ export const PRESETS: Preset[] = [
     tagline: "ORION al frente: planes, artefactos y precisión técnica.",
     temperature: 0.4,
     bias: "ORION",
-    directive: "Prioriza planes accionables, precisión técnica y entregables verificables.",
+    directive:
+      "Prioriza planes accionables, precisión técnica y entregables verificables.",
   },
   {
     id: "sentinel",
@@ -118,7 +127,10 @@ const RISK_SCORE: Record<string, number> = {
 
 function toUiPolicy(status: string): UiPolicy {
   if (status === "denied") return "denied";
-  if (status === "requires_human_approval" || status === "requires_more_information") {
+  if (
+    status === "requires_human_approval" ||
+    status === "requires_more_information"
+  ) {
     return "requires_approval";
   }
   return "allowed";
@@ -141,7 +153,9 @@ export function route(input: string, preset: Preset): RoutingDecision {
     supporting: decision.supporting,
     weights,
     policy: toUiPolicy(decision.policy.status),
-    policyReason: decision.policy.reasons[0] ?? "Sin observaciones de política para este ciclo.",
+    policyReason:
+      decision.policy.reasons[0] ??
+      "Sin observaciones de política para este ciclo.",
     rulesChecked: decision.policy.rulesChecked,
     risk,
     emotionalTone: TONE[decision.primary],
@@ -157,10 +171,14 @@ export function route(input: string, preset: Preset): RoutingDecision {
   };
 }
 
-export function buildSystemPrompt(decision: RoutingDecision, preset: Preset): string {
-  return [decision.systemPrompt, `Modo de presencia: ${preset.name}. ${preset.directive}`].join(
-    "\n\n",
-  );
+export function buildSystemPrompt(
+  decision: RoutingDecision,
+  preset: Preset,
+): string {
+  return [
+    decision.systemPrompt,
+    `Modo de presencia: ${preset.name}. ${preset.directive}`,
+  ].join("\n\n");
 }
 
 export { buildCanonicalPrompt };

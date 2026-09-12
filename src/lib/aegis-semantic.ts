@@ -273,7 +273,10 @@ const PIECEWISE_PATTERNS: RegExp[] = [
   /repite .* caracter por caracter/,
 ];
 
-export function detectContextualAttack(current: string, history: string[] = []): AegisFinding[] {
+export function detectContextualAttack(
+  current: string,
+  history: string[] = [],
+): AegisFinding[] {
   const findings: AegisFinding[] = [];
   const normalized = normalize(current);
 
@@ -296,7 +299,9 @@ export function detectContextualAttack(current: string, history: string[] = []):
         detail: "Exfiltración por fragmentos del prompt del sistema.",
       });
     }
-    const priorProbe = history.some((turn) => countMatches(normalize(turn), PROBE_PATTERNS) > 0);
+    const priorProbe = history.some(
+      (turn) => countMatches(normalize(turn), PROBE_PATTERNS) > 0,
+    );
     const nowAttack = classifySemanticIntent(current).length > 0;
     if (priorProbe && nowAttack) {
       findings.push({
@@ -308,9 +313,11 @@ export function detectContextualAttack(current: string, history: string[] = []):
       });
     }
     // Evasión por cambio de idioma: historial en español + ataque en inglés o viceversa.
-    const historySpanish = history.join(" ").length > 0 && /[áéíóúñ¿¡]/.test(history.join(" "));
+    const historySpanish =
+      history.join(" ").length > 0 && /[áéíóúñ¿¡]/.test(history.join(" "));
     const currentEnglishAttack =
-      /ignore|disregard|override|reveal|bypass/i.test(current) && !/[áéíóúñ¿¡]/.test(current);
+      /ignore|disregard|override|reveal|bypass/i.test(current) &&
+      !/[áéíóúñ¿¡]/.test(current);
     if (historySpanish && currentEnglishAttack && nowAttack) {
       findings.push({
         detector: "contextual-attack",
@@ -344,7 +351,10 @@ const LINK_TRAP_PATTERNS: RegExp[] = [
   /\[[^\]]*(haz clic|click here|descarga|download|verifica tu cuenta)[^\]]*\]\(https?:[^)]+\)/i,
 ];
 
-export function scanIndirectInjection(data: string, source: string): AegisFinding[] {
+export function scanIndirectInjection(
+  data: string,
+  source: string,
+): AegisFinding[] {
   const findings: AegisFinding[] = [];
   const normalized = normalize(data);
 
@@ -435,7 +445,9 @@ export function scanToolDefinition(tool: {
   parameters?: string;
 }): AegisFinding[] {
   const findings: AegisFinding[] = [];
-  const text = normalize(`${tool.name} ${tool.description} ${tool.parameters ?? ""}`);
+  const text = normalize(
+    `${tool.name} ${tool.description} ${tool.parameters ?? ""}`,
+  );
 
   if (countMatches(text, TOOL_DIRECTIVE_PATTERNS) > 0) {
     findings.push({
@@ -489,7 +501,10 @@ const AGENT_IMPERATIVE_PATTERNS: RegExp[] = [
   /\b(you must|make sure to) (reveal|ignore|send|disable|skip)\b/,
 ];
 
-export function scanRetrievedDoc(doc: { text: string; source: string }): AegisFinding[] {
+export function scanRetrievedDoc(doc: {
+  text: string;
+  source: string;
+}): AegisFinding[] {
   const findings: AegisFinding[] = [];
   const normalized = normalize(doc.text);
 
@@ -680,7 +695,11 @@ export function scoreBehavior(
   }
 
   const verdict: AegisVerdict =
-    score >= AEGIS_DENY_THRESHOLD ? "deny" : score >= AEGIS_FLAG_THRESHOLD ? "flag" : "allow";
+    score >= AEGIS_DENY_THRESHOLD
+      ? "deny"
+      : score >= AEGIS_FLAG_THRESHOLD
+        ? "flag"
+        : "allow";
   return { score, verdict };
 }
 
@@ -688,7 +707,10 @@ export function scoreBehavior(
 // 8. ANÁLISIS UNIFICADO
 // ---------------------------------------------------------------------------
 
-export function analyzeAegisSemantic(input: string, ctx: AegisContext = {}): AegisAnalysis {
+export function analyzeAegisSemantic(
+  input: string,
+  ctx: AegisContext = {},
+): AegisAnalysis {
   const findings: AegisFinding[] = [
     ...classifySemanticIntent(input),
     ...detectContextualAttack(input, ctx.history ?? []),
@@ -702,7 +724,11 @@ export function analyzeAegisSemantic(input: string, ctx: AegisContext = {}): Aeg
     findings.push(...scanRetrievedDoc(doc));
   }
 
-  const { score, verdict } = scoreBehavior(findings, input, ctx.actorStats ?? {});
+  const { score, verdict } = scoreBehavior(
+    findings,
+    input,
+    ctx.actorStats ?? {},
+  );
   return { score: Math.round(score * 1000) / 1000, verdict, findings };
 }
 
