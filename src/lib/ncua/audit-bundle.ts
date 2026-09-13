@@ -18,17 +18,24 @@ export interface NcuAuditBundle {
   createdAt: string;
 }
 
-export function evaluateDatasetPolicy(
-  documents: readonly SovereignDocument[],
-): { decision: PolicyDecision; reason: string } {
+export function evaluateDatasetPolicy(documents: readonly SovereignDocument[]): {
+  decision: PolicyDecision;
+  reason: string;
+} {
   if (documents.length === 0) return { decision: "denied", reason: "Dataset vacío" };
   if (documents.some((document) => document.consent === "unknown")) {
     return { decision: "denied", reason: "Documento sin procedencia o consentimiento verificable" };
   }
   if (documents.some((document) => document.quality < 0.5)) {
-    return { decision: "requires_approval", reason: "El dataset contiene documentos de baja calidad" };
+    return {
+      decision: "requires_approval",
+      reason: "El dataset contiene documentos de baja calidad",
+    };
   }
-  return { decision: "allowed", reason: "Procedencia, consentimiento y calidad mínimos verificados" };
+  return {
+    decision: "allowed",
+    reason: "Procedencia, consentimiento y calidad mínimos verificados",
+  };
 }
 
 export function createNcuAuditBundle(
@@ -57,10 +64,14 @@ export function verifyNcuAuditBundle(
   bundle: NcuAuditBundle,
   documents: readonly SovereignDocument[],
 ): boolean {
-  if (!bundle.traceId || !bundle.merkleRoot || documents.length !== bundle.documentHashes.length) return false;
+  if (!bundle.traceId || !bundle.merkleRoot || documents.length !== bundle.documentHashes.length)
+    return false;
   try {
     const tree = SovereignAudit.buildMerkleTree(documents.map(canonicalDocumentLine));
-    return tree.root === bundle.merkleRoot && tree.leaves.every((hash, index) => hash === bundle.documentHashes[index]);
+    return (
+      tree.root === bundle.merkleRoot &&
+      tree.leaves.every((hash, index) => hash === bundle.documentHashes[index])
+    );
   } catch {
     return false;
   }
