@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ObservabilityService } from "../../lib/telemetry/observability";
 import { getPersistedObservabilityOverview } from "../../lib/telemetry/observability-repository";
+import {
+  buildObservabilityCoverage,
+  hasCompleteObservabilityCoverage,
+} from "../../lib/telemetry/coverage";
 
 export const Route = createFileRoute("/api/observability")({
   server: {
@@ -8,29 +12,41 @@ export const Route = createFileRoute("/api/observability")({
       GET: async () => {
         const snapshot = ObservabilityService.getSnapshot();
         const persisted = await getPersistedObservabilityOverview();
+        const coverage = buildObservabilityCoverage(persisted.bySource);
+        const complete = hasCompleteObservabilityCoverage(coverage);
         return new Response(
           JSON.stringify({
-            schema: "isabella.observability.v1",
-            status: "ok",
-            capabilities: [
-              "overview",
-              "query",
-              "notebooks",
-              "alerts",
-              "custom-metrics",
-              "compute",
-              "functions",
-              "agent-runs",
-              "sandboxes",
-              "cron-jobs",
-              "external-apis",
-              "middleware",
-              "runtime-cache",
-            ],
+            schema: "isabella.observability.v2",
+            status: complete ? "ok" : "degraded",
+            capabilities: {
+              advertised: [
+                "overview",
+                "query",
+                "notebooks",
+                "alerts",
+                "custom-metrics",
+                "compute",
+                "functions",
+                "agent-runs",
+                "sandboxes",
+                "cron-jobs",
+                "external-apis",
+                "middleware",
+                "runtime-cache",
+              ],
+              observed: coverage,
+              complete,
+            },
             snapshot,
             persisted,
           }),
-          { headers: { "content-type": "application/json" } },
+          {
+            status: complete ? 200 : 503,
+            headers: {
+              "content-type": "application/json; charset=utf-8",
+              "cache-control": "no-store",
+            },
+          },
         );
       },
     },
