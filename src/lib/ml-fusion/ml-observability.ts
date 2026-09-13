@@ -1,6 +1,6 @@
 /**
  * ML OBSERVABILITY — Metrics and Telemetry for Fusion Engine
- * ════════════════════════════════════════════════════════════════════════
+ * ═════════════════════════════════════════════════════════════════════
  */
 
 import type { CopilotMLSignal, NCUASignal } from './copilot-ml-engine';

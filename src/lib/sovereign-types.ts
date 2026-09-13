@@ -1,6 +1,6 @@
 /**
  * CANONICAL TYPES — Isabella Sovereign Architecture
- * ════════════════════════════════════════════════════════════════════════
+ * ═════════════════════════════════════════════════════════════════════
  * 
  * Core type definitions for Isabella's governance model.
  * All critical objects must conform to these contracts.

@@ -1,6 +1,6 @@
 /**
  * COPILOT ML ENGINE — Fusion with Isabella Native Learning
- * ════════════════════════════════════════════════════════════════════════
+ * ═════════════════════════════════════════════════════════════════════
  * 
  * Integrates GitHub Copilot machine learning capabilities with Isabella's
  * native NCUA (Native Comprehension Unit Architecture) for hybrid inference.
