@@ -104,9 +104,15 @@ export function loadConfig(source: RawEnv = process.env): Env {
       source.MUX_INTRO_ASSET_ID ?? source.MUX_ASSET_ID,
     ISABELLA_STORAGE_PROVIDER:
       source.ISABELLA_STORAGE_PROVIDER ??
-      (!isProductionLikeRaw && (source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL)
-        ? "postgres"
-        : undefined),
+      ((source.DATABASE_URL ??
+        source.NEON_DATABASE_POSTGRES_URL ??
+        source.POSTGRES_PRISMA_URL ??
+        source.POSTGRES_URL_NON_POOLING) && isProductionLikeRaw
+        ? "neon"
+        : !isProductionLikeRaw &&
+            (source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL)
+          ? "postgres"
+          : undefined),
   };
 
   const parsed = resolveEnv(effectiveSource);
