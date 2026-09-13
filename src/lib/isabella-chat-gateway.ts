@@ -1,3 +1,4 @@
+import { streamText, gateway } from "ai";
 import { SecuritySystem } from "@/lib/security";
 import { secrets } from "@/lib/secrets";
 import { config } from "@/lib/config";
@@ -157,6 +158,42 @@ function geminiSseToOpenAi(
   });
   return new Response(stream, { status: 200, headers });
 }
+async function aiGatewaySse(
+  messages: Array<{ role: "user" | "assistant"; content: unknown }>,
+  system: string,
+  temperature: number,
+  model: string,
+  headers: Headers,
+): Promise<Response> {
+  const result = streamText({
+    model: gateway(model),
+    system,
+    messages: messages.map((message) => ({
+      role: message.role,
+      content: typeof message.content === "string" ? message.content : "Analiza el material adjunto.",
+    })),
+    temperature,
+    maxOutputTokens: 8192,
+  });
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        for await (const chunk of result.textStream) {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: chunk } }] })}\\n\\n`),
+          );
+        }
+        controller.enqueue(encoder.encode("data: [DONE]\\n\\n"));
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+  });
+  return new Response(stream, { status: 200, headers });
+}
+
 function configuredGeminiModel(): string {
   const configured = config().LLM_DEFAULT_MODEL || "google/gemini-3.8-flash";
   const model = configured.split("/").at(-1) ?? "gemini-3.8-flash";
@@ -438,10 +475,15 @@ export async function handleIsabellaChat(
           }),
   }));
   const attempts: Array<{
-    provider: "gemini" | "groq" | "xai";
-    key: string;
+    provider: "ai-gateway" | "gemini" | "groq" | "xai";
+    key?: string;
     model: string;
-  }> = [];
+  }> = [
+    {
+      provider: "ai-gateway",
+      model: "inclusionai/ling-3.0-flash-free",
+    },
+  ];
   if (providerKeys.gemini)
     attempts.push({
       provider: "gemini",
@@ -488,6 +530,30 @@ export async function handleIsabellaChat(
   for (const [index, attempt] of attempts.entries()) {
     try {
       const isGemini = attempt.provider === "gemini";
+      const isAiGateway = attempt.provider === "ai-gateway";
+      if (isAiGateway) {
+        const headers = sseHeaders(
+          context,
+          rateLimit.remaining,
+          attempt.provider,
+          attempt.model,
+          index > 0,
+        );
+        try {
+          return await aiGatewaySse(
+            messages,
+            sanitizedCognitiveSystem.clean,
+            temperature,
+            attempt.model,
+            headers,
+          );
+        } catch (error) {
+          console.error(
+            `[ISABELLA_AI_GATEWAY] trace=${context.traceId} error=${error instanceof Error ? error.message : "unknown"}`,
+          );
+          continue;
+        }
+      }
       const url = isGemini
         ? `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(attempt.model)}:streamGenerateContent?alt=sse`
         : attempt.provider === "groq"
@@ -512,8 +578,8 @@ export async function handleIsabellaChat(
         headers: {
           "content-type": "application/json",
           ...(isGemini
-            ? { "x-goog-api-key": attempt.key }
-            : { authorization: `Bearer ${attempt.key}` }),
+            ? { "x-goog-api-key": attempt.key ?? "" }
+            : { authorization: `Bearer ${attempt.key ?? ""}` }),
         },
         body: JSON.stringify(body),
       });
