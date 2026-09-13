@@ -18,6 +18,16 @@ import { createMemoryEngine, type MemoryActorRole } from "./memory-engine";
 import type { MemoryRepository } from "./repositories/memory-repository";
 import type { AuditRepository } from "./repositories/audit-repository";
 
+export interface ApprovalStore {
+  has(traceId: string, tool: string, actorId: string, tenantId: string): Promise<boolean>;
+  consume(
+    traceId: string,
+    tool: string,
+    actorId: string,
+    tenantId: string,
+  ): Promise<ApprovalGrant | null>;
+}
+
 export interface PipelineInput {
   requestId: string;
   traceId: string;
@@ -48,12 +58,24 @@ export interface PipelineResult {
   denialReason?: string;
 }
 
-function hasMatchingApproval(input: PipelineInput): boolean {
+async function hasMatchingApproval(
+  input: PipelineInput,
+  approvalStore?: ApprovalStore,
+): Promise<boolean> {
+  if (
+    approvalStore &&
+    input.toolRequest &&
+    (await approvalStore.has(input.traceId, input.toolRequest, input.actorId, input.tenantId))
+  ) {
+    return true;
+  }
+
   const now = Date.now();
   return (input.approvals ?? []).some(
     (approval) =>
       !approval.consumed &&
       approval.traceId === input.traceId &&
+      approval.tool === input.toolRequest &&
       approval.actorId === input.actorId &&
       approval.tenantId === input.tenantId &&
       approval.expiresAt > now,
@@ -63,6 +85,7 @@ function hasMatchingApproval(input: PipelineInput): boolean {
 export function createSovereignPipeline(opts?: {
   memoryRepository?: MemoryRepository;
   auditRepository?: AuditRepository;
+  approvalStore?: ApprovalStore;
   killSwitchStore?: {
     isKilled(capability: string): Promise<boolean>;
   };
@@ -148,10 +171,9 @@ export function createSovereignPipeline(opts?: {
       if (input.toolRequest) {
         const toolMeta = toolRegistry.lookup(input.toolRequest);
         if (toolMeta) {
-          // ARGUS must see the real approval state. Previously this was hard-coded
-          // to false, which caused approval-capable tools to be denied before the
-          // execution authority could consume their approval grant.
-          const approvalGranted = hasMatchingApproval(input);
+          // ARGUS sees the durable approval state before deciding whether the
+          // action is merely waiting for approval or can proceed.
+          const approvalGranted = await hasMatchingApproval(input, opts?.approvalStore);
           policyResult = evaluatePolicy({
             tool: toolMeta,
             territorialBoundaryEnforced: false,
@@ -196,6 +218,7 @@ export function createSovereignPipeline(opts?: {
         const authority = createExecutionAuthority({
           memoryRepository: opts?.memoryRepository,
           auditRepository: opts?.auditRepository,
+          approvalStore: opts?.approvalStore,
           killSwitch: opts?.killSwitchStore,
         });
         const outcome = await authority.execute({
