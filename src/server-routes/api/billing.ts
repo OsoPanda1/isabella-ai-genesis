@@ -254,7 +254,18 @@ export const Route = createFileRoute("/api/billing")({
           // 1. CHECKOUT CREATION (STRIPE)
           if (action === "checkout") {
             return withSovereignAuth("system", "write", async (context) => {
-              const parsed = z.object({ planId: z.enum(["pro", "enterprise"]) }).safeParse(body);
+              const parsed = z
+                .object({
+                  planId: z.enum(["pro", "enterprise"]),
+                  idempotencyKey: z
+                    .string()
+                    .trim()
+                    .min(8)
+                    .max(128)
+                    .regex(/^[a-zA-Z0-9:_-]+$/)
+                    .optional(),
+                })
+                .safeParse(body);
               if (!parsed.success) {
                 return new Response(
                   JSON.stringify({ error: "planId debe ser pro o enterprise." }),
@@ -264,7 +275,7 @@ export const Route = createFileRoute("/api/billing")({
                   },
                 );
               }
-              const { planId } = parsed.data;
+              const { planId, idempotencyKey } = parsed.data;
               const stripe = getStripe();
               if (!stripe) {
                 return new Response(
@@ -279,7 +290,8 @@ export const Route = createFileRoute("/api/billing")({
 
               if (stripe) {
                 try {
-                  const stripeSession = await stripe.checkout.sessions.create({
+                  const stripeSession = await stripe.checkout.sessions.create(
+                    {
                     payment_method_types: ["card"],
                     line_items: [
                       {
@@ -303,7 +315,11 @@ export const Route = createFileRoute("/api/billing")({
                       tenantId: context.tenantId,
                       planId,
                     },
-                  });
+                  },
+                  {
+                    idempotencyKey: `checkout:${context.tenantId}:${idempotencyKey ?? context.correlationId}`,
+                  },
+                );
                   sessionId = stripeSession.id;
                   checkoutUrl = stripeSession.url ?? "";
                 } catch (stripeError) {
