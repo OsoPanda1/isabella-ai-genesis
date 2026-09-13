@@ -8,7 +8,9 @@ let loadError: string | null = null;
 function resolveEnv(source: RawEnv): Env {
   const parsed = envSchema.safeParse(source);
   if (!parsed.success) {
-    const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+    const issues = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
     throw new Error(`Configuración de entorno inválida: ${issues}`);
   }
   return parsed.data;
@@ -38,8 +40,35 @@ function assertProductionCrypto(mode: RuntimeMode, parsed: Env): void {
   }
 }
 
+function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, parsed: Env): void {
+  if (mode !== "production" && mode !== "staging") return;
+
+  const rawProvider = source.ISABELLA_STORAGE_PROVIDER;
+  if (typeof rawProvider !== "string" || rawProvider.trim() === "") {
+    throw new Error(
+      "ISABELLA_STORAGE_PROVIDER debe declararse explícitamente como postgres o neon en staging/production.",
+    );
+  }
+
+  const provider = rawProvider.trim().toLowerCase();
+  if (provider !== "postgres" && provider !== "neon") {
+    throw new Error(
+      `ISABELLA_STORAGE_PROVIDER=\"${provider}\" no es una autoridad durable válida en staging/production. Permitidos: postgres|neon.`,
+    );
+  }
+
+  if (parsed.ISABELLA_STORAGE_PROVIDER !== provider) {
+    throw new Error("ISABELLA_STORAGE_PROVIDER no coincide con el proveedor normalizado.");
+  }
+}
+
 export function loadConfig(source: RawEnv = process.env): Env {
   if (cached) return cached;
+
+  const isProductionLikeRaw =
+    source.ISABELLA_RUNTIME_MODE === "production" ||
+    source.ISABELLA_RUNTIME_MODE === "staging" ||
+    source.NODE_ENV === "production";
 
   const effectiveSource: RawEnv = {
     ...source,
@@ -48,22 +77,31 @@ export function loadConfig(source: RawEnv = process.env): Env {
       source.NEON_DATABASE_POSTGRES_URL ??
       source.NEON_DATABASE_DATABASE_URL ??
       source.SUPABASE_DATABASE_POSTGRES_URL,
+    // Never infer an authoritative storage provider in production/staging.
+    // Local development may retain the historical postgres convenience default.
     ISABELLA_STORAGE_PROVIDER:
       source.ISABELLA_STORAGE_PROVIDER ??
-      ((source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL) ? "postgres" : undefined),
+      (!isProductionLikeRaw && (source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL)
+        ? "postgres"
+        : undefined),
   };
+
   const parsed = resolveEnv(effectiveSource);
   const mode: RuntimeMode = parsed.ISABELLA_RUNTIME_MODE;
 
   try {
     assertRequired(mode, effectiveSource);
     assertProductionCrypto(mode, parsed);
+    assertProductionStorageProvider(mode, effectiveSource, parsed);
     if (mode === "production" || mode === "staging") {
       if (parsed.DURABLE_JSON_ALLOWED) {
         throw new Error("DURABLE_JSON_ALLOWED debe ser false en modos no locales");
       }
       if (parsed.AUTH_DEV_SESSION_ENABLED) {
         throw new Error("AUTH_DEV_SESSION_ENABLED debe estar desactivado");
+      }
+      if (parsed.ALLOW_GUEST_CHAT) {
+        throw new Error("ALLOW_GUEST_CHAT debe estar desactivado en staging/production");
       }
       if (!parsed.DATABASE_URL && !(parsed.SUPABASE_URL && parsed.AUTH_JWT_SECRET)) {
         throw new Error(
