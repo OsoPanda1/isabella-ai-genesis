@@ -5,11 +5,13 @@ import {
   buildObservabilityCoverage,
   hasCompleteObservabilityCoverage,
 } from "../../lib/telemetry/coverage";
+import { withSovereignAuth } from "../../lib/principal-context";
+import { SecuritySystem } from "../../lib/security";
 
 export const Route = createFileRoute("/api/observability")({
   server: {
     handlers: {
-      GET: async () => {
+      GET: withSovereignAuth("system", "read", async () => {
         const snapshot = ObservabilityService.getSnapshot();
         const persisted = await getPersistedObservabilityOverview();
         const coverage = buildObservabilityCoverage(persisted.bySource);
@@ -42,13 +44,15 @@ export const Route = createFileRoute("/api/observability")({
           }),
           {
             status: complete ? 200 : 503,
-            headers: {
-              "content-type": "application/json; charset=utf-8",
-              "cache-control": "no-store",
-            },
+            headers: SecuritySystem.injectSecureHeaders(
+              new Headers({
+                "content-type": "application/json; charset=utf-8",
+                "cache-control": "no-store",
+              }),
+            ),
           },
         );
-      },
+      }),
     },
   },
 });
