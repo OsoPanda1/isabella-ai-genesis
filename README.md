@@ -83,7 +83,7 @@ El proyecto privilegia métricas y trazas derivadas del runtime real. No deben p
 
 ## Estado actual — 13 de septiembre de 2026
 
-La rama de hardening de esta intervención parte del commit `075cb60a5345696003b38aafc245af1a7478ce81`, que ya incorpora la corrección de visualización global y habilitación del runtime de Isabella. citehttps://github.com/OsoPanda1/isabella-ai-genesis/commit/075cb60a5345696003b38aafc245af1a7478ce81
+La rama de hardening de esta intervención parte del commit `075cb60a5345696003b38aafc245af1a7478ce81`, que ya incorpora la corrección de visualización global y habilitación del runtime de Isabella.
 
 En esta fase se ejecutaron cambios reales sobre la rama `v0/debt-elimination-deploy-ready-2026-09-13`:
 
@@ -199,7 +199,7 @@ Las optimizaciones prioritarias son:
 - warm paths para configuración validada;
 - separación estricta entre liveness barato y readiness profundo.
 
-La corrección visual reciente de CSS se realizó precisamente sobre el arranque de la aplicación: el runtime actual integra el stylesheet en el documento y configura `inlineCss` en el build de TanStack Start. citehttps://github.com/OsoPanda1/isabella-ai-genesis/commit/075cb60a5345696003b38aafc245af1a7478ce81
+La corrección visual reciente de CSS se realizó sobre el arranque de la aplicación: el runtime actual integra el stylesheet en el documento y configura `inlineCss` en el build de TanStack Start.
 
 ## Desarrollo local
 
@@ -300,7 +300,7 @@ No se debe presentar una inferencia como hecho verificado. El benchmark futuro d
 
 ## Licenciamiento
 
-El repositorio define una separación explícita entre código, documentación y activos. El resumen de licencia actual establece doble licencia Apache 2.0/ISC para software, CC BY 4.0 para documentación y CC BY-ND 4.0 para branding/arte/activos territoriales, sujeto a los archivos de licencia correspondientes. citehttps://github.com/OsoPanda1/isabella-ai-genesis/blob/075cb60a5345696003b38aafc245af1a7478ce81/LICENSE
+El repositorio define una separación explícita entre código, documentación y activos. El resumen de licencia actual establece doble licencia Apache 2.0/ISC para software, CC BY 4.0 para documentación y CC BY-ND 4.0 para branding/arte/activos territoriales, sujeto a los archivos de licencia correspondientes.
 
 Antes de redistribuir componentes concretos debe revisarse el archivo de licencia que corresponda a ese componente.
 
