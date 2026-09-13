@@ -74,6 +74,8 @@ export function loadConfig(source: RawEnv = process.env): Env {
       source.NEON_DATABASE_POSTGRES_URL ??
       source.NEON_DATABASE_DATABASE_URL ??
       source.SUPABASE_DATABASE_POSTGRES_URL,
+    TURSO_AUTH_TOKEN: source.TURSO_AUTH_TOKEN ?? source.TURSO_AUTH_TOKEN_3,
+    TURSO_DATABASE_URL: source.TURSO_DATABASE_URL ?? source.TURSO_DATABASE_URL_3,
     ISABELLA_STORAGE_PROVIDER:
       source.ISABELLA_STORAGE_PROVIDER ??
       (!isProductionLikeRaw && (source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL)
