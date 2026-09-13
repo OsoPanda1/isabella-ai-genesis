@@ -22,9 +22,14 @@ export const Route = {
           const tokenId = config.MUX_TOKEN_ID;
           const tokenSecret = config.MUX_TOKEN_SECRET;
           const requestedAssetId = config.MUX_INTRO_ASSET_ID;
+          const configuredPlaybackId = config.MUX_PLAYBACK_ID;
 
-          // Never guess which Mux asset is the canonical intro. Production must
-          // explicitly bind the intro to an immutable asset id.
+          // Mux is an enhancement, never a requirement for entering Isabella.
+          // Prefer the immutable asset lookup when credentials are available;
+          // otherwise accept only an explicitly configured public playback ID.
+          if (!requestedAssetId && configuredPlaybackId && /^[\w-]+$/.test(configuredPlaybackId)) {
+            return json({ enabled: true, playbackId: configuredPlaybackId });
+          }
           if (!tokenId || !tokenSecret || !requestedAssetId) {
             return json({ enabled: false });
           }
@@ -52,7 +57,7 @@ export const Route = {
             }
 
             const playbackId = asset.playback_ids?.find((id) => id.policy === "public")?.id;
-            if (!playbackId) return json({ enabled: false });
+            if (!playbackId || !/^[\w-]+$/.test(playbackId)) return json({ enabled: false });
 
             return json({ enabled: true, playbackId, assetId: asset.id });
           } catch {
