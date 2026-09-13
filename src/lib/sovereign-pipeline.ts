@@ -48,6 +48,18 @@ export interface PipelineResult {
   denialReason?: string;
 }
 
+function hasMatchingApproval(input: PipelineInput): boolean {
+  const now = Date.now();
+  return (input.approvals ?? []).some(
+    (approval) =>
+      !approval.consumed &&
+      approval.traceId === input.traceId &&
+      approval.actorId === input.actorId &&
+      approval.tenantId === input.tenantId &&
+      approval.expiresAt > now,
+  );
+}
+
 export function createSovereignPipeline(opts?: {
   memoryRepository?: MemoryRepository;
   auditRepository?: AuditRepository;
@@ -131,25 +143,22 @@ export function createSovereignPipeline(opts?: {
         grantedScopes: allowedScopes as unknown as readonly CROWN.MemoryScope[],
       });
 
-      // ── FASE 4: POLICY GATE ─────────────────────────────────
+      // ── FASE 4: POLICY GATE / ARGUS ──────────────────────────
       let policyResult: PolicyEvaluationResult | null = null;
       if (input.toolRequest) {
         const toolMeta = toolRegistry.lookup(input.toolRequest);
         if (toolMeta) {
-          // Human authority never turns off ARGUS. Even the sovereign owner
-          // can only approve high/critical operations explicitly.
-          const riskThreshold: "low" | "medium" = "medium";
-
-          // Frontera territorial: solo aplica si hay egress externo real.
-          // Los ejecutores del pipeline son locales; pasar tenantId como
-          // "egress" denegaría siempre herramientas territoriales legítimas.
+          // ARGUS must see the real approval state. Previously this was hard-coded
+          // to false, which caused approval-capable tools to be denied before the
+          // execution authority could consume their approval grant.
+          const approvalGranted = hasMatchingApproval(input);
           policyResult = evaluatePolicy({
             tool: toolMeta,
             territorialBoundaryEnforced: false,
             humanInTheLoop: input.identity.authenticated,
-            approvalThreshold: riskThreshold,
+            approvalThreshold: "medium",
             consentRequired: toolMeta.requiresApproval,
-            consentGranted: false,
+            consentGranted: approvalGranted,
           });
 
           if (policyResult.decision === "denied") {
