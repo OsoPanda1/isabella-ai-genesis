@@ -234,7 +234,7 @@ export const Route = createFileRoute("/api/billing")({
           const bodyText = await request.text();
           const body = bodyText ? JSON.parse(bodyText) : {};
 
-          // 1. CHECKOUT CREATION (STRIPE / SIMULATED)
+          // 1. CHECKOUT CREATION (STRIPE)
           if (action === "checkout") {
             return withSovereignAuth("system", "write", async (context) => {
               const { planId } = body as { planId?: string };
@@ -254,7 +254,7 @@ export const Route = createFileRoute("/api/billing")({
                   { status: 500, headers },
                 );
               }
-              const sessionId = `sess_${nodeCrypto.randomUUID().slice(0, 12)}`;
+              let sessionId = "";
               let checkoutUrl = "";
 
               if (stripe) {
@@ -284,9 +284,14 @@ export const Route = createFileRoute("/api/billing")({
                       planId,
                     },
                   });
+                  sessionId = stripeSession.id;
                   checkoutUrl = stripeSession.url ?? "";
                 } catch (stripeError) {
-                  console.error("Fallo Stripe checkout, procediendo a simulador:", stripeError);
+                  console.error("Fallo Stripe checkout:", stripeError);
+                  return new Response(
+                    JSON.stringify({ error: "No se pudo crear la sesión de checkout." }),
+                    { status: 502, headers },
+                  );
                 }
               }
 

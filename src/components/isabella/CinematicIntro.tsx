@@ -19,6 +19,8 @@ const BACKGROUND_AUDIO_SRC = "/assets/isabella-intro-mashup.mp3";
 const AUDIO_START_OFFSET_SECONDS = 9;
 const DURATION = 59;
 const TARGET_FPS = 60;
+const MAX_PIXEL_RATIO = 1.75;
+const MOBILE_PIXEL_RATIO = 1.25;
 
 export interface TelemetryPayload {
   elapsed: number;
@@ -88,9 +90,9 @@ function WebGLCinematicField() {
       if (!ctx) throw new Error("WebGL no soportado");
     } catch {
       // WebGL no disponible: mostrar fondo estático de lujo.
-      mount.style.background = `radial-gradient(circle at 30% 20%, ${PALETTE.electric}22, transparent 40%), 
-        radial-gradient(circle at 80% 70%, ${PALETTE.iris}18, transparent 50%), 
-        linear-gradient(135deg, ${PALETTE.abyss}, ${PALETTE.navy})`;
+      mount.style.backgroundImage = `linear-gradient(135deg, rgba(2,10,13,.72), rgba(10,22,40,.9)), url("/assets/isabella-intro-backdrop.png"), radial-gradient(circle at 30% 20%, ${PALETTE.electric}22, transparent 40%), radial-gradient(circle at 80% 70%, ${PALETTE.iris}18, transparent 50%)`;
+      mount.style.backgroundPosition = "center";
+      mount.style.backgroundSize = "cover";
       return;
     }
 
@@ -104,7 +106,12 @@ function WebGLCinematicField() {
       depth: true,
     });
     rendererRef.current = renderer;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const isCompactViewport = window.matchMedia("(max-width: 640px)").matches;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const pixelRatio = prefersReducedMotion
+      ? 1
+      : Math.min(window.devicePixelRatio, isCompactViewport ? MOBILE_PIXEL_RATIO : MAX_PIXEL_RATIO);
+    renderer.setPixelRatio(pixelRatio);
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -589,7 +596,7 @@ export function CinematicIntroContent({
             </span>
             <span className="hidden items-center gap-3 sm:flex">
               <span
-                className="size-1.5 rounded-full bg-[var(--electric)] shadow-[0_0_10px_var(--electric)]"
+                className="size-1.5 rounded-full bg-cyan-200 shadow-[0_0_10px_rgba(117,224,255,.8)]"
                 aria-hidden="true"
               />
               {fps} FPS <span className="text-white/25">//</span> {timecode} / 00:59
@@ -689,6 +696,7 @@ export function CinematicIntroContent({
         loop
         preload="auto"
         className="hidden"
+        aria-label="Banda sonora de la introducción cinematográfica"
         onCanPlay={() => setAudioReady(true)}
       />
     </div>

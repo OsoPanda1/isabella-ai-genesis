@@ -16,7 +16,10 @@ export * from "./kg";
 export * from "./privacy";
 export * from "./federations";
 export * from "./metrics";
+export * from "./dataset-contract";
+export * from "./audit-bundle";
 export * from "./pipeline";
+export * from "./dataset-contract";
 
 export interface NativeEngine {
   intent: NativeIntentClassifier;

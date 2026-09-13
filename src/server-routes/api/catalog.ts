@@ -75,12 +75,14 @@ export const Route = createFileRoute("/api/catalog")({
           }),
         );
 
+        const publicItems = items.map(({ mockResponse: _mockResponse, ...item }) => item);
+
         return new Response(
           JSON.stringify({
             schema: "isabella.api.catalog.v1",
             total: CATALOG_ENTRIES.length,
-            count: items.length,
-            items,
+            count: publicItems.length,
+            items: publicItems,
           }),
           { headers },
         );
@@ -170,6 +172,23 @@ export const Route = createFileRoute("/api/catalog")({
                 error: "El método o path no coincide con el contrato registrado.",
               }),
               { status: 409, headers },
+            );
+          }
+
+          if (entry.status !== "implemented") {
+            return new Response(
+              JSON.stringify({
+                error: "CONTRACT_NOT_IMPLEMENTED",
+                message: "El contrato está registrado, pero no tiene un handler productivo conectado.",
+                contractId: id,
+                status: entry.status,
+              }),
+              {
+                status: 501,
+                headers: SecuritySystem.injectSecureHeaders(
+                  new Headers({ "content-type": "application/json" }),
+                ),
+              },
             );
           }
 
