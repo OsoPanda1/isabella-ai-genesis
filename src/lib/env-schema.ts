@@ -68,7 +68,8 @@ export const envSchema = z.object({
   OIDC_JWKS_URL: optionalUrl(),
   JWKS_CACHE_TTL: coercedInt(3600),
   AUTH_DEV_SESSION_ENABLED: bool(false),
-  ALLOW_GUEST_CHAT: bool(true),
+  // Guest inference is opt-in in production; development remains usable without credentials.
+  ALLOW_GUEST_CHAT: bool(false),
   PROVISION_OWNER_TOKEN: optionalString(),
   ENCRYPTION_MASTER_KEY: optionalMinString(32),
   ENCRYPTION_ALGORITHM: z.string().default("aes-256-gcm"),
