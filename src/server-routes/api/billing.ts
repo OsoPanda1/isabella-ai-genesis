@@ -249,6 +249,12 @@ export const Route = createFileRoute("/api/billing")({
 
         try {
           const bodyText = await request.text();
+          if (new TextEncoder().encode(bodyText).byteLength > config().INPUT_MAX_BODY_BYTES) {
+            return new Response(JSON.stringify({ error: "REQUEST_BODY_TOO_LARGE" }), {
+              status: 413,
+              headers,
+            });
+          }
           const body = bodyText ? JSON.parse(bodyText) : {};
 
           // 1. CHECKOUT CREATION (STRIPE)
