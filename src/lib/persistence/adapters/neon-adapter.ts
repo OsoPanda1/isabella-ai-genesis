@@ -8,6 +8,13 @@ const TABLE_MAP: Record<string, string> = {
   apiKey: "api_keys",
   audit: "audit_events",
 };
+
+const SQL_IDENTIFIER = /^[a-z_][a-z0-9_]*$/;
+function assertIdentifier(value: string, label: string): string {
+  if (!SQL_IDENTIFIER.test(value)) throw toRepositoryError(`Invalid SQL ${label}`, 400);
+  return value;
+}
+
 function toRepositoryError(message: string, statusCode = 500, tenantId?: string): RepositoryError {
   const err = new Error(message) as RepositoryError;
   err.code = "REPOSITORY_ERROR";
@@ -16,21 +23,29 @@ function toRepositoryError(message: string, statusCode = 500, tenantId?: string)
   err.retryable = statusCode >= 500;
   return err;
 }
+
 let pgPool: Pool | null = null;
 function getPgPool(): Pool {
   if (!pgPool) {
     const url = config().DATABASE_URL;
     if (!url) throw toRepositoryError("DATABASE_URL not configured", 500);
-    pgPool = new Pool({ connectionString: url, max: 10 });
+    pgPool = new Pool({
+      connectionString: url,
+      max: 10,
+      connectionTimeoutMillis: 10_000,
+      idleTimeoutMillis: 30_000,
+      statement_timeout: 15_000,
+    });
     pgPool.on("error", (err) => console.error("Unexpected error on idle Neon pool", err));
   }
   return pgPool;
 }
+
 function toSnake(obj: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(obj)) {
     if (v === undefined) continue;
-    out[toSnakeKey(k)] = v;
+    out[assertIdentifier(toSnakeKey(k), "column")] = v;
   }
   return out;
 }
@@ -51,14 +66,16 @@ export class NeonRepository<T extends object> implements IRepository<T> {
   private readonly type: string;
   constructor(type: string) {
     this.type = type;
-    this.table = TABLE_MAP[type] ?? type;
+    this.table = assertIdentifier(TABLE_MAP[type] ?? type, "table");
   }
+
   async create(tenantId: string, data: Partial<T>, options?: WriteOptions): Promise<T> {
     if (!tenantId) throw toRepositoryError("tenantId required for create", 400);
     const pool = getPgPool();
     const payload = { ...data, tenant_id: tenantId } as Record<string, unknown>;
     const row = toSnake(payload);
     if (options?.idempotencyKey && !row.id) row.id = options.idempotencyKey;
+    if (Object.keys(row).length === 0) throw toRepositoryError("create payload is empty", 400, tenantId);
     const cols = Object.keys(row).join(", ");
     const vals = Object.values(row);
     const placeholders = vals.map((_, i) => `$${i + 1}`).join(", ");
@@ -69,6 +86,7 @@ export class NeonRepository<T extends object> implements IRepository<T> {
     if (!rows[0]) throw toRepositoryError("Neon insert returned no row", 500, tenantId);
     return toCamel<T>(rows[0]);
   }
+
   async read(tenantId: string, id: string): Promise<T | null> {
     if (!tenantId) throw toRepositoryError("tenantId required for read", 400);
     const { rows } = await getPgPool().query(
@@ -77,6 +95,7 @@ export class NeonRepository<T extends object> implements IRepository<T> {
     );
     return rows[0] ? toCamel<T>(rows[0]) : null;
   }
+
   async list(
     tenantId: string,
     filters?: Record<string, unknown>,
@@ -84,6 +103,11 @@ export class NeonRepository<T extends object> implements IRepository<T> {
     offset?: number,
   ): Promise<{ items: T[]; total: number }> {
     if (!tenantId) throw toRepositoryError("tenantId required for list", 400);
+    if (limit !== undefined && (!Number.isInteger(limit) || limit < 0 || limit > 10_000))
+      throw toRepositoryError("invalid limit", 400, tenantId);
+    if (offset !== undefined && (!Number.isInteger(offset) || offset < 0))
+      throw toRepositoryError("invalid offset", 400, tenantId);
+
     const pool = getPgPool();
     let where = "WHERE tenant_id = $1";
     const params: unknown[] = [tenantId];
@@ -91,7 +115,8 @@ export class NeonRepository<T extends object> implements IRepository<T> {
     if (filters)
       for (const [k, v] of Object.entries(filters))
         if (v !== undefined) {
-          where += ` AND ${toSnakeKey(k)} = $${paramIdx++}`;
+          const column = assertIdentifier(toSnakeKey(k), "filter column");
+          where += ` AND ${column} = $${paramIdx++}`;
           params.push(v);
         }
     const { rows: countRows } = await pool.query(
@@ -111,9 +136,11 @@ export class NeonRepository<T extends object> implements IRepository<T> {
     const { rows } = await pool.query(query, params);
     return { items: rows.map(toCamel<T>), total };
   }
+
   async update(tenantId: string, id: string, data: Partial<T>): Promise<T> {
     if (!tenantId) throw toRepositoryError("tenantId required for update", 400);
     const row = toSnake(data as Record<string, unknown>);
+    if (Object.keys(row).length === 0) throw toRepositoryError("update payload is empty", 400, tenantId);
     const sets = Object.keys(row)
       .map((k, i) => `${k} = $${i + 3}`)
       .join(", ");
@@ -125,6 +152,7 @@ export class NeonRepository<T extends object> implements IRepository<T> {
     if (!rows[0]) throw toRepositoryError(`Record ${id} not found`, 404, tenantId);
     return toCamel<T>(rows[0]);
   }
+
   async delete(tenantId: string, id: string): Promise<boolean> {
     if (!tenantId) throw toRepositoryError("tenantId required for delete", 400);
     const { rowCount } = await getPgPool().query(
@@ -187,6 +215,7 @@ export class NeonRepository<T extends object> implements IRepository<T> {
       return { ok: false, latencyMs: performance.now() - start };
     }
   }
+
   async findByPrefix(prefix: string): Promise<T | null> {
     const { rows } = await getPgPool().query(
       `SELECT * FROM ${this.table} WHERE prefix = $1 LIMIT 1`,
@@ -194,6 +223,7 @@ export class NeonRepository<T extends object> implements IRepository<T> {
     );
     return rows[0] ? toCamel<T>(rows[0]) : null;
   }
+
   async withTransaction<R>(fn: (client: PoolClient) => Promise<R>): Promise<R> {
     const client = await getPgPool().connect();
     try {
