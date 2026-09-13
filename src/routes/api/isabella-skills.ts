@@ -19,12 +19,26 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
+async function enforceSkillQuota(tenantId: string, ip: string) {
+  const limit = Math.max(1, Math.min(config().RATE_LIMIT_DEFAULT_PER_MINUTE, 120));
+  const [tenantLimit, clientLimit] = await Promise.all([
+    SecuritySystem.checkRateLimitDistributed(`skill-tenant:${tenantId}`, limit),
+    SecuritySystem.checkRateLimitDistributed(`skill-client:${ip}`, limit),
+  ]);
+  if (tenantLimit.degraded || clientLimit.degraded) return json({ error: "RATE_LIMIT_INFRASTRUCTURE_UNAVAILABLE" }, 503);
+  if (!tenantLimit.allowed || !clientLimit.allowed) return json({ error: "RATE_LIMITED" }, 429);
+  return null;
+}
+
 export const Route = createFileRoute("/api/isabella-skills")({
   server: {
     handlers: {
       GET: withSovereignAuth("system", "read", async () => json({ skills: listIsabellaSkills() })),
 
       POST: withSovereignAuth("system", "execute", async (context, request) => {
+        const quotaResponse = await enforceSkillQuota(context.tenantId, context.ip);
+        if (quotaResponse) return quotaResponse;
+
         let body: unknown;
         try {
           body = await readJsonBody(request, config().INPUT_MAX_BODY_BYTES);
@@ -39,12 +53,7 @@ export const Route = createFileRoute("/api/isabella-skills")({
         if (!known) return json({ error: "SKILL_NOT_FOUND", skills: listIsabellaSkills() }, 404);
 
         const parsedInput = parseSkillInput(skillId as IsabellaSkillId, payload.input);
-        if (!parsedInput.success) {
-          return json(
-            { error: "INVALID_SKILL_INPUT", issues: parsedInput.error.issues },
-            400,
-          );
-        }
+        if (!parsedInput.success) return json({ error: "INVALID_SKILL_INPUT", issues: parsedInput.error.issues }, 400);
 
         const result = await runIsabellaSkill(skillId as IsabellaSkillId, parsedInput.data, {
           requestId: context.correlationId,
