@@ -1,9 +1,22 @@
+import { createHash } from "node:crypto";
 import { envSchema, requiredEnvKeys, type Env, type RuntimeMode } from "./env-schema";
 
 type RawEnv = NodeJS.ProcessEnv;
 
 let cached: Env | undefined;
+let cachedFingerprint: string | undefined;
 let loadError: string | null = null;
+
+function environmentFingerprint(source: RawEnv): string {
+  return createHash("sha256")
+    .update(
+      Object.keys(source)
+        .sort()
+        .map((key) => `${key}=${source[key] ?? ""}`)
+        .join("\n"),
+    )
+    .digest("hex");
+}
 
 function resolveEnv(source: RawEnv): Env {
   const parsed = envSchema.safeParse(source);
@@ -55,7 +68,6 @@ function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, pars
   if (parsed.ISABELLA_STORAGE_PROVIDER !== provider) {
     throw new Error("ISABELLA_STORAGE_PROVIDER no coincide con el proveedor normalizado.");
   }
-
   if (typeof source.DATABASE_URL !== "string" || source.DATABASE_URL.trim() === "") {
     throw new Error("DATABASE_URL debe declararse explícitamente como autoridad durable única en staging/production.");
   }
@@ -79,7 +91,8 @@ function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, pars
 }
 
 export function loadConfig(source: RawEnv = process.env): Env {
-  if (cached) return cached;
+  const fingerprint = environmentFingerprint(source);
+  if (cached && cachedFingerprint === fingerprint) return cached;
 
   const effectiveSource: RawEnv = {
     ...source,
@@ -117,18 +130,10 @@ export function loadConfig(source: RawEnv = process.env): Env {
           `NODE_ENV="${parsed.NODE_ENV}" es incompatible con ISABELLA_RUNTIME_MODE="${mode}". Producción/staging requieren NODE_ENV=production.`,
         );
       }
-      if (parsed.DURABLE_JSON_ALLOWED) {
-        throw new Error("DURABLE_JSON_ALLOWED debe ser false en modos no locales");
-      }
-      if (parsed.AUTH_DEV_SESSION_ENABLED) {
-        throw new Error("AUTH_DEV_SESSION_ENABLED debe estar desactivado");
-      }
-      if (parsed.ALLOW_GUEST_CHAT) {
-        throw new Error("ALLOW_GUEST_CHAT debe estar desactivado en staging/production");
-      }
-      if (!parsed.DATABASE_URL) {
-        throw new Error("Se requiere DATABASE_URL como autoridad durable explícita");
-      }
+      if (parsed.DURABLE_JSON_ALLOWED) throw new Error("DURABLE_JSON_ALLOWED debe ser false en modos no locales");
+      if (parsed.AUTH_DEV_SESSION_ENABLED) throw new Error("AUTH_DEV_SESSION_ENABLED debe estar desactivado");
+      if (parsed.ALLOW_GUEST_CHAT) throw new Error("ALLOW_GUEST_CHAT debe estar desactivado en staging/production");
+      if (!parsed.DATABASE_URL) throw new Error("Se requiere DATABASE_URL como autoridad durable explícita");
       if (!parsed.AUTH_JWT_SECRET) {
         throw new Error("Se requiere AUTH_JWT_SECRET dedicado; no se aceptan credenciales Supabase como fallback");
       }
@@ -136,12 +141,11 @@ export function loadConfig(source: RawEnv = process.env): Env {
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     loadError = msg;
-    if (mode === "production" || mode === "staging") {
-      throw new Error(`[SovereignConfig Fail-Fast] ${msg}`);
-    }
+    if (mode === "production" || mode === "staging") throw new Error(`[SovereignConfig Fail-Fast] ${msg}`);
   }
 
   cached = parsed;
+  cachedFingerprint = fingerprint;
   return parsed;
 }
 
@@ -171,6 +175,7 @@ export function isPayoutCircuitCertified(source: RawEnv = process.env): boolean 
 
 export function resetConfigCache(): void {
   cached = undefined;
+  cachedFingerprint = undefined;
   loadError = null;
 }
 
@@ -180,8 +185,7 @@ export function refreshConfig(): Env {
 }
 
 export function config(): Env {
-  if (!cached) return loadConfig();
-  return cached;
+  return loadConfig();
 }
 
 export type { Env, RuntimeMode } from "./env-schema";
