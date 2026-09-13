@@ -74,8 +74,7 @@ export function loadConfig(source: RawEnv = process.env): Env {
       source.AUTH_DEV_SESSION_ENABLED?.trim() ||
       (source.NODE_ENV === "production" ? "false" : "true"),
     ALLOW_GUEST_CHAT:
-      source.ALLOW_GUEST_CHAT?.trim() ||
-      (source.NODE_ENV === "production" ? "false" : "true"),
+      source.ALLOW_GUEST_CHAT?.trim() || (source.NODE_ENV === "production" ? "false" : "true"),
     DATABASE_URL:
       source.DATABASE_URL ??
       source.NEON_DATABASE_POSTGRES_URL ??
@@ -86,8 +85,7 @@ export function loadConfig(source: RawEnv = process.env): Env {
       source.SUPABASE_DATABASE_SUPABASE_JWT_SECRET?.trim() ||
       source.SUPABASE_DATABASE_SUPABASE_SECRET_KEY?.trim() ||
       source.SUPABASE_DATABASE_SUPABASE_SERVICE_ROLE_KEY?.trim(),
-    SUPABASE_URL:
-      source.SUPABASE_URL?.trim() || source.SUPABASE_DATABASE_SUPABASE_URL?.trim(),
+    SUPABASE_URL: source.SUPABASE_URL?.trim() || source.SUPABASE_DATABASE_SUPABASE_URL?.trim(),
     SUPABASE_ANON_KEY:
       source.SUPABASE_ANON_KEY?.trim() || source.SUPABASE_DATABASE_SUPABASE_ANON_KEY?.trim(),
     SUPABASE_JWT_SECRET:
@@ -98,8 +96,7 @@ export function loadConfig(source: RawEnv = process.env): Env {
     // here so server routes never need to know which slot supplied the secret.
     MUX_TOKEN_ID: source.MUX_TOKEN_ID ?? source.MUX_TOKEN_ID_3,
     MUX_TOKEN_SECRET: source.MUX_TOKEN_SECRET ?? source.MUX_TOKEN_SECRET_3,
-    MUX_INTRO_ASSET_ID:
-      source.MUX_INTRO_ASSET_ID ?? source.MUX_ASSET_ID,
+    MUX_INTRO_ASSET_ID: source.MUX_INTRO_ASSET_ID ?? source.MUX_ASSET_ID,
     ISABELLA_STORAGE_PROVIDER:
       source.ISABELLA_STORAGE_PROVIDER ??
       (!isProductionLikeRaw && (source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL)
