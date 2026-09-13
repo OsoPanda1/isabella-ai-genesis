@@ -7,6 +7,12 @@ import {
   type CognitiveTrainingStrategy,
 } from "@/lib/isabella-cognitive-training";
 import { loadLearningRuntime, persistLearningRuntime } from "@/lib/isabella-learning-persistence";
+import { config } from "@/lib/config";
+import {
+  assertBoundedJsonValue,
+  readJsonBody,
+  RequestLimitError,
+} from "@/lib/request-limits";
 
 const STRATEGIES = new Set<CognitiveTrainingStrategy>([
   "semantic",
@@ -18,6 +24,13 @@ const STRATEGIES = new Set<CognitiveTrainingStrategy>([
   "preference",
   "multimodal",
 ]);
+
+const MAX_TEXT_LENGTH = 100_000;
+const MAX_SOURCE_LENGTH = 256;
+const MAX_SKILL_IDS = 32;
+const MAX_SKILL_ID_LENGTH = 80;
+const MAX_CONTEXT_KEYS = 64;
+const MAX_BATCH_ITEMS = 128;
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -32,9 +45,47 @@ function json(data: unknown, status = 200): Response {
 }
 
 function parseSample(value: unknown): CognitiveTrainingSample | null {
-  if (!value || typeof value !== "object") return null;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const sample = value as Record<string, unknown>;
-  if (typeof sample.input !== "string" || typeof sample.source !== "string") return null;
+  if (
+    typeof sample.input !== "string" ||
+    sample.input.length === 0 ||
+    sample.input.length > MAX_TEXT_LENGTH ||
+    typeof sample.source !== "string" ||
+    sample.source.length === 0 ||
+    sample.source.length > MAX_SOURCE_LENGTH
+  ) {
+    return null;
+  }
+  if (typeof sample.target === "string" && sample.target.length > MAX_TEXT_LENGTH) return null;
+  if (typeof sample.negative === "string" && sample.negative.length > MAX_TEXT_LENGTH) return null;
+  if (sample.context !== undefined) {
+    if (
+      !sample.context ||
+      typeof sample.context !== "object" ||
+      Array.isArray(sample.context) ||
+      Object.keys(sample.context).length > MAX_CONTEXT_KEYS
+    ) {
+      return null;
+    }
+    try {
+      assertBoundedJsonValue(sample.context, { maxDepth: 6, maxObjectKeys: MAX_CONTEXT_KEYS, maxArrayItems: 32 });
+    } catch {
+      return null;
+    }
+  }
+  if (sample.skillIds !== undefined) {
+    if (
+      !Array.isArray(sample.skillIds) ||
+      sample.skillIds.length > MAX_SKILL_IDS ||
+      sample.skillIds.some((id) => typeof id !== "string" || id.length === 0 || id.length > MAX_SKILL_ID_LENGTH)
+    ) {
+      return null;
+    }
+  }
+  if (sample.quality !== undefined && (typeof sample.quality !== "number" || !Number.isFinite(sample.quality))) {
+    return null;
+  }
   return {
     input: sample.input,
     target: typeof sample.target === "string" ? sample.target : undefined,
@@ -58,18 +109,17 @@ export const Route = createFileRoute("/api/isabella-cognitive-training")({
       POST: withSovereignAuth("system", "execute", async (context, request) => {
         let body: unknown;
         try {
-          body = await request.json();
-        } catch {
+          body = await readJsonBody(request, config().INPUT_MAX_BODY_BYTES);
+          assertBoundedJsonValue(body, { maxDepth: 8, maxObjectKeys: 128, maxArrayItems: MAX_BATCH_ITEMS });
+        } catch (error) {
+          if (error instanceof RequestLimitError) return json({ error: error.code }, 413);
           return json({ error: "INVALID_JSON" }, 400);
         }
-        if (!body || typeof body !== "object") return json({ error: "VALIDATION_ERROR" }, 400);
+        if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "VALIDATION_ERROR" }, 400);
         const payload = body as Record<string, unknown>;
         const action = payload.action ?? "train";
-        const runtime = await loadLearningRuntime(context.tenantId).catch(
-          (error: unknown) =>
-            ({
-              error: error instanceof Error ? error.message : "LEARNING_RUNTIME_UNAVAILABLE",
-            }) as const,
+        const runtime = await loadLearningRuntime(context.tenantId).catch(() =>
+          ({ error: "LEARNING_RUNTIME_UNAVAILABLE" }) as const,
         );
         if ("error" in runtime) return json({ error: runtime.error }, 503);
         const engine = createIsabellaCognitiveTrainingEngine(runtime.engine);
@@ -91,15 +141,15 @@ export const Route = createFileRoute("/api/isabella-cognitive-training")({
         }
 
         if (action === "train-batch") {
-          if (!Array.isArray(payload.samples) || payload.samples.length > 128) {
-            return json({ error: "INVALID_BATCH", maxItems: 128 }, 400);
+          if (!Array.isArray(payload.samples) || payload.samples.length > MAX_BATCH_ITEMS) {
+            return json({ error: "INVALID_BATCH", maxItems: MAX_BATCH_ITEMS }, 400);
           }
           const samples = [] as Array<{
             strategy: CognitiveTrainingStrategy;
             sample: CognitiveTrainingSample;
           }>;
           for (const item of payload.samples) {
-            if (!item || typeof item !== "object")
+            if (!item || typeof item !== "object" || Array.isArray(item))
               return json({ error: "INVALID_BATCH_ITEM" }, 400);
             const row = item as Record<string, unknown>;
             const strategy = row.strategy;
@@ -123,14 +173,14 @@ export const Route = createFileRoute("/api/isabella-cognitive-training")({
         }
 
         if (action === "evaluate") {
-          if (typeof payload.query !== "string" || !payload.query.trim())
-            return json({ error: "QUERY_REQUIRED" }, 400);
+          if (typeof payload.query !== "string" || !payload.query.trim() || payload.query.length > MAX_TEXT_LENGTH)
+            return json({ error: "QUERY_INVALID" }, 400);
           return json(engine.evaluateUnderstanding(payload.query));
         }
 
         if (action === "retrieve") {
-          if (typeof payload.query !== "string" || !payload.query.trim())
-            return json({ error: "QUERY_REQUIRED" }, 400);
+          if (typeof payload.query !== "string" || !payload.query.trim() || payload.query.length > MAX_TEXT_LENGTH)
+            return json({ error: "QUERY_INVALID" }, 400);
           const limit =
             typeof payload.limit === "number"
               ? Math.max(1, Math.min(50, Math.trunc(payload.limit)))
