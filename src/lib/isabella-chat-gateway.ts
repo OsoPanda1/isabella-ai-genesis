@@ -184,7 +184,7 @@ async function aiGatewaySse(
         for await (const chunk of result.textStream) {
           controller.enqueue(
             encoder.encode(
-              `data: ${JSON.stringify({ choices: [{ delta: { content: chunk } }] })}\\n\\n`,
+              `data: ${JSON.stringify({ choices: [{ delta: { content: chunk } }] })}\n\n`,
             ),
           );
         }

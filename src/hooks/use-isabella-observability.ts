@@ -6,7 +6,7 @@ import type { Attachment } from "@/lib/attachments";
 const ChatRequestSchema = z.object({
   text: z.string().optional(),
   attachments: z.array(z.unknown()).optional(),
-  context: z.string().default("isabella"),
+  context: z.record(z.string(), z.unknown()).default({ source: "isabella" }),
 });
 
 export type ChatRequest = z.infer<typeof ChatRequestSchema>;
