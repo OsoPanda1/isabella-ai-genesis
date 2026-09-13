@@ -1,8 +1,5 @@
 import { SecuritySystem, TokenClaims } from "./security";
-import {
-  evaluateAuthorization,
-  type AuthorizationContext,
-} from "./authorization";
+import { evaluateAuthorization, type AuthorizationContext } from "./authorization";
 import { type Resource, type Action } from "./permission-matrix";
 import { type Role } from "./rbac";
 import { ApiKeyAuthenticator } from "./api-key-authenticator";
@@ -15,11 +12,7 @@ function assertDevelopmentOnly(): void {
   const nodeEnv = cfg.NODE_ENV;
   const runtimeMode = cfg.ISABELLA_RUNTIME_MODE;
   const devSessionEnabled = cfg.AUTH_DEV_SESSION_ENABLED;
-  if (
-    nodeEnv !== "development" ||
-    runtimeMode !== "development" ||
-    devSessionEnabled !== true
-  ) {
+  if (nodeEnv !== "development" || runtimeMode !== "development" || devSessionEnabled !== true) {
     throw new Error(
       "[SovereignGuard Violation] Intento ilícito de activar fallback de desarrollo en entorno de producción/producción-crítica.",
     );
@@ -74,8 +67,7 @@ export class PrincipalContext {
     request: Request,
     requiredScope?: string,
   ): Promise<
-    | { success: true; context: PrincipalContext }
-    | { success: false; response: Response }
+    { success: true; context: PrincipalContext } | { success: false; response: Response }
   > {
     const ip = SecuritySystem.resolveClientIp(request);
     const telemetry = SecuritySystem.generateTelemetry(ip, "allowed");
@@ -89,8 +81,7 @@ export class PrincipalContext {
         success: false,
         response: new Response(
           JSON.stringify({
-            error:
-              "SovereignGate Rate-Limit: Demasiadas solicitudes desde esta IP de origen.",
+            error: "SovereignGate Rate-Limit: Demasiadas solicitudes desde esta IP de origen.",
             traceId: telemetry.traceId,
           }),
           { status: 429, headers },
@@ -99,8 +90,7 @@ export class PrincipalContext {
     }
 
     const hasApiKey =
-      request.headers.has("x-isabella-api-key") ||
-      request.headers.has("X-Isabella-API-Key");
+      request.headers.has("x-isabella-api-key") || request.headers.has("X-Isabella-API-Key");
     if (hasApiKey) {
       const authResult = await ApiKeyAuthenticator.authenticate(request);
       if (!authResult.success) {
@@ -197,15 +187,13 @@ export class PrincipalContext {
           const cfg = config() as unknown as Record<string, unknown>;
           return (
             cfg.ALLOW_GUEST_CHAT === true ||
-            (cfg.NODE_ENV === "development" &&
-              cfg.AUTH_DEV_SESSION_ENABLED === true)
+            (cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true)
           );
         } catch {
           return false;
         }
       })();
-      const canGuest =
-        isGuestAllowed && (!requiredScope || requiredScope === "isabella:chat");
+      const canGuest = isGuestAllowed && (!requiredScope || requiredScope === "isabella:chat");
       if (canGuest) {
         const guestClaims: TokenClaims = {
           iss: "isabella.guest",
@@ -235,10 +223,7 @@ export class PrincipalContext {
       const isDevFallback = (() => {
         try {
           const cfg = config() as unknown as Record<string, unknown>;
-          return (
-            cfg.NODE_ENV === "development" &&
-            cfg.AUTH_DEV_SESSION_ENABLED === true
-          );
+          return cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true;
         } catch {
           return false;
         }
@@ -294,10 +279,7 @@ export class PrincipalContext {
           return false;
         }
       })();
-      if (
-        isGuestAllowed &&
-        (!requiredScope || requiredScope === "isabella:chat")
-      ) {
+      if (isGuestAllowed && (!requiredScope || requiredScope === "isabella:chat")) {
         const guestClaims: TokenClaims = {
           iss: "isabella.guest",
           sub: "guest_user",
@@ -326,10 +308,7 @@ export class PrincipalContext {
       const isDevFallback = (() => {
         try {
           const cfg = config() as unknown as Record<string, unknown>;
-          return (
-            cfg.NODE_ENV === "development" &&
-            cfg.AUTH_DEV_SESSION_ENABLED === true
-          );
+          return cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true;
         } catch {
           return false;
         }
@@ -379,10 +358,7 @@ export class PrincipalContext {
     }
 
     if (requiredScope) {
-      const scopeCheck = await SecuritySystem.verifyApiScope(
-        token,
-        requiredScope,
-      );
+      const scopeCheck = await SecuritySystem.verifyApiScope(token, requiredScope);
       if (!scopeCheck.allowed) {
         return {
           success: false,
@@ -431,8 +407,7 @@ export class PrincipalContext {
         };
       }
 
-      const jti = (claims as unknown as Record<string, unknown>).jti as
-        string | undefined;
+      const jti = (claims as unknown as Record<string, unknown>).jti as string | undefined;
       const { items: sessions } = await repositoryFactory
         .getSessionRepository()
         .list(claims.tenantId, { userId: claims.sub });
@@ -471,10 +446,7 @@ export class PrincipalContext {
           ),
         };
       }
-      const expiresRaw =
-        sessionRecord.expiresAt ??
-        sessionRecord.expires_at ??
-        sessionRecord.exp;
+      const expiresRaw = sessionRecord.expiresAt ?? sessionRecord.expires_at ?? sessionRecord.exp;
       if (expiresRaw !== undefined && expiresRaw !== null) {
         const expiresMillis = new Date(String(expiresRaw)).getTime();
         if (Number.isFinite(expiresMillis) && expiresMillis <= Date.now()) {
@@ -494,8 +466,7 @@ export class PrincipalContext {
       const context = new PrincipalContext(
         claims,
         tenant,
-        ((session as unknown as Record<string, unknown>).username as string) ??
-          "",
+        ((session as unknown as Record<string, unknown>).username as string) ?? "",
         ip,
         telemetry.traceId,
         telemetry.correlationId,
@@ -509,25 +480,18 @@ export class PrincipalContext {
 export function withSovereignAuth(
   resource: Resource,
   action: Action,
-  handler: (
-    context: PrincipalContext,
-    request: Request,
-    body?: unknown,
-  ) => Promise<Response>,
+  handler: (context: PrincipalContext, request: Request, body?: unknown) => Promise<Response>,
 ) {
   return async ({ request }: { request: Request }): Promise<Response> => {
     const requiredScope =
-      resource === "system" && action === "execute"
-        ? "isabella:chat"
-        : undefined;
+      resource === "system" && action === "execute" ? "isabella:chat" : undefined;
     const authResult = await PrincipalContext.authorize(request, requiredScope);
     if (!authResult.success) {
       return authResult.response;
     }
 
     const { context } = authResult;
-    const isGuestChat =
-      context.role === "Guest" && resource === "system" && action === "execute";
+    const isGuestChat = context.role === "Guest" && resource === "system" && action === "execute";
 
     // Guest chat is intentionally stateless: it has no tenant mutation, memory write,
     // or tool execution. Durable-state hydration would make public inference depend on
@@ -553,9 +517,7 @@ export function withSovereignAuth(
 
     // Public chat is a narrowly scoped, read-only inference capability. It still
     // passes CROWN/AEGIS in the Isabella gateway and cannot execute system mutations.
-    const decisionResult = isGuestChat
-      ? { allow: true }
-      : await evaluateAuthorization(authReq);
+    const decisionResult = isGuestChat ? { allow: true } : await evaluateAuthorization(authReq);
     if (!decisionResult.allow) {
       const headers = SecuritySystem.injectSecureHeaders(
         new Headers({ "content-type": "application/json" }),
@@ -569,8 +531,7 @@ export function withSovereignAuth(
       );
     }
 
-    const { CROWN, assessIntent, evaluatePolicy, createDefaultContext } =
-      await import("./crown");
+    const { CROWN, assessIntent, evaluatePolicy, createDefaultContext } = await import("./crown");
     const intent = assessIntent(`API Operation: ${resource}:${action}`);
     const identityAssessment = {
       authenticated: true,
@@ -578,13 +539,10 @@ export function withSovereignAuth(
       permissions: context.scope ? context.scope.split(" ") : [],
       dataScopes: ["territorial"] as any,
     };
-    const reqContext = createDefaultContext(
-      `API Operation: ${resource}:${action}`,
-      {
-        actorId: context.userId,
-        sessionId: context.traceId,
-      },
-    );
+    const reqContext = createDefaultContext(`API Operation: ${resource}:${action}`, {
+      actorId: context.userId,
+      sessionId: context.traceId,
+    });
 
     const policyResult = evaluatePolicy(reqContext, intent, identityAssessment);
 
@@ -603,26 +561,16 @@ export function withSovereignAuth(
     }
 
     let body: unknown = null;
-    if (
-      request.method === "POST" ||
-      request.method === "PUT" ||
-      request.method === "PATCH"
-    ) {
-      const contentLength = parseInt(
-        request.headers.get("content-length") || "0",
-        10,
-      );
+    if (request.method === "POST" || request.method === "PUT" || request.method === "PATCH") {
+      const contentLength = parseInt(request.headers.get("content-length") || "0", 10);
       if (contentLength > 5 * 1024 * 1024) {
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json" }),
         );
-        return new Response(
-          JSON.stringify({ error: "Payload too large. Max size is 5MB." }),
-          {
-            status: 413,
-            headers,
-          },
-        );
+        return new Response(JSON.stringify({ error: "Payload too large. Max size is 5MB." }), {
+          status: 413,
+          headers,
+        });
       }
       try {
         if (request.headers.get("content-type")?.includes("application/json")) {
@@ -634,8 +582,6 @@ export function withSovereignAuth(
       }
     }
 
-    return runWithIdentity(context.toRequestIdentity(), () =>
-      handler(context, request, body),
-    );
+    return runWithIdentity(context.toRequestIdentity(), () => handler(context, request, body));
   };
 }

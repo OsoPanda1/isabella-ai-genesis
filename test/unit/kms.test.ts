@@ -37,12 +37,12 @@ describe("EnvKMSProvider real", () => {
       const replacement = part[middle] === "A" ? "B" : "A";
       return part.slice(0, middle) + replacement + part.slice(middle + 1);
     };
-    await expect(
-      kms.decrypt("k", [prefix, iv, flipMid(ct), tag].join(":")),
-    ).rejects.toThrow(/autenticación/i);
-    await expect(
-      kms.decrypt("k", [prefix, iv, ct, flipMid(tag)].join(":")),
-    ).rejects.toThrow(/autenticación/i);
+    await expect(kms.decrypt("k", [prefix, iv, flipMid(ct), tag].join(":"))).rejects.toThrow(
+      /autenticación/i,
+    );
+    await expect(kms.decrypt("k", [prefix, iv, ct, flipMid(tag)].join(":"))).rejects.toThrow(
+      /autenticación/i,
+    );
     await expect(kms.decrypt("k", "basura")).rejects.toThrow(/formato/i);
   });
 
@@ -72,8 +72,6 @@ describe("EnvKMSProvider real", () => {
 
   it("sin master falla cerrado", async () => {
     const kms = new EnvKMSProvider({});
-    await expect(kms.encrypt("k", "x")).rejects.toThrow(
-      /ENCRYPTION_MASTER_KEY/,
-    );
+    await expect(kms.encrypt("k", "x")).rejects.toThrow(/ENCRYPTION_MASTER_KEY/);
   });
 });

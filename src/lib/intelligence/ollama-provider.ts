@@ -1,10 +1,6 @@
 import { localProviderConfig } from "./local-provider-config";
 import { fetchSafeLocalModel } from "./local-egress";
-import type {
-  IntelligenceProvider,
-  IntelligenceRequest,
-  IntelligenceResponse,
-} from "./contracts";
+import type { IntelligenceProvider, IntelligenceRequest, IntelligenceResponse } from "./contracts";
 
 /** Local-only Ollama provider. Production authorization remains external to provider availability. */
 export class OllamaProvider implements IntelligenceProvider {
@@ -28,9 +24,7 @@ export class OllamaProvider implements IntelligenceProvider {
       const payload = (await response.json()) as {
         models?: Array<{ name?: string }>;
       };
-      return Boolean(
-        payload.models?.some((model) => model.name === this.modelId),
-      );
+      return Boolean(payload.models?.some((model) => model.name === this.modelId));
     } catch {
       return false;
     }
@@ -54,8 +48,7 @@ export class OllamaProvider implements IntelligenceProvider {
         },
       }),
     });
-    if (!response.ok)
-      throw new Error(`Ollama upstream returned ${response.status}`);
+    if (!response.ok) throw new Error(`Ollama upstream returned ${response.status}`);
     const payload = (await response.json()) as {
       message?: { content?: string };
       prompt_eval_count?: number;

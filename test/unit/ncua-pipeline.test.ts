@@ -72,14 +72,11 @@ describe("ncua:pipeline soberano de 12 pasos", () => {
   });
 
   it("consenso y atención federada quedan auditables en la salida", () => {
-    const result = runNativePipeline(
-      "museo de sitio de la minería en Pachuca",
-      {
-        productionLike: false,
-        hasProvider: false,
-        memoryCorpus,
-      },
-    );
+    const result = runNativePipeline("museo de sitio de la minería en Pachuca", {
+      productionLike: false,
+      hasProvider: false,
+      memoryCorpus,
+    });
     expect(result.federations.approveVotes).toBeGreaterThanOrEqual(0);
     expect(result.federations.vetoActive).toBe(false);
     expect(result.attention).toBeDefined();

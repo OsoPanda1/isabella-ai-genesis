@@ -30,8 +30,7 @@ export class OpenAICompatibleProvider implements IntelligenceProvider {
 
   constructor(options: HttpProviderOptions) {
     assertHttps(options.endpoint);
-    if (!options.apiKey)
-      throw new Error(`Missing credential for ${options.providerId}`);
+    if (!options.apiKey) throw new Error(`Missing credential for ${options.providerId}`);
     this.providerId = options.providerId;
     this.modelId = options.modelId;
     this.endpoint = options.endpoint;
@@ -63,17 +62,13 @@ export class OpenAICompatibleProvider implements IntelligenceProvider {
           max_tokens: request.maxTokens ?? 2048,
         }),
       });
-      if (!response.ok)
-        throw new Error(
-          `Upstream ${this.providerId} returned ${response.status}`,
-        );
+      if (!response.ok) throw new Error(`Upstream ${this.providerId} returned ${response.status}`);
       const payload = (await response.json()) as {
         choices?: Array<{ message?: { content?: string } }>;
         usage?: { prompt_tokens?: number; completion_tokens?: number };
       };
       const text = payload.choices?.[0]?.message?.content;
-      if (!text)
-        throw new Error(`Upstream ${this.providerId} returned no text`);
+      if (!text) throw new Error(`Upstream ${this.providerId} returned no text`);
       return {
         requestId: request.requestId,
         modelId: this.modelId,

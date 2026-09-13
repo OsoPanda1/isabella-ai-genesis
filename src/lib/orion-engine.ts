@@ -5,10 +5,7 @@
 import { createHash } from "node:crypto";
 import { createToolRegistry, type ToolRegistry } from "./tool-registry";
 import { consumeCapabilityToken } from "./capability-token";
-import {
-  SovereignSandboxService,
-  type ISandboxExecutionResult,
-} from "./sovereign-sandbox";
+import { SovereignSandboxService, type ISandboxExecutionResult } from "./sovereign-sandbox";
 
 export type OrionExecutionStatus = "executed" | "denied" | "error" | "timeout";
 export interface OrionToolCall {
@@ -35,9 +32,7 @@ function sha256(input: string): string {
   return createHash("sha256").update(input).digest("hex");
 }
 
-export function createOrionEngine(
-  registry: ToolRegistry = createToolRegistry(),
-) {
+export function createOrionEngine(registry: ToolRegistry = createToolRegistry()) {
   return {
     listTools: () => registry.list(),
     checkTool: (name: string) => registry.check(name),
@@ -65,17 +60,14 @@ export function createOrionEngine(
           tenantId: call.tenantId,
         });
       } catch (error) {
-        const msg =
-          error instanceof Error ? error.message : "capability_token_invalid";
+        const msg = error instanceof Error ? error.message : "capability_token_invalid";
         return {
           status: "denied",
           toolName: call.toolName,
           output: "",
           exitCode: 403,
           executionTimeMs: Date.now() - startTime,
-          verificationHash: sha256(
-            `capability_denied|${call.toolName}|${call.traceId}|${msg}`,
-          ),
+          verificationHash: sha256(`capability_denied|${call.toolName}|${call.traceId}|${msg}`),
           traceId: call.traceId,
           error: msg,
         };
@@ -87,19 +79,13 @@ export function createOrionEngine(
           output: "",
           exitCode: 503,
           executionTimeMs: Date.now() - startTime,
-          verificationHash: sha256(
-            `no_sandbox|${call.toolName}|${call.traceId}`,
-          ),
+          verificationHash: sha256(`no_sandbox|${call.toolName}|${call.traceId}`),
           traceId: call.traceId,
           error: "Sin sandbox disponible: ejecución rechazada (fail-closed).",
         };
       try {
         const toolMeta = registry.lookup(call.toolName);
-        const command = [
-          typeof call.args.command === "string"
-            ? call.args.command
-            : call.toolName,
-        ];
+        const command = [typeof call.args.command === "string" ? call.args.command : call.toolName];
         const result: ISandboxExecutionResult = await sandbox.executeTask(
           command,
           {},
@@ -113,9 +99,7 @@ export function createOrionEngine(
             output: "",
             exitCode: 429,
             executionTimeMs: duration,
-            verificationHash: sha256(
-              `timeout|${call.toolName}|${call.traceId}`,
-            ),
+            verificationHash: sha256(`timeout|${call.toolName}|${call.traceId}`),
             traceId: call.traceId,
             error: `Tiempo máximo excedido: ${duration}ms.`,
           };
@@ -136,9 +120,7 @@ export function createOrionEngine(
           output: "",
           exitCode: 500,
           executionTimeMs: Date.now() - startTime,
-          verificationHash: sha256(
-            `error|${call.toolName}|${call.traceId}|${msg}`,
-          ),
+          verificationHash: sha256(`error|${call.toolName}|${call.traceId}|${msg}`),
           traceId: call.traceId,
           error: msg,
         };

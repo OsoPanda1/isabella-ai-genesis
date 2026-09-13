@@ -61,8 +61,7 @@ export class FindingGenerator {
         this.createFinding({
           title: `Low confidence for claim ${claim.id}`,
           description: `Confianza baja (${(verificationResult.confidenceScore * 100).toFixed(0)}%) para claim ${claim.id}`,
-          severity:
-            verificationResult.confidenceScore < 0.4 ? "HIGH" : "MEDIUM",
+          severity: verificationResult.confidenceScore < 0.4 ? "HIGH" : "MEDIUM",
           category: claim.category as FindingCategory,
           claimId: claim.id,
           location: { file: "claims registry" },
@@ -188,11 +187,7 @@ export class FindingGenerator {
   }
 
   generateFromContradiction(contradiction: {
-    type:
-      | "claim_vs_code"
-      | "docs_vs_implementation"
-      | "test_vs_behavior"
-      | "evidence_vs_claim";
+    type: "claim_vs_code" | "docs_vs_implementation" | "test_vs_behavior" | "evidence_vs_claim";
     description: string;
     severity: "CRITICAL" | "HIGH" | "MEDIUM";
     nodes: string[];
@@ -220,8 +215,7 @@ export class FindingGenerator {
       this.createFinding({
         title: `Missing evidence for claim ${claim.id}: ${type}`,
         description: `El claim ${claim.id} (${claim.title}) requiere evidencia de tipo ${type} que no se encontró`,
-        severity:
-          claim.requiredStatus === "PRODUCTION-VERIFIED" ? "CRITICAL" : "HIGH",
+        severity: claim.requiredStatus === "PRODUCTION-VERIFIED" ? "CRITICAL" : "HIGH",
         category: claim.category as FindingCategory,
         claimId: claim.id,
         location: { file: "claims registry" },
@@ -241,8 +235,7 @@ export class FindingGenerator {
   private determineGapSeverity(claim: Claim, gap: string): FindingSeverity {
     if (claim.requiredStatus === "PRODUCTION-VERIFIED") return "CRITICAL";
     if (claim.requiredStatus === "VERIFIED") return "HIGH";
-    if (gap.includes("EXTERNAL_AUDIT") || gap.includes("CONCURRENCY_TEST"))
-      return "HIGH";
+    if (gap.includes("EXTERNAL_AUDIT") || gap.includes("CONCURRENCY_TEST")) return "HIGH";
     return "MEDIUM";
   }
 
@@ -339,8 +332,6 @@ export class FindingGenerator {
   }
 }
 
-export function createFindingGenerator(
-  config?: FindingGeneratorConfig,
-): FindingGenerator {
+export function createFindingGenerator(config?: FindingGeneratorConfig): FindingGenerator {
   return new FindingGenerator(config);
 }

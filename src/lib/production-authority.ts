@@ -15,11 +15,7 @@
  */
 
 import { config } from "./config";
-import {
-  isProductionLike,
-  resolveRuntimeMode,
-  type RuntimeMode,
-} from "./runtime-mode";
+import { isProductionLike, resolveRuntimeMode, type RuntimeMode } from "./runtime-mode";
 
 export type AuthorityId =
   "identity" | "database" | "inference" | "audit" | "payment" | "observability";
@@ -41,9 +37,7 @@ export interface AuthorityDefinition {
 }
 
 function has(value: unknown): boolean {
-  return typeof value === "string"
-    ? value.length > 0
-    : value !== undefined && value !== null;
+  return typeof value === "string" ? value.length > 0 : value !== undefined && value !== null;
 }
 
 export const PRODUCTION_AUTHORITIES: readonly AuthorityDefinition[] = [
@@ -53,10 +47,7 @@ export const PRODUCTION_AUTHORITIES: readonly AuthorityDefinition[] = [
     authority: "OIDC/JWT + API keys (server-side)",
     infrastructure: ["OIDC", "JWKS"],
     status: "real",
-    implementations: [
-      "src/lib/principal-context.ts",
-      "src/lib/api-key-authenticator.ts",
-    ],
+    implementations: ["src/lib/principal-context.ts", "src/lib/api-key-authenticator.ts"],
     verify: () => [
       {
         ok: has(config().AUTH_JWT_SECRET),
@@ -86,8 +77,7 @@ export const PRODUCTION_AUTHORITIES: readonly AuthorityDefinition[] = [
   {
     id: "inference",
     name: "Inference Authority",
-    authority:
-      "Canonical Isabella Chat Gateway → Google Gemini Generative Language API",
+    authority: "Canonical Isabella Chat Gateway → Google Gemini Generative Language API",
     infrastructure: ["Google Generative AI"],
     status: "real",
     implementations: [
@@ -129,10 +119,7 @@ export const PRODUCTION_AUTHORITIES: readonly AuthorityDefinition[] = [
     authority: "Stripe + webhook_events + economic_events + BookPI",
     infrastructure: ["Stripe API"],
     status: "real",
-    implementations: [
-      "src/server-routes/api/billing.ts",
-      "src/lib/economic-events.ts",
-    ],
+    implementations: ["src/server-routes/api/billing.ts", "src/lib/economic-events.ts"],
     verify: () => {
       const cfg = config();
       return [
@@ -193,19 +180,14 @@ export function evaluateProductionAuthorities(): AuthorityReport {
     try {
       checks = definition.verify();
     } catch {
-      checks = [
-        { ok: false, critical: true, detail: "Verificación lanzó excepción." },
-      ];
+      checks = [{ ok: false, critical: true, detail: "Verificación lanzó excepción." }];
     }
-    const criticalFailed =
-      productionLike && checks.some((check) => check.critical && !check.ok);
+    const criticalFailed = productionLike && checks.some((check) => check.critical && !check.ok);
     return {
       id: definition.id,
       name: definition.name,
       authority: definition.authority,
-      ok: checks.every(
-        (check) => check.ok || !check.critical || !productionLike,
-      ),
+      ok: checks.every((check) => check.ok || !check.critical || !productionLike),
       criticalFailed,
       checks,
     };
@@ -225,9 +207,7 @@ export function assertProductionAuthorities(): AuthorityReport {
       .filter((a) => a.criticalFailed)
       .map((a) => a.id)
       .join(", ");
-    throw new Error(
-      `[ProductionAuthority] Autoridades críticas sin configurar: ${failed}.`,
-    );
+    throw new Error(`[ProductionAuthority] Autoridades críticas sin configurar: ${failed}.`);
   }
   return report;
 }

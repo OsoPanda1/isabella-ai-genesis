@@ -5,25 +5,11 @@
  * authorization boundary or an unsupported production claim.
  */
 export type CapabilityStatus =
-  | "implemented"
-  | "verified"
-  | "experimental"
-  | "simulated"
-  | "shadow"
-  | "planned"
-  | "unavailable";
+  "implemented" | "verified" | "experimental" | "simulated" | "shadow" | "planned" | "unavailable";
 
 export interface PlatformCapability {
   id: string;
-  owner:
-    | "CROWN"
-    | "ARGUS"
-    | "ISA"
-    | "SOPHIA"
-    | "ORION"
-    | "MNEMOS"
-    | "BookPI"
-    | "QUP";
+  owner: "CROWN" | "ARGUS" | "ISA" | "SOPHIA" | "ORION" | "MNEMOS" | "BookPI" | "QUP";
   status: CapabilityStatus;
   productionSafe: boolean;
   evidence: readonly string[];
@@ -50,20 +36,14 @@ export const PLATFORM_CAPABILITIES: readonly PlatformCapability[] = [
     owner: "BookPI",
     status: "implemented",
     productionSafe: true,
-    evidence: [
-      "src/lib/bookpi.ts",
-      "src/lib/repositories/bookpi-repository.ts",
-    ],
+    evidence: ["src/lib/bookpi.ts", "src/lib/repositories/bookpi-repository.ts"],
   },
   {
     id: "memory.pentacapa",
     owner: "MNEMOS",
     status: "implemented",
     productionSafe: true,
-    evidence: [
-      "src/lib/memory-engine.ts",
-      "src/lib/repositories/memory-repository.ts",
-    ],
+    evidence: ["src/lib/memory-engine.ts", "src/lib/repositories/memory-repository.ts"],
   },
   {
     id: "tools.sandbox",
@@ -78,8 +58,7 @@ export const PLATFORM_CAPABILITIES: readonly PlatformCapability[] = [
     status: "experimental",
     productionSafe: false,
     evidence: ["quantum_utility_platform/", "src/lib/quantum*"],
-    notes:
-      "Simulator/fallback boundary; no QPU or quantum-safe certification is claimed.",
+    notes: "Simulator/fallback boundary; no QPU or quantum-safe certification is claimed.",
   },
   {
     id: "cryptography.post-quantum-signatures",
@@ -116,9 +95,7 @@ export function getCapability(id: string): PlatformCapability | undefined {
 export function assertProductionCapability(id: string): PlatformCapability {
   const capability = getCapability(id);
   if (!capability || !capability.productionSafe) {
-    throw new Error(
-      `Capability '${id}' is not approved for production execution.`,
-    );
+    throw new Error(`Capability '${id}' is not approved for production execution.`);
   }
   return capability;
 }

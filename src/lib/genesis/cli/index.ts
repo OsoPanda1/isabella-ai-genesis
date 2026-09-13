@@ -3,13 +3,7 @@ import { Command } from "commander";
 import { createAuditOrchestrator } from "./audit-orchestrator";
 import { createEvidenceStorage } from "../evidence/storage";
 import { validateManifest } from "../schemas/manifest.schema";
-import {
-  createHash,
-  createPrivateKey,
-  createPublicKey,
-  sign,
-  verify,
-} from "node:crypto";
+import { createHash, createPrivateKey, createPublicKey, sign, verify } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -32,10 +26,7 @@ function writeJson(file: string, value: unknown): void {
 function flattenPnpmTree(
   root: any,
 ): Array<{ name: string; version: string; dependencies: string[] }> {
-  const seen = new Map<
-    string,
-    { name: string; version: string; dependencies: string[] }
-  >();
+  const seen = new Map<string, { name: string; version: string; dependencies: string[] }>();
   const visit = (node: any) => {
     if (!node || typeof node !== "object") return;
     const name = typeof node.name === "string" ? node.name : undefined;
@@ -51,24 +42,14 @@ function flattenPnpmTree(
         node.peerDependencies,
       ]) {
         if (!group || typeof group !== "object") continue;
-        for (const [depName, dep] of Object.entries(
-          group as Record<string, any>,
-        )) {
-          if (
-            dep &&
-            typeof dep === "object" &&
-            typeof dep.version === "string"
-          ) {
+        for (const [depName, dep] of Object.entries(group as Record<string, any>)) {
+          if (dep && typeof dep === "object" && typeof dep.version === "string") {
             current.dependencies.push(`${depName}@${dep.version}`);
           }
         }
       }
     }
-    for (const group of [
-      node.dependencies,
-      node.devDependencies,
-      node.optionalDependencies,
-    ]) {
+    for (const group of [node.dependencies, node.devDependencies, node.optionalDependencies]) {
       if (!group || typeof group !== "object") continue;
       for (const dep of Object.values(group as Record<string, any>)) visit(dep);
     }
@@ -83,16 +64,12 @@ function flattenPnpmTree(
 function generateSbom(rootDir: string, format: "cyclonedx" | "spdx"): unknown {
   let trees: any[];
   try {
-    const raw = execFileSync(
-      "pnpm",
-      ["list", "--json", "--depth", "Infinity"],
-      {
-        cwd: rootDir,
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "pipe"],
-        maxBuffer: 64 * 1024 * 1024,
-      },
-    );
+    const raw = execFileSync("pnpm", ["list", "--json", "--depth", "Infinity"], {
+      cwd: rootDir,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      maxBuffer: 64 * 1024 * 1024,
+    });
     trees = JSON.parse(raw);
   } catch (error) {
     throw new Error(
@@ -103,9 +80,7 @@ function generateSbom(rootDir: string, format: "cyclonedx" | "spdx"): unknown {
   const root = Array.isArray(trees) ? trees[0] : trees;
   const packages = flattenPnpmTree(root);
   if (!packages.length)
-    throw new Error(
-      "Dependency graph is empty; refusing to emit an incomplete SBOM",
-    );
+    throw new Error("Dependency graph is empty; refusing to emit an incomplete SBOM");
 
   const generatedAt = new Date().toISOString();
   const project = readJson(path.join(rootDir, "package.json"));
@@ -147,9 +122,7 @@ function generateSbom(rootDir: string, format: "cyclonedx" | "spdx"): unknown {
         {
           ref: rootRef,
           dependsOn: packages
-            .filter(
-              (p) => p.name !== project.name || p.version !== project.version,
-            )
+            .filter((p) => p.name !== project.name || p.version !== project.version)
             .map((p) => `pkg:npm/${p.name}@${p.version}`),
         },
         ...packages.map((pkg) => ({
@@ -231,8 +204,7 @@ program
       verbose: options.verbose,
     });
     const { manifest, success } = await orchestrator.runFullAudit();
-    if (!success || manifest.summary.releaseDecision.decision === "NO-GO")
-      process.exit(1);
+    if (!success || manifest.summary.releaseDecision.decision === "NO-GO") process.exit(1);
     process.exit(0);
   });
 
@@ -260,13 +232,9 @@ program
     }
     console.log(`\nCLAIM ${claimId}`);
     console.log(JSON.stringify(claim, null, 2));
-    const evidence = manifest.evidenceReferences.filter(
-      (item: any) => item?.claimId === claimId,
-    );
+    const evidence = manifest.evidenceReferences.filter((item: any) => item?.claimId === claimId);
     if (options.showEvidence)
-      console.log(
-        `\nEVIDENCE (${evidence.length})\n${JSON.stringify(evidence, null, 2)}`,
-      );
+      console.log(`\nEVIDENCE (${evidence.length})\n${JSON.stringify(evidence, null, 2)}`);
     if (options.showTests)
       console.log(
         `\nTEST EVIDENCE\n${JSON.stringify(
@@ -278,17 +246,14 @@ program
     if (options.showCode)
       console.log(
         `\nCODE EVIDENCE\n${JSON.stringify(
-          evidence.filter((item: any) =>
-            /SOURCE_CODE/i.test(String(item?.type)),
-          ),
+          evidence.filter((item: any) => /SOURCE_CODE/i.test(String(item?.type))),
           null,
           2,
         )}`,
       );
     const blocking = manifest.findings.filter(
       (finding: any) =>
-        finding?.claimId === claimId &&
-        ["CRITICAL", "HIGH"].includes(finding?.severity),
+        finding?.claimId === claimId && ["CRITICAL", "HIGH"].includes(finding?.severity),
     );
     process.exit(blocking.length ? 1 : 0);
   });
@@ -314,9 +279,7 @@ evidenceCmd
       if (options.claim && evidence.claimId !== options.claim) continue;
       const expired = Boolean(
         evidence.metadata?.ttlDays &&
-        Date.parse(evidence.metadata.collectedAt) +
-          evidence.metadata.ttlDays * 86400000 <
-          now,
+        Date.parse(evidence.metadata.collectedAt) + evidence.metadata.ttlDays * 86400000 < now,
       );
       if (options.expired && !expired) continue;
       const valid = await storage.verifyEvidence(id);
@@ -336,9 +299,7 @@ evidenceCmd
   .option("--check-ttl", "Check TTL expiration")
   .action(async (options) => {
     const storage = createEvidenceStorage({ baseDir: options.output });
-    const ids = options.all
-      ? await storage.listEvidences()
-      : [options.evidence].filter(Boolean);
+    const ids = options.all ? await storage.listEvidences() : [options.evidence].filter(Boolean);
     if (!ids.length) {
       console.error("Specify --evidence <id> or --all");
       process.exit(2);
@@ -351,8 +312,7 @@ evidenceCmd
         const evidence: any = await storage.loadEvidence(id);
         ttlExpired = Boolean(
           evidence?.metadata?.ttlDays &&
-          Date.parse(evidence.metadata.collectedAt) +
-            evidence.metadata.ttlDays * 86400000 <
+          Date.parse(evidence.metadata.collectedAt) + evidence.metadata.ttlDays * 86400000 <
             Date.now(),
         );
       }
@@ -388,12 +348,8 @@ evidenceCmd
       encoding: "utf8",
     });
     const lines = output.split("\n").filter(Boolean);
-    const relevant = options.showInvalidated
-      ? lines
-      : lines.filter((line) => !/^D\s/.test(line));
-    console.log(
-      `Evidence-surface changes ${commitA}..${commitB}: ${relevant.length}`,
-    );
+    const relevant = options.showInvalidated ? lines : lines.filter((line) => !/^D\s/.test(line));
+    console.log(`Evidence-surface changes ${commitA}..${commitB}: ${relevant.length}`);
     console.log(relevant.join("\n"));
   });
 
@@ -409,16 +365,12 @@ program
     });
     const { manifest, success } = await orchestrator.runFullAudit();
     if (!success) process.exit(1);
-    console.log(
-      `RELEASE DECISION: ${manifest.summary.releaseDecision.decision}`,
-    );
+    console.log(`RELEASE DECISION: ${manifest.summary.releaseDecision.decision}`);
     console.log(manifest.summary.releaseDecision.justification);
     process.exit(manifest.summary.releaseDecision.blockingFindings > 0 ? 1 : 0);
   });
 
-const sbomCmd = program
-  .command("sbom")
-  .description("Generate Software Bill of Materials");
+const sbomCmd = program.command("sbom").description("Generate Software Bill of Materials");
 sbomCmd
   .command("generate")
   .description("Generate a dependency SBOM from the installed pnpm graph")
@@ -430,9 +382,7 @@ sbomCmd
     if (!["cyclonedx", "spdx"].includes(format))
       throw new Error(`Unsupported SBOM format: ${options.format}`);
     const sbom = generateSbom(path.resolve(options.root), format);
-    const output =
-      options.output ??
-      path.join(options.root, "genesis", `sbom.${format}.json`);
+    const output = options.output ?? path.join(options.root, "genesis", `sbom.${format}.json`);
     writeJson(output, sbom);
     console.log(`✅ SBOM written to ${output}`);
   });
@@ -448,13 +398,9 @@ program
     const manifest = validateManifest(readJson(manifestFile));
     const privateKey = createPrivateKey(fs.readFileSync(options.key, "utf8"));
     const type = privateKey.asymmetricKeyType;
-    const algorithm =
-      type === "ed25519" ? "Ed25519" : type === "ec" ? "ECDSA-P384" : undefined;
+    const algorithm = type === "ed25519" ? "Ed25519" : type === "ec" ? "ECDSA-P384" : undefined;
     if (!algorithm) throw new Error(`Unsupported signing key type: ${type}`);
-    if (
-      algorithm === "ECDSA-P384" &&
-      privateKey.asymmetricKeyDetails?.namedCurve !== "secp384r1"
-    )
+    if (algorithm === "ECDSA-P384" && privateKey.asymmetricKeyDetails?.namedCurve !== "secp384r1")
       throw new Error("ECDSA signing requires secp384r1");
     const payload = JSON.stringify(manifest);
     const signature =
@@ -470,9 +416,7 @@ program
         algorithm,
         publicKey,
         signature: signature.toString("base64"),
-        ...(options.cert
-          ? { certificate: fs.readFileSync(options.cert, "utf8") }
-          : {}),
+        ...(options.cert ? { certificate: fs.readFileSync(options.cert, "utf8") } : {}),
         timestamp: new Date().toISOString(),
       },
     };
@@ -501,19 +445,9 @@ program
     const payload = JSON.stringify(manifest);
     const ok =
       signature.algorithm === "Ed25519"
-        ? verify(
-            null,
-            Buffer.from(payload),
-            key,
-            Buffer.from(signature.signature, "base64"),
-          )
+        ? verify(null, Buffer.from(payload), key, Buffer.from(signature.signature, "base64"))
         : signature.algorithm === "ECDSA-P384"
-          ? verify(
-              "sha384",
-              Buffer.from(payload),
-              key,
-              Buffer.from(signature.signature, "base64"),
-            )
+          ? verify("sha384", Buffer.from(payload), key, Buffer.from(signature.signature, "base64"))
           : false;
     if (!ok) {
       console.error("❌ Signature INVALID");

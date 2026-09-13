@@ -67,8 +67,7 @@ export function measureOnCorpus(
   const meanFidelity = scoreCount === 0 ? 0 : scoreSum / scoreCount;
   const bits = dim * chunksProcessed * 8;
   const bitsPerByte = bytesProcessed === 0 ? 0 : bits / bytesProcessed;
-  const efficiencyK =
-    chunksProcessed === 0 ? 0 : bytesProcessed / chunksProcessed;
+  const efficiencyK = chunksProcessed === 0 ? 0 : bytesProcessed / chunksProcessed;
 
   return {
     corpusSize: corpus.length,
@@ -92,8 +91,6 @@ export interface SearchGates {
   index: SimHashLshIndex;
 }
 
-export function createSearchGates(
-  corpus: Array<{ id: string; text: string }>,
-): SearchGates {
+export function createSearchGates(corpus: Array<{ id: string; text: string }>): SearchGates {
   return { index: buildIndex(corpus) };
 }

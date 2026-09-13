@@ -19,27 +19,17 @@ describe("allowlist de egress server-side", () => {
   });
 
   it("rechaza http, credenciales, hosts ajenos e IPs", () => {
+    expect(SecuritySystem.isUpstreamAllowed("http://generativelanguage.googleapis.com/x")).toBe(
+      false,
+    );
     expect(
-      SecuritySystem.isUpstreamAllowed(
-        "http://generativelanguage.googleapis.com/x",
-      ),
+      SecuritySystem.isUpstreamAllowed("https://user:pass@generativelanguage.googleapis.com/x"),
     ).toBe(false);
-    expect(
-      SecuritySystem.isUpstreamAllowed(
-        "https://user:pass@generativelanguage.googleapis.com/x",
-      ),
-    ).toBe(false);
-    expect(
-      SecuritySystem.isUpstreamAllowed("https://evil.example.com/hook"),
-    ).toBe(false);
-    expect(
-      SecuritySystem.isUpstreamAllowed(
-        "https://169.254.169.254/latest/meta-data",
-      ),
-    ).toBe(false);
-    expect(
-      SecuritySystem.isUpstreamAllowed("https://127.0.0.1:3000/api/db"),
-    ).toBe(false);
+    expect(SecuritySystem.isUpstreamAllowed("https://evil.example.com/hook")).toBe(false);
+    expect(SecuritySystem.isUpstreamAllowed("https://169.254.169.254/latest/meta-data")).toBe(
+      false,
+    );
+    expect(SecuritySystem.isUpstreamAllowed("https://127.0.0.1:3000/api/db")).toBe(false);
     expect(SecuritySystem.isUpstreamAllowed("not-a-url")).toBe(false);
     expect(SecuritySystem.isUpstreamAllowed("file:///etc/passwd")).toBe(false);
   });

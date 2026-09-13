@@ -35,33 +35,18 @@ describe.skipIf(!HAS_DB)("approval store Postgres (real)", () => {
   });
 
   it("grant duplicado retorna el existente (idempotente)", async () => {
-    const { grantApprovalAsync } =
-      await import("@/lib/repositories/approval-repository");
+    const { grantApprovalAsync } = await import("@/lib/repositories/approval-repository");
     const trace = `trace_dup_${Date.now()}`;
-    const first = await grantApprovalAsync(
-      trace,
-      "memory.retrieve",
-      "op1",
-      "tenant_apr",
-    );
-    const second = await grantApprovalAsync(
-      trace,
-      "memory.retrieve",
-      "op1",
-      "tenant_apr",
-    );
+    const first = await grantApprovalAsync(trace, "memory.retrieve", "op1", "tenant_apr");
+    const second = await grantApprovalAsync(trace, "memory.retrieve", "op1", "tenant_apr");
     expect(second.approvalId).toBe(first.approvalId);
   });
 
   it("execution authority usa el store durable cuando se provee", async () => {
-    const { createExecutionAuthority } =
-      await import("@/lib/execution-authority");
-    const { createPostgresApprovalStore } =
-      await import("@/lib/repositories/approval-repository");
-    const { createMemoryRepository } =
-      await import("@/lib/repositories/memory-repository");
-    const { createAuditRepository } =
-      await import("@/lib/repositories/audit-repository");
+    const { createExecutionAuthority } = await import("@/lib/execution-authority");
+    const { createPostgresApprovalStore } = await import("@/lib/repositories/approval-repository");
+    const { createMemoryRepository } = await import("@/lib/repositories/memory-repository");
+    const { createAuditRepository } = await import("@/lib/repositories/audit-repository");
     const { mkdtempSync } = await import("node:fs");
     const { tmpdir } = await import("node:os");
     const { join } = await import("node:path");
@@ -73,8 +58,7 @@ describe.skipIf(!HAS_DB)("approval store Postgres (real)", () => {
       approvalStore: createPostgresApprovalStore(),
     });
     const trace = `trace_exec_${Date.now()}`;
-    const { grantApprovalAsync } =
-      await import("@/lib/repositories/approval-repository");
+    const { grantApprovalAsync } = await import("@/lib/repositories/approval-repository");
     await grantApprovalAsync(trace, "memory.retrieve", "op1", "tenant_apr");
 
     const outcome = await authority.execute({

@@ -25,9 +25,7 @@ export interface BalanceVerificationResult {
   available: boolean;
 }
 
-export async function rebuildBalance(
-  tenantId: string,
-): Promise<BalanceVerificationResult> {
+export async function rebuildBalance(tenantId: string): Promise<BalanceVerificationResult> {
   const tenant = await sovereignStateRepository.getTenant(tenantId);
   const projectionDollars = tenant?.quotaBalance ?? 0;
 

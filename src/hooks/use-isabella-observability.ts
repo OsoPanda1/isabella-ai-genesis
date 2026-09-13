@@ -14,25 +14,13 @@ export type ChatRequest = z.infer<typeof ChatRequestSchema>;
 export function useIsabellaObservability() {
   const logLifecycleEvent = useCallback(
     (
-      stage:
-        | "INIT"
-        | "SANITIZATION"
-        | "PAYLOAD_CONSTRUCTION"
-        | "SEND"
-        | "SUCCESS"
-        | "ERROR",
+      stage: "INIT" | "SANITIZATION" | "PAYLOAD_CONSTRUCTION" | "SEND" | "SUCCESS" | "ERROR",
       details: any,
     ) => {
       const timestamp = new Date().toISOString();
       // Solo desarrollo: details puede contener texto del usuario (privacidad).
-      if (
-        typeof process !== "undefined" &&
-        process.env?.NODE_ENV !== "production"
-      ) {
-        console.log(
-          `[Isabella Observability] [${timestamp}] [${stage}]`,
-          details,
-        );
+      if (typeof process !== "undefined" && process.env?.NODE_ENV !== "production") {
+        console.log(`[Isabella Observability] [${timestamp}] [${stage}]`, details);
       }
 
       // We can also dispatch an event to the window for telemetry panels
@@ -60,10 +48,7 @@ export function useIsabellaObservability() {
         const validated = ChatRequestSchema.parse(payload);
         return validated;
       } catch (err) {
-        console.error(
-          "[Isabella Observability] Payload validation failed:",
-          err,
-        );
+        console.error("[Isabella Observability] Payload validation failed:", err);
         return null;
       }
     },

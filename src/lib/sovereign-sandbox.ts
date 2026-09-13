@@ -8,10 +8,7 @@ function isSandboxEnabled(): boolean {
     const cfg = config();
     // Contrato canónico: SANDBOX_ENABLED vía config() (§12). Default false.
     if (cfg.SANDBOX_ENABLED === true) return true;
-    if (
-      cfg.NODE_ENV === "production" ||
-      cfg.ISABELLA_RUNTIME_MODE === "production"
-    ) {
+    if (cfg.NODE_ENV === "production" || cfg.ISABELLA_RUNTIME_MODE === "production") {
       return false;
     }
   } catch {
@@ -20,10 +17,7 @@ function isSandboxEnabled(): boolean {
   return true;
 }
 
-async function auditSandbox(
-  traceId: string,
-  ...rest: unknown[]
-): Promise<void> {
+async function auditSandbox(traceId: string, ...rest: unknown[]): Promise<void> {
   // Supports both legacy 6-arg void auditSandbox(traceId, corr, ip, event, severity, details)
   // and new 4-arg auditSandbox(traceId, event, severity, details)
   let event: string, severity: AuditEntry["severity"], details: string;
@@ -112,8 +106,7 @@ export interface IContainerExecutor {
   deprovision(): Promise<void>;
 }
 
-const FAIL_MSG_NO_WASM =
-  "Módulo WASM no cargado. Debe inicializarse con loadModule().";
+const FAIL_MSG_NO_WASM = "Módulo WASM no cargado. Debe inicializarse con loadModule().";
 const FAIL_MSG_NO_EXECUTOR =
   "Capacidad unavailable: no hay ejecutor WASM real conectado en este runtime. Rechazado (fail-closed, sin resultado fabricado).";
 const FAIL_MSG_NO_CONTAINER =
@@ -145,16 +138,12 @@ export class SovereignSandboxService {
 
   /** Carga diferida del módulo criptográfico (evita costos en el borde). */
   private static sha256(data: Uint8Array | string): string {
-    const input =
-      typeof data === "string" ? Buffer.from(data, "utf-8") : Buffer.from(data);
+    const input = typeof data === "string" ? Buffer.from(data, "utf-8") : Buffer.from(data);
     return crypto.createHash("sha256").update(input).digest("hex");
   }
 
   /** Verifica la integridad del binario y lo activa. */
-  public async loadModule(
-    binary: Uint8Array,
-    expectedHash: string,
-  ): Promise<boolean> {
+  public async loadModule(binary: Uint8Array, expectedHash: string): Promise<boolean> {
     const computedHash = SovereignSandboxService.sha256(binary);
 
     if (computedHash !== expectedHash) {
@@ -206,34 +195,16 @@ export class SovereignSandboxService {
     }
 
     if (!this.activeBinary) {
-      return this.generateResult(
-        false,
-        FAIL_MSG_NO_WASM,
-        startTime,
-        1,
-        0,
-        0,
-        0,
-      );
+      return this.generateResult(false, FAIL_MSG_NO_WASM, startTime, 1, 0, 0, 0);
     }
 
     if (!this.wasmExecutor) {
-      return this.generateResult(
-        false,
-        FAIL_MSG_NO_EXECUTOR,
-        startTime,
-        1,
-        0,
-        0,
-        0,
-      );
+      return this.generateResult(false, FAIL_MSG_NO_EXECUTOR, startTime, 1, 0, 0, 0);
     }
 
     if (
       /[;'"\\=`[\]{}]/.test(functionName) ||
-      [...functionName].some(
-        (char) => char.charCodeAt(0) <= 31 || char.charCodeAt(0) === 127,
-      ) ||
+      [...functionName].some((char) => char.charCodeAt(0) <= 31 || char.charCodeAt(0) === 127) ||
       ["constructor", "prototype", "__proto__"].includes(functionName)
     ) {
       return this.generateResult(
@@ -248,11 +219,7 @@ export class SovereignSandboxService {
     }
 
     try {
-      const exec = await this.wasmExecutor.execute(
-        this.activeBinary,
-        functionName,
-        args,
-      );
+      const exec = await this.wasmExecutor.execute(this.activeBinary, functionName, args);
       const executionTimeMs = Date.now() - startTime;
 
       if (exec.gasTokensConsumed > quota) {
@@ -357,35 +324,17 @@ export class SovereignSandboxService {
     }
 
     if (!this.isProvisioned) {
-      return this.generateResult(
-        false,
-        FAIL_MSG_NOT_PROVISIONED,
-        startTime,
-        1,
-        0,
-        0,
-        0,
-      );
+      return this.generateResult(false, FAIL_MSG_NOT_PROVISIONED, startTime, 1, 0, 0, 0);
     }
 
     if (!this.containerExecutor) {
-      return this.generateResult(
-        false,
-        FAIL_MSG_NO_CONTAINER,
-        startTime,
-        1,
-        0,
-        0,
-        0,
-      );
+      return this.generateResult(false, FAIL_MSG_NO_CONTAINER, startTime, 1, 0, 0, 0);
     }
 
     for (const cmd of command) {
       if (
         /[;&|`$<>]/.test(cmd) ||
-        [...cmd].some(
-          (char) => char.charCodeAt(0) <= 31 || char.charCodeAt(0) === 127,
-        )
+        [...cmd].some((char) => char.charCodeAt(0) <= 31 || char.charCodeAt(0) === 127)
       ) {
         void auditSandbox(
           this.traceId,
@@ -408,11 +357,7 @@ export class SovereignSandboxService {
     }
 
     try {
-      const exec = await this.containerExecutor.execute(
-        command,
-        envVars,
-        inputPayload,
-      );
+      const exec = await this.containerExecutor.execute(command, envVars, inputPayload);
       const executionTimeMs = Date.now() - startTime;
       const verificationHash = SovereignSandboxService.sha256(
         `${this.containerId}|${this.traceId}|${exec.output}|${executionTimeMs}|${exec.memoryConsumedBytes}|${exec.gasTokensConsumed}`,
@@ -479,8 +424,7 @@ export class SovereignSandboxService {
     memoryConsumedBytes: number,
     gasTokensConsumed: number,
   ): ISandboxExecutionResult {
-    const duration =
-      executionTimeMs > 0 ? executionTimeMs : Date.now() - startTime;
+    const duration = executionTimeMs > 0 ? executionTimeMs : Date.now() - startTime;
     const verificationHash = SovereignSandboxService.sha256(
       `${this.moduleId}|${this.traceId}|${success ? "ok" : "error"}|${messageOrOutput}|${duration}`,
     );

@@ -1,7 +1,4 @@
-import type {
-  AccountingRepository,
-  CreateJournalEntryDTO,
-} from "./accounting-repository";
+import type { AccountingRepository, CreateJournalEntryDTO } from "./accounting-repository";
 import type {
   JournalEntry,
   LedgerLine,
@@ -30,20 +27,12 @@ export interface DoubleEntryService {
     error?: string;
   }>;
   validateDoubleEntry(dto: CreateJournalEntryDTO): DoubleEntryValidation;
-  getTrialBalance(
-    tenantId: string,
-    periodStart: Date,
-    periodEnd: Date,
-  ): Promise<TrialBalance>;
+  getTrialBalance(tenantId: string, periodStart: Date, periodEnd: Date): Promise<TrialBalance>;
   getBalanceSheet(tenantId: string, asOfDate: Date): Promise<BalanceSheet>;
 }
 
-export function createDoubleEntryService(
-  repository: AccountingRepository,
-): DoubleEntryService {
-  function validateDoubleEntry(
-    dto: CreateJournalEntryDTO,
-  ): DoubleEntryValidation {
+export function createDoubleEntryService(repository: AccountingRepository): DoubleEntryService {
+  function validateDoubleEntry(dto: CreateJournalEntryDTO): DoubleEntryValidation {
     const errors: string[] = [];
     let totalDebitsCents = 0;
     let totalCreditsCents = 0;
@@ -60,9 +49,7 @@ export function createDoubleEntryService(
     }
 
     if (dto.lines.length < 2) {
-      errors.push(
-        "La contabilidad de doble entrada requiere al menos dos líneas.",
-      );
+      errors.push("La contabilidad de doble entrada requiere al menos dos líneas.");
     }
 
     for (const line of dto.lines) {
@@ -110,9 +97,7 @@ export function createDoubleEntryService(
     };
   }
 
-  async function createDoubleEntryTransaction(
-    dto: CreateJournalEntryDTO,
-  ): Promise<{
+  async function createDoubleEntryTransaction(dto: CreateJournalEntryDTO): Promise<{
     success: boolean;
     error?: string;
     entry?: JournalEntry;
@@ -273,10 +258,7 @@ export function createDoubleEntryService(
     return repository.generateTrialBalance(tenantId, periodStart, periodEnd);
   }
 
-  async function getBalanceSheet(
-    tenantId: string,
-    asOfDate: Date,
-  ): Promise<BalanceSheet> {
+  async function getBalanceSheet(tenantId: string, asOfDate: Date): Promise<BalanceSheet> {
     return repository.generateBalanceSheet(tenantId, asOfDate);
   }
 

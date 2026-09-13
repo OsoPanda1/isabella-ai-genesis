@@ -1,18 +1,9 @@
-import {
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, FolderOpen } from "lucide-react";
 import { useIsabella } from "@/lib/useIsabella";
 import type { NavTabId } from "@/components/isabella/CrystalNavigation";
 
-const CinematicIntro = lazy(
-  () => import("@/components/isabella/CinematicIntro"),
-);
+const CinematicIntro = lazy(() => import("@/components/isabella/CinematicIntro"));
 const CommandLine = lazy(() =>
   import("@/components/isabella/CommandLine").then((m) => ({
     default: m.CommandLine,
@@ -83,11 +74,7 @@ const INTRO_SEEN_KEY = "isabella.entry.intro.v1";
 
 type NavModule = typeof import("@/components/isabella/CrystalNavigation");
 
-function ClientFallback({
-  label = "Cargando módulo Isabella…",
-}: {
-  label?: string;
-}) {
+function ClientFallback({ label = "Cargando módulo Isabella…" }: { label?: string }) {
   return (
     <div className="flex min-h-[320px] items-center justify-center rounded-3xl border border-border/20 bg-background/40">
       <div className="text-center" role="status" aria-live="polite">
@@ -122,11 +109,7 @@ function IndexClient() {
 
   if (!introDone) {
     return (
-      <Suspense
-        fallback={
-          <ClientFallback label="Inicializando experiencia Isabella…" />
-        }
-      >
+      <Suspense fallback={<ClientFallback label="Inicializando experiencia Isabella…" />}>
         <CinematicIntro onComplete={handleIntroComplete} />
       </Suspense>
     );
@@ -138,9 +121,7 @@ function IsabellaInterface() {
   const isabella = useIsabella();
   const [panel, setPanel] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTabId>("terminal");
-  const [monetizationSubTab, setMonetizationSubTab] = useState<string | null>(
-    null,
-  );
+  const [monetizationSubTab, setMonetizationSubTab] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [upperOpen, setUpperOpen] = useState(false);
   const [middleOpen, setMiddleOpen] = useState(false);
@@ -177,8 +158,7 @@ function IsabellaInterface() {
     [isabella],
   );
 
-  if (!navModule)
-    return <ClientFallback label="Cargando navegación soberana…" />;
+  if (!navModule) return <ClientFallback label="Cargando navegación soberana…" />;
 
   const navGroups = navModule.NAV_GROUPS(
     { cognition: upperOpen, catalog: middleOpen, sovereignty: lowerOpen },
@@ -246,9 +226,7 @@ function IsabellaInterface() {
                 </div>
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span>Región:</span>
-                  <span className="font-semibold text-platinum">
-                    Nodo 0 (Hgo)
-                  </span>
+                  <span className="font-semibold text-platinum">Nodo 0 (Hgo)</span>
                 </div>
               </div>
             )}
@@ -280,23 +258,15 @@ function IsabellaInterface() {
                     Isabella C.R.O.W.N. Terminal
                   </h1>
                   <p className="mt-0.5 font-mono text-[9.5px] uppercase tracking-widest text-muted-foreground">
-                    {activeTab === "terminal" &&
-                      `Conexión Activa: ${isabella.preset.name}`}
+                    {activeTab === "terminal" && `Conexión Activa: ${isabella.preset.name}`}
                     {activeTab === "cli" && "Consola Retro Directa"}
-                    {activeTab === "governance" &&
-                      "Gobernanza y Salud de Módulos Cognitivos"}
-                    {activeTab === "catalog" &&
-                      "Gobernanza de APIs e Invocaciones"}
-                    {activeTab === "monetization" &&
-                      "Tablero de Consumo Soberano"}
-                    {activeTab === "quantum" &&
-                      "Optimización y Transpilación Cuántica (qup)"}
-                    {activeTab === "interfaces" &&
-                      "Interfaces de Inteligencia Artificial"}
-                    {activeTab === "aegis" &&
-                      "Muro de Defensa Activa LATAM AEGIS-X"}
-                    {activeTab === "findarepo" &&
-                      "Ranking Global de Agentes (Findarepo)"}
+                    {activeTab === "governance" && "Gobernanza y Salud de Módulos Cognitivos"}
+                    {activeTab === "catalog" && "Gobernanza de APIs e Invocaciones"}
+                    {activeTab === "monetization" && "Tablero de Consumo Soberano"}
+                    {activeTab === "quantum" && "Optimización y Transpilación Cuántica (qup)"}
+                    {activeTab === "interfaces" && "Interfaces de Inteligencia Artificial"}
+                    {activeTab === "aegis" && "Muro de Defensa Activa LATAM AEGIS-X"}
+                    {activeTab === "findarepo" && "Ranking Global de Agentes (Findarepo)"}
                   </p>
                 </div>
               </div>
@@ -312,10 +282,7 @@ function IsabellaInterface() {
                     onChange={(event) => {
                       const file = event.target.files?.[0];
                       event.target.value = "";
-                      if (file)
-                        void isabella
-                          .openConversation(file)
-                          .catch(() => undefined);
+                      if (file) void isabella.openConversation(file).catch(() => undefined);
                     }}
                   />
                   <button
@@ -351,9 +318,7 @@ function IsabellaInterface() {
                   <div className="glass min-h-[56vh] flex-1 overflow-y-auto rounded-3xl p-1 crystal-glow-electric">
                     <MessageStream
                       messages={isabella.messages}
-                      onRetry={() =>
-                        lastInput.current && send(lastInput.current)
-                      }
+                      onRetry={() => lastInput.current && send(lastInput.current)}
                     />
                   </div>
                   <div className="rounded-2xl crystal-glow-electric">

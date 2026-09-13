@@ -71,9 +71,7 @@ export function createRedactor(extraValues: string[] = []): Redactor {
       case "BOOKPI_SIGNING_KEY":
       case "CROWN_POLICY_SIGNING_KEY": {
         const value = cfgRecord[key];
-        return typeof value === "string" && value.length > 0
-          ? value
-          : undefined;
+        return typeof value === "string" && value.length > 0 ? value : undefined;
       }
       default:
         return undefined;
@@ -87,11 +85,7 @@ export function createRedactor(extraValues: string[] = []): Redactor {
 
   // Añade valores cargados vía secrets/config (degradación segura si faltan).
   try {
-    for (const v of [
-      secrets.jwtSecret(),
-      secrets.aiGatewayKey(),
-      secrets.encryptionMasterKey(),
-    ]) {
+    for (const v of [secrets.jwtSecret(), secrets.aiGatewayKey(), secrets.encryptionMasterKey()]) {
       if (v) dynamicValues.push(v);
     }
   } catch {
@@ -105,10 +99,7 @@ export function createRedactor(extraValues: string[] = []): Redactor {
   );
 
   function redact(input: string): string {
-    let out = input.replace(
-      pattern,
-      (_match, prefix = "") => `${prefix}[REDACTED]`,
-    );
+    let out = input.replace(pattern, (_match, prefix = "") => `${prefix}[REDACTED]`);
     out = out.replace(patternKeys, "$1[REDACTED]$2");
     return out;
   }
@@ -118,9 +109,7 @@ export function createRedactor(extraValues: string[] = []): Redactor {
     if (Array.isArray(input)) return input.map(redactObject);
     if (input && typeof input === "object") {
       const out: Record<string, unknown> = {};
-      for (const [key, value] of Object.entries(
-        input as Record<string, unknown>,
-      )) {
+      for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
         if (typeof value === "string" && isSensitiveKey(key)) {
           out[key] = "[REDACTED]";
         } else {
@@ -143,5 +132,4 @@ function isSensitiveKey(key: string): boolean {
 
 export const redactor: Redactor = createRedactor();
 export const redact = (input: string): string => redactor.redact(input);
-export const redactObject = (input: unknown): unknown =>
-  redactor.redactObject(input);
+export const redactObject = (input: unknown): unknown => redactor.redactObject(input);

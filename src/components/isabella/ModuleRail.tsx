@@ -1,9 +1,4 @@
-import {
-  MODULES,
-  MODULE_ORDER,
-  type ModuleId,
-  type RoutingDecision,
-} from "@/lib/crown-ui";
+import { MODULES, MODULE_ORDER, type ModuleId, type RoutingDecision } from "@/lib/crown-ui";
 
 export function ModuleRail({
   decision,
@@ -44,9 +39,7 @@ export function ModuleRail({
                 {(weight * 100).toFixed(0)}%
               </span>
             </div>
-            <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
-              {mod.role}
-            </p>
+            <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">{mod.role}</p>
             <div className="mt-2.5 h-px w-full overflow-hidden bg-border/60">
               <div
                 className="h-px transition-all duration-700 ease-out"

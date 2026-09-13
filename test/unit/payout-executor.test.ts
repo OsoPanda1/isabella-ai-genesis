@@ -18,10 +18,7 @@ function fakeStripe() {
     calls,
     client: {
       transfers: {
-        create: async (
-          params: Record<string, unknown>,
-          opts?: { idempotencyKey?: string },
-        ) => {
+        create: async (params: Record<string, unknown>, opts?: { idempotencyKey?: string }) => {
           calls.push({ params, opts });
           return {
             id: "tr_test_123",
@@ -59,15 +56,13 @@ describe("payout executor", () => {
       destinationAccountId: "acct_123",
       idempotencyKey: "idem_12345678",
     };
-    await expect(
-      executePayout({ ...base, amountCents: 0 }, fake.client),
-    ).rejects.toThrow(/inválido/i);
-    await expect(
-      executePayout({ ...base, amountCents: -5 }, fake.client),
-    ).rejects.toThrow();
-    await expect(
-      executePayout({ ...base, amountCents: 1_000_001 }, fake.client),
-    ).rejects.toThrow(/tope/i);
+    await expect(executePayout({ ...base, amountCents: 0 }, fake.client)).rejects.toThrow(
+      /inválido/i,
+    );
+    await expect(executePayout({ ...base, amountCents: -5 }, fake.client)).rejects.toThrow();
+    await expect(executePayout({ ...base, amountCents: 1_000_001 }, fake.client)).rejects.toThrow(
+      /tope/i,
+    );
     await expect(
       executePayout(
         {

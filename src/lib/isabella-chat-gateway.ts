@@ -110,9 +110,8 @@ function geminiSseToOpenAi(
                 }>;
               };
               const text =
-                event.candidates?.[0]?.content?.parts
-                  ?.map((part) => part.text ?? "")
-                  .join("") ?? "";
+                event.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ??
+                "";
               if (text)
                 controller.enqueue(
                   encoder.encode(
@@ -134,9 +133,7 @@ function geminiSseToOpenAi(
               }>;
             };
             const text =
-              event.candidates?.[0]?.content?.parts
-                ?.map((part) => part.text ?? "")
-                .join("") ?? "";
+              event.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
             if (text)
               controller.enqueue(
                 encoder.encode(
@@ -161,14 +158,12 @@ function geminiSseToOpenAi(
 function configuredGeminiModel(): string {
   const configured = config().LLM_DEFAULT_MODEL || "google/gemini-3.8-flash";
   const model = configured.split("/").at(-1) ?? "gemini-3.8-flash";
-  if (!/^[a-zA-Z0-9._:-]+$/.test(model))
-    throw new Error("invalid_llm_model_configuration");
+  if (!/^[a-zA-Z0-9._:-]+$/.test(model)) throw new Error("invalid_llm_model_configuration");
   return model;
 }
 function configuredFallbackModel(provider: "groq" | "xai"): string {
   const model = provider === "groq" ? "llama-3.3-70b-versatile" : "grok-3-mini";
-  if (!/^[a-zA-Z0-9._:-]+$/.test(model))
-    throw new Error("invalid_llm_model_configuration");
+  if (!/^[a-zA-Z0-9._:-]+$/.test(model)) throw new Error("invalid_llm_model_configuration");
   return model;
 }
 function openAiCompatibleBody(
@@ -187,9 +182,7 @@ function openAiCompatibleBody(
       ...messages.map((message) => ({
         role: message.role,
         content:
-          typeof message.content === "string"
-            ? message.content
-            : "Analiza el material adjunto.",
+          typeof message.content === "string" ? message.content : "Analiza el material adjunto.",
       })),
     ],
   };
@@ -265,9 +258,7 @@ export async function handleIsabellaChat(
       typeof message.content === "string"
         ? message.content
         : message.content
-            .map((block) =>
-              block.type === "text" ? block.text : `[${block.type}]`,
-            )
+            .map((block) => (block.type === "text" ? block.text : `[${block.type}]`))
             .join(" ");
     const sanitized = SecuritySystem.sanitizePayload(text);
     if (sanitized.flagged)
@@ -279,8 +270,7 @@ export async function handleIsabellaChat(
       );
   }
   const last = messages.at(-1)?.content;
-  const lastUserMessage =
-    typeof last === "string" ? last : "Analiza el material adjunto.";
+  const lastUserMessage = typeof last === "string" ? last : "Analiza el material adjunto.";
   const intercept = LatamAegisXFirewall.interceptRequest(
     lastUserMessage,
     { qecErrorRate: 0 },
@@ -329,8 +319,7 @@ export async function handleIsabellaChat(
       `[ISABELLA_LEARNING] retrieval_failed trace=${context.traceId} error=${error instanceof Error ? error.message : "unknown"}`,
     );
   }
-  const sanitizedCognitiveSystem =
-    SecuritySystem.sanitizePayload(cognitiveSystem);
+  const sanitizedCognitiveSystem = SecuritySystem.sanitizePayload(cognitiveSystem);
   if (sanitizedCognitiveSystem.flagged)
     return contractError(
       context,
@@ -420,9 +409,7 @@ export async function handleIsabellaChat(
         : message.content.map((block) => {
             if (block.type === "text") return { text: block.text };
             if (block.type === "image_url") {
-              const match = block.image_url.url.match(
-                /^data:([^;]+);base64,(.+)$/,
-              );
+              const match = block.image_url.url.match(/^data:([^;]+);base64,(.+)$/);
               return match
                 ? { inlineData: { mimeType: match[1], data: match[2] } }
                 : { text: "[imagen adjunta no decodificable]" };

@@ -45,18 +45,14 @@ let criticalEmpty = false;
 // If we are missing critical keys, log them
 const missingCritical = missingVars.filter((v) => criticalKeys.includes(v));
 if (missingCritical.length > 0) {
-  console.error(
-    "\n❌ The following CRITICAL API keys are missing from the environment:",
-  );
+  console.error("\n❌ The following CRITICAL API keys are missing from the environment:");
   missingCritical.forEach((v) => console.error(`   - ${v}`));
   criticalEmpty = true;
 }
 
 const emptyCritical = emptyVars.filter((v) => criticalKeys.includes(v));
 if (emptyCritical.length > 0) {
-  console.error(
-    "\n❌ The following CRITICAL API keys are empty in the environment:",
-  );
+  console.error("\n❌ The following CRITICAL API keys are empty in the environment:");
   emptyCritical.forEach((v) => console.error(`   - ${v}`));
   criticalEmpty = true;
 }

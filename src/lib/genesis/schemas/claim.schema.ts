@@ -112,12 +112,7 @@ export const DEFAULT_CLAIMS: Claim[] = [
     description:
       "Cryptographically chained audit log with hash verification and concurrency safety",
     requiredStatus: "VERIFIED",
-    evidenceRequired: [
-      "SOURCE_CODE",
-      "TEST_AUDIT_CHAIN",
-      "TEST_CONCURRENCY",
-      "WORM_CONFIG",
-    ],
+    evidenceRequired: ["SOURCE_CODE", "TEST_AUDIT_CHAIN", "TEST_CONCURRENCY", "WORM_CONFIG"],
     controls: ["CTRL-020", "CTRL-021", "CTRL-022", "CTRL-023"],
     category: "AUDIT",
     owner: "Edwin Oswaldo Castillo Trejo",
@@ -128,8 +123,7 @@ export const DEFAULT_CLAIMS: Claim[] = [
   {
     id: "CLAIM-004",
     title: "Privacy compliance",
-    description:
-      "GDPR/AI Act compliance with DPIA, DPA, and privacy-by-design implementation",
+    description: "GDPR/AI Act compliance with DPIA, DPA, and privacy-by-design implementation",
     requiredStatus: "TESTED",
     evidenceRequired: ["DPIA", "DPA", "PRIVACY_POLICY", "TEST_DATA_HANDLING"],
     controls: ["CTRL-030", "CTRL-031", "CTRL-032"],
@@ -264,12 +258,7 @@ export const DEFAULT_CLAIMS: Claim[] = [
     description:
       "Content Security Policy enforced without 'unsafe-inline', using nonce-based script loading",
     requiredStatus: "TESTED",
-    evidenceRequired: [
-      "SOURCE_CODE",
-      "UNIT_TEST",
-      "INTEGRATION_TEST",
-      "SECURITY_TEST",
-    ],
+    evidenceRequired: ["SOURCE_CODE", "UNIT_TEST", "INTEGRATION_TEST", "SECURITY_TEST"],
     controls: ["CTRL-090", "CTRL-091"],
     category: "SECURITY",
     owner: "Edwin Oswaldo Castillo Trejo",

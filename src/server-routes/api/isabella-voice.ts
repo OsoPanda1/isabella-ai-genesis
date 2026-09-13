@@ -21,8 +21,7 @@ export const Route = createFileRoute("/api/isabella-voice")({
           );
           return new Response(
             JSON.stringify({
-              error:
-                "Límite de solicitudes de síntesis de voz excedido (20/min).",
+              error: "Límite de solicitudes de síntesis de voz excedido (20/min).",
             }),
             { status: 429, headers },
           );
@@ -51,13 +50,10 @@ export const Route = createFileRoute("/api/isabella-voice")({
           const headers = SecuritySystem.injectSecureHeaders(
             new Headers({ "content-type": "application/json" }),
           );
-          return new Response(
-            JSON.stringify({ error: "Percepción vocal corrupta." }),
-            {
-              status: 400,
-              headers,
-            },
-          );
+          return new Response(JSON.stringify({ error: "Percepción vocal corrupta." }), {
+            status: 400,
+            headers,
+          });
         }
 
         // --- LAYER 1: Input Integrity Validation ---
@@ -89,10 +85,7 @@ export const Route = createFileRoute("/api/isabella-voice")({
         }
 
         // --- LAYER 6: Auditable Telemetry ---
-        const telemetry = SecuritySystem.generateTelemetry(
-          context.ip,
-          "allowed",
-        );
+        const telemetry = SecuritySystem.generateTelemetry(context.ip, "allowed");
 
         // --- LAYER 5: Upstream Safe Fallback & Circuit Breaker — edge-tts soberano (Lovable eliminado) ---
         try {
@@ -120,9 +113,7 @@ export const Route = createFileRoute("/api/isabella-voice")({
 
           if (!upstream.ok || !upstream.body) {
             const detail = await upstream.text().catch(() => "");
-            console.error(
-              `Isabella voice error [${upstream.status}]: ${detail}`,
-            );
+            console.error(`Isabella voice error [${upstream.status}]: ${detail}`);
             const message =
               upstream.status === 429
                 ? "Límite de síntesis vocal alcanzado. Reintenta en unos instantes."
@@ -158,8 +149,7 @@ export const Route = createFileRoute("/api/isabella-voice")({
           );
           return new Response(
             JSON.stringify({
-              error:
-                "Fallo crítico en el túnel de comunicación del gateway de voz.",
+              error: "Fallo crítico en el túnel de comunicación del gateway de voz.",
             }),
             { status: 502, headers },
           );

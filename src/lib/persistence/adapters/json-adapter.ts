@@ -38,9 +38,7 @@ function assertJsonAllowed(): void {
   }
   if (isProd && !allowed) {
     throw Object.assign(
-      new Error(
-        "[FATAL] JSON persistence forbidden in production — DURABLE_JSON_ALLOWED=false",
-      ),
+      new Error("[FATAL] JSON persistence forbidden in production — DURABLE_JSON_ALLOWED=false"),
       {
         code: "REPOSITORY_FORBIDDEN",
         statusCode: 500,
@@ -93,12 +91,7 @@ function toRepositoryError(err: unknown): RepositoryError {
 
 function recordTenantId(record: unknown): string | undefined {
   const r = record as Record<string, unknown>;
-  return (
-    (r.tenantId as string) ??
-    (r.tenant_id as string) ??
-    (r.tenant_id as string) ??
-    undefined
-  );
+  return (r.tenantId as string) ?? (r.tenant_id as string) ?? (r.tenant_id as string) ?? undefined;
 }
 
 function isTenantIsolated<T>(record: T, tenantId: string): boolean {
@@ -110,9 +103,7 @@ function isTenantIsolated<T>(record: T, tenantId: string): boolean {
   return tid === tenantId;
 }
 
-export class JsonFileRepository<
-  T extends { id: string },
-> implements IRepository<T> {
+export class JsonFileRepository<T extends { id: string }> implements IRepository<T> {
   private readonly type: string;
 
   constructor(type: string) {
@@ -122,8 +113,7 @@ export class JsonFileRepository<
 
   async create(tenantId: string, data: Partial<T>): Promise<T> {
     assertJsonAllowed();
-    if (!tenantId)
-      throw toRepositoryError(new Error("tenantId required for create"));
+    if (!tenantId) throw toRepositoryError(new Error("tenantId required for create"));
     const items = load<T>(this.type);
     const record = {
       ...data,
@@ -142,8 +132,7 @@ export class JsonFileRepository<
   async read(tenantId: string, id: string): Promise<T | null> {
     assertJsonAllowed();
     const items = load<T>(this.type);
-    const found =
-      items.find((r) => r.id === id && isTenantIsolated(r, tenantId)) ?? null;
+    const found = items.find((r) => r.id === id && isTenantIsolated(r, tenantId)) ?? null;
     return found;
   }
 
@@ -183,16 +172,11 @@ export class JsonFileRepository<
 
   async update(tenantId: string, id: string, data: Partial<T>): Promise<T> {
     assertJsonAllowed();
-    if (!tenantId)
-      throw toRepositoryError(new Error("tenantId required for update"));
+    if (!tenantId) throw toRepositoryError(new Error("tenantId required for update"));
     const items = load<T>(this.type);
-    const idx = items.findIndex(
-      (r) => r.id === id && isTenantIsolated(r, tenantId),
-    );
+    const idx = items.findIndex((r) => r.id === id && isTenantIsolated(r, tenantId));
     if (idx < 0) {
-      throw toRepositoryError(
-        new Error(`Record ${id} not found for tenant ${tenantId}`),
-      );
+      throw toRepositoryError(new Error(`Record ${id} not found for tenant ${tenantId}`));
     }
     // Prevent tenantId tampering
     const sanitized = { ...data } as Record<string, unknown>;
@@ -205,12 +189,9 @@ export class JsonFileRepository<
 
   async delete(tenantId: string, id: string): Promise<boolean> {
     assertJsonAllowed();
-    if (!tenantId)
-      throw toRepositoryError(new Error("tenantId required for delete"));
+    if (!tenantId) throw toRepositoryError(new Error("tenantId required for delete"));
     const items = load<T>(this.type);
-    const idx = items.findIndex(
-      (r) => r.id === id && isTenantIsolated(r, tenantId),
-    );
+    const idx = items.findIndex((r) => r.id === id && isTenantIsolated(r, tenantId));
     if (idx < 0) return false;
     items.splice(idx, 1);
     save(this.type, items);
@@ -262,20 +243,15 @@ type BaseRecord = { id: string; [key: string]: unknown };
 export class JsonRepositoryFactory implements RepositoryFactory {
   private readonly adapters = new Map<string, JsonFileRepository<BaseRecord>>();
 
-  private adapter<T extends { id: string }>(
-    type: string,
-  ): JsonFileRepository<T> {
-    const existing = this.adapters.get(type) as unknown as
-      JsonFileRepository<T> | undefined;
+  private adapter<T extends { id: string }>(type: string): JsonFileRepository<T> {
+    const existing = this.adapters.get(type) as unknown as JsonFileRepository<T> | undefined;
     if (existing) return existing;
     const a = new JsonFileRepository<T>(type);
     this.adapters.set(type, a as unknown as JsonFileRepository<BaseRecord>);
     return a;
   }
 
-  getAdapter<T extends { id: string }>(
-    type: "supabase" | "neon" | "redis",
-  ): IRepository<T> {
+  getAdapter<T extends { id: string }>(type: "supabase" | "neon" | "redis"): IRepository<T> {
     assertJsonAllowed();
     return new JsonFileRepository<T>(type);
   }

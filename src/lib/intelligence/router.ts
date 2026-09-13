@@ -8,10 +8,7 @@ import type {
   IntelligenceResponse,
 } from "./contracts";
 import { approveModel, getModel, registerProvider } from "./model-registry";
-import {
-  assertModelRuntimeAuthority,
-  ensureModelRecord,
-} from "./production-model-gate";
+import { assertModelRuntimeAuthority, ensureModelRecord } from "./production-model-gate";
 import { inspectInferenceInput } from "./inference-firewall";
 
 const providers = new Map<string, IntelligenceProvider>();
@@ -38,18 +35,13 @@ function recordSuccess(modelId: string): void {
   failures.delete(modelId);
 }
 
-export function addProvider(
-  provider: IntelligenceProvider,
-  productionApproved = false,
-): void {
+export function addProvider(provider: IntelligenceProvider, productionApproved = false): void {
   providers.set(provider.modelId, provider);
   registerProvider(provider);
   if (productionApproved) approveModel(provider.modelId);
 }
 
-export function governIntelligence(
-  request: IntelligenceRequest,
-): GovernanceDecision {
+export function governIntelligence(request: IntelligenceRequest): GovernanceDecision {
   if (!request.tenantId || !request.actorId)
     return {
       decision: "DENY",
@@ -92,8 +84,7 @@ export async function invokeIntelligence(
   input: Omit<IntelligenceRequest, "requestId"> & { requestId?: string },
 ): Promise<IntelligenceResponse> {
   const firewall = inspectInferenceInput(input.messages);
-  if (!firewall.allowed)
-    throw new Error(`intelligence_DENY:${firewall.reasons.join(",")}`);
+  if (!firewall.allowed) throw new Error(`intelligence_DENY:${firewall.reasons.join(",")}`);
   const request: IntelligenceRequest = {
     ...input,
     messages: firewall.sanitized,
@@ -104,13 +95,8 @@ export async function invokeIntelligence(
     throw new Error(`intelligence_${governance.decision.toLowerCase()}`);
 
   const preferred = request.preferredModel;
-  const candidates = (preferred ? [preferred] : [...providers.keys()]).slice(
-    0,
-    MAX_CANDIDATES,
-  );
-  const production = isProductionLike(
-    resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE),
-  );
+  const candidates = (preferred ? [preferred] : [...providers.keys()]).slice(0, MAX_CANDIDATES);
+  const production = isProductionLike(resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE));
   let lastError: unknown;
 
   for (const modelId of candidates) {
@@ -142,10 +128,7 @@ export async function invokeIntelligence(
     }
   }
 
-  if (production)
-    throw new Error(
-      "inference_unavailable: no production-approved healthy model",
-    );
+  if (production) throw new Error("inference_unavailable: no production-approved healthy model");
   if (lastError) throw lastError;
   throw new Error("inference_unavailable: no registered model");
 }

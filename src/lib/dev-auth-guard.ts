@@ -37,9 +37,7 @@ export function devAuthNotFound(action: string): Response | null {
   void action;
   let productionLike = true;
   try {
-    productionLike = isProductionLike(
-      resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE),
-    );
+    productionLike = isProductionLike(resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE));
   } catch {
     productionLike = true;
   }

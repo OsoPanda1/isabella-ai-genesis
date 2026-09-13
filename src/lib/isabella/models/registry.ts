@@ -1,13 +1,7 @@
 import { createHash } from "node:crypto";
 
 export type ModelState =
-  | "DRAFT"
-  | "TRAINING"
-  | "EVALUATION"
-  | "APPROVED"
-  | "PRODUCTION"
-  | "DEPRECATED"
-  | "ARCHIVED";
+  "DRAFT" | "TRAINING" | "EVALUATION" | "APPROVED" | "PRODUCTION" | "DEPRECATED" | "ARCHIVED";
 
 export interface EvaluationBenchmark {
   benchmarkId: string;
@@ -49,10 +43,7 @@ export class EvaluationRegistry {
     this.models.set(key, structuredClone(entry));
   }
 
-  public static getModel(
-    modelId: string,
-    version: string,
-  ): ModelEntry | undefined {
+  public static getModel(modelId: string, version: string): ModelEntry | undefined {
     const model = this.models.get(`${modelId}@${version}`);
     return model ? structuredClone(model) : undefined;
   }
@@ -86,8 +77,6 @@ export class EvaluationRegistry {
   public static benchmarkDigest(modelId: string, version: string): string {
     const model = this.models.get(`${modelId}@${version}`);
     if (!model) throw new Error("Model not found in evaluation cache");
-    return createHash("sha256")
-      .update(JSON.stringify(model.benchmarks))
-      .digest("hex");
+    return createHash("sha256").update(JSON.stringify(model.benchmarks)).digest("hex");
   }
 }

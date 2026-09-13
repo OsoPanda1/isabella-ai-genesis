@@ -68,10 +68,8 @@ export class EnvironmentScanner {
   constructor(config: EnvScannerConfig = {}) {
     this.config = {
       rootDir: config.rootDir ?? process.cwd(),
-      schemaPath:
-        config.schemaPath ?? path.join(process.cwd(), "src/lib/env-schema.ts"),
-      examplePath:
-        config.examplePath ?? path.join(process.cwd(), ".env.example"),
+      schemaPath: config.schemaPath ?? path.join(process.cwd(), "src/lib/env-schema.ts"),
+      examplePath: config.examplePath ?? path.join(process.cwd(), ".env.example"),
     };
   }
 
@@ -136,9 +134,7 @@ export class EnvironmentScanner {
     try {
       const content = fs.readFileSync(this.config.schemaPath, "utf8");
 
-      const exportMatch = content.match(
-        /export\s+const\s+\w+\s*=\s*({[\s\S]*?})\s*;/,
-      );
+      const exportMatch = content.match(/export\s+const\s+\w+\s*=\s*({[\s\S]*?})\s*;/);
       if (exportMatch) {
         try {
           const normalizedSchema = exportMatch[1]
@@ -191,10 +187,7 @@ export class EnvironmentScanner {
   private parseCodeUsage(): Map<string, CodeLocation[]> {
     const result = new Map<string, CodeLocation[]>();
 
-    const files = this.collectFiles(this.config.rootDir, [
-      "**/*.ts",
-      "**/*.tsx",
-    ]);
+    const files = this.collectFiles(this.config.rootDir, ["**/*.ts", "**/*.tsx"]);
 
     for (const file of files) {
       try {
@@ -213,8 +206,7 @@ export class EnvironmentScanner {
           let match;
           while ((match = pattern.exec(content)) !== null) {
             const varName = match[1];
-            const lineIndex =
-              content.substring(0, match.index).split("\n").length - 1;
+            const lineIndex = content.substring(0, match.index).split("\n").length - 1;
             const context = lines[lineIndex]?.trim().slice(0, 200) ?? "";
 
             const existing = result.get(varName) ?? [];
@@ -239,15 +231,12 @@ export class EnvironmentScanner {
     for (const ciDir of ciDirs) {
       if (!fs.existsSync(ciDir)) continue;
 
-      const files = fs
-        .readdirSync(ciDir)
-        .filter((f) => f.endsWith(".yml") || f.endsWith(".yaml"));
+      const files = fs.readdirSync(ciDir).filter((f) => f.endsWith(".yml") || f.endsWith(".yaml"));
 
       for (const file of files) {
         try {
           const content = fs.readFileSync(path.join(ciDir, file), "utf8");
-          const envMatches =
-            content.match(/(\w+):\s*\$\{\{\s*secrets\.(\w+)\s*\}\}/g) ?? [];
+          const envMatches = content.match(/(\w+):\s*\$\{\{\s*secrets\.(\w+)\s*\}\}/g) ?? [];
 
           for (const match of envMatches) {
             const secretMatch = match.match(/secrets\.(\w+)/);
@@ -281,10 +270,7 @@ export class EnvironmentScanner {
     return result;
   }
 
-  private checkVariable(
-    variable: EnvVariable,
-    findings: EnvironmentFinding[],
-  ): void {
+  private checkVariable(variable: EnvVariable, findings: EnvironmentFinding[]): void {
     if (variable.inCode && !variable.inSchema) {
       findings.push({
         findingId: `ENV-ORPHAN-${variable.name}`,
@@ -364,9 +350,7 @@ export class EnvironmentScanner {
     }
   }
 
-  private calculateStatistics(
-    variables: EnvVariable[],
-  ): EnvScanResult["statistics"] {
+  private calculateStatistics(variables: EnvVariable[]): EnvScanResult["statistics"] {
     let inSchema = 0,
       inExample = 0,
       inCode = 0,
@@ -383,9 +367,7 @@ export class EnvironmentScanner {
       if (v.inCode) inCode++;
       if (v.inCI) inCI++;
 
-      const sources = [v.inSchema, v.inExample, v.inCode, v.inCI].filter(
-        Boolean,
-      ).length;
+      const sources = [v.inSchema, v.inExample, v.inCode, v.inCI].filter(Boolean).length;
       if (sources === 4) consistent++;
       else if (sources > 1) inconsistent++;
 
@@ -426,17 +408,13 @@ export class EnvironmentScanner {
           const fullPath = path.join(currentDir, entry.name);
           const relativePath = path.relative(this.config.rootDir, fullPath);
 
-          const excluded = excludePatterns.some((p) =>
-            this.matchPattern(relativePath, p),
-          );
+          const excluded = excludePatterns.some((p) => this.matchPattern(relativePath, p));
           if (excluded) continue;
 
           if (entry.isDirectory()) {
             walk(fullPath);
           } else if (entry.isFile()) {
-            const included = patterns.some((p) =>
-              this.matchPattern(relativePath, p),
-            );
+            const included = patterns.some((p) => this.matchPattern(relativePath, p));
             if (included) files.push(fullPath);
           }
         }
@@ -448,17 +426,12 @@ export class EnvironmentScanner {
   }
 
   private matchPattern(filePath: string, pattern: string): boolean {
-    const regexPattern = pattern
-      .replace(/\*\*/g, ".*")
-      .replace(/\*/g, "[^/]*")
-      .replace(/\?/g, ".");
+    const regexPattern = pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*").replace(/\?/g, ".");
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(filePath);
   }
 }
 
-export function createEnvironmentScanner(
-  config?: EnvScannerConfig,
-): EnvironmentScanner {
+export function createEnvironmentScanner(config?: EnvScannerConfig): EnvironmentScanner {
   return new EnvironmentScanner(config);
 }

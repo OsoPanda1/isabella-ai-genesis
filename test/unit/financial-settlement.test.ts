@@ -8,10 +8,7 @@ import { describe, it, expect } from "vitest";
  * financial-evidence con PG).
  */
 
-import {
-  settlePayment,
-  type SettlementSteps,
-} from "@/lib/financial-settlement";
+import { settlePayment, type SettlementSteps } from "@/lib/financial-settlement";
 
 function baseInput() {
   return {
@@ -29,9 +26,7 @@ function baseInput() {
   };
 }
 
-function workingSteps(
-  overrides: Partial<SettlementSteps> = {},
-): SettlementSteps {
+function workingSteps(overrides: Partial<SettlementSteps> = {}): SettlementSteps {
   const calls: string[] = [];
   return {
     claim: async () => {

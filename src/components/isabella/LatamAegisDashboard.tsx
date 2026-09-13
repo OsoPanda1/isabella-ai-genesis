@@ -49,8 +49,7 @@ export enum AegisLevel {
   LOCKDOWN = 5,
 }
 
-export type Decision =
-  "allow" | "observe" | "challenge" | "quarantine" | "block";
+export type Decision = "allow" | "observe" | "challenge" | "quarantine" | "block";
 
 export interface SecurityEvent {
   event_id: string;
@@ -98,24 +97,21 @@ const INITIAL_LAYERS: HardeningLayer[] = [
     number: 1,
     name: "Integridad de Entrada (L1)",
     status: "ACTIVE",
-    description:
-      "Validación estricta de esquemas Zod con rechazo inmediato de payloads corruptos.",
+    description: "Validación estricta de esquemas Zod con rechazo inmediato de payloads corruptos.",
     metric: "0% bypass",
   },
   {
     number: 2,
     name: "Limitador de Demanda (L2)",
     status: "ACTIVE",
-    description:
-      "Control en memoria de tasa de solicitudes por IP con disyuntor automático.",
+    description: "Control en memoria de tasa de solicitudes por IP con disyuntor automático.",
     metric: "40 req/min limit",
   },
   {
     number: 3,
     name: "Control de Acceso Soberano (L3)",
     status: "ACTIVE",
-    description:
-      "Handshake criptográfico OIDC con tokens JWT de tiempo limitado de un solo uso.",
+    description: "Handshake criptográfico OIDC con tokens JWT de tiempo limitado de un solo uso.",
     metric: "HS256 verified",
   },
   {
@@ -138,8 +134,7 @@ const INITIAL_LAYERS: HardeningLayer[] = [
     number: 6,
     name: "Trazabilidad Telegráfica (L6)",
     status: "ACTIVE",
-    description:
-      "Identificadores únicos correlacionados traceId y correlationId por hilo.",
+    description: "Identificadores únicos correlacionados traceId y correlationId por hilo.",
     metric: "Trace logs signed",
   },
   {
@@ -164,24 +159,18 @@ function PanelLoading() {
 
 export function LatamAegisDashboard() {
   const [level, setLevel] = useState<AegisLevel>(AegisLevel.OPEN);
-  const [auditSecret, setAuditSecret] = useState(
-    "replace-with-another-long-random-secret",
-  );
-  const [hashSecret, setHashSecret] = useState(
-    "replace-with-long-random-secret",
-  );
+  const [auditSecret, setAuditSecret] = useState("replace-with-another-long-random-secret");
+  const [hashSecret, setHashSecret] = useState("replace-with-long-random-secret");
   const [eventsProcessed, setEventsProcessed] = useState(0);
   const [auditChain, setAuditChain] = useState<AuditRecord[]>([]);
-  const [verifyStatus, setVerifyStatus] = useState<
-    "idle" | "verifying" | "valid" | "invalid"
-  >("idle");
+  const [verifyStatus, setVerifyStatus] = useState<"idle" | "verifying" | "valid" | "invalid">(
+    "idle",
+  );
   const [corruptedIndex, setCorruptedIndex] = useState<number | null>(null);
-  const [subTab, setSubTab] = useState<
-    "firewall" | "observability" | "compliance" | "skills"
-  >("firewall");
-  const [toasts, setToasts] = useState<
-    { id: string; message: string; timestamp: string }[]
-  >([]);
+  const [subTab, setSubTab] = useState<"firewall" | "observability" | "compliance" | "skills">(
+    "firewall",
+  );
+  const [toasts, setToasts] = useState<{ id: string; message: string; timestamp: string }[]>([]);
 
   // Listen for self-healing core recovery toasts from backend
   useEffect(() => {
@@ -197,8 +186,7 @@ export function LatamAegisDashboard() {
     };
 
     window.addEventListener("core-recovery-toast", handleRecoveryToast);
-    return () =>
-      window.removeEventListener("core-recovery-toast", handleRecoveryToast);
+    return () => window.removeEventListener("core-recovery-toast", handleRecoveryToast);
   }, []);
 
   // Custom Event Creator state
@@ -213,15 +201,11 @@ export function LatamAegisDashboard() {
 
   // Interactive Live Processing State
   const [lastResult, setLastResult] = useState<DetectionResult | null>(null);
-  const [processingState, setProcessingState] = useState<
-    "idle" | "processing" | "done"
-  >("idle");
+  const [processingState, setProcessingState] = useState<"idle" | "processing" | "done">("idle");
   const [sessionToken, setSessionToken] = useState<string | null>(null);
 
   // Telemetry chart log
-  const [chartData, setChartData] = useState<
-    { name: string; score: number; level: number }[]
-  >([
+  const [chartData, setChartData] = useState<{ name: string; score: number; level: number }[]>([
     { name: "Corrida 1", score: 0.12, level: 0 },
     { name: "Corrida 2", score: 0.18, level: 1 },
     { name: "Corrida 3", score: 0.25, level: 1 },
@@ -261,8 +245,7 @@ export function LatamAegisDashboard() {
     const combined = value + secret;
     for (let i = 0; i < combined.length; i++) {
       hash ^= combined.charCodeAt(i);
-      hash +=
-        (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
     }
     return (hash >>> 0).toString(16).padStart(8, "0");
   };
@@ -293,8 +276,7 @@ export function LatamAegisDashboard() {
       const headers: Record<string, string> = {
         "content-type": "application/json",
       };
-      const tokenToUse =
-        sessionToken || sessionStorage.getItem("isabella_session_token");
+      const tokenToUse = sessionToken || sessionStorage.getItem("isabella_session_token");
       if (tokenToUse) {
         headers["Authorization"] = `Bearer ${tokenToUse}`;
       }
@@ -318,10 +300,7 @@ export function LatamAegisDashboard() {
           ? auditChain[auditChain.length - 1]!.record_hash
           : "GENESIS_BLOCK_LATAM_AEGIS";
       const recordPayload = JSON.stringify(result);
-      const recordHash = calculateStableHash(
-        previousHash + recordPayload,
-        auditSecret,
-      );
+      const recordHash = calculateStableHash(previousHash + recordPayload, auditSecret);
 
       const auditBlock: AuditRecord = {
         timestamp: new Date().toISOString(),
@@ -346,10 +325,7 @@ export function LatamAegisDashboard() {
         },
       ]);
     } catch (err) {
-      console.warn(
-        "Fallo de conexión de pasarela, operando análisis redundante local:",
-        err,
-      );
+      console.warn("Fallo de conexión de pasarela, operando análisis redundante local:", err);
       // Fallback local calculation inside UI
       const sanitizedActor = calculateStableHash(customActor, hashSecret);
       const sanitizedSource = calculateStableHash(customSource, hashSecret);
@@ -363,10 +339,7 @@ export function LatamAegisDashboard() {
 
       const reasons: string[] = [];
       if (customAction === "bulk_export") reasons.push("bulk_data_export");
-      if (
-        customResource === "credential_store" ||
-        customResource === "private_keys"
-      ) {
+      if (customResource === "credential_store" || customResource === "private_keys") {
         reasons.push("sensitive_resource_access");
       }
       if (secretPattern) reasons.push("credential_exfiltration");
@@ -417,8 +390,7 @@ export function LatamAegisDashboard() {
         aegis_level: nextLevel,
         reasons,
         model_version: "aegis-4l-v2.0-fallback-client",
-        learning_mode:
-          nextLevel >= AegisLevel.CONTAIN ? "incident_memory" : "normal",
+        learning_mode: nextLevel >= AegisLevel.CONTAIN ? "incident_memory" : "normal",
         sanitizedActor: `hash_actor_${sanitizedActor}`,
         sanitizedSource: `hash_src_${sanitizedSource}`,
         redactedMetadata,
@@ -429,10 +401,7 @@ export function LatamAegisDashboard() {
           ? auditChain[auditChain.length - 1]!.record_hash
           : "GENESIS_BLOCK_LATAM_AEGIS";
       const recordPayload = JSON.stringify(result);
-      const recordHash = calculateStableHash(
-        previousHash + recordPayload,
-        auditSecret,
-      );
+      const recordHash = calculateStableHash(previousHash + recordPayload, auditSecret);
 
       const auditBlock: AuditRecord = {
         timestamp: new Date().toISOString(),
@@ -475,10 +444,7 @@ export function LatamAegisDashboard() {
         }
 
         const payloadStr = JSON.stringify(block.payload);
-        const expectedHash = calculateStableHash(
-          currentPrevious + payloadStr,
-          auditSecret,
-        );
+        const expectedHash = calculateStableHash(currentPrevious + payloadStr, auditSecret);
 
         if (block.record_hash !== expectedHash) {
           isValid = false;
@@ -606,17 +572,13 @@ export function LatamAegisDashboard() {
               </span>
             </h2>
             <p className="text-xs text-muted-foreground font-mono mt-0.5">
-              Arquitectura de Defensa Adaptativa, Cero Confianza y Aprendizaje
-              en Cuarentena
+              Arquitectura de Defensa Adaptativa, Cero Confianza y Aprendizaje en Cuarentena
             </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2 shrink-0 items-center">
           <div className="text-[10px] font-mono text-muted-foreground bg-secondary/15 px-2.5 py-1.5 rounded-xl border border-border/10">
-            Ingestados:{" "}
-            <span className="text-emerald-400 font-bold">
-              {eventsProcessed}
-            </span>
+            Ingestados: <span className="text-emerald-400 font-bold">{eventsProcessed}</span>
           </div>
           <div
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-mono font-semibold transition-all duration-300 ${getLevelColor(level)}`}
@@ -743,15 +705,9 @@ export function LatamAegisDashboard() {
                         onChange={(e) => setCustomResource(e.target.value)}
                         className="w-full bg-secondary/30 border border-border/25 rounded-xl p-2 text-platinum outline-none cursor-pointer font-mono"
                       >
-                        <option value="research_corpus">
-                          Research Corpus (Público)
-                        </option>
-                        <option value="credential_store">
-                          Credential Store (Privado)
-                        </option>
-                        <option value="private_keys">
-                          Private Keys (Soberano)
-                        </option>
+                        <option value="research_corpus">Research Corpus (Público)</option>
+                        <option value="credential_store">Credential Store (Privado)</option>
+                        <option value="private_keys">Private Keys (Soberano)</option>
                         <option value="audit_ledger">Audit Logs Ledger</option>
                       </select>
                     </div>
@@ -779,9 +735,7 @@ export function LatamAegisDashboard() {
                         min="0"
                         max="1"
                         value={customRate}
-                        onChange={(e) =>
-                          setCustomRate(parseFloat(e.target.value))
-                        }
+                        onChange={(e) => setCustomRate(parseFloat(e.target.value))}
                         className="w-full bg-secondary/30 border border-border/25 rounded-xl p-2 text-platinum outline-none font-mono"
                       />
                     </div>
@@ -797,9 +751,7 @@ export function LatamAegisDashboard() {
                       min="0"
                       max="1"
                       value={customVolume}
-                      onChange={(e) =>
-                        setCustomVolume(parseFloat(e.target.value))
-                      }
+                      onChange={(e) => setCustomVolume(parseFloat(e.target.value))}
                       className="w-full bg-secondary/30 border border-border/25 rounded-xl p-2 text-platinum outline-none font-mono"
                     />
                   </div>
@@ -838,13 +790,11 @@ export function LatamAegisDashboard() {
                     >
                       {processingState === "processing" ? (
                         <>
-                          <RefreshCw className="size-3.5 animate-spin" />{" "}
-                          Procesando en Muro...
+                          <RefreshCw className="size-3.5 animate-spin" /> Procesando en Muro...
                         </>
                       ) : (
                         <>
-                          <Play className="size-3.5" /> Ingestar Evento de
-                          Seguridad
+                          <Play className="size-3.5" /> Ingestar Evento de Seguridad
                         </>
                       )}
                     </button>
@@ -861,47 +811,33 @@ export function LatamAegisDashboard() {
                   </div>
                   <div className="space-y-1.5">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Actor Hasheado:
-                      </span>
+                      <span className="text-muted-foreground">Actor Hasheado:</span>
                       <span className="text-platinum font-semibold">
                         {lastResult.sanitizedActor}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Origen Ofuscado:
-                      </span>
+                      <span className="text-muted-foreground">Origen Ofuscado:</span>
                       <span className="text-platinum font-semibold">
                         {lastResult.sanitizedSource}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Score de Anomalía ML:
-                      </span>
+                      <span className="text-muted-foreground">Score de Anomalía ML:</span>
                       <span className="text-red-400 font-bold">
                         {(lastResult.score * 100).toFixed(0)}%
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">
-                        Decisión de Control:
-                      </span>
+                      <span className="text-muted-foreground">Decisión de Control:</span>
                       {getDecisionBadge(lastResult.decision)}
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Nivel Aegis Escalado:
-                      </span>
-                      <span className="text-platinum">
-                        {getLevelLabel(lastResult.aegis_level)}
-                      </span>
+                      <span className="text-muted-foreground">Nivel Aegis Escalado:</span>
+                      <span className="text-platinum">{getLevelLabel(lastResult.aegis_level)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Modelo de Aprendizaje:
-                      </span>
+                      <span className="text-muted-foreground">Modelo de Aprendizaje:</span>
                       <span className="text-emerald-400">
                         {lastResult.learning_mode.toUpperCase()}
                       </span>
@@ -1037,28 +973,26 @@ export function LatamAegisDashboard() {
                   >
                     {verifyStatus === "verifying" && (
                       <div className="flex items-center gap-2">
-                        <RefreshCw className="size-4 animate-spin" /> Validando
-                        firma de cada registro con HMAC-SHA256...
+                        <RefreshCw className="size-4 animate-spin" /> Validando firma de cada
+                        registro con HMAC-SHA256...
                       </div>
                     )}
                     {verifyStatus === "valid" && (
                       <div className="flex items-center gap-2">
-                        <CheckCircle className="size-4" /> ¡FIRMADO Y SEGURO!
-                        Toda la cadena de bloques está íntegra y encadenada
-                        criptográficamente de forma exitosa.
+                        <CheckCircle className="size-4" /> ¡FIRMADO Y SEGURO! Toda la cadena de
+                        bloques está íntegra y encadenada criptográficamente de forma exitosa.
                       </div>
                     )}
                     {verifyStatus === "invalid" && (
                       <div className="space-y-1">
                         <div className="font-bold flex items-center gap-2 text-red-500">
-                          <ShieldAlert className="size-4 animate-bounce" />{" "}
-                          ¡VIOLACIÓN DE INTEGRIDAD DETECTADA!
+                          <ShieldAlert className="size-4 animate-bounce" /> ¡VIOLACIÓN DE INTEGRIDAD
+                          DETECTADA!
                         </div>
                         <p className="text-[10px] text-muted-foreground">
                           El bloque de auditoría #
-                          {corruptedIndex !== null ? corruptedIndex + 1 : "?"}{" "}
-                          ha sido manipulado directamente en memoria. El hash
-                          actual no se conecta al bloque previo.
+                          {corruptedIndex !== null ? corruptedIndex + 1 : "?"} ha sido manipulado
+                          directamente en memoria. El hash actual no se conecta al bloque previo.
                         </p>
                       </div>
                     )}
@@ -1069,8 +1003,8 @@ export function LatamAegisDashboard() {
                 <div className="space-y-2 max-h-[185px] overflow-y-auto pr-1">
                   {auditChain.length === 0 ? (
                     <div className="text-center p-6 border border-dashed border-border/15 rounded-xl text-muted-foreground italic font-mono text-xs">
-                      Sin registros en el ledger. Ingesta un evento de seguridad
-                      arriba para generar un bloque criptográfico.
+                      Sin registros en el ledger. Ingesta un evento de seguridad arriba para generar
+                      un bloque criptográfico.
                     </div>
                   ) : (
                     auditChain.map((block, idx) => (
@@ -1083,37 +1017,27 @@ export function LatamAegisDashboard() {
                         }`}
                       >
                         <div className="flex justify-between items-center text-platinum">
-                          <span className="font-bold text-electric">
-                            Bloque #{idx + 1}
-                          </span>
+                          <span className="font-bold text-electric">Bloque #{idx + 1}</span>
                           <span className="text-[9.5px] text-muted-foreground">
                             {block.timestamp}
                           </span>
                         </div>
                         <div className="text-[9.5px] text-muted-foreground space-y-0.5 font-mono">
-                          <div className="truncate">
-                            Prev Hash: {block.previous_hash}
-                          </div>
+                          <div className="truncate">Prev Hash: {block.previous_hash}</div>
                           <div className="truncate text-platinum font-bold">
                             Block Hash: {block.record_hash}
                           </div>
                         </div>
                         <div className="p-1.5 bg-secondary/5 border border-border/5 rounded text-[9.5px] flex items-center justify-between">
                           <div className="flex gap-1">
-                            <span className="text-muted-foreground">
-                              Decisión:
-                            </span>
+                            <span className="text-muted-foreground">Decisión:</span>
                             <span className="font-bold text-platinum">
                               {block.payload.decision.toUpperCase()}
                             </span>
                           </div>
                           <div className="flex gap-1">
-                            <span className="text-muted-foreground">
-                              Anomalía:
-                            </span>
-                            <span className="text-red-400 font-bold">
-                              {block.payload.score}
-                            </span>
+                            <span className="text-muted-foreground">Anomalía:</span>
+                            <span className="text-red-400 font-bold">{block.payload.score}</span>
                           </div>
                           <button
                             onClick={() => triggerSelfInterventionAttack(idx)}
@@ -1140,14 +1064,8 @@ export function LatamAegisDashboard() {
             </div>
             <div className="h-[220px] w-full font-mono text-[10px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={chartData}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="rgba(255,255,255,0.05)"
-                  />
+                <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                   <XAxis dataKey="name" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" domain={[0, 1]} />
                   <Tooltip
@@ -1185,13 +1103,10 @@ export function LatamAegisDashboard() {
               <div className="flex items-center gap-2">
                 <Cpu className="size-4 text-emerald-400" />
                 <h3 className="text-sm font-bold font-mono text-platinum uppercase tracking-wider">
-                  Ecosistema Heptafederado de Isabella: Sincronización entre 12
-                  Módulos / 24 Núcleos
+                  Ecosistema Heptafederado de Isabella: Sincronización entre 12 Módulos / 24 Núcleos
                 </h3>
               </div>
-              <span className="text-[10px] font-mono text-muted-foreground">
-                Canal S0 Activo
-              </span>
+              <span className="text-[10px] font-mono text-muted-foreground">Canal S0 Activo</span>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5 text-center font-mono text-[11px]">
@@ -1237,12 +1152,8 @@ export function LatamAegisDashboard() {
                   className="p-3 rounded-xl bg-black/20 border border-border/10 space-y-1 hover:border-border/20 transition-all"
                 >
                   <span className="block font-bold text-platinum">{m.id}</span>
-                  <span className="block text-[9px] text-muted-foreground">
-                    {m.name}
-                  </span>
-                  <span className="block text-[9px] text-emerald-400 font-bold">
-                    🟢 {m.status}
-                  </span>
+                  <span className="block text-[9px] text-muted-foreground">{m.name}</span>
+                  <span className="block text-[9px] text-emerald-400 font-bold">🟢 {m.status}</span>
                   <div className="text-[9px] text-muted-foreground border-t border-border/5 pt-1.5 mt-1.5 flex justify-between">
                     <span>Lat: {m.latency}</span>
                     <span className="text-electric">{m.action}</span>
@@ -1266,15 +1177,11 @@ export function LatamAegisDashboard() {
                 <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
                 S0 AUTOREPARACIÓN COMPLETADA
               </span>
-              <span className="text-[9px] text-muted-foreground">
-                {toast.timestamp}
-              </span>
+              <span className="text-[9px] text-muted-foreground">{toast.timestamp}</span>
             </div>
             <p className="text-white leading-relaxed pt-1">{toast.message}</p>
             <button
-              onClick={() =>
-                setToasts((prev) => prev.filter((t) => t.id !== toast.id))
-              }
+              onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
               className="text-[9px] text-muted-foreground hover:text-white self-end font-semibold pt-1 cursor-pointer"
             >
               Cerrar (Close)

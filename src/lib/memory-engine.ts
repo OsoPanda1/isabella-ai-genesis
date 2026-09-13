@@ -21,8 +21,7 @@ import {
   type MemoryScope,
 } from "./repositories/memory-repository";
 
-export type MemoryActorRole =
-  "SovereignOwner" | "Operator" | "Auditor" | "Guest" | "System";
+export type MemoryActorRole = "SovereignOwner" | "Operator" | "Auditor" | "Guest" | "System";
 
 export interface MemoryAccessRequest {
   tenantId: string;
@@ -57,10 +56,7 @@ export function canAccessScope(request: MemoryAccessRequest): MemoryDecision {
 }
 
 /** Comprueba si el actor puede leer un registro según sensibilidad y tenant. */
-export function canReadRecord(
-  request: MemoryAccessRequest,
-  record: MemoryRecord,
-): MemoryDecision {
+export function canReadRecord(request: MemoryAccessRequest, record: MemoryRecord): MemoryDecision {
   if (record.tenantId !== request.tenantId) {
     return {
       allowed: false,
@@ -68,16 +64,12 @@ export function canReadRecord(
     };
   }
 
-  if (
-    record.sensitivity === "personal" ||
-    record.sensitivity === "restricted"
-  ) {
+  if (record.sensitivity === "personal" || record.sensitivity === "restricted") {
     const isOwner = record.ownerId === request.actorId;
     if (record.sensitivity === "restricted") {
       if (request.role === "SovereignOwner")
         return { allowed: true, reason: "Propietario soberano." };
-      if (request.role === "Auditor")
-        return { allowed: true, reason: "Auditoría autorizada." };
+      if (request.role === "Auditor") return { allowed: true, reason: "Auditoría autorizada." };
       return isOwner
         ? { allowed: true, reason: "Propietario del registro restringido." }
         : { allowed: false, reason: "Registro restringido ajeno." };
@@ -99,9 +91,7 @@ export function canReadRecord(
 /**
  * Crea un motor de memoria con un repositorio inyectable (para test/aislamiento).
  */
-export function createMemoryEngine(
-  repository: MemoryRepository = createMemoryRepository(),
-) {
+export function createMemoryEngine(repository: MemoryRepository = createMemoryRepository()) {
   return {
     /** Recupera memoria de un scope, aplicando autorización real por registro. */
     retrieve(request: MemoryAccessRequest): {

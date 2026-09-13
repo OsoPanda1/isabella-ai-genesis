@@ -39,15 +39,9 @@ function mapRow(row: Record<string, unknown>): ApiKeyRow {
     scopes: Array.isArray(row.scopes) ? (row.scopes as string[]) : [],
     status: row.status as ApiKeyRow["status"],
     created_at: new Date(String(row.created_at)).toISOString(),
-    expires_at: row.expires_at
-      ? new Date(String(row.expires_at)).toISOString()
-      : null,
-    last_used_at: row.last_used_at
-      ? new Date(String(row.last_used_at)).toISOString()
-      : null,
-    revoked_at: row.revoked_at
-      ? new Date(String(row.revoked_at)).toISOString()
-      : null,
+    expires_at: row.expires_at ? new Date(String(row.expires_at)).toISOString() : null,
+    last_used_at: row.last_used_at ? new Date(String(row.last_used_at)).toISOString() : null,
+    revoked_at: row.revoked_at ? new Date(String(row.revoked_at)).toISOString() : null,
     rotated_from: row.rotated_from ? String(row.rotated_from) : null,
     created_by: row.created_by ? String(row.created_by) : null,
     metadata: (row.metadata as Record<string, unknown>) ?? {},
@@ -65,18 +59,12 @@ export function createApiKeyPostgresRepository() {
     return rows[0] ? mapRow(rows[0]) : null;
   }
 
-  async function findByPrefixAllowAny(
-    prefix: string,
-  ): Promise<ApiKeyRow | null> {
-    const rows =
-      await sql`SELECT * FROM public.api_keys WHERE prefix = ${prefix} LIMIT 1`;
+  async function findByPrefixAllowAny(prefix: string): Promise<ApiKeyRow | null> {
+    const rows = await sql`SELECT * FROM public.api_keys WHERE prefix = ${prefix} LIMIT 1`;
     return rows[0] ? mapRow(rows[0]) : null;
   }
 
-  async function findById(
-    tenantId: string,
-    id: string,
-  ): Promise<ApiKeyRow | null> {
+  async function findById(tenantId: string, id: string): Promise<ApiKeyRow | null> {
     const rows =
       await sql`SELECT * FROM public.api_keys WHERE id = ${id} AND tenant_id = ${tenantId} LIMIT 1`;
     return rows[0] ? mapRow(rows[0]) : null;
@@ -122,18 +110,11 @@ export function createApiKeyPostgresRepository() {
     await sql`UPDATE public.api_keys SET last_used_at = now() WHERE id = ${id}`;
   }
 
-  async function updateStatus(
-    id: string,
-    status: ApiKeyRow["status"],
-  ): Promise<void> {
+  async function updateStatus(id: string, status: ApiKeyRow["status"]): Promise<void> {
     await sql`UPDATE public.api_keys SET status = ${status} WHERE id = ${id}`;
   }
 
-  async function setRotatedFrom(
-    newId: string,
-    oldId: string,
-    tenantId: string,
-  ): Promise<void> {
+  async function setRotatedFrom(newId: string, oldId: string, tenantId: string): Promise<void> {
     await sql`UPDATE public.api_keys SET rotated_from = ${oldId} WHERE id = ${newId} AND tenant_id = ${tenantId}`;
   }
 
@@ -150,6 +131,4 @@ export function createApiKeyPostgresRepository() {
   };
 }
 
-export type ApiKeyPostgresRepository = ReturnType<
-  typeof createApiKeyPostgresRepository
->;
+export type ApiKeyPostgresRepository = ReturnType<typeof createApiKeyPostgresRepository>;

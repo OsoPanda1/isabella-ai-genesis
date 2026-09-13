@@ -55,9 +55,7 @@ export function TerminalView() {
     if (!trimmed) return;
 
     // Start performance tracking of CLI command execution
-    const stopTrack = startTrack(
-      `CLI Command Execution: ${trimmed.split(" ")[0]}`,
-    );
+    const stopTrack = startTrack(`CLI Command Execution: ${trimmed.split(" ")[0]}`);
 
     // Save to command history
     setHistory((prev) => [trimmed, ...prev]);
@@ -73,27 +71,12 @@ export function TerminalView() {
       case "help":
         addLine("Comandos Constitucionales Disponibles:", "success");
         addLine("  help      - Muestra esta lista de comandos.", "output");
-        addLine(
-          "  info      - Muestra las especificaciones cognitivas de Isabella.",
-          "output",
-        );
-        addLine(
-          "  status    - Evalúa la salud de las cabezas y latencia de red.",
-          "output",
-        );
-        addLine(
-          "  audit     - Muestra las trazas de decisiones C.R.O.W.N. recientes.",
-          "output",
-        );
-        addLine(
-          "  monetize  - Carga el plan constitucional de monetización soberana.",
-          "output",
-        );
+        addLine("  info      - Muestra las especificaciones cognitivas de Isabella.", "output");
+        addLine("  status    - Evalúa la salud de las cabezas y latencia de red.", "output");
+        addLine("  audit     - Muestra las trazas de decisiones C.R.O.W.N. recientes.", "output");
+        addLine("  monetize  - Carga el plan constitucional de monetización soberana.", "output");
         addLine("  clear     - Limpia el búfer de la terminal.", "output");
-        addLine(
-          "  [texto]   - Envía cualquier otra consulta al motor de Isabella.",
-          "output",
-        );
+        addLine("  [texto]   - Envía cualquier otra consulta al motor de Isabella.", "output");
         stopTrack();
         break;
 
@@ -105,10 +88,7 @@ export function TerminalView() {
       case "info":
         addLine("Especificaciones del Sistema Cognitivo:", "success");
         addLine("  - Arquitectura: Cognitiva Híbrida Gobernada", "output");
-        addLine(
-          "  - Autoría: Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)",
-          "output",
-        );
+        addLine("  - Autoría: Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)", "output");
         addLine("  - ORCID: 0009-0008-5050-1539", "output");
         addLine("  - Gateway: CROWN Decision Router", "output");
         addLine("  - Licencia: CC Attribution 4.0 International", "output");
@@ -138,10 +118,7 @@ export function TerminalView() {
             "  [✓] CROWN Gateway  - En línea (Latencia: 3ms) - Orquestador C.R.O.W.N. activo",
             "output",
           );
-          addLine(
-            "Estado general del nodo: EXCELENTE (Soberanía Territorial 100%)",
-            "success",
-          );
+          addLine("Estado general del nodo: EXCELENTE (Soberanía Territorial 100%)", "success");
           stopTrack();
         }, 300);
         break;
@@ -150,22 +127,10 @@ export function TerminalView() {
         addLine("Recuperando registro de auditoría C.R.O.W.N...", "system");
         setTimeout(() => {
           if (isabella.decision) {
-            addLine(
-              `Última Decisión [ID: ${isabella.decision.traceId}]:`,
-              "success",
-            );
-            addLine(
-              `  - Ruta: ${isabella.decision.primary.toUpperCase()}`,
-              "output",
-            );
-            addLine(
-              `  - Evaluación: ${isabella.decision.policy.toUpperCase()}`,
-              "output",
-            );
-            addLine(
-              `  - Justificación: ${isabella.decision.rationale}`,
-              "output",
-            );
+            addLine(`Última Decisión [ID: ${isabella.decision.traceId}]:`, "success");
+            addLine(`  - Ruta: ${isabella.decision.primary.toUpperCase()}`, "output");
+            addLine(`  - Evaluación: ${isabella.decision.policy.toUpperCase()}`, "output");
+            addLine(`  - Justificación: ${isabella.decision.rationale}`, "output");
             addLine(`  - Regla: ${isabella.decision.policyReason}`, "output");
           } else {
             addLine(
@@ -247,9 +212,7 @@ export function TerminalView() {
     if (lastMsg && lastMsg.role === "isabella" && !lastMsg.streaming) {
       // Avoid duplicate lines of assistant replies
       const text = lastMsg.content;
-      const isDuplicate = lines.some(
-        (l) => l.text === text && l.type === "output",
-      );
+      const isDuplicate = lines.some((l) => l.text === text && l.type === "output");
       if (!isDuplicate) {
         addLine(text, "output");
       }
@@ -313,8 +276,7 @@ export function TerminalView() {
             colorClass = "text-iridescent text-[14px] font-bold tracking-wide";
           if (l.type === "system") colorClass = "text-muted-foreground";
           if (l.type === "error") colorClass = "text-rose-400 font-semibold";
-          if (l.type === "success")
-            colorClass = "text-emerald-400 font-semibold";
+          if (l.type === "success") colorClass = "text-emerald-400 font-semibold";
           if (l.type === "input") colorClass = "text-electric font-semibold";
 
           return (
@@ -338,9 +300,7 @@ export function TerminalView() {
 
       {/* Interactive Command Input Prompt */}
       <div className="bg-secondary/10 border-t border-border/20 px-6 py-4 flex items-center gap-2.5">
-        <span className="text-electric shrink-0 font-semibold">
-          operator@isabella-node-zero:~$
-        </span>
+        <span className="text-electric shrink-0 font-semibold">operator@isabella-node-zero:~$</span>
         <div className="flex-1 flex items-center relative">
           <input
             ref={inputRef}

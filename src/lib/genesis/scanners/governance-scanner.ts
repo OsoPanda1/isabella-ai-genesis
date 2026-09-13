@@ -96,11 +96,7 @@ export class GovernanceScanner {
     const claims = this.scanClaims();
     const policies = this.scanPolicies();
     const docsCodeReconciliation = this.reconcileDocsCode();
-    const findings = this.generateFindings(
-      claims,
-      policies,
-      docsCodeReconciliation,
-    );
+    const findings = this.generateFindings(claims, policies, docsCodeReconciliation);
 
     return {
       claims,
@@ -123,18 +119,8 @@ export class GovernanceScanner {
       const evidenceFound = this.checkClaimEvidence(claim);
       const codeImplemented = this.checkClaimCode(claim);
       const testsPassing = this.checkClaimTests(claim);
-      const status = this.determineStatus(
-        claim,
-        evidenceFound,
-        codeImplemented,
-        testsPassing,
-      );
-      const gaps = this.identifyGaps(
-        claim,
-        evidenceFound,
-        codeImplemented,
-        testsPassing,
-      );
+      const status = this.determineStatus(claim, evidenceFound, codeImplemented, testsPassing);
+      const gaps = this.identifyGaps(claim, evidenceFound, codeImplemented, testsPassing);
 
       results.push({
         claim,
@@ -223,25 +209,9 @@ export class GovernanceScanner {
         "verifyLedgerIntegrity",
       ],
       "CLAIM-004": ["privacy", "gdpr", "dpa", "dipa", "data-protection"],
-      "CLAIM-005": [
-        "atomic",
-        "transaction",
-        "ledger",
-        "bookpi",
-        "quotaBalance",
-      ],
-      "CLAIM-006": [
-        "DATABASE_URL",
-        "postgresql",
-        "authority",
-        "repository-factory",
-      ],
-      "CLAIM-007": [
-        "sovereign",
-        "transactional",
-        "persistence",
-        "sovereign-state-repository",
-      ],
+      "CLAIM-005": ["atomic", "transaction", "ledger", "bookpi", "quotaBalance"],
+      "CLAIM-006": ["DATABASE_URL", "postgresql", "authority", "repository-factory"],
+      "CLAIM-007": ["sovereign", "transactional", "persistence", "sovereign-state-repository"],
       "CLAIM-008": ["kill-switch", "approval-store", "emergency"],
       "CLAIM-009": ["mfa", "step-up", "multi-factor"],
       "CLAIM-010": ["csp", "content-security-policy", "nonce"],
@@ -293,8 +263,7 @@ export class GovernanceScanner {
     const gaps: string[] = [];
     if (!evidenceFound) gaps.push("Evidencia requerida no encontrada");
     if (!codeImplemented) gaps.push("Implementación de código no detectada");
-    if (!testsPassing)
-      gaps.push("Pruebas automatizadas no encontradas o fallando");
+    if (!testsPassing) gaps.push("Pruebas automatizadas no encontradas o fallando");
     return gaps;
   }
 
@@ -486,10 +455,7 @@ export class GovernanceScanner {
         findings.push({
           id: `GOV-CLAIM-NO-EVID-${claim.claim.id}-${Date.now().toString(36)}`,
           type: "CLAIM_WITHOUT_EVIDENCE",
-          severity:
-            claim.claim.requiredStatus === "PRODUCTION-VERIFIED"
-              ? "CRITICAL"
-              : "HIGH",
+          severity: claim.claim.requiredStatus === "PRODUCTION-VERIFIED" ? "CRITICAL" : "HIGH",
           description: `Claim ${claim.claim.id} (${claim.claim.title}) sin evidencia suficiente`,
           location: "docs/governance/",
           remediation: `Generar evidencia: ${claim.claim.evidenceRequired.join(", ")}`,
@@ -538,8 +504,7 @@ export class GovernanceScanner {
             severity: "CRITICAL",
             description: `Claim ${claim.claim.id} reporta estado ${claim.status} pero requiere ${claim.claim.requiredStatus}`,
             location: "docs/governance/",
-            remediation:
-              "Corregir estado del claim o implementar requisitos faltantes",
+            remediation: "Corregir estado del claim o implementar requisitos faltantes",
           });
         }
       }
@@ -596,17 +561,13 @@ export class GovernanceScanner {
           const fullPath = path.join(dir, entry.name);
           const relativePath = path.relative(this.config.rootDir, fullPath);
 
-          const excluded = excludePatterns.some((p) =>
-            this.matchPattern(relativePath, p),
-          );
+          const excluded = excludePatterns.some((p) => this.matchPattern(relativePath, p));
           if (excluded) continue;
 
           if (entry.isDirectory()) {
             walk(fullPath);
           } else if (entry.isFile()) {
-            const included = includePatterns.some((p) =>
-              this.matchPattern(relativePath, p),
-            );
+            const included = includePatterns.some((p) => this.matchPattern(relativePath, p));
             if (included) files.push(fullPath);
           }
         }
@@ -618,17 +579,12 @@ export class GovernanceScanner {
   }
 
   private matchPattern(filePath: string, pattern: string): boolean {
-    const regexPattern = pattern
-      .replace(/\*\*/g, ".*")
-      .replace(/\*/g, "[^/]*")
-      .replace(/\?/g, ".");
+    const regexPattern = pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*").replace(/\?/g, ".");
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(filePath);
   }
 }
 
-export function createGovernanceScanner(
-  config?: GovernanceScannerConfig,
-): GovernanceScanner {
+export function createGovernanceScanner(config?: GovernanceScannerConfig): GovernanceScanner {
   return new GovernanceScanner(config);
 }

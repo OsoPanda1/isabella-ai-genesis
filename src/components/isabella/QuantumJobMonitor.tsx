@@ -1,14 +1,6 @@
 import { useState } from "react";
 import { Cpu, Play, ListCollapse, Clock, Percent } from "lucide-react";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { toast } from "sonner";
 
 interface QuantumJob {
@@ -40,16 +32,10 @@ export function QuantumJobMonitor() {
       { obj: "hamiltonian_spectrum", label: "Ansatz QAOA de Espín" },
     ] as const;
 
-    const randomBackends = [
-      "aer_simulator_local",
-      "aws_braket_dm1",
-      "ibm_sherbrooke_qpu",
-    ] as const;
+    const randomBackends = ["aer_simulator_local", "aws_braket_dm1", "ibm_sherbrooke_qpu"] as const;
 
-    const choice =
-      randomObjectives[Math.floor(Math.random() * randomObjectives.length)];
-    const backend =
-      randomBackends[Math.floor(Math.random() * randomBackends.length)];
+    const choice = randomObjectives[Math.floor(Math.random() * randomObjectives.length)];
+    const backend = randomBackends[Math.floor(Math.random() * randomBackends.length)];
     const qubits = Math.floor(Math.random() * 8) + 2;
 
     const newJob: QuantumJob = {
@@ -67,8 +53,7 @@ export function QuantumJobMonitor() {
     toast.info(`Trabajo ${newId} enviado a la cola del transpilador QUP.`);
 
     try {
-      const { getSessionToken, ensureSessionToken } =
-        await import("@/lib/auth-client");
+      const { getSessionToken, ensureSessionToken } = await import("@/lib/auth-client");
       let token = getSessionToken();
       if (!token) {
         try {
@@ -103,9 +88,7 @@ export function QuantumJobMonitor() {
 
       setJobs((prev) =>
         prev.map((j) =>
-          j.id === newId
-            ? { ...j, status: "Transpiling", timestamp: "Transpilando..." }
-            : j,
+          j.id === newId ? { ...j, status: "Transpiling", timestamp: "Transpilando..." } : j,
         ),
       );
 
@@ -131,9 +114,7 @@ export function QuantumJobMonitor() {
             ? {
                 ...j,
                 status: "Completed",
-                fidelity: parseFloat(
-                  (result.runtime.quantumFidelity * 100).toFixed(1),
-                ),
+                fidelity: parseFloat((result.runtime.quantumFidelity * 100).toFixed(1)),
                 durationMs: result.compilation.latencyMs,
                 timestamp: "Hace unos instantes",
               }
@@ -145,13 +126,9 @@ export function QuantumJobMonitor() {
       );
     } catch (e) {
       setJobs((prev) =>
-        prev.map((j) =>
-          j.id === newId ? { ...j, status: "Failed", timestamp: "Falló" } : j,
-        ),
+        prev.map((j) => (j.id === newId ? { ...j, status: "Failed", timestamp: "Falló" } : j)),
       );
-      toast.error(
-        `Error ejecutando job: ${e instanceof Error ? e.message : "Desconocido"}`,
-      );
+      toast.error(`Error ejecutando job: ${e instanceof Error ? e.message : "Desconocido"}`);
     } finally {
       setIsSimulating(false);
     }
@@ -169,9 +146,7 @@ export function QuantumJobMonitor() {
 
   // Latencia promedio real de los trabajos completados en esta sesión.
   const averageLatencyLabel = (() => {
-    const done = jobs.filter(
-      (j) => j.status === "Completed" && j.durationMs > 0,
-    );
+    const done = jobs.filter((j) => j.status === "Completed" && j.durationMs > 0);
     if (done.length === 0) return "Sin corridas aún";
     const avg = done.reduce((acc, j) => acc + j.durationMs, 0) / done.length;
     return `${(avg / 1000).toFixed(2)} seg / Corrida (${done.length})`;
@@ -203,8 +178,8 @@ export function QuantumJobMonitor() {
         {/* JOBS LIST TABLE */}
         <div className="lg:col-span-7 space-y-2.5">
           <span className="block text-[10px] uppercase font-bold text-white font-mono flex items-center gap-1">
-            <ListCollapse className="size-3.5 text-crown" /> Cola de estimación
-            (estimador clásico QUP):
+            <ListCollapse className="size-3.5 text-crown" /> Cola de estimación (estimador clásico
+            QUP):
           </span>
           <div className="border border-border/10 rounded-xl overflow-hidden bg-black/15">
             <div className="grid grid-cols-12 gap-2 p-2 bg-black/40 text-[9.5px] font-bold text-white border-b border-border/5 uppercase font-mono">
@@ -216,8 +191,8 @@ export function QuantumJobMonitor() {
             <div className="divide-y divide-border/5 max-h-[190px] overflow-auto">
               {jobs.length === 0 && (
                 <div className="p-4 text-center italic text-muted-foreground text-[11px]">
-                  Cola vacía. Inyecta un job para ejecutar el pipeline QUP real
-                  (compilación + estimación + gobernanza + sello de auditoría).
+                  Cola vacía. Inyecta un job para ejecutar el pipeline QUP real (compilación +
+                  estimación + gobernanza + sello de auditoría).
                 </div>
               )}
               {jobs.map((job) => (
@@ -225,16 +200,10 @@ export function QuantumJobMonitor() {
                   key={job.id}
                   className="grid grid-cols-12 gap-2 p-2.5 items-center font-mono text-[10.5px] hover:bg-black/10 transition-colors"
                 >
-                  <div
-                    className="col-span-3 text-white font-bold truncate"
-                    title={job.id}
-                  >
+                  <div className="col-span-3 text-white font-bold truncate" title={job.id}>
                     {job.id}
                   </div>
-                  <div
-                    className="col-span-4 text-muted-foreground truncate"
-                    title={job.objective}
-                  >
+                  <div className="col-span-4 text-muted-foreground truncate" title={job.objective}>
                     {job.objective}{" "}
                     <span className="text-[9px] text-crown font-semibold block">
                       ({job.qubits} qubits)
@@ -279,8 +248,7 @@ export function QuantumJobMonitor() {
         <div className="lg:col-span-5 p-3.5 bg-black/25 border border-border/5 rounded-xl flex flex-col justify-between">
           <div className="space-y-2">
             <span className="block text-[10px] uppercase font-bold text-white font-mono flex items-center gap-1">
-              <Percent className="size-3.5 text-emerald-400" /> Fidelidad
-              Histórica:
+              <Percent className="size-3.5 text-emerald-400" /> Fidelidad Histórica:
             </span>
             <div className="h-[120px] w-full">
               {completedJobsData.length > 0 ? (
@@ -290,14 +258,8 @@ export function QuantumJobMonitor() {
                     margin={{ top: 5, right: 5, left: -32, bottom: 0 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#232635" />
-                    <XAxis
-                      dataKey="name"
-                      tick={{ fill: "#9ca3af", fontSize: 8.5 }}
-                    />
-                    <YAxis
-                      tick={{ fill: "#9ca3af", fontSize: 8.5 }}
-                      domain={[90, 100]}
-                    />
+                    <XAxis dataKey="name" tick={{ fill: "#9ca3af", fontSize: 8.5 }} />
+                    <YAxis tick={{ fill: "#9ca3af", fontSize: 8.5 }} domain={[90, 100]} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "#13151f",
@@ -324,9 +286,7 @@ export function QuantumJobMonitor() {
             <span className="flex items-center gap-1 text-muted-foreground">
               <Clock className="size-3 text-purple-400" /> Latencia Promedio:
             </span>
-            <strong className="text-white font-bold">
-              {averageLatencyLabel}
-            </strong>
+            <strong className="text-white font-bold">{averageLatencyLabel}</strong>
           </div>
         </div>
       </div>

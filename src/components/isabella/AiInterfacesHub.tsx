@@ -19,11 +19,7 @@ interface AiPlatform {
   name: string;
   provider: string;
   category:
-    | "Generales & Chat"
-    | "Código & Desarrollo"
-    | "Diseño & Video"
-    | "Audio & Voz"
-    | "Productividad";
+    "Generales & Chat" | "Código & Desarrollo" | "Diseño & Video" | "Audio & Voz" | "Productividad";
   description: string;
   features: string[];
 }
@@ -416,12 +412,9 @@ export function AiInterfacesHub() {
       platform.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       platform.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
       platform.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      platform.features.some((f) =>
-        f.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
+      platform.features.some((f) => f.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesCategory =
-      activeCategory === "all" || platform.category === activeCategory;
+    const matchesCategory = activeCategory === "all" || platform.category === activeCategory;
 
     return matchesSearch && matchesCategory;
   });
@@ -435,8 +428,7 @@ export function AiInterfacesHub() {
     "Productividad",
   ];
 
-  const currentPlatform =
-    AI_PLATFORMS.find((p) => p.id === selectedPlatform) || AI_PLATFORMS[0];
+  const currentPlatform = AI_PLATFORMS.find((p) => p.id === selectedPlatform) || AI_PLATFORMS[0];
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -468,8 +460,8 @@ export function AiInterfacesHub() {
               Lienzo de Innovación de Interfaces de IA
             </h2>
             <p className="text-xs text-muted-foreground font-mono mt-0.5">
-              Análisis canónico de las 25 inteligencias artificiales y sus
-              mejores características de interfaz (UI).
+              Análisis canónico de las 25 inteligencias artificiales y sus mejores características
+              de interfaz (UI).
             </p>
           </div>
         </div>
@@ -487,9 +479,7 @@ export function AiInterfacesHub() {
               onClick={() => {
                 setActiveCategory(cat);
                 // Auto reset selected platform to first matching search to avoid blank active platform state
-                const firstMatch = AI_PLATFORMS.find(
-                  (p) => cat === "all" || p.category === cat,
-                );
+                const firstMatch = AI_PLATFORMS.find((p) => cat === "all" || p.category === cat);
                 if (firstMatch) setSelectedPlatform(firstMatch.id);
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono transition-all border ${
@@ -499,9 +489,7 @@ export function AiInterfacesHub() {
               }`}
             >
               {getCategoryIcon(cat)}
-              <span className="capitalize">
-                {cat === "all" ? "Todos" : cat}
-              </span>
+              <span className="capitalize">{cat === "all" ? "Todos" : cat}</span>
             </button>
           ))}
         </div>
@@ -646,8 +634,7 @@ export function AiInterfacesHub() {
               <div className="p-4 rounded-xl bg-crown/5 border border-crown/15 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10.5px] font-mono text-crown font-semibold flex items-center gap-1.5">
-                    <MousePointerClick className="size-3.5" /> LIENZO
-                    INTERACTIVO DE SIMULACIÓN UI
+                    <MousePointerClick className="size-3.5" /> LIENZO INTERACTIVO DE SIMULACIÓN UI
                   </span>
                   <span className="text-[9px] font-mono text-muted-foreground">
                     Isabella Cognición Híbrida
@@ -655,9 +642,8 @@ export function AiInterfacesHub() {
                 </div>
                 <p className="text-[10.5px] text-muted-foreground font-mono leading-relaxed">
                   Puedes interactuar con los artefactos y flujos simulados de{" "}
-                  <strong>{currentPlatform.name}</strong>. CROWN Gateway evalúa
-                  que los patrones de UI se adecuen a la soberanía cognitiva
-                  comunitaria.
+                  <strong>{currentPlatform.name}</strong>. CROWN Gateway evalúa que los patrones de
+                  UI se adecuen a la soberanía cognitiva comunitaria.
                 </p>
                 <div className="flex gap-2">
                   <button className="px-3 py-1.5 rounded-lg bg-crown/15 hover:bg-crown text-crown hover:text-black text-[10px] font-bold font-mono uppercase tracking-wider transition-all">
@@ -672,8 +658,8 @@ export function AiInterfacesHub() {
           ) : (
             <div className="p-12 text-center bg-secondary/5 rounded-2xl border border-dashed border-border/15 text-muted-foreground font-mono text-xs">
               <Sparkles className="size-8 text-crown mx-auto mb-3 opacity-60 animate-pulse" />
-              Selecciona una plataforma del menú lateral para inspeccionar sus
-              características UI canonizadas.
+              Selecciona una plataforma del menú lateral para inspeccionar sus características UI
+              canonizadas.
             </div>
           )}
         </div>

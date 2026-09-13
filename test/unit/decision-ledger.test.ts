@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  MemoryLedger,
-  recordDecision,
-  verifyChain,
-} from "@/lib/governance/decision-ledger";
+import { MemoryLedger, recordDecision, verifyChain } from "@/lib/governance/decision-ledger";
 
 describe("Decision ledger", () => {
   it("creates and verifies a hash chain", async () => {

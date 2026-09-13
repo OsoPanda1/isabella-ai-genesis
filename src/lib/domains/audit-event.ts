@@ -37,10 +37,7 @@ export interface AuditEventRow {
 }
 
 /** Construye la carga canónica que se firma con SHA-256. */
-export function auditPayload(
-  event: AuditEventDomain,
-  previousHash: string | null,
-): string {
+export function auditPayload(event: AuditEventDomain, previousHash: string | null): string {
   return JSON.stringify({
     action: event.action,
     resource: event.resource,
@@ -59,9 +56,7 @@ export function computeVerificationHash(
   event: AuditEventDomain,
   previousHash: string | null,
 ): string {
-  return createHash("sha256")
-    .update(auditPayload(event, previousHash))
-    .digest("hex");
+  return createHash("sha256").update(auditPayload(event, previousHash)).digest("hex");
 }
 
 /** Mapea el evento de dominio a la fila persistible (snake_case). */

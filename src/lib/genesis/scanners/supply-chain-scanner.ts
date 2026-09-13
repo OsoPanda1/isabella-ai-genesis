@@ -101,11 +101,7 @@ export class SupplyChainScanner {
       lockfileAnalyses.push(this.analyzeLockfile(lockfile));
     }
 
-    const findings = this.generateFindings(
-      dependencies,
-      lockfileAnalyses,
-      vulnerabilities,
-    );
+    const findings = this.generateFindings(dependencies, lockfileAnalyses, vulnerabilities);
 
     return {
       dependencies,
@@ -114,10 +110,8 @@ export class SupplyChainScanner {
       findings,
       statistics: {
         totalDependencies: dependencies.length,
-        directDependencies: dependencies.filter((d) => d.type === "production")
-          .length,
-        devDependencies: dependencies.filter((d) => d.type === "development")
-          .length,
+        directDependencies: dependencies.filter((d) => d.type === "production").length,
+        devDependencies: dependencies.filter((d) => d.type === "development").length,
         vulnerableDependencies: dependencies.filter((d) => d.vulnerable).length,
         lockfileConsistent: lockfileAnalyses.every((l) => l.consistent),
         multipleLockfiles: lockfileAnalyses.length > 1,
@@ -127,12 +121,7 @@ export class SupplyChainScanner {
 
   private findLockfiles(): string[] {
     const lockfiles: string[] = [];
-    const lockfileNames = [
-      "pnpm-lock.yaml",
-      "package-lock.json",
-      "yarn.lock",
-      "bun.lockb",
-    ];
+    const lockfileNames = ["pnpm-lock.yaml", "package-lock.json", "yarn.lock", "bun.lockb"];
 
     for (const name of lockfileNames) {
       const filePath = path.join(this.config.rootDir, name);
@@ -241,8 +230,7 @@ export class SupplyChainScanner {
           severity: "HIGH",
           description: `Lockfile inconsistente: ${path.basename(lockfile.file)}`,
           location: lockfile.file,
-          remediation:
-            "Regenerar lockfile con instalación limpia (pnpm install --frozen-lockfile)",
+          remediation: "Regenerar lockfile con instalación limpia (pnpm install --frozen-lockfile)",
         });
       }
     }
@@ -259,19 +247,14 @@ export class SupplyChainScanner {
     }
 
     for (const dep of dependencies) {
-      if (
-        dep.version.startsWith("^") ||
-        dep.version.startsWith("~") ||
-        dep.version === "*"
-      ) {
+      if (dep.version.startsWith("^") || dep.version.startsWith("~") || dep.version === "*") {
         findings.push({
           id: `SC-UNPINNED-${dep.name}-${Date.now().toString(36)}`,
           type: "UNPINNED_DEPENDENCY",
           severity: "MEDIUM",
           description: `Dependencia sin pinning exacto: ${dep.name}@${dep.version}`,
           location: "package.json",
-          remediation:
-            "Usar versiones exactas (sin ^, ~, *) para dependencias de producción",
+          remediation: "Usar versiones exactas (sin ^, ~, *) para dependencias de producción",
         });
       }
 
@@ -295,8 +278,6 @@ export class SupplyChainScanner {
   }
 }
 
-export function createSupplyChainScanner(
-  config?: SupplyChainScannerConfig,
-): SupplyChainScanner {
+export function createSupplyChainScanner(config?: SupplyChainScannerConfig): SupplyChainScanner {
   return new SupplyChainScanner(config);
 }

@@ -57,17 +57,13 @@ const FORBIDDEN_STATIC: RegExp[] = [
 function staticRejectReason(code: string): string | null {
   for (const pattern of FORBIDDEN_STATIC) {
     pattern.lastIndex = 0;
-    if (pattern.test(code))
-      return `Construcción prohibida en sandbox: ${pattern.source}.`;
+    if (pattern.test(code)) return `Construcción prohibida en sandbox: ${pattern.source}.`;
   }
   return null;
 }
 
 function estimateGas(code: string, outputChars: number): number {
-  return Math.min(
-    1000,
-    Math.ceil(code.length / 50) + Math.ceil(outputChars / 200),
-  );
+  return Math.min(1000, Math.ceil(code.length / 50) + Math.ceil(outputChars / 200));
 }
 
 /**
@@ -81,11 +77,7 @@ export async function runNodeVmTask(task: VmTask): Promise<VmResult> {
       `Runtime no soportado en el ejecutor local: '${language}'. Solo 'javascript' puro (sin I/O).`,
     );
   }
-  if (
-    typeof task.code !== "string" ||
-    task.code.length === 0 ||
-    task.code.length > 20_000
-  ) {
+  if (typeof task.code !== "string" || task.code.length === 0 || task.code.length > 20_000) {
     throw new Error("Código vacío o mayor a 20KB.");
   }
   const staticRejection = staticRejectReason(task.code);
@@ -127,12 +119,10 @@ export async function runNodeVmTask(task: VmTask): Promise<VmResult> {
       output = String(raw);
     }
   }
-  if (output.length > maxOutput)
-    output = `${output.slice(0, maxOutput)}…[truncado]`;
+  if (output.length > maxOutput) output = `${output.slice(0, maxOutput)}…[truncado]`;
   return {
     output,
-    memoryConsumedBytes:
-      Buffer.byteLength(output, "utf8") + Buffer.byteLength(task.code, "utf8"),
+    memoryConsumedBytes: Buffer.byteLength(output, "utf8") + Buffer.byteLength(task.code, "utf8"),
     gasTokensConsumed: estimateGas(task.code, output.length),
   };
 }

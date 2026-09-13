@@ -26,11 +26,7 @@ export class KeyRotationService {
   private keyring: Keyring;
   private readonly label: string;
 
-  constructor(
-    masterSecret: string,
-    label = "jwt",
-    initialState?: KeyringState,
-  ) {
+  constructor(masterSecret: string, label = "jwt", initialState?: KeyringState) {
     this.label = label;
     this.keyring = initialState
       ? new Keyring(initialState.keys)
@@ -67,9 +63,7 @@ export class KeyRotationService {
       if (!k) continue;
       if (kid === activeKid) continue;
       if (now - k.activeAt > GRACE_PERIOD_MS) {
-        (
-          this.keyring as unknown as { keys: Map<string, KeyMaterial> }
-        ).keys.delete(kid);
+        (this.keyring as unknown as { keys: Map<string, KeyMaterial> }).keys.delete(kid);
       }
     }
   }

@@ -24,8 +24,7 @@ export interface FinancialScanResult {
 export interface FinancialOperation {
   name: string;
   implementation: string;
-  type:
-    "credit" | "debit" | "transfer" | "refund" | "payout" | "webhook_handling";
+  type: "credit" | "debit" | "transfer" | "refund" | "payout" | "webhook_handling";
   atomic: boolean;
   idempotent: boolean;
   doubleEntry: boolean;
@@ -90,11 +89,7 @@ const FINANCIAL_PATTERNS = {
   transfer: [/transfer\s*\(/g, /sendFunds/g, /moveFunds/g],
   refund: [/refund\s*\(/g, /reimburse/g, /returnFunds/g],
   payout: [/payout\s*\(/g, /stripe\.transfers/g, /createTransfer/g],
-  webhook_handling: [
-    /stripe\.webhooks/g,
-    /webhook.*handler/g,
-    /constructEvent/g,
-  ],
+  webhook_handling: [/stripe\.webhooks/g, /webhook.*handler/g, /constructEvent/g],
 };
 
 const ATOMIC_PATTERNS = [
@@ -166,9 +161,7 @@ export class FinancialScanner {
     };
   }
 
-  private detectOperations(
-    allContent: Map<string, string>,
-  ): FinancialOperation[] {
+  private detectOperations(allContent: Map<string, string>): FinancialOperation[] {
     const operations: FinancialOperation[] = [];
 
     for (const [file, content] of allContent) {
@@ -177,24 +170,17 @@ export class FinancialScanner {
           const regex = new RegExp(pattern.source, pattern.flags);
           let match;
           while ((match = regex.exec(content)) !== null) {
-            const lineIndex =
-              content.substring(0, match.index).split("\n").length - 1;
+            const lineIndex = content.substring(0, match.index).split("\n").length - 1;
 
             const atomic = this.checkAtomic(content, match.index);
             const idempotent = this.checkIdempotent(content, match.index);
             const doubleEntry = this.checkDoubleEntry(content, match.index);
-            const ledgerIntegrated = this.checkLedgerIntegrated(
-              content,
-              match.index,
-            );
+            const ledgerIntegrated = this.checkLedgerIntegrated(content, match.index);
             const balanceCheck = this.checkBalanceCheck(content, match.index);
 
             operations.push({
               name: `${opType}_${operations.length}`,
-              implementation: this.getImplementationSnippet(
-                content,
-                match.index,
-              ),
+              implementation: this.getImplementationSnippet(content, match.index),
               type: opType as FinancialOperation["type"],
               atomic,
               idempotent,
@@ -228,9 +214,7 @@ export class FinancialScanner {
 
   private checkLedgerIntegrated(content: string, index: number): boolean {
     const surrounding = content.slice(Math.max(0, index - 1000), index + 1000);
-    return /appendLedgerBlock|bookpi.*append|economic.*event/gi.test(
-      surrounding,
-    );
+    return /appendLedgerBlock|bookpi.*append|economic.*event/gi.test(surrounding);
   }
 
   private checkBalanceCheck(content: string, index: number): boolean {
@@ -322,9 +306,7 @@ export class FinancialScanner {
     const findings: FinancialCriticalFinding[] = [];
 
     const nonAtomic = operations.filter(
-      (o) =>
-        !o.atomic &&
-        (o.type === "debit" || o.type === "credit" || o.type === "transfer"),
+      (o) => !o.atomic && (o.type === "debit" || o.type === "credit" || o.type === "transfer"),
     );
     for (const op of nonAtomic) {
       findings.push({
@@ -348,8 +330,7 @@ export class FinancialScanner {
         description: "Manejo de webhook sin idempotencia atómica",
         risk: "CRITICAL",
         example: op.implementation,
-        remediation:
-          "Usar transacción DB para idempotency + business logic atómico",
+        remediation: "Usar transacción DB para idempotency + business logic atómico",
       });
     }
 
@@ -363,14 +344,11 @@ export class FinancialScanner {
         description: "Débito sin verificación de balance previo",
         risk: "HIGH",
         example: op.implementation,
-        remediation:
-          "Añadir verificación de balance dentro de la transacción antes de mutar",
+        remediation: "Añadir verificación de balance dentro de la transacción antes de mutar",
       });
     }
 
-    const nonAtomicRefunds = operations.filter(
-      (o) => !o.atomic && o.type === "refund",
-    );
+    const nonAtomicRefunds = operations.filter((o) => !o.atomic && o.type === "refund");
     for (const op of nonAtomicRefunds) {
       findings.push({
         type: "REFUND_NOT_ATOMIC",
@@ -378,18 +356,14 @@ export class FinancialScanner {
         description: "Reembolso no atómico",
         risk: "HIGH",
         example: op.implementation,
-        remediation:
-          "Implementar reembolso como transacción atómica que crea evento REFUND_EVENT",
+        remediation: "Implementar reembolso como transacción atómica que crea evento REFUND_EVENT",
       });
     }
 
     const missingLedger = operations.filter(
       (o) =>
         !o.ledgerIntegrated &&
-        (o.type === "debit" ||
-          o.type === "credit" ||
-          o.type === "transfer" ||
-          o.type === "refund"),
+        (o.type === "debit" || o.type === "credit" || o.type === "transfer" || o.type === "refund"),
     );
     for (const op of missingLedger) {
       findings.push({
@@ -398,8 +372,7 @@ export class FinancialScanner {
         description: "Operación financiera no integrada con ledger BookPI",
         risk: "HIGH",
         example: op.implementation,
-        remediation:
-          "Integrar appendLedgerBlock o economic_events en cada mutación financiera",
+        remediation: "Integrar appendLedgerBlock o economic_events en cada mutación financiera",
       });
     }
 
@@ -428,17 +401,13 @@ export class FinancialScanner {
           const fullPath = path.join(currentDir, entry.name);
           const relativePath = path.relative(this.config.rootDir, fullPath);
 
-          const excluded = excludePatterns.some((p) =>
-            this.matchPattern(relativePath, p),
-          );
+          const excluded = excludePatterns.some((p) => this.matchPattern(relativePath, p));
           if (excluded) continue;
 
           if (entry.isDirectory()) {
             walk(fullPath);
           } else if (entry.isFile()) {
-            const included = includePatterns.some((p) =>
-              this.matchPattern(relativePath, p),
-            );
+            const included = includePatterns.some((p) => this.matchPattern(relativePath, p));
             if (included) files.push(fullPath);
           }
         }
@@ -450,17 +419,12 @@ export class FinancialScanner {
   }
 
   private matchPattern(filePath: string, pattern: string): boolean {
-    const regexPattern = pattern
-      .replace(/\*\*/g, ".*")
-      .replace(/\*/g, "[^/]*")
-      .replace(/\?/g, ".");
+    const regexPattern = pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*").replace(/\?/g, ".");
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(filePath);
   }
 }
 
-export function createFinancialScanner(
-  config?: FinancialScannerConfig,
-): FinancialScanner {
+export function createFinancialScanner(config?: FinancialScannerConfig): FinancialScanner {
   return new FinancialScanner(config);
 }

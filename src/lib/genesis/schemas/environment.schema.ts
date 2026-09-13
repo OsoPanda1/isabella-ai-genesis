@@ -34,8 +34,6 @@ export const EnvironmentFindingSchema = z.object({
 
 export type EnvironmentFinding = z.infer<typeof EnvironmentFindingSchema>;
 
-export function validateEnvironmentFinding(
-  finding: unknown,
-): EnvironmentFinding {
+export function validateEnvironmentFinding(finding: unknown): EnvironmentFinding {
   return EnvironmentFindingSchema.parse(finding);
 }

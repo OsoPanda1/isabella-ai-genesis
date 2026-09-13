@@ -30,8 +30,7 @@ describe("ncua:embeddings continuos", () => {
   it("normaliza a norma unitaria", () => {
     const vector = embed("acueducto de padre tembleque", { dim: 192 });
     let norm = 0;
-    for (let index = 0; index < vector.length; index += 1)
-      norm += vector[index] * vector[index];
+    for (let index = 0; index < vector.length; index += 1) norm += vector[index] * vector[index];
     expect(Math.sqrt(norm)).toBeCloseTo(1, 5);
   });
 
@@ -48,10 +47,9 @@ describe("ncua:embeddings continuos", () => {
   });
 
   it("comprime bytes a latente por chunks", () => {
-    const latent = compressToLatent(
-      "compresión continua sin tokens para auditoría",
-      { chunkSize: 8 },
-    );
+    const latent = compressToLatent("compresión continua sin tokens para auditoría", {
+      chunkSize: 8,
+    });
     expect(latent.numChunks).toBeGreaterThan(0);
     expect(latent.latentDim).toBe(192);
     expect(latent.bytesPerChunk).toBeGreaterThan(0);

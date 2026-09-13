@@ -65,10 +65,7 @@ export function forEachByteNgram(
   return count;
 }
 
-export function ngramsOf(
-  text: string,
-  options: ByteNgramOptions = {},
-): number[] {
+export function ngramsOf(text: string, options: ByteNgramOptions = {}): number[] {
   const bytes = encodeUtf8(text);
   const hashes: number[] = [];
   forEachByteNgram(bytes, (gram) => hashes.push(fnv1a(gram)), options);
@@ -78,9 +75,7 @@ export function ngramsOf(
 export function chunkBytes(bytes: Uint8Array, chunkSize: number): Uint8Array[] {
   const chunks: Uint8Array[] = [];
   for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-    chunks.push(
-      bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length)),
-    );
+    chunks.push(bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length)));
   }
   return chunks;
 }

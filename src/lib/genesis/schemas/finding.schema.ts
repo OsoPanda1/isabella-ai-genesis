@@ -1,12 +1,6 @@
 import { z } from "zod";
 
-export const FindingSeveritySchema = z.enum([
-  "CRITICAL",
-  "HIGH",
-  "MEDIUM",
-  "LOW",
-  "INFORMATIONAL",
-]);
+export const FindingSeveritySchema = z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFORMATIONAL"]);
 
 export type FindingSeverity = z.infer<typeof FindingSeveritySchema>;
 
@@ -66,18 +60,14 @@ export const FindingSchema = z.object({
     .default({}),
   exploitability: z
     .object({
-      attackVector: z
-        .enum(["NETWORK", "ADJACENT", "LOCAL", "PHYSICAL"])
-        .default("NETWORK"),
+      attackVector: z.enum(["NETWORK", "ADJACENT", "LOCAL", "PHYSICAL"]).default("NETWORK"),
       attackComplexity: z.enum(["LOW", "HIGH"]).default("LOW"),
       privilegesRequired: z.enum(["NONE", "LOW", "HIGH"]).default("NONE"),
       userInteraction: z.enum(["NONE", "REQUIRED"]).default("NONE"),
       scope: z.enum(["UNCHANGED", "CHANGED"]).default("UNCHANGED"),
     })
     .default({}),
-  blastRadius: z
-    .enum(["SYSTEM", "TENANT", "USER", "COMPONENT"])
-    .default("COMPONENT"),
+  blastRadius: z.enum(["SYSTEM", "TENANT", "USER", "COMPONENT"]).default("COMPONENT"),
   cvss: z
     .object({
       baseScore: z.number().min(0).max(10),
@@ -104,9 +94,7 @@ export const FindingSchema = z.object({
       verificationSteps: z.array(z.string()).default([]),
     })
     .optional(),
-  status: z
-    .enum(["OPEN", "IN_PROGRESS", "RESOLVED", "ACCEPTED", "DEFERRED"])
-    .default("OPEN"),
+  status: z.enum(["OPEN", "IN_PROGRESS", "RESOLVED", "ACCEPTED", "DEFERRED"]).default("OPEN"),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -201,8 +189,7 @@ export function calculatePriority(finding: Finding): {
 
   const baseScore = severityWeights[finding.severity];
   const categoryMultiplier = categoryWeights[finding.category] || 1.0;
-  const exploitabilityBonus =
-    finding.exploitability.attackVector === "NETWORK" ? 10 : 0;
+  const exploitabilityBonus = finding.exploitability.attackVector === "NETWORK" ? 10 : 0;
   const blastRadiusBonus =
     finding.blastRadius === "SYSTEM"
       ? 15
@@ -213,9 +200,7 @@ export function calculatePriority(finding: Finding): {
           : 0;
 
   const score = Math.min(
-    Math.round(
-      baseScore * categoryMultiplier + exploitabilityBonus + blastRadiusBonus,
-    ),
+    Math.round(baseScore * categoryMultiplier + exploitabilityBonus + blastRadiusBonus),
     100,
   );
   const shouldBlockRelease =

@@ -131,8 +131,7 @@ export async function recordEconomicEvent(
       : BigInt(Math.round(input.amountMinor));
   try {
     const cfg = config();
-    const key =
-      input.idempotencyKey ?? input.providerEventId ?? `uuid_${randomUUID()}`;
+    const key = input.idempotencyKey ?? input.providerEventId ?? `uuid_${randomUUID()}`;
     const { rows } = await getPool().query(
       `INSERT INTO economic_events
          (tenant_id, actor_id, event_type, currency, amount_minor, direction,
@@ -146,8 +145,7 @@ export async function recordEconomicEvent(
         input.eventType,
         sum.toString(),
         input.direction,
-        input.source ??
-          (cfg.NODE_ENV === "development" ? "dev_internal" : "internal"),
+        input.source ?? (cfg.NODE_ENV === "development" ? "dev_internal" : "internal"),
         input.provider ?? null,
         input.providerEventId ?? null,
         key,

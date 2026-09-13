@@ -1,8 +1,7 @@
 import { createHash } from "node:crypto";
 import type { IntelligenceProvider, Modality } from "./contracts";
 
-export type ModelStatus =
-  "PROPOSED" | "EVALUATED" | "APPROVED" | "DEPLOYED" | "REVOKED";
+export type ModelStatus = "PROPOSED" | "EVALUATED" | "APPROVED" | "DEPLOYED" | "REVOKED";
 export interface ModelIdentity {
   modelId: string;
   version: string;
@@ -36,8 +35,7 @@ function copyDescriptor(model: ModelDescriptor): ModelDescriptor {
 }
 
 export function registerModel(model: ModelDescriptor): void {
-  if (!/^[a-zA-Z0-9._:/-]{2,160}$/.test(model.modelId))
-    throw new Error("Invalid modelId");
+  if (!/^[a-zA-Z0-9._:/-]{2,160}$/.test(model.modelId)) throw new Error("Invalid modelId");
   runtimeRegistry.set(model.modelId, Object.freeze(copyDescriptor(model)));
 }
 export function getModel(modelId: string): ModelDescriptor | undefined {
@@ -60,10 +58,7 @@ export function registerProvider(provider: IntelligenceProvider): void {
 export function approveModel(modelId: string): void {
   const model = runtimeRegistry.get(modelId);
   if (!model) throw new Error(`Unknown model: ${modelId}`);
-  runtimeRegistry.set(
-    modelId,
-    Object.freeze({ ...model, productionApproved: true }),
-  );
+  runtimeRegistry.set(modelId, Object.freeze({ ...model, productionApproved: true }));
 }
 export function disableModel(modelId: string): void {
   const model = runtimeRegistry.get(modelId);
@@ -94,11 +89,7 @@ export class ModelRegistry {
     this.models.set(key, model);
     return { ...model };
   }
-  setStatus(
-    modelId: string,
-    version: string,
-    status: ModelStatus,
-  ): ModelIdentity {
+  setStatus(modelId: string, version: string, status: ModelStatus): ModelIdentity {
     const key = `${modelId}@${version}`;
     const current = this.models.get(key);
     if (!current) throw new Error(`Modelo no encontrado: ${key}`);
@@ -119,9 +110,6 @@ function stableSerialize(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableSerialize).join(",")}]`;
   return `{${Object.keys(value as Record<string, unknown>)
     .sort()
-    .map(
-      (k) =>
-        `${JSON.stringify(k)}:${stableSerialize((value as Record<string, unknown>)[k])}`,
-    )
+    .map((k) => `${JSON.stringify(k)}:${stableSerialize((value as Record<string, unknown>)[k])}`)
     .join(",")}}`;
 }

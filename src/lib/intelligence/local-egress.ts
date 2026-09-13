@@ -18,10 +18,7 @@ export function isLocalModelUrlAllowed(url: string): boolean {
   }
 }
 
-export async function fetchSafeLocalModel(
-  url: string,
-  options: RequestInit,
-): Promise<Response> {
+export async function fetchSafeLocalModel(url: string, options: RequestInit): Promise<Response> {
   if (!isLocalModelUrlAllowed(url)) {
     throw new Error(`[LocalModelEgress] Endpoint no autorizado: ${url}`);
   }

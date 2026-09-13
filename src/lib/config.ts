@@ -1,9 +1,4 @@
-import {
-  envSchema,
-  requiredEnvKeys,
-  type Env,
-  type RuntimeMode,
-} from "./env-schema";
+import { envSchema, requiredEnvKeys, type Env, type RuntimeMode } from "./env-schema";
 
 type RawEnv = NodeJS.ProcessEnv;
 
@@ -13,9 +8,7 @@ let loadError: string | null = null;
 function resolveEnv(source: RawEnv): Env {
   const parsed = envSchema.safeParse(source);
   if (!parsed.success) {
-    const issues = parsed.error.issues
-      .map((i) => `${i.path.join(".")}: ${i.message}`)
-      .join("; ");
+    const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
     throw new Error(`Configuración de entorno inválida: ${issues}`);
   }
   return parsed.data;
@@ -57,9 +50,7 @@ export function loadConfig(source: RawEnv = process.env): Env {
       source.SUPABASE_DATABASE_POSTGRES_URL,
     ISABELLA_STORAGE_PROVIDER:
       source.ISABELLA_STORAGE_PROVIDER ??
-      ((source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL)
-        ? "postgres"
-        : undefined),
+      ((source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL) ? "postgres" : undefined),
   };
   const parsed = resolveEnv(effectiveSource);
   const mode: RuntimeMode = parsed.ISABELLA_RUNTIME_MODE;
@@ -69,17 +60,12 @@ export function loadConfig(source: RawEnv = process.env): Env {
     assertProductionCrypto(mode, parsed);
     if (mode === "production" || mode === "staging") {
       if (parsed.DURABLE_JSON_ALLOWED) {
-        throw new Error(
-          "DURABLE_JSON_ALLOWED debe ser false en modos no locales",
-        );
+        throw new Error("DURABLE_JSON_ALLOWED debe ser false en modos no locales");
       }
       if (parsed.AUTH_DEV_SESSION_ENABLED) {
         throw new Error("AUTH_DEV_SESSION_ENABLED debe estar desactivado");
       }
-      if (
-        !parsed.DATABASE_URL &&
-        !(parsed.SUPABASE_URL && parsed.AUTH_JWT_SECRET)
-      ) {
+      if (!parsed.DATABASE_URL && !(parsed.SUPABASE_URL && parsed.AUTH_JWT_SECRET)) {
         throw new Error(
           "Se requiere autoridad durable: DATABASE_URL o Supabase con AUTH_JWT_SECRET",
         );
@@ -101,9 +87,7 @@ export function getConfigLoadError(): string | null {
   return loadError;
 }
 
-export function isStorageProviderExplicitlyDeclared(
-  source: RawEnv = process.env,
-): boolean {
+export function isStorageProviderExplicitlyDeclared(source: RawEnv = process.env): boolean {
   const raw = source.ISABELLA_STORAGE_PROVIDER;
   return typeof raw === "string" && raw.trim() !== "";
 }
@@ -116,9 +100,7 @@ export function getCiRunId(source: RawEnv = process.env): string {
   return source.GITHUB_RUN_ID ?? "local";
 }
 
-export function isPayoutCircuitCertified(
-  source: RawEnv = process.env,
-): boolean {
+export function isPayoutCircuitCertified(source: RawEnv = process.env): boolean {
   const raw = source.ISABELLA_PAYOUT_CIRCUIT_CERTIFIED;
   if (typeof raw === "boolean") return raw;
   if (typeof raw !== "string") return false;

@@ -41,16 +41,12 @@ describe("PDP real (authorization.ts)", () => {
     const { evaluateAuthorization } = await import("@/lib/authorization");
     const decision = await evaluateAuthorization(baseCtx({ role: "Guest" }));
     expect(decision.allow).toBe(false);
-    expect(
-      decision.obligations.some((o) => o.startsWith("deny:rbac-deny")),
-    ).toBe(true);
+    expect(decision.obligations.some((o) => o.startsWith("deny:rbac-deny"))).toBe(true);
   });
 
   it("niega rol desconocido (fail-closed)", async () => {
     const { evaluateAuthorization } = await import("@/lib/authorization");
-    const decision = await evaluateAuthorization(
-      baseCtx({ role: "SuperAdmin" }),
-    );
+    const decision = await evaluateAuthorization(baseCtx({ role: "SuperAdmin" }));
     expect(decision.allow).toBe(false);
   });
 
@@ -60,9 +56,7 @@ describe("PDP real (authorization.ts)", () => {
       baseCtx({ resource: "teleport", action: "banish" }),
     );
     expect(decision.allow).toBe(false);
-    expect(
-      decision.obligations.some((o) => o.includes("unknown-operation")),
-    ).toBe(true);
+    expect(decision.obligations.some((o) => o.includes("unknown-operation"))).toBe(true);
   });
 
   it("niega por anomalía de comportamiento", async () => {
@@ -162,9 +156,7 @@ describe("Sello de auditoría real (sovereign-audit.ts)", () => {
     const seal = await SovereignAudit.signAuditSeal(hash);
     const tampered = seal.slice(0, -2) + (seal.endsWith("AA") ? "BB" : "AA");
     expect(await SovereignAudit.verifyAuditSeal(hash, tampered)).toBe(false);
-    expect(
-      await SovereignAudit.verifyAuditSeal(hash, "mldsa-sig-v1:falso"),
-    ).toBe(false);
+    expect(await SovereignAudit.verifyAuditSeal(hash, "mldsa-sig-v1:falso")).toBe(false);
     expect(await SovereignAudit.verifyAuditSeal("otro-hash", seal)).toBe(false);
   });
 });

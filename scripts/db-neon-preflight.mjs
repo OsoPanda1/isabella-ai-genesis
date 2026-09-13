@@ -22,15 +22,11 @@ if (!databaseUrl) {
 }
 
 function query(sql) {
-  const result = spawnSync(
-    "psql",
-    [databaseUrl, "-X", "-v", "ON_ERROR_STOP=1", "-tA", "-c", sql],
-    { encoding: "utf8" },
-  );
+  const result = spawnSync("psql", [databaseUrl, "-X", "-v", "ON_ERROR_STOP=1", "-tA", "-c", sql], {
+    encoding: "utf8",
+  });
   if (result.status !== 0) {
-    console.error(
-      `PREFLIGHT CONNECTION ERROR: ${(result.stderr ?? "").trim()}`,
-    );
+    console.error(`PREFLIGHT CONNECTION ERROR: ${(result.stderr ?? "").trim()}`);
     process.exit(1);
   }
   return (result.stdout ?? "").trim();
@@ -43,14 +39,7 @@ const migrationChecksum = (file) =>
   createHash("sha256")
     .update(readFileSync(resolve(migrationsDir, file)))
     .digest("hex");
-const canonical = [
-  "tenants",
-  "profiles",
-  "sessions",
-  "memories",
-  "audit_events",
-  "bookpi_ledger",
-];
+const canonical = ["tenants", "profiles", "sessions", "memories", "audit_events", "bookpi_ledger"];
 const expectedMemoryColumns = [
   "tenant_id",
   "user_id",
@@ -118,11 +107,8 @@ function stripDollarQuoted(sql) {
 
 const unsafeMigrations = [];
 for (const file of migrations) {
-  const sql = stripDollarQuoted(
-    readFileSync(resolve(migrationsDir, file), "utf8"),
-  );
-  if (unsafePatterns.some((pattern) => pattern.test(sql)))
-    unsafeMigrations.push(file);
+  const sql = stripDollarQuoted(readFileSync(resolve(migrationsDir, file), "utf8"));
+  if (unsafePatterns.some((pattern) => pattern.test(sql))) unsafeMigrations.push(file);
 }
 
 const tableRows = query(
@@ -143,15 +129,8 @@ if (historyExists) {
   )
     .split("\n")
     .filter(Boolean);
-  const requiredHistoryColumns = [
-    "version",
-    "filename",
-    "checksum_sha256",
-    "applied_at",
-  ];
-  const missingHistoryColumns = requiredHistoryColumns.filter(
-    (c) => !historyColumns.includes(c),
-  );
+  const requiredHistoryColumns = ["version", "filename", "checksum_sha256", "applied_at"];
+  const missingHistoryColumns = requiredHistoryColumns.filter((c) => !historyColumns.includes(c));
   if (missingHistoryColumns.length)
     issues.push(
       `migration ledger has incompatible shape; missing columns: ${missingHistoryColumns.join(", ")}`,
@@ -164,32 +143,23 @@ if (historyExists) {
     .filter(Boolean);
   for (const row of rows) {
     const [version, filename, checksum] = row.split("\t");
-    if (version && filename && checksum)
-      applied.set(version, { filename, checksum });
+    if (version && filename && checksum) applied.set(version, { filename, checksum });
   }
 }
 
 const duplicateVersions = migrations.filter(
-  (file, index) =>
-    index > 0 && file.slice(0, 14) === migrations[index - 1].slice(0, 14),
+  (file, index) => index > 0 && file.slice(0, 14) === migrations[index - 1].slice(0, 14),
 );
 if (duplicateVersions.length)
-  issues.push(
-    `duplicate migration version(s): ${duplicateVersions.join(", ")}`,
-  );
+  issues.push(`duplicate migration version(s): ${duplicateVersions.join(", ")}`);
 if (unsafeMigrations.length)
-  issues.push(
-    `automatic Neon path rejects unsafe migration SQL: ${unsafeMigrations.join(", ")}`,
-  );
+  issues.push(`automatic Neon path rejects unsafe migration SQL: ${unsafeMigrations.join(", ")}`);
 
 const drift = [];
 for (const file of migrations) {
   const version = file.slice(0, 14);
   const entry = applied.get(version);
-  if (
-    entry &&
-    (entry.filename !== file || entry.checksum !== migrationChecksum(file))
-  )
+  if (entry && (entry.filename !== file || entry.checksum !== migrationChecksum(file)))
     drift.push(file);
 }
 const pending = migrations.filter((file) => !applied.has(file.slice(0, 14)));
@@ -199,20 +169,16 @@ const memoryColumns = query(
 )
   .split("\n")
   .filter(Boolean);
-const missingMemoryColumns = expectedMemoryColumns.filter(
-  (c) => !memoryColumns.includes(c),
-);
+const missingMemoryColumns = expectedMemoryColumns.filter((c) => !memoryColumns.includes(c));
 
 const functions = query(
   `select routine_name from information_schema.routines where routine_schema='public' and routine_name = any(array['current_tenant_id','current_user_role','current_user_id']) order by routine_name;`,
 )
   .split("\n")
   .filter(Boolean);
-const missingFunctions = [
-  "current_tenant_id",
-  "current_user_role",
-  "current_user_id",
-].filter((f) => !functions.includes(f));
+const missingFunctions = ["current_tenant_id", "current_user_role", "current_user_id"].filter(
+  (f) => !functions.includes(f),
+);
 
 const policies = query(
   `select policyname from pg_policies where schemaname='public' and tablename='memories' order by policyname;`,
@@ -220,29 +186,18 @@ const policies = query(
   .split("\n")
   .filter(Boolean);
 const missingPolicies = expectedPolicies.filter((p) => !policies.includes(p));
-const legacyPolicyPresent = policies.includes(
-  "Tenant multi-tenant isolation policy for memories",
-);
+const legacyPolicyPresent = policies.includes("Tenant multi-tenant isolation policy for memories");
 
 const initPending = pending.includes("20260831122458_init_schema.sql");
-const hardeningPending = pending.includes(
-  "20260909133000_hardening_rls_memory_capabilities.sql",
-);
-const memoryAlignmentPending = pending.includes(
-  "20260903140000_align_memories_sessions_rls.sql",
-);
+const hardeningPending = pending.includes("20260909133000_hardening_rls_memory_capabilities.sql");
+const memoryAlignmentPending = pending.includes("20260903140000_align_memories_sessions_rls.sql");
 
-if (drift.length)
-  issues.push(`migration checksum/history drift: ${drift.join(", ")}`);
+if (drift.length) issues.push(`migration checksum/history drift: ${drift.join(", ")}`);
 if (!historyExists && missingCanonical.length < canonical.length)
   issues.push(
     "canonical schema exists but migration ledger is absent: baseline reconciliation required",
   );
-if (
-  historyExists &&
-  applied.size === 0 &&
-  missingCanonical.length < canonical.length
-)
+if (historyExists && applied.size === 0 && missingCanonical.length < canonical.length)
   issues.push("migration ledger is empty while canonical schema exists");
 if (missingCanonical.length && !initPending)
   issues.push(
@@ -273,9 +228,7 @@ console.log("=== ISABELLA / NEON STRICT READ-ONLY PREFLIGHT ===");
 console.log(`repository migrations: ${migrations.length}`);
 console.log(`ledger: ${historyExists ? `${applied.size} applied` : "ABSENT"}`);
 console.log(`pending: ${pending.length}`);
-console.log(
-  `canonical tables: ${canonical.length - missingCanonical.length}/${canonical.length}`,
-);
+console.log(`canonical tables: ${canonical.length - missingCanonical.length}/${canonical.length}`);
 console.log(
   `memory contract columns: ${expectedMemoryColumns.length - missingMemoryColumns.length}/${expectedMemoryColumns.length}`,
 );
@@ -287,9 +240,7 @@ console.log(
   `legacy broad memory policy: ${legacyPolicyPresent ? (hardeningPending ? "PRESENT — scheduled for transactional replacement" : "PRESENT — BLOCK") : "absent"}`,
 );
 if (pending.length)
-  pending.forEach((file) =>
-    console.log(`PENDING ${file} sha256=${migrationChecksum(file)}`),
-  );
+  pending.forEach((file) => console.log(`PENDING ${file} sha256=${migrationChecksum(file)}`));
 
 if (issues.length) {
   console.error("\nPREFLIGHT BLOCKED:");

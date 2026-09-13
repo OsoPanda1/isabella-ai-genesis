@@ -11,11 +11,7 @@ export const Route = createFileRoute("/api/health")({
         const url = new URL(request.url);
         const path = url.pathname;
         const stage = url.searchParams.get("stage");
-        if (
-          path.endsWith("/live") ||
-          stage === "live" ||
-          url.searchParams.get("health") === "live"
-        )
+        if (path.endsWith("/live") || stage === "live" || url.searchParams.get("health") === "live")
           return liveness();
         if (
           path.endsWith("/ready") ||
@@ -30,19 +26,13 @@ export const Route = createFileRoute("/api/health")({
   },
 });
 
-async function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-): Promise<T> {
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
       promise,
       new Promise<T>((_, reject) => {
-        timer = setTimeout(
-          () => reject(new Error("dependency_timeout")),
-          timeoutMs,
-        );
+        timer = setTimeout(() => reject(new Error("dependency_timeout")), timeoutMs);
       }),
     ]);
   } finally {
@@ -92,15 +82,11 @@ async function deepReadiness(): Promise<Response> {
     body.checks.bookpi = { ok: false, error: "configuration_unavailable" };
   }
   const ok =
-    body.status === "ready" &&
-    body.checks.bookpi?.ok === true &&
-    body.checks.runtime?.ok === true;
+    body.status === "ready" && body.checks.bookpi?.ok === true && body.checks.runtime?.ok === true;
   return json({ ...body, status: ok ? "ready" : "not_ready" }, ok ? 200 : 503);
 }
 
-async function checkRepositoryHealth(
-  kind: "repository" | "audit",
-): Promise<HealthCheck> {
+async function checkRepositoryHealth(kind: "repository" | "audit"): Promise<HealthCheck> {
   const started = performance.now();
   try {
     const { repositoryFactory } = await withTimeout(
@@ -111,10 +97,7 @@ async function checkRepositoryHealth(
       kind === "repository"
         ? repositoryFactory.getTenantRepository()
         : repositoryFactory.getAuditRepository();
-    const result = await withTimeout(
-      repository.health(),
-      DEPENDENCY_TIMEOUT_MS,
-    );
+    const result = await withTimeout(repository.health(), DEPENDENCY_TIMEOUT_MS);
     return {
       ok: result.ok,
       latencyMs: Number((performance.now() - started).toFixed(2)),
@@ -141,8 +124,10 @@ async function readiness(): Promise<Response> {
   let overallOk = repository.ok && audit.ok;
 
   try {
-    const [{ config }, { isProductionLike, resolveRuntimeMode }] =
-      await Promise.all([import("@/lib/config"), import("@/lib/runtime-mode")]);
+    const [{ config }, { isProductionLike, resolveRuntimeMode }] = await Promise.all([
+      import("@/lib/config"),
+      import("@/lib/runtime-mode"),
+    ]);
     const cfg = config();
     const mode = resolveRuntimeMode(cfg.ISABELLA_RUNTIME_MODE);
     const productionLike = isProductionLike(mode);
@@ -150,9 +135,7 @@ async function readiness(): Promise<Response> {
     checks.config = { ok: hasDurableAuthority };
     if (!hasDurableAuthority && productionLike) overallOk = false;
 
-    const genesisConfigured = Boolean(
-      cfg.GEMINI_API_KEY && cfg.CROWN_POLICY_SIGNING_KEY,
-    );
+    const genesisConfigured = Boolean(cfg.GEMINI_API_KEY && cfg.CROWN_POLICY_SIGNING_KEY);
     checks.isabella_genesis = {
       ok: genesisConfigured,
       ...(genesisConfigured ? {} : { error: "genesis_service_unconfigured" }),

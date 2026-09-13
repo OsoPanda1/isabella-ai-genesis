@@ -287,14 +287,7 @@ export const FUNDAMENTACION_TEORICA = {
       "White_House_AI_Bill_of_Rights",
     ],
 
-    nivelesGobernanza: [
-      "informal",
-      "ad_hoc",
-      "formal",
-      "federada",
-      "descentralizada",
-      "autonoma",
-    ],
+    nivelesGobernanza: ["informal", "ad_hoc", "formal", "federada", "descentralizada", "autonoma"],
 
     dominios: [
       "ethics",
@@ -976,14 +969,10 @@ export const ANEXOS_REFERENCIAS = {
   ],
 
   glossary: {
-    caos_unificado:
-      "Archivo único con TODO el conocimiento mezclado (entropía 0.95)",
-    emergencia_cognitiva:
-      "Proceso de crear estructura desde caos sin sesgos previos",
-    etica_nativa:
-      "Ética integrada en ADN del conocimiento (no añadida después)",
-    gobernanza_federada:
-      "Múltítulo de dominios trabajando en conjunto de forma coordinada",
+    caos_unificado: "Archivo único con TODO el conocimiento mezclado (entropía 0.95)",
+    emergencia_cognitiva: "Proceso de crear estructura desde caos sin sesgos previos",
+    etica_nativa: "Ética integrada en ADN del conocimiento (no añadida después)",
+    gobernanza_federada: "Múltítulo de dominios trabajando en conjunto de forma coordinada",
     audit_trail: "Registro inmutable de TODAS las acciones y decisiones",
     ilfc: "Isabella Learning From Chaos (método emergente)",
   },

@@ -25,8 +25,7 @@ export const HELIOS: IsabellaSkill<HeliosInput, HeliosOutput> = {
   version: "v.GENESIS",
   federation: "ECONOMY",
   risk: "MEDIUM",
-  description:
-    "Identifica tendencias, señales sistémicas y puntos de atención en series métricas.",
+  description: "Identifica tendencias, señales sistémicas y puntos de atención en series métricas.",
   canRun: (input) => Boolean(input.series?.length),
   async run(input, context): Promise<SkillResult<HeliosOutput>> {
     const trends = input.series.map((series) => {

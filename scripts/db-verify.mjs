@@ -48,13 +48,10 @@ function staticCheck() {
   // Supabase permite tanto `vector` como `"vector"` y puede instalarla
   // dentro del esquema `extensions`; ambas formas son equivalentes aquí.
   const hasVectorExtension =
-    /create\\s+extension\\s+if\\s+not\\s+exists\\s+["']?vector["']?/i.test(
-      allSql,
-    ) || /pgvector/i.test(allSql);
+    /create\\s+extension\\s+if\\s+not\\s+exists\\s+["']?vector["']?/i.test(allSql) ||
+    /pgvector/i.test(allSql);
   if (!hasVectorExtension)
-    errors.push(
-      "Extensión pgvector no habilitada (requerida por memories.embedding)",
-    );
+    errors.push("Extensión pgvector no habilitada (requerida por memories.embedding)");
 
   return { errors, files };
 }
@@ -79,14 +76,10 @@ if (databaseUrl) {
       console.error("Faltan tablas canónicas:", missing.join(", "));
       process.exit(1);
     }
-    console.log(
-      `Esquema verificado. Tablas presentes: ${REQUIRED_TABLES.length}`,
-    );
+    console.log(`Esquema verificado. Tablas presentes: ${REQUIRED_TABLES.length}`);
     process.exit(0);
   }
-  console.warn(
-    "No se pudo consultar la base (psql no disponible). Verificación estática.",
-  );
+  console.warn("No se pudo consultar la base (psql no disponible). Verificación estática.");
 }
 
 const { errors, files } = staticCheck();
@@ -96,7 +89,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log("Estructura de migraciones OK (verificación estática).");
-console.log(
-  "Define DATABASE_URL para una verificación SQL completa contra la base.",
-);
+console.log("Define DATABASE_URL para una verificación SQL completa contra la base.");
 process.exit(0);

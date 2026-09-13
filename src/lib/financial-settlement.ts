@@ -94,12 +94,10 @@ async function defaultSteps(): Promise<SettlementSteps> {
   const economic = await import("./economic-events");
   const { createBookpiPostgresRepository } =
     await import("./repositories/bookpi-postgres-repository");
-  const { createAuditRepository } =
-    await import("./repositories/audit-repository");
+  const { createAuditRepository } = await import("./repositories/audit-repository");
   const { PostgresAccountingRepository } =
     await import("./accounting/accounting-postgres-repository");
-  const { createDoubleEntryService } =
-    await import("./accounting/double-entry-service");
+  const { createDoubleEntryService } = await import("./accounting/double-entry-service");
   const auditRepository = createAuditRepository();
   const bookpi = createBookpiPostgresRepository();
   return {
@@ -113,13 +111,10 @@ async function defaultSteps(): Promise<SettlementSteps> {
       if (!input.lines || input.lines.length < 2) {
         return {
           success: false,
-          error:
-            "Asiento diferido: se requieren ≥2 líneas balanceadas (débito=crédito).",
+          error: "Asiento diferido: se requieren ≥2 líneas balanceadas (débito=crédito).",
         };
       }
-      const service = createDoubleEntryService(
-        new PostgresAccountingRepository(),
-      );
+      const service = createDoubleEntryService(new PostgresAccountingRepository());
       const result = await service.createDoubleEntryTransaction({
         tenantId: input.tenantId,
         description: input.description,
@@ -210,12 +205,8 @@ export async function settlePayment(
     idempotencyKey: input.idempotencyKey,
   });
   if (!recorded.ok) {
-    if (recorded.duplicate)
-      return { status: "duplicate", steps: completed, compensations };
-    await active.audit(
-      "settlement.record_failed",
-      `Evento económico fallido: ${recorded.error}`,
-    );
+    if (recorded.duplicate) return { status: "duplicate", steps: completed, compensations };
+    await active.audit("settlement.record_failed", `Evento económico fallido: ${recorded.error}`);
     return {
       status: "aborted",
       steps: completed,
@@ -244,10 +235,7 @@ export async function settlePayment(
       reason: `ledger append fallido: ${appended.error}`,
     });
     compensations.push("reversal-recorded");
-    await active.audit(
-      "settlement.ledger_failed",
-      `Compensación registrada: ${appended.error}`,
-    );
+    await active.audit("settlement.ledger_failed", `Compensación registrada: ${appended.error}`);
     return {
       status: "aborted",
       steps: completed,

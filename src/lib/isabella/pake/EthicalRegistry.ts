@@ -1,8 +1,4 @@
-import {
-  EthicalKnowledgeSnippet,
-  GovernanceGuideline,
-  TransparencyMarker,
-} from "./index";
+import { EthicalKnowledgeSnippet, GovernanceGuideline, TransparencyMarker } from "./index";
 
 // Simple browser-safe hash for the chaotic engine simulation
 function generateHash(str: string): string {
@@ -101,15 +97,12 @@ export class EthicalRegistry {
       Array.from(this.guidelines.values()).flatMap((g) => g.snippetIds),
     ).size;
 
-    const density =
-      totalSnippets > 0 ? (anchoredSnippets / totalSnippets) * 100 : 0;
+    const density = totalSnippets > 0 ? (anchoredSnippets / totalSnippets) * 100 : 0;
 
     const avgAuditScore =
       this.markers.size > 0
-        ? Array.from(this.markers.values()).reduce(
-            (acc, m) => acc + m.auditScore,
-            0,
-          ) / this.markers.size
+        ? Array.from(this.markers.values()).reduce((acc, m) => acc + m.auditScore, 0) /
+          this.markers.size
         : 1;
 
     return {
@@ -118,14 +111,8 @@ export class EthicalRegistry {
       guidelinesCount: this.guidelines.size,
       knowledgeDensity: density, // Percentage
       alignmentCheckScore: avgAuditScore * 100, // Percentage
-      activeFlags: Array.from(this.markers.values()).flatMap((m) => m.flags)
-        .length,
-      healthStatus:
-        avgAuditScore > 0.8
-          ? "Optimal"
-          : avgAuditScore > 0.5
-            ? "Warning"
-            : "Critical",
+      activeFlags: Array.from(this.markers.values()).flatMap((m) => m.flags).length,
+      healthStatus: avgAuditScore > 0.8 ? "Optimal" : avgAuditScore > 0.5 ? "Warning" : "Critical",
     };
   }
 }

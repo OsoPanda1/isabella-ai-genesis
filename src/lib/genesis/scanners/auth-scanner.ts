@@ -180,16 +180,7 @@ export class AuthScanner {
         if (!location) location = file;
       }
 
-      for (const claim of [
-        "iss",
-        "sub",
-        "aud",
-        "exp",
-        "jti",
-        "tenantId",
-        "role",
-        "scope",
-      ]) {
+      for (const claim of ["iss", "sub", "aud", "exp", "jti", "tenantId", "role", "scope"]) {
         if (new RegExp(claim).test(content)) {
           claimsFound.add(claim);
         }
@@ -255,9 +246,7 @@ export class AuthScanner {
     };
   }
 
-  private scanSessionManagement(
-    allContent: Map<string, string>,
-  ): SessionManagement {
+  private scanSessionManagement(allContent: Map<string, string>): SessionManagement {
     let implemented = false;
     let refreshTokenRotation = false;
     let sessionRevocation = false;
@@ -367,9 +356,7 @@ export class AuthScanner {
 
     if (
       jwt.implemented &&
-      !["ES256", "ES384", "ES512", "RS256", "RS384", "RS512", "EdDSA"].includes(
-        jwt.algorithm,
-      )
+      !["ES256", "ES384", "ES512", "RS256", "RS384", "RS512", "EdDSA"].includes(jwt.algorithm)
     ) {
       findings.push({
         id: `AUTH-JWT-WEAK-${Date.now().toString(36)}`,
@@ -408,8 +395,7 @@ export class AuthScanner {
         severity: "MEDIUM",
         description: "RBAC implementado pero sin matriz de permisos definida",
         location: rbac.location,
-        remediation:
-          "Definir permission-matrix.ts con roles, recursos y acciones",
+        remediation: "Definir permission-matrix.ts con roles, recursos y acciones",
       });
     }
 
@@ -464,8 +450,7 @@ export class AuthScanner {
         severity: "CRITICAL",
         description: "Operaciones privilegiadas sin step-up authentication",
         location: "global",
-        remediation:
-          "Implementar MFA step-up para SovereignOwner y operaciones críticas",
+        remediation: "Implementar MFA step-up para SovereignOwner y operaciones críticas",
       });
     }
 
@@ -505,17 +490,13 @@ export class AuthScanner {
           const fullPath = path.join(currentDir, entry.name);
           const relativePath = path.relative(this.config.rootDir, fullPath);
 
-          const excluded = excludePatterns.some((p) =>
-            this.matchPattern(relativePath, p),
-          );
+          const excluded = excludePatterns.some((p) => this.matchPattern(relativePath, p));
           if (excluded) continue;
 
           if (entry.isDirectory()) {
             walk(fullPath);
           } else if (entry.isFile()) {
-            const included = includePatterns.some((p) =>
-              this.matchPattern(relativePath, p),
-            );
+            const included = includePatterns.some((p) => this.matchPattern(relativePath, p));
             if (included) files.push(fullPath);
           }
         }
@@ -527,10 +508,7 @@ export class AuthScanner {
   }
 
   private matchPattern(filePath: string, pattern: string): boolean {
-    const regexPattern = pattern
-      .replace(/\*\*/g, ".*")
-      .replace(/\*/g, "[^/]*")
-      .replace(/\?/g, ".");
+    const regexPattern = pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*").replace(/\?/g, ".");
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(filePath);
   }

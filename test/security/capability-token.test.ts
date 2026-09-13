@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { resetConfigCache } from "@/lib/config";
-import {
-  consumeCapabilityToken,
-  issueCapabilityToken,
-} from "@/lib/capability-token";
+import { consumeCapabilityToken, issueCapabilityToken } from "@/lib/capability-token";
 
 describe("capability tokens", () => {
   beforeEach(() => {

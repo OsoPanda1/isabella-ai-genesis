@@ -1,10 +1,6 @@
 import { secrets } from "@/lib/secrets";
 import { SecuritySystem } from "@/lib/security";
-import type {
-  IntelligenceProvider,
-  IntelligenceRequest,
-  IntelligenceResponse,
-} from "./contracts";
+import type { IntelligenceProvider, IntelligenceRequest, IntelligenceResponse } from "./contracts";
 
 export class GeminiProvider implements IntelligenceProvider {
   readonly providerId = "google-gemini";
@@ -42,9 +38,7 @@ export class GeminiProvider implements IntelligenceProvider {
           "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
-          ...(system
-            ? { systemInstruction: { parts: [{ text: system }] } }
-            : {}),
+          ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
           contents,
           generationConfig: {
             temperature: request.temperature ?? 0.7,
@@ -53,8 +47,7 @@ export class GeminiProvider implements IntelligenceProvider {
         }),
       },
     );
-    if (!upstream.ok)
-      throw new Error(`Gemini upstream returned ${upstream.status}`);
+    if (!upstream.ok) throw new Error(`Gemini upstream returned ${upstream.status}`);
     const payload = (await upstream.json()) as {
       candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
     };

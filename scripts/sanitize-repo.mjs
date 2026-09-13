@@ -3,15 +3,9 @@ import path from "node:path";
 import crypto from "node:crypto";
 
 const root = process.cwd();
-const forbiddenFiles = [
-  "package-lock.json",
-  "yarn.lock",
-  "bun.lock",
-  "bun.lockb",
-];
+const forbiddenFiles = ["package-lock.json", "yarn.lock", "bun.lock", "bun.lockb"];
 const legacyMarkers = ["LOVABLE_API_KEY", "@lovable.dev", "lovable.dev"];
-const duplicateScanExtensions =
-  /\.(ts|tsx|js|jsx|mjs|cjs|json|yaml|yml|toml)$/i;
+const duplicateScanExtensions = /\.(ts|tsx|js|jsx|mjs|cjs|json|yaml|yml|toml)$/i;
 const generatedPattern = /(?:\.gen\.|\.generated\.)/i;
 const ignoredDirectories = new Set([
   ".git",
@@ -37,21 +31,13 @@ const hashes = new Map();
 const addFinding = (message) => findings.push(message);
 
 for (const file of forbiddenFiles) {
-  if (fs.existsSync(path.join(root, file)))
-    addFinding(`duplicate lockfile: ${file}`);
+  if (fs.existsSync(path.join(root, file))) addFinding(`duplicate lockfile: ${file}`);
 }
 
-const packageJson = JSON.parse(
-  fs.readFileSync(path.join(root, "package.json"), "utf8"),
-);
-for (const section of [
-  "dependencies",
-  "devDependencies",
-  "optionalDependencies",
-]) {
+const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+for (const section of ["dependencies", "devDependencies", "optionalDependencies"]) {
   for (const name of Object.keys(packageJson[section] ?? {})) {
-    if (name.toLowerCase().includes("lovable"))
-      addFinding(`legacy dependency: ${section}.${name}`);
+    if (name.toLowerCase().includes("lovable")) addFinding(`legacy dependency: ${section}.${name}`);
   }
 }
 
@@ -78,21 +64,14 @@ function walk(dir) {
       addFinding(`stale/duplicate artifact filename: ${relativePath}`);
     }
 
-    if (
-      !/\.(ts|tsx|js|jsx|mjs|cjs|json|md|yaml|yml|env|toml)$/.test(entry.name)
-    )
-      continue;
+    if (!/\.(ts|tsx|js|jsx|mjs|cjs|json|md|yaml|yml|env|toml)$/.test(entry.name)) continue;
 
     const text = fs.readFileSync(full, "utf8");
     for (const marker of legacyMarkers) {
-      if (text.includes(marker))
-        addFinding(`legacy marker ${marker}: ${relativePath}`);
+      if (text.includes(marker)) addFinding(`legacy marker ${marker}: ${relativePath}`);
     }
 
-    if (
-      duplicateScanExtensions.test(entry.name) &&
-      !generatedPattern.test(entry.name)
-    ) {
+    if (duplicateScanExtensions.test(entry.name) && !generatedPattern.test(entry.name)) {
       const hash = crypto.createHash("sha256").update(text).digest("hex");
       const existing = hashes.get(hash);
       if (existing) {

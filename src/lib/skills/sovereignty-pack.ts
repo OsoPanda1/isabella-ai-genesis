@@ -1,10 +1,4 @@
-import {
-  createAuditEvent,
-  Evidence,
-  IsabellaSkill,
-  SkillResult,
-  AuditEvent,
-} from "./contracts";
+import { createAuditEvent, Evidence, IsabellaSkill, SkillResult, AuditEvent } from "./contracts";
 
 // ============================================================================
 // 18. THEMIS (Explainable Audit Engine)
@@ -30,14 +24,10 @@ export const THEMIS: IsabellaSkill<ThemisInput, ThemisOutput> = {
   version: "v.GENESIS",
   federation: "SOVEREIGNTY",
   risk: "HIGH",
-  description:
-    "Genera expedientes explicables de decisiones, evidencia y rutas de auditoría.",
+  description: "Genera expedientes explicables de decisiones, evidencia y rutas de auditoría.",
   canRun: (input) => Boolean(input.decisionId && input.decision),
   async run(input, context): Promise<SkillResult<ThemisOutput>> {
-    const evidenceWeight = input.evidence.reduce(
-      (sum, item) => sum + (item.score ?? 0.5),
-      0,
-    );
+    const evidenceWeight = input.evidence.reduce((sum, item) => sum + (item.score ?? 0.5), 0);
 
     const auditability =
       input.evidence.length >= 2 && input.events.length >= 2
@@ -62,9 +52,7 @@ export const THEMIS: IsabellaSkill<ThemisInput, ThemisOutput> = {
       evidence: input.evidence,
       warnings:
         auditability === "INSUFFICIENT"
-          ? [
-              "No hay evidencia suficiente para defender esta decisión de forma auditable.",
-            ]
+          ? ["No hay evidencia suficiente para defender esta decisión de forma auditable."]
           : [],
       auditEvents: [
         createAuditEvent(
@@ -111,13 +99,9 @@ export const SENTINEL: IsabellaSkill<SentinelInput, SentinelOutput> = {
   canRun: (input) => Boolean(input.actorId),
   async run(input, context): Promise<SkillResult<SentinelOutput>> {
     const severe =
-      input.requestsLastMinute > 120 ||
-      input.failedAttempts > 15 ||
-      input.previousBlocks >= 3;
+      input.requestsLastMinute > 120 || input.failedAttempts > 15 || input.previousBlocks >= 3;
     const moderate =
-      input.requestsLastMinute > 45 ||
-      input.failedAttempts > 5 ||
-      input.previousBlocks >= 1;
+      input.requestsLastMinute > 45 || input.failedAttempts > 5 || input.previousBlocks >= 1;
 
     const output: SentinelOutput = severe
       ? {
@@ -128,8 +112,7 @@ export const SENTINEL: IsabellaSkill<SentinelInput, SentinelOutput> = {
       : moderate
         ? {
             action: "THROTTLE",
-            reason:
-              "Volumen o fallos inusuales; se limita la tasa de solicitudes.",
+            reason: "Volumen o fallos inusuales; se limita la tasa de solicitudes.",
             retryAfterSeconds: 60,
           }
         : {
@@ -156,9 +139,7 @@ export const SENTINEL: IsabellaSkill<SentinelInput, SentinelOutput> = {
           context.actorId,
         ),
         createAuditEvent(
-          output.action === "TEMPORARY_BLOCK"
-            ? "SKILL_BLOCKED"
-            : "SKILL_COMPLETED",
+          output.action === "TEMPORARY_BLOCK" ? "SKILL_BLOCKED" : "SKILL_COMPLETED",
           "SENTINEL",
           { ...output },
           context.actorId,

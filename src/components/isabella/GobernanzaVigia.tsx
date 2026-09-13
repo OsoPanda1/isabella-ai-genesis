@@ -75,19 +75,14 @@ export function GobernanzaVigia() {
             const scoreOffset = Math.random() * 0.2 - 0.1;
             return {
               ...mod,
-              complianceScore: Math.min(
-                100,
-                Math.max(90, mod.complianceScore + scoreOffset),
-              ),
+              complianceScore: Math.min(100, Math.max(90, mod.complianceScore + scoreOffset)),
               metricValue: `${Math.min(1.0, 0.98 + Math.random() * 0.015).toFixed(3)} / 1.0`,
             };
           }
           if (mod.id === "themis") {
             // increment signed transactions randomly
             if (Math.random() > 0.7) {
-              const currentTx = parseInt(
-                mod.metricValue.split(" ")[0].replace(/,/g, ""),
-              );
+              const currentTx = parseInt(mod.metricValue.split(" ")[0].replace(/,/g, ""));
               return {
                 ...mod,
                 metricValue: `${(currentTx + 1).toLocaleString()} Transacciones`,
@@ -106,8 +101,7 @@ export function GobernanzaVigia() {
     setModules((prev) =>
       prev.map((mod) => {
         if (mod.id === id) {
-          const nextMode =
-            mod.mode === "STRICT_ENFORCE" ? "MONITOR_ONLY" : "STRICT_ENFORCE";
+          const nextMode = mod.mode === "STRICT_ENFORCE" ? "MONITOR_ONLY" : "STRICT_ENFORCE";
           toast.success(`${mod.name} reconfigurado a modo: ${nextMode}`);
           return {
             ...mod,
@@ -136,10 +130,9 @@ export function GobernanzaVigia() {
       </div>
 
       <p className="text-[11px] leading-relaxed">
-        Verifique el estado operativo de los cuatro nodos cognitivos de
-        gobernanza soberana. Cada nodo opera de forma paralela en el pipeline
-        C.R.O.W.N. para auditar, firmar, simular o bloquear flujos de trabajo
-        según políticas territoriales.
+        Verifique el estado operativo de los cuatro nodos cognitivos de gobernanza soberana. Cada
+        nodo opera de forma paralela en el pipeline C.R.O.W.N. para auditar, firmar, simular o
+        bloquear flujos de trabajo según políticas territoriales.
       </p>
 
       {/* COMPLIANCE LIST */}
@@ -154,9 +147,7 @@ export function GobernanzaVigia() {
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5">
                   <span className="size-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-                  <h4 className="text-xs font-bold text-white font-mono">
-                    {mod.name}
-                  </h4>
+                  <h4 className="text-xs font-bold text-white font-mono">{mod.name}</h4>
                 </div>
                 <p className="text-[9.5px] text-muted-foreground font-mono leading-tight max-w-[85%]">
                   {mod.role}
@@ -168,9 +159,7 @@ export function GobernanzaVigia() {
             </div>
 
             {/* Description */}
-            <p className="text-[10.5px] leading-relaxed text-muted-foreground">
-              {mod.description}
-            </p>
+            <p className="text-[10.5px] leading-relaxed text-muted-foreground">{mod.description}</p>
 
             {/* Metrics & Mode Controllers */}
             <div className="pt-2 border-t border-border/5 flex items-center justify-between text-[10px] font-mono gap-2">
@@ -178,9 +167,7 @@ export function GobernanzaVigia() {
                 <span className="text-muted-foreground text-[9px] block uppercase">
                   {mod.metricLabel}:
                 </span>
-                <strong className="text-white font-semibold block">
-                  {mod.metricValue}
-                </strong>
+                <strong className="text-white font-semibold block">{mod.metricValue}</strong>
               </div>
 
               <div className="flex items-center gap-2">
@@ -197,9 +184,7 @@ export function GobernanzaVigia() {
                   {mod.mode === "STRICT_ENFORCE" ? "Estricto" : "Monitor"}
                 </button>
                 <div className="text-right">
-                  <span className="text-muted-foreground text-[8.5px] block">
-                    PUNTAJE:
-                  </span>
+                  <span className="text-muted-foreground text-[8.5px] block">PUNTAJE:</span>
                   <strong className="text-emerald-400 font-bold">
                     {mod.complianceScore.toFixed(1)}%
                   </strong>

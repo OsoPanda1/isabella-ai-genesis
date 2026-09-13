@@ -9,11 +9,7 @@ import {
   verifyBlockSignature,
   type BookPiSignatureAlgorithm,
 } from "../crypto/bookpi-signer";
-import type {
-  BlockPIBlock,
-  LedgerCategory,
-  LedgerStatus,
-} from "./bookpi-repository";
+import type { BlockPIBlock, LedgerCategory, LedgerStatus } from "./bookpi-repository";
 
 const GENESIS_PREVIOUS_HASH = "0".repeat(64);
 
@@ -56,9 +52,7 @@ export function disposeBookpiPool(): Promise<void> {
  * deben producir el mismo hash (por eso existe canonical-payload.ts).
  */
 function hashBlock(block: Omit<BlockPIBlock, "blockHash">): string {
-  return createHash("sha256")
-    .update(canonicalBookPiPayload(block))
-    .digest("hex");
+  return createHash("sha256").update(canonicalBookPiPayload(block)).digest("hex");
 }
 
 function mapRow(row: Record<string, unknown>): BlockPIBlock {
@@ -75,9 +69,7 @@ function mapRow(row: Record<string, unknown>): BlockPIBlock {
     blockHash: String(row.block_hash ?? row.hash),
     pqcSignature: (row.pqc_signature as string) ?? null,
     signatureAlgorithm: String(row.signature_algorithm ?? "SHA-256"),
-    status: (String(row.status) === "refunded"
-      ? "refunded"
-      : "settled") as LedgerStatus,
+    status: (String(row.status) === "refunded" ? "refunded" : "settled") as LedgerStatus,
     nonce: String(row.id ?? randomUUID()),
   };
 }
@@ -95,10 +87,9 @@ export function createBookpiPostgresRepository() {
   return {
     list(tenantId: string): Promise<BlockPIBlock[]> {
       return pool
-        .query(
-          "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index ASC",
-          [tenantId],
-        )
+        .query("SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index ASC", [
+          tenantId,
+        ])
         .then((r) => r.rows.map(mapRow));
     },
     async append(input: {
@@ -225,8 +216,7 @@ export function createBookpiPostgresRepository() {
         // Group inputs by tenant to handle locks correctly and fetch previous hash once per tenant
         const tenantGroups = new Map<string, typeof inputs>();
         for (const input of inputs) {
-          if (!tenantGroups.has(input.tenantId))
-            tenantGroups.set(input.tenantId, []);
+          if (!tenantGroups.has(input.tenantId)) tenantGroups.set(input.tenantId, []);
           tenantGroups.get(input.tenantId)!.push(input);
         }
 
@@ -383,10 +373,7 @@ export function createBookpiPostgresRepository() {
           return { success: true, prunedCount: 0 };
         }
 
-        await client.query(
-          "DELETE FROM public.bookpi_ledger WHERE tenant_id = $1",
-          [tenantId],
-        );
+        await client.query("DELETE FROM public.bookpi_ledger WHERE tenant_id = $1", [tenantId]);
 
         let prevHash = GENESIS_PREVIOUS_HASH;
         for (let i = 0; i < blocksToKeep.length; i++) {
@@ -470,16 +457,13 @@ export function createBookpiPostgresRepository() {
           [cutoffDate],
         );
 
-        const tenantsToPrune = rows.map((r: { tenant_id: unknown }) =>
-          String(r.tenant_id),
-        );
+        const tenantsToPrune = rows.map((r: { tenant_id: unknown }) => String(r.tenant_id));
 
         if (tenantsToPrune.length > 0) {
           // Delete all records for these tenants
-          await client.query(
-            "DELETE FROM public.bookpi_ledger WHERE tenant_id = ANY($1)",
-            [tenantsToPrune],
-          );
+          await client.query("DELETE FROM public.bookpi_ledger WHERE tenant_id = ANY($1)", [
+            tenantsToPrune,
+          ]);
         }
 
         await client.query("COMMIT");
@@ -508,9 +492,7 @@ export function createBookpiPostgresRepository() {
       try {
         await client.query("BEGIN");
 
-        const tenantHash = createHash("sha256")
-          .update(requestor.tenantId)
-          .digest();
+        const tenantHash = createHash("sha256").update(requestor.tenantId).digest();
         const lockId = tenantHash.readInt32BE(0);
         await client.query("SELECT pg_advisory_xact_lock($1)", [lockId]);
 
@@ -654,7 +636,5 @@ export function createBookpiPostgresRepository() {
   };
 }
 
-export type BookpiPostgresRepository = ReturnType<
-  typeof createBookpiPostgresRepository
->;
+export type BookpiPostgresRepository = ReturnType<typeof createBookpiPostgresRepository>;
 export type { BookPiSignatureAlgorithm };

@@ -44,9 +44,9 @@ describe("node vm executor", () => {
   });
 
   it("deniega runtimes no-JS", async () => {
-    await expect(
-      runNodeVmTask({ code: "print(1)", language: "python" }),
-    ).rejects.toThrow(/no soportado/i);
+    await expect(runNodeVmTask({ code: "print(1)", language: "python" })).rejects.toThrow(
+      /no soportado/i,
+    );
   });
 
   it("trunca salidas gigantes", async () => {

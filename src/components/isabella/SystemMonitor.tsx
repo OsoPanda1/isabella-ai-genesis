@@ -44,9 +44,7 @@ function formatTimestamp(value?: string): string {
 }
 
 export function SystemMonitor() {
-  const [envMode, setEnvMode] = useState<
-    "development" | "staging" | "production"
-  >("production");
+  const [envMode, setEnvMode] = useState<"development" | "staging" | "production">("production");
   const [live, setLive] = useState<HealthState>("unknown");
   const [ready, setReady] = useState<HealthState>("unknown");
   const [deep, setDeep] = useState<HealthState>("unknown");
@@ -59,8 +57,7 @@ export function SystemMonitor() {
     const host = window.location.hostname;
     if (host.includes("-dev") || host === "localhost" || host === "127.0.0.1")
       setEnvMode("development");
-    else if (host.includes("-pre") || host.includes("staging"))
-      setEnvMode("staging");
+    else if (host.includes("-pre") || host.includes("staging")) setEnvMode("staging");
     else setEnvMode("production");
   }, []);
 
@@ -150,9 +147,7 @@ export function SystemMonitor() {
             aria-label="Actualizar estado"
             className="p-1.5 rounded-lg border border-border/10 hover:bg-white/5"
           >
-            <RefreshCw
-              className={`size-3 ${isRefreshing ? "animate-spin" : ""}`}
-            />
+            <RefreshCw className={`size-3 ${isRefreshing ? "animate-spin" : ""}`} />
           </button>
         </div>
       </div>
@@ -188,17 +183,13 @@ export function SystemMonitor() {
           </span>
           <div className="flex items-center justify-between text-[10px]">
             <span>PostgreSQL repository</span>
-            <strong
-              className={dbCheck?.ok ? "text-emerald-400" : "text-red-400"}
-            >
+            <strong className={dbCheck?.ok ? "text-emerald-400" : "text-red-400"}>
               {dbCheck?.ok ? "HEALTHY" : "UNAVAILABLE"}
             </strong>
           </div>
           <div className="flex items-center justify-between text-[10px]">
             <span>Audit repository</span>
-            <strong
-              className={auditCheck?.ok ? "text-emerald-400" : "text-red-400"}
-            >
+            <strong className={auditCheck?.ok ? "text-emerald-400" : "text-red-400"}>
               {auditCheck?.ok ? "HEALTHY" : "UNAVAILABLE"}
             </strong>
           </div>
@@ -209,13 +200,10 @@ export function SystemMonitor() {
             <ShieldAlert className="size-3.5" /> Evidencia operacional
           </span>
           <p className="text-[10px] leading-relaxed">
-            CPU, memoria, pods y escalado Kubernetes no se inventan desde el
-            navegador. Conexión a un proveedor de métricas no disponible =
-            estado explícito “no conectado”.
+            CPU, memoria, pods y escalado Kubernetes no se inventan desde el navegador. Conexión a
+            un proveedor de métricas no disponible = estado explícito “no conectado”.
           </p>
-          <p className="text-[9px]">
-            Última comprobación: {formatTimestamp(lastCheck)}
-          </p>
+          <p className="text-[9px]">Última comprobación: {formatTimestamp(lastCheck)}</p>
         </div>
       </div>
 
@@ -229,29 +217,23 @@ export function SystemMonitor() {
               key={name}
               className="flex items-center justify-between p-2 bg-black/15 border border-border/5 rounded-lg"
             >
-              <span className="text-white font-semibold text-[10px]">
-                {name}
-              </span>
+              <span className="text-white font-semibold text-[10px]">{name}</span>
               <span className={check?.ok ? "text-emerald-400" : "text-red-400"}>
                 {check?.ok ? "OK" : (check?.error ?? "FAIL")}
-                {typeof check?.latencyMs === "number"
-                  ? ` · ${check.latencyMs.toFixed(1)}ms`
-                  : ""}
+                {typeof check?.latencyMs === "number" ? ` · ${check.latencyMs.toFixed(1)}ms` : ""}
               </span>
             </div>
           ))}
           {Object.keys(checks ?? {}).length === 0 && (
-            <div className="p-2 text-[10px]">
-              Sin evidencia de checks disponible.
-            </div>
+            <div className="p-2 text-[10px]">Sin evidencia de checks disponible.</div>
           )}
         </div>
       </div>
 
       {ready === "failed" && (
         <p className="text-[9px] text-amber-300">
-          El entorno no está listo para operaciones críticas. El monitor refleja
-          el estado del backend y no intenta maquillarlo.
+          El entorno no está listo para operaciones críticas. El monitor refleja el estado del
+          backend y no intenta maquillarlo.
         </p>
       )}
     </div>

@@ -6,10 +6,7 @@ import {
   type CognitiveTrainingSample,
   type CognitiveTrainingStrategy,
 } from "@/lib/isabella-cognitive-training";
-import {
-  loadLearningRuntime,
-  persistLearningRuntime,
-} from "@/lib/isabella-learning-persistence";
+import { loadLearningRuntime, persistLearningRuntime } from "@/lib/isabella-learning-persistence";
 
 const STRATEGIES = new Set<CognitiveTrainingStrategy>([
   "semantic",
@@ -37,8 +34,7 @@ function json(data: unknown, status = 200): Response {
 function parseSample(value: unknown): CognitiveTrainingSample | null {
   if (!value || typeof value !== "object") return null;
   const sample = value as Record<string, unknown>;
-  if (typeof sample.input !== "string" || typeof sample.source !== "string")
-    return null;
+  if (typeof sample.input !== "string" || typeof sample.source !== "string") return null;
   return {
     input: sample.input,
     target: typeof sample.target === "string" ? sample.target : undefined,
@@ -66,17 +62,13 @@ export const Route = createFileRoute("/api/isabella-cognitive-training")({
         } catch {
           return json({ error: "INVALID_JSON" }, 400);
         }
-        if (!body || typeof body !== "object")
-          return json({ error: "VALIDATION_ERROR" }, 400);
+        if (!body || typeof body !== "object") return json({ error: "VALIDATION_ERROR" }, 400);
         const payload = body as Record<string, unknown>;
         const action = payload.action ?? "train";
         const runtime = await loadLearningRuntime(context.tenantId).catch(
           (error: unknown) =>
             ({
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "LEARNING_RUNTIME_UNAVAILABLE",
+              error: error instanceof Error ? error.message : "LEARNING_RUNTIME_UNAVAILABLE",
             }) as const,
         );
         if ("error" in runtime) return json({ error: runtime.error }, 503);
@@ -88,21 +80,11 @@ export const Route = createFileRoute("/api/isabella-cognitive-training")({
             typeof strategy !== "string" ||
             !STRATEGIES.has(strategy as CognitiveTrainingStrategy)
           ) {
-            return json(
-              { error: "INVALID_STRATEGY", allowed: [...STRATEGIES] },
-              400,
-            );
+            return json({ error: "INVALID_STRATEGY", allowed: [...STRATEGIES] }, 400);
           }
           const sample = parseSample(payload.sample);
-          if (!sample)
-            return json(
-              { error: "INVALID_SAMPLE", required: ["input", "source"] },
-              400,
-            );
-          const result = engine.train(
-            strategy as CognitiveTrainingStrategy,
-            sample,
-          );
+          if (!sample) return json({ error: "INVALID_SAMPLE", required: ["input", "source"] }, 400);
+          const result = engine.train(strategy as CognitiveTrainingStrategy, sample);
           if (runtime.durable && result.accepted > 0)
             await persistLearningRuntime(context.tenantId, runtime.engine);
           return json(result);
@@ -162,13 +144,7 @@ export const Route = createFileRoute("/api/isabella-cognitive-training")({
         return json(
           {
             error: "UNKNOWN_ACTION",
-            allowed: [
-              "train",
-              "train-batch",
-              "evaluate",
-              "retrieve",
-              "snapshot",
-            ],
+            allowed: ["train", "train-batch", "evaluate", "retrieve", "snapshot"],
           },
           400,
         );

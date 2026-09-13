@@ -28,9 +28,7 @@ function genId(): string {
 }
 
 export function createRequestContext(
-  opts: Partial<
-    Pick<RequestContextData, "clientIp" | "method" | "path" | "route">
-  >,
+  opts: Partial<Pick<RequestContextData, "clientIp" | "method" | "path" | "route">>,
 ): RequestContextData {
   const startedAt = Date.now();
   return {
@@ -45,10 +43,7 @@ export function createRequestContext(
   };
 }
 
-export function withRequestContext<T>(
-  data: RequestContextData,
-  fn: () => T,
-): T {
+export function withRequestContext<T>(data: RequestContextData, fn: () => T): T {
   return requestStore.run(data, fn);
 }
 

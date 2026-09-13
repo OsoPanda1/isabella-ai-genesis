@@ -27,9 +27,7 @@ export const LearningExampleSchema = z.object({
   target: z.string().max(100_000).optional(),
   negative: z.string().max(100_000).optional(),
   context: z.record(z.string(), z.unknown()).optional(),
-  outcome: z
-    .enum(["success", "partial", "failure", "unknown"])
-    .default("unknown"),
+  outcome: z.enum(["success", "partial", "failure", "unknown"]).default("unknown"),
   quality: z.number().min(0).max(1).default(0.5),
   consent: z.boolean().default(false),
   source: z.string().min(1).max(256),
@@ -108,8 +106,7 @@ export class InMemoryLearningStore implements LearningStore {
 
   replace(snapshot: LearningSnapshot): void {
     this.memories.clear();
-    for (const memory of snapshot.memories)
-      this.memories.set(memory.id, { ...memory });
+    for (const memory of snapshot.memories) this.memories.set(memory.id, { ...memory });
     this.competence = snapshot.competence.map((item) => ({ ...item }));
     this.conceptWeights = { ...snapshot.conceptWeights };
   }
@@ -132,8 +129,7 @@ export class InMemoryLearningStore implements LearningStore {
     const now = new Date().toISOString();
     const success = outcome === "success" ? 1 : 0;
     const failure = outcome === "failure" ? 1 : 0;
-    const signal =
-      outcome === "success" ? quality : outcome === "failure" ? -quality : 0;
+    const signal = outcome === "success" ? quality : outcome === "failure" ? -quality : 0;
     if (!existing) {
       const created = {
         skillId,
@@ -158,11 +154,7 @@ export class InMemoryLearningStore implements LearningStore {
   updateConcepts(concepts: string[], quality: number): void {
     for (const concept of concepts) {
       const current = this.conceptWeights[concept] ?? 0;
-      this.conceptWeights[concept] = clamp(
-        current * 0.98 + quality * 0.02,
-        0,
-        1,
-      );
+      this.conceptWeights[concept] = clamp(current * 0.98 + quality * 0.02, 0, 1);
     }
   }
 }
@@ -176,9 +168,7 @@ export interface LearningResult {
 }
 
 export class IsabellaLearningEngine {
-  constructor(
-    private readonly store: InMemoryLearningStore = new InMemoryLearningStore(),
-  ) {}
+  constructor(private readonly store: InMemoryLearningStore = new InMemoryLearningStore()) {}
 
   ingest(raw: unknown): LearningResult {
     const parsed = LearningExampleSchema.safeParse(raw);
@@ -193,8 +183,7 @@ export class IsabellaLearningEngine {
     if (!example.consent && example.mode !== "supervised") {
       return {
         accepted: false,
-        reason:
-          "Explicit consent is required for durable non-supervised learning.",
+        reason: "Explicit consent is required for durable non-supervised learning.",
         competence: [],
         concepts: [],
       };
@@ -211,23 +200,13 @@ export class IsabellaLearningEngine {
       };
     }
 
-    const concepts = extractConcepts(
-      example.input,
-      example.target,
-      example.context,
-    );
+    const concepts = extractConcepts(example.input, example.target, example.context);
     const procedures =
-      example.mode === "procedural"
-        ? extractProcedures(example.input, example.target)
-        : [];
+      example.mode === "procedural" ? extractProcedures(example.input, example.target) : [];
     const preferences =
-      example.mode === "preference"
-        ? extractPreferences(example.input, example.target)
-        : [];
+      example.mode === "preference" ? extractPreferences(example.input, example.target) : [];
     const signature = stableSignature(example, concepts);
-    const existing = this.store
-      .list()
-      .find((memory) => memory.signature === signature);
+    const existing = this.store.list().find((memory) => memory.signature === signature);
     const now = new Date().toISOString();
     let memory: LearningMemory;
 
@@ -271,8 +250,7 @@ export class IsabellaLearningEngine {
       .filter((item) => item.score > 0)
       .sort(
         (a, b) =>
-          b.score - a.score ||
-          b.memory.lastReinforcedAt.localeCompare(a.memory.lastReinforcedAt),
+          b.score - a.score || b.memory.lastReinforcedAt.localeCompare(a.memory.lastReinforcedAt),
       )
       .slice(0, Math.max(1, Math.min(limit, 50)))
       .map((item) => item.memory);
@@ -286,8 +264,7 @@ export class IsabellaLearningEngine {
     const concepts = extractConcepts(query);
     const memories = this.retrieve(query, 12);
     const score = clamp(
-      memories.reduce((sum, memory) => sum + memory.quality, 0) /
-        Math.max(memories.length, 1),
+      memories.reduce((sum, memory) => sum + memory.quality, 0) / Math.max(memories.length, 1),
       0,
       1,
     );
@@ -303,8 +280,7 @@ export class IsabellaLearningEngine {
   }
 
   restore(snapshot: LearningSnapshot): void {
-    if (snapshot.version !== 1)
-      throw new Error("Unsupported learning snapshot version");
+    if (snapshot.version !== 1) throw new Error("Unsupported learning snapshot version");
     this.store.replace(snapshot);
   }
 }
@@ -331,9 +307,7 @@ function sanitizeExample(example: LearningExample): LearningExample {
     ...(example.target ? { target: sanitizeText(example.target) } : {}),
     ...(example.negative ? { negative: sanitizeText(example.negative) } : {}),
     source: sanitizeText(example.source).slice(0, 256),
-    skillIds: [
-      ...new Set(example.skillIds.map((id) => sanitizeText(id).toLowerCase())),
-    ],
+    skillIds: [...new Set(example.skillIds.map((id) => sanitizeText(id).toLowerCase()))],
     quality: clamp(example.quality, 0, 1),
   };
 }
@@ -342,8 +316,7 @@ function sanitizeText(value: string): string {
   let sanitized = "";
   for (const character of value) {
     const code = character.codePointAt(0) ?? 0;
-    if (code >= 0x20 || code === 0x09 || code === 0x0a || code === 0x0d)
-      sanitized += character;
+    if (code >= 0x20 || code === 0x09 || code === 0x0a || code === 0x0d) sanitized += character;
   }
   return sanitized.trim();
 }
@@ -362,9 +335,7 @@ function containsPromptInjection(value: string): boolean {
   ].some((term) => normalized.includes(term));
 }
 
-function extractConcepts(
-  ...values: Array<string | Record<string, unknown> | undefined>
-): string[] {
+function extractConcepts(...values: Array<string | Record<string, unknown> | undefined>): string[] {
   const text = values
     .filter((value) => value !== undefined)
     .map((value) => (typeof value === "string" ? value : JSON.stringify(value)))
@@ -394,19 +365,13 @@ function extractConcepts(
     "entre",
   ]);
   return [
-    ...new Set(
-      words.filter((word) => !stop.has(word)).map((word) => word.slice(0, 48)),
-    ),
+    ...new Set(words.filter((word) => !stop.has(word)).map((word) => word.slice(0, 48))),
   ].slice(0, 32);
 }
 
 function extractProcedures(input?: string, target?: string): string[] {
   const text = [input, target].filter(Boolean).join(" ");
-  return (
-    text.match(
-      /(?:\d+[.)]|primero|despues|después|luego|finalmente)[^.!?]{3,160}/gi,
-    ) ?? []
-  )
+  return (text.match(/(?:\d+[.)]|primero|despues|después|luego|finalmente)[^.!?]{3,160}/gi) ?? [])
     .slice(0, 12)
     .map(sanitizeText);
 }
@@ -439,8 +404,7 @@ function stableSignature(example: LearningExample, concepts: string[]): string {
 function relevance(memory: LearningMemory, concepts: string[]): number {
   if (concepts.length === 0) return 0;
   const overlap =
-    concepts.filter((concept) => memory.concepts.includes(concept)).length /
-    concepts.length;
+    concepts.filter((concept) => memory.concepts.includes(concept)).length / concepts.length;
   const reinforcement = Math.min(memory.reinforcementCount / 10, 1);
   return overlap * 0.75 + memory.quality * 0.2 + reinforcement * 0.05;
 }

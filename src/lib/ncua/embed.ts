@@ -22,10 +22,7 @@ export interface SparseCount {
   weight: number;
 }
 
-export function embedBytes(
-  bytes: Uint8Array,
-  options: EmbedOptions = {},
-): Float64Array {
+export function embedBytes(bytes: Uint8Array, options: EmbedOptions = {}): Float64Array {
   const dim = options.dim ?? DEFAULT_DIM;
   const minN = options.minN ?? 2;
   const maxN = options.maxN ?? 4;
@@ -128,10 +125,7 @@ export function simHash(vector: Float64Array, bits = 64): SimHashSignature {
   return { bits, words };
 }
 
-export function hammingDistance(
-  a: SimHashSignature,
-  b: SimHashSignature,
-): number {
+export function hammingDistance(a: SimHashSignature, b: SimHashSignature): number {
   let distance = 0;
   const length = Math.min(a.words.length, b.words.length);
   for (let index = 0; index < length; index += 1) {
@@ -169,9 +163,7 @@ export function compressBytesToLatent(
   const totalBytes = bytes.length;
   const rawChunks: Uint8Array[] = [];
   for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-    rawChunks.push(
-      bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length)),
-    );
+    rawChunks.push(bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length)));
   }
   const chunks: LatentChunk[] = rawChunks.map((rawChunk, chunkIndex) => ({
     chunkIndex,
@@ -196,10 +188,7 @@ export function compressToLatent(
   return compressBytesToLatent(encodeUtf8(text), options);
 }
 
-export function sparseCountsOf(
-  text: string,
-  options: EmbedOptions = {},
-): SparseCount[] {
+export function sparseCountsOf(text: string, options: EmbedOptions = {}): SparseCount[] {
   const bytes = encodeUtf8(text);
   const dim = options.dim ?? DEFAULT_DIM;
   const counts = new Map<number, number>();

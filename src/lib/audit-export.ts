@@ -19,10 +19,7 @@ export interface TelemetryRecord {
   responseMode: string;
 }
 
-export function toTelemetryRecord(
-  d: RoutingDecision,
-  presetId: string,
-): TelemetryRecord {
+export function toTelemetryRecord(d: RoutingDecision, presetId: string): TelemetryRecord {
   return {
     traceId: d.traceId,
     requestId: d.requestId,
@@ -101,11 +98,7 @@ export async function exportTelemetryPdf(
   const H = doc.internal.pageSize.getHeight();
   let y = 64;
 
-  const line = (
-    text: string,
-    size = 10,
-    color: [number, number, number] = [30, 41, 59],
-  ) => {
+  const line = (text: string, size = 10, color: [number, number, number] = [30, 41, 59]) => {
     doc.setFontSize(size);
     doc.setTextColor(...color);
     for (const part of doc.splitTextToSize(text, W - 96) as string[]) {
@@ -121,27 +114,15 @@ export async function exportTelemetryPdf(
   doc.setFont("helvetica", "bold");
   line("Isabella Villasenor AI — Resumen de auditoria", 18, [15, 23, 42]);
   doc.setFont("helvetica", "normal");
-  line(
-    "Nodo Cero · Real del Monte, Hidalgo · Nucleo C.R.O.W.N.",
-    10,
-    [100, 116, 139],
-  );
+  line("Nodo Cero · Real del Monte, Hidalgo · Nucleo C.R.O.W.N.", 10, [100, 116, 139]);
   line(`runId: ${runId}`, 9, [100, 116, 139]);
-  line(
-    `Exportado: ${new Date().toISOString()} · Preset activo: ${presetName}`,
-    9,
-    [100, 116, 139],
-  );
+  line(`Exportado: ${new Date().toISOString()} · Preset activo: ${presetName}`, 9, [100, 116, 139]);
   y += 8;
 
   const denied = records.filter((r) => r.policy === "denied").length;
-  const approval = records.filter(
-    (r) => r.policy === "requires_approval",
-  ).length;
+  const approval = records.filter((r) => r.policy === "requires_approval").length;
   const avg = (fn: (r: TelemetryRecord) => number) =>
-    records.length
-      ? records.reduce((a, r) => a + fn(r), 0) / records.length
-      : 0;
+    records.length ? records.reduce((a, r) => a + fn(r), 0) / records.length : 0;
 
   doc.setFont("helvetica", "bold");
   line("Metricas por sesion", 13);
@@ -150,12 +131,8 @@ export async function exportTelemetryPdf(
   line(
     `Policy Gate — permitidos: ${records.length - denied - approval} · aprobacion humana: ${approval} · denegados: ${denied}`,
   );
-  line(
-    `Gobernanza promedio: ${(avg((r) => r.governanceScore) * 100).toFixed(1)}%`,
-  );
-  line(
-    `Certeza epistemica promedio: ${(avg((r) => r.epistemicCertainty) * 100).toFixed(1)}%`,
-  );
+  line(`Gobernanza promedio: ${(avg((r) => r.governanceScore) * 100).toFixed(1)}%`);
+  line(`Certeza epistemica promedio: ${(avg((r) => r.epistemicCertainty) * 100).toFixed(1)}%`);
   line(`Latencia de ruteo promedio: ${avg((r) => r.latencyMs).toFixed(1)} ms`);
   y += 10;
 
@@ -170,16 +147,12 @@ export async function exportTelemetryPdf(
     line(`    ${r.policyReason}`, 8, [100, 116, 139]);
   });
 
-  if (!records.length)
-    line("Sin ciclos registrados en esta sesion.", 10, [100, 116, 139]);
+  if (!records.length) line("Sin ciclos registrados en esta sesion.", 10, [100, 116, 139]);
 
   doc.save(`isabella-auditoria-${stamp()}.pdf`);
 }
 
-export async function exportSecurityCompliancePdf(
-  logs: TelemetryLog[],
-  runId: string,
-) {
+export async function exportSecurityCompliancePdf(logs: TelemetryLog[], runId: string) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
@@ -206,16 +179,8 @@ export async function exportSecurityCompliancePdf(
   };
 
   line("LATAM-AEGIS-X SECURITY COMPLIANCE REPORT", 16, [153, 27, 27], true);
-  line(
-    "Nodo Cero · Real del Monte, Hidalgo · TAMV Online Network",
-    10,
-    [100, 116, 139],
-  );
-  line(
-    `Report runId: ${runId} · Generated: ${new Date().toISOString()}`,
-    9,
-    [100, 116, 139],
-  );
+  line("Nodo Cero · Real del Monte, Hidalgo · TAMV Online Network", 10, [100, 116, 139]);
+  line(`Report runId: ${runId} · Generated: ${new Date().toISOString()}`, 9, [100, 116, 139]);
   line(
     "Status: TAMPER-PROOF REVIEWS · SECURED WITH HMAC-SHA256 SIGNATURES",
     9,
@@ -243,11 +208,7 @@ export async function exportSecurityCompliancePdf(
 
   line("COMPLIANCE VERIFICATION LEDGER", 12, [15, 23, 42], true);
   if (!logs.length) {
-    line(
-      "No security events have been logged in the active session.",
-      10,
-      [100, 116, 139],
-    );
+    line("No security events have been logged in the active session.", 10, [100, 116, 139]);
   } else {
     logs.forEach((log, index) => {
       const levelColor: [number, number, number] =
@@ -265,16 +226,8 @@ export async function exportSecurityCompliancePdf(
         levelColor,
         true,
       );
-      line(
-        `    Module: ${log.moduleId} · Core: ${log.coreId}`,
-        9,
-        [71, 85, 105],
-      );
-      line(
-        `    TraceId: ${log.traceId} · CorrelationId: ${log.correlationId}`,
-        9,
-        [71, 85, 105],
-      );
+      line(`    Module: ${log.moduleId} · Core: ${log.coreId}`, 9, [71, 85, 105]);
+      line(`    TraceId: ${log.traceId} · CorrelationId: ${log.correlationId}`, 9, [71, 85, 105]);
 
       const payloadStr = JSON.stringify(log.payload);
       line(
@@ -284,12 +237,7 @@ export async function exportSecurityCompliancePdf(
       );
 
       // Print the HMAC signature as tamper-proof evidence
-      line(
-        `    Tamper-Proof Signature (HMAC-SHA256):`,
-        8,
-        [16, 185, 129],
-        true,
-      );
+      line(`    Tamper-Proof Signature (HMAC-SHA256):`, 8, [16, 185, 129], true);
       line(`    ${log.signature}`, 8, [16, 185, 129]);
       y += 6;
     });

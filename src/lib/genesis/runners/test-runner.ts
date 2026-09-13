@@ -18,8 +18,7 @@ export interface TestDiscoveryResult {
 
 export interface TestFile {
   file: string;
-  category:
-    "unit" | "integration" | "security" | "concurrency" | "e2e" | "performance";
+  category: "unit" | "integration" | "security" | "concurrency" | "e2e" | "performance";
   framework: "vitest" | "jest" | "playwright" | "cypress" | "k6" | "unknown";
   tests: TestCase[];
 }
@@ -117,8 +116,7 @@ export class TestDiscovery {
 
     const byCategory: Record<string, number> = {};
     for (const tf of testFiles) {
-      byCategory[tf.category] =
-        (byCategory[tf.category] ?? 0) + tf.tests.length;
+      byCategory[tf.category] = (byCategory[tf.category] ?? 0) + tf.tests.length;
     }
 
     return {
@@ -130,12 +128,7 @@ export class TestDiscovery {
 
   private collectTestFiles(dir: string): string[] {
     const files: string[] = [];
-    const patterns = [
-      "**/*.test.ts",
-      "**/*.spec.ts",
-      "**/*.test.tsx",
-      "**/*.spec.tsx",
-    ];
+    const patterns = ["**/*.test.ts", "**/*.spec.ts", "**/*.test.tsx", "**/*.spec.tsx"];
     const excludePatterns = [
       "**/node_modules/**",
       "**/dist/**",
@@ -153,17 +146,13 @@ export class TestDiscovery {
           const fullPath = path.join(currentDir, entry.name);
           const relativePath = path.relative(this.config.rootDir, fullPath);
 
-          const excluded = excludePatterns.some((p) =>
-            this.matchPattern(relativePath, p),
-          );
+          const excluded = excludePatterns.some((p) => this.matchPattern(relativePath, p));
           if (excluded) continue;
 
           if (entry.isDirectory()) {
             walk(fullPath);
           } else if (entry.isFile()) {
-            const included = patterns.some((p) =>
-              this.matchPattern(relativePath, p),
-            );
+            const included = patterns.some((p) => this.matchPattern(relativePath, p));
             if (included) files.push(fullPath);
           }
         }
@@ -181,10 +170,7 @@ export class TestDiscovery {
     let category: TestFile["category"] = "unit";
     let framework: TestFile["framework"] = "unknown";
 
-    if (
-      content.includes("playwright") ||
-      content.includes("@playwright/test")
-    ) {
+    if (content.includes("playwright") || content.includes("@playwright/test")) {
       framework = "playwright";
       category = "e2e";
     } else if (content.includes("cypress")) {
@@ -200,25 +186,13 @@ export class TestDiscovery {
       content.includes("it(")
     ) {
       framework = "vitest";
-      if (
-        relativePath.includes("integration") ||
-        content.includes("integration")
-      )
+      if (relativePath.includes("integration") || content.includes("integration"))
         category = "integration";
-      else if (
-        relativePath.includes("security") ||
-        content.includes("security")
-      )
+      else if (relativePath.includes("security") || content.includes("security"))
         category = "security";
-      else if (
-        relativePath.includes("concurrency") ||
-        content.includes("concurrency")
-      )
+      else if (relativePath.includes("concurrency") || content.includes("concurrency"))
         category = "concurrency";
-      else if (
-        relativePath.includes("performance") ||
-        content.includes("performance")
-      )
+      else if (relativePath.includes("performance") || content.includes("performance"))
         category = "performance";
     } else if (content.includes("jest") || content.includes("test(")) {
       framework = "jest";
@@ -233,8 +207,7 @@ export class TestDiscovery {
     for (const pattern of testPatterns) {
       let match;
       while ((match = pattern.exec(content)) !== null) {
-        const lineIndex =
-          content.substring(0, match.index).split("\n").length - 1;
+        const lineIndex = content.substring(0, match.index).split("\n").length - 1;
         const lineContent = lines[lineIndex] ?? "";
         tests.push({
           name: match[1],
@@ -248,10 +221,7 @@ export class TestDiscovery {
   }
 
   private matchPattern(filePath: string, pattern: string): boolean {
-    const regexPattern = pattern
-      .replace(/\*\*/g, ".*")
-      .replace(/\*/g, "[^/]*")
-      .replace(/\?/g, ".");
+    const regexPattern = pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*").replace(/\?/g, ".");
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(filePath);
   }
@@ -398,11 +368,7 @@ export class TestExecutor {
     }
   }
 
-  private parseTestOutput(
-    stdout: string,
-    stderr: string,
-    testFile: TestFile,
-  ): TestResult[] {
+  private parseTestOutput(stdout: string, stderr: string, testFile: TestFile): TestResult[] {
     const results: TestResult[] = [];
 
     try {
@@ -444,19 +410,14 @@ export class ConcurrencyTestRunner {
     };
   }
 
-  async runConcurrencyTest(
-    testConfig: ConcurrencyTestConfig,
-  ): Promise<ConcurrencyTestResult> {
+  async runConcurrencyTest(testConfig: ConcurrencyTestConfig): Promise<ConcurrencyTestResult> {
     await testConfig.setup();
 
     try {
       const result = await Promise.race([
         testConfig.execute(),
         new Promise<ConcurrencyTestResult>((_, reject) =>
-          setTimeout(
-            () => reject(new Error("Concurrency test timeout")),
-            testConfig.timeoutMs,
-          ),
+          setTimeout(() => reject(new Error("Concurrency test timeout")), testConfig.timeoutMs),
         ),
       ]);
 
@@ -527,8 +488,7 @@ export class ConcurrencyTestRunner {
           return {
             passed: false,
             actualResult: "pending_implementation",
-            expectedResult:
-              "all_processed = true, idempotency_maintained = true",
+            expectedResult: "all_processed = true, idempotency_maintained = true",
             metrics: {
               operationsCompleted: 0,
               operationsFailed: 0,
@@ -581,8 +541,6 @@ export function createTestExecutor(config?: TestRunnerConfig): TestExecutor {
   return new TestExecutor(config);
 }
 
-export function createConcurrencyTestRunner(
-  config?: TestRunnerConfig,
-): ConcurrencyTestRunner {
+export function createConcurrencyTestRunner(config?: TestRunnerConfig): ConcurrencyTestRunner {
   return new ConcurrencyTestRunner(config);
 }

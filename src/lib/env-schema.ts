@@ -8,14 +8,11 @@ export const runtimeModeSchema = z.enum([
   "maintenance",
 ]);
 export type RuntimeMode = z.infer<typeof runtimeModeSchema>;
-const coercedInt = (def: number) =>
-  z.coerce.number().int().nonnegative().default(def);
+const coercedInt = (def: number) => z.coerce.number().int().nonnegative().default(def);
 const optionalString = () =>
   z.preprocess(
     (v) =>
-      typeof v === "string" &&
-      v.trim() &&
-      !["undefined", "null"].includes(v.trim())
+      typeof v === "string" && v.trim() && !["undefined", "null"].includes(v.trim())
         ? v.trim()
         : undefined,
     z.string().optional(),
@@ -51,9 +48,7 @@ const bool = (def: boolean) =>
   );
 
 export const envSchema = z.object({
-  NODE_ENV: z
-    .enum(["development", "test", "production"])
-    .default("development"),
+  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   ISABELLA_RUNTIME_MODE: runtimeModeSchema.default("development"),
   PUBLIC_URL: z.string().url().default("http://localhost:3000"),
   VERCEL_GIT_COMMIT_SHA: optionalString(),
@@ -473,12 +468,9 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
     forbidden: [],
     provider: "self",
     criticality: "LOW",
-    description:
-      "Opt-in de comprensión nativa (NCUA) en el gateway conversacional.",
+    description: "Opt-in de comprensión nativa (NCUA) en el gateway conversacional.",
   },
 ];
 export function requiredEnvKeys(mode: RuntimeMode): Array<keyof Env> {
-  return ENV_VAR_CATALOG.filter((item) => item.required.includes(mode)).map(
-    (item) => item.name,
-  );
+  return ENV_VAR_CATALOG.filter((item) => item.required.includes(mode)).map((item) => item.name);
 }

@@ -10,10 +10,7 @@ import {
 } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 import { config } from "@/lib/config";
-import {
-  robustMedianAggregate,
-  weightedAverage,
-} from "@/lib/cognitive/native-engine";
+import { robustMedianAggregate, weightedAverage } from "@/lib/cognitive/native-engine";
 
 export interface FederatedNode {
   nodeId: string;
@@ -61,14 +58,11 @@ export class PostgresReplayStore implements ReplayStore {
   private readonly db;
   constructor(databaseUrl = config().DATABASE_URL) {
     if (!databaseUrl)
-      throw new Error(
-        "federation_replay_store_unavailable: DATABASE_URL is required",
-      );
+      throw new Error("federation_replay_store_unavailable: DATABASE_URL is required");
     this.db = neon(databaseUrl);
   }
   async seen(key: string): Promise<boolean> {
-    const rows = await this
-      .db`SELECT 1 FROM fgais_federation_replay WHERE nonce=${key} LIMIT 1`;
+    const rows = await this.db`SELECT 1 FROM fgais_federation_replay WHERE nonce=${key} LIMIT 1`;
     return rows.length > 0;
   }
   async remember(key: string): Promise<void> {
@@ -105,9 +99,7 @@ export function signUpdate(
   privateKey: ReturnType<typeof createPrivateKey>,
 ): LocalUpdate {
   const payload = canonical(input);
-  const signature = sign(null, Buffer.from(payload), privateKey).toString(
-    "base64url",
-  );
+  const signature = sign(null, Buffer.from(payload), privateKey).toString("base64url");
   const hash = createHash("sha256").update(payload).digest("hex");
   return { ...input, signature, hash };
 }
@@ -124,21 +116,13 @@ export async function validateUpdate(
   if (node.status !== "ACTIVE") throw new Error("Federated node not active");
   if (update.nodeId !== node.nodeId || update.territoryId !== node.territoryId)
     throw new Error("Node/territory mismatch");
-  if (
-    update.modelId !== expectedModel ||
-    update.baseVersion !== expectedVersion
-  )
+  if (update.modelId !== expectedModel || update.baseVersion !== expectedVersion)
     throw new Error("Incompatible model version");
-  if (!update.delta.length || update.delta.length > 1_000_000)
-    throw new Error("Invalid delta");
+  if (!update.delta.length || update.delta.length > 1_000_000) throw new Error("Invalid delta");
   if (update.sampleCount < 1 || !Number.isSafeInteger(update.sampleCount))
     throw new Error("Invalid sample count");
   const createdAt = new Date(update.createdAt).getTime();
-  if (
-    !Number.isFinite(createdAt) ||
-    now - createdAt > maxAgeMs ||
-    createdAt - now > 60_000
-  )
+  if (!Number.isFinite(createdAt) || now - createdAt > maxAgeMs || createdAt - now > 60_000)
     throw new Error("Stale/future update");
   const magnitude = Math.sqrt(update.delta.reduce((s, x) => s + x * x, 0));
   if (!Number.isFinite(magnitude) || magnitude > maxMagnitude)
@@ -153,14 +137,11 @@ export async function validateUpdate(
     )
   )
     throw new Error("Invalid update signature");
-  const expectedHash = createHash("sha256")
-    .update(canonical(update))
-    .digest("hex");
+  const expectedHash = createHash("sha256").update(canonical(update)).digest("hex");
   if (expectedHash !== update.hash) throw new Error("Update hash mismatch");
   const accepted = store.claim
     ? await store.claim(update.nonce)
-    : !(await store.seen(update.nonce)) &&
-      (await store.remember(update.nonce), true);
+    : !(await store.seen(update.nonce)) && (await store.remember(update.nonce), true);
   if (!accepted) throw new Error("Replay detected");
 }
 export function addDifferentialPrivacy(
@@ -182,10 +163,7 @@ export function aggregateFedAvg(updates: LocalUpdate[]): number[] {
     updates.map((u) => u.sampleCount),
   );
 }
-export function aggregateByzantineResistant(
-  updates: LocalUpdate[],
-  trimFraction = 0.1,
-): number[] {
+export function aggregateByzantineResistant(updates: LocalUpdate[], trimFraction = 0.1): number[] {
   if (!updates.length) throw new Error("No updates");
   if (updates.length < 3) return aggregateFedAvg(updates);
   const n = updates.length,

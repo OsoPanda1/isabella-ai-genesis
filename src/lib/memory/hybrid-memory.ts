@@ -1,7 +1,6 @@
 /** Tenant/territory-scoped hybrid memory with provenance. No silent cross-tenant retrieval. */
 import { createHash, randomUUID } from "node:crypto";
-export type MemoryKind =
-  "EPISODIC" | "SEMANTIC" | "PROCEDURAL" | "GOVERNANCE" | "LEARNING";
+export type MemoryKind = "EPISODIC" | "SEMANTIC" | "PROCEDURAL" | "GOVERNANCE" | "LEARNING";
 export interface MemoryItem {
   id: string;
   tenantId: string;

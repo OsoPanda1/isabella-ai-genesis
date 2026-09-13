@@ -37,22 +37,12 @@ export interface AccountingRepository {
   createAccount(dto: CreateAccountDTO, tx?: unknown): Promise<Account>;
   getAccountById(id: string, tx?: unknown): Promise<Account | null>;
   getAccountsByTenant(tenantId: string, tx?: unknown): Promise<Account[]>;
-  updateAccount(
-    id: string,
-    updates: Partial<Account>,
-    tx?: unknown,
-  ): Promise<Account>;
+  updateAccount(id: string, updates: Partial<Account>, tx?: unknown): Promise<Account>;
 
   // Journal Entries
-  createJournalEntry(
-    dto: CreateJournalEntryDTO,
-    tx?: unknown,
-  ): Promise<JournalEntry>;
+  createJournalEntry(dto: CreateJournalEntryDTO, tx?: unknown): Promise<JournalEntry>;
   getJournalEntryById(id: string, tx?: unknown): Promise<JournalEntry | null>;
-  getJournalEntriesByTenant(
-    tenantId: string,
-    tx?: unknown,
-  ): Promise<JournalEntry[]>;
+  getJournalEntriesByTenant(tenantId: string, tx?: unknown): Promise<JournalEntry[]>;
   updateJournalEntryStatus(
     id: string,
     status: TransactionStatus,
@@ -65,10 +55,7 @@ export interface AccountingRepository {
     tx?: unknown,
   ): Promise<LedgerLine[]>;
   getLedgerLinesByEntry(entryId: string, tx?: unknown): Promise<LedgerLine[]>;
-  getLedgerLinesByAccount(
-    accountId: string,
-    tx?: unknown,
-  ): Promise<LedgerLine[]>;
+  getLedgerLinesByAccount(accountId: string, tx?: unknown): Promise<LedgerLine[]>;
 
   // Balances
   calculateAccountBalance(
@@ -83,11 +70,7 @@ export interface AccountingRepository {
     periodEnd: Date,
     tx?: unknown,
   ): Promise<TrialBalance>;
-  generateBalanceSheet(
-    tenantId: string,
-    asOfDate: Date,
-    tx?: unknown,
-  ): Promise<BalanceSheet>;
+  generateBalanceSheet(tenantId: string, asOfDate: Date, tx?: unknown): Promise<BalanceSheet>;
 
   // Transaction management
   beginTransaction(): Promise<unknown>;
@@ -132,20 +115,11 @@ export class InMemoryAccountingRepository implements AccountingRepository {
     return this.accounts.get(id) || null;
   }
 
-  async getAccountsByTenant(
-    tenantId: string,
-    _tx?: unknown,
-  ): Promise<Account[]> {
-    return Array.from(this.accounts.values()).filter(
-      (a) => a.tenantId === tenantId,
-    );
+  async getAccountsByTenant(tenantId: string, _tx?: unknown): Promise<Account[]> {
+    return Array.from(this.accounts.values()).filter((a) => a.tenantId === tenantId);
   }
 
-  async updateAccount(
-    id: string,
-    updates: Partial<Account>,
-    _tx?: unknown,
-  ): Promise<Account> {
+  async updateAccount(id: string, updates: Partial<Account>, _tx?: unknown): Promise<Account> {
     const account = this.accounts.get(id);
     if (!account) throw new Error(`Account ${id} not found`);
     const updated = { ...account, ...updates, updatedAt: new Date() };
@@ -153,10 +127,7 @@ export class InMemoryAccountingRepository implements AccountingRepository {
     return updated;
   }
 
-  async createJournalEntry(
-    dto: CreateJournalEntryDTO,
-    _tx?: unknown,
-  ): Promise<JournalEntry> {
+  async createJournalEntry(dto: CreateJournalEntryDTO, _tx?: unknown): Promise<JournalEntry> {
     const entryNumber = `JE-${Date.now()}-${randomUUID().slice(0, 8)}`;
     const entry: JournalEntry = {
       id: randomUUID(),
@@ -172,20 +143,12 @@ export class InMemoryAccountingRepository implements AccountingRepository {
     return entry;
   }
 
-  async getJournalEntryById(
-    id: string,
-    _tx?: unknown,
-  ): Promise<JournalEntry | null> {
+  async getJournalEntryById(id: string, _tx?: unknown): Promise<JournalEntry | null> {
     return this.journalEntries.get(id) || null;
   }
 
-  async getJournalEntriesByTenant(
-    tenantId: string,
-    _tx?: unknown,
-  ): Promise<JournalEntry[]> {
-    return Array.from(this.journalEntries.values()).filter(
-      (e) => e.tenantId === tenantId,
-    );
+  async getJournalEntriesByTenant(tenantId: string, _tx?: unknown): Promise<JournalEntry[]> {
+    return Array.from(this.journalEntries.values()).filter((e) => e.tenantId === tenantId);
   }
 
   async updateJournalEntryStatus(
@@ -217,22 +180,12 @@ export class InMemoryAccountingRepository implements AccountingRepository {
     return created;
   }
 
-  async getLedgerLinesByEntry(
-    entryId: string,
-    _tx?: unknown,
-  ): Promise<LedgerLine[]> {
-    return Array.from(this.ledgerLines.values()).filter(
-      (l) => l.entryId === entryId,
-    );
+  async getLedgerLinesByEntry(entryId: string, _tx?: unknown): Promise<LedgerLine[]> {
+    return Array.from(this.ledgerLines.values()).filter((l) => l.entryId === entryId);
   }
 
-  async getLedgerLinesByAccount(
-    accountId: string,
-    _tx?: unknown,
-  ): Promise<LedgerLine[]> {
-    return Array.from(this.ledgerLines.values()).filter(
-      (l) => l.accountId === accountId,
-    );
+  async getLedgerLinesByAccount(accountId: string, _tx?: unknown): Promise<LedgerLine[]> {
+    return Array.from(this.ledgerLines.values()).filter((l) => l.accountId === accountId);
   }
 
   async calculateAccountBalance(
@@ -253,10 +206,7 @@ export class InMemoryAccountingRepository implements AccountingRepository {
     });
 
     const debitCents = filteredLines.reduce((sum, l) => sum + l.debitCents, 0);
-    const creditCents = filteredLines.reduce(
-      (sum, l) => sum + l.creditCents,
-      0,
-    );
+    const creditCents = filteredLines.reduce((sum, l) => sum + l.creditCents, 0);
 
     const openingBalanceCents = 0; // Simplificado
     const closingBalanceCents = openingBalanceCents + debitCents - creditCents;
@@ -282,9 +232,7 @@ export class InMemoryAccountingRepository implements AccountingRepository {
   ): Promise<TrialBalance> {
     const accounts = await this.getAccountsByTenant(tenantId);
     const accountBalances = await Promise.all(
-      accounts.map((acc) =>
-        this.calculateAccountBalance(acc.id, periodStart, periodEnd),
-      ),
+      accounts.map((acc) => this.calculateAccountBalance(acc.id, periodStart, periodEnd)),
     );
 
     const accountsWithBalances = accountBalances.map((balance, idx) => {
@@ -300,14 +248,8 @@ export class InMemoryAccountingRepository implements AccountingRepository {
       };
     });
 
-    const totalDebitsCents = accountBalances.reduce(
-      (sum, b) => sum + b.debitCents,
-      0,
-    );
-    const totalCreditsCents = accountBalances.reduce(
-      (sum, b) => sum + b.creditCents,
-      0,
-    );
+    const totalDebitsCents = accountBalances.reduce((sum, b) => sum + b.debitCents, 0);
+    const totalCreditsCents = accountBalances.reduce((sum, b) => sum + b.creditCents, 0);
 
     return {
       tenantId,
@@ -330,9 +272,7 @@ export class InMemoryAccountingRepository implements AccountingRepository {
     const periodStart = new Date(asOfDate.getFullYear(), 0, 1);
 
     const balances = await Promise.all(
-      accounts.map((acc) =>
-        this.calculateAccountBalance(acc.id, periodStart, asOfDate),
-      ),
+      accounts.map((acc) => this.calculateAccountBalance(acc.id, periodStart, asOfDate)),
     );
 
     const assets = balances

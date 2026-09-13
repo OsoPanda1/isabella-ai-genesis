@@ -11,13 +11,7 @@
  */
 
 export type CapabilityState =
-  | "implemented"
-  | "verified"
-  | "experimental"
-  | "simulated"
-  | "shadow"
-  | "planned"
-  | "unavailable";
+  "implemented" | "verified" | "experimental" | "simulated" | "shadow" | "planned" | "unavailable";
 
 export const CAPABILITY_STATES: readonly CapabilityState[] = [
   "implemented",
@@ -57,9 +51,7 @@ export class CapabilityRegistryService {
   }
 
   isOperational(id: string): boolean {
-    return (
-      this.stateOf(id) === "implemented" || this.stateOf(id) === "verified"
-    );
+    return this.stateOf(id) === "implemented" || this.stateOf(id) === "verified";
   }
 
   all(): CapabilityRecord[] {
@@ -80,50 +72,23 @@ export class CapabilityRegistryService {
 export function createDefaultCapabilityRegistry(): CapabilityRegistryService {
   const svc = new CapabilityRegistryService();
   const now = new Date().toISOString();
-  const register = (
-    id: string,
-    state: CapabilityState,
-    evidence?: string[],
-  ): void => {
+  const register = (id: string, state: CapabilityState, evidence?: string[]): void => {
     const record: CapabilityRecord = { id, state, updatedAt: now };
     if (evidence) record.evidence = evidence;
     svc.register(record);
   };
 
-  register("build", "implemented", [
-    "package.json scripts",
-    "npm run typecheck/lint/test/build",
-  ]);
-  register("auth", "implemented", [
-    "src/lib/principal-context.ts",
-    "src/lib/jwt-verifier.ts",
-  ]);
+  register("build", "implemented", ["package.json scripts", "npm run typecheck/lint/test/build"]);
+  register("auth", "implemented", ["src/lib/principal-context.ts", "src/lib/jwt-verifier.ts"]);
   register("identity.oidc", "planned");
-  register("tenancy", "implemented", [
-    "supabase/migrations/*",
-    "src/lib/tenant-guard.ts",
-  ]);
-  register("memory", "implemented", [
-    "src/lib/memory-engine.ts",
-    "tabla memories",
-  ]);
-  register("bookpi", "implemented", [
-    "src/lib/bookpi*.ts",
-    "tabla bookpi_ledger",
-  ]);
-  register("audit", "implemented", [
-    "src/lib/repositories/audit-repository.ts",
-  ]);
-  register("crown", "implemented", [
-    "src/lib/crown.ts",
-    "constitutional-gate.ts",
-  ]);
+  register("tenancy", "implemented", ["supabase/migrations/*", "src/lib/tenant-guard.ts"]);
+  register("memory", "implemented", ["src/lib/memory-engine.ts", "tabla memories"]);
+  register("bookpi", "implemented", ["src/lib/bookpi*.ts", "tabla bookpi_ledger"]);
+  register("audit", "implemented", ["src/lib/repositories/audit-repository.ts"]);
+  register("crown", "implemented", ["src/lib/crown.ts", "constitutional-gate.ts"]);
   register("llm", "implemented", ["src/routes/api/isabella.ts"]);
   register("voice", "implemented", ["src/routes/api/isabella-voice.ts"]);
-  register("tools", "experimental", [
-    "src/lib/tool-registry.ts",
-    "src/lib/orion-engine.ts",
-  ]);
+  register("tools", "experimental", ["src/lib/tool-registry.ts", "src/lib/orion-engine.ts"]);
   register("sandbox", "experimental", ["src/lib/sovereign-sandbox.ts"]);
   register("pqc", "unavailable");
   register("monetization", "implemented", ["src/lib/monetization/*"]);
@@ -135,15 +100,10 @@ export function createDefaultCapabilityRegistry(): CapabilityRegistryService {
     "src/lib/isabella-cognitive-training.ts",
     "test/lib/isabella-cognitive-training.test.ts",
   ]);
-  register("heads.12", "implemented", [
-    "12 cognitive heads configured in sovereign-engine.ts",
-  ]);
-  register("nuclei.24", "simulated", [
-    "24 cognitive nuclei modeled in sovereign-engine.ts",
-  ]);
+  register("heads.12", "implemented", ["12 cognitive heads configured in sovereign-engine.ts"]);
+  register("nuclei.24", "simulated", ["24 cognitive nuclei modeled in sovereign-engine.ts"]);
 
   return svc;
 }
 
-export const capabilityRegistry: CapabilityRegistryService =
-  createDefaultCapabilityRegistry();
+export const capabilityRegistry: CapabilityRegistryService = createDefaultCapabilityRegistry();

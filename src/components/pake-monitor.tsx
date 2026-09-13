@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  BrainCircuit,
-  Activity,
-  ShieldCheck,
-  Database,
-  Layers,
-} from "lucide-react";
+import { BrainCircuit, Activity, ShieldCheck, Database, Layers } from "lucide-react";
 import { globalEthicalRegistry } from "../lib/isabella/pake/EthicalRegistry";
 import { EthicalValidator } from "../lib/isabella/pake/EthicalValidator";
 
@@ -27,18 +21,10 @@ export function PakeMonitor() {
       rawContents.forEach((content) => {
         const audit = EthicalValidator.auditContent(content);
         if (audit.valid) {
-          const snippet = globalEthicalRegistry.storeSnippet(
-            content,
-            audit.hash,
-            0.9,
-          );
+          const snippet = globalEthicalRegistry.storeSnippet(content, audit.hash, 0.9);
           snippetIds.push(snippet.id);
           // Add transparency markers immediately for the audit trail
-          globalEthicalRegistry.addTransparencyMarker(
-            snippet.id,
-            audit.score,
-            audit.flags,
-          );
+          globalEthicalRegistry.addTransparencyMarker(snippet.id, audit.score, audit.flags);
         }
       });
 
@@ -117,24 +103,16 @@ export function PakeMonitor() {
                 <Database className="w-5 h-5 text-blue-400" />
                 <h3 className="text-white font-medium">Raw Snippets</h3>
               </div>
-              <span className="text-4xl font-light text-white mt-4">
-                {health.totalSnippets}
-              </span>
-              <p className="text-xs text-slate-400 mt-2">
-                Chaotic unindexed data points
-              </p>
+              <span className="text-4xl font-light text-white mt-4">{health.totalSnippets}</span>
+              <p className="text-xs text-slate-400 mt-2">Chaotic unindexed data points</p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
               <div className="flex items-center space-x-3 mb-2">
                 <BrainCircuit className="w-5 h-5 text-purple-400" />
                 <h3 className="text-white font-medium">Anchored Guidelines</h3>
               </div>
-              <span className="text-4xl font-light text-white mt-4">
-                {health.guidelinesCount}
-              </span>
-              <p className="text-xs text-slate-400 mt-2">
-                Resolved structural rules
-              </p>
+              <span className="text-4xl font-light text-white mt-4">{health.guidelinesCount}</span>
+              <p className="text-xs text-slate-400 mt-2">Resolved structural rules</p>
             </div>
           </div>
         </div>
@@ -158,9 +136,7 @@ function MetricCard({
         {icon}
         <span className="text-sm text-slate-300 font-medium">{label}</span>
       </div>
-      <span className="text-3xl font-light text-white tracking-tight">
-        {value}
-      </span>
+      <span className="text-3xl font-light text-white tracking-tight">{value}</span>
     </div>
   );
 }

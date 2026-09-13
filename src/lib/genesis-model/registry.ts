@@ -26,8 +26,7 @@ export async function proposeModelRelease(
 ): Promise<ModelReleaseRecord> {
   if (!tenantId) throw new Error("tenantId required");
   const decision = evaluateModelRelease(candidate);
-  if (!decision.allowed)
-    throw new Error(`model_release_blocked: ${decision.reasons.join("; ")}`);
+  if (!decision.allowed) throw new Error(`model_release_blocked: ${decision.reasons.join("; ")}`);
   const record: ModelReleaseRecord = {
     id: releaseId(tenantId, candidate),
     tenantId,

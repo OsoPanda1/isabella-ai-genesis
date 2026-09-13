@@ -195,11 +195,7 @@ export function validateSkillOutput(skillId: string, output: unknown): unknown {
   if (!output || typeof output !== "object")
     throw new Error(`Skill ${skillId} devolvió una salida inválida.`);
   const jsonString = JSON.stringify(output);
-  if (
-    /(sk_live_|pk_live_|sk_test_|pk_test_|AIza[0-9A-Za-z-_]{35})/.test(
-      jsonString,
-    )
-  )
+  if (/(sk_live_|pk_live_|sk_test_|pk_test_|AIza[0-9A-Za-z-_]{35})/.test(jsonString))
     throw new Error(
       `[CRITICAL] Data Exfiltration Blocked: La salida del skill ${skillId} contiene posibles secretos.`,
     );

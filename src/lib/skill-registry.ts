@@ -1,8 +1,5 @@
 import { z } from "zod";
-import {
-  capabilityRegistry,
-  type CapabilityState,
-} from "./capability-registry";
+import { capabilityRegistry, type CapabilityState } from "./capability-registry";
 
 export const SkillId = z
   .string()
@@ -12,8 +9,7 @@ export const SkillId = z
     if (value.startsWith("-") || value.endsWith("-")) return false;
     for (const character of value) {
       const isAlphaNumeric =
-        (character >= "a" && character <= "z") ||
-        (character >= "0" && character <= "9");
+        (character >= "a" && character <= "z") || (character >= "0" && character <= "9");
       if (!isAlphaNumeric && character !== "-") return false;
     }
     return true;
@@ -38,8 +34,7 @@ export const ISABELLA_SKILLS: readonly IsabellaSkill[] = [
   {
     id: "crown-routing",
     name: "CROWN Routing",
-    description:
-      "Clasifica intención y enruta la percepción entre los núcleos cognitivos.",
+    description: "Clasifica intención y enruta la percepción entre los núcleos cognitivos.",
     folder: "Orquestación",
     subfolder: "CROWN",
     capability: "crown",
@@ -49,8 +44,7 @@ export const ISABELLA_SKILLS: readonly IsabellaSkill[] = [
   {
     id: "argus-policy",
     name: "ARGUS Policy Gate",
-    description:
-      "Evalúa riesgo, permisos, datos sensibles y escalamiento humano antes de actuar.",
+    description: "Evalúa riesgo, permisos, datos sensibles y escalamiento humano antes de actuar.",
     folder: "Gobernanza",
     subfolder: "ARGUS",
     capability: "crown",
@@ -60,8 +54,7 @@ export const ISABELLA_SKILLS: readonly IsabellaSkill[] = [
   {
     id: "territorial-memory",
     name: "Memoria territorial",
-    description:
-      "Consulta memoria contextual con procedencia, alcance y trazabilidad territorial.",
+    description: "Consulta memoria contextual con procedencia, alcance y trazabilidad territorial.",
     folder: "Memoria",
     subfolder: "Territorial",
     capability: "memory",
@@ -82,8 +75,7 @@ export const ISABELLA_SKILLS: readonly IsabellaSkill[] = [
   {
     id: "voice-synthesis",
     name: "Voz de Isabella",
-    description:
-      "Solicita síntesis vocal segura y la reproduce progresivamente en el navegador.",
+    description: "Solicita síntesis vocal segura y la reproduce progresivamente en el navegador.",
     folder: "Interfaces",
     subfolder: "Voz",
     capability: "voice",
@@ -93,8 +85,7 @@ export const ISABELLA_SKILLS: readonly IsabellaSkill[] = [
   {
     id: "api-contracts",
     name: "APIs nativas",
-    description:
-      "Expone contratos registrados con validación de entrada y control de autoridad.",
+    description: "Expone contratos registrados con validación de entrada y control de autoridad.",
     folder: "Orquestación",
     subfolder: "Contratos",
     capability: "build",
@@ -148,8 +139,7 @@ export const ISABELLA_SKILLS: readonly IsabellaSkill[] = [
   {
     id: "gift-redeem",
     name: "Gifts y Rewards",
-    description:
-      "Redime gifts con verificación de saldo, idempotencia y ledger append-only.",
+    description: "Redime gifts con verificación de saldo, idempotencia y ledger append-only.",
     folder: "Economía",
     subfolder: "Marketplace",
     capability: "monetization",
@@ -159,8 +149,7 @@ export const ISABELLA_SKILLS: readonly IsabellaSkill[] = [
   {
     id: "payout-request",
     name: "Solicitar payout",
-    description:
-      "Solicita retiro 85/15 con reserva, disputa retenida y payout idempotente.",
+    description: "Solicita retiro 85/15 con reserva, disputa retenida y payout idempotente.",
     folder: "Economía",
     subfolder: "Payouts",
     capability: "monetization",
@@ -170,8 +159,7 @@ export const ISABELLA_SKILLS: readonly IsabellaSkill[] = [
   {
     id: "payout-verify",
     name: "Verificar payout",
-    description:
-      "Verifica estado de payout, firma y reconciliación — solo lectura con RLS.",
+    description: "Verifica estado de payout, firma y reconciliación — solo lectura con RLS.",
     folder: "Economía",
     subfolder: "Payouts",
     capability: "monetization",
@@ -181,8 +169,7 @@ export const ISABELLA_SKILLS: readonly IsabellaSkill[] = [
   {
     id: "monetization-analytics",
     name: "Analíticas de monetización",
-    description:
-      "Consulta métricas de consumo, ingresos y distribución territorial con RBAC.",
+    description: "Consulta métricas de consumo, ingresos y distribución territorial con RBAC.",
     folder: "Economía",
     subfolder: "Analíticas",
     capability: "monetization",
@@ -192,8 +179,7 @@ export const ISABELLA_SKILLS: readonly IsabellaSkill[] = [
   {
     id: "creator-coach",
     name: "Coach del creador",
-    description:
-      "Asiste perfil → coach → skills → boosters → studio → assets con provenance.",
+    description: "Asiste perfil → coach → skills → boosters → studio → assets con provenance.",
     folder: "Economía",
     subfolder: "Creator OS",
     capability: "monetization",
@@ -203,8 +189,7 @@ export const ISABELLA_SKILLS: readonly IsabellaSkill[] = [
   {
     id: "skill-boost",
     name: "Boosters",
-    description:
-      "Aplica boosters de claridad, narrativa y localización sin prometer viralidad.",
+    description: "Aplica boosters de claridad, narrativa y localización sin prometer viralidad.",
     folder: "Economía",
     subfolder: "Creator OS",
     capability: "monetization",
@@ -246,10 +231,7 @@ export function resolveSkillInvocation(
       error: `Skill no registrado: @${parsed.requestedId}`,
       code: "SKILL_NOT_FOUND",
     };
-  if (
-    !capabilityRegistry.isOperational(skill.capability) &&
-    skill.status !== "experimental"
-  ) {
+  if (!capabilityRegistry.isOperational(skill.capability) && skill.status !== "experimental") {
     return {
       error: `Skill no operativo: @${skill.id}`,
       code: "SKILL_UNAVAILABLE",

@@ -31,8 +31,7 @@ function buildState(): SupabaseState {
     return {
       client: null,
       configured: false,
-      reason:
-        "SUPABASE_URL o SUPABASE_ANON_KEY no configurados (modo sin base de datos).",
+      reason: "SUPABASE_URL o SUPABASE_ANON_KEY no configurados (modo sin base de datos).",
     };
   }
 
@@ -79,9 +78,7 @@ export async function testSupabaseConnection(): Promise<{
   }
   const client = state.client as {
     from: (table: string) => {
-      select: (
-        q: string,
-      ) => Promise<{ data: unknown; error: { message: string } | null }>;
+      select: (q: string) => Promise<{ data: unknown; error: { message: string } | null }>;
     };
   };
   try {

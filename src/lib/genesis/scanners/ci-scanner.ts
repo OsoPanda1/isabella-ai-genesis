@@ -178,10 +178,7 @@ export class CIScanner {
 
       if (line.startsWith("on:")) {
         let j = i + 1;
-        while (
-          j < lines.length &&
-          (lines[j].startsWith("  ") || lines[j].startsWith("\t"))
-        ) {
+        while (j < lines.length && (lines[j].startsWith("  ") || lines[j].startsWith("\t"))) {
           const triggerLine = lines[j].trim();
           if (triggerLine && !triggerLine.startsWith("#")) {
             triggers.push(triggerLine.replace(/-/, "").trim());
@@ -192,10 +189,7 @@ export class CIScanner {
 
       if (line.startsWith("permissions:")) {
         let j = i + 1;
-        while (
-          j < lines.length &&
-          (lines[j].startsWith("  ") || lines[j].startsWith("\t"))
-        ) {
+        while (j < lines.length && (lines[j].startsWith("  ") || lines[j].startsWith("\t"))) {
           const permLine = lines[j].trim();
           if (permLine && !permLine.startsWith("#")) {
             permissions.push(permLine);
@@ -242,10 +236,7 @@ export class CIScanner {
           } else if (line.startsWith("if:")) {
             currentJob.ifCondition = line.replace("if:", "").trim();
           } else if (line.startsWith("timeout-minutes:")) {
-            currentJob.timeoutMinutes = parseInt(
-              line.replace("timeout-minutes:", "").trim(),
-              10,
-            );
+            currentJob.timeoutMinutes = parseInt(line.replace("timeout-minutes:", "").trim(), 10);
           } else if (line.trim() === "steps:") {
             inSteps = true;
             continue;
@@ -259,8 +250,7 @@ export class CIScanner {
         }
       }
 
-      const secretMatches =
-        content.match(/\$\{\{\s*secrets\.(\w+)\s*\}\}/g) ?? [];
+      const secretMatches = content.match(/\$\{\{\s*secrets\.(\w+)\s*\}\}/g) ?? [];
       for (const match of secretMatches) {
         const secret = match.match(/secrets\.(\w+)/);
         if (secret) secretsUsed.push(secret[1]);
@@ -296,10 +286,7 @@ export class CIScanner {
       } else if (trimmed.startsWith("run:")) {
         let runContent = trimmed.replace("run:", "").trim();
         let j = i + 1;
-        while (
-          j < lines.length &&
-          (lines[j].startsWith("      ") || lines[j].startsWith("\t\t"))
-        ) {
+        while (j < lines.length && (lines[j].startsWith("      ") || lines[j].startsWith("\t\t"))) {
           runContent += "\n" + lines[j].trim();
           j++;
         }
@@ -308,10 +295,7 @@ export class CIScanner {
       } else if (trimmed.startsWith("env:")) {
         step.env = {};
         let j = i + 1;
-        while (
-          j < lines.length &&
-          (lines[j].startsWith("      ") || lines[j].startsWith("\t\t"))
-        ) {
+        while (j < lines.length && (lines[j].startsWith("      ") || lines[j].startsWith("\t\t"))) {
           const envLine = lines[j].trim();
           const eqIndex = envLine.indexOf(":");
           if (eqIndex > 0) {
@@ -326,8 +310,7 @@ export class CIScanner {
         }
         i = j - 1;
       } else if (trimmed.startsWith("continue-on-error:")) {
-        step.continueOnError =
-          trimmed.replace("continue-on-error:", "").trim() === "true";
+        step.continueOnError = trimmed.replace("continue-on-error:", "").trim() === "true";
       } else if (
         trimmed &&
         !trimmed.startsWith(" ") &&
@@ -357,8 +340,7 @@ export class CIScanner {
         for (const wf of workflows) {
           for (const j of wf.jobs) {
             for (const s of j.steps) {
-              const stepText =
-                `${s.name} ${s.uses ?? ""} ${s.run ?? ""}`.toLowerCase();
+              const stepText = `${s.name} ${s.uses ?? ""} ${s.run ?? ""}`.toLowerCase();
               if (this.gateMatches(gate, stepText)) {
                 implemented = true;
                 workflow = wf.file;
@@ -466,9 +448,7 @@ export class CIScanner {
     for (const wf of workflows) {
       for (const job of wf.jobs) {
         for (const runsOn of job.runsOn) {
-          const versions = runsOn
-            .split(/[,\s]+/)
-            .filter((v) => v.match(/^\d+$/));
+          const versions = runsOn.split(/[,\s]+/).filter((v) => v.match(/^\d+$/));
           for (const version of versions) {
             if (requiredNodeVersion && !requiredNodeVersion.includes(version)) {
               findings.push({
@@ -512,8 +492,7 @@ export class CIScanner {
         severity: "HIGH",
         description: "No se genera SBOM en pipeline",
         location: ".github/workflows/",
-        remediation:
-          "Añadir step de syft/cyclonedx para generar SBOM en preRelease",
+        remediation: "Añadir step de syft/cyclonedx para generar SBOM en preRelease",
       });
     }
 
@@ -528,9 +507,7 @@ export class CIScanner {
       });
     }
 
-    const preReleaseGates = gates.filter((g) =>
-      g.gate.startsWith("preRelease"),
-    );
+    const preReleaseGates = gates.filter((g) => g.gate.startsWith("preRelease"));
     const missingPreRelease = preReleaseGates.filter((g) => !g.implemented);
     if (missingPreRelease.length > 0) {
       findings.push({
@@ -539,8 +516,7 @@ export class CIScanner {
         severity: "CRITICAL",
         description: `Release gate incompleto: faltan ${missingPreRelease.map((g) => g.gate).join(", ")}`,
         location: ".github/workflows/",
-        remediation:
-          "Implementar todos los gates de preRelease requeridos por la política",
+        remediation: "Implementar todos los gates de preRelease requeridos por la política",
       });
     }
 
@@ -556,10 +532,7 @@ export class CIScanner {
     try {
       const entries = fs.readdirSync(workflowsDir, { withFileTypes: true });
       for (const entry of entries) {
-        if (
-          entry.isFile() &&
-          (entry.name.endsWith(".yml") || entry.name.endsWith(".yaml"))
-        ) {
+        if (entry.isFile() && (entry.name.endsWith(".yml") || entry.name.endsWith(".yaml"))) {
           files.push(path.join(workflowsDir, entry.name));
         }
       }

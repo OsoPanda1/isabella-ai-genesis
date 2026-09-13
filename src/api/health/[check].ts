@@ -51,13 +51,9 @@ export default async function handler(req: any, res: any) {
         ...versionInfo,
       });
     } catch (error) {
-      return res
-        .status(503)
-        .json({ status: "ERROR", type: "deep", error: String(error) });
+      return res.status(503).json({ status: "ERROR", type: "deep", error: String(error) });
     }
   }
 
-  return res
-    .status(404)
-    .json({ error: "Unknown check type. Use /live, /ready, or /deep" });
+  return res.status(404).json({ error: "Unknown check type. Use /live, /ready, or /deep" });
 }

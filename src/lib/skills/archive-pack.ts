@@ -1,9 +1,4 @@
-import {
-  createAuditEvent,
-  IsabellaSkill,
-  SkillResult,
-  unique,
-} from "./contracts";
+import { createAuditEvent, IsabellaSkill, SkillResult, unique } from "./contracts";
 
 // ============================================================================
 // 10. MNEMOSYNE (Living Institutional Memory)
@@ -36,12 +31,9 @@ export const MNEMOSYNE: IsabellaSkill<MnemosyneInput, MnemosyneOutput> = {
   version: "v.GENESIS",
   federation: "CIVILIZATIONAL_ARCHIVE",
   risk: "MEDIUM",
-  description:
-    "Indexa, resume, etiqueta y versiona artefactos para la memoria del ecosistema.",
+  description: "Indexa, resume, etiqueta y versiona artefactos para la memoria del ecosistema.",
   canRun: (input) =>
-    Boolean(
-      input.artifact?.id && input.artifact?.title && input.artifact?.content,
-    ),
+    Boolean(input.artifact?.id && input.artifact?.title && input.artifact?.content),
   async run(input, context): Promise<SkillResult<MnemosyneOutput>> {
     const words = input.artifact.content.trim().split(/\s+/);
     const summary = words.slice(0, 80).join(" ").trim();
@@ -127,8 +119,7 @@ export const CHRONOS: IsabellaSkill<ChronosInput, ChronosOutput> = {
   canRun: (input) => Boolean(input.events?.length),
   async run(input, context): Promise<SkillResult<ChronosOutput>> {
     const timeline = [...input.events].sort(
-      (a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
 
     const temporalWarnings = timeline
@@ -246,12 +237,7 @@ export const PROMETEO: IsabellaSkill<PrometeoInput, PrometeoOutput> = {
           { target: input.target, documentCount: input.documents.length },
           context.actorId,
         ),
-        createAuditEvent(
-          "SKILL_COMPLETED",
-          "PROMETEO",
-          { inferredDomains },
-          context.actorId,
-        ),
+        createAuditEvent("SKILL_COMPLETED", "PROMETEO", { inferredDomains }, context.actorId),
       ],
     };
   },

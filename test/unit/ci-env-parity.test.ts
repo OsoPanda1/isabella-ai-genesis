@@ -31,18 +31,16 @@ function checkedVars(workflow: string): Set<string> {
 describe("paridad CI ↔ producción", () => {
   it("release.yml exige el conjunto canónico de producción", async () => {
     const { requiredEnvKeys } = await import("@/lib/env-schema");
-    const canonical: string[] = (
-      requiredEnvKeys("production") as string[]
-    ).filter((key) => key !== "NODE_ENV");
+    const canonical: string[] = (requiredEnvKeys("production") as string[]).filter(
+      (key) => key !== "NODE_ENV",
+    );
 
     for (const workflow of [".github/workflows/release.yml"]) {
       const checked = checkedVars(workflow);
       const missing = canonical.filter((key) => !checked.has(key));
       const extra = [...checked].filter((key) => !canonical.includes(key));
       expect(missing, `${workflow} omite: ${missing.join(", ")}`).toEqual([]);
-      expect(extra, `${workflow} exige de más: ${extra.join(", ")}`).toEqual(
-        [],
-      );
+      expect(extra, `${workflow} exige de más: ${extra.join(", ")}`).toEqual([]);
     }
   });
 

@@ -54,13 +54,11 @@ export type IntentCategory =
   | "governance"
   | "unknown";
 
-export type ResponseMode =
-  "answer" | "clarify" | "refuse" | "approval" | "read_only";
+export type ResponseMode = "answer" | "clarify" | "refuse" | "approval" | "read_only";
 
 export type MemoryScope = "turn" | "session" | "project" | "territorial";
 
-export type SensitivityLevel =
-  "public" | "internal" | "personal" | "restricted";
+export type SensitivityLevel = "public" | "internal" | "personal" | "restricted";
 
 export type EvidenceLevel = "none" | "weak" | "moderate" | "strong";
 
@@ -216,8 +214,7 @@ export const MODULES: Record<ModuleId, CognitiveModule> = {
   CROWN: {
     id: "CROWN",
     acronym: "C.R.O.W.N.",
-    fullName:
-      "Constitutional Runtime for Orchestration, Witnessing and Normative Governance",
+    fullName: "Constitutional Runtime for Orchestration, Witnessing and Normative Governance",
     role: "Gobernanza computacional, arbitraje de políticas y trazabilidad",
     pillars: [
       "Evaluación constitucional",
@@ -249,8 +246,7 @@ export const MODULES: Record<ModuleId, CognitiveModule> = {
   SOPHIA: {
     id: "SOPHIA",
     acronym: "S.O.P.H.I.A.",
-    fullName:
-      "Structured Ontological Processing for Heuristic Inference and Analysis",
+    fullName: "Structured Ontological Processing for Heuristic Inference and Analysis",
     role: "Análisis, razonamiento, epistemología y evaluación de evidencia",
     pillars: [
       "Razonamiento estructurado",
@@ -358,9 +354,7 @@ export const CROWN_ARTICLES = {
   },
 } as const;
 
-export const GOVERNANCE_RULES = Object.values(CROWN_ARTICLES).map(
-  (article) => article.id,
-);
+export const GOVERNANCE_RULES = Object.values(CROWN_ARTICLES).map((article) => article.id);
 
 export const HIGH_IMPACT_ACTIONS = new Set<ActionKind>([
   "modify",
@@ -541,9 +535,7 @@ export const DEFAULT_EVIDENCE: EvidenceAssessment = {
   level: "none",
   sources: [],
   verified: false,
-  limitations: [
-    "No se proporcionó una fuente verificable ni un procedimiento de validación.",
-  ],
+  limitations: ["No se proporcionó una fuente verificable ni un procedimiento de validación."],
 };
 
 function unique<T>(values: T[]): T[] {
@@ -559,9 +551,7 @@ function matchesAny(input: string, patterns: readonly RegExp[]): boolean {
 }
 
 function matchSignals(input: string, patterns: readonly RegExp[]): string[] {
-  return patterns
-    .filter((pattern) => pattern.test(input))
-    .map((pattern) => pattern.source);
+  return patterns.filter((pattern) => pattern.test(input)).map((pattern) => pattern.source);
 }
 
 function normalizeInput(value: string): string {
@@ -589,17 +579,11 @@ function nowIso(): string {
 function detectAction(input: string): ActionKind {
   const normalized = normalizeInput(input);
 
-  if (
-    /\b(delete|remove|erase|drop|truncate|elimina|borra|destruye)\b/i.test(
-      normalized,
-    )
-  ) {
+  if (/\b(delete|remove|erase|drop|truncate|elimina|borra|destruye)\b/i.test(normalized)) {
     return "delete";
   }
 
-  if (
-    /\b(transfer|pay|purchase|buy|transfiere|paga|compra)\b/i.test(normalized)
-  ) {
+  if (/\b(transfer|pay|purchase|buy|transfiere|paga|compra)\b/i.test(normalized)) {
     return "transfer";
   }
 
@@ -607,27 +591,15 @@ function detectAction(input: string): ActionKind {
     return "publish";
   }
 
-  if (
-    /\b(deploy|merge|commit|modify|update|edit|modifica|actualiza|cambia)\b/i.test(
-      normalized,
-    )
-  ) {
+  if (/\b(deploy|merge|commit|modify|update|edit|modifica|actualiza|cambia)\b/i.test(normalized)) {
     return "modify";
   }
 
-  if (
-    /\b(admin|permission|role|privilege|permiso|rol|privilegio)\b/i.test(
-      normalized,
-    )
-  ) {
+  if (/\b(admin|permission|role|privilege|permiso|rol|privilegio)\b/i.test(normalized)) {
     return "administer";
   }
 
-  if (
-    /\b(run|execute|invoke|call tool|ejecuta|ejecutar|invoca)\b/i.test(
-      normalized,
-    )
-  ) {
+  if (/\b(run|execute|invoke|call tool|ejecuta|ejecutar|invoca)\b/i.test(normalized)) {
     return "call_tool";
   }
 
@@ -661,10 +633,7 @@ function detectCategory(input: string, action: ActionKind): IntentCategory {
     return "personal_data";
   }
 
-  if (
-    HIGH_IMPACT_ACTIONS.has(action) ||
-    matchesAny(normalized, EXTERNAL_ACTION_PATTERNS)
-  ) {
+  if (HIGH_IMPACT_ACTIONS.has(action) || matchesAny(normalized, EXTERNAL_ACTION_PATTERNS)) {
     return "external_action";
   }
 
@@ -691,10 +660,7 @@ function inferReversibility(action: ActionKind): boolean {
   return !["delete", "transfer", "publish", "administer"].includes(action);
 }
 
-function inferExternalEffect(
-  category: IntentCategory,
-  action: ActionKind,
-): boolean {
+function inferExternalEffect(category: IntentCategory, action: ActionKind): boolean {
   return (
     EXTERNAL_ACTION_CATEGORIES.has(category) ||
     HIGH_IMPACT_ACTIONS.has(action) ||
@@ -780,19 +746,11 @@ export function assessRisk(intent: IntentAssessment): RiskLevel {
     return "critical";
   }
 
-  if (
-    intent.action === "publish" ||
-    intent.action === "modify" ||
-    intent.externalEffect
-  ) {
+  if (intent.action === "publish" || intent.action === "modify" || intent.externalEffect) {
     return "high";
   }
 
-  if (
-    intent.category === "security" ||
-    intent.category === "personal_data" ||
-    !intent.reversible
-  ) {
+  if (intent.category === "security" || intent.category === "personal_data" || !intent.reversible) {
     return "medium";
   }
 
@@ -867,14 +825,8 @@ export function requestsApproval(input: string): boolean {
   return matchesAny(normalizeInput(input), APPROVAL_PATTERNS);
 }
 
-export function hasPermission(
-  identity: IdentityAssessment,
-  permission: string,
-): boolean {
-  return (
-    identity.permissions.includes(permission) ||
-    identity.permissions.includes("*")
-  );
+export function hasPermission(identity: IdentityAssessment, permission: string): boolean {
+  return identity.permissions.includes(permission) || identity.permissions.includes("*");
 }
 
 export function hasRole(identity: IdentityAssessment, role: string): boolean {
@@ -886,10 +838,7 @@ export function canAccessMemory(
   memory: MemoryRecord,
   now = new Date(),
 ): boolean {
-  if (
-    memory.expiresAt &&
-    new Date(memory.expiresAt).getTime() <= now.getTime()
-  ) {
+  if (memory.expiresAt && new Date(memory.expiresAt).getTime() <= now.getTime()) {
     return false;
   }
 
@@ -910,10 +859,7 @@ export function canAccessMemory(
     return false;
   }
 
-  if (
-    memory.sensitivity === "restricted" &&
-    !hasPermission(identity, "memory:read:restricted")
-  ) {
+  if (memory.sensitivity === "restricted" && !hasPermission(identity, "memory:read:restricted")) {
     return false;
   }
 
@@ -939,9 +885,7 @@ export function resolveAllowedMemoryScopes(
   }
 
   if (
-    ["knowledge", "coding", "analysis", "creative", "governance"].includes(
-      intent.category,
-    ) &&
+    ["knowledge", "coding", "analysis", "creative", "governance"].includes(intent.category) &&
     identity.dataScopes.includes("project")
   ) {
     scopes.push("project");
@@ -992,10 +936,7 @@ export function evaluatePolicy(
       ],
       humanApprovalRequired: false,
       missingInformation: [],
-      prohibitedCapabilities: [
-        "Divulgación de secretos",
-        "Exfiltración de credenciales",
-      ],
+      prohibitedCapabilities: ["Divulgación de secretos", "Exfiltración de credenciales"],
     };
   }
 
@@ -1025,34 +966,22 @@ export function evaluatePolicy(
       status: "denied",
       risk: risk === "minimal" ? "high" : risk,
       rulesChecked,
-      reasons: [
-        "Las acciones con efecto externo requieren una identidad autenticada.",
-      ],
+      reasons: ["Las acciones con efecto externo requieren una identidad autenticada."],
       humanApprovalRequired: false,
       missingInformation: ["Identidad autenticada"],
-      prohibitedCapabilities: [
-        "Acción externa sin identidad",
-        "Uso de herramientas privilegiadas",
-      ],
+      prohibitedCapabilities: ["Acción externa sin identidad", "Uso de herramientas privilegiadas"],
     };
   }
 
-  if (
-    intent.category === "personal_data" &&
-    !hasPermission(identity, "data:personal:process")
-  ) {
+  if (intent.category === "personal_data" && !hasPermission(identity, "data:personal:process")) {
     return {
       status: "denied",
       risk: "high",
       rulesChecked,
-      reasons: [
-        "El tratamiento de datos personales requiere un permiso explícito y verificable.",
-      ],
+      reasons: ["El tratamiento de datos personales requiere un permiso explícito y verificable."],
       humanApprovalRequired: false,
       missingInformation: ["Permiso data:personal:process"],
-      prohibitedCapabilities: [
-        "Procesamiento no autorizado de datos personales",
-      ],
+      prohibitedCapabilities: ["Procesamiento no autorizado de datos personales"],
     };
   }
 
@@ -1081,13 +1010,9 @@ export function evaluatePolicy(
   if (
     intent.category === "knowledge" &&
     evidence.level === "none" &&
-    /\b(cita|fuente|referencia|estudio|paper|investigaci[oó]n)\b/i.test(
-      normalized,
-    )
+    /\b(cita|fuente|referencia|estudio|paper|investigaci[oó]n)\b/i.test(normalized)
   ) {
-    missingInformation.push(
-      "Fuente verificable o acceso a recuperación documental",
-    );
+    missingInformation.push("Fuente verificable o acceso a recuperación documental");
   }
 
   if (missingInformation.length > 0) {
@@ -1095,20 +1020,14 @@ export function evaluatePolicy(
       status: "requires_more_information",
       risk,
       rulesChecked,
-      reasons: [
-        "No existe evidencia o contexto suficiente para emitir una respuesta verificable.",
-      ],
+      reasons: ["No existe evidencia o contexto suficiente para emitir una respuesta verificable."],
       humanApprovalRequired: false,
       missingInformation: unique(missingInformation),
       prohibitedCapabilities,
     };
   }
 
-  if (
-    risk === "critical" ||
-    risk === "high" ||
-    HIGH_IMPACT_ACTIONS.has(intent.action)
-  ) {
+  if (risk === "critical" || risk === "high" || HIGH_IMPACT_ACTIONS.has(intent.action)) {
     return {
       status: "requires_human_approval",
       risk,
@@ -1117,9 +1036,7 @@ export function evaluatePolicy(
         "La acción tiene impacto externo, puede ser irreversible o requiere privilegios elevados.",
       ],
       humanApprovalRequired: true,
-      missingInformation: [
-        "Aprobación humana explícita, verificable y vigente",
-      ],
+      missingInformation: ["Aprobación humana explícita, verificable y vigente"],
       prohibitedCapabilities: ["Ejecución autónoma de acción de alto impacto"],
     };
   }
@@ -1133,9 +1050,7 @@ export function evaluatePolicy(
       status: "allowed_read_only",
       risk,
       rulesChecked,
-      reasons: [
-        "La operación se limita a lectura y no solicita modificación externa.",
-      ],
+      reasons: ["La operación se limita a lectura y no solicita modificación externa."],
       humanApprovalRequired: false,
       missingInformation: [],
       prohibitedCapabilities: ["Escritura", "Eliminación", "Publicación"],
@@ -1177,10 +1092,7 @@ export function responseModeFor(policy: PolicyAssessment): ResponseMode {
   }
 }
 
-export function resolveAllowedTools(
-  policy: PolicyAssessment,
-  intent: IntentAssessment,
-): string[] {
+export function resolveAllowedTools(policy: PolicyAssessment, intent: IntentAssessment): string[] {
   if (policy.status === "denied") {
     return [];
   }
@@ -1447,17 +1359,14 @@ export function canInvokeTool(
   if (!roleAllowed) {
     return {
       allowed: false,
-      reason:
-        "La identidad actual no posee el rol requerido para esta herramienta.",
+      reason: "La identidad actual no posee el rol requerido para esta herramienta.",
     };
   }
 
   const permissionAllowed =
     !policy.requiredPermissions ||
     policy.requiredPermissions.length === 0 ||
-    policy.requiredPermissions.every((permission) =>
-      hasPermission(identity, permission),
-    );
+    policy.requiredPermissions.every((permission) => hasPermission(identity, permission));
 
   if (!permissionAllowed) {
     return {
@@ -1478,10 +1387,7 @@ export function canInvokeTool(
     signals: ["tool_request"],
   };
 
-  if (
-    policy.requiresApproval &&
-    !isApprovalValid(approval, intent, new Date(), expectedContext)
-  ) {
+  if (policy.requiresApproval && !isApprovalValid(approval, intent, new Date(), expectedContext)) {
     return {
       allowed: false,
       reason:
@@ -1552,9 +1458,7 @@ export function buildSystemPrompt(decision: RoutingDecision): string {
     `Identidad: ${identityState}`,
     `Intención: ${decision.intent.category}; acción: ${decision.intent.action}; riesgo: ${policy.risk}.`,
     `Herramientas autorizadas: ${
-      decision.allowedTools.length > 0
-        ? decision.allowedTools.join(", ")
-        : "ninguna"
+      decision.allowedTools.length > 0 ? decision.allowedTools.join(", ") : "ninguna"
     }.`,
     `Memoria permitida: ${decision.memoryScopes.join(", ")}.`,
     `Evaluación de evidencia: ${decision.evidence.level}; verificada: ${
@@ -1568,9 +1472,7 @@ export function buildSystemPrompt(decision: RoutingDecision): string {
 
 export function createDefaultContext(
   input: string,
-  overrides?: Partial<
-    Omit<RequestContext, "input" | "timestamp" | "requestId">
-  >,
+  overrides?: Partial<Omit<RequestContext, "input" | "timestamp" | "requestId">>,
 ): RequestContext {
   return {
     requestId: `req-${makeTraceId()}`,
@@ -1587,9 +1489,7 @@ export function createDefaultContext(
 export function routeRequest(
   input: string,
   options?: {
-    context?: Partial<
-      Omit<RequestContext, "input" | "timestamp" | "requestId">
-    >;
+    context?: Partial<Omit<RequestContext, "input" | "timestamp" | "requestId">>;
     identity?: IdentityAssessment;
     evidence?: EvidenceAssessment;
   },

@@ -23,12 +23,7 @@ const rules: Array<[string, ClawSeverity, RegExp, string]> = [
     /(?:process\.env\b|(?:SECRET|TOKEN|PRIVATE_KEY|API_KEY)[A-Z0-9_]*\s*[:=]|(?:secret|token|api[_-]?key|private[_-]?key)\s*(?:from|via|using)\s+(?:process\.env|environment|env))/i,
     "potential secret access",
   ],
-  [
-    "CS-003",
-    "HIGH",
-    /\b(GPL-?3|AGPL|proprietary)\b/i,
-    "license requires review",
-  ],
+  ["CS-003", "HIGH", /\b(GPL-?3|AGPL|proprietary)\b/i, "license requires review"],
   [
     "CS-004",
     "HIGH",

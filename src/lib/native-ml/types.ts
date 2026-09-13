@@ -1,7 +1,6 @@
 /** Isabella Native ML — provider-agnostic governed contracts. Capability does not imply authority. */
 export type MLTask = "classification" | "regression" | "clustering" | "anomaly";
-export type ApprovalStatus =
-  "PENDING_REVIEW" | "APPROVED" | "REJECTED" | "REVOKED";
+export type ApprovalStatus = "PENDING_REVIEW" | "APPROVED" | "REJECTED" | "REVOKED";
 export interface DatasetIdentity {
   datasetId: string;
   version: string;

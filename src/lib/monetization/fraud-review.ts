@@ -76,9 +76,7 @@ export const PAYOUT_DUAL_APPROVAL_CENTS = 100_000;
  * Scoring determinista y explicable. Pesos calibrados para que una sola
  * señal grave (cuenta sancionada) bloquee y las leves acumulen.
  */
-export function evaluateWithdrawalRisk(
-  input: WithdrawalRiskInput,
-): RiskEvaluation {
+export function evaluateWithdrawalRisk(input: WithdrawalRiskInput): RiskEvaluation {
   const signals: string[] = [];
   const weights: number[] = [];
 
@@ -90,10 +88,7 @@ export function evaluateWithdrawalRisk(
     signals.push("identity-unverified");
     weights.push(0.5);
   }
-  if (
-    input.accountAgeDays < 30 &&
-    input.amountCents >= FRAUD_HIGH_AMOUNT_CENTS
-  ) {
+  if (input.accountAgeDays < 30 && input.amountCents >= FRAUD_HIGH_AMOUNT_CENTS) {
     signals.push("new-account-high-amount");
     weights.push(0.7);
   }
@@ -114,8 +109,7 @@ export function evaluateWithdrawalRisk(
   for (const weight of weights) complement *= 1 - weight;
   const score = Math.round((1 - complement) * 1000) / 1000;
 
-  const status: FraudStatus =
-    score >= 0.8 ? "fraud_detected" : score >= 0.4 ? "hold" : "pass";
+  const status: FraudStatus = score >= 0.8 ? "fraud_detected" : score >= 0.4 ? "hold" : "pass";
   return {
     reviewId: `fr_${randomUUID().replace(/-/g, "")}`,
     status,
@@ -135,14 +129,8 @@ export function createFraudReviewQueue(opts?: {
 
   return {
     /** Abre un caso desde una evaluación de riesgo. */
-    open(
-      evaluation: RiskEvaluation,
-      userId: string,
-      amountCents: number,
-    ): FraudCase {
-      const existing = [...cases.values()].find(
-        (c) => c.reviewId === evaluation.reviewId,
-      );
+    open(evaluation: RiskEvaluation, userId: string, amountCents: number): FraudCase {
+      const existing = [...cases.values()].find((c) => c.reviewId === evaluation.reviewId);
       if (existing) return existing;
       const fraudCase: FraudCase = {
         reviewId: evaluation.reviewId,
@@ -192,9 +180,7 @@ export function createFraudReviewQueue(opts?: {
     },
 
     pending(): FraudCase[] {
-      return [...cases.values()].filter(
-        (c) => !c.decision && c.status !== "pass",
-      );
+      return [...cases.values()].filter((c) => !c.decision && c.status !== "pass");
     },
 
     /** Disputa (chargeback): congela payouts del tenant hasta el cierre. */
@@ -206,8 +192,7 @@ export function createFraudReviewQueue(opts?: {
     }): Dispute {
       const existing = [...disputes.values()].find(
         (dispute) =>
-          dispute.provider === input.provider &&
-          dispute.providerEventId === input.providerEventId,
+          dispute.provider === input.provider && dispute.providerEventId === input.providerEventId,
       );
       if (existing) return existing;
       const dispute: Dispute = {
@@ -227,10 +212,7 @@ export function createFraudReviewQueue(opts?: {
       return dispute;
     },
 
-    closeDispute(
-      disputeId: string,
-      status: Exclude<DisputeStatus, "open">,
-    ): Dispute | null {
+    closeDispute(disputeId: string, status: Exclude<DisputeStatus, "open">): Dispute | null {
       const dispute = disputes.get(disputeId);
       if (!dispute || dispute.status !== "open") return null;
       dispute.status = status;

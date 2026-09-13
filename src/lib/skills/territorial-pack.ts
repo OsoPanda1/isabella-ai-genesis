@@ -1,9 +1,4 @@
-import {
-  createAuditEvent,
-  IsabellaSkill,
-  SkillResult,
-  normalizeText,
-} from "./contracts";
+import { createAuditEvent, IsabellaSkill, SkillResult, normalizeText } from "./contracts";
 
 // ============================================================================
 // 8. AURORA (Contextual Orientation Layer)
@@ -20,8 +15,7 @@ export interface AuroraInput {
 }
 
 export interface AuroraOutput {
-  intent:
-    "TOURISM" | "CULTURE" | "COMMERCE" | "EDUCATION" | "SUPPORT" | "UNKNOWN";
+  intent: "TOURISM" | "CULTURE" | "COMMERCE" | "EDUCATION" | "SUPPORT" | "UNKNOWN";
   recommendations: Array<{
     id: string;
     title: string;
@@ -64,9 +58,7 @@ export const AURORA: IsabellaSkill<AuroraInput, AuroraOutput> = {
             const searchable = normalizeText(
               `${resource.title} ${resource.category} ${resource.description}`,
             );
-            const score = keywords.filter((word) =>
-              searchable.includes(word),
-            ).length;
+            const score = keywords.filter((word) => searchable.includes(word)).length;
             return { resource, score };
           })
           .filter((item) => item.score > 0)
@@ -146,8 +138,7 @@ export const GAIA: IsabellaSkill<GaiaInput, GaiaOutput> = {
   version: "v.GENESIS",
   federation: "TERRITORY",
   risk: "HIGH",
-  description:
-    "Evalúa sostenibilidad integral de iniciativas con enfoque territorial y cultural.",
+  description: "Evalúa sostenibilidad integral de iniciativas con enfoque territorial y cultural.",
   canRun: (input) => Boolean(input.initiative?.trim() && input.impacts),
   async run(input, context): Promise<SkillResult<GaiaOutput>> {
     const values = Object.entries(input.impacts);
@@ -169,12 +160,7 @@ export const GAIA: IsabellaSkill<GaiaInput, GaiaOutput> = {
 
     return {
       skillId: "GAIA",
-      status:
-        verdict === "HARMFUL"
-          ? "BLOCKED"
-          : verdict === "REVIEW"
-            ? "ESCALATED"
-            : "SUCCESS",
+      status: verdict === "HARMFUL" ? "BLOCKED" : verdict === "REVIEW" ? "ESCALATED" : "SUCCESS",
       summary: `GAIA evaluó la iniciativa como ${verdict}.`,
       data: {
         sustainabilityScore,
@@ -227,17 +213,11 @@ export const NODO_CERO: IsabellaSkill<NodoCeroInput, NodoCeroOutput> = {
   version: "v.GENESIS",
   federation: "TERRITORY",
   risk: "HIGH",
-  description:
-    "Gestiona etapas, dependencias y acciones de iniciativas vinculadas al Nodo Cero.",
+  description: "Gestiona etapas, dependencias y acciones de iniciativas vinculadas al Nodo Cero.",
   canRun: (input) => Boolean(input.initiative?.trim() && input.stage),
   async run(input, context): Promise<SkillResult<NodoCeroOutput>> {
     const blockers = input.blockers ?? [];
-    const status =
-      blockers.length > 0
-        ? "BLOCKED"
-        : input.stage === "SCALE"
-          ? "REVIEW"
-          : "READY";
+    const status = blockers.length > 0 ? "BLOCKED" : input.stage === "SCALE" ? "REVIEW" : "READY";
 
     const nextActions =
       status === "BLOCKED"
@@ -276,12 +256,7 @@ export const NODO_CERO: IsabellaSkill<NodoCeroInput, NodoCeroOutput> = {
           { initiative: input.initiative, stage: input.stage },
           context.actorId,
         ),
-        createAuditEvent(
-          "SKILL_COMPLETED",
-          "NODO_CERO",
-          { status, blockers },
-          context.actorId,
-        ),
+        createAuditEvent("SKILL_COMPLETED", "NODO_CERO", { status, blockers }, context.actorId),
       ],
     };
   },
@@ -331,9 +306,7 @@ export const PHAROS: IsabellaSkill<PharosInput, PharosOutput> = {
           .filter((category) => interests.includes(category)).length;
 
         const score =
-          categoryMatches * 2 +
-          place.sustainabilityScore +
-          (place.accessibility ? 0.5 : 0);
+          categoryMatches * 2 + place.sustainabilityScore + (place.accessibility ? 0.5 : 0);
 
         return {
           id: place.id,

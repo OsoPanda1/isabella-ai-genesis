@@ -19,19 +19,12 @@ export interface ZeroLossRevenueInput {
   communityShareRatio: number; // Ratio for territorial node community (e.g. 0.05)
 }
 
-export function splitZeroLossRevenue(
-  input: ZeroLossRevenueInput,
-): RevenueSplit {
-  const {
-    grossPaidCents,
-    infrastructureCostCents,
-    refundReserveRatio,
-    communityShareRatio,
-  } = input;
+export function splitZeroLossRevenue(input: ZeroLossRevenueInput): RevenueSplit {
+  const { grossPaidCents, infrastructureCostCents, refundReserveRatio, communityShareRatio } =
+    input;
 
   if (grossPaidCents < 0) throw new Error("grossPaidCents cannot be negative");
-  if (infrastructureCostCents < 0)
-    throw new Error("infrastructureCostCents cannot be negative");
+  if (infrastructureCostCents < 0) throw new Error("infrastructureCostCents cannot be negative");
 
   // 1. DEDUCT PLATFORM COSTS FIRST (Zero-Loss Guarantee)
   const netMarginCents = grossPaidCents - infrastructureCostCents;
@@ -50,23 +43,18 @@ export function splitZeroLossRevenue(
   }
 
   // 2. ALLOCATE PLATFORM FEE FROM NET MARGIN
-  const platformFeeCents = Math.round(
-    (netMarginCents * PLATFORM_FEE_BASIS_POINTS) / 10_000,
-  );
+  const platformFeeCents = Math.round((netMarginCents * PLATFORM_FEE_BASIS_POINTS) / 10_000);
   const totalPlatformTakeCents = infrastructureCostCents + platformFeeCents;
 
   // 3. ALLOCATE COMMUNITY SHARE
   const communityShareCents = Math.round(netMarginCents * communityShareRatio);
 
   // 4. CALCULATE USER PROFIT (Remaining)
-  const userGrossProfitCents =
-    netMarginCents - platformFeeCents - communityShareCents;
+  const userGrossProfitCents = netMarginCents - platformFeeCents - communityShareCents;
 
   // 5. WITHHOLD ESCROW (FRAUD/CHARGEBACK PROTECTION)
   // The reserve is taken ONLY from the user's profit. The platform secures its costs & fees immediately.
-  const refundReserveCents = Math.round(
-    userGrossProfitCents * refundReserveRatio,
-  );
+  const refundReserveCents = Math.round(userGrossProfitCents * refundReserveRatio);
   const netUserAmountCents = userGrossProfitCents - refundReserveCents;
 
   return {

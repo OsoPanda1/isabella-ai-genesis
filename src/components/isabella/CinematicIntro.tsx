@@ -137,10 +137,7 @@ function WebGLCinematicField() {
       colors[i * 3 + 2] = color.b;
     }
     const starGeometry = new THREE.BufferGeometry();
-    starGeometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(positions, 3),
-    );
+    starGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     starGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     const stars = new THREE.Points(
       starGeometry,
@@ -406,8 +403,7 @@ export function CinematicIntroContent({
     })
       .then((response) => (response.ok ? response.json() : null))
       .then((payload: { enabled?: boolean; playbackId?: string } | null) => {
-        if (payload?.enabled && payload.playbackId)
-          setMuxPlaybackId(payload.playbackId);
+        if (payload?.enabled && payload.playbackId) setMuxPlaybackId(payload.playbackId);
       })
       .catch(() => {
         // Mux is an enhancement; the WebGL field remains the resilient fallback.
@@ -433,10 +429,7 @@ export function CinematicIntroContent({
       audio.muted = false;
       audio.volume = 0.72;
       const startAtOffset = () => {
-        if (
-          Number.isFinite(audio.duration) &&
-          audio.duration > AUDIO_START_OFFSET_SECONDS
-        ) {
+        if (Number.isFinite(audio.duration) && audio.duration > AUDIO_START_OFFSET_SECONDS) {
           audio.currentTime = AUDIO_START_OFFSET_SECONDS;
         }
       };
@@ -478,9 +471,7 @@ export function CinematicIntroContent({
         const measured = Math.round((frames * 1000) / (now - last));
         setFps(measured);
         const progress = current / DURATION;
-        const scene =
-          scenes.find((item) => current < item.end) ??
-          scenes[scenes.length - 1];
+        const scene = scenes.find((item) => current < item.end) ?? scenes[scenes.length - 1];
         const payload = {
           elapsed: current,
           progress,
@@ -490,9 +481,7 @@ export function CinematicIntroContent({
         };
         telemetryRef.current?.(payload);
         try {
-          window.dispatchEvent(
-            new CustomEvent("IsabellaTelemetryEvent", { detail: payload }),
-          );
+          window.dispatchEvent(new CustomEvent("IsabellaTelemetryEvent", { detail: payload }));
         } catch {
           // Event dispatch non-critical to playback
         }
@@ -554,8 +543,7 @@ export function CinematicIntroContent({
     return () => audio.removeEventListener("canplay", handleReady);
   }, []);
   const scene = useMemo(
-    () =>
-      scenes.find((item) => elapsed < item.end) ?? scenes[scenes.length - 1],
+    () => scenes.find((item) => elapsed < item.end) ?? scenes[scenes.length - 1],
     [elapsed],
   );
   const progress = elapsed / DURATION;
@@ -604,8 +592,7 @@ export function CinematicIntroContent({
                 className="size-1.5 rounded-full bg-[var(--electric)] shadow-[0_0_10px_var(--electric)]"
                 aria-hidden="true"
               />
-              {fps} FPS <span className="text-white/25">//</span> {timecode} /
-              00:59
+              {fps} FPS <span className="text-white/25">//</span> {timecode} / 00:59
             </span>
           </header>
           <section className="absolute inset-0 z-10 flex items-center px-8 sm:px-16 lg:px-24">
@@ -684,18 +671,13 @@ export function CinematicIntroContent({
               aria-label="Iniciar la experiencia cinematográfica"
               className="mx-auto mt-9 flex items-center gap-3 border border-cyan-100/35 bg-white/[.06] px-7 py-4 text-[10px] font-semibold uppercase tracking-[.35em] text-white transition-all hover:border-cyan-100 hover:bg-cyan-100/10 hover:shadow-[0_0_35px_rgba(115,221,255,.25)] active:scale-95"
             >
-              <Play className="size-4 fill-current text-cyan-100" /> Iniciar
-              experiencia
+              <Play className="size-4 fill-current text-cyan-100" /> Iniciar experiencia
             </button>
             <button
               onClick={() => setMuted((value) => !value)}
               className="mt-6 inline-flex items-center gap-2 text-[10px] uppercase tracking-[.25em] text-white/35 transition-colors hover:text-white/75"
             >
-              {muted ? (
-                <VolumeX className="size-3.5" />
-              ) : (
-                <Volume2 className="size-3.5" />
-              )}
+              {muted ? <VolumeX className="size-3.5" /> : <Volume2 className="size-3.5" />}
               {muted ? "Audio desactivado" : "Audio activado"}
             </button>
           </div>

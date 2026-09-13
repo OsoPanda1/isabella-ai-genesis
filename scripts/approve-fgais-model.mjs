@@ -9,13 +9,10 @@ const modelId =
   process.env.LLM_DEFAULT_MODEL?.split("/").at(-1) ||
   "gemini-3-flash";
 const version = process.env.FGAIS_MODEL_VERSION || modelId;
-const artifactHash =
-  process.env.FGAIS_MODEL_ARTIFACT_HASH || `provider:google:${modelId}`;
+const artifactHash = process.env.FGAIS_MODEL_ARTIFACT_HASH || `provider:google:${modelId}`;
 
 if (!databaseUrl || !tenantId) {
-  console.error(
-    "FGAIS model approval requires DATABASE_URL and FGAIS_MODEL_TENANT_ID.",
-  );
+  console.error("FGAIS model approval requires DATABASE_URL and FGAIS_MODEL_TENANT_ID.");
   process.exit(2);
 }
 
@@ -32,9 +29,7 @@ try {
   `,
     [tenantId, modelId, version, artifactHash],
   );
-  console.log(
-    JSON.stringify({ approved: true, tenantId, modelId, version }, null, 2),
-  );
+  console.log(JSON.stringify({ approved: true, tenantId, modelId, version }, null, 2));
 } finally {
   await pool.end();
 }

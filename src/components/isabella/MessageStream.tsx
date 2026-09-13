@@ -31,11 +31,7 @@ function VoiceButton({ text }: { text: string }) {
       <button
         type="button"
         onClick={() => void toggle()}
-        aria-label={
-          state === "playing"
-            ? "Detener voz de Isabella"
-            : "Escuchar voz de Isabella"
-        }
+        aria-label={state === "playing" ? "Detener voz de Isabella" : "Escuchar voz de Isabella"}
         className="rounded-lg border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-platinum"
       >
         {state === "playing" ? "◼ Silenciar voz" : "▶ Voz de Isabella"}
@@ -90,9 +86,7 @@ export function MessageStream({
               <div className="glass max-w-[86%] rounded-2xl rounded-br-sm px-5 py-4 sm:max-w-[70%]">
                 <div className="mb-1.5 flex items-center justify-between gap-6">
                   <Meta label="OPERADOR" value="ANUBIS" />
-                  <span className="font-mono text-[10px] text-muted-foreground">
-                    {m.timestamp}
-                  </span>
+                  <span className="font-mono text-[10px] text-muted-foreground">{m.timestamp}</span>
                 </div>
                 <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">
                   {m.content}
@@ -122,21 +116,14 @@ export function MessageStream({
                 {m.decision && (
                   <>
                     <Meta label="TRACE" value={m.decision.traceId} />
-                    <Meta
-                      label="GATE"
-                      value={m.decision.policy.toUpperCase()}
-                    />
-                    <Meta
-                      label="RIESGO"
-                      value={m.decision.risk.toUpperCase()}
-                    />
+                    <Meta label="GATE" value={m.decision.policy.toUpperCase()} />
+                    <Meta label="RIESGO" value={m.decision.risk.toUpperCase()} />
                     <Meta label="TONO" value={m.decision.emotionalTone} />
                   </>
                 )}
                 {m.degraded === true && (
                   <span className="rounded border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-amber-400">
-                    Degradado · {m.provider ?? "origen alterno"} (no es
-                    inferencia LLM)
+                    Degradado · {m.provider ?? "origen alterno"} (no es inferencia LLM)
                   </span>
                 )}
                 <span className="ml-auto font-mono text-[10px] text-muted-foreground">

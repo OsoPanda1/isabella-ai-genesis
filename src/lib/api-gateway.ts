@@ -1,9 +1,6 @@
 import { SecuritySystem } from "./security";
 import { PrincipalContext } from "./principal-context";
-import {
-  evaluateAuthorization,
-  type AuthorizationContext,
-} from "./authorization";
+import { evaluateAuthorization, type AuthorizationContext } from "./authorization";
 import type { Resource, Action } from "./permission-matrix";
 import { runWithIdentity } from "./identity-context";
 
@@ -38,18 +35,11 @@ export class ApiGateway {
     const bodyMethods = new Set(["POST", "PUT", "PATCH"]);
     const maxBodyBytes = 512 * 1024;
     const contentLength = Number(request.headers.get("content-length") ?? 0);
-    if (
-      bodyMethods.has(method) &&
-      Number.isFinite(contentLength) &&
-      contentLength > maxBodyBytes
-    ) {
-      return new Response(
-        JSON.stringify({ error: "Payload excede el límite permitido." }),
-        {
-          status: 413,
-          headers,
-        },
-      );
+    if (bodyMethods.has(method) && Number.isFinite(contentLength) && contentLength > maxBodyBytes) {
+      return new Response(JSON.stringify({ error: "Payload excede el límite permitido." }), {
+        status: 413,
+        headers,
+      });
     }
 
     // 1. Autenticación y resolución de Principal Context
@@ -112,8 +102,6 @@ export class ApiGateway {
     }
 
     // 4. Delegación a la lógica de negocio final (con identidad en request-context)
-    return runWithIdentity(context.toRequestIdentity(), () =>
-      handler(context, parsedData),
-    );
+    return runWithIdentity(context.toRequestIdentity(), () => handler(context, parsedData));
   }
 }

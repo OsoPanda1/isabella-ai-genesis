@@ -20,9 +20,7 @@ export interface DecisionRecord {
 }
 export interface LedgerStore {
   append(record: DecisionRecord): Promise<void> | void;
-  latestHash(
-    tenantId: string,
-  ): Promise<string | undefined> | string | undefined;
+  latestHash(tenantId: string): Promise<string | undefined> | string | undefined;
 }
 export class MemoryLedger implements LedgerStore {
   private readonly records: DecisionRecord[] = [];
@@ -30,8 +28,7 @@ export class MemoryLedger implements LedgerStore {
     this.records.push({ ...r });
   }
   latestHash(tenantId: string) {
-    return [...this.records].reverse().find((r) => r.tenantId === tenantId)
-      ?.recordHash;
+    return [...this.records].reverse().find((r) => r.tenantId === tenantId)?.recordHash;
   }
   list() {
     return this.records.map((r) => ({ ...r, evidenceIds: [...r.evidenceIds] }));
@@ -54,8 +51,7 @@ export function verifyChain(records: DecisionRecord[]): boolean {
   let previous = "GENESIS";
   for (const r of records) {
     const { recordHash, ...base } = r;
-    if (r.previousHash !== previous || hashRecord(base) !== recordHash)
-      return false;
+    if (r.previousHash !== previous || hashRecord(base) !== recordHash) return false;
     previous = recordHash;
   }
   return true;

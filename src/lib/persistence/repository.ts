@@ -72,11 +72,7 @@ export interface WriteOptions {
 }
 
 export interface IRepository<T> {
-  create(
-    tenantId: string,
-    data: Partial<T>,
-    options?: WriteOptions,
-  ): Promise<T>;
+  create(tenantId: string, data: Partial<T>, options?: WriteOptions): Promise<T>;
   read(tenantId: string, id: string, options?: ReadOptions): Promise<T | null>;
   list(
     tenantId: string,
@@ -84,12 +80,7 @@ export interface IRepository<T> {
     limit?: number,
     offset?: number,
   ): Promise<{ items: T[]; total: number }>;
-  update(
-    tenantId: string,
-    id: string,
-    data: Partial<T>,
-    options?: WriteOptions,
-  ): Promise<T>;
+  update(tenantId: string, id: string, data: Partial<T>, options?: WriteOptions): Promise<T>;
   delete(tenantId: string, id: string): Promise<boolean>;
   audit(entry: AuditEntry): Promise<void>;
   health(): Promise<{ ok: boolean; latencyMs: number }>;
@@ -98,10 +89,7 @@ export interface IRepository<T> {
 
 export interface RepositoryFactory {
   /** Authoritative durable/cache adapters only. Supabase is deliberately excluded. */
-  getAdapter<T extends { id: string }>(
-    type: "neon" | "redis",
-    schema?: string,
-  ): IRepository<T>;
+  getAdapter<T extends { id: string }>(type: "neon" | "redis", schema?: string): IRepository<T>;
   getApiKeyRepository(): IRepository<ApiKey>;
   getAuditRepository(): IRepository<AuditEntry>;
   getTenantRepository(): IRepository<Tenant>;
@@ -116,15 +104,7 @@ export interface RepositoryError extends Error {
 }
 
 export function isRepositoryError(error: unknown): error is RepositoryError {
-  return (
-    error instanceof Error &&
-    "code" in error &&
-    "statusCode" in error &&
-    "retryable" in error
-  );
+  return error instanceof Error && "code" in error && "statusCode" in error && "retryable" in error;
 }
 
-export {
-  JsonFileRepository,
-  JsonRepositoryFactory,
-} from "./adapters/json-adapter";
+export { JsonFileRepository, JsonRepositoryFactory } from "./adapters/json-adapter";

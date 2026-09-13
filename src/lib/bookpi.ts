@@ -35,9 +35,7 @@ export interface BookpiRefundRequest {
 /**
  * Crea el motor BookPI con un repositorio inyectable (para test/aislamiento).
  */
-export function createBookpiEngine(
-  repository: BookpiRepository = createBookpiRepository(),
-) {
+export function createBookpiEngine(repository: BookpiRepository = createBookpiRepository()) {
   return {
     list(tenantId: string): BlockPIBlock[] {
       return repository.list(tenantId);
@@ -48,12 +46,9 @@ export function createBookpiEngine(
       error?: string;
       block?: BlockPIBlock;
     } {
-      if (!request.tenantId)
-        return { success: false, error: "Tenant requerido." };
-      if (!request.userId)
-        return { success: false, error: "Usuario requerido." };
-      if (request.cost < 0)
-        return { success: false, error: "Costo negativo no admitido." };
+      if (!request.tenantId) return { success: false, error: "Tenant requerido." };
+      if (!request.userId) return { success: false, error: "Usuario requerido." };
+      if (request.cost < 0) return { success: false, error: "Costo negativo no admitido." };
       const write = repository.append({
         tenantId: request.tenantId,
         userId: request.userId,
@@ -73,12 +68,9 @@ export function createBookpiEngine(
     } {
       if (requests.length === 0) return { success: true, blocks: [] };
       for (const req of requests) {
-        if (!req.tenantId)
-          return { success: false, error: "Tenant requerido en batch." };
-        if (!req.userId)
-          return { success: false, error: "Usuario requerido en batch." };
-        if (req.cost < 0)
-          return { success: false, error: "Costo negativo no admitido." };
+        if (!req.tenantId) return { success: false, error: "Tenant requerido en batch." };
+        if (!req.userId) return { success: false, error: "Usuario requerido en batch." };
+        if (req.cost < 0) return { success: false, error: "Costo negativo no admitido." };
       }
 
       // Ensure the repository has batchAppend, otherwise fallback to sequential
@@ -114,32 +106,20 @@ export function createBookpiEngine(
       // Handle promises from list if postgres
       if (blocks instanceof Promise) {
         return blocks.then((b) => {
-          if (filter.category)
-            b = b.filter((x: BlockPIBlock) => x.category === filter.category);
-          if (filter.userId)
-            b = b.filter((x: BlockPIBlock) => x.userId === filter.userId);
+          if (filter.category) b = b.filter((x: BlockPIBlock) => x.category === filter.category);
+          if (filter.userId) b = b.filter((x: BlockPIBlock) => x.userId === filter.userId);
           if (filter.fromDate)
-            b = b.filter(
-              (x: BlockPIBlock) => new Date(x.timestamp) >= filter.fromDate!,
-            );
+            b = b.filter((x: BlockPIBlock) => new Date(x.timestamp) >= filter.fromDate!);
           if (filter.toDate)
-            b = b.filter(
-              (x: BlockPIBlock) => new Date(x.timestamp) <= filter.toDate!,
-            );
+            b = b.filter((x: BlockPIBlock) => new Date(x.timestamp) <= filter.toDate!);
           return b;
         });
       }
 
-      if (filter.category)
-        blocks = blocks.filter((b) => b.category === filter.category);
-      if (filter.userId)
-        blocks = blocks.filter((b) => b.userId === filter.userId);
-      if (filter.fromDate)
-        blocks = blocks.filter(
-          (b) => new Date(b.timestamp) >= filter.fromDate!,
-        );
-      if (filter.toDate)
-        blocks = blocks.filter((b) => new Date(b.timestamp) <= filter.toDate!);
+      if (filter.category) blocks = blocks.filter((b) => b.category === filter.category);
+      if (filter.userId) blocks = blocks.filter((b) => b.userId === filter.userId);
+      if (filter.fromDate) blocks = blocks.filter((b) => new Date(b.timestamp) >= filter.fromDate!);
+      if (filter.toDate) blocks = blocks.filter((b) => new Date(b.timestamp) <= filter.toDate!);
       return blocks;
     },
 
@@ -150,10 +130,7 @@ export function createBookpiEngine(
         const latestBlock = b.length > 0 ? b[b.length - 1] : null;
 
         // Simple hash of all block hashes for a naive summary (real summary would use Merkle root)
-        const cryptoSummary = b.reduce(
-          (acc, block) => acc + block.blockHash,
-          "",
-        );
+        const cryptoSummary = b.reduce((acc, block) => acc + block.blockHash, "");
         const summaryHash =
           b.length > 0
             ? Array.from(
@@ -192,8 +169,7 @@ export function createBookpiEngine(
     ):
       | { success: boolean; prunedCount?: number; error?: string }
       | Promise<{ success: boolean; prunedCount?: number; error?: string }> {
-      if (maxAgeMs < 0)
-        return { success: false, error: "maxAgeMs debe ser >= 0" };
+      if (maxAgeMs < 0) return { success: false, error: "maxAgeMs debe ser >= 0" };
       if (typeof (repository as any).prune === "function") {
         return (repository as any).prune(tenantId, maxAgeMs);
       }
@@ -210,8 +186,7 @@ export function createBookpiEngine(
           prunedTenants?: string[];
           error?: string;
         }> {
-      if (inactiveDays <= 0)
-        return { success: false, error: "inactiveDays must be > 0" };
+      if (inactiveDays <= 0) return { success: false, error: "inactiveDays must be > 0" };
       if (typeof (repository as any).pruneInactive === "function") {
         return (repository as any).pruneInactive(inactiveDays);
       }

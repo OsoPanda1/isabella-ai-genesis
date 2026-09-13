@@ -10,13 +10,10 @@ export interface PrismaClientOptions {
   poolConnectionTimeoutMs?: number;
 }
 
-async function getPrismaClient(
-  options: PrismaClientOptions = {},
-): Promise<PrismaClient> {
+async function getPrismaClient(options: PrismaClientOptions = {}): Promise<PrismaClient> {
   if (globalForPrisma.prisma) return globalForPrisma.prisma;
 
-  const { PrismaClient: PrismaClientConstructor } =
-    await import("../generated/prisma");
+  const { PrismaClient: PrismaClientConstructor } = await import("../generated/prisma");
 
   let logLevel: Array<"query" | "info" | "warn" | "error"> = ["error"];
   try {
@@ -34,10 +31,7 @@ async function getPrismaClient(
     // Frontera transaccional con timeout explícito (P0-12): ninguna operación
     // crítica debe quedarse esperando indefinidamente a un lock del pool.
     transactionOptions: {
-      maxWait: Math.max(
-        1,
-        Math.round((options.poolConnectionTimeoutMs ?? 5000) / 2),
-      ),
+      maxWait: Math.max(1, Math.round((options.poolConnectionTimeoutMs ?? 5000) / 2)),
       timeout: Math.max(1000, options.poolConnectionTimeoutMs ?? 10000),
     },
   });
@@ -112,9 +106,10 @@ export const prisma = new Proxy({} as PrismaClient, {
         get: (_modelTarget, method: string) =>
           (async (...args: unknown[]) => {
             const client = await getPrismaClient();
-            const modelClient = client[
-              model as keyof PrismaClient
-            ] as unknown as Record<string, PrismaModelMethod>;
+            const modelClient = client[model as keyof PrismaClient] as unknown as Record<
+              string,
+              PrismaModelMethod
+            >;
             return modelClient[method](...args);
           }) as PrismaModelMethod,
       },

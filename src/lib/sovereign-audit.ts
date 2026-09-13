@@ -70,9 +70,7 @@ export class SovereignAudit {
   public static async signAuditSeal(payloadHash: string): Promise<string> {
     const secret = config().AEGIS_AUDIT_SECRET;
     if (!secret) {
-      throw new Error(
-        "[SovereignAudit] AEGIS_AUDIT_SECRET ausente: sello denegado (fail-closed).",
-      );
+      throw new Error("[SovereignAudit] AEGIS_AUDIT_SECRET ausente: sello denegado (fail-closed).");
     }
     const mac = crypto
       .createHmac("sha3-512", secret)
@@ -85,10 +83,7 @@ export class SovereignAudit {
    * Verificación real del sello: recomputa el HMAC y compara en tiempo
    * constante. Nunca asume validez por prefijo.
    */
-  public static async verifyAuditSeal(
-    payloadHash: string,
-    seal: string,
-  ): Promise<boolean> {
+  public static async verifyAuditSeal(payloadHash: string, seal: string): Promise<boolean> {
     const PREFIX = "audit-seal-v1:";
     if (!seal.startsWith(PREFIX)) return false;
     let secret: string | undefined;
@@ -98,10 +93,7 @@ export class SovereignAudit {
       return false;
     }
     if (!secret) return false;
-    const expected = crypto
-      .createHmac("sha3-512", secret)
-      .update(payloadHash, "utf8")
-      .digest();
+    const expected = crypto.createHmac("sha3-512", secret).update(payloadHash, "utf8").digest();
     const presented = Buffer.from(seal.slice(PREFIX.length), "base64url");
     if (presented.length !== expected.length) return false;
     return crypto.timingSafeEqual(presented, expected);

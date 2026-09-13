@@ -34,8 +34,7 @@ export interface UserLike {
 }
 
 /** Fuente de la identidad para telemetría. */
-export type AuthSource =
-  "supabase_session" | "legacy_isa_token" | "oidc_id_token";
+export type AuthSource = "supabase_session" | "legacy_isa_token" | "oidc_id_token";
 
 export interface ResolvedPrincipal {
   identity: PrincipalIdentity;
@@ -49,18 +48,10 @@ export interface ResolvedPrincipal {
 export function mapSupabaseRole(raw: unknown): Role {
   if (typeof raw !== "string") return "Guest";
   const value = raw.toLowerCase();
-  if (
-    value === "sovereignowner" ||
-    value === "sovereign_owner" ||
-    value === "owner"
-  ) {
+  if (value === "sovereignowner" || value === "sovereign_owner" || value === "owner") {
     return "SovereignOwner";
   }
-  if (
-    value === "governance_admin" ||
-    value === "governance-admin" ||
-    value === "gov_admin"
-  ) {
+  if (value === "governance_admin" || value === "governance-admin" || value === "gov_admin") {
     return "governance_admin";
   }
   if (value === "operator") return "Operator";

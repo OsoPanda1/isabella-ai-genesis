@@ -1,8 +1,4 @@
-import {
-  IsabellaCoreId,
-  ISABELLA_MODULE_CATALOG,
-  IsabellaModuleId,
-} from "../latam-aegis-x";
+import { IsabellaCoreId, ISABELLA_MODULE_CATALOG, IsabellaModuleId } from "../latam-aegis-x";
 
 export interface CoreTelemetryMetric {
   id: IsabellaCoreId;
@@ -45,9 +41,7 @@ class ObservabilityEngine {
 
   private createEmptySnapshot(): ObservabilitySnapshot {
     const cores = {} as Record<IsabellaCoreId, CoreTelemetryMetric>;
-    for (const [moduleId, metadata] of Object.entries(
-      ISABELLA_MODULE_CATALOG,
-    )) {
+    for (const [moduleId, metadata] of Object.entries(ISABELLA_MODULE_CATALOG)) {
       for (const coreId of metadata.cores) {
         cores[coreId] = {
           id: coreId,
@@ -95,8 +89,7 @@ class ObservabilityEngine {
 
   /** Records a real observed application event; it does not generate events. */
   public recordEvent(latencyMs: number, score: number) {
-    if (!Number.isFinite(latencyMs) || latencyMs < 0)
-      throw new Error("invalid_latency");
+    if (!Number.isFinite(latencyMs) || latencyMs < 0) throw new Error("invalid_latency");
     if (!Number.isFinite(score)) throw new Error("invalid_anomaly_score");
     const s = this.currentSnapshot;
     const previousEvents = s.totalEventsProcessed;
@@ -104,8 +97,7 @@ class ObservabilityEngine {
     s.avgLatencyMs =
       previousEvents === 0
         ? latencyMs
-        : (s.avgLatencyMs * previousEvents + latencyMs) /
-          s.totalEventsProcessed;
+        : (s.avgLatencyMs * previousEvents + latencyMs) / s.totalEventsProcessed;
     s.anomalyScore =
       previousEvents === 0
         ? score
@@ -123,8 +115,7 @@ class ObservabilityEngine {
     if (!core) throw new Error(`unknown_core:${coreId}`);
     if (
       telemetry.memoryUsageBytes !== undefined &&
-      (!Number.isFinite(telemetry.memoryUsageBytes) ||
-        telemetry.memoryUsageBytes < 0)
+      (!Number.isFinite(telemetry.memoryUsageBytes) || telemetry.memoryUsageBytes < 0)
     )
       throw new Error("invalid_memory");
     if (

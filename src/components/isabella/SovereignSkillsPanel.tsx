@@ -10,8 +10,7 @@ export function SovereignSkillsPanel() {
   const [testInput, setTestInput] = useState<string>(
     JSON.stringify(
       {
-        request:
-          "Quiero visitar la mina de San Acosta y conocer las rutas turísticas",
+        request: "Quiero visitar la mina de San Acosta y conocer las rutas turísticas",
       },
       null,
       2,
@@ -26,8 +25,7 @@ export function SovereignSkillsPanel() {
     let defaultInput: Record<string, unknown> = {};
     if (id === "HEPTA") {
       defaultInput = {
-        request:
-          "Quiero visitar la mina de San Acosta y conocer las rutas turísticas",
+        request: "Quiero visitar la mina de San Acosta y conocer las rutas turísticas",
       };
     } else if (id === "VIGIA") {
       defaultInput = {
@@ -64,8 +62,7 @@ export function SovereignSkillsPanel() {
           {
             id: "E1",
             source: "Museo de Sitio",
-            excerpt:
-              "La Mina de Acosta conserva maquinaria de vapor original traída de Cornwall.",
+            excerpt: "La Mina de Acosta conserva maquinaria de vapor original traída de Cornwall.",
             score: 0.95,
           },
         ],
@@ -77,11 +74,7 @@ export function SovereignSkillsPanel() {
     } else if (id === "HERMES") {
       defaultInput = {
         subject: "Apertura del nuevo sendero interpretativo",
-        keyPoints: [
-          "Sendero de 3km",
-          "Accesible para silla de ruedas",
-          "Puntos históricos",
-        ],
+        keyPoints: ["Sendero de 3km", "Accesible para silla de ruedas", "Puntos históricos"],
         audience: "CITIZEN",
       };
     } else if (id === "ATLAS") {
@@ -262,18 +255,12 @@ export function SovereignSkillsPanel() {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold tracking-wide uppercase">
-                      {s.id}
-                    </span>
-                    <span
-                      className={`text-[8px] font-bold uppercase tracking-wider ${riskColor}`}
-                    >
+                    <span className="font-bold tracking-wide uppercase">{s.id}</span>
+                    <span className={`text-[8px] font-bold uppercase tracking-wider ${riskColor}`}>
                       {s.risk}
                     </span>
                   </div>
-                  <span className="text-[10px] text-muted-foreground truncate">
-                    {s.name}
-                  </span>
+                  <span className="text-[10px] text-muted-foreground truncate">{s.name}</span>
                   <div className="flex justify-between items-center text-[8.5px] text-muted-foreground pt-1 border-t border-white/5 mt-1">
                     <span>Fed: {s.federation}</span>
                     <span>{s.version}</span>
@@ -352,8 +339,7 @@ export function SovereignSkillsPanel() {
                           <div className="h-full flex flex-col items-center justify-center text-muted-foreground italic text-center p-4">
                             <Cpu className="size-8 text-muted-foreground/35 mb-2 animate-pulse" />
                             <span>
-                              Presiona "Ejecutar" para ver la respuesta del
-                              pipeline gobernado.
+                              Presiona "Ejecutar" para ver la respuesta del pipeline gobernado.
                             </span>
                           </div>
                         )}

@@ -5,11 +5,7 @@ import { ObservabilityService } from "./observability";
 export interface HealthEvent {
   timestamp: string;
   coreId: IsabellaCoreId;
-  type:
-    | "stack_overflow_warning"
-    | "memory_leak_warning"
-    | "auto_restart"
-    | "healthy";
+  type: "stack_overflow_warning" | "memory_leak_warning" | "auto_restart" | "healthy";
   message: string;
   severity: "low" | "medium" | "high" | "critical";
 }
@@ -124,10 +120,7 @@ class HealthHeartbeatMonitor {
         });
 
         // Add recovery log entry
-        const reclaimedMemoryBytes = Math.max(
-          0,
-          initialMemory - 12 * 1024 * 1024,
-        );
+        const reclaimedMemoryBytes = Math.max(0, initialMemory - 12 * 1024 * 1024);
         const recoveryMessage =
           anomalyType === "stack_overflow_resolved"
             ? `Recursion stack overflow resolved. Reset core ${coreId} to base state (Depth 1).`

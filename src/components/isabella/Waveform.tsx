@@ -1,12 +1,6 @@
 import { useEffect, useRef } from "react";
 
-export function Waveform({
-  active,
-  height = 64,
-}: {
-  active: boolean;
-  height?: number;
-}) {
+export function Waveform({ active, height = 64 }: { active: boolean; height?: number }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
   const raf = useRef<number>(0);
   const t = useRef(0);
@@ -50,10 +44,7 @@ export function Waveform({
               layer.amp *
               energy.current *
               decay +
-            Math.sin(x * layer.freq * 2.7 - t.current * 1.4) *
-              3 *
-              energy.current *
-              decay;
+            Math.sin(x * layer.freq * 2.7 - t.current * 1.4) * 3 * energy.current * decay;
           if (x === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         }
@@ -71,12 +62,5 @@ export function Waveform({
     return () => cancelAnimationFrame(raf.current);
   }, [active]);
 
-  return (
-    <canvas
-      ref={ref}
-      className="w-full"
-      style={{ height }}
-      aria-hidden="true"
-    />
-  );
+  return <canvas ref={ref} className="w-full" style={{ height }} aria-hidden="true" />;
 }

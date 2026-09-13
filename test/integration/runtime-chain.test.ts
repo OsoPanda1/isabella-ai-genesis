@@ -28,9 +28,7 @@ const OPERATOR_IDENTITY = {
   actorId: "op_integration",
   roles: ["Operator"],
   permissions: ["tool:execute", "memory:read:own", "system:telemetry"],
-  dataScopes: ["turn", "session"] as Array<
-    "turn" | "session" | "project" | "territorial"
-  >,
+  dataScopes: ["turn", "session"] as Array<"turn" | "session" | "project" | "territorial">,
   authenticationMethod: "integration-test",
 };
 
@@ -71,20 +69,14 @@ describe("cadena runtime auth → CROWN → AEGIS → memory → audit", () => {
 
   it("AEGIS permite entrada benigna de la cadena", async () => {
     const { analyzeAegisSemantic } = await import("@/lib/aegis-semantic");
-    const analysis = analyzeAegisSemantic(
-      "¿Cuál es el saldo de mi tenant?",
-      {},
-    );
+    const analysis = analyzeAegisSemantic("¿Cuál es el saldo de mi tenant?", {});
     expect(analysis.verdict).toBe("allow");
   });
 
   it("pipeline completo ejecuta herramienta de memoria y audita", async () => {
-    const { createMemoryRepository } =
-      await import("@/lib/repositories/memory-repository");
-    const { createAuditRepository } =
-      await import("@/lib/repositories/audit-repository");
-    const { createSovereignPipeline } =
-      await import("@/lib/sovereign-pipeline");
+    const { createMemoryRepository } = await import("@/lib/repositories/memory-repository");
+    const { createAuditRepository } = await import("@/lib/repositories/audit-repository");
+    const { createSovereignPipeline } = await import("@/lib/sovereign-pipeline");
 
     const memoryRepository = createMemoryRepository(memPath);
     const auditRepository = createAuditRepository(auditPath);
@@ -133,12 +125,9 @@ describe("cadena runtime auth → CROWN → AEGIS → memory → audit", () => {
   });
 
   it("Guest no ejecuta herramientas (deny con evidencia)", async () => {
-    const { createMemoryRepository } =
-      await import("@/lib/repositories/memory-repository");
-    const { createAuditRepository } =
-      await import("@/lib/repositories/audit-repository");
-    const { createSovereignPipeline } =
-      await import("@/lib/sovereign-pipeline");
+    const { createMemoryRepository } = await import("@/lib/repositories/memory-repository");
+    const { createAuditRepository } = await import("@/lib/repositories/audit-repository");
+    const { createSovereignPipeline } = await import("@/lib/sovereign-pipeline");
 
     const pipeline = createSovereignPipeline({
       memoryRepository: createMemoryRepository(memPath),
@@ -172,12 +161,9 @@ describe("cadena runtime auth → CROWN → AEGIS → memory → audit", () => {
   });
 
   it("approval de un solo uso habilita herramienta crítica y se agota", async () => {
-    const { createMemoryRepository } =
-      await import("@/lib/repositories/memory-repository");
-    const { createAuditRepository } =
-      await import("@/lib/repositories/audit-repository");
-    const { createExecutionAuthority } =
-      await import("@/lib/execution-authority");
+    const { createMemoryRepository } = await import("@/lib/repositories/memory-repository");
+    const { createAuditRepository } = await import("@/lib/repositories/audit-repository");
+    const { createExecutionAuthority } = await import("@/lib/execution-authority");
 
     const authority = createExecutionAuthority({
       memoryRepository: createMemoryRepository(memPath),

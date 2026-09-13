@@ -20,9 +20,7 @@ function getPool(): Pool {
   if (pool) return pool;
   const url = config().DATABASE_URL;
   if (!url) {
-    throw new Error(
-      "CRITICAL: DATABASE_URL ausente. Approvals requieren persistencia durable.",
-    );
+    throw new Error("CRITICAL: DATABASE_URL ausente. Approvals requieren persistencia durable.");
   }
   pool = new Pool({ connectionString: url, max: 2 });
   return pool;
@@ -42,12 +40,7 @@ function mapRow(row: Record<string, unknown>): ApprovalGrant {
 }
 
 export function createPostgresApprovalStore(): {
-  has(
-    traceId: string,
-    tool: string,
-    actorId: string,
-    tenantId: string,
-  ): Promise<boolean>;
+  has(traceId: string, tool: string, actorId: string, tenantId: string): Promise<boolean>;
   consume(
     traceId: string,
     tool: string,

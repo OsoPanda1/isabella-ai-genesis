@@ -56,85 +56,71 @@ export interface SystemModuleMetadata {
   cores: readonly IsabellaCoreId[];
 }
 
-export const ISABELLA_MODULE_CATALOG: Record<
-  IsabellaModuleId,
-  SystemModuleMetadata
-> = {
+export const ISABELLA_MODULE_CATALOG: Record<IsabellaModuleId, SystemModuleMetadata> = {
   CROWN_GATEWAY: {
     id: "CROWN_GATEWAY",
     name: "CROWN Orchestrator & Gateway",
-    description:
-      "Constitutional runtime for orchestrating dialog and intent verification.",
+    description: "Constitutional runtime for orchestrating dialog and intent verification.",
     cores: ["CROWN_ROUTER", "CROWN_CONSTITUTION"],
   },
   ISA_CORE: {
     id: "ISA_CORE",
     name: "ISA Tone & Presence Module",
-    description:
-      "Modulates expressive presence, tone alignment, and conversational empathy.",
+    description: "Modulates expressive presence, tone alignment, and conversational empathy.",
     cores: ["ISA_PRESENCE", "ISA_EMPATHY"],
   },
   SOPHIA_ENGINE: {
     id: "SOPHIA_ENGINE",
     name: "SOPHIA Epistemology & Logic Engine",
-    description:
-      "Validates facts, grounding, sources, and logical consistency checks.",
+    description: "Validates facts, grounding, sources, and logical consistency checks.",
     cores: ["SOPHIA_LOGIC", "SOPHIA_GROUNDING"],
   },
   ORION_ENGINE: {
     id: "ORION_ENGINE",
     name: "ORION Sandboxed Execution Module",
-    description:
-      "Executes sandbox operations, cli tools, and external services safely.",
+    description: "Executes sandbox operations, cli tools, and external services safely.",
     cores: ["ORION_SANDBOX", "ORION_BRIDGE"],
   },
   ARGUS_SENTINEL: {
     id: "ARGUS_SENTINEL",
     name: "ARGUS Defense & Policy Sentinel",
-    description:
-      "Applies risk models and manages Human-In-The-Loop (HITL) escalations.",
+    description: "Applies risk models and manages Human-In-The-Loop (HITL) escalations.",
     cores: ["ARGUS_RISK", "ARGUS_VETO"],
   },
   LATAM_AEGIS: {
     id: "LATAM_AEGIS",
     name: "LATAM Aegis-X Firewall Module",
-    description:
-      "Performs deep internal request inspection and anomaly modeling.",
+    description: "Performs deep internal request inspection and anomaly modeling.",
     cores: ["AEGIS_FIREWALL", "AEGIS_PYTHON_CORE"],
   },
   SOVEREIGN_DB: {
     id: "SOVEREIGN_DB",
     name: "Sovereign Database & BookPI Ledger",
-    description:
-      "Manages state persistence, encrypted KV, and the cryptographic ledger.",
+    description: "Manages state persistence, encrypted KV, and the cryptographic ledger.",
     cores: ["SOVEREIGN_LEDGER", "SOVEREIGN_KV"],
   },
   MEM_ENGINE: {
     id: "MEM_ENGINE",
     name: "Segmented Cognitive Memory Manager",
-    description:
-      "Controls the five segregated context scopes with distinct expiration TTLs.",
+    description: "Controls the five segregated context scopes with distinct expiration TTLs.",
     cores: ["MEM_PENTACAPA", "MEM_TTL"],
   },
   QUANTUM_PLATFORM: {
     id: "QUANTUM_PLATFORM",
     name: "Quantum Utility Platform (QUP)",
-    description:
-      "Simulates and mitigates quantum errors for advanced optimization runtimes.",
+    description: "Simulates and mitigates quantum errors for advanced optimization runtimes.",
     cores: ["QUP_TORIC", "QUP_TENSOR"],
   },
   MONETIZATION: {
     id: "MONETIZATION",
     name: "Monetization & Licensing Engine",
-    description:
-      "Governs revenue split contability (85/15) and authenticated withdrawals.",
+    description: "Governs revenue split contability (85/15) and authenticated withdrawals.",
     cores: ["MONETIZATION_LEDGER", "MONETIZATION_WITHDRAWAL"],
   },
   OIDC_AUTH: {
     id: "OIDC_AUTH",
     name: "OIDC Cryptographic Auth Module",
-    description:
-      "Verifies OIDC signatures, issues tokens, and enforces RBAC scopes.",
+    description: "Verifies OIDC signatures, issues tokens, and enforces RBAC scopes.",
     cores: ["OIDC_HANDSHAKE", "OIDC_JWT_VERIFY"],
   },
   VOICE_SYNTH: {
@@ -180,9 +166,7 @@ class TelemetryService {
   /**
    * Sanitiza el payload para evitar fugar secretos, tokens, JWTs u OIDC subs
    */
-  private sanitizePayload(
-    payload: Record<string, unknown>,
-  ): Record<string, unknown> {
+  private sanitizePayload(payload: Record<string, unknown>): Record<string, unknown> {
     const clean: Record<string, unknown> = {};
     const sensitiveKeys = [
       "password",
@@ -309,12 +293,9 @@ class AegisFirewallService {
     traceId: string = "tr_auto",
     correlationId: string = "corr_auto",
   ): InterceptResult {
-    const currentTrace =
-      traceId === "tr_auto" ? "tr_" + crypto.randomUUID().slice(0, 8) : traceId;
+    const currentTrace = traceId === "tr_auto" ? "tr_" + crypto.randomUUID().slice(0, 8) : traceId;
     const currentCorr =
-      correlationId === "corr_auto"
-        ? "corr_" + crypto.randomUUID().slice(0, 8)
-        : correlationId;
+      correlationId === "corr_auto" ? "corr_" + crypto.randomUUID().slice(0, 8) : correlationId;
 
     CentralizedTelemetryService.logEvent(
       "LATAM_AEGIS",
@@ -354,21 +335,14 @@ class AegisFirewallService {
     // noisy-or y veredicto allow/flag/deny. La sanitización léxica (paso 1)
     // se conserva como primera barrera (defensa en profundidad).
     const history = Array.isArray(metadata.history)
-      ? (metadata.history as unknown[])
-          .filter((t): t is string => typeof t === "string")
-          .slice(-8)
+      ? (metadata.history as unknown[]).filter((t): t is string => typeof t === "string").slice(-8)
       : [];
     const semantic = analyzeAegisSemantic(input, {
       history,
       actorStats: {
-        blockedCount:
-          typeof metadata.blockedCount === "number"
-            ? metadata.blockedCount
-            : undefined,
+        blockedCount: typeof metadata.blockedCount === "number" ? metadata.blockedCount : undefined,
         requestsLastMinute:
-          typeof metadata.requestsLastMinute === "number"
-            ? metadata.requestsLastMinute
-            : undefined,
+          typeof metadata.requestsLastMinute === "number" ? metadata.requestsLastMinute : undefined,
       },
     });
 
@@ -393,8 +367,7 @@ class AegisFirewallService {
 
       return {
         allowed: false,
-        action:
-          semantic.verdict === "deny" ? "block_immediate" : "escalate_hitl",
+        action: semantic.verdict === "deny" ? "block_immediate" : "escalate_hitl",
         anomalyScore: semantic.score,
         reason: `AEGIS semántico (${semantic.verdict}): score ${semantic.score} por ${topSignals}`,
         traceId: currentTrace,
@@ -406,9 +379,7 @@ class AegisFirewallService {
 
     // 3. Simulación de hook cuántico para auditoría de entrelazamiento
     // Si la tasa de error cuántico QEC en telemetría es superior al 15%, registramos una advertencia no bloqueante
-    const qecErrorRate = metadata.qecErrorRate
-      ? Number(metadata.qecErrorRate)
-      : 0.02;
+    const qecErrorRate = metadata.qecErrorRate ? Number(metadata.qecErrorRate) : 0.02;
     if (qecErrorRate > 0.15) {
       CentralizedTelemetryService.logEvent(
         "QUANTUM_PLATFORM",
@@ -526,8 +497,7 @@ class AutoAuditingSystemEngine {
           timestamp,
           module: "ORION",
           violationType: "MissingCryptographicSignature",
-          description:
-            "La transacción BookPI carece de una firma de validez contable.",
+          description: "La transacción BookPI carece de una firma de validez contable.",
           severity: "critical",
           traceId,
         });

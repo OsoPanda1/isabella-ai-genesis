@@ -9,24 +9,16 @@ import { resolveRoleChain, type Role } from "./rbac";
 // ============================================================================
 
 /** Compara si el rol solicitado es estrictamente igual o menor que el rol del emisor. */
-export function isRoleSubset(
-  requestedRole: string,
-  issuerRole: string,
-): boolean {
+export function isRoleSubset(requestedRole: string, issuerRole: string): boolean {
   if (requestedRole === issuerRole) return true;
   const issuerChain = resolveRoleChain(issuerRole as Role);
   return issuerChain.includes(requestedRole as Role);
 }
 
 /** Compara si los scopes solicitados están contenidos en los scopes del emisor. */
-export function isScopeSubset(
-  requestedScopes: string[],
-  issuerScopes: string[],
-): boolean {
+export function isScopeSubset(requestedScopes: string[], issuerScopes: string[]): boolean {
   if (requestedScopes.length === 0) return true;
-  const issuerSet = new Set(
-    issuerScopes.flatMap((s) => s.split(/\s+/).filter(Boolean)),
-  );
+  const issuerSet = new Set(issuerScopes.flatMap((s) => s.split(/\s+/).filter(Boolean)));
   return requestedScopes.every((s) => issuerSet.has(s));
 }
 

@@ -19,11 +19,7 @@ const warnings = [];
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
 for (const section of ["dependencies", "devDependencies", "peerDependencies"]) {
   for (const [name, range] of Object.entries(pkg[section] ?? {})) {
-    if (
-      range === "*" ||
-      range === "latest" ||
-      String(range).includes("latest")
-    ) {
+    if (range === "*" || range === "latest" || String(range).includes("latest")) {
       errors.push(`Rango flotante en ${section}: ${name}@${range}.`);
     }
   }
@@ -62,9 +58,7 @@ for (const workflow of [
   });
 }
 
-console.log(
-  `Supply-chain: ${errors.length} errores, ${warnings.length} advertencias.`,
-);
+console.log(`Supply-chain: ${errors.length} errores, ${warnings.length} advertencias.`);
 for (const warning of warnings) console.log(`  ⚠️ ${warning}`);
 const knownOk = warnings.every((warning) => warning.includes("release.yml"));
 if (warnings.length > 0 && !knownOk) {

@@ -1,8 +1,5 @@
 import { config } from "@/lib/config";
-import {
-  getSigningAlgorithm,
-  isSimulatedAlgorithm,
-} from "@/lib/crypto/bookpi-signer";
+import { getSigningAlgorithm, isSimulatedAlgorithm } from "@/lib/crypto/bookpi-signer";
 
 export interface EconomicIntegrityReport {
   status: "ok" | "economic_integrity_failure";
@@ -61,11 +58,7 @@ export async function checkEconomicIntegrity(): Promise<EconomicIntegrityReport>
     projection = { available: false, rebuildable: false };
   }
 
-  const ok =
-    signerAvailable &&
-    bookpi.valid &&
-    projection.available &&
-    projection.rebuildable;
+  const ok = signerAvailable && bookpi.valid && projection.available && projection.rebuildable;
   return {
     status: ok ? "ok" : "economic_integrity_failure",
     httpStatus: ok ? 200 : 503,

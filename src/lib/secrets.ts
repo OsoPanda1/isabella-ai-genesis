@@ -13,12 +13,7 @@ import { EnvKMSProvider, type KMSProvider } from "./kms-provider";
  */
 
 export type SecretKind =
-  | "jwt"
-  | "encryption"
-  | "bookpi"
-  | "ai"
-  | "supabase-service"
-  | "policy-signing";
+  "jwt" | "encryption" | "bookpi" | "ai" | "supabase-service" | "policy-signing";
 
 export class SecretsManager {
   private readonly kms: KMSProvider;
@@ -28,8 +23,7 @@ export class SecretsManager {
     this.cachedConfig = cfg;
     // Por defecto usa las variables de entorno como "KMS"
     this.kms =
-      kmsProvider ??
-      new EnvKMSProvider(cfg as unknown as Record<string, string | undefined>);
+      kmsProvider ?? new EnvKMSProvider(cfg as unknown as Record<string, string | undefined>);
   }
 
   private async getActiveSecret(
@@ -38,9 +32,7 @@ export class SecretsManager {
     label: string,
   ): Promise<string> {
     // Si KMS lo tiene, úsalo (permitiendo rotación dinámica).
-    const secretValue =
-      (await this.kms.getSecret(keyName as string)) ??
-      this.cachedConfig[keyName];
+    const secretValue = (await this.kms.getSecret(keyName as string)) ?? this.cachedConfig[keyName];
 
     if (!secretValue || String(secretValue).trim() === "") {
       throw new Error(
@@ -51,11 +43,7 @@ export class SecretsManager {
     return String(secretValue);
   }
 
-  private getActiveSecretSync(
-    kind: SecretKind,
-    keyName: keyof Env,
-    label: string,
-  ): string {
+  private getActiveSecretSync(kind: SecretKind, keyName: keyof Env, label: string): string {
     const secretValue = this.cachedConfig[keyName];
 
     if (!secretValue || String(secretValue).trim() === "") {
@@ -70,11 +58,7 @@ export class SecretsManager {
   // --- MÉTODOS SINCRÓNICOS (Usan config estática, fallan rápido) ---
 
   jwtSecret(): string {
-    return this.getActiveSecretSync(
-      "jwt",
-      "AUTH_JWT_SECRET",
-      "AUTH_JWT_SECRET",
-    );
+    return this.getActiveSecretSync("jwt", "AUTH_JWT_SECRET", "AUTH_JWT_SECRET");
   }
 
   encryptionMasterKey(): string {
@@ -86,11 +70,7 @@ export class SecretsManager {
   }
 
   bookpiSigningKey(): string {
-    return this.getActiveSecretSync(
-      "bookpi",
-      "BOOKPI_SIGNING_KEY",
-      "BOOKPI_SIGNING_KEY",
-    );
+    return this.getActiveSecretSync("bookpi", "BOOKPI_SIGNING_KEY", "BOOKPI_SIGNING_KEY");
   }
 
   aiGatewayKey(): string {
@@ -109,20 +89,12 @@ export class SecretsManager {
   }
 
   aegisAuditSecret(): string {
-    return this.getActiveSecretSync(
-      "policy-signing",
-      "AEGIS_AUDIT_SECRET",
-      "AEGIS_AUDIT_SECRET",
-    );
+    return this.getActiveSecretSync("policy-signing", "AEGIS_AUDIT_SECRET", "AEGIS_AUDIT_SECRET");
   }
 
   apiKeyHashSecret(): string {
     // P1: Desacoplamiento de dominios criptográficos.
-    return this.getActiveSecretSync(
-      "jwt",
-      "API_KEY_HASH_SECRET",
-      "API_KEY_HASH_SECRET",
-    );
+    return this.getActiveSecretSync("jwt", "API_KEY_HASH_SECRET", "API_KEY_HASH_SECRET");
   }
 
   supabaseJwtSecret(): string | undefined {

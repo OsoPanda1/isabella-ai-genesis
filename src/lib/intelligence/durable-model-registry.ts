@@ -20,10 +20,7 @@ export interface DurableModelRecord {
 
 function sql() {
   const url = config().DATABASE_URL;
-  if (!url)
-    throw new Error(
-      "durable_model_registry_unavailable: DATABASE_URL is required",
-    );
+  if (!url) throw new Error("durable_model_registry_unavailable: DATABASE_URL is required");
   return neon(url);
 }
 
@@ -126,9 +123,7 @@ function mapRow(row: any): DurableModelRecord {
     providerId: String(row.provider_id),
     territoryId: String(row.territory_id),
     modalities: Array.isArray(row.modalities) ? row.modalities.map(String) : [],
-    capabilities: Array.isArray(row.capabilities)
-      ? row.capabilities.map(String)
-      : [],
+    capabilities: Array.isArray(row.capabilities) ? row.capabilities.map(String) : [],
     enabled: Boolean(row.enabled),
     productionApproved: Boolean(row.production_approved),
     status: row.status as ModelStatus,

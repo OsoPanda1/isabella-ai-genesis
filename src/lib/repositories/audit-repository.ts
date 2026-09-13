@@ -36,8 +36,7 @@ export interface AuditStoreFile {
   genesisPreviousHash: string;
 }
 
-const GENESIS_HASH =
-  "0000000000000000000000000000000000000000000000000000000000000000";
+const GENESIS_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
 const STORE_PATH = path.join(process.cwd(), "isabella_audit_store.json");
 
 function sha256(input: string): string {
@@ -63,9 +62,7 @@ export function createAuditRepository(storePath: string = STORE_PATH) {
     try {
       const raw = fs.readFileSync(storePath, "utf-8");
       const parsed = JSON.parse(raw) as Partial<AuditStoreFile>;
-      const events = Array.isArray(parsed.events)
-        ? (parsed.events as AuditEvent[])
-        : [];
+      const events = Array.isArray(parsed.events) ? (parsed.events as AuditEvent[]) : [];
       return {
         events,
         genesisPreviousHash:
@@ -97,13 +94,10 @@ export function createAuditRepository(storePath: string = STORE_PATH) {
       return locked(() => {
         const store = loadStore();
         const prev = store.events[0];
-        const previousLogHash =
-          prev?.verificationHash ?? store.genesisPreviousHash;
+        const previousLogHash = prev?.verificationHash ?? store.genesisPreviousHash;
         const id = `evt_${crypto.randomUUID()}`;
         const timestamp = new Date().toISOString();
-        const remediated =
-          input.remediated ??
-          (input.severity === "S1" || input.severity === "S2");
+        const remediated = input.remediated ?? (input.severity === "S1" || input.severity === "S2");
         const payload = `${id}|${timestamp}|${input.traceId}|${input.correlationId}|${input.actorIp}|${input.event}|${input.severity}|${input.details}|${remediated ? "true" : "false"}|${previousLogHash}`;
         const verificationHash = sha256(payload);
         const event: AuditEvent = {
@@ -143,9 +137,7 @@ export function createAuditRepository(storePath: string = STORE_PATH) {
             corruptedId: "unknown",
           };
         const expectedPrev =
-          i === 0
-            ? store.genesisPreviousHash
-            : (logs[i - 1]?.verificationHash ?? "");
+          i === 0 ? store.genesisPreviousHash : (logs[i - 1]?.verificationHash ?? "");
         if (log.previousLogHash !== expectedPrev) {
           return {
             success: false,

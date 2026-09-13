@@ -28,9 +28,7 @@ const DEFAULT_POLICY: FederationPolicy = {
 };
 const seenUpdates = new Set<string>();
 
-function digest(
-  update: Omit<FederatedUpdate, "updateHash" | "signature">,
-): string {
+function digest(update: Omit<FederatedUpdate, "updateHash" | "signature">): string {
   return createHash("sha256").update(JSON.stringify(update)).digest("hex");
 }
 
@@ -55,25 +53,18 @@ export function validateFederatedUpdate(
     update.sampleCount > policy.maxSamplesPerUpdate
   )
     reasons.push("invalid sample count");
-  if (
-    update.deltaWeights.length === 0 ||
-    update.deltaWeights.length > policy.maxDimension
-  )
+  if (update.deltaWeights.length === 0 || update.deltaWeights.length > policy.maxDimension)
     reasons.push("invalid update dimension");
   if (
     update.deltaWeights.some(
-      (value) =>
-        !Number.isFinite(value) || Math.abs(value) > policy.maxAbsDelta,
+      (value) => !Number.isFinite(value) || Math.abs(value) > policy.maxAbsDelta,
     ) ||
     !Number.isFinite(update.deltaBias) ||
     Math.abs(update.deltaBias) > policy.maxAbsDelta
   )
     reasons.push("unsafe update magnitude");
   const created = Date.parse(update.createdAt);
-  if (
-    !Number.isFinite(created) ||
-    Math.abs(Date.now() - created) > policy.maxClockSkewMs
-  )
+  if (!Number.isFinite(created) || Math.abs(Date.now() - created) > policy.maxClockSkewMs)
     reasons.push("stale update");
   const unsigned = {
     updateId: update.updateId,
@@ -90,8 +81,7 @@ export function validateFederatedUpdate(
   const expectedSignature = signDigest(expectedHash, secret);
   const a = Buffer.from(expectedSignature);
   const b = Buffer.from(update.signature || "");
-  if (a.length !== b.length || !timingSafeEqual(a, b))
-    reasons.push("signature mismatch");
+  if (a.length !== b.length || !timingSafeEqual(a, b)) reasons.push("signature mismatch");
   return { allowed: reasons.length === 0, reasons };
 }
 
@@ -101,8 +91,7 @@ export function acceptFederatedUpdate(
   policy?: FederationPolicy,
 ): void {
   const result = validateFederatedUpdate(update, secret, policy);
-  if (!result.allowed)
-    throw new Error(`federated_update_rejected: ${result.reasons.join(", ")}`);
+  if (!result.allowed) throw new Error(`federated_update_rejected: ${result.reasons.join(", ")}`);
   seenUpdates.add(update.updateId);
 }
 

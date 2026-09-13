@@ -63,17 +63,9 @@ describe("production authority (6 autoridades)", () => {
   });
 
   it("define exactamente 6 autoridades sin ambigüedad de proveedor", async () => {
-    const { PRODUCTION_AUTHORITIES } =
-      await import("@/lib/production-authority");
+    const { PRODUCTION_AUTHORITIES } = await import("@/lib/production-authority");
     const ids = PRODUCTION_AUTHORITIES.map((authority) => authority.id).sort();
-    expect(ids).toEqual([
-      "audit",
-      "database",
-      "identity",
-      "inference",
-      "observability",
-      "payment",
-    ]);
+    expect(ids).toEqual(["audit", "database", "identity", "inference", "observability", "payment"]);
     for (const authority of PRODUCTION_AUTHORITIES) {
       expect(authority.authority.length).toBeGreaterThan(0);
       expect(authority.implementations.length).toBeGreaterThan(0);
@@ -81,8 +73,7 @@ describe("production authority (6 autoridades)", () => {
   });
 
   it("en desarrollo no aborta aunque falten secretos", async () => {
-    const { assertProductionAuthorities } =
-      await import("@/lib/production-authority");
+    const { assertProductionAuthorities } = await import("@/lib/production-authority");
     const report = assertProductionAuthorities();
     expect(report.productionLike).toBe(false);
     expect(report.criticalFailed).toBe(false);
@@ -93,12 +84,9 @@ describe("production authority (6 autoridades)", () => {
     vi.stubEnv("NODE_ENV", "production");
     const { resetConfigCache } = await import("@/lib/config");
     resetConfigCache();
-    const { assertProductionAuthorities } =
-      await import("@/lib/production-authority");
+    const { assertProductionAuthorities } = await import("@/lib/production-authority");
     // Falla primero el fail-fast de configuración; la autoridad es 2ª capa.
-    expect(() => assertProductionAuthorities()).toThrow(
-      /Fail-Fast|Autoridades críticas/,
-    );
+    expect(() => assertProductionAuthorities()).toThrow(/Fail-Fast|Autoridades críticas/);
     vi.unstubAllEnvs();
     resetConfigCache();
   });
@@ -126,8 +114,7 @@ describe("production authority (6 autoridades)", () => {
     vi.stubEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "https://otel.example.com");
     const { resetConfigCache } = await import("@/lib/config");
     resetConfigCache();
-    const { assertProductionAuthorities } =
-      await import("@/lib/production-authority");
+    const { assertProductionAuthorities } = await import("@/lib/production-authority");
     const report = assertProductionAuthorities();
     expect(report.productionLike).toBe(true);
     expect(report.criticalFailed).toBe(false);

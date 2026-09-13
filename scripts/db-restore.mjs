@@ -33,15 +33,7 @@ const TABLE_COLUMNS = {
     "created_at",
     "updated_at",
   ],
-  profiles: [
-    "id",
-    "username",
-    "tenant_id",
-    "role",
-    "oidc_sub",
-    "created_at",
-    "updated_at",
-  ],
+  profiles: ["id", "username", "tenant_id", "role", "oidc_sub", "created_at", "updated_at"],
   sessions: [
     "id",
     "user_id",
@@ -176,13 +168,10 @@ export async function runRestore(databaseUrl, snapshot, poolFactory) {
           const raw = row[column];
           if (raw === undefined) return null;
           if (isJsonbColumn(table, column)) return toJsonb(raw);
-          if (typeof raw === "object" && raw !== null)
-            return JSON.stringify(raw);
+          if (typeof raw === "object" && raw !== null) return JSON.stringify(raw);
           return raw;
         });
-        const placeholders = columns
-          .map((_, index) => `$${index + 1}`)
-          .join(", ");
+        const placeholders = columns.map((_, index) => `$${index + 1}`).join(", ");
         const quoted = columns.map((column) => `"${column}"`).join(", ");
         await pool.query(
           `INSERT INTO public."${table}" (${quoted}) VALUES (${placeholders}) ON CONFLICT DO NOTHING`,
@@ -222,9 +211,7 @@ if (isMain) {
       );
     })
     .catch((error) => {
-      console.error(
-        `Restore falló: ${error instanceof Error ? error.message : error}`,
-      );
+      console.error(`Restore falló: ${error instanceof Error ? error.message : error}`);
       process.exit(1);
     });
 }

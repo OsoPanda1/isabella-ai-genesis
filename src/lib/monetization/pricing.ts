@@ -31,8 +31,7 @@ export class QupPricingModel {
    */
   public static calculateCost(factors: QupPricingFactors): QupPricingResult {
     // Dynamic Pricing Model for Sovereign Quantum Processing
-    const baseCostCents =
-      1500 + factors.qubitCount * 50 + factors.circuitDepth * 10;
+    const baseCostCents = 1500 + factors.qubitCount * 50 + factors.circuitDepth * 10;
     const qecPremiumCents = factors.hasQec ? 2500 : 0;
 
     let errorMitigationCents = 0;
@@ -40,8 +39,7 @@ export class QupPricingModel {
     if (factors.hasPec) errorMitigationCents += 1800;
 
     const latencyCostCents = Math.round(factors.latencyMs * 1.5);
-    const fidelityPremiumCents =
-      factors.fidelity > 0.9 ? 5000 : factors.fidelity > 0.8 ? 2000 : 0;
+    const fidelityPremiumCents = factors.fidelity > 0.9 ? 5000 : factors.fidelity > 0.8 ? 2000 : 0;
     const isolationPremiumCents = factors.strictIsolation ? 3500 : 0;
 
     const totalGrossCents =

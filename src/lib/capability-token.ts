@@ -15,16 +15,14 @@ const consumed = new Map<string, number>();
 
 function secret(): string {
   const value = config().ENCRYPTION_MASTER_KEY ?? config().AUTH_JWT_SECRET;
-  if (!value || value.length < 32)
-    throw new Error("capability_token_secret_unavailable");
+  if (!value || value.length < 32) throw new Error("capability_token_secret_unavailable");
   return value;
 }
 function mac(value: string): string {
   return createHmac("sha256", secret()).update(value).digest("base64url");
 }
 function cleanup(now: number): void {
-  for (const [jti, expiresAt] of consumed)
-    if (expiresAt <= now) consumed.delete(jti);
+  for (const [jti, expiresAt] of consumed) if (expiresAt <= now) consumed.delete(jti);
 }
 
 export function issueCapabilityToken(
@@ -42,9 +40,7 @@ export function issueCapabilityToken(
     jti: randomBytes(18).toString("base64url"),
     nonce: randomBytes(18).toString("base64url"),
   };
-  const payload = Buffer.from(JSON.stringify(claims), "utf8").toString(
-    "base64url",
-  );
+  const payload = Buffer.from(JSON.stringify(claims), "utf8").toString("base64url");
   return `${payload}.${mac(payload)}`;
 }
 
@@ -58,8 +54,7 @@ export function consumeCapabilityToken(
   const expectedSignature = mac(payload);
   const a = Buffer.from(signature);
   const b = Buffer.from(expectedSignature);
-  if (a.length !== b.length || !timingSafeEqual(a, b))
-    throw new Error("capability_token_invalid");
+  if (a.length !== b.length || !timingSafeEqual(a, b)) throw new Error("capability_token_invalid");
   let claims: CapabilityTokenClaims;
   try {
     claims = JSON.parse(

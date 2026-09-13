@@ -27,10 +27,7 @@ export interface WithdrawalDependencies {
   runRiskReview(userId: string): Promise<WithdrawalRiskReview>;
   isIdempotent(key: string): Promise<boolean>;
   markIdempotent(key: string): Promise<void>;
-  checkLiquidityPool(
-    territoryId: string,
-    amountCents: number,
-  ): Promise<boolean>;
+  checkLiquidityPool(territoryId: string, amountCents: number): Promise<boolean>;
   appendBookPI(entry: {
     type: string;
     userId: string;
@@ -106,10 +103,7 @@ export class WithdrawalService {
 
     const review = await this.deps.runRiskReview(userId);
     await this.deps.appendBookPI({
-      type:
-        review.status === "pass"
-          ? "withdrawal.review.passed"
-          : "withdrawal.held",
+      type: review.status === "pass" ? "withdrawal.review.passed" : "withdrawal.held",
       userId,
       riskScore: review.score,
       idempotencyKey,
@@ -141,9 +135,7 @@ export class WithdrawalService {
   }
 }
 
-export function buildWithdrawalRequest(
-  partial: Partial<WithdrawalRequest>,
-): WithdrawalRequest {
+export function buildWithdrawalRequest(partial: Partial<WithdrawalRequest>): WithdrawalRequest {
   return {
     payoutId: partial.payoutId ?? randomUUID(),
     userId: partial.userId ?? "",

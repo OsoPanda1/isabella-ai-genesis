@@ -23,10 +23,7 @@ export class PrismaAccountingRepository implements AccountingRepository {
     this.prisma = prismaClient || new PrismaClient();
   }
 
-  async createAccount(
-    dto: CreateAccountDTO,
-    tx: any = this.prisma,
-  ): Promise<Account> {
+  async createAccount(dto: CreateAccountDTO, tx: any = this.prisma): Promise<Account> {
     const account = await tx.accountingAccount.create({
       data: {
         tenantId: dto.tenantId,
@@ -40,18 +37,12 @@ export class PrismaAccountingRepository implements AccountingRepository {
     return this.mapAccount(account);
   }
 
-  async getAccountById(
-    id: string,
-    tx: any = this.prisma,
-  ): Promise<Account | null> {
+  async getAccountById(id: string, tx: any = this.prisma): Promise<Account | null> {
     const account = await tx.accountingAccount.findUnique({ where: { id } });
     return account ? this.mapAccount(account) : null;
   }
 
-  async getAccountsByTenant(
-    tenantId: string,
-    tx: any = this.prisma,
-  ): Promise<Account[]> {
+  async getAccountsByTenant(tenantId: string, tx: any = this.prisma): Promise<Account[]> {
     const accounts = await tx.accountingAccount.findMany({
       where: { tenantId },
     });
@@ -85,18 +76,13 @@ export class PrismaAccountingRepository implements AccountingRepository {
         description: dto.description,
         status: "pending",
         createdBy: dto.createdBy,
-        metadata: dto.metadata
-          ? JSON.parse(JSON.stringify(dto.metadata))
-          : undefined,
+        metadata: dto.metadata ? JSON.parse(JSON.stringify(dto.metadata)) : undefined,
       },
     });
     return this.mapJournalEntry(entry);
   }
 
-  async getJournalEntryById(
-    id: string,
-    tx: any = this.prisma,
-  ): Promise<JournalEntry | null> {
+  async getJournalEntryById(id: string, tx: any = this.prisma): Promise<JournalEntry | null> {
     const entry = await tx.accountingJournalEntry.findUnique({ where: { id } });
     return entry ? this.mapJournalEntry(entry) : null;
   }
@@ -140,9 +126,7 @@ export class PrismaAccountingRepository implements AccountingRepository {
             debitCents: line.debitCents,
             creditCents: line.creditCents,
             description: line.description,
-            metadata: line.metadata
-              ? JSON.parse(JSON.stringify(line.metadata))
-              : undefined,
+            metadata: line.metadata ? JSON.parse(JSON.stringify(line.metadata)) : undefined,
           },
         }),
       ),
@@ -150,20 +134,14 @@ export class PrismaAccountingRepository implements AccountingRepository {
     return createdLines.map((l: any) => this.mapLedgerLine(l));
   }
 
-  async getLedgerLinesByEntry(
-    entryId: string,
-    tx: any = this.prisma,
-  ): Promise<LedgerLine[]> {
+  async getLedgerLinesByEntry(entryId: string, tx: any = this.prisma): Promise<LedgerLine[]> {
     const lines = await tx.accountingLedgerLine.findMany({
       where: { entryId },
     });
     return lines.map((l: any) => this.mapLedgerLine(l));
   }
 
-  async getLedgerLinesByAccount(
-    accountId: string,
-    tx: any = this.prisma,
-  ): Promise<LedgerLine[]> {
+  async getLedgerLinesByAccount(accountId: string, tx: any = this.prisma): Promise<LedgerLine[]> {
     const lines = await tx.accountingLedgerLine.findMany({
       where: { accountId },
     });
@@ -220,9 +198,7 @@ export class PrismaAccountingRepository implements AccountingRepository {
   ): Promise<TrialBalance> {
     const accounts = await this.getAccountsByTenant(tenantId, tx);
     const balances = await Promise.all(
-      accounts.map((acc) =>
-        this.calculateAccountBalance(acc.id, periodStart, periodEnd, tx),
-      ),
+      accounts.map((acc) => this.calculateAccountBalance(acc.id, periodStart, periodEnd, tx)),
     );
 
     let totalDebits = 0;
@@ -261,9 +237,7 @@ export class PrismaAccountingRepository implements AccountingRepository {
     const periodStart = new Date(asOfDate.getFullYear(), 0, 1);
     const accounts = await this.getAccountsByTenant(tenantId, tx);
     const balances = await Promise.all(
-      accounts.map((acc) =>
-        this.calculateAccountBalance(acc.id, periodStart, asOfDate, tx),
-      ),
+      accounts.map((acc) => this.calculateAccountBalance(acc.id, periodStart, asOfDate, tx)),
     );
 
     type BalanceItem = {

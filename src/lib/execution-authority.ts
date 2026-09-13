@@ -65,13 +65,7 @@ export type ExecutionOutcome =
   | {
       executed: false;
       reason: string;
-      stage:
-        | "decide"
-        | "authorization"
-        | "approval"
-        | "execution"
-        | "validation"
-        | "audit";
+      stage: "decide" | "authorization" | "approval" | "execution" | "validation" | "audit";
     };
 
 export interface ToolExecutor {
@@ -87,12 +81,7 @@ export function createApprovalLedger() {
   const grants = new Map<string, ApprovalGrant>();
 
   return {
-    grant(
-      traceId: string,
-      tool: string,
-      actorId: string,
-      tenantId: string,
-    ): ApprovalGrant {
+    grant(traceId: string, tool: string, actorId: string, tenantId: string): ApprovalGrant {
       const now = Date.now();
       const grant: ApprovalGrant = {
         approvalId: `apr_${randomUUID().replace(/-/g, "")}`,
@@ -138,12 +127,7 @@ export function createApprovalLedger() {
       return count;
     },
     /** Inspección sin consumo: ¿existe approval vigente? */
-    has(
-      traceId: string,
-      tool: string,
-      actorId: string,
-      tenantId: string,
-    ): boolean {
+    has(traceId: string, tool: string, actorId: string, tenantId: string): boolean {
       const now = Date.now();
       for (const grant of grants.values()) {
         if (
@@ -178,8 +162,7 @@ function validateResult(
   tool: RegisteredTool,
   result: unknown,
 ): { valid: boolean; reason?: string } {
-  if (result === undefined)
-    return { valid: false, reason: "Resultado indefinido." };
+  if (result === undefined) return { valid: false, reason: "Resultado indefinido." };
   try {
     JSON.stringify(result);
   } catch {
@@ -207,12 +190,7 @@ export function createExecutionAuthority(opts?: {
    * precedencia sobre el ledger en memoria (multi-instancia).
    */
   approvalStore?: {
-    has(
-      traceId: string,
-      tool: string,
-      actorId: string,
-      tenantId: string,
-    ): Promise<boolean>;
+    has(traceId: string, tool: string, actorId: string, tenantId: string): Promise<boolean>;
     consume(
       traceId: string,
       tool: string,
@@ -231,9 +209,7 @@ export function createExecutionAuthority(opts?: {
   const registry = createToolRegistry();
   const approvals = opts?.approvalLedger ?? createApprovalLedger();
 
-  function executors(
-    memoryRepository?: MemoryRepository,
-  ): Map<string, ToolExecutor> {
+  function executors(memoryRepository?: MemoryRepository): Map<string, ToolExecutor> {
     const map = new Map<string, ToolExecutor>();
     if (memoryRepository) {
       map.set("memory.retrieve", (input) => {
@@ -270,8 +246,7 @@ export function createExecutionAuthority(opts?: {
     }
     if (opts?.ledgerAppend) map.set("ledger.record", opts.ledgerAppend);
     if (opts?.storageRead) map.set("storage.read", opts.storageRead);
-    if (opts?.identityResolve)
-      map.set("identity.resolve", opts.identityResolve);
+    if (opts?.identityResolve) map.set("identity.resolve", opts.identityResolve);
     // compute.sandbox: ejecutor inyectado primero; por defecto, VM local
     // (solo JavaScript puro sin I/O). Runtimes no-JS se deniegan en el
     // ejecutor (fail-closed honesto, sin contenedor OS real).
@@ -377,12 +352,7 @@ export function createExecutionAuthority(opts?: {
               request.actorId,
               request.tenantId,
             )
-          : approvals.has(
-              request.traceId,
-              request.tool,
-              request.actorId,
-              request.tenantId,
-            )) ||
+          : approvals.has(request.traceId, request.tool, request.actorId, request.tenantId)) ||
         (request.approvals ?? []).some(
           (candidate) =>
             !candidate.consumed &&
@@ -427,12 +397,7 @@ export function createExecutionAuthority(opts?: {
             : null;
           const grant =
             fromStore ??
-            approvals.consume(
-              request.traceId,
-              request.tool,
-              request.actorId,
-              request.tenantId,
-            ) ??
+            approvals.consume(request.traceId, request.tool, request.actorId, request.tenantId) ??
             (request.approvals ?? []).find(
               (candidate) =>
                 !candidate.consumed &&
@@ -504,8 +469,7 @@ export function createExecutionAuthority(opts?: {
         correlationId: decision.decision_id,
         actorIp: request.ip,
         event: tool.auditEvent,
-        severity:
-          tool.risk === "critical" || tool.risk === "high" ? "S2" : "S3",
+        severity: tool.risk === "critical" || tool.risk === "high" ? "S2" : "S3",
         details: JSON.stringify({
           tool: request.tool,
           actor: request.actorId,

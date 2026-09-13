@@ -13,9 +13,7 @@ beforeAll(() => {
   // RSA-2048 bajo carga paralela puede superar el hookTimeout de 10s.
   const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   process.env.BOOKPI_SIGNATURE_ALGORITHM = "RSA-SHA256";
-  process.env.BOOKPI_SIGNING_KEY = privateKey
-    .export({ type: "pkcs8", format: "pem" })
-    .toString();
+  process.env.BOOKPI_SIGNING_KEY = privateKey.export({ type: "pkcs8", format: "pem" }).toString();
   process.env.ISABELLA_RUNTIME_MODE = "development";
   resetConfigCache();
 }, 30000);
@@ -186,9 +184,7 @@ describe("canonicalBookPiPayload (§6.1 determinismo)", () => {
     const block = res.block;
     const { blockHash, pqcSignature, signatureAlgorithm, ...forAppend } = block;
     void blockHash;
-    expect(canonicalBookPiPayload(forAppend)).toBe(
-      canonicalBookPiPayload(block),
-    );
+    expect(canonicalBookPiPayload(forAppend)).toBe(canonicalBookPiPayload(block));
   });
 
   it("excluye pqcSignature y signatureAlgorithm del payload canónico", () => {
@@ -207,8 +203,6 @@ describe("canonicalBookPiPayload (§6.1 determinismo)", () => {
       pqcSignature: null,
       signatureAlgorithm: "SHA-256",
     };
-    expect(canonicalBookPiPayload(base)).toBe(
-      canonicalBookPiPayload(res.block),
-    );
+    expect(canonicalBookPiPayload(base)).toBe(canonicalBookPiPayload(res.block));
   });
 });

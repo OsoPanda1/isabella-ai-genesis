@@ -39,8 +39,7 @@ if (isMain) {
     process.exit(2);
   }
   const outPath =
-    process.argv[2] ??
-    `isabella-backup-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+    process.argv[2] ?? `isabella-backup-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
   runBackup(databaseUrl, outPath)
     .then((snapshot) => {
       console.log(
@@ -48,9 +47,7 @@ if (isMain) {
       );
     })
     .catch((error) => {
-      console.error(
-        `Backup falló: ${error instanceof Error ? error.message : error}`,
-      );
+      console.error(`Backup falló: ${error instanceof Error ? error.message : error}`);
       process.exit(1);
     });
 }

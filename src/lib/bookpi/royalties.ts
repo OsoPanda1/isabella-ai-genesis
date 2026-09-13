@@ -20,9 +20,7 @@ export function calculateBookPiRoyalties(
   federationShares: FederationShareInput[],
 ): RoyaltySplitResult[] {
   if (federationShares.length === 0) {
-    throw new Error(
-      "Se requieren las participaciones de al menos una federación.",
-    );
+    throw new Error("Se requieren las participaciones de al menos una federación.");
   }
   let distributed = 0n;
 
@@ -33,8 +31,7 @@ export function calculateBookPiRoyalties(
     if (isLast) {
       shareAmount = totalRevenueWei - distributed;
     } else {
-      shareAmount =
-        (totalRevenueWei * BigInt(share.basisPoints)) / BASIS_POINTS_DIVISOR;
+      shareAmount = (totalRevenueWei * BigInt(share.basisPoints)) / BASIS_POINTS_DIVISOR;
       distributed += shareAmount;
     }
 

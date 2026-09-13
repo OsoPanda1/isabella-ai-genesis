@@ -105,10 +105,7 @@ export function validateManifest(manifest: unknown): Manifest {
   return ManifestSchema.parse(manifest);
 }
 
-export function createEmptyManifest(
-  generatorHash: string,
-  context: ManifestContext,
-): Manifest {
+export function createEmptyManifest(generatorHash: string, context: ManifestContext): Manifest {
   return {
     manifest: {
       version: "2.0.1",

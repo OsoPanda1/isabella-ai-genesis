@@ -7,8 +7,7 @@
  * siempre declarado (`provider: native-fallback, degraded: true`).
  */
 
-export type InferenceMode =
-  "PRODUCTION_NORMAL" | "MAINTENANCE" | "NATIVE_DECLARED";
+export type InferenceMode = "PRODUCTION_NORMAL" | "MAINTENANCE" | "NATIVE_DECLARED";
 
 export interface InferenceDecision {
   mode: InferenceMode;
@@ -58,9 +57,7 @@ export function resolveInferencePolicy(input: {
 }
 
 /** Falla de upstream en curso: producción → mantenimiento, dev → nativo declarado. */
-export function resolveUpstreamFailure(input: {
-  productionLike: boolean;
-}): InferenceDecision {
+export function resolveUpstreamFailure(input: { productionLike: boolean }): InferenceDecision {
   if (input.productionLike) {
     return {
       mode: "MAINTENANCE",

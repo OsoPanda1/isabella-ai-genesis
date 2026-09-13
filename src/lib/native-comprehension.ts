@@ -40,15 +40,11 @@ export interface NativeComprehensionOutput {
   chainHash: string;
 }
 
-export function runNativeComprehension(
-  input: NativeComprehensionInput,
-): NativeComprehensionOutput {
+export function runNativeComprehension(input: NativeComprehensionInput): NativeComprehensionOutput {
   const runtime = config();
   const mode = runtime.ISABELLA_RUNTIME_MODE;
   const productionLike =
-    runtime.NODE_ENV === "production" ||
-    mode === "production" ||
-    mode === "staging";
+    runtime.NODE_ENV === "production" || mode === "production" || mode === "staging";
   const started = performance.now();
   const result = runNativePipeline(input.input, {
     productionLike,

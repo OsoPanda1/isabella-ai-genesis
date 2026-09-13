@@ -32,10 +32,7 @@ vi.mock("pg", () => {
   };
 });
 
-import {
-  SovereignDB,
-  DurableStateUnavailableError,
-} from "../../src/lib/sovereign-engine";
+import { SovereignDB, DurableStateUnavailableError } from "../../src/lib/sovereign-engine";
 import { resetConfigCache } from "../../src/lib/config";
 
 const originalRuntimeMode = process.env.ISABELLA_RUNTIME_MODE;
@@ -133,9 +130,7 @@ describe("SovereignDB Production Persistence Adapter (P0 deployment blocker)", (
     });
     SovereignDB.upsertTenant(db.tenants[db.tenants.length - 1]!);
     const reloaded = SovereignDB.load();
-    expect(reloaded.tenants.some((t) => t.id === "tenant_test_save")).toBe(
-      true,
-    );
+    expect(reloaded.tenants.some((t) => t.id === "tenant_test_save")).toBe(true);
   });
 
   it("appendLedgerBlock no rompe la cadena (integridad)", () => {
@@ -157,9 +152,7 @@ describe("SovereignDB Production Persistence Adapter (P0 deployment blocker)", (
     expect(result).toBeDefined();
     if (!process.env.NODE_ENV || process.env.NODE_ENV === "test") {
       // No-production: no debe intentar consultas a pg
-      expect(queryLog.some((q) => q.text.includes("sovereign_state"))).toBe(
-        false,
-      );
+      expect(queryLog.some((q) => q.text.includes("sovereign_state"))).toBe(false);
     }
   });
 
@@ -169,9 +162,7 @@ describe("SovereignDB Production Persistence Adapter (P0 deployment blocker)", (
 
     expect(second).toBe(first);
     if (!process.env.NODE_ENV || process.env.NODE_ENV === "test") {
-      expect(queryLog.some((q) => q.text.includes("sovereign_state"))).toBe(
-        false,
-      );
+      expect(queryLog.some((q) => q.text.includes("sovereign_state"))).toBe(false);
     }
   });
 

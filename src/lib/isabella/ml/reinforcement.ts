@@ -11,12 +11,7 @@ export interface MLTrainingSample {
 }
 
 function normalize(text: string): string[] {
-  return text
-    .normalize("NFKC")
-    .toLowerCase()
-    .trim()
-    .split(/\s+/u)
-    .filter(Boolean);
+  return text.normalize("NFKC").toLowerCase().trim().split(/\s+/u).filter(Boolean);
 }
 
 function tokenF1(expected: string, actual: string): number {
@@ -30,16 +25,13 @@ function tokenF1(expected: string, actual: string): number {
     expectedCounts.set(token, (expectedCounts.get(token) ?? 0) + 1);
   let overlap = 0;
   const actualCounts = new Map<string, number>();
-  for (const token of actualTokens)
-    actualCounts.set(token, (actualCounts.get(token) ?? 0) + 1);
+  for (const token of actualTokens) actualCounts.set(token, (actualCounts.get(token) ?? 0) + 1);
   for (const [token, count] of actualCounts)
     overlap += Math.min(count, expectedCounts.get(token) ?? 0);
 
   const precision = overlap / actualTokens.length;
   const recall = overlap / expectedTokens.length;
-  return precision + recall === 0
-    ? 0
-    : (2 * precision * recall) / (precision + recall);
+  return precision + recall === 0 ? 0 : (2 * precision * recall) / (precision + recall);
 }
 
 /**
@@ -57,8 +49,7 @@ export class AdvancedReinforcementEngine {
     }
     const f1 = tokenF1(sample.expectedOutput, sample.actualOutput);
     const exactMatch =
-      normalize(sample.expectedOutput).join(" ") ===
-      normalize(sample.actualOutput).join(" ");
+      normalize(sample.expectedOutput).join(" ") === normalize(sample.actualOutput).join(" ");
     const baseLoss = exactMatch ? 0 : 1 - f1;
     const biasPenalty = Math.max(0, sample.biasPenalty ?? 0);
     return Math.min(1, Math.max(0, baseLoss + biasPenalty));
@@ -69,8 +60,7 @@ export class AdvancedReinforcementEngine {
     version: string,
     samples: MLTrainingSample[],
   ): Promise<void> {
-    if (samples.length === 0)
-      throw new Error("evaluation_requires_non_empty_dataset");
+    if (samples.length === 0) throw new Error("evaluation_requires_non_empty_dataset");
 
     let totalLoss = 0;
     let totalF1 = 0;
@@ -99,12 +89,8 @@ export class AdvancedReinforcementEngine {
     const accuracy = Math.max(0, 1 - avgLoss);
     const f1Score = totalF1 / samples.length;
     const latencyMs =
-      measuredLatencySamples > 0
-        ? measuredLatencyTotal / measuredLatencySamples
-        : 0;
-    const datasetDigest = createHash("sha256")
-      .update(JSON.stringify(samples))
-      .digest("hex");
+      measuredLatencySamples > 0 ? measuredLatencyTotal / measuredLatencySamples : 0;
+    const datasetDigest = createHash("sha256").update(JSON.stringify(samples)).digest("hex");
     const benchmarkId = createHash("sha256")
       .update(`${modelId}@${version}:${datasetDigest}`)
       .digest("hex")

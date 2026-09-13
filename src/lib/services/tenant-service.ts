@@ -1,9 +1,5 @@
 import { repositoryFactory } from "../persistence/repository-factory";
-import type {
-  AuditEntry,
-  IRepository,
-  Tenant,
-} from "../persistence/repository";
+import type { AuditEntry, IRepository, Tenant } from "../persistence/repository";
 import { mapTenantRowToDomain, type TenantDomain } from "../domains/tenant";
 
 // ============================================================================

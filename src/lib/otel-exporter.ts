@@ -62,10 +62,7 @@ function toUnixNano(iso: string): string {
   return String(BigInt(safe) * 1_000_000n);
 }
 
-function attribute(
-  key: string,
-  value: unknown,
-): { key: string; value: { stringValue: string } } {
+function attribute(key: string, value: unknown): { key: string; value: { stringValue: string } } {
   let rendered: string;
   if (typeof value === "string") rendered = value;
   else {
@@ -106,8 +103,7 @@ function startTimer(): void {
 /** Envía lo encolado al Collector OTLP/HTTP. Nunca lanza. */
 export async function flushOtelOutbox(): Promise<OtelFlushResult> {
   const batch = outbox.splice(0, outbox.length);
-  if (batch.length === 0)
-    return { attempted: false, delivered: false, count: 0 };
+  if (batch.length === 0) return { attempted: false, delivered: false, count: 0 };
 
   const url = endpoint();
   if (!url) {

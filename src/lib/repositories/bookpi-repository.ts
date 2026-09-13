@@ -29,8 +29,7 @@ import {
   verifyBlockSignature,
 } from "../crypto/bookpi-signer";
 
-export type LedgerCategory =
-  "inference" | "processing" | "apis" | "skills" | "other";
+export type LedgerCategory = "inference" | "processing" | "apis" | "skills" | "other";
 export type LedgerStatus = "settled" | "pending" | "refunded" | "pruned";
 
 export interface BlockPIBlock {
@@ -55,8 +54,7 @@ export interface BookPIStoreFile {
   genesisPreviousHash: string;
 }
 
-const GENESIS_PREVIOUS_HASH =
-  "0000000000000000000000000000000000000000000000000000000000000000";
+const GENESIS_PREVIOUS_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
 const STORE_PATH = path.join(process.cwd(), "isabella_bookpi_ledger.json");
 
 function sha256(input: string): string {
@@ -79,9 +77,7 @@ function findTenantBlock(
   tenantId: string,
   index: number,
 ): BlockPIBlock | null {
-  return (
-    blocks.find((b) => b.tenantId === tenantId && b.index === index) ?? null
-  );
+  return blocks.find((b) => b.tenantId === tenantId && b.index === index) ?? null;
 }
 
 /**
@@ -104,10 +100,8 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
   // autoritativo DECLARADO (postgres|neon) invalida de plano el JSON: nunca
   // se puede caer a fichero cuando la autoridad durable es PostgreSQL.
   if (isStorageProviderExplicitlyDeclared()) {
-    const provider = (runtime as unknown as Record<string, unknown>)
-      .ISABELLA_STORAGE_PROVIDER;
-    const normalized =
-      typeof provider === "string" ? provider.trim().toLowerCase() : "";
+    const provider = (runtime as unknown as Record<string, unknown>).ISABELLA_STORAGE_PROVIDER;
+    const normalized = typeof provider === "string" ? provider.trim().toLowerCase() : "";
     if (["postgres", "neon"].includes(normalized)) {
       throw new Error(
         "JSON BookPI persistence is disabled when ISABELLA_STORAGE_PROVIDER is " +
@@ -123,9 +117,7 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
     try {
       const raw = fs.readFileSync(storePath, "utf-8");
       const parsed = JSON.parse(raw) as Partial<BookPIStoreFile>;
-      const blocks = Array.isArray(parsed.blocks)
-        ? (parsed.blocks as BlockPIBlock[])
-        : [];
+      const blocks = Array.isArray(parsed.blocks) ? (parsed.blocks as BlockPIBlock[]) : [];
       const genesisPreviousHash =
         typeof parsed.genesisPreviousHash === "string"
           ? parsed.genesisPreviousHash
@@ -168,18 +160,13 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
       category: LedgerCategory;
       cost: number;
       tokens: number;
-    }):
-      | { success: true; block: BlockPIBlock }
-      | { success: false; error: string } {
-      if (input.cost < 0)
-        return { success: false, error: "Costo negativo no admitido." };
+    }): { success: true; block: BlockPIBlock } | { success: false; error: string } {
+      if (input.cost < 0) return { success: false, error: "Costo negativo no admitido." };
       if (isSimulatedAlgorithm())
         return { success: false, error: "Algoritmo simulado no permitido." };
       const store = loadStore();
 
-      const tenantBlocks = store.blocks.filter(
-        (b) => b.tenantId === input.tenantId,
-      );
+      const tenantBlocks = store.blocks.filter((b) => b.tenantId === input.tenantId);
       const prev = tenantBlocks[tenantBlocks.length - 1];
       const index = tenantBlocks.length;
 
@@ -219,22 +206,17 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
         cost: number;
         tokens: number;
       }>,
-    ):
-      | { success: true; blocks: BlockPIBlock[] }
-      | { success: false; error: string } {
+    ): { success: true; blocks: BlockPIBlock[] } | { success: false; error: string } {
       if (isSimulatedAlgorithm())
         return { success: false, error: "Algoritmo simulado no permitido." };
       const store = loadStore();
       const newBlocks: BlockPIBlock[] = [];
 
       for (const input of inputs) {
-        if (input.cost < 0)
-          return { success: false, error: "Costo negativo no admitido." };
+        if (input.cost < 0) return { success: false, error: "Costo negativo no admitido." };
 
         // Use updated store state including previously appended blocks in this batch
-        const tenantBlocks = store.blocks.filter(
-          (b) => b.tenantId === input.tenantId,
-        );
+        const tenantBlocks = store.blocks.filter((b) => b.tenantId === input.tenantId);
         const prev = tenantBlocks[tenantBlocks.length - 1];
         const index = tenantBlocks.length;
 
@@ -277,16 +259,10 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
       },
     ): BlockPIBlock[] {
       let blocks = this.list(tenantId);
-      if (filter.category)
-        blocks = blocks.filter((b) => b.category === filter.category);
-      if (filter.userId)
-        blocks = blocks.filter((b) => b.userId === filter.userId);
-      if (filter.fromDate)
-        blocks = blocks.filter(
-          (b) => new Date(b.timestamp) >= filter.fromDate!,
-        );
-      if (filter.toDate)
-        blocks = blocks.filter((b) => new Date(b.timestamp) <= filter.toDate!);
+      if (filter.category) blocks = blocks.filter((b) => b.category === filter.category);
+      if (filter.userId) blocks = blocks.filter((b) => b.userId === filter.userId);
+      if (filter.fromDate) blocks = blocks.filter((b) => new Date(b.timestamp) >= filter.fromDate!);
+      if (filter.toDate) blocks = blocks.filter((b) => new Date(b.timestamp) <= filter.toDate!);
       return blocks;
     },
 
@@ -314,9 +290,7 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
         .sort((a, b) => a.index - b.index);
 
       const cutoff = Date.now() - maxAgeMs;
-      const blocksToKeep = tenantBlocks.filter(
-        (b) => new Date(b.timestamp).getTime() > cutoff,
-      );
+      const blocksToKeep = tenantBlocks.filter((b) => new Date(b.timestamp).getTime() > cutoff);
       const prunedCount = tenantBlocks.length - blocksToKeep.length;
 
       if (prunedCount === 0) return { success: true, prunedCount: 0 };
@@ -348,9 +322,7 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
         prevHash = block.blockHash;
       }
 
-      store.blocks = allBlocks
-        .filter((b) => b.tenantId !== tenantId)
-        .concat(blocksToKeep);
+      store.blocks = allBlocks.filter((b) => b.tenantId !== tenantId).concat(blocksToKeep);
       saveStore(store);
       return { success: true, prunedCount };
     },
@@ -382,9 +354,7 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
       }
 
       if (tenantsToPrune.length > 0) {
-        store.blocks = store.blocks.filter(
-          (b) => !tenantsToPrune.includes(b.tenantId),
-        );
+        store.blocks = store.blocks.filter((b) => !tenantsToPrune.includes(b.tenantId));
         saveStore(store);
       }
 
@@ -392,20 +362,14 @@ export function createBookpiRepository(storePath: string = STORE_PATH) {
     },
 
     /** Marca un bloque como refundido con un bloque de anulación encadenado. */
-    refund(
-      index: number,
-      tenantId: string,
-    ): { success: boolean; error?: string } {
+    refund(index: number, tenantId: string): { success: boolean; error?: string } {
       const store = loadStore();
       const target = findTenantBlock(store.blocks, tenantId, index);
       if (!target) return { success: false, error: "Bloque no encontrado." };
-      if (target.status === "refunded")
-        return { success: false, error: "Ya refundido." };
+      if (target.status === "refunded") return { success: false, error: "Ya refundido." };
       // §6.7: idempotencia de refund — nunca dos anulaciones del mismo bloque.
       const alreadyRefunded = store.blocks.some(
-        (b) =>
-          b.tenantId === tenantId &&
-          b.operation === `refund_of_${target.index}`,
+        (b) => b.tenantId === tenantId && b.operation === `refund_of_${target.index}`,
       );
       if (alreadyRefunded) return { success: false, error: "Ya refundido." };
       if (isSimulatedAlgorithm())

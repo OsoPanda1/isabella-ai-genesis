@@ -4,8 +4,7 @@ import { Control } from "../schemas/control.schema";
 import { Evidence } from "../schemas/evidence.schema";
 import { Finding } from "../schemas/finding.schema";
 
-export type NodeType =
-  "claim" | "control" | "test" | "evidence" | "finding" | "code" | "config";
+export type NodeType = "claim" | "control" | "test" | "evidence" | "finding" | "code" | "config";
 
 export interface GraphNode {
   id: string;
@@ -306,15 +305,8 @@ export class EvidenceGraphBuilder {
     return this.graph.nodes.find((n) => n.id === id);
   }
 
-  private addToIndex(
-    indexName: keyof EvidenceGraph["indices"],
-    key: string,
-    nodeId: string,
-  ): void {
-    const index = this.graph.indices[indexName] as unknown as Map<
-      string,
-      string[]
-    >;
+  private addToIndex(indexName: keyof EvidenceGraph["indices"], key: string, nodeId: string): void {
+    const index = this.graph.indices[indexName] as unknown as Map<string, string[]>;
     const existing = index.get(key) ?? [];
     existing.push(nodeId);
     index.set(key, existing);
@@ -345,10 +337,7 @@ export class EvidenceGraphBuilder {
   }
 
   private hashData(data: unknown): string {
-    return createHash("sha3-512")
-      .update(JSON.stringify(data))
-      .digest("hex")
-      .slice(0, 32);
+    return createHash("sha3-512").update(JSON.stringify(data)).digest("hex").slice(0, 32);
   }
 }
 
@@ -370,10 +359,7 @@ export interface GraphAnalysisResult {
     nodeA: string;
     nodeB: string;
     contradictionType:
-      | "claim_vs_code"
-      | "docs_vs_implementation"
-      | "test_vs_behavior"
-      | "evidence_vs_claim";
+      "claim_vs_code" | "docs_vs_implementation" | "test_vs_behavior" | "evidence_vs_claim";
     description: string;
     severity: "CRITICAL" | "HIGH" | "MEDIUM";
   }>;
@@ -381,10 +367,7 @@ export interface GraphAnalysisResult {
     claimsWithEvidence: number;
     claimsWithoutEvidence: number;
     coveragePercentage: number;
-    byCategory: Record<
-      string,
-      { total: number; covered: number; percentage: number }
-    >;
+    byCategory: Record<string, { total: number; covered: number; percentage: number }>;
   };
   confidenceAnalysis: Array<{
     claimId: string;
@@ -445,12 +428,8 @@ export class EvidenceGraphAnalyzer {
         .map((e) => this.graph.nodes.find((n) => n.id === e.source))
         .filter(Boolean) as GraphNode[];
 
-      const evidenceTypes = new Set(
-        evidenceNodes.map((n) => (n.data as Evidence).type),
-      );
-      const missingTypes = claim.evidenceRequired.filter(
-        (t) => !evidenceTypes.has(t),
-      );
+      const evidenceTypes = new Set(evidenceNodes.map((n) => (n.data as Evidence).type));
+      const missingTypes = claim.evidenceRequired.filter((t) => !evidenceTypes.has(t));
 
       if (evidenceNodes.length === 0 || missingTypes.length > 0) {
         result.push({
@@ -546,8 +525,7 @@ export class EvidenceGraphAnalyzer {
   private analyzeCoverage(): GraphAnalysisResult["coverageAnalysis"] {
     const claims = this.graph.nodes.filter((n) => n.type === "claim");
     let claimsWithEvidence = 0;
-    const byCategory: GraphAnalysisResult["coverageAnalysis"]["byCategory"] =
-      {};
+    const byCategory: GraphAnalysisResult["coverageAnalysis"]["byCategory"] = {};
 
     for (const claimNode of claims) {
       const claim = claimNode.data as Claim;
@@ -567,17 +545,14 @@ export class EvidenceGraphAnalyzer {
     }
 
     for (const cat of Object.values(byCategory)) {
-      cat.percentage =
-        cat.total > 0 ? Math.round((cat.covered / cat.total) * 100) : 0;
+      cat.percentage = cat.total > 0 ? Math.round((cat.covered / cat.total) * 100) : 0;
     }
 
     return {
       claimsWithEvidence,
       claimsWithoutEvidence: claims.length - claimsWithEvidence,
       coveragePercentage:
-        claims.length > 0
-          ? Math.round((claimsWithEvidence / claims.length) * 100)
-          : 0,
+        claims.length > 0 ? Math.round((claimsWithEvidence / claims.length) * 100) : 0,
       byCategory,
     };
   }
@@ -611,32 +586,26 @@ export class EvidenceGraphAnalyzer {
             }, 0) / evidenceNodes.length
           : 0;
 
-      const evidenceQuantity = Math.min(
-        evidenceCount / Math.max(requiredCount, 1),
-        1,
-      );
+      const evidenceQuantity = Math.min(evidenceCount / Math.max(requiredCount, 1), 1);
       const evidenceRecency =
         evidenceNodes.length > 0
           ? Math.max(
               0,
               1 -
-                (Date.now() -
-                  new Date(evidenceNodes[0].metadata.createdAt).getTime()) /
+                (Date.now() - new Date(evidenceNodes[0].metadata.createdAt).getTime()) /
                   (90 * 24 * 60 * 60 * 1000),
             )
           : 0;
       const evidenceIndependence =
         evidenceNodes.length > 0
-          ? evidenceNodes.filter(
-              (n) => (n.data as Evidence).source === "external",
-            ).length / evidenceNodes.length
+          ? evidenceNodes.filter((n) => (n.data as Evidence).source === "external").length /
+            evidenceNodes.length
           : 0;
 
       const testEdges = this.graph.edges.filter(
         (e) => e.target === claimNode.id && e.type === "tests",
       );
-      const testCoverage =
-        testEdges.length > 0 ? Math.min(testEdges.length / 4, 1) : 0;
+      const testCoverage = testEdges.length > 0 ? Math.min(testEdges.length / 4, 1) : 0;
 
       const codeEdges = this.graph.edges.filter(
         (e) => e.target === claimNode.id && e.type === "implements",
@@ -693,10 +662,7 @@ export class EvidenceGraphAnalyzer {
           const cycle = path.slice(cycleStart);
           result.push({
             nodes: [...cycle, edge.target],
-            type:
-              edge.type === "depends_on"
-                ? "dependency_cycle"
-                : "verification_cycle",
+            type: edge.type === "depends_on" ? "dependency_cycle" : "verification_cycle",
             severity: "HIGH",
             resolution: "Break cycle by removing or redirecting dependency",
           });
@@ -730,9 +696,7 @@ export class EvidenceGraphAnalyzer {
       let weakestLink = { nodeId: "", confidence: 1.0, improvement: "" };
 
       while (true) {
-        const outgoingEdges = this.graph.edges.filter(
-          (e) => e.source === current,
-        );
+        const outgoingEdges = this.graph.edges.filter((e) => e.source === current);
         if (outgoingEdges.length === 0) break;
 
         const strongestEdge = outgoingEdges.reduce((max, e) =>
@@ -772,8 +736,6 @@ export function createEvidenceGraphBuilder(): EvidenceGraphBuilder {
   return new EvidenceGraphBuilder();
 }
 
-export function createEvidenceGraphAnalyzer(
-  graph: EvidenceGraph,
-): EvidenceGraphAnalyzer {
+export function createEvidenceGraphAnalyzer(graph: EvidenceGraph): EvidenceGraphAnalyzer {
   return new EvidenceGraphAnalyzer(graph);
 }

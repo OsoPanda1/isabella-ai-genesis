@@ -6,13 +6,9 @@ import { SovereignKnowledgeGraph, seedRdmKnowledgeGraph } from "@/lib/ncua/kg";
 describe("ncua:intención (centroides online)", () => {
   it("clasifica intenciones sembradas del dominio RDM", () => {
     const classifier = seedRdmIntents();
-    const mineria = classifier.predict(
-      "¿cómo se inició la minería en Real del Monte?",
-    );
+    const mineria = classifier.predict("¿cómo se inició la minería en Real del Monte?");
     expect(mineria.intent).toBe("mineria");
-    const paste = classifier.predict(
-      "¿cuál es la receta tradicional del paste?",
-    );
+    const paste = classifier.predict("¿cuál es la receta tradicional del paste?");
     expect(paste.intent).toBe("paste");
   });
 

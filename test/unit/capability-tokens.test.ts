@@ -17,8 +17,7 @@ beforeEach(async () => {
 
 describe("emisión y verificación", () => {
   it("token válido pasa con claims ligados", async () => {
-    const { issueCapabilityToken, verifyCapabilityToken } =
-      await import("@/lib/capability-tokens");
+    const { issueCapabilityToken, verifyCapabilityToken } = await import("@/lib/capability-tokens");
     const token = issueCapabilityToken({
       actorId: "op1",
       tenantId: "t1",
@@ -36,8 +35,7 @@ describe("emisión y verificación", () => {
   });
 
   it("rechaza binding cruzado (otra tool, otro trace)", async () => {
-    const { issueCapabilityToken, verifyCapabilityToken } =
-      await import("@/lib/capability-tokens");
+    const { issueCapabilityToken, verifyCapabilityToken } = await import("@/lib/capability-tokens");
     const token = issueCapabilityToken({
       actorId: "op1",
       tenantId: "t1",
@@ -63,8 +61,7 @@ describe("emisión y verificación", () => {
   });
 
   it("rechaza token manipulado y expirado", async () => {
-    const { issueCapabilityToken, verifyCapabilityToken } =
-      await import("@/lib/capability-tokens");
+    const { issueCapabilityToken, verifyCapabilityToken } = await import("@/lib/capability-tokens");
     const token = issueCapabilityToken({
       actorId: "op1",
       tenantId: "t1",
@@ -97,12 +94,9 @@ describe("emisión y verificación", () => {
 describe("capability como approval en Execution Authority", () => {
   it("token válido autoriza compute.sandbox (critical) y audita el jti", async () => {
     const { issueCapabilityToken } = await import("@/lib/capability-tokens");
-    const { createExecutionAuthority } =
-      await import("@/lib/execution-authority");
-    const { createMemoryRepository } =
-      await import("@/lib/repositories/memory-repository");
-    const { createAuditRepository } =
-      await import("@/lib/repositories/audit-repository");
+    const { createExecutionAuthority } = await import("@/lib/execution-authority");
+    const { createMemoryRepository } = await import("@/lib/repositories/memory-repository");
+    const { createAuditRepository } = await import("@/lib/repositories/audit-repository");
     const { mkdtempSync } = await import("node:fs");
     const { tmpdir } = await import("node:os");
     const { join } = await import("node:path");
@@ -139,12 +133,9 @@ describe("capability como approval en Execution Authority", () => {
 
   it("token de otra traza no autoriza (se ignora)", async () => {
     const { issueCapabilityToken } = await import("@/lib/capability-tokens");
-    const { createExecutionAuthority } =
-      await import("@/lib/execution-authority");
-    const { createMemoryRepository } =
-      await import("@/lib/repositories/memory-repository");
-    const { createAuditRepository } =
-      await import("@/lib/repositories/audit-repository");
+    const { createExecutionAuthority } = await import("@/lib/execution-authority");
+    const { createMemoryRepository } = await import("@/lib/repositories/memory-repository");
+    const { createAuditRepository } = await import("@/lib/repositories/audit-repository");
     const { mkdtempSync } = await import("node:fs");
     const { tmpdir } = await import("node:os");
     const { join } = await import("node:path");

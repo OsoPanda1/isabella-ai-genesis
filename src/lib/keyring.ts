@@ -27,10 +27,7 @@ export class Keyring {
   }
 
   static deriveKeyId(label: string, secret: string): string {
-    return createHash("sha256")
-      .update(`${label}:${secret}`)
-      .digest("hex")
-      .slice(0, 8);
+    return createHash("sha256").update(`${label}:${secret}`).digest("hex").slice(0, 8);
   }
 
   static deriveHmacSecret(master: string, kid: string): string {
@@ -74,10 +71,7 @@ export class Keyring {
 }
 
 /** Genera material de clave nueva con secret aleatorio (para rotación). */
-export function generateKeyMaterial(
-  master: string,
-  label: string,
-): KeyMaterial {
+export function generateKeyMaterial(master: string, label: string): KeyMaterial {
   const nonce = randomBytes(6).toString("hex");
   const kid = Keyring.deriveKeyId(`${label}:${nonce}`, master);
   return {

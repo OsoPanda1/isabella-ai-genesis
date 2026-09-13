@@ -17,8 +17,7 @@
 import { createSign, createVerify, createHash } from "node:crypto";
 import { config } from "../config";
 
-export type BookPiSignatureAlgorithm =
-  "ML-DSA-87" | "ECDSA-P384" | "RSA-SHA256";
+export type BookPiSignatureAlgorithm = "ML-DSA-87" | "ECDSA-P384" | "RSA-SHA256";
 
 /** Algoritmo canónico declarado en la configuración. */
 export function getSigningAlgorithm(): BookPiSignatureAlgorithm {
@@ -35,10 +34,7 @@ export function isSimulatedAlgorithm(
 
 function isProductionRuntime(): boolean {
   const cfg = config();
-  return (
-    cfg.ISABELLA_RUNTIME_MODE === "production" ||
-    cfg.ISABELLA_RUNTIME_MODE === "staging"
-  );
+  return cfg.ISABELLA_RUNTIME_MODE === "production" || cfg.ISABELLA_RUNTIME_MODE === "staging";
 }
 
 function digestFor(algorithm: BookPiSignatureAlgorithm): string {

@@ -44,13 +44,10 @@ export interface PersistedLearningRuntime {
   durable: boolean;
 }
 
-export async function loadLearningRuntime(
-  tenantId: string,
-): Promise<PersistedLearningRuntime> {
+export async function loadLearningRuntime(tenantId: string): Promise<PersistedLearningRuntime> {
   if (!tenantId) throw new Error("TENANT_REQUIRED");
   const databaseUrl = config().DATABASE_URL;
-  if (!databaseUrl)
-    return { engine: createIsabellaLearningEngine(), durable: false };
+  if (!databaseUrl) return { engine: createIsabellaLearningEngine(), durable: false };
 
   await ensureTable();
   const result = await getPool().query<{
@@ -68,8 +65,7 @@ export async function loadLearningRuntime(
       throw new Error("LEARNING_SNAPSHOT_VERSION_UNSUPPORTED");
     const canonical = stableStringify(row.snapshot);
     const expected = createHash("sha3-512").update(canonical).digest("hex");
-    if (expected !== row.snapshot_hash)
-      throw new Error("LEARNING_SNAPSHOT_INTEGRITY_FAILURE");
+    if (expected !== row.snapshot_hash) throw new Error("LEARNING_SNAPSHOT_INTEGRITY_FAILURE");
     engine.restore(row.snapshot);
   }
   return { engine, durable: true };
@@ -110,9 +106,7 @@ export async function verifyLearningPersistence(): Promise<{
     return { ok: false, durable: false, latencyMs: performance.now() - start };
   try {
     await ensureTable();
-    await getPool().query(
-      "SELECT 1 FROM public.isabella_learning_state LIMIT 1",
-    );
+    await getPool().query("SELECT 1 FROM public.isabella_learning_state LIMIT 1");
     return { ok: true, durable: true, latencyMs: performance.now() - start };
   } catch {
     return { ok: false, durable: true, latencyMs: performance.now() - start };

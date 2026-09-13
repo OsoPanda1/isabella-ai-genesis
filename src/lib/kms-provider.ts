@@ -29,12 +29,7 @@ export interface KMSProvider {
  * de versión (ej. SECRETV1_..., SECRETV2_...).
  * Derivación real: HKDF-SHA3-512 (§4.1 del Charter FGAIS).
  */
-import {
-  createCipheriv,
-  createDecipheriv,
-  hkdfSync,
-  randomBytes,
-} from "node:crypto";
+import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from "node:crypto";
 
 /**
  * EnvKMSProvider con cifrado REAL (AES-256-GCM):
@@ -54,9 +49,7 @@ export class EnvKMSProvider implements KMSProvider {
   private masterKey(): Buffer {
     const master = this.env.ENCRYPTION_MASTER_KEY;
     if (!master || master.length < 32) {
-      throw new Error(
-        "EnvKMSProvider: ENCRYPTION_MASTER_KEY ausente o <32 caracteres.",
-      );
+      throw new Error("EnvKMSProvider: ENCRYPTION_MASTER_KEY ausente o <32 caracteres.");
     }
     return Buffer.from(master, "utf8");
   }
@@ -65,28 +58,17 @@ export class EnvKMSProvider implements KMSProvider {
     // HKDF-SHA3-512 (§4.1 del Charter): IKM = master, info ligada al
     // nombre del secreto (dominios criptográficos separados), 32 bytes.
     return Buffer.from(
-      hkdfSync(
-        "sha3-512",
-        this.masterKey(),
-        "",
-        `isabella-kms-v1|${keyName}`,
-        32,
-      ),
+      hkdfSync("sha3-512", this.masterKey(), "", `isabella-kms-v1|${keyName}`, 32),
     );
   }
 
   async encrypt(keyName: string, plaintext: string): Promise<string> {
     if (!keyName || typeof plaintext !== "string") {
-      throw new Error(
-        "EnvKMSProvider.encrypt: keyName y plaintext requeridos.",
-      );
+      throw new Error("EnvKMSProvider.encrypt: keyName y plaintext requeridos.");
     }
     const iv = randomBytes(12);
     const cipher = createCipheriv("aes-256-gcm", this.subKey(keyName), iv);
-    const ciphertext = Buffer.concat([
-      cipher.update(plaintext, "utf8"),
-      cipher.final(),
-    ]);
+    const ciphertext = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
     const tag = cipher.getAuthTag();
     return `v1:${iv.toString("base64url")}:${ciphertext.toString("base64url")}:${tag.toString("base64url")}`;
   }
@@ -94,9 +76,7 @@ export class EnvKMSProvider implements KMSProvider {
   async decrypt(keyName: string, envelope: string): Promise<string> {
     const parts = envelope.split(":");
     if (parts.length !== 4 || parts[0] !== "v1") {
-      throw new Error(
-        "EnvKMSProvider.decrypt: formato inválido (se esperaba v1:iv:ct:tag).",
-      );
+      throw new Error("EnvKMSProvider.decrypt: formato inválido (se esperaba v1:iv:ct:tag).");
     }
     const [, ivB64, ctB64, tagB64] = parts;
     let iv: Buffer;
@@ -113,21 +93,14 @@ export class EnvKMSProvider implements KMSProvider {
       throw new Error("EnvKMSProvider.decrypt: IV/tag de longitud inválida.");
     }
     try {
-      const decipher = createDecipheriv(
-        "aes-256-gcm",
-        this.subKey(keyName),
-        iv,
-      );
+      const decipher = createDecipheriv("aes-256-gcm", this.subKey(keyName), iv);
       decipher.setAuthTag(tag);
-      const plaintext = Buffer.concat([
-        decipher.update(ciphertext),
-        decipher.final(),
-      ]).toString("utf8");
+      const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString(
+        "utf8",
+      );
       return plaintext;
     } catch {
-      throw new Error(
-        "EnvKMSProvider.decrypt: autenticación fallida (tamper o clave errónea).",
-      );
+      throw new Error("EnvKMSProvider.decrypt: autenticación fallida (tamper o clave errónea).");
     }
   }
 }

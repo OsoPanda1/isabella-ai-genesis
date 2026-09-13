@@ -42,17 +42,14 @@ export function auditClientEnv(env = process.env) {
           `Mover a secreto server-side o justificar en BROWSER_SAFE_ALLOWLIST.`,
       );
     } else {
-      warnings.push(
-        `${key}: VITE_* no declarada en allowlist (se expondrá al navegador).`,
-      );
+      warnings.push(`${key}: VITE_* no declarada en allowlist (se expondrá al navegador).`);
     }
   }
   return { errors, warnings };
 }
 
 const invokedAsMain =
-  typeof process.argv[1] === "string" &&
-  process.argv[1].endsWith("check-client-env.mjs");
+  typeof process.argv[1] === "string" && process.argv[1].endsWith("check-client-env.mjs");
 if (invokedAsMain) {
   const { errors, warnings } = auditClientEnv();
   for (const warning of warnings) console.warn(`⚠️  client-env: ${warning}`);

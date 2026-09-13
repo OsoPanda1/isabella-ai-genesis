@@ -13,14 +13,7 @@
 
 export type ToolRisk = "low" | "medium" | "high" | "critical";
 export type ToolCategory =
-  | "memory"
-  | "ledger"
-  | "compute"
-  | "storage"
-  | "network"
-  | "identity"
-  | "system"
-  | "creativity";
+  "memory" | "ledger" | "compute" | "storage" | "network" | "identity" | "system" | "creativity";
 
 export interface RegisteredTool {
   name: string;
@@ -47,8 +40,7 @@ export interface ToolExecutionDecision {
 export const TOOL_REGISTRY_SEED: readonly RegisteredTool[] = [
   {
     name: "memory.retrieve",
-    purpose:
-      "Recuperar contexto de memoria dentro del scope y tenant autorizados.",
+    purpose: "Recuperar contexto de memoria dentro del scope y tenant autorizados.",
     inputSchemaDescription: "tenantId, actorId, scope, sensitivity",
     outputDescription: "Registros de memoria filtrados por autorización.",
     risk: "medium",
@@ -77,8 +69,7 @@ export const TOOL_REGISTRY_SEED: readonly RegisteredTool[] = [
   {
     name: "ledger.record",
     purpose: "Registrar un asiento inmutable en el libro mayor BookPI.",
-    inputSchemaDescription:
-      "tenantId, userId, operation, category, cost, tokens",
+    inputSchemaDescription: "tenantId, userId, operation, category, cost, tokens",
     outputDescription: "Bloque BookPI encadenado criptográficamente.",
     risk: "high",
     requiredPermissions: ["ledger:write"],
@@ -92,8 +83,7 @@ export const TOOL_REGISTRY_SEED: readonly RegisteredTool[] = [
   {
     name: "compute.sandbox",
     purpose: "Ejecutar tarea aislada en contenedor/WASM bajo sandbox soberano.",
-    inputSchemaDescription:
-      "command, envVars, inputPayload (solo fuentes autorizadas)",
+    inputSchemaDescription: "command, envVars, inputPayload (solo fuentes autorizadas)",
     outputDescription: "Resultado de ejecución aislada con verificación.",
     risk: "critical",
     requiredPermissions: ["compute:execute"],
@@ -106,8 +96,7 @@ export const TOOL_REGISTRY_SEED: readonly RegisteredTool[] = [
   },
   {
     name: "storage.read",
-    purpose:
-      "Leer datos de repositorio autorizado dentro de la frontera de tenant.",
+    purpose: "Leer datos de repositorio autorizado dentro de la frontera de tenant.",
     inputSchemaDescription: "tenantId, path, scope",
     outputDescription: "Contenido leído tras verificación de policy.",
     risk: "medium",
@@ -140,9 +129,7 @@ export const TOOL_REGISTRY_SEED: readonly RegisteredTool[] = [
  * pero el comportamiento default es deny-by-default: toda herramienta no
  * registrada se considera NO autorizada.
  */
-export function createToolRegistry(
-  seed: readonly RegisteredTool[] = TOOL_REGISTRY_SEED,
-) {
+export function createToolRegistry(seed: readonly RegisteredTool[] = TOOL_REGISTRY_SEED) {
   const byName = new Map<string, RegisteredTool>();
   for (const tool of seed)
     byName.set(tool.name, {
@@ -169,9 +156,7 @@ export function createToolRegistry(
     /** Obtiene los metadatos completos de una herramienta, si existe. */
     lookup(name: string): RegisteredTool | null {
       const tool = byName.get(name);
-      return tool
-        ? { ...tool, requiredPermissions: [...tool.requiredPermissions] }
-        : null;
+      return tool ? { ...tool, requiredPermissions: [...tool.requiredPermissions] } : null;
     },
 
     list(): RegisteredTool[] {

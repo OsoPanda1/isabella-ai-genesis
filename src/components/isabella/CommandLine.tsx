@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState, useId, useCallback } from "react";
 import { Waveform } from "./Waveform";
-import {
-  fileToDataUrl,
-  humanSize,
-  MAX_ATTACHMENT_BYTES,
-  type Attachment,
-} from "@/lib/attachments";
+import { fileToDataUrl, humanSize, MAX_ATTACHMENT_BYTES, type Attachment } from "@/lib/attachments";
 import {
   Paperclip,
   Mic,
@@ -23,8 +18,7 @@ import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 const uid = () => Math.random().toString(36).slice(2, 11);
 
 // Modos de Razonamiento inspirados en DeepSeek & Perplexity
-export type ExecutionMode =
-  "fast" | "deep_reasoning" | "web_research" | "agent_tools";
+export type ExecutionMode = "fast" | "deep_reasoning" | "web_research" | "agent_tools";
 
 export interface ExtendedAttachment extends Attachment {
   tokenEstimate?: number;
@@ -41,12 +35,7 @@ export interface CommandLineProps {
   isProcessing: boolean;
 }
 
-export function CommandLine({
-  onSend,
-  onStop,
-  onReset,
-  isProcessing,
-}: CommandLineProps) {
+export function CommandLine({ onSend, onStop, onReset, isProcessing }: CommandLineProps) {
   const { startTrack } = usePerformanceMonitor("CommandLine");
   const [value, setValue] = useState("");
   const [attachments, setAttachments] = useState<ExtendedAttachment[]>([]);
@@ -69,10 +58,7 @@ export function CommandLine({
   // Estimación rápida de tokens en tiempo real (Inspirado en Kimi & Prometheus)
   const estimatedTokens =
     Math.ceil(value.length / 4) +
-    attachments.reduce(
-      (acc, curr) => acc + (curr.kind === "image" ? 256 : 512),
-      0,
-    );
+    attachments.reduce((acc, curr) => acc + (curr.kind === "image" ? 256 : 512), 0);
 
   // Auto-ajuste de altura de textarea
   useEffect(() => {
@@ -165,8 +151,7 @@ export function CommandLine({
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
       chunksRef.current = [];
-      recorder.ondataavailable = (e) =>
-        e.data.size && chunksRef.current.push(e.data);
+      recorder.ondataavailable = (e) => e.data.size && chunksRef.current.push(e.data);
       recorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType });
@@ -281,8 +266,7 @@ export function CommandLine({
 
         <div className="flex items-center gap-3 font-mono text-[10px]">
           <span className="text-muted-foreground/80 hidden sm:inline">
-            Tokens est.:{" "}
-            <strong className="text-electric">{estimatedTokens}</strong>
+            Tokens est.: <strong className="text-electric">{estimatedTokens}</strong>
           </span>
           <span
             className={`px-2 py-0.5 rounded-full border tracking-wider uppercase font-semibold ${
@@ -293,11 +277,7 @@ export function CommandLine({
                   : "bg-secondary/40 border-border/30 text-muted-foreground"
             }`}
           >
-            {isProcessing
-              ? "SINTETIZANDO"
-              : recording
-                ? "GRABANDO"
-                : "EN ESCUCHA"}
+            {isProcessing ? "SINTETIZANDO" : recording ? "GRABANDO" : "EN ESCUCHA"}
           </span>
         </div>
       </div>
@@ -347,8 +327,7 @@ export function CommandLine({
                   {a.name}
                 </p>
                 <p className="font-mono text-[8.5px] text-muted-foreground">
-                  {a.kind === "image" ? "IMAGEN" : "AUDIO"} ·{" "}
-                  {humanSize(a.size)}
+                  {a.kind === "image" ? "IMAGEN" : "AUDIO"} · {humanSize(a.size)}
                 </p>
               </div>
               <button
@@ -403,9 +382,7 @@ export function CommandLine({
 
           <button
             type="button"
-            onClick={() =>
-              recording ? stopRecording() : void startRecording()
-            }
+            onClick={() => (recording ? stopRecording() : void startRecording())}
             className={`p-2 rounded-xl border font-mono text-[10px] flex items-center gap-1.5 transition-all ${
               recording
                 ? "border-rose-500/50 bg-rose-500/15 text-rose-400"
@@ -430,9 +407,7 @@ export function CommandLine({
           <button
             type="button"
             onClick={() =>
-              setExecutionMode((m) =>
-                m === "deep_reasoning" ? "fast" : "deep_reasoning",
-              )
+              setExecutionMode((m) => (m === "deep_reasoning" ? "fast" : "deep_reasoning"))
             }
             className={`px-2.5 py-1.5 rounded-xl border font-mono text-[10px] flex items-center gap-1.5 transition-all ${
               executionMode === "deep_reasoning"

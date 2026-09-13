@@ -23,9 +23,7 @@ export async function prepareIsabellaCognitiveRuntime(
 ): Promise<CognitiveRuntimeResult> {
   const runtime = await loadLearningRuntime(context.tenantId);
   const memories = runtime.engine.retrieve(context.query, 8);
-  const concepts = [
-    ...new Set(memories.flatMap((memory) => memory.concepts)),
-  ].slice(0, 32);
+  const concepts = [...new Set(memories.flatMap((memory) => memory.concepts))].slice(0, 32);
 
   if (memories.length === 0) {
     return {

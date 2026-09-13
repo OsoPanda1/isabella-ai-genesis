@@ -4,8 +4,7 @@ import { BookOpen, Search, RefreshCw } from "lucide-react";
 export interface LedgerItem {
   id: string;
   operation: string;
-  category:
-    "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT";
+  category: "inference" | "processing" | "apis" | "skills" | "other" | "REFUND_EVENT";
   costDecimal: string;
   timestamp: string;
   status: "settled" | "pending" | "refunded";
@@ -39,8 +38,7 @@ export function CreditLedger({ ledger, onRefund }: CreditLedgerProps) {
             Libro Mayor de Transacciones (Ledger)
           </h4>
           <p className="text-[11.5px] text-muted-foreground mt-0.5">
-            Registro preciso en tiempo real de transacciones por tokens o
-            procesamiento.
+            Registro preciso en tiempo real de transacciones por tokens o procesamiento.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -95,25 +93,17 @@ export function CreditLedger({ ledger, onRefund }: CreditLedgerProps) {
           <tbody className="divide-y divide-border/20">
             {filteredItems.length === 0 ? (
               <tr>
-                <td
-                  colSpan={6}
-                  className="py-8 text-center text-muted-foreground text-[11px]"
-                >
+                <td colSpan={6} className="py-8 text-center text-muted-foreground text-[11px]">
                   No se encontraron transacciones registradas.
                 </td>
               </tr>
             ) : (
               filteredItems.map((item) => (
-                <tr
-                  key={item.id}
-                  className="hover:bg-secondary/10 transition-colors"
-                >
+                <tr key={item.id} className="hover:bg-secondary/10 transition-colors">
                   <td className="py-3 px-3 text-muted-foreground">{item.id}</td>
                   <td className="py-3 px-3">
                     <div className="flex flex-col">
-                      <span className="text-pearl font-semibold">
-                        {item.operation}
-                      </span>
+                      <span className="text-pearl font-semibold">{item.operation}</span>
                       <span className="text-[10px] text-muted-foreground mt-0.5">
                         {item.timestamp}
                       </span>
@@ -139,9 +129,7 @@ export function CreditLedger({ ledger, onRefund }: CreditLedgerProps) {
                   </td>
                   <td
                     className={`py-3 px-3 text-right font-semibold ${
-                      item.status === "refunded"
-                        ? "text-amber-400 line-through"
-                        : "text-rose-400"
+                      item.status === "refunded" ? "text-amber-400 line-through" : "text-rose-400"
                     }`}
                   >
                     {item.status === "refunded" ? "+" : "-"}${item.costDecimal}
@@ -155,9 +143,7 @@ export function CreditLedger({ ledger, onRefund }: CreditLedgerProps) {
                         <RefreshCw className="size-3" /> Reembolsar
                       </button>
                     ) : (
-                      <span className="text-muted-foreground text-[10px]">
-                        -
-                      </span>
+                      <span className="text-muted-foreground text-[10px]">-</span>
                     )}
                   </td>
                 </tr>

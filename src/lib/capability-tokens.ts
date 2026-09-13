@@ -47,9 +47,7 @@ export function issueCapabilityToken(input: {
   ttlMs?: number;
 }): string {
   if (!input.actorId || !input.tenantId || !input.tool || !input.traceId) {
-    throw new Error(
-      "Capability incompleta: actor, tenant, tool y traceId son obligatorios.",
-    );
+    throw new Error("Capability incompleta: actor, tenant, tool y traceId son obligatorios.");
   }
   const now = Date.now();
   const claims: CapabilityClaims = {
@@ -102,10 +100,7 @@ export function verifyCapabilityToken(
   }
   const expectedMac = macFor(payload, secret);
   const presented = Buffer.from(mac, "base64url");
-  if (
-    presented.length !== expectedMac.length ||
-    !timingSafeEqual(presented, expectedMac)
-  ) {
+  if (presented.length !== expectedMac.length || !timingSafeEqual(presented, expectedMac)) {
     return { valid: false, reason: "Firma inválida." };
   }
   if (

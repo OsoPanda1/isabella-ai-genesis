@@ -32,8 +32,6 @@ describe("Federated protocol", () => {
     );
     const store = new MemoryReplayStore();
     await validateUpdate(update, node, store, "m1", "v1");
-    await expect(
-      validateUpdate(update, node, store, "m1", "v1"),
-    ).rejects.toThrow("Replay");
+    await expect(validateUpdate(update, node, store, "m1", "v1")).rejects.toThrow("Replay");
   });
 });

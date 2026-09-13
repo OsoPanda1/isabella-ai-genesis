@@ -2,18 +2,11 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
-import {
-  createRequestContext,
-  withRequestContext,
-} from "./lib/request-context";
+import { createRequestContext, withRequestContext } from "./lib/request-context";
 import { redact } from "./lib/secret-redactor";
 
 type ServerEntry = {
-  fetch: (
-    request: Request,
-    env: unknown,
-    ctx: unknown,
-  ) => Promise<Response> | Response;
+  fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
 let serverEntryPromise: Promise<ServerEntry> | undefined;
@@ -33,10 +26,7 @@ export async function handleRequest(
   ctx: unknown = {},
 ): Promise<Response> {
   const url = new URL(request.url);
-  const forwarded = request.headers
-    .get("x-forwarded-for")
-    ?.split(",")[0]
-    ?.trim();
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const requestContext = createRequestContext({
     clientIp: forwarded || request.headers.get("x-real-ip") || undefined,
     method: request.method,
@@ -47,15 +37,11 @@ export async function handleRequest(
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return withSecurityHeaders(
-        await normalizeCatastrophicSsrResponse(response),
-      );
+      return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       const captured = consumeLastCapturedError();
       const err = captured ?? error;
-      console.error(
-        redact(err instanceof Error ? (err.stack ?? err.message) : String(err)),
-      );
+      console.error(redact(err instanceof Error ? (err.stack ?? err.message) : String(err)));
       return withSecurityHeaders(
         new Response(renderErrorPage(), {
           status: 500,
@@ -71,19 +57,14 @@ export async function handleRequest(
 
 export default { fetch: handleRequest };
 
-async function normalizeCatastrophicSsrResponse(
-  response: Response,
-): Promise<Response> {
+async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) return response;
   const body = await response.clone().text();
   if (!isH3SwallowedErrorBody(body)) return response;
-  const err =
-    consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`);
-  console.error(
-    redact(err instanceof Error ? (err.stack ?? err.message) : String(err)),
-  );
+  const err = consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`);
+  console.error(redact(err instanceof Error ? (err.stack ?? err.message) : String(err)));
   return new Response(renderErrorPage(), {
     status: 500,
     headers: {
@@ -114,14 +95,8 @@ export function withSecurityHeaders(response: Response): Response {
   setIfMissing("X-Frame-Options", "DENY");
   setIfMissing("Referrer-Policy", "strict-origin-when-cross-origin");
   setIfMissing("X-XSS-Protection", "0");
-  setIfMissing(
-    "Strict-Transport-Security",
-    "max-age=63072000; includeSubDomains; preload",
-  );
-  setIfMissing(
-    "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=()",
-  );
+  setIfMissing("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  setIfMissing("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   setIfMissing("Cross-Origin-Opener-Policy", "same-origin");
   setIfMissing("Cross-Origin-Resource-Policy", "same-origin");
 
@@ -146,10 +121,7 @@ export function withSecurityHeaders(response: Response): Response {
   ].join("; ");
   setIfMissing("Content-Security-Policy", csp);
   const reportOnlyCsp = csp
-    .replace(
-      `script-src ${scriptSource}`,
-      "script-src 'self' 'nonce-{REQUEST_NONCE}'",
-    )
+    .replace(`script-src ${scriptSource}`, "script-src 'self' 'nonce-{REQUEST_NONCE}'")
     .replaceAll(" 'unsafe-inline'", "")
     .replaceAll("'unsafe-inline' ", "");
   setIfMissing("Content-Security-Policy-Report-Only", reportOnlyCsp);

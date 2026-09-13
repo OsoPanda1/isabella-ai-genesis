@@ -16,12 +16,8 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">
-          Página no encontrada
-        </h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          La ruta solicitada no existe.
-        </p>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">Página no encontrada</h2>
+        <p className="mt-2 text-sm text-muted-foreground">La ruta solicitada no existe.</p>
         <div className="mt-6">
           <Link
             to="/"
@@ -51,12 +47,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <p className="font-mono text-xs uppercase tracking-[0.24em] text-electric">
           C.R.O.W.N. Recovery
         </p>
-        <h1 className="mt-4 text-2xl font-semibold">
-          Isabella encontró un error de montaje
-        </h1>
+        <h1 className="mt-4 text-2xl font-semibold">Isabella encontró un error de montaje</h1>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          El servidor respondió, pero la ruta o uno de sus módulos no pudo
-          montarse. El detalle técnico permanece en los logs del runtime.
+          El servidor respondió, pero la ruta o uno de sus módulos no pudo montarse. El detalle
+          técnico permanece en los logs del runtime.
         </p>
         <div className="mt-6 flex justify-center gap-2">
           <button
@@ -76,9 +70,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             Health
           </a>
         </div>
-        <p className="mt-5 font-mono text-[10px] text-muted-foreground">
-          CROWN-RENDER-01
-        </p>
+        <p className="mt-5 font-mono text-[10px] text-muted-foreground">CROWN-RENDER-01</p>
       </section>
     </main>
   );
@@ -92,8 +84,7 @@ export const Route = createRootRouteWithContext()({
       { title: "Isabella Villaseñor AI" },
       {
         name: "description",
-        content:
-          "Isabella Villaseñor AI — sistema federado de inteligencia artificial gobernada.",
+        content: "Isabella Villaseñor AI — sistema federado de inteligencia artificial gobernada.",
       },
       { property: "og:title", content: "Isabella Villaseñor AI" },
       { property: "og:type", content: "website" },
@@ -134,10 +125,7 @@ class ClientErrorBoundary extends Component<
   static getDerivedStateFromError(error: unknown) {
     return {
       hasError: true,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Error de renderizado del cliente",
+      message: error instanceof Error ? error.message : "Error de renderizado del cliente",
     };
   }
 
@@ -156,12 +144,9 @@ class ClientErrorBoundary extends Component<
             <p className="font-mono text-xs uppercase tracking-[0.24em] text-electric">
               C.R.O.W.N. Recovery
             </p>
-            <h1 className="mt-4 text-2xl font-semibold">
-              La interfaz encontró un error
-            </h1>
+            <h1 className="mt-4 text-2xl font-semibold">La interfaz encontró un error</h1>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              El backend permanece protegido. Recarga la interfaz para
-              reintentar el montaje.
+              El backend permanece protegido. Recarga la interfaz para reintentar el montaje.
             </p>
             <button
               type="button"
@@ -170,9 +155,7 @@ class ClientErrorBoundary extends Component<
             >
               Reintentar interfaz
             </button>
-            <p className="mt-4 font-mono text-[10px] text-muted-foreground">
-              CROWN-RENDER-01
-            </p>
+            <p className="mt-4 font-mono text-[10px] text-muted-foreground">CROWN-RENDER-01</p>
           </section>
         </main>
       );

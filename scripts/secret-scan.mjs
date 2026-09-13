@@ -46,9 +46,7 @@ function checkEnvFiles() {
   const problems = [];
   for (const f of [".env", ".env.local", ".env.production"]) {
     if (existsSync(resolve(ROOT, f))) {
-      problems.push(
-        `Archivo ${f} detectado en el repositorio — no debe versionarse.`,
-      );
+      problems.push(`Archivo ${f} detectado en el repositorio — no debe versionarse.`);
     }
   }
   return problems;
@@ -61,17 +59,13 @@ function checkSecrets() {
     if (file.includes("env-schema") || file.includes("config.ts")) continue;
     const content = readFileSync(file, "utf8");
     if (content.includes(KNOWN_FALLBACK)) {
-      problems.push(
-        `${file}: secreto fallback hardcodeado detectado (${KNOWN_FALLBACK}).`,
-      );
+      problems.push(`${file}: secreto fallback hardcodeado detectado (${KNOWN_FALLBACK}).`);
     }
     const lines = content.split("\n");
     lines.forEach((line, idx) => {
       SECRET_LITERAL_RE.lastIndex = 0;
       if (SECRET_LITERAL_RE.test(line)) {
-        problems.push(
-          `${file}:${idx + 1}: posible literal de secreto hardcodeado.`,
-        );
+        problems.push(`${file}:${idx + 1}: posible literal de secreto hardcodeado.`);
       }
     });
   }

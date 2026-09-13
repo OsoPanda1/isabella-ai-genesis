@@ -47,9 +47,7 @@ export interface FirewallDecision {
   contentHash: string;
 }
 
-export function inspectInferenceInput(
-  messages: IntelligenceMessage[],
-): FirewallDecision {
+export function inspectInferenceInput(messages: IntelligenceMessage[]): FirewallDecision {
   const reasons: string[] = [];
   let total = 0;
   const sanitized = messages.map((message) => {
@@ -63,9 +61,7 @@ export function inspectInferenceInput(
   });
 
   if (total > MAX_TOTAL_CHARS) reasons.push("request-too-large");
-  const contentHash = createHash("sha256")
-    .update(JSON.stringify(sanitized))
-    .digest("hex");
+  const contentHash = createHash("sha256").update(JSON.stringify(sanitized)).digest("hex");
 
   return {
     allowed: reasons.length === 0,

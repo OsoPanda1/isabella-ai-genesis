@@ -17,9 +17,7 @@ import { config } from "./config";
 export function createSupabaseClient(accessToken?: string): SupabaseClient {
   const cfg = config();
   if (!cfg.SUPABASE_URL) {
-    throw new Error(
-      "SUPABASE_URL es requerido para operaciones tenant-scoped.",
-    );
+    throw new Error("SUPABASE_URL es requerido para operaciones tenant-scoped.");
   }
   const anonKey = cfg.SUPABASE_ANON_KEY ?? "";
   if (!accessToken && !anonKey) {

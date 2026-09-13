@@ -25,16 +25,10 @@ import {
   Legend,
 } from "recharts";
 
-import {
-  ObservabilityService,
-  ObservabilitySnapshot,
-} from "@/lib/telemetry/observability";
+import { ObservabilityService, ObservabilitySnapshot } from "@/lib/telemetry/observability";
 import { HealthMonitorService, HealthEvent } from "@/lib/telemetry/health";
 import { EntropyService, EntropyReport } from "@/lib/security/entropy";
-import {
-  CentralizedTelemetryService,
-  IsabellaCoreId,
-} from "@/lib/latam-aegis-x";
+import { CentralizedTelemetryService, IsabellaCoreId } from "@/lib/latam-aegis-x";
 import { exportSecurityCompliancePdf } from "@/lib/audit-export";
 
 interface ChartPoint {
@@ -56,14 +50,11 @@ export function ObservabilityPanel() {
       setSnapshot(newSnapshot);
 
       // Append data point to Recharts history
-      const timeString = new Date(newSnapshot.timestamp).toLocaleTimeString(
-        [],
-        {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        },
-      );
+      const timeString = new Date(newSnapshot.timestamp).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
 
       setHistory((prev) => {
         const next = [
@@ -121,8 +112,7 @@ export function ObservabilityPanel() {
 
   // Memoize core counts and metrics
   const coreStats = useMemo(() => {
-    if (!snapshot)
-      return { total: 0, active: 0, warning: 0, error: 0, restarting: 0 };
+    if (!snapshot) return { total: 0, active: 0, warning: 0, error: 0, restarting: 0 };
     const values = Object.values(snapshot.cores);
     return {
       total: values.length,
@@ -152,11 +142,7 @@ export function ObservabilityPanel() {
   }
 
   const systemState =
-    coreStats.error > 0
-      ? "requires_attention"
-      : coreStats.warning > 0
-        ? "degraded"
-        : "operational";
+    coreStats.error > 0 ? "requires_attention" : coreStats.warning > 0 ? "degraded" : "operational";
   const systemStateLabel =
     systemState === "operational"
       ? "Operativo"
@@ -180,14 +166,12 @@ export function ObservabilityPanel() {
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
               Estado CROWN / AEGIS
             </p>
-            <p className="font-mono text-sm font-semibold text-foreground">
-              {systemStateLabel}
-            </p>
+            <p className="font-mono text-sm font-semibold text-foreground">{systemStateLabel}</p>
           </div>
         </div>
         <p className="font-mono text-[10px] text-muted-foreground">
-          {coreStats.active} activos · {coreStats.warning} advertencias ·{" "}
-          {coreStats.error} errores · {coreStats.restarting} reiniciando
+          {coreStats.active} activos · {coreStats.warning} advertencias · {coreStats.error} errores
+          · {coreStats.restarting} reiniciando
         </p>
       </div>
 
@@ -200,9 +184,7 @@ export function ObservabilityPanel() {
             </span>
             <span className="block text-2xl font-bold text-platinum font-mono">
               {snapshot.throughput.toFixed(2)}{" "}
-              <span className="text-[11px] font-normal text-muted-foreground">
-                req/s
-              </span>
+              <span className="text-[11px] font-normal text-muted-foreground">req/s</span>
             </span>
           </div>
           <div className="size-10 rounded-xl bg-electric/10 border border-electric/20 flex items-center justify-center">
@@ -270,18 +252,9 @@ export function ObservabilityPanel() {
         </div>
         <div className="h-[250px] w-full font-mono text-[10px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={history}
-              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-            >
+            <AreaChart data={history} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
-                <linearGradient
-                  id="colorThroughput"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
+                <linearGradient id="colorThroughput" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
                   <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                 </linearGradient>
@@ -290,10 +263,7 @@ export function ObservabilityPanel() {
                   <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.05)"
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
               <XAxis dataKey="time" stroke="#94a3b8" />
               <YAxis stroke="#94a3b8" />
               <Tooltip
@@ -343,21 +313,19 @@ export function ObservabilityPanel() {
             </div>
             {/* Status filters */}
             <div className="flex flex-wrap gap-1">
-              {["ALL", "ACTIVE", "WARNING", "ERROR", "RESTARTING"].map(
-                (status) => (
-                  <button
-                    key={status}
-                    onClick={() => setActiveCoreFilter(status)}
-                    className={`px-2 py-1 rounded font-mono text-[9px] font-bold transition-all uppercase cursor-pointer ${
-                      activeCoreFilter === status
-                        ? "bg-electric text-platinum border border-electric"
-                        : "bg-secondary/20 hover:bg-secondary/40 text-muted-foreground border border-border/10"
-                    }`}
-                  >
-                    {status}
-                  </button>
-                ),
-              )}
+              {["ALL", "ACTIVE", "WARNING", "ERROR", "RESTARTING"].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setActiveCoreFilter(status)}
+                  className={`px-2 py-1 rounded font-mono text-[9px] font-bold transition-all uppercase cursor-pointer ${
+                    activeCoreFilter === status
+                      ? "bg-electric text-platinum border border-electric"
+                      : "bg-secondary/20 hover:bg-secondary/40 text-muted-foreground border border-border/10"
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -403,20 +371,19 @@ export function ObservabilityPanel() {
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[8.5px] font-mono text-muted-foreground border-t border-white/5 pt-2">
               <span className="flex items-center gap-1">
-                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />{" "}
-                Activo (Sano)
+                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" /> Activo
+                (Sano)
               </span>
               <span className="flex items-center gap-1">
-                <span className="size-1.5 rounded-full bg-amber-400" />{" "}
-                Advertencia (Estrés Térmico)
+                <span className="size-1.5 rounded-full bg-amber-400" /> Advertencia (Estrés Térmico)
               </span>
               <span className="flex items-center gap-1">
-                <span className="size-1.5 rounded-full bg-rose-500 animate-pulse" />{" "}
-                Crítico (Desbordamiento)
+                <span className="size-1.5 rounded-full bg-rose-500 animate-pulse" /> Crítico
+                (Desbordamiento)
               </span>
               <span className="flex items-center gap-1">
-                <span className="size-1.5 rounded-full bg-blue-400 animate-ping" />{" "}
-                Reiniciando (Auto-Heal)
+                <span className="size-1.5 rounded-full bg-blue-400 animate-ping" /> Reiniciando
+                (Auto-Heal)
               </span>
             </div>
           </div>
@@ -455,15 +422,12 @@ export function ObservabilityPanel() {
                     <div className="space-y-1 text-muted-foreground">
                       <div className="flex justify-between">
                         <span>Load:</span>
-                        <span className="text-platinum">
-                          {core.loadPercentage.toFixed(0)}%
-                        </span>
+                        <span className="text-platinum">{core.loadPercentage.toFixed(0)}%</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Memory:</span>
                         <span className="text-platinum">
-                          {(core.memoryUsageBytes / (1024 * 1024)).toFixed(1)}{" "}
-                          MB
+                          {(core.memoryUsageBytes / (1024 * 1024)).toFixed(1)} MB
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -497,9 +461,7 @@ export function ObservabilityPanel() {
                     </button>
 
                     <button
-                      onClick={() =>
-                        injectSimulationAnomaly(core.id, "stack_overflow")
-                      }
+                      onClick={() => injectSimulationAnomaly(core.id, "stack_overflow")}
                       className="px-1.5 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[9px] font-bold uppercase transition-all cursor-pointer"
                       title="Inject Stack Overflow"
                     >
@@ -507,9 +469,7 @@ export function ObservabilityPanel() {
                     </button>
 
                     <button
-                      onClick={() =>
-                        injectSimulationAnomaly(core.id, "memory_leak")
-                      }
+                      onClick={() => injectSimulationAnomaly(core.id, "memory_leak")}
                       className="px-1.5 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-[9px] font-bold uppercase transition-all cursor-pointer"
                       title="Inject Memory Leak"
                     >
@@ -538,8 +498,8 @@ export function ObservabilityPanel() {
             <div className="space-y-2 max-h-[175px] overflow-y-auto pr-1 font-mono text-[9.5px]">
               {healthLogs.length === 0 ? (
                 <div className="text-center p-6 border border-dashed border-border/15 rounded-xl text-muted-foreground italic">
-                  Todo sano. Haz click en los iconos de llama o rayo en un
-                  núcleo para forzar un desbordamiento.
+                  Todo sano. Haz click en los iconos de llama o rayo en un núcleo para forzar un
+                  desbordamiento.
                 </div>
               ) : (
                 healthLogs.map((log, idx) => {
@@ -556,21 +516,12 @@ export function ObservabilityPanel() {
                       className="p-2 rounded bg-black/40 border border-border/5 space-y-1"
                     >
                       <div className="flex justify-between items-center text-muted-foreground">
-                        <span className={`font-bold ${sevColor}`}>
-                          [{log.type.toUpperCase()}]
-                        </span>
-                        <span>
-                          {new Date(log.timestamp).toLocaleTimeString()}
-                        </span>
+                        <span className={`font-bold ${sevColor}`}>[{log.type.toUpperCase()}]</span>
+                        <span>{new Date(log.timestamp).toLocaleTimeString()}</span>
                       </div>
-                      <p className="text-platinum leading-snug">
-                        {log.message}
-                      </p>
+                      <p className="text-platinum leading-snug">{log.message}</p>
                       <div className="text-[8.5px] text-emerald-400">
-                        Target Core:{" "}
-                        <span className="font-bold underline">
-                          {log.coreId}
-                        </span>
+                        Target Core: <span className="font-bold underline">{log.coreId}</span>
                       </div>
                     </div>
                   );
@@ -604,13 +555,11 @@ export function ObservabilityPanel() {
                   <span className="text-emerald-400 font-bold uppercase tracking-wider">
                     Estado de Fuente de Entropía:
                   </span>
-                  <span className="text-emerald-300 font-bold">
-                    100% NON-DET
-                  </span>
+                  <span className="text-emerald-300 font-bold">100% NON-DET</span>
                 </div>
                 <p className="text-platinum/70 leading-relaxed">
-                  Validador de Benchmark: Fuente física de deriva térmica
-                  multihilo + HRTime de precisión nanométrica verificada.
+                  Validador de Benchmark: Fuente física de deriva térmica multihilo + HRTime de
+                  precisión nanométrica verificada.
                 </p>
                 <div className="flex items-center gap-1 text-[8px] text-emerald-500 font-bold bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10 self-start w-fit">
                   ✓ BENCHMARK PASSED (NIST-SP-800-22)
@@ -619,18 +568,14 @@ export function ObservabilityPanel() {
 
               <div className="space-y-2 font-mono text-[10px]">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    Source Architecture:
-                  </span>
+                  <span className="text-muted-foreground">Source Architecture:</span>
                   <span className="text-platinum font-semibold">
                     {entropy.sourceType.toUpperCase()}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Entropy Bits:</span>
-                  <span className="text-emerald-400 font-bold">
-                    {entropy.entropyBits} bits
-                  </span>
+                  <span className="text-emerald-400 font-bold">{entropy.entropyBits} bits</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block mb-1">
@@ -641,9 +586,7 @@ export function ObservabilityPanel() {
                   </div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block mb-1">
-                    Drift Entropy Drivers:
-                  </span>
+                  <span className="text-muted-foreground block mb-1">Drift Entropy Drivers:</span>
                   <div className="flex flex-wrap gap-1">
                     {entropy.contributingFactors.map((f) => (
                       <span

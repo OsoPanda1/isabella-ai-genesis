@@ -118,14 +118,12 @@ function riskAssessment(text: string): {
   if (EMAIL_PATTERN.test(text))
     return {
       detected: true,
-      reason:
-        "dato personal (correo) detectado: respuesta negada; no se persiste",
+      reason: "dato personal (correo) detectado: respuesta negada; no se persiste",
     };
   if (hasCardLikeNumber(text))
     return {
       detected: true,
-      reason:
-        "dato financiero (tarjeta) detectado: respuesta negada; no se persiste",
+      reason: "dato financiero (tarjeta) detectado: respuesta negada; no se persiste",
     };
   if (DIRECTIVE_PATTERN.test(lower))
     return {
@@ -285,10 +283,7 @@ export function runNativePipeline(
   const grounding = narrative.groundedFacts;
   const coherence =
     grounding > 0
-      ? Math.min(
-          1,
-          (0.6 * grounding) / 3 + 0.4 * (memoryHitsForCoherence ? 1 : 0.2),
-        )
+      ? Math.min(1, (0.6 * grounding) / 3 + 0.4 * (memoryHitsForCoherence ? 1 : 0.2))
       : 0.2;
   pushStep("coherencia", {
     score: coherence,
@@ -305,14 +300,8 @@ export function runNativePipeline(
     response = null;
   } else if (risk.detected) {
     response =
-      "La solicitud rechazada no fue procesada: " +
-      (risk.reason ?? "riesgo detectado") +
-      ".";
-  } else if (
-    attention.consensusApproved &&
-    consensus.approved &&
-    coherence >= 0.4
-  ) {
+      "La solicitud rechazada no fue procesada: " + (risk.reason ?? "riesgo detectado") + ".";
+  } else if (attention.consensusApproved && consensus.approved && coherence >= 0.4) {
     if (narrative.groundedFacts > 0) {
       response = narrative.text;
     } else if (topHit) {

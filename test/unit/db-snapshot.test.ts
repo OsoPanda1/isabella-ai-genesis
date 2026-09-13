@@ -59,9 +59,7 @@ describe("snapshot lib pura", () => {
 
     const missing = sampleSnapshot();
     delete missing.tables.profiles;
-    expect(
-      verifySnapshot(missing).some((error) => error.includes("profiles")),
-    ).toBe(true);
+    expect(verifySnapshot(missing).some((error) => error.includes("profiles"))).toBe(true);
   });
 });
 
@@ -98,9 +96,7 @@ describe("restore aditivo con pool falso", () => {
       status: "settled",
     });
     snapshot.manifest = buildManifest(snapshot.tables);
-    const inserted = await runRestore("postgres://fake", snapshot, () =>
-      fakePoolFactory(log)(),
-    );
+    const inserted = await runRestore("postgres://fake", snapshot, () => fakePoolFactory(log)());
     expect(inserted.tenants).toBe(1);
     expect(inserted.sovereign_state).toBe(1);
     expect(log.length).toBeGreaterThan(0);
@@ -111,12 +107,8 @@ describe("restore aditivo con pool falso", () => {
       const match = statement.match(/INSERT INTO public\."([^"]+)"/);
       return match ? match[1] : "";
     });
-    expect(tablesInOrder.indexOf("tenants")).toBeLessThan(
-      tablesInOrder.indexOf("profiles"),
-    );
-    expect(tablesInOrder.indexOf("profiles")).toBeLessThan(
-      tablesInOrder.indexOf("bookpi_ledger"),
-    );
+    expect(tablesInOrder.indexOf("tenants")).toBeLessThan(tablesInOrder.indexOf("profiles"));
+    expect(tablesInOrder.indexOf("profiles")).toBeLessThan(tablesInOrder.indexOf("bookpi_ledger"));
   });
 
   it("snapshot manipulado aborta antes de tocar la DB", async () => {

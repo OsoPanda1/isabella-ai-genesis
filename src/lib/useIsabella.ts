@@ -53,8 +53,7 @@ function loadSession(): TerminalMessage[] | null {
     const raw = window.sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { messages?: TerminalMessage[] };
-    if (!Array.isArray(parsed.messages) || parsed.messages.length === 0)
-      return null;
+    if (!Array.isArray(parsed.messages) || parsed.messages.length === 0) return null;
     return parsed.messages.map((m) => ({ ...m, streaming: false }));
   } catch {
     return null;
@@ -62,12 +61,9 @@ function loadSession(): TerminalMessage[] | null {
 }
 function buildContent(text: string, attachments?: Attachment[]) {
   if (!attachments?.length) return text;
-  const blocks: unknown[] = [
-    { type: "text", text: text || "Analiza el material adjunto." },
-  ];
+  const blocks: unknown[] = [{ type: "text", text: text || "Analiza el material adjunto." }];
   for (const a of attachments) {
-    if (a.kind === "image")
-      blocks.push({ type: "image_url", image_url: { url: a.dataUrl } });
+    if (a.kind === "image") blocks.push({ type: "image_url", image_url: { url: a.dataUrl } });
     else
       blocks.push({
         type: "input_audio",
@@ -91,17 +87,13 @@ export function useIsabella() {
   const [runId] = useState(() => `run-${uid()}`);
   const abortRef = useRef<AbortController | null>(null);
   const { logLifecycleEvent, validatePayload } = useIsabellaObservability();
-  const preset: Preset =
-    PRESETS.find((p) => p.id === presetId) ?? (PRESETS[0] as Preset);
+  const preset: Preset = PRESETS.find((p) => p.id === presetId) ?? (PRESETS[0] as Preset);
   useEffect(() => {
     const restored = loadSession();
     if (restored) setMessages(restored);
     try {
-      const savedPreset = window.localStorage.getItem(
-        PRESET_KEY,
-      ) as PresetId | null;
-      if (savedPreset && PRESETS.some((p) => p.id === savedPreset))
-        setPresetId(savedPreset);
+      const savedPreset = window.localStorage.getItem(PRESET_KEY) as PresetId | null;
+      if (savedPreset && PRESETS.some((p) => p.id === savedPreset)) setPresetId(savedPreset);
       const rawTel = window.localStorage.getItem(TELEMETRY_KEY);
       if (rawTel) setTelemetry(JSON.parse(rawTel) as TelemetryRecord[]);
     } catch {
@@ -121,10 +113,7 @@ export function useIsabella() {
         }),
       );
       window.localStorage.setItem(PRESET_KEY, presetId);
-      window.localStorage.setItem(
-        TELEMETRY_KEY,
-        JSON.stringify(telemetry.slice(-200)),
-      );
+      window.localStorage.setItem(TELEMETRY_KEY, JSON.stringify(telemetry.slice(-200)));
     } catch {
       /* session remains in memory */
     }
@@ -144,21 +133,15 @@ export function useIsabella() {
         return;
       }
       logLifecycleEvent("SANITIZATION", { validatedPayload });
-      const skillResolution = resolveSkillInvocation(
-        validatedPayload.text || "",
-      );
+      const skillResolution = resolveSkillInvocation(validatedPayload.text || "");
       const skillWarning =
-        skillResolution && "error" in skillResolution
-          ? skillResolution.error
-          : null;
+        skillResolution && "error" in skillResolution ? skillResolution.error : null;
       const skillContext =
         skillResolution && "skill" in skillResolution
           ? `\n\n[SKILL AUTORIZADO: ${skillResolution.skill.id}]\n${skillResolution.skill.description}`
           : "";
       const effectiveText =
-        skillResolution && "skill" in skillResolution
-          ? skillResolution.prompt
-          : text;
+        skillResolution && "skill" in skillResolution ? skillResolution.prompt : text;
       const routing = route(effectiveText || "material adjunto", preset);
       setDecision(routing);
       setTelemetry((prev) => [...prev, toTelemetryRecord(routing, preset.id)]);
@@ -181,8 +164,7 @@ export function useIsabella() {
               userId?: string;
             };
             if (devData.token) {
-              const { setStoredSovereignUserId } =
-                await import("@/lib/auth-client");
+              const { setStoredSovereignUserId } = await import("@/lib/auth-client");
               setSessionToken(devData.token);
               if (devData.userId) setStoredSovereignUserId(devData.userId);
               token = devData.token;
@@ -264,17 +246,11 @@ export function useIsabella() {
                 message?: string;
               },
           );
-          const rawMessage =
-            detail.message ?? detail.error ?? "Fallo de percepción.";
-          throw new Error(
-            typeof rawMessage === "string"
-              ? rawMessage
-              : JSON.stringify(rawMessage),
-          );
+          const rawMessage = detail.message ?? detail.error ?? "Fallo de percepción.";
+          throw new Error(typeof rawMessage === "string" ? rawMessage : JSON.stringify(rawMessage));
         }
         const degradedHeader = res.headers.get("x-isabella-degraded-mode");
-        const degradedMode =
-          degradedHeader && degradedHeader.length > 0 ? degradedHeader : null;
+        const degradedMode = degradedHeader && degradedHeader.length > 0 ? degradedHeader : null;
         const providerHeader = res.headers.get("x-isabella-provider");
         const modelHeader = res.headers.get("x-isabella-model");
         const traceHeader = res.headers.get("x-isabella-trace-id");
@@ -295,14 +271,9 @@ export function useIsabella() {
             if (payload === "[DONE]") continue;
             try {
               const event = JSON.parse(payload);
-              const delta: string | undefined =
-                event.choices?.[0]?.delta?.content;
-              const provider =
-                typeof event.provider === "string"
-                  ? event.provider
-                  : providerHeader;
-              const model =
-                typeof event.model === "string" ? event.model : modelHeader;
+              const delta: string | undefined = event.choices?.[0]?.delta?.content;
+              const provider = typeof event.provider === "string" ? event.provider : providerHeader;
+              const model = typeof event.model === "string" ? event.model : modelHeader;
               if (provider || model || event.degraded === true)
                 setMessages((prev) =>
                   prev.map((m) =>
@@ -310,8 +281,7 @@ export function useIsabella() {
                       ? {
                           ...m,
                           provider: provider ?? m.provider,
-                          degraded:
-                            event.degraded === true || degradedMode !== null,
+                          degraded: event.degraded === true || degradedMode !== null,
                         }
                       : m,
                   ),
@@ -320,9 +290,7 @@ export function useIsabella() {
                 acc += delta;
                 setTokens((t) => t + 1);
                 setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === replyId ? { ...m, content: acc } : m,
-                  ),
+                  prev.map((m) => (m.id === replyId ? { ...m, content: acc } : m)),
                 );
               }
             } catch {
@@ -333,11 +301,7 @@ export function useIsabella() {
         buffer += decoder.decode();
         for (const line of buffer.split(/\r?\n/)) {
           const trimmed = line.trim();
-          if (
-            !trimmed.startsWith("data:") ||
-            trimmed.slice(5).trim() === "[DONE]"
-          )
-            continue;
+          if (!trimmed.startsWith("data:") || trimmed.slice(5).trim() === "[DONE]") continue;
           try {
             const json = JSON.parse(trimmed.slice(5).trim());
             const delta: string | undefined = json.choices?.[0]?.delta?.content;
@@ -355,8 +319,7 @@ export function useIsabella() {
                   degraded: m.degraded ?? degradedMode !== null,
                   provider: m.provider ?? providerHeader ?? "gemini",
                   content:
-                    acc ||
-                    "Silencio cognitivo: el núcleo no emitió síntesis para esta percepción.",
+                    acc || "Silencio cognitivo: el núcleo no emitió síntesis para esta percepción.",
                 }
               : m,
           ),
@@ -372,10 +335,10 @@ export function useIsabella() {
           setMessages((prev) => prev.filter((m) => m.id !== replyId));
           return;
         }
-        const message =
-          err instanceof Error ? err.message : "Interrupción del núcleo.";
-        const isGatewayFailure =
-          /502|sandbox is not listening|requested port|gateway/i.test(message);
+        const message = err instanceof Error ? err.message : "Interrupción del núcleo.";
+        const isGatewayFailure = /502|sandbox is not listening|requested port|gateway/i.test(
+          message,
+        );
         const userMessage = isGatewayFailure
           ? "CANAL DE INFERENCIA NO DISPONIBLE :: El servidor de síntesis no está escuchando en este momento. Reintenta la percepción; ARGUS no bloqueó esta conversación."
           : `ERROR DE PERCEPCIÓN :: ${message}`;
@@ -385,9 +348,7 @@ export function useIsabella() {
         });
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === replyId
-              ? { ...m, streaming: false, error: true, content: userMessage }
-              : m,
+            m.id === replyId ? { ...m, streaming: false, error: true, content: userMessage } : m,
           ),
         );
       } finally {
@@ -455,10 +416,7 @@ export function useIsabella() {
     ]);
     setDecision(null);
   }, []);
-  const exportCsv = useCallback(
-    () => exportTelemetryCsv(telemetry, runId),
-    [telemetry, runId],
-  );
+  const exportCsv = useCallback(() => exportTelemetryCsv(telemetry, runId), [telemetry, runId]);
   const exportPdf = useCallback(
     () => void exportTelemetryPdf(telemetry, runId, preset.name),
     [telemetry, runId, preset.name],

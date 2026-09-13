@@ -1,10 +1,5 @@
 import { Pool, PoolClient } from "pg";
-import type {
-  IRepository,
-  AuditEntry,
-  RepositoryError,
-  WriteOptions,
-} from "../repository";
+import type { IRepository, AuditEntry, RepositoryError, WriteOptions } from "../repository";
 import { config } from "../../config";
 
 const TABLE_MAP: Record<string, string> = {
@@ -13,11 +8,7 @@ const TABLE_MAP: Record<string, string> = {
   apiKey: "api_keys",
   audit: "audit_events",
 };
-function toRepositoryError(
-  message: string,
-  statusCode = 500,
-  tenantId?: string,
-): RepositoryError {
+function toRepositoryError(message: string, statusCode = 500, tenantId?: string): RepositoryError {
   const err = new Error(message) as RepositoryError;
   err.code = "REPOSITORY_ERROR";
   err.statusCode = statusCode;
@@ -31,9 +22,7 @@ function getPgPool(): Pool {
     const url = config().DATABASE_URL;
     if (!url) throw toRepositoryError("DATABASE_URL not configured", 500);
     pgPool = new Pool({ connectionString: url, max: 10 });
-    pgPool.on("error", (err) =>
-      console.error("Unexpected error on idle Neon pool", err),
-    );
+    pgPool.on("error", (err) => console.error("Unexpected error on idle Neon pool", err));
   }
   return pgPool;
 }
@@ -64,11 +53,7 @@ export class NeonRepository<T extends object> implements IRepository<T> {
     this.type = type;
     this.table = TABLE_MAP[type] ?? type;
   }
-  async create(
-    tenantId: string,
-    data: Partial<T>,
-    options?: WriteOptions,
-  ): Promise<T> {
+  async create(tenantId: string, data: Partial<T>, options?: WriteOptions): Promise<T> {
     if (!tenantId) throw toRepositoryError("tenantId required for create", 400);
     const pool = getPgPool();
     const payload = { ...data, tenant_id: tenantId } as Record<string, unknown>;
@@ -81,8 +66,7 @@ export class NeonRepository<T extends object> implements IRepository<T> {
       `INSERT INTO ${this.table} (${cols}) VALUES (${placeholders}) RETURNING *`,
       vals,
     );
-    if (!rows[0])
-      throw toRepositoryError("Neon insert returned no row", 500, tenantId);
+    if (!rows[0]) throw toRepositoryError("Neon insert returned no row", 500, tenantId);
     return toCamel<T>(rows[0]);
   }
   async read(tenantId: string, id: string): Promise<T | null> {
@@ -138,8 +122,7 @@ export class NeonRepository<T extends object> implements IRepository<T> {
       `UPDATE ${this.table} SET ${sets} WHERE id = $1 AND tenant_id = $2 RETURNING *`,
       vals,
     );
-    if (!rows[0])
-      throw toRepositoryError(`Record ${id} not found`, 404, tenantId);
+    if (!rows[0]) throw toRepositoryError(`Record ${id} not found`, 404, tenantId);
     return toCamel<T>(rows[0]);
   }
   async delete(tenantId: string, id: string): Promise<boolean> {
@@ -158,23 +141,17 @@ export class NeonRepository<T extends object> implements IRepository<T> {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      await client.query(
-        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
-        [entry.tenantId],
-      );
+      await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [entry.tenantId]);
       const { rows: lastRows } = await client.query(
         `SELECT verification_hash FROM audit_events WHERE tenant_id = $1 ORDER BY timestamp DESC, id DESC LIMIT 1 FOR UPDATE`,
         [entry.tenantId],
       );
-      const previousLogHash =
-        (lastRows[0]?.verification_hash as string) ?? "0".repeat(64);
+      const previousLogHash = (lastRows[0]?.verification_hash as string) ?? "0".repeat(64);
       const timestamp = entry.timestamp ?? new Date().toISOString();
       const id = entry.id ?? `audit_${randomUUID().slice(0, 8)}`;
       const details = JSON.stringify(entry.details ?? {});
       const payload = `${id}|${timestamp}|${entry.traceId}|${entry.action}|${entry.resource}|${entry.actor}|${entry.result}|${details}|${entry.severity}|${entry.tenantId}|${previousLogHash}`;
-      const verificationHash = createHash("sha256")
-        .update(payload)
-        .digest("hex");
+      const verificationHash = createHash("sha256").update(payload).digest("hex");
       await client.query(
         `INSERT INTO audit_events (id, tenant_id, trace_id, correlation_id, actor_ip, event, severity, details, remediated, verification_hash, previous_log_hash)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,

@@ -87,11 +87,7 @@ const DB_PATTERNS = {
     /SUPABASE_ANON_KEY/g,
     /SUPABASE_SERVICE_ROLE_KEY/g,
   ],
-  neon: [
-    /from\s+['"]@neondatabase\/serverless['"]/g,
-    /neon\(/g,
-    /NEON_DATABASE_URL/g,
-  ],
+  neon: [/from\s+['"]@neondatabase\/serverless['"]/g, /neon\(/g, /NEON_DATABASE_URL/g],
   firebase_firestore: [
     /from\s+['"]firebase\/firestore['"]/g,
     /from\s+['"]firebase\/admin['"]/g,
@@ -161,16 +157,11 @@ export class DatabaseScanner {
       criticalFindings,
       statistics: {
         totalEngines: engines.filter((e) => e.detected).length,
-        primaryAuthorities: authorityGraph.nodes.filter(
-          (n) => n.criticality === "CRITICAL",
-        ).length,
+        primaryAuthorities: authorityGraph.nodes.filter((n) => n.criticality === "CRITICAL").length,
         cacheLayers: engines.filter(
-          (e) =>
-            e.detected && e.isAuthorityFor.some((s) => s.includes("cache")),
+          (e) => e.detected && e.isAuthorityFor.some((s) => s.includes("cache")),
         ).length,
-        ambiguousStates: criticalFindings.filter(
-          (f) => f.type === "AUTHORITY_AMBIGUITY",
-        ).length,
+        ambiguousStates: criticalFindings.filter((f) => f.type === "AUTHORITY_AMBIGUITY").length,
       },
     };
   }
@@ -205,14 +196,10 @@ export class DatabaseScanner {
             );
             if (urlMatch) connectionInfo = urlMatch[1];
           } else if (engineType === "supabase") {
-            const urlMatch = content.match(
-              /SUPABASE_URL\s*[:=]\s*['"]([^'"]+)['"]/,
-            );
+            const urlMatch = content.match(/SUPABASE_URL\s*[:=]\s*['"]([^'"]+)['"]/);
             if (urlMatch) connectionInfo = urlMatch[1];
           } else if (engineType === "redis") {
-            const urlMatch = content.match(
-              /(?:REDIS_URL|KV_URL)\s*[:=]\s*['"]([^'"]+)['"]/,
-            );
+            const urlMatch = content.match(/(?:REDIS_URL|KV_URL)\s*[:=]\s*['"]([^'"]+)['"]/);
             if (urlMatch) connectionInfo = urlMatch[1];
           }
 
@@ -243,20 +230,8 @@ export class DatabaseScanner {
 
   private inferAuthority(engineType: string, tables: string[]): string[] {
     const authorityMap: Record<string, string[]> = {
-      postgresql: [
-        "EconomicState",
-        "UserState",
-        "AuditState",
-        "SessionState",
-        "LedgerState",
-      ],
-      neon: [
-        "EconomicState",
-        "UserState",
-        "AuditState",
-        "SessionState",
-        "LedgerState",
-      ],
+      postgresql: ["EconomicState", "UserState", "AuditState", "SessionState", "LedgerState"],
+      neon: ["EconomicState", "UserState", "AuditState", "SessionState", "LedgerState"],
       supabase: ["IdentityState", "AuthState", "RLSPolicies"],
       firebase_firestore: ["DocumentState", "RealTimeState"],
       redis: ["CacheState", "SessionCache", "RateLimitState"],
@@ -304,10 +279,8 @@ export class DatabaseScanner {
           edges.push({
             source: state,
             target: auth,
-            relationship:
-              auth === "postgresql" || auth === "neon" ? "PRIMARY" : "REPLICA",
-            consistencyModel:
-              auth === "postgresql" || auth === "neon" ? "STRONG" : "EVENTUAL",
+            relationship: auth === "postgresql" || auth === "neon" ? "PRIMARY" : "REPLICA",
+            consistencyModel: auth === "postgresql" || auth === "neon" ? "STRONG" : "EVENTUAL",
           });
         }
       }
@@ -330,9 +303,7 @@ export class DatabaseScanner {
     return { nodes, edges };
   }
 
-  private getStateCriticality(
-    state: string,
-  ): "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" {
+  private getStateCriticality(state: string): "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" {
     const criticalStates = [
       "EconomicState",
       "UserState",
@@ -373,9 +344,7 @@ export class DatabaseScanner {
 
     for (const [state, authorities] of stateToAuthorities) {
       if (authorities.length > 1) {
-        const primaryAuthorities = authorities.filter(
-          (a) => a === "postgresql" || a === "neon",
-        );
+        const primaryAuthorities = authorities.filter((a) => a === "postgresql" || a === "neon");
         if (primaryAuthorities.length > 1) {
           findings.push({
             type: "MULTIPLE_PRIMARY_AUTHORITIES",
@@ -446,17 +415,13 @@ export class DatabaseScanner {
           const fullPath = path.join(currentDir, entry.name);
           const relativePath = path.relative(this.config.rootDir, fullPath);
 
-          const excluded = excludePatterns.some((p) =>
-            this.matchPattern(relativePath, p),
-          );
+          const excluded = excludePatterns.some((p) => this.matchPattern(relativePath, p));
           if (excluded) continue;
 
           if (entry.isDirectory()) {
             walk(fullPath);
           } else if (entry.isFile()) {
-            const included = includePatterns.some((p) =>
-              this.matchPattern(relativePath, p),
-            );
+            const included = includePatterns.some((p) => this.matchPattern(relativePath, p));
             if (included) files.push(fullPath);
           }
         }
@@ -468,17 +433,12 @@ export class DatabaseScanner {
   }
 
   private matchPattern(filePath: string, pattern: string): boolean {
-    const regexPattern = pattern
-      .replace(/\*\*/g, ".*")
-      .replace(/\*/g, "[^/]*")
-      .replace(/\?/g, ".");
+    const regexPattern = pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*").replace(/\?/g, ".");
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(filePath);
   }
 }
 
-export function createDatabaseScanner(
-  config?: DatabaseScannerConfig,
-): DatabaseScanner {
+export function createDatabaseScanner(config?: DatabaseScannerConfig): DatabaseScanner {
   return new DatabaseScanner(config);
 }

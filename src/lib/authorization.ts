@@ -1,19 +1,7 @@
-import {
-  createHash,
-  generateKeyPairSync,
-  sign,
-  verify,
-  KeyObject,
-} from "node:crypto";
+import { createHash, generateKeyPairSync, sign, verify, KeyObject } from "node:crypto";
 import { randomUUID } from "node:crypto";
 import { checkPermission, ROLES, type Role } from "./rbac";
-import {
-  permissionFor,
-  RESOURCES,
-  ACTIONS,
-  type Resource,
-  type Action,
-} from "./permission-matrix";
+import { permissionFor, RESOURCES, ACTIONS, type Resource, type Action } from "./permission-matrix";
 import { evaluateAbac, type AttributeContext } from "./abac";
 
 /**
@@ -85,9 +73,7 @@ class CryptoManager {
     this.privateKey = privateKey;
     this.publicKey = publicKey;
     this.keyId = `key_${randomUUID().replace(/-/g, "")}`;
-    console.info(
-      `[CryptoManager] HSM Initialized. Active Key ID: ${this.keyId} (${CURVE})`,
-    );
+    console.info(`[CryptoManager] HSM Initialized. Active Key ID: ${this.keyId} (${CURVE})`);
   }
 
   public calculateHash(payload: Record<string, unknown>): string {
@@ -97,18 +83,11 @@ class CryptoManager {
 
   public signPayload(payload: Record<string, unknown>): string {
     const raw = JSON.stringify(payload, Object.keys(payload).sort());
-    const signature = sign(
-      SIGNATURE_ALGORITHM,
-      Buffer.from(raw),
-      this.privateKey,
-    );
+    const signature = sign(SIGNATURE_ALGORITHM, Buffer.from(raw), this.privateKey);
     return signature.toString("base64url");
   }
 
-  public verifySignature(
-    payload: Record<string, unknown>,
-    signatureB64: string,
-  ): boolean {
+  public verifySignature(payload: Record<string, unknown>, signatureB64: string): boolean {
     const raw = JSON.stringify(payload, Object.keys(payload).sort());
     return verify(
       SIGNATURE_ALGORITHM,
@@ -123,13 +102,11 @@ class CryptoManager {
     newDecisionHash: string,
     newSignature: string,
   ): { previousHash: string; signatureChain: string } {
-    const previousHash =
-      this.signatureChainState.get(tenantId) || "genesis_hash_0000000000000000";
+    const previousHash = this.signatureChainState.get(tenantId) || "genesis_hash_0000000000000000";
 
     // El signature chain es un hash de (previous_signature_chain + new_signature)
     const previousSigChain =
-      this.signatureChainState.get(`sigchain_${tenantId}`) ||
-      "genesis_sigchain_00000000";
+      this.signatureChainState.get(`sigchain_${tenantId}`) || "genesis_sigchain_00000000";
     const nextSigChain = createHash(HASH_ALGORITHM)
       .update(previousSigChain + newSignature)
       .digest("hex");
@@ -167,10 +144,7 @@ export async function evaluateAuthorization(
   // Etapa 0: identidad mínima demostrable.
   if (!ctx.subject_id || !ctx.tenant_id) {
     denyReason = "missing-identity";
-  } else if (
-    ctx.context.behavior_score !== undefined &&
-    ctx.context.behavior_score > 80
-  ) {
+  } else if (ctx.context.behavior_score !== undefined && ctx.context.behavior_score > 80) {
     // Etapa 1: anomalía de comportamiento bloquea (fail-closed).
     denyReason = "behavior-anomaly";
   } else if (ctx.role === undefined || !ROLES.includes(ctx.role as Role)) {
@@ -199,10 +173,7 @@ export async function evaluateAuthorization(
         denyReason = `forbidden-operation:${derived.reason}`;
       } else {
         // Etapa 4: RBAC real contra el catálogo + herencia.
-        const rbac = checkPermission(
-          { role: ctx.role as Role },
-          derived.permission,
-        );
+        const rbac = checkPermission({ role: ctx.role as Role }, derived.permission);
         if (!rbac.allowed) {
           denyReason = `rbac-deny:${rbac.reason}`;
         } else {

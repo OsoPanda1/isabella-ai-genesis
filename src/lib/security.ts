@@ -26,10 +26,7 @@ function securitySecret(): string {
 
 // --- LAYER 2: Distributed Rate Limiting (Upstash Redis autoridad en prod) ---
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute window
-const rateLimitCache = new Map<
-  string,
-  { count: number; windowStart: number }
->();
+const rateLimitCache = new Map<string, { count: number; windowStart: number }>();
 
 /** Modo production-like vía contrato (§12). Sin config válida: lo más restrictivo. */
 function isProductionLikeRuntime(): boolean {
@@ -52,9 +49,7 @@ async function getRedis(): Promise<typeof redisClient> {
   if (!url) return null;
   try {
     // Dynamic import to avoid hard dependency in dev without Redis
-    const mod = (await import("@upstash/redis").catch(
-      () => null,
-    )) as unknown as {
+    const mod = (await import("@upstash/redis").catch(() => null)) as unknown as {
       Redis?: new (opts: { url: string; token?: string }) => unknown;
     } | null;
     if (!mod?.Redis) {
@@ -62,14 +57,10 @@ async function getRedis(): Promise<typeof redisClient> {
       return null;
     }
     const token =
-      config().KV_REST_API_TOKEN ||
-      config().UPSTASH_REDIS_TOKEN ||
-      config().REDIS_TOKEN;
+      config().KV_REST_API_TOKEN || config().UPSTASH_REDIS_TOKEN || config().REDIS_TOKEN;
     // Upstash Redis constructor (casteado explícitamente; no requiere supresión de tipos)
     redisClient = new (
-      mod.Redis as unknown as new (
-        opts: Record<string, unknown>,
-      ) => typeof redisClient
+      mod.Redis as unknown as new (opts: Record<string, unknown>) => typeof redisClient
     )({ url, token } as Record<string, unknown>) as typeof redisClient;
     return redisClient;
   } catch {
@@ -168,10 +159,7 @@ export const SecuritySystem = {
   },
 
   // --- LAYER 2: Advanced Server-Side API Rate Limiting ---
-  checkRateLimit(
-    ip: string,
-    limit: number = 30,
-  ): { allowed: boolean; remaining: number } {
+  checkRateLimit(ip: string, limit: number = 30): { allowed: boolean; remaining: number } {
     const now = Date.now();
     const entry = rateLimitCache.get(ip);
 
@@ -282,8 +270,7 @@ export const SecuritySystem = {
         return {
           success: false,
           error:
-            res.reason ??
-            "Firma digital no válida: Manipulaci��n detectada (Integrity violation).",
+            res.reason ?? "Firma digital no válida: Manipulaci��n detectada (Integrity violation).",
         };
       }
 
@@ -334,15 +321,9 @@ export const SecuritySystem = {
     // Modern secure browsers ignore X-XSS-Protection or suffer from filter bypasses; 0 disables the legacy auditor safely
     headers.set("X-XSS-Protection", "0");
     headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-    headers.set(
-      "Strict-Transport-Security",
-      "max-age=63072000; includeSubDomains; preload",
-    );
+    headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
     headers.set("X-Permitted-Cross-Domain-Policies", "none");
-    headers.set(
-      "Permissions-Policy",
-      "camera=(), microphone=(), geolocation=()",
-    );
+    headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
     headers.set("Cross-Origin-Opener-Policy", "same-origin");
     headers.set("Cross-Origin-Resource-Policy", "same-origin");
     headers.set(
@@ -357,32 +338,21 @@ export const SecuritySystem = {
 
   isUpstreamAllowed,
 
-  async fetchSafeUpstream(
-    url: string,
-    options: RequestInit,
-  ): Promise<Response> {
+  async fetchSafeUpstream(url: string, options: RequestInit): Promise<Response> {
     if (!isUpstreamAllowed(url)) {
-      throw new Error(
-        `[SovereignEgress] Host no autorizado para egress server-side: ${url}.`,
-      );
+      throw new Error(`[SovereignEgress] Host no autorizado para egress server-side: ${url}.`);
     }
     return globalCircuitBreaker.execute(url, options);
   },
 
   // --- LAYER 6: Auditable Trace Telemetry ---
-  generateTelemetry(
-    ip: string,
-    policy: "allowed" | "denied" | "flagged",
-  ): SecurityTelemetry {
+  generateTelemetry(ip: string, policy: "allowed" | "denied" | "flagged"): SecurityTelemetry {
     const traceId = "tr_" + this.simpleHash(crypto.randomUUID()).toUpperCase();
-    const correlationId =
-      "corr_" + this.simpleHash(crypto.randomUUID() + "corr").toUpperCase();
+    const correlationId = "corr_" + this.simpleHash(crypto.randomUUID() + "corr").toUpperCase();
 
     const entry = rateLimitCache.get(ip);
     const maxLimit = 120;
-    const rateLimitRemaining = entry
-      ? Math.max(0, maxLimit - entry.count)
-      : maxLimit;
+    const rateLimitRemaining = entry ? Math.max(0, maxLimit - entry.count) : maxLimit;
 
     return {
       traceId,
@@ -436,10 +406,7 @@ export const SecuritySystem = {
     for (const pattern of hostilePatterns) {
       if (lowercase.includes(pattern)) {
         return {
-          clean: text.replace(
-            /<script[^>]*>([\s\S]*?)<\/script>/gi,
-            "[CONTIENE_SCRIPT_VETADO]",
-          ),
+          clean: text.replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, "[CONTIENE_SCRIPT_VETADO]"),
           flagged: true,
           reason: `Se detectó patrón hostil catalogado: "${pattern}"`,
         };
@@ -484,9 +451,7 @@ export class UpstreamCircuitBreaker {
       now - this.lastFailureTime > this.recoveryTimeoutMs
     ) {
       this.state = "HALF_OPEN";
-      console.log(
-        "[CircuitBreaker] Cooldown elapsed. Transitioning to HALF_OPEN.",
-      );
+      console.log("[CircuitBreaker] Cooldown elapsed. Transitioning to HALF_OPEN.");
     }
   }
 
@@ -540,9 +505,7 @@ export class UpstreamCircuitBreaker {
 
   private onSuccess() {
     if (this.state === "HALF_OPEN") {
-      console.log(
-        "[CircuitBreaker] Success in HALF_OPEN. Resetting state to CLOSED.",
-      );
+      console.log("[CircuitBreaker] Success in HALF_OPEN. Resetting state to CLOSED.");
     }
     this.state = "CLOSED";
     this.failureCount = 0;
@@ -552,19 +515,13 @@ export class UpstreamCircuitBreaker {
   private onFailure() {
     this.failureCount++;
     this.lastFailureTime = Date.now();
-    console.warn(
-      `[CircuitBreaker] Failure detected. Count: ${this.failureCount}/3.`,
-    );
+    console.warn(`[CircuitBreaker] Failure detected. Count: ${this.failureCount}/3.`);
     if (this.state === "CLOSED" && this.failureCount >= this.failureThreshold) {
       this.state = "OPEN";
-      console.error(
-        "[CircuitBreaker] Failure threshold exceeded. Breaker tripped to OPEN.",
-      );
+      console.error("[CircuitBreaker] Failure threshold exceeded. Breaker tripped to OPEN.");
     } else if (this.state === "HALF_OPEN") {
       this.state = "OPEN";
-      console.error(
-        "[CircuitBreaker] Failure detected in HALF_OPEN. Breaker reverted to OPEN.",
-      );
+      console.error("[CircuitBreaker] Failure detected in HALF_OPEN. Breaker reverted to OPEN.");
     }
   }
 }

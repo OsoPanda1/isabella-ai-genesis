@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { governIntelligence } from "@/lib/intelligence/router";
 import { evaluateModelRelease } from "@/lib/genesis-model/release-gate";
-import {
-  aggregateFedAvg,
-  validateFederatedUpdate,
-} from "@/lib/learning/federation";
+import { aggregateFedAvg, validateFederatedUpdate } from "@/lib/learning/federation";
 import { createHash } from "node:crypto";
 
 const updateBase = {
@@ -19,12 +16,8 @@ const updateBase = {
 };
 
 function signedUpdate(secret: string) {
-  const updateHash = createHash("sha256")
-    .update(JSON.stringify(updateBase))
-    .digest("hex");
-  const signature = createHash("sha256")
-    .update(`${secret}:${updateHash}`)
-    .digest("hex");
+  const updateHash = createHash("sha256").update(JSON.stringify(updateBase)).digest("hex");
+  const signature = createHash("sha256").update(`${secret}:${updateHash}`).digest("hex");
   return { ...updateBase, updateHash, signature };
 }
 
@@ -74,9 +67,7 @@ describe("FGAIS integration gates", () => {
   it("validates signed federation updates and rejects tampering", () => {
     const update = signedUpdate("secret");
     expect(validateFederatedUpdate(update, "secret").allowed).toBe(true);
-    expect(
-      validateFederatedUpdate({ ...update, deltaBias: 99 }, "secret").allowed,
-    ).toBe(false);
+    expect(validateFederatedUpdate({ ...update, deltaBias: 99 }, "secret").allowed).toBe(false);
   });
 
   it("aggregates updates by sample-weighted FedAvg", () => {

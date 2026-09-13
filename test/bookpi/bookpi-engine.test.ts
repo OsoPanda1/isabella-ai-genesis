@@ -8,9 +8,7 @@ import { resetConfigCache } from "../../src/lib/config";
 beforeAll(() => {
   const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   process.env.BOOKPI_SIGNATURE_ALGORITHM = "RSA-SHA256";
-  process.env.BOOKPI_SIGNING_KEY = privateKey
-    .export({ type: "pkcs8", format: "pem" })
-    .toString();
+  process.env.BOOKPI_SIGNING_KEY = privateKey.export({ type: "pkcs8", format: "pem" }).toString();
   delete process.env.NODE_ENV;
   process.env.ISABELLA_RUNTIME_MODE = "development";
   resetConfigCache();
@@ -82,38 +80,21 @@ describe("BookPiEngine (chunking + Merkle + ZK + firma)", () => {
 
     it("índice fuera de rango → lanza", () => {
       const leaves = Array(4).fill("a".repeat(64));
-      expect(() => BookPiEngine.generateMerkleProof(leaves, 9)).toThrow(
-        "fuera de rango",
-      );
+      expect(() => BookPiEngine.generateMerkleProof(leaves, 9)).toThrow("fuera de rango");
     });
   });
 
   describe("generateZKCommitment", () => {
     it("commitment de 64 hex + salt de 32 bytes", () => {
-      const { commitment, salt } = BookPiEngine.generateZKCommitment(
-        "a".repeat(64),
-        "author-1",
-      );
+      const { commitment, salt } = BookPiEngine.generateZKCommitment("a".repeat(64), "author-1");
       expect(commitment).toHaveLength(64);
       expect(salt).toHaveLength(64);
     });
 
     it("mismo salt → mismo commitment; salt distinto → commitment distinto", () => {
-      const c1 = BookPiEngine.generateZKCommitment(
-        "a".repeat(64),
-        "a",
-        "fixed-salt",
-      ).commitment;
-      const c2 = BookPiEngine.generateZKCommitment(
-        "a".repeat(64),
-        "a",
-        "fixed-salt",
-      ).commitment;
-      const c3 = BookPiEngine.generateZKCommitment(
-        "a".repeat(64),
-        "a",
-        "other-salt",
-      ).commitment;
+      const c1 = BookPiEngine.generateZKCommitment("a".repeat(64), "a", "fixed-salt").commitment;
+      const c2 = BookPiEngine.generateZKCommitment("a".repeat(64), "a", "fixed-salt").commitment;
+      const c3 = BookPiEngine.generateZKCommitment("a".repeat(64), "a", "other-salt").commitment;
       expect(c1).toBe(c2);
       expect(c1).not.toBe(c3);
     });
@@ -147,10 +128,7 @@ describe("calculateBookPiRoyalties (BigInt exacto)", () => {
     }));
     const splits = calculateBookPiRoyalties(total, shares);
     expect(splits.length).toBe(7);
-    const distributed = splits.reduce(
-      (s, x) => s + BigInt(x.payoutAmountWei),
-      0n,
-    );
+    const distributed = splits.reduce((s, x) => s + BigInt(x.payoutAmountWei), 0n);
     expect(distributed).toBe(total);
   });
 
@@ -161,10 +139,7 @@ describe("calculateBookPiRoyalties (BigInt exacto)", () => {
       { federationId: 2, basisPoints: 3333, walletAddress: "w2" },
       { federationId: 3, basisPoints: 3333, walletAddress: "w3" },
     ]);
-    const distributed = splits.reduce(
-      (s, x) => s + BigInt(x.payoutAmountWei),
-      0n,
-    );
+    const distributed = splits.reduce((s, x) => s + BigInt(x.payoutAmountWei), 0n);
     expect(distributed).toBe(total);
   });
 

@@ -194,19 +194,12 @@ export class SourceScanner {
   }
 
   private matchPattern(filePath: string, pattern: string): boolean {
-    const regexPattern = pattern
-      .replace(/\*\*/g, ".*")
-      .replace(/\*/g, "[^/]*")
-      .replace(/\?/g, ".");
+    const regexPattern = pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*").replace(/\?/g, ".");
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(filePath);
   }
 
-  private analyzeFile(
-    filePath: string,
-    content: string,
-    language: string,
-  ): CodeArtifact {
+  private analyzeFile(filePath: string, content: string, language: string): CodeArtifact {
     const lines = content.split("\n");
     const functions: string[] = [];
     const classes: string[] = [];
@@ -251,8 +244,7 @@ export class SourceScanner {
       const regex = new RegExp(pattern.source, pattern.flags);
       let match;
       while ((match = regex.exec(content)) !== null) {
-        const lineIndex =
-          content.substring(0, match.index).split("\n").length - 1;
+        const lineIndex = content.substring(0, match.index).split("\n").length - 1;
         const line = lines[lineIndex] ?? "";
         const column = match.index - content.lastIndexOf("\n", match.index);
 
@@ -271,8 +263,6 @@ export class SourceScanner {
   }
 }
 
-export function createSourceScanner(
-  config?: SourceScannerConfig,
-): SourceScanner {
+export function createSourceScanner(config?: SourceScannerConfig): SourceScanner {
   return new SourceScanner(config);
 }

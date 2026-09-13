@@ -17,17 +17,10 @@ export interface ReleaseDecision {
   assurance: "NONE" | "EVIDENCE_BACKED";
 }
 
-export function evaluateModelRelease(
-  candidate: ReleaseCandidate,
-): ReleaseDecision {
+export function evaluateModelRelease(candidate: ReleaseCandidate): ReleaseDecision {
   const reasons: string[] = [];
-  if (!candidate.modelId || !candidate.version)
-    reasons.push("model identity incomplete");
-  if (
-    !candidate.artifactHash ||
-    !candidate.manifestHash ||
-    !candidate.evidenceId
-  )
+  if (!candidate.modelId || !candidate.version) reasons.push("model identity incomplete");
+  if (!candidate.artifactHash || !candidate.manifestHash || !candidate.evidenceId)
     reasons.push("release evidence incomplete");
   if (!candidate.modelApproved) reasons.push("model not approved");
   if (!candidate.evaluationPassed) reasons.push("evaluation not passed");

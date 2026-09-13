@@ -66,9 +66,7 @@ const strategyModes: Record<
 };
 
 export class IsabellaCognitiveTrainingEngine {
-  constructor(
-    private readonly learning: IsabellaLearningEngine = createIsabellaLearningEngine(),
-  ) {}
+  constructor(private readonly learning: IsabellaLearningEngine = createIsabellaLearningEngine()) {}
 
   train(
     strategy: CognitiveTrainingStrategy,
@@ -89,8 +87,7 @@ export class IsabellaCognitiveTrainingEngine {
         consent: normalized.consent ?? false,
       });
       results.push(result);
-      if (result.accepted && result.memory)
-        signatures.push(result.memory.signature);
+      if (result.accepted && result.memory) signatures.push(result.memory.signature);
     }
 
     return {
@@ -108,10 +105,7 @@ export class IsabellaCognitiveTrainingEngine {
       sample: CognitiveTrainingSample;
     }>,
   ): CognitiveTrainingBatchResult {
-    const byStrategy = {} as Record<
-      CognitiveTrainingStrategy,
-      CognitiveTrainingResult
-    >;
+    const byStrategy = {} as Record<CognitiveTrainingStrategy, CognitiveTrainingResult>;
     let accepted = 0;
     let rejected = 0;
 
@@ -119,10 +113,7 @@ export class IsabellaCognitiveTrainingEngine {
       const result = this.train(item.strategy, item.sample);
       accepted += result.accepted;
       rejected += result.rejected;
-      byStrategy[item.strategy] = mergeTrainingResults(
-        byStrategy[item.strategy],
-        result,
-      );
+      byStrategy[item.strategy] = mergeTrainingResults(byStrategy[item.strategy], result);
     }
 
     return { accepted, rejected, byStrategy };
@@ -147,10 +138,7 @@ export function createIsabellaCognitiveTrainingEngine(
   return new IsabellaCognitiveTrainingEngine(learning);
 }
 
-function expandStrategy(
-  strategy: CognitiveTrainingStrategy,
-  sample: CognitiveTrainingSample,
-) {
+function expandStrategy(strategy: CognitiveTrainingStrategy, sample: CognitiveTrainingSample) {
   switch (strategy) {
     case "counterfactual":
       return [
@@ -246,22 +234,15 @@ function stripControlCharacters(value: string): string {
   let sanitized = "";
   for (const character of value) {
     const code = character.codePointAt(0) ?? 0;
-    if (code >= 0x20 || code === 0x09 || code === 0x0a || code === 0x0d)
-      sanitized += character;
+    if (code >= 0x20 || code === 0x09 || code === 0x0a || code === 0x0d) sanitized += character;
   }
   return sanitized;
 }
 
-function normalizeSample(
-  sample: CognitiveTrainingSample,
-): CognitiveTrainingSample {
+function normalizeSample(sample: CognitiveTrainingSample): CognitiveTrainingSample {
   const input = stripControlCharacters(sample.input).trim();
-  const target = sample.target
-    ? stripControlCharacters(sample.target).trim()
-    : undefined;
-  const negative = sample.negative
-    ? stripControlCharacters(sample.negative).trim()
-    : undefined;
+  const target = sample.target ? stripControlCharacters(sample.target).trim() : undefined;
+  const negative = sample.negative ? stripControlCharacters(sample.negative).trim() : undefined;
   if (!input) throw new Error("Cognitive training input cannot be empty");
 
   return {
@@ -271,11 +252,7 @@ function normalizeSample(
     negative,
     source: sample.source.trim().slice(0, 256),
     skillIds: [
-      ...new Set(
-        (sample.skillIds ?? [])
-          .map((id) => id.trim().toLowerCase())
-          .filter(Boolean),
-      ),
+      ...new Set((sample.skillIds ?? []).map((id) => id.trim().toLowerCase()).filter(Boolean)),
     ],
     quality: Math.min(1, Math.max(0, sample.quality ?? 0.5)),
   };

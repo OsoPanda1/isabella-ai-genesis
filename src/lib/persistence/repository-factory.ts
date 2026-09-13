@@ -30,8 +30,7 @@ class ProductionRepositoryFactory implements RepositoryFactory {
   private isDurableJsonAllowed(): boolean {
     try {
       const cfg = config() as unknown as Record<string, unknown>;
-      if (typeof cfg.DURABLE_JSON_ALLOWED === "boolean")
-        return cfg.DURABLE_JSON_ALLOWED as boolean;
+      if (typeof cfg.DURABLE_JSON_ALLOWED === "boolean") return cfg.DURABLE_JSON_ALLOWED as boolean;
       if (typeof cfg.DURABLE_JSON_ALLOWED === "string")
         return (cfg.DURABLE_JSON_ALLOWED as string) === "true";
     } catch {}
@@ -62,12 +61,9 @@ class ProductionRepositoryFactory implements RepositoryFactory {
     // presencia de variables ("tengo DATABASE_URL, entonces..."). Exige que
     // ISABELLA_STORAGE_PROVIDER declare postgres|neon; json|supabase|memory
     // son no autoritativos y quedan PROHIBIDOS en staging/production.
-    const provider = (cfg as unknown as Record<string, unknown>)
-      .ISABELLA_STORAGE_PROVIDER;
+    const provider = (cfg as unknown as Record<string, unknown>).ISABELLA_STORAGE_PROVIDER;
     const normalized =
-      typeof provider === "string"
-        ? (provider as string).trim().toLowerCase()
-        : "";
+      typeof provider === "string" ? (provider as string).trim().toLowerCase() : "";
 
     if (!normalized) {
       throw new Error(
@@ -123,8 +119,7 @@ class ProductionRepositoryFactory implements RepositoryFactory {
   }
 }
 
-export const repositoryFactory: RepositoryFactory =
-  new ProductionRepositoryFactory();
+export const repositoryFactory: RepositoryFactory = new ProductionRepositoryFactory();
 
 // Legacy export for direct JSON access in dev/test only — not for production routes
 export { JsonRepositoryFactory } from "./adapters/json-adapter";

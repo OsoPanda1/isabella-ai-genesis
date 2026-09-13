@@ -43,16 +43,13 @@ export interface TenantGuardResult {
  * de menor privilegio y `boundaryOk = false` para que el handler
  * rechace con 403/401.
  */
-export function resolveTenantContext(
-  input: TenantGuardInput,
-): TenantGuardResult {
+export function resolveTenantContext(input: TenantGuardInput): TenantGuardResult {
   if (!input.authenticated) {
     const subject = input.subject || "anon";
     return {
       context: guestTenantContext(subject),
       boundaryOk: true,
-      reason:
-        "Request no autenticado: contexto de huésped de privilegio mínimo.",
+      reason: "Request no autenticado: contexto de huésped de privilegio mínimo.",
     };
   }
 

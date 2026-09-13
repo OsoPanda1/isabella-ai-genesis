@@ -50,11 +50,7 @@ const addCrudRoutes = (
       audit: false,
       status: "contract",
       description: `Listar todos los ${descName} disponibles en el espacio de trabajo del inquilino.`,
-      responseSchema: JSON.stringify(
-        { items: [schemaFields], total: "number" },
-        null,
-        2,
-      ),
+      responseSchema: JSON.stringify({ items: [schemaFields], total: "number" }, null, 2),
       mockResponse: { items: [mockObj], total: 1 },
     },
     {
@@ -141,16 +137,8 @@ const addCrudRoutes = (
       audit: true,
       status: "contract",
       description: `Ejecutar una acción o procedimiento operativo especial sobre el ${descName} seleccionado.`,
-      requestSchema: JSON.stringify(
-        { action: "string", params: "object" },
-        null,
-        2,
-      ),
-      responseSchema: JSON.stringify(
-        { status: "success", traceId: "string" },
-        null,
-        2,
-      ),
+      requestSchema: JSON.stringify({ action: "string", params: "object" }, null, 2),
+      responseSchema: JSON.stringify({ status: "success", traceId: "string" }, null, 2),
       mockResponse: {
         status: "success",
         traceId: "tr-live-execution-simulated",

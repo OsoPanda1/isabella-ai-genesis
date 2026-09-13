@@ -35,18 +35,12 @@ export interface KillSwitchState {
 
 export interface KillSwitchStore {
   isKilled(capability: string): Promise<boolean>;
-  engage(
-    capability: string,
-    reason: string,
-    actorId: string,
-  ): Promise<KillSwitchState>;
+  engage(capability: string, reason: string, actorId: string): Promise<KillSwitchState>;
   release(capability: string, actorId: string): Promise<KillSwitchState>;
   list(): Promise<KillSwitchState[]>;
 }
 
-export function isKnownCapability(
-  capability: string,
-): capability is KillCapability {
+export function isKnownCapability(capability: string): capability is KillCapability {
   return (KILL_SWITCH_CAPABILITIES as readonly string[]).includes(capability);
 }
 
@@ -60,13 +54,8 @@ export function createMemoryKillSwitchStore(
     async isKilled(capability: string): Promise<boolean> {
       return states.get(capability)?.engaged === true;
     },
-    async engage(
-      capability: string,
-      reason: string,
-      actorId: string,
-    ): Promise<KillSwitchState> {
-      if (!isKnownCapability(capability))
-        throw new Error(`Capacidad desconocida: ${capability}.`);
+    async engage(capability: string, reason: string, actorId: string): Promise<KillSwitchState> {
+      if (!isKnownCapability(capability)) throw new Error(`Capacidad desconocida: ${capability}.`);
       if (!reason || !actorId) throw new Error("Motivo y actor obligatorios.");
       const state: KillSwitchState = {
         capability,
@@ -80,13 +69,9 @@ export function createMemoryKillSwitchStore(
       audit?.("kill-switch.engaged", { capability, reason, actorId });
       return state;
     },
-    async release(
-      capability: string,
-      actorId: string,
-    ): Promise<KillSwitchState> {
+    async release(capability: string, actorId: string): Promise<KillSwitchState> {
       const current = states.get(capability);
-      if (!current?.engaged)
-        throw new Error(`Sin parada activa en '${capability}'.`);
+      if (!current?.engaged) throw new Error(`Sin parada activa en '${capability}'.`);
       if (!actorId) throw new Error("Actor obligatorio.");
       const state: KillSwitchState = {
         ...current,
@@ -126,14 +111,8 @@ function mapRow(row: Record<string, unknown>): KillSwitchState {
     engaged: row.engaged === true,
     reason: row.reason === null ? null : String(row.reason),
     actorId: row.actor_id === null ? null : String(row.actor_id),
-    engagedAt:
-      row.engaged_at === null
-        ? null
-        : new Date(String(row.engaged_at)).toISOString(),
-    releasedAt:
-      row.released_at === null
-        ? null
-        : new Date(String(row.released_at)).toISOString(),
+    engagedAt: row.engaged_at === null ? null : new Date(String(row.engaged_at)).toISOString(),
+    releasedAt: row.released_at === null ? null : new Date(String(row.released_at)).toISOString(),
   };
 }
 
@@ -148,13 +127,8 @@ export function createPostgresKillSwitchStore(
       );
       return rows[0]?.engaged === true;
     },
-    async engage(
-      capability: string,
-      reason: string,
-      actorId: string,
-    ): Promise<KillSwitchState> {
-      if (!isKnownCapability(capability))
-        throw new Error(`Capacidad desconocida: ${capability}.`);
+    async engage(capability: string, reason: string, actorId: string): Promise<KillSwitchState> {
+      if (!isKnownCapability(capability)) throw new Error(`Capacidad desconocida: ${capability}.`);
       if (!reason || !actorId) throw new Error("Motivo y actor obligatorios.");
       const { rows } = await getPool().query(
         `INSERT INTO kill_switch_state (capability, engaged, reason, actor_id, engaged_at, released_at)
@@ -167,10 +141,7 @@ export function createPostgresKillSwitchStore(
       audit?.("kill-switch.engaged", { capability, reason, actorId });
       return mapRow(rows[0]);
     },
-    async release(
-      capability: string,
-      actorId: string,
-    ): Promise<KillSwitchState> {
+    async release(capability: string, actorId: string): Promise<KillSwitchState> {
       if (!actorId) throw new Error("Actor obligatorio.");
       const { rows } = await getPool().query(
         `UPDATE kill_switch_state

@@ -30,9 +30,7 @@ function checkArticleI(identity: CROWN.IdentityAssessment): ArticleCheckResult {
   };
 }
 
-function checkArticleII(
-  evidence: CROWN.EvidenceAssessment,
-): ArticleCheckResult {
+function checkArticleII(evidence: CROWN.EvidenceAssessment): ArticleCheckResult {
   const passed = evidence.level !== "none";
   return {
     article: "II — HONESTIDAD_EPISTEMICA",
@@ -74,15 +72,11 @@ function checkArticleIV(
   return {
     article: "IV — MINIMO_PRIVILEGIO",
     passed,
-    reason: passed
-      ? `Scopes concedidos: ${scopes.join(", ")}.`
-      : "Sin scopes de datos concedidos.",
+    reason: passed ? `Scopes concedidos: ${scopes.join(", ")}.` : "Sin scopes de datos concedidos.",
   };
 }
 
-function checkArticleV(
-  memory: Partial<CROWN.MemoryRecord>,
-): ArticleCheckResult {
+function checkArticleV(memory: Partial<CROWN.MemoryRecord>): ArticleCheckResult {
   if (!memory.scope) {
     return {
       article: "V — MEMORIA_CON_CONSENTIMIENTO",

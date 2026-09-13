@@ -24,8 +24,7 @@ export const ISABELLA_LEARNING_API = [
     idempotency: false,
     audit: true,
     status: "implemented" as const,
-    description:
-      "Recuperación de conocimiento aprendido por conceptos y relevancia.",
+    description: "Recuperación de conocimiento aprendido por conceptos y relevancia.",
     requestSchema: "LearningQueryApiSchema",
     responseSchema: "LearningMemory[]",
   },
@@ -39,8 +38,7 @@ export const ISABELLA_LEARNING_API = [
     idempotency: false,
     audit: true,
     status: "implemented" as const,
-    description:
-      "Evalúa cobertura y calidad de conocimiento aprendido para una consulta.",
+    description: "Evalúa cobertura y calidad de conocimiento aprendido para una consulta.",
     requestSchema: "LearningEvaluateApiSchema",
     responseSchema: "LearningEvaluation",
   },
@@ -54,8 +52,7 @@ export const ISABELLA_LEARNING_API = [
     idempotency: false,
     audit: true,
     status: "implemented" as const,
-    description:
-      "Obtiene snapshot versionado del estado de aprendizaje para respaldo y auditoría.",
+    description: "Obtiene snapshot versionado del estado de aprendizaje para respaldo y auditoría.",
     responseSchema: "LearningSnapshot",
   },
   {
@@ -98,8 +95,7 @@ export const ISABELLA_LEARNING_API = [
     idempotency: false,
     audit: true,
     status: "implemented" as const,
-    description:
-      "Evalúa comprensión adquirida sin depender del proveedor de modelo.",
+    description: "Evalúa comprensión adquirida sin depender del proveedor de modelo.",
     requestSchema: "{ query: string }",
     responseSchema: "LearningEvaluation",
   },

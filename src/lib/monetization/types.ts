@@ -6,11 +6,7 @@ export const ESCROW_MATURATION_DAYS = 90; // 90 days to clear chargeback liabili
 export const MONETIZATION_SUBSCRIPTION_REQUIRED = true;
 
 export type MonetizationMethod =
-  | "referral"
-  | "education"
-  | "territorial"
-  | "evidence"
-  | "professional_reference";
+  "referral" | "education" | "territorial" | "evidence" | "professional_reference";
 
 export type EarningStatus =
   | "pending" // In 90-day escrow

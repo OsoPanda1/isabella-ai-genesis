@@ -11,8 +11,7 @@ import {
 
 describe("ncua:bytes (alfabeto de 256, sin tokens)", () => {
   it("codifica y decodifica UTF-8 con roundtrip exacto", () => {
-    const text =
-      "Real del Monte, Hidalgo: paste minero, plata 925, acueducto y pastelería.";
+    const text = "Real del Monte, Hidalgo: paste minero, plata 925, acueducto y pastelería.";
     expect(byteLengthOf(text)).toBeGreaterThan(text.length);
     expect(isValidUtf8Roundtrip(text)).toBe(true);
     const encoded = encodeUtf8(text);
@@ -37,9 +36,7 @@ describe("ncua:bytes (alfabeto de 256, sin tokens)", () => {
   it("particiona bytes en chunks sin perder datos", () => {
     const text = "sistema soberano de comprensión continua nativa";
     const chunks = chunkBytes(encodeUtf8(text), 8);
-    const concatenated = new Uint8Array(
-      chunks.reduce((sum, chunk) => sum + chunk.length, 0),
-    );
+    const concatenated = new Uint8Array(chunks.reduce((sum, chunk) => sum + chunk.length, 0));
     let offset = 0;
     for (const chunk of chunks) {
       concatenated.set(chunk, offset);

@@ -109,9 +109,7 @@ export class JwksCache {
 
   /** Devuelve la clave con el `kid` dado, refrescando si es necesario. */
   async keyByKid(kid: string | undefined): Promise<JwkKey> {
-    let document = this.isFresh()
-      ? this.entry!.document
-      : await this.fetchDocument();
+    let document = this.isFresh() ? this.entry!.document : await this.fetchDocument();
     const found = findByKid(document, kid);
     if (found) return found;
     // kid desconocido: fuerza un refresco único (posible rotación).
@@ -136,10 +134,7 @@ export class JwksCache {
   }
 }
 
-function findByKid(
-  document: JwksDocument,
-  kid: string | undefined,
-): JwkKey | undefined {
+function findByKid(document: JwksDocument, kid: string | undefined): JwkKey | undefined {
   if (kid === undefined || kid === "") {
     // Un único `keys` admite omisión de kid; uso de firma como fallback.
     return document.keys.length === 1 ? document.keys[0] : undefined;
@@ -148,10 +143,7 @@ function findByKid(
 }
 
 /** Utilitario para construir un emisor configurado desde `config()`. */
-export function createJwksCache(
-  issuer: string,
-  options?: JwksCacheOptions,
-): JwksCache {
+export function createJwksCache(issuer: string, options?: JwksCacheOptions): JwksCache {
   return new JwksCache(issuer, options);
 }
 

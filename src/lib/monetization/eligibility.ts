@@ -18,9 +18,7 @@ import {
  * como dato, sin bloquear la elegibilidad base del programa.
  */
 
-export function evaluateEligibility(
-  input: MonetizationEligibilityInput,
-): MonetizationEligibility {
+export function evaluateEligibility(input: MonetizationEligibilityInput): MonetizationEligibility {
   const reasons: MonetizationBlockReason[] = [];
   const passedReasons = input.blockedReasons ?? [];
 
@@ -45,8 +43,7 @@ export function evaluateEligibility(
   }
 
   const balanceRequirementMet =
-    input.availableBalanceCents >=
-    Math.max(input.withdrawalMinimumCents, MINIMUM_WITHDRAWAL_CENTS);
+    input.availableBalanceCents >= Math.max(input.withdrawalMinimumCents, MINIMUM_WITHDRAWAL_CENTS);
 
   const eligible = reasons.length === 0;
 

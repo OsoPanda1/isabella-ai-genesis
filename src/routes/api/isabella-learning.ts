@@ -7,10 +7,7 @@ import {
   LearningIngestApiSchema,
   LearningQueryApiSchema,
 } from "@/lib/isabella-learning-api";
-import {
-  loadLearningRuntime,
-  persistLearningRuntime,
-} from "@/lib/isabella-learning-persistence";
+import { loadLearningRuntime, persistLearningRuntime } from "@/lib/isabella-learning-persistence";
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -29,8 +26,7 @@ async function runtimeFor(tenantId: string) {
     return await loadLearningRuntime(tenantId);
   } catch (error) {
     return {
-      error:
-        error instanceof Error ? error.message : "LEARNING_RUNTIME_UNAVAILABLE",
+      error: error instanceof Error ? error.message : "LEARNING_RUNTIME_UNAVAILABLE",
     } as const;
   }
 }
@@ -52,10 +48,7 @@ export const Route = createFileRoute("/api/isabella-learning")({
             limit: Number(url.searchParams.get("limit") ?? 8),
           });
           if (!parsed.success)
-            return json(
-              { error: "VALIDATION_ERROR", issues: parsed.error.issues },
-              400,
-            );
+            return json({ error: "VALIDATION_ERROR", issues: parsed.error.issues }, 400);
           return api.retrieve(parsed.data);
         }
         if (action === "evaluate") {
@@ -63,10 +56,7 @@ export const Route = createFileRoute("/api/isabella-learning")({
             query: url.searchParams.get("query") ?? "",
           });
           if (!parsed.success)
-            return json(
-              { error: "VALIDATION_ERROR", issues: parsed.error.issues },
-              400,
-            );
+            return json({ error: "VALIDATION_ERROR", issues: parsed.error.issues }, 400);
           return api.evaluate(parsed.data);
         }
         return json(
@@ -101,10 +91,7 @@ export const Route = createFileRoute("/api/isabella-learning")({
         if (action === "ingest") {
           const parsed = LearningIngestApiSchema.safeParse(payload);
           if (!parsed.success)
-            return json(
-              { error: "VALIDATION_ERROR", issues: parsed.error.issues },
-              400,
-            );
+            return json({ error: "VALIDATION_ERROR", issues: parsed.error.issues }, 400);
           const response = api.ingest(parsed.data);
           if (response.ok && runtime.durable)
             await persistLearningRuntime(context.tenantId, runtime.engine);
@@ -113,19 +100,13 @@ export const Route = createFileRoute("/api/isabella-learning")({
         if (action === "retrieve") {
           const parsed = LearningQueryApiSchema.safeParse(payload);
           if (!parsed.success)
-            return json(
-              { error: "VALIDATION_ERROR", issues: parsed.error.issues },
-              400,
-            );
+            return json({ error: "VALIDATION_ERROR", issues: parsed.error.issues }, 400);
           return api.retrieve(parsed.data);
         }
         if (action === "evaluate") {
           const parsed = LearningEvaluateApiSchema.safeParse(payload);
           if (!parsed.success)
-            return json(
-              { error: "VALIDATION_ERROR", issues: parsed.error.issues },
-              400,
-            );
+            return json({ error: "VALIDATION_ERROR", issues: parsed.error.issues }, 400);
           return api.evaluate(parsed.data);
         }
         if (action === "snapshot") return api.snapshot();
