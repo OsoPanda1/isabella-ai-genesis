@@ -5,7 +5,6 @@
 
 create schema if not exists extensions;
 create extension if not exists "uuid-ossp";
-create extension if not exists vector schema extensions;
 
 -- Immutable baseline: never reference a table before creating it. Re-runs are
 -- governed by Supabase migration history rather than destructive DROP calls.
@@ -47,7 +46,7 @@ create table memories (
     tenant_id varchar(64) not null references tenants(id) on delete cascade,
     user_id varchar(64) not null references profiles(id) on delete cascade,
     content text not null,
-    embedding extensions.vector(1536),
+    embedding text,
     scope varchar(50) not null default 'Session' check (scope in ('Immediate', 'Session', 'Project', 'Territorial', 'Historical')),
     metadata jsonb not null default '{}'::jsonb,
     created_at timestamptz not null default now()
