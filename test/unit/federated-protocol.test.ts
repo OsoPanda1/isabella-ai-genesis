@@ -5,8 +5,15 @@ import {
   validateUpdate,
   MemoryReplayStore,
 } from "@/lib/federation/fgaIs-protocol";
+import { assertCoreSourceRegistry, getCoreSource } from "@/lib/federation/core-source-registry";
 
 describe("Federated protocol", () => {
+  it("validates the official core-source registry", () => {
+    assertCoreSourceRegistry();
+    expect(getCoreSource("OsoPanda1/isabella-s-core-intelligence")?.decision).toBe("adapt");
+    expect(getCoreSource("OsoPanda1/unknown")?.decision).toBeUndefined();
+  });
+
   it("signs and verifies an update and rejects replay", async () => {
     const { privateKey, publicKey } = createIdentity();
     const node = {
