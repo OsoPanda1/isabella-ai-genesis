@@ -105,6 +105,18 @@ export const CATALOG_ENTRIES: CatalogEntry[] = [
     "src/server-routes/api/health.ts",
   ),
   route(
+    "observability.overview",
+    "ops",
+    "GET",
+    "/api/observability",
+    "server-auth + operational scope",
+    false,
+    true,
+    "Runtime observability overview for traces, metrics, alerts, agents, sandboxes and cache.",
+    "src/server-routes/api/observability.ts",
+    "isabella.observability.v1",
+  ),
+  route(
     "health.live",
     "ops",
     "GET",

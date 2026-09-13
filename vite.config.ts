@@ -25,7 +25,7 @@ export default defineConfig({
         },
       },
     }),
-    nitro({ preset: "vercel", vercel: { functions: { runtime: "nodejs22.x" } } }),
+    nitro({ preset: "vercel", vercel: { functions: { runtime: "nodejs24.x" } } }),
     viteReact(),
     tailwindcss(),
     tsConfigPaths({

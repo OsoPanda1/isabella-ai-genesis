@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  NODE_VERSION: "22.16.0"
+  NODE_VERSION: "24.x"
   PNPM_VERSION: "10.15.0"
   RELEASE_TAG: ${{ github.ref_name }}
 

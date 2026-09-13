@@ -23,6 +23,7 @@ import { Route as ApiIsabellaLearningRouteImport } from './routes/api/isabella-l
 import { Route as ApiIsabellaSkillsRouteImport } from './routes/api/isabella-skills'
 import { Route as ApiIsabellaVoiceRouteImport } from './routes/api/isabella-voice'
 import { Route as ApiMuxIntroRouteImport } from './routes/api/mux-intro'
+import { Route as ApiObservabilityRouteImport } from './routes/api/observability'
 import { Route as ApiSecurityRouteImport } from './routes/api/security'
 import { Route as ApiConnectGithubRouteImport } from './routes/api/connect/github'
 import { Route as ApiConnectLinearRouteImport } from './routes/api/connect/linear'
@@ -108,6 +109,11 @@ const ApiIsabellaVoiceRoute = ApiIsabellaVoiceRouteImport.update({
 const ApiMuxIntroRoute = ApiMuxIntroRouteImport.update({
   id: '/api/mux-intro',
   path: '/api/mux-intro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiObservabilityRoute = ApiObservabilityRouteImport.update({
+  id: '/api/observability',
+  path: '/api/observability',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSecurityRoute = ApiSecurityRouteImport.update({
@@ -203,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/api/isabella-skills': typeof ApiIsabellaSkillsRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/mux-intro': typeof ApiMuxIntroRoute
+  '/api/observability': typeof ApiObservabilityRoute
   '/api/security': typeof ApiSecurityRoute
   '/api/connect/github': typeof ApiConnectGithubRouteWithChildren
   '/api/connect/linear': typeof ApiConnectLinearRouteWithChildren
@@ -234,6 +241,7 @@ export interface FileRoutesByTo {
   '/api/isabella-skills': typeof ApiIsabellaSkillsRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/mux-intro': typeof ApiMuxIntroRoute
+  '/api/observability': typeof ApiObservabilityRoute
   '/api/security': typeof ApiSecurityRoute
   '/api/connect/github': typeof ApiConnectGithubRouteWithChildren
   '/api/connect/linear': typeof ApiConnectLinearRouteWithChildren
@@ -266,6 +274,7 @@ export interface FileRoutesById {
   '/api/isabella-skills': typeof ApiIsabellaSkillsRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/mux-intro': typeof ApiMuxIntroRoute
+  '/api/observability': typeof ApiObservabilityRoute
   '/api/security': typeof ApiSecurityRoute
   '/api/connect/github': typeof ApiConnectGithubRouteWithChildren
   '/api/connect/linear': typeof ApiConnectLinearRouteWithChildren
@@ -299,6 +308,7 @@ export interface FileRouteTypes {
     | '/api/isabella-skills'
     | '/api/isabella-voice'
     | '/api/mux-intro'
+    | '/api/observability'
     | '/api/security'
     | '/api/connect/github'
     | '/api/connect/linear'
@@ -330,6 +340,7 @@ export interface FileRouteTypes {
     | '/api/isabella-skills'
     | '/api/isabella-voice'
     | '/api/mux-intro'
+    | '/api/observability'
     | '/api/security'
     | '/api/connect/github'
     | '/api/connect/linear'
@@ -361,6 +372,7 @@ export interface FileRouteTypes {
     | '/api/isabella-skills'
     | '/api/isabella-voice'
     | '/api/mux-intro'
+    | '/api/observability'
     | '/api/security'
     | '/api/connect/github'
     | '/api/connect/linear'
@@ -393,6 +405,7 @@ export interface RootRouteChildren {
   ApiIsabellaSkillsRoute: typeof ApiIsabellaSkillsRoute
   ApiIsabellaVoiceRoute: typeof ApiIsabellaVoiceRoute
   ApiMuxIntroRoute: typeof ApiMuxIntroRoute
+  ApiObservabilityRoute: typeof ApiObservabilityRoute
   ApiSecurityRoute: typeof ApiSecurityRoute
   ApiConnectGithubRoute: typeof ApiConnectGithubRouteWithChildren
   ApiConnectLinearRoute: typeof ApiConnectLinearRouteWithChildren
@@ -498,6 +511,13 @@ declare module '@tanstack/react-router' {
       path: '/api/mux-intro'
       fullPath: '/api/mux-intro'
       preLoaderRoute: typeof ApiMuxIntroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/observability': {
+      id: '/api/observability'
+      path: '/api/observability'
+      fullPath: '/api/observability'
+      preLoaderRoute: typeof ApiObservabilityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/security': {
@@ -691,6 +711,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiIsabellaSkillsRoute: ApiIsabellaSkillsRoute,
   ApiIsabellaVoiceRoute: ApiIsabellaVoiceRoute,
   ApiMuxIntroRoute: ApiMuxIntroRoute,
+  ApiObservabilityRoute: ApiObservabilityRoute,
   ApiSecurityRoute: ApiSecurityRoute,
   ApiConnectGithubRoute: ApiConnectGithubRouteWithChildren,
   ApiConnectLinearRoute: ApiConnectLinearRouteWithChildren,
