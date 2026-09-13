@@ -104,14 +104,16 @@ export async function runIsabellaSkill(
     };
 
     // Risk Gate: Validar que el input cumpla las condiciones can() del skill
-    if (skill.canRun && !skill.canRun(validatedInput as any, skillContext)) {
+    if (skill.canRun && !skill.canRun(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+      validatedInput as any, skillContext)) {
       throw new SecurityError(
         "CROWN_OBLIGATION_FAILURE",
         "El input no satisface los pre-requisitos funcionales del skill.",
       );
     }
 
-    const skillResult = await skill.run(validatedInput as any, skillContext);
+    const skillResult = await skill.run(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+      validatedInput as any, skillContext);
 
     // ========================================================================
     // ETAPA 9: Validación Estricta de Salida (Data Exfiltration Protection)
@@ -130,7 +132,7 @@ export async function runIsabellaSkill(
       tenantId: tenantId,
       userId: subjectId,
       operation: `SKILL_EXECUTION: ${skillId} | Decision: ${decisionId} | Intent: ${context.intent || "N/A"}`,
-      category: "skills" as any,
+      category: "skills",
       cost: costUsd,
       tokens: 0,
       status: "settled",

@@ -249,7 +249,7 @@ export function useIsabella() {
             system: (buildSystemPrompt(routing, preset) + skillContext).slice(0, 8000),
             temperature: preset.temperature,
             messages: history,
-            context: validatedPayload.context,
+            context: { source: "isabella", preset: preset.id, runId },
           }),
         });
         if (!res.ok || !res.body) {

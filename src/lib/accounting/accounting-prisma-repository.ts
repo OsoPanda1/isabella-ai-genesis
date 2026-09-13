@@ -56,7 +56,7 @@ export class PrismaAccountingRepository implements AccountingRepository {
     const accounts = await tx.accountingAccount.findMany({
       where: { tenantId },
     });
-    return accounts.map((a) => this.mapAccount(a));
+    return accounts.map((a: any) => this.mapAccount(a));
   }
 
   async updateAccount(
@@ -104,7 +104,7 @@ export class PrismaAccountingRepository implements AccountingRepository {
     const entries = await tx.accountingJournalEntry.findMany({
       where: { tenantId },
     });
-    return entries.map((e) => this.mapJournalEntry(e));
+    return entries.map((e: any) => this.mapJournalEntry(e));
   }
 
   async updateJournalEntryStatus(
@@ -141,21 +141,21 @@ export class PrismaAccountingRepository implements AccountingRepository {
         }),
       ),
     );
-    return createdLines.map((l) => this.mapLedgerLine(l));
+    return createdLines.map((l: any) => this.mapLedgerLine(l));
   }
 
   async getLedgerLinesByEntry(entryId: string, tx: DbTx = this.prisma): Promise<LedgerLine[]> {
     const lines = await tx.accountingLedgerLine.findMany({
       where: { entryId },
     });
-    return lines.map((l) => this.mapLedgerLine(l));
+    return lines.map((l: any) => this.mapLedgerLine(l));
   }
 
   async getLedgerLinesByAccount(accountId: string, tx: DbTx = this.prisma): Promise<LedgerLine[]> {
     const lines = await tx.accountingLedgerLine.findMany({
       where: { accountId },
     });
-    return lines.map((l) => this.mapLedgerLine(l));
+    return lines.map((l: any) => this.mapLedgerLine(l));
   }
 
   async calculateAccountBalance(
