@@ -112,28 +112,6 @@ export function calculateCVSS(finding: Finding): {
   const { exploitability, impact } = finding;
 
   // CVSS 3.1 Base Score Calculation
-  const AV =
-    exploitability.attackVector === "NETWORK"
-      ? 0.85
-      : exploitability.attackVector === "ADJACENT"
-        ? 0.62
-        : exploitability.attackVector === "LOCAL"
-          ? 0.55
-          : 0.2;
-  const AC = exploitability.attackComplexity === "LOW" ? 0.77 : 0.44;
-  const PR =
-    exploitability.scope === "CHANGED"
-      ? exploitability.privilegesRequired === "NONE"
-        ? 0.85
-        : exploitability.privilegesRequired === "LOW"
-          ? 0.68
-          : 0.5
-      : exploitability.privilegesRequired === "NONE"
-        ? 0.85
-        : exploitability.privilegesRequired === "LOW"
-          ? 0.62
-          : 0.27;
-  const UI = exploitability.userInteraction === "NONE" ? 0.85 : 0.62;
   const S = exploitability.scope === "CHANGED" ? 1 : 0;
 
   const C = impact.confidentiality;

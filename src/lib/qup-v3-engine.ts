@@ -499,12 +499,12 @@ export class QupOrchestrator {
         costCents,
       },
       governance: {
-        atlasImpact: atlasRun.data?.territorialImpact ?? 0,
-        atlasInterpretation: atlasRun.data?.interpretation ?? "NEUTRAL",
+        atlasImpact: atlasRun?.data?.territorialImpact ?? 0,
+        atlasInterpretation: atlasRun?.data?.interpretation ?? "NEUTRAL",
         anubisIntegrity: anubisRun.result.isAuthentic ? "VERIFIED" : "MISMATCH",
-        themisAuditability: themisRun.data?.auditability ?? "PARTIAL",
-        vigiaAction: vigiaRun.data?.allowed ? "ALLOW" : "TEMPORARY_BLOCK",
-        expedienteSummary: themisRun.summary,
+        themisAuditability: themisRun?.data?.auditability ?? "PARTIAL",
+        vigiaAction: vigiaRun?.data?.allowed ? "ALLOW" : "TEMPORARY_BLOCK",
+        expedienteSummary: themisRun?.summary ?? "",
       },
     };
   }

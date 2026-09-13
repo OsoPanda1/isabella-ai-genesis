@@ -1,4 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
+import type {
+  AccountingAccount,
+  AccountingJournalEntry,
+  AccountingLedgerLine,
+} from "@prisma/client";
 import type {
   Account,
   JournalEntry,
@@ -16,6 +21,11 @@ import type {
 } from "./accounting-repository";
 import { randomUUID } from "node:crypto";
 
+type DbTx = Prisma.TransactionClient | PrismaClient;
+type AccountRow = AccountingAccount;
+type JournalEntryRow = AccountingJournalEntry;
+type LedgerLineRow = AccountingLedgerLine;
+
 export class PrismaAccountingRepository implements AccountingRepository {
   private prisma: PrismaClient;
 
@@ -23,7 +33,7 @@ export class PrismaAccountingRepository implements AccountingRepository {
     this.prisma = prismaClient || new PrismaClient();
   }
 
-  async createAccount(dto: CreateAccountDTO, tx: any = this.prisma): Promise<Account> {
+  async createAccount(dto: CreateAccountDTO, tx: DbTx = this.prisma): Promise<Account> {
     const account = await tx.accountingAccount.create({
       data: {
         tenantId: dto.tenantId,
@@ -37,22 +47,22 @@ export class PrismaAccountingRepository implements AccountingRepository {
     return this.mapAccount(account);
   }
 
-  async getAccountById(id: string, tx: any = this.prisma): Promise<Account | null> {
+  async getAccountById(id: string, tx: DbTx = this.prisma): Promise<Account | null> {
     const account = await tx.accountingAccount.findUnique({ where: { id } });
     return account ? this.mapAccount(account) : null;
   }
 
-  async getAccountsByTenant(tenantId: string, tx: any = this.prisma): Promise<Account[]> {
+  async getAccountsByTenant(tenantId: string, tx: DbTx = this.prisma): Promise<Account[]> {
     const accounts = await tx.accountingAccount.findMany({
       where: { tenantId },
     });
-    return accounts.map((a: any) => this.mapAccount(a));
+    return accounts.map((a) => this.mapAccount(a));
   }
 
   async updateAccount(
     id: string,
     updates: Partial<Account>,
-    tx: any = this.prisma,
+    tx: DbTx = this.prisma,
   ): Promise<Account> {
     const account = await tx.accountingAccount.update({
       where: { id },
@@ -66,7 +76,7 @@ export class PrismaAccountingRepository implements AccountingRepository {
 
   async createJournalEntry(
     dto: CreateJournalEntryDTO,
-    tx: any = this.prisma,
+    tx: DbTx = this.prisma,
   ): Promise<JournalEntry> {
     const entryNumber = `JE-${Date.now()}-${randomUUID().slice(0, 8)}`;
     const entry = await tx.accountingJournalEntry.create({
@@ -82,25 +92,25 @@ export class PrismaAccountingRepository implements AccountingRepository {
     return this.mapJournalEntry(entry);
   }
 
-  async getJournalEntryById(id: string, tx: any = this.prisma): Promise<JournalEntry | null> {
+  async getJournalEntryById(id: string, tx: DbTx = this.prisma): Promise<JournalEntry | null> {
     const entry = await tx.accountingJournalEntry.findUnique({ where: { id } });
     return entry ? this.mapJournalEntry(entry) : null;
   }
 
   async getJournalEntriesByTenant(
     tenantId: string,
-    tx: any = this.prisma,
+    tx: DbTx = this.prisma,
   ): Promise<JournalEntry[]> {
     const entries = await tx.accountingJournalEntry.findMany({
       where: { tenantId },
     });
-    return entries.map((e: any) => this.mapJournalEntry(e));
+    return entries.map((e) => this.mapJournalEntry(e));
   }
 
   async updateJournalEntryStatus(
     id: string,
     status: TransactionStatus,
-    tx: any = this.prisma,
+    tx: DbTx = this.prisma,
   ): Promise<JournalEntry> {
     const entry = await tx.accountingJournalEntry.update({
       where: { id },
@@ -114,9 +124,9 @@ export class PrismaAccountingRepository implements AccountingRepository {
 
   async createLedgerLines(
     lines: Omit<LedgerLine, "id" | "createdAt">[],
-    tx: any = this.prisma,
+    tx: DbTx = this.prisma,
   ): Promise<LedgerLine[]> {
-    const createdLines = await tx.$transaction(
+    const createdLines = await (tx as PrismaClient).$transaction(
       lines.map((line) =>
         tx.accountingLedgerLine.create({
           data: {
@@ -131,28 +141,28 @@ export class PrismaAccountingRepository implements AccountingRepository {
         }),
       ),
     );
-    return createdLines.map((l: any) => this.mapLedgerLine(l));
+    return createdLines.map((l) => this.mapLedgerLine(l));
   }
 
-  async getLedgerLinesByEntry(entryId: string, tx: any = this.prisma): Promise<LedgerLine[]> {
+  async getLedgerLinesByEntry(entryId: string, tx: DbTx = this.prisma): Promise<LedgerLine[]> {
     const lines = await tx.accountingLedgerLine.findMany({
       where: { entryId },
     });
-    return lines.map((l: any) => this.mapLedgerLine(l));
+    return lines.map((l) => this.mapLedgerLine(l));
   }
 
-  async getLedgerLinesByAccount(accountId: string, tx: any = this.prisma): Promise<LedgerLine[]> {
+  async getLedgerLinesByAccount(accountId: string, tx: DbTx = this.prisma): Promise<LedgerLine[]> {
     const lines = await tx.accountingLedgerLine.findMany({
       where: { accountId },
     });
-    return lines.map((l: any) => this.mapLedgerLine(l));
+    return lines.map((l) => this.mapLedgerLine(l));
   }
 
   async calculateAccountBalance(
     accountId: string,
     periodStart: Date,
     periodEnd: Date,
-    tx: any = this.prisma,
+    tx: DbTx = this.prisma,
   ): Promise<AccountBalance> {
     const account = await this.getAccountById(accountId, tx);
     if (!account) throw new Error("Account not found");
@@ -194,7 +204,7 @@ export class PrismaAccountingRepository implements AccountingRepository {
     tenantId: string,
     periodStart: Date,
     periodEnd: Date,
-    tx: any = this.prisma,
+    tx: DbTx = this.prisma,
   ): Promise<TrialBalance> {
     const accounts = await this.getAccountsByTenant(tenantId, tx);
     const balances = await Promise.all(
@@ -232,7 +242,7 @@ export class PrismaAccountingRepository implements AccountingRepository {
   async generateBalanceSheet(
     tenantId: string,
     asOfDate: Date,
-    tx: any = this.prisma,
+    tx: DbTx = this.prisma,
   ): Promise<BalanceSheet> {
     const periodStart = new Date(asOfDate.getFullYear(), 0, 1);
     const accounts = await this.getAccountsByTenant(tenantId, tx);
@@ -289,36 +299,36 @@ export class PrismaAccountingRepository implements AccountingRepository {
     // mocking to preserve the generic interface for this codebase pattern.
     return this.prisma;
   }
-  async commitTransaction(tx: unknown): Promise<void> {}
-  async rollbackTransaction(tx: unknown): Promise<void> {}
+  async commitTransaction(): Promise<void> {}
+  async rollbackTransaction(): Promise<void> {}
 
-  private mapAccount(row: any): Account {
+  private mapAccount(row: AccountRow): Account {
     return {
       id: row.id,
       tenantId: row.tenantId,
       code: row.code,
       name: row.name,
       type: row.type as AccountType,
-      parentId: row.parentId,
-      currency: row.currency,
+      parentId: row.parentId ?? undefined,
+      currency: row.currency ?? "USD",
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };
   }
-  private mapJournalEntry(row: any): JournalEntry {
+  private mapJournalEntry(row: JournalEntryRow): JournalEntry {
     return {
       id: row.id,
       tenantId: row.tenantId,
       entryNumber: row.entryNumber,
       description: row.description,
       status: row.status as TransactionStatus,
-      postedAt: row.postedAt,
+      postedAt: row.postedAt ?? undefined,
       createdAt: row.createdAt,
       createdBy: row.createdBy,
-      metadata: row.metadata,
+      metadata: (row.metadata as unknown as Record<string, unknown>) ?? undefined,
     };
   }
-  private mapLedgerLine(row: any): LedgerLine {
+  private mapLedgerLine(row: LedgerLineRow): LedgerLine {
     return {
       id: row.id,
       entryId: row.entryId,
@@ -326,9 +336,9 @@ export class PrismaAccountingRepository implements AccountingRepository {
       tenantId: row.tenantId,
       debitCents: Number(row.debitCents),
       creditCents: Number(row.creditCents),
-      description: row.description,
+      description: row.description ?? undefined,
       createdAt: row.createdAt,
-      metadata: row.metadata,
+      metadata: (row.metadata as unknown as Record<string, unknown>) ?? undefined,
     };
   }
 }

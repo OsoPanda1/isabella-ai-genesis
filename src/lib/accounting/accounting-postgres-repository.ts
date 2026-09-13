@@ -32,30 +32,68 @@ function deferredSql() {
   return neon(url);
 }
 
+type Sql = ReturnType<typeof deferredSql>;
+
+interface AccountRow {
+  id: string;
+  tenant_id: string;
+  code: string;
+  name: string;
+  type: string;
+  parent_id: string | null;
+  currency: string | null;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+interface JournalEntryRow {
+  id: string;
+  tenant_id: string;
+  entry_number: string;
+  description: string;
+  status: string;
+  posted_at: string | null;
+  created_at: string | Date;
+  created_by: string;
+  metadata: string | null;
+}
+
+interface LedgerLineRow {
+  id: string;
+  entry_id: string;
+  account_id: string;
+  tenant_id: string;
+  debit_cents: string | number;
+  credit_cents: string | number;
+  description: string | null;
+  created_at: string | Date;
+  metadata: string | null;
+}
+
 export class PostgresAccountingRepository implements AccountingRepository {
-  async createAccount(dto: CreateAccountDTO, tx: any = deferredSql()): Promise<Account> {
+  async createAccount(dto: CreateAccountDTO, tx: Sql = deferredSql()): Promise<Account> {
     const rows = await tx`
       INSERT INTO accounting_accounts (tenant_id, code, name, type, parent_id, currency)
       VALUES (${dto.tenantId}, ${dto.code}, ${dto.name}, ${dto.type}, ${dto.parentId || null}, ${dto.currency || "USD"})
       RETURNING *;
     `;
-    return this.mapAccount(rows[0]);
+    return this.mapAccount(rows[0] as unknown as AccountRow);
   }
 
-  async getAccountById(id: string, tx: any = deferredSql()): Promise<Account | null> {
+  async getAccountById(id: string, tx: Sql = deferredSql()): Promise<Account | null> {
     const rows = await tx`SELECT * FROM accounting_accounts WHERE id = ${id}`;
-    return rows[0] ? this.mapAccount(rows[0]) : null;
+    return rows[0] ? this.mapAccount(rows[0] as unknown as AccountRow) : null;
   }
 
-  async getAccountsByTenant(tenantId: string, tx: any = deferredSql()): Promise<Account[]> {
+  async getAccountsByTenant(tenantId: string, tx: Sql = deferredSql()): Promise<Account[]> {
     const rows = await tx`SELECT * FROM accounting_accounts WHERE tenant_id = ${tenantId}`;
-    return rows.map((r: any) => this.mapAccount(r));
+    return rows.map((r) => this.mapAccount(r as unknown as AccountRow));
   }
 
   async updateAccount(
     id: string,
     updates: Partial<Account>,
-    tx: any = deferredSql(),
+    tx: Sql = deferredSql(),
   ): Promise<Account> {
     // Basic dynamic update simulation for raw sql (neon)
     const existing = await this.getAccountById(id, tx);
@@ -68,12 +106,12 @@ export class PostgresAccountingRepository implements AccountingRepository {
       WHERE id = ${id}
       RETURNING *;
     `;
-    return this.mapAccount(rows[0]);
+    return this.mapAccount(rows[0] as unknown as AccountRow);
   }
 
   async createJournalEntry(
     dto: CreateJournalEntryDTO,
-    tx: any = deferredSql(),
+    tx: Sql = deferredSql(),
   ): Promise<JournalEntry> {
     const entryNumber = `JE-${Date.now()}-${randomUUID().slice(0, 8)}`;
     const rows = await tx`
@@ -81,26 +119,26 @@ export class PostgresAccountingRepository implements AccountingRepository {
       VALUES (${dto.tenantId}, ${entryNumber}, ${dto.description}, 'pending', ${dto.createdBy}, ${dto.metadata ? JSON.stringify(dto.metadata) : null})
       RETURNING *;
     `;
-    return this.mapJournalEntry(rows[0]);
+    return this.mapJournalEntry(rows[0] as unknown as JournalEntryRow);
   }
 
-  async getJournalEntryById(id: string, tx: any = deferredSql()): Promise<JournalEntry | null> {
+  async getJournalEntryById(id: string, tx: Sql = deferredSql()): Promise<JournalEntry | null> {
     const rows = await tx`SELECT * FROM accounting_journal_entries WHERE id = ${id}`;
-    return rows[0] ? this.mapJournalEntry(rows[0]) : null;
+    return rows[0] ? this.mapJournalEntry(rows[0] as unknown as JournalEntryRow) : null;
   }
 
   async getJournalEntriesByTenant(
     tenantId: string,
-    tx: any = deferredSql(),
+    tx: Sql = deferredSql(),
   ): Promise<JournalEntry[]> {
     const rows = await tx`SELECT * FROM accounting_journal_entries WHERE tenant_id = ${tenantId}`;
-    return rows.map((r: any) => this.mapJournalEntry(r));
+    return rows.map((r) => this.mapJournalEntry(r as unknown as JournalEntryRow));
   }
 
   async updateJournalEntryStatus(
     id: string,
     status: TransactionStatus,
-    tx: any = deferredSql(),
+    tx: Sql = deferredSql(),
   ): Promise<JournalEntry> {
     const postedAt = status === "posted" ? new Date().toISOString() : null;
     const rows = await tx`
@@ -109,12 +147,12 @@ export class PostgresAccountingRepository implements AccountingRepository {
       WHERE id = ${id}
       RETURNING *;
     `;
-    return this.mapJournalEntry(rows[0]);
+    return this.mapJournalEntry(rows[0] as unknown as JournalEntryRow);
   }
 
   async createLedgerLines(
     lines: Omit<LedgerLine, "id" | "createdAt">[],
-    tx: any = deferredSql(),
+    tx: Sql = deferredSql(),
   ): Promise<LedgerLine[]> {
     const created: LedgerLine[] = [];
     for (const line of lines) {
@@ -123,7 +161,7 @@ export class PostgresAccountingRepository implements AccountingRepository {
         VALUES (${line.entryId}, ${line.accountId}, ${line.tenantId}, ${line.debitCents}, ${line.creditCents}, ${line.description || null}, ${line.metadata ? JSON.stringify(line.metadata) : null})
         RETURNING *;
       `;
-      created.push(this.mapLedgerLine(rows[0]));
+      created.push(this.mapLedgerLine(rows[0] as unknown as LedgerLineRow));
     }
     return created;
   }
@@ -159,7 +197,7 @@ export class PostgresAccountingRepository implements AccountingRepository {
           dto.metadata ? JSON.stringify(dto.metadata) : null,
         ],
       );
-      const entry = this.mapJournalEntry(entryRows.rows[0]);
+      const entry = this.mapJournalEntry(entryRows.rows[0] as unknown as JournalEntryRow);
       const lines: LedgerLine[] = [];
       for (const line of dto.lines) {
         const lineRows = await client.query(
@@ -176,7 +214,7 @@ export class PostgresAccountingRepository implements AccountingRepository {
             line.description ? JSON.stringify({ note: line.description }) : null,
           ],
         );
-        lines.push(this.mapLedgerLine(lineRows.rows[0]));
+        lines.push(this.mapLedgerLine(lineRows.rows[0] as unknown as LedgerLineRow));
       }
       await client.query("COMMIT");
       return { entry, lines };
@@ -189,21 +227,21 @@ export class PostgresAccountingRepository implements AccountingRepository {
     }
   }
 
-  async getLedgerLinesByEntry(entryId: string, tx: any = deferredSql()): Promise<LedgerLine[]> {
+  async getLedgerLinesByEntry(entryId: string, tx: Sql = deferredSql()): Promise<LedgerLine[]> {
     const rows = await tx`SELECT * FROM accounting_ledger_lines WHERE entry_id = ${entryId}`;
-    return rows.map((r: any) => this.mapLedgerLine(r));
+    return rows.map((r) => this.mapLedgerLine(r as unknown as LedgerLineRow));
   }
 
-  async getLedgerLinesByAccount(accountId: string, tx: any = deferredSql()): Promise<LedgerLine[]> {
+  async getLedgerLinesByAccount(accountId: string, tx: Sql = deferredSql()): Promise<LedgerLine[]> {
     const rows = await tx`SELECT * FROM accounting_ledger_lines WHERE account_id = ${accountId}`;
-    return rows.map((r: any) => this.mapLedgerLine(r));
+    return rows.map((r) => this.mapLedgerLine(r as unknown as LedgerLineRow));
   }
 
   async calculateAccountBalance(
     accountId: string,
     periodStart: Date,
     periodEnd: Date,
-    tx: any = deferredSql(),
+    tx: Sql = deferredSql(),
   ): Promise<AccountBalance> {
     const account = await this.getAccountById(accountId, tx);
     if (!account) throw new Error("Account not found");
@@ -239,7 +277,7 @@ export class PostgresAccountingRepository implements AccountingRepository {
     tenantId: string,
     periodStart: Date,
     periodEnd: Date,
-    tx: any = deferredSql(),
+    tx: Sql = deferredSql(),
   ): Promise<TrialBalance> {
     const accounts = await this.getAccountsByTenant(tenantId, tx);
     const accountBalances = await Promise.all(
@@ -277,7 +315,7 @@ export class PostgresAccountingRepository implements AccountingRepository {
   async generateBalanceSheet(
     tenantId: string,
     asOfDate: Date,
-    tx: any = deferredSql(),
+    tx: Sql = deferredSql(),
   ): Promise<BalanceSheet> {
     const periodStart = new Date(asOfDate.getFullYear(), 0, 1);
     const accounts = await this.getAccountsByTenant(tenantId, tx);
@@ -337,29 +375,29 @@ export class PostgresAccountingRepository implements AccountingRepository {
     throw new Error("Transacciones interactivas no soportadas: usar createJournalEntryAtomic().");
   }
 
-  async commitTransaction(_tx: unknown): Promise<void> {
+  async commitTransaction(): Promise<void> {
     throw new Error("Transacciones interactivas no soportadas: usar createJournalEntryAtomic().");
   }
 
-  async rollbackTransaction(_tx: unknown): Promise<void> {
+  async rollbackTransaction(): Promise<void> {
     throw new Error("Transacciones interactivas no soportadas: usar createJournalEntryAtomic().");
   }
 
-  private mapAccount(row: any): Account {
+  private mapAccount(row: AccountRow): Account {
     return {
       id: row.id,
       tenantId: row.tenant_id,
       code: row.code,
       name: row.name,
       type: row.type as AccountType,
-      parentId: row.parent_id,
-      currency: row.currency,
+      parentId: row.parent_id ?? undefined,
+      currency: row.currency ?? "USD",
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     };
   }
 
-  private mapJournalEntry(row: any): JournalEntry {
+  private mapJournalEntry(row: JournalEntryRow): JournalEntry {
     return {
       id: row.id,
       tenantId: row.tenant_id,
@@ -369,21 +407,21 @@ export class PostgresAccountingRepository implements AccountingRepository {
       postedAt: row.posted_at ? new Date(row.posted_at) : undefined,
       createdAt: new Date(row.created_at),
       createdBy: row.created_by,
-      metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+      metadata: row.metadata ? (JSON.parse(row.metadata) as Record<string, unknown>) : undefined,
     };
   }
 
-  private mapLedgerLine(row: any): LedgerLine {
+  private mapLedgerLine(row: LedgerLineRow): LedgerLine {
     return {
       id: row.id,
       entryId: row.entry_id,
       accountId: row.account_id,
       tenantId: row.tenant_id,
-      debitCents: row.debit_cents,
-      creditCents: row.credit_cents,
-      description: row.description,
+      debitCents: Number(row.debit_cents),
+      creditCents: Number(row.credit_cents),
+      description: row.description ?? undefined,
       createdAt: new Date(row.created_at),
-      metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+      metadata: row.metadata ? (JSON.parse(row.metadata) as Record<string, unknown>) : undefined,
     };
   }
 }

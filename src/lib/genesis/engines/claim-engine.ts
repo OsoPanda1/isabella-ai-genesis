@@ -1,25 +1,16 @@
-import {
-  Claim,
-  ClaimStatus,
-  DEFAULT_CLAIMS,
-  validateClaim,
-  validateClaimsRegistry,
-} from "../schemas/claim.schema";
+import { Claim, ClaimStatus, DEFAULT_CLAIMS, validateClaim } from "../schemas/claim.schema";
 import { Evidence } from "../schemas/evidence.schema";
 import { Finding } from "../schemas/finding.schema";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ScanResult, PatternMatch } from "../scanners/source-scanner";
-import { EnvScanResult } from "../scanners/environment-scanner";
-import { SecurityScanResult } from "../scanners/security-scanner";
-import { DatabaseScanResult } from "../scanners/database-scanner";
+import { ScanResult } from "../scanners/source-scanner";
+import { SecurityScanResult, VulnerabilityFinding } from "../scanners/security-scanner";
+import { DatabaseScanResult, DetectedEngine } from "../scanners/database-scanner";
 import { FinancialScanResult } from "../scanners/financial-scanner";
-import { AuthScanResult } from "../scanners/auth-scanner";
-import { CIScanResult } from "../scanners/ci-scanner";
-import { SupplyChainScanResult } from "../scanners/supply-chain-scanner";
 import { GovernanceScanResult } from "../scanners/governance-scanner";
-import { TestDiscoveryResult, TestExecutionResult } from "../runners/test-runner";
+import { TestDiscoveryResult, TestExecutionResult, TestFile } from "../runners/test-runner";
+import { CodeArtifact } from "../graph/evidence-graph";
 import { getCiRunId, isCiEnvironment } from "../../config";
 
 export interface ClaimEngineConfig {
@@ -31,7 +22,7 @@ export class ClaimEngine {
   private claims: Map<string, Claim> = new Map();
   private claimEvidences: Map<string, Evidence[]> = new Map();
   private claimFindings: Map<string, Finding[]> = new Map();
-  private scanResults: Record<string, any> = {};
+  private scanResults: Record<string, unknown> = {};
   private testResults: TestDiscoveryResult | null = null;
   private testExecution: TestExecutionResult | null = null;
 
@@ -85,7 +76,7 @@ export class ClaimEngine {
     return this.claimFindings.get(claimId) ?? [];
   }
 
-  setScanResults(results: Record<string, any>): void {
+  setScanResults(results: Record<string, unknown>): void {
     this.scanResults = results;
     this.collectEvidenceFromScans();
   }
@@ -223,7 +214,7 @@ export class ClaimEngine {
       for (const op of finResult.operations) {
         const evidence: Evidence = {
           id: `ev-fin-${op.name}`,
-          claimId: this.mapFinancialOpToClaim(op),
+          claimId: "CLAIM-005",
           type: op.atomic && op.idempotent ? "INTEGRATION_TEST" : "SECURITY_TEST",
           source: "repository",
           provenance: "STATIC",
@@ -404,7 +395,7 @@ export class ClaimEngine {
     }
   }
 
-  private mapArtifactToClaim(artifact: any): string {
+  private mapArtifactToClaim(artifact: CodeArtifact): string {
     const file = artifact.file.toLowerCase();
     if (file.includes("sovereign") || file.includes("engine")) return "CLAIM-007";
     if (file.includes("bookpi") || file.includes("ledger") || file.includes("audit"))
@@ -424,7 +415,7 @@ export class ClaimEngine {
     return "CLAIM-001";
   }
 
-  private mapVulnToClaim(vuln: any): string {
+  private mapVulnToClaim(vuln: VulnerabilityFinding): string {
     const file = vuln.file.toLowerCase();
     if (file.includes("csp") || file.includes("content-security")) return "CLAIM-010";
     if (file.includes("sql") || file.includes("injection")) return "CLAIM-005";
@@ -433,7 +424,7 @@ export class ClaimEngine {
     return "CLAIM-003";
   }
 
-  private mapEngineToClaim(engine: any): string {
+  private mapEngineToClaim(engine: DetectedEngine): string {
     if (engine.type === "postgresql" || engine.type === "neon") return "CLAIM-006";
     if (engine.type === "supabase") return "CLAIM-006";
     if (engine.type === "json_files") return "CLAIM-007";
@@ -441,11 +432,7 @@ export class ClaimEngine {
     return "CLAIM-006";
   }
 
-  private mapFinancialOpToClaim(op: any): string {
-    return "CLAIM-005";
-  }
-
-  private mapTestFileToClaim(testFile: any): string {
+  private mapTestFileToClaim(testFile: TestFile): string {
     const file = testFile.file.toLowerCase();
     if (file.includes("audit") || file.includes("ledger") || file.includes("bookpi"))
       return "CLAIM-003";
@@ -466,7 +453,6 @@ export class ClaimEngine {
     const evidences = this.getEvidences(claimId);
     const findings = this.getFindings(claimId);
     const criticalFindings = findings.filter((f) => f.severity === "CRITICAL").length;
-    const highFindings = findings.filter((f) => f.severity === "HIGH").length;
     if (criticalFindings > 0) return "FAILED";
     const requiredTypes = claim.evidenceRequired;
     const coveredTypes = new Set(evidences.map((e) => e.type));

@@ -1,13 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { createHash } from "node:crypto";
-import {
-  Manifest,
-  ManifestSummary,
-  ManifestContext,
-  ManifestIntegrity,
-} from "../schemas/manifest.schema";
-import { Claim, Finding, Evidence } from "../schemas";
+import { Manifest, ManifestSummary, ManifestIntegrity } from "../schemas/manifest.schema";
+import { Claim, Finding } from "../schemas";
 import { EvidenceGraph } from "../graph/evidence-graph";
 
 export interface ReporterConfig {
@@ -434,8 +428,8 @@ export class SARIFReporter {
     return filePath;
   }
 
-  private generateRules(findings: Finding[]): any[] {
-    const rules: any[] = [];
+  private generateRules(findings: Finding[]): Array<Record<string, unknown>> {
+    const rules: Array<Record<string, unknown>> = [];
     const seen = new Set<string>();
 
     for (const finding of findings) {
@@ -465,7 +459,7 @@ export class SARIFReporter {
     return rules;
   }
 
-  private generateResults(findings: Finding[]): any[] {
+  private generateResults(findings: Finding[]): Array<Record<string, unknown>> {
     return findings.map((f) => ({
       ruleId: f.id,
       ruleIndex: 0,

@@ -1,14 +1,16 @@
 import { Claim, ClaimStatus, Evidence, Finding } from "../schemas";
 import { PolicyEngine } from "../engines/policy-engine";
-import {
-  EvidenceGraph,
-  createEvidenceGraphBuilder,
-  createEvidenceGraphAnalyzer,
-} from "../graph/evidence-graph";
+import { EvidenceGraph, createEvidenceGraphAnalyzer } from "../graph/evidence-graph";
 
 export interface VerificationConfig {
   policyEngine: PolicyEngine;
   evidenceGraph: EvidenceGraph;
+}
+
+interface GraphAnalysisView {
+  coverageAnalysis?: { coveragePercentage?: number };
+  confidenceAnalysis?: Array<{ claimId: string; confidenceScore: number }>;
+  contradictions?: Array<{ severity: "CRITICAL" | string }>;
 }
 
 export interface ClaimVerificationResult {
@@ -86,12 +88,16 @@ export class StatusDeterminator {
     };
   }
 
-  private calculateConfidence(claim: Claim, evidences: Evidence[], analysis: any): number {
+  private calculateConfidence(
+    claim: Claim,
+    evidences: Evidence[],
+    analysis: GraphAnalysisView,
+  ): number {
     const coverage = analysis.coverageAnalysis?.coveragePercentage ?? 0;
     const avgConfidence =
-      analysis.confidenceAnalysis?.find((c: any) => c.claimId === claim.id)?.confidenceScore ?? 0;
+      analysis.confidenceAnalysis?.find((c) => c.claimId === claim.id)?.confidenceScore ?? 0;
     const hasBlockingFindings =
-      analysis.contradictions?.some((c: any) => c.severity === "CRITICAL") ?? false;
+      analysis.contradictions?.some((c) => c.severity === "CRITICAL") ?? false;
 
     let confidence = (coverage / 100) * 0.4 + avgConfidence * 0.6;
     if (hasBlockingFindings) confidence *= 0.5;
@@ -126,7 +132,6 @@ export class CriteriaEvaluator {
   evaluateClaimCriteria(
     claim: Claim,
     evidences: Evidence[],
-    findings: Finding[],
   ): {
     passed: boolean;
     criteria: Array<{ criterion: string; passed: boolean; details: string }>;

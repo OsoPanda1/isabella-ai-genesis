@@ -1,4 +1,3 @@
-import { Command } from "commander";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createHash } from "node:crypto";
@@ -7,13 +6,9 @@ import { createClaimEngine } from "../engines/claim-engine";
 import { getCiRunId, isCiEnvironment, loadConfig } from "../../config";
 import { Claim } from "../schemas/claim.schema";
 import { DEFAULT_CLAIMS } from "../schemas/claim.schema";
-import { createPolicyEngine, PolicyEngine } from "../engines/policy-engine";
+import { createPolicyEngine } from "../engines/policy-engine";
 import { createFindingEngine, FindingEngine } from "../engines/finding-engine";
-import {
-  createEvidenceGraphBuilder,
-  EvidenceGraph,
-  createEvidenceGraphAnalyzer,
-} from "../graph/evidence-graph";
+import { createEvidenceGraphBuilder, EvidenceGraph } from "../graph/evidence-graph";
 import { createEvidenceStorage, EvidenceStorage } from "../evidence/storage";
 import { createSourceScanner, SourceScanner } from "../scanners/source-scanner";
 import { createEnvironmentScanner, EnvironmentScanner } from "../scanners/environment-scanner";
@@ -29,10 +24,10 @@ import {
   TestDiscovery,
   createTestExecutor,
   TestExecutor,
+  TestDiscoveryResult,
   TestExecutionResult,
 } from "../runners/test-runner";
 import { createStatusDeterminator, StatusDeterminator } from "../verification/status-determinator";
-import { createCriteriaEvaluator, CriteriaEvaluator } from "../verification/status-determinator";
 import {
   createEvidenceQualityChecker,
   EvidenceQualityChecker,
@@ -53,13 +48,12 @@ import {
   ManifestSummary,
   ManifestIntegrity,
 } from "../schemas/manifest.schema";
-import { Finding, ClaimStatus } from "../schemas";
+import { Finding } from "../schemas";
 import {
   evaluateReleaseGate,
   createEvidenceCoverageMeasurer,
   isClaimSatisfiedByStatus,
   ReleaseGateInput,
-  ReleaseGateResult,
 } from "../release/release-gate";
 
 export interface AuditOrchestratorConfig {
@@ -100,7 +94,6 @@ export class AuditOrchestrator {
 
   // Verification
   private statusDeterminator: StatusDeterminator;
-  private criteriaEvaluator: CriteriaEvaluator;
   private evidenceQualityChecker: EvidenceQualityChecker;
   private contradictionDetector: ContradictionDetector;
   private findingGenerator: FindingGenerator;
@@ -161,7 +154,6 @@ export class AuditOrchestrator {
       policyEngine: this.policyEngine,
       evidenceGraph,
     });
-    this.criteriaEvaluator = createCriteriaEvaluator(this.policyEngine);
     this.evidenceQualityChecker = createEvidenceQualityChecker();
     this.contradictionDetector = createContradictionDetector(evidenceGraph);
     this.findingGenerator = createFindingGenerator();
@@ -245,35 +237,39 @@ export class AuditOrchestrator {
     }
   }
 
-  private async runScanners(): Promise<any> {
-    const results: Record<string, any> = {};
+  private async runScanners(): Promise<Record<string, unknown>> {
+    const results: Record<string, unknown> = {};
 
-    const scanners = [
-      { name: "Source", scanner: this.sourceScanner, method: "scan" },
-      { name: "Environment", scanner: this.envScanner, method: "scan" },
-      { name: "Security", scanner: this.securityScanner, method: "scan" },
-      { name: "Database", scanner: this.dbScanner, method: "scan" },
-      { name: "Financial", scanner: this.financialScanner, method: "scan" },
-      { name: "Auth", scanner: this.authScanner, method: "scan" },
-      { name: "CI/CD", scanner: this.ciScanner, method: "scan" },
+    const scanners: Array<{
+      name: string;
+      scanner: { scan: () => Promise<unknown> | unknown };
+    }> = [
+      { name: "Source", scanner: this.sourceScanner },
+      { name: "Environment", scanner: this.envScanner },
+      { name: "Security", scanner: this.securityScanner },
+      { name: "Database", scanner: this.dbScanner },
+      { name: "Financial", scanner: this.financialScanner },
+      { name: "Auth", scanner: this.authScanner },
+      { name: "CI/CD", scanner: this.ciScanner },
       {
         name: "Supply Chain",
         scanner: this.supplyChainScanner,
-        method: "scan",
       },
-      { name: "Governance", scanner: this.governanceScanner, method: "scan" },
+      { name: "Governance", scanner: this.governanceScanner },
     ];
 
-    for (const { name, scanner, method } of scanners) {
+    for (const { name, scanner } of scanners) {
       console.log(`  🔍 Running ${name} Scanner...`);
       try {
-        const result = (scanner as any)[method]();
+        const result = (await Promise.resolve(scanner.scan())) as {
+          statistics?: { totalFiles?: number };
+          findings?: Array<{ severity: string }>;
+        };
         results[name.toLowerCase()] = result;
         console.log(`    ✅ ${name} Scanner completed`);
 
         if (this.config.failFast && result.statistics) {
-          const critical =
-            result.findings?.filter((f: any) => f.severity === "CRITICAL").length ?? 0;
+          const critical = result.findings?.filter((f) => f.severity === "CRITICAL").length ?? 0;
           if (critical > 0) {
             console.log(`    ⚠️ ${critical} critical findings - failing fast`);
             if (this.config.failFast) throw new Error(`Critical findings in ${name} scanner`);
@@ -292,7 +288,7 @@ export class AuditOrchestrator {
     return results;
   }
 
-  private async runTests(): Promise<any> {
+  private async runTests(): Promise<TestDiscoveryResult & { execution?: TestExecutionResult }> {
     console.log("  🔍 Discovering tests...");
     const discovery = this.testDiscovery.discover();
     console.log(`    Found ${discovery.totalTests} tests in ${discovery.testFiles.length} files`);
@@ -322,7 +318,10 @@ export class AuditOrchestrator {
     return { ...discovery, execution };
   }
 
-  private async correlateEvidence(scanResults: any, testResults: any): Promise<void> {
+  private async correlateEvidence(
+    scanResults: Record<string, unknown>,
+    testResults: TestDiscoveryResult & { execution?: TestExecutionResult },
+  ): Promise<void> {
     // Add claims to graph
     for (const claim of DEFAULT_CLAIMS) {
       this.evidenceGraphBuilder.addClaim(claim);
@@ -343,8 +342,6 @@ export class AuditOrchestrator {
 
   private async verifyAndGenerateFindings(): Promise<void> {
     const claims = this.claimEngine.getAllClaims();
-    const allFindings = this.findingEngine.getAllFindings();
-    const graph = this.evidenceGraphBuilder.build();
 
     for (const claim of claims) {
       const evidences = this.claimEngine.getEvidences(claim.id);
@@ -352,9 +349,6 @@ export class AuditOrchestrator {
 
       // Determine status
       const verification = this.statusDeterminator.determineStatus(claim, evidences, findings);
-
-      // Evaluate criteria
-      const criteria = this.criteriaEvaluator.evaluateClaimCriteria(claim, evidences, findings);
 
       // Generate findings from gaps
       if (!verification.meetsRequirements) {
@@ -394,7 +388,6 @@ export class AuditOrchestrator {
     const claims = this.claimEngine.getAllClaims();
     const findings = this.findingEngine.getAllFindings();
     const graph = this.evidenceGraphBuilder.build();
-    const graphAnalysis = createEvidenceGraphAnalyzer(graph).analyze();
 
     // Calculate summary with real evidence + release gate (P0-90)
     const coverageMeasurer = createEvidenceCoverageMeasurer(claims, (claimId) =>
@@ -409,7 +402,7 @@ export class AuditOrchestrator {
         isClaimSatisfiedByStatus(this.claimEngine.evaluateClaimStatus(claimId)),
       domainEvidenceCoverage: (domainId) => coverageMeasurer.domainEvidenceCoverage(domainId),
     };
-    const summary = this.calculateSummary(claims, findings, graphAnalysis, gateInput);
+    const summary = this.calculateSummary(claims, findings, gateInput);
 
     // Create context
     const context: ManifestContext = {
@@ -458,7 +451,6 @@ export class AuditOrchestrator {
   private calculateSummary(
     claims: Claim[],
     findings: Finding[],
-    graphAnalysis: any,
     gateInput: ReleaseGateInput,
   ): ManifestSummary {
     const byStatus: Record<string, number> = {};

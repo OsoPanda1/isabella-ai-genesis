@@ -5,7 +5,7 @@ import type { Attachment } from "@/lib/attachments";
 // Validation schema for outgoing requests to the backend
 const ChatRequestSchema = z.object({
   text: z.string().optional(),
-  attachments: z.array(z.any()).optional(),
+  attachments: z.array(z.unknown()).optional(),
   context: z.string().default("isabella"),
 });
 
@@ -15,7 +15,7 @@ export function useIsabellaObservability() {
   const logLifecycleEvent = useCallback(
     (
       stage: "INIT" | "SANITIZATION" | "PAYLOAD_CONSTRUCTION" | "SEND" | "SUCCESS" | "ERROR",
-      details: any,
+      details: unknown,
     ) => {
       const timestamp = new Date().toISOString();
       // Solo desarrollo: details puede contener texto del usuario (privacidad).
