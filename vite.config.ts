@@ -18,7 +18,13 @@ export default defineConfig({
         return null;
       },
     },
-    tanstackStart(),
+    tanstackStart({
+      server: {
+        build: {
+          inlineCss: true,
+        },
+      },
+    }),
     nitro({ preset: "vercel", vercel: { functions: { runtime: "nodejs22.x" } } }),
     viteReact(),
     tailwindcss(),
