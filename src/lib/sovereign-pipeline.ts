@@ -171,8 +171,6 @@ export function createSovereignPipeline(opts?: {
       if (input.toolRequest) {
         const toolMeta = toolRegistry.lookup(input.toolRequest);
         if (toolMeta) {
-          // ARGUS sees the durable approval state before deciding whether the
-          // action is merely waiting for approval or can proceed.
           const approvalGranted = await hasMatchingApproval(input, opts?.approvalStore);
           policyResult = evaluatePolicy({
             tool: toolMeta,
@@ -211,8 +209,6 @@ export function createSovereignPipeline(opts?: {
       // ── FASE 5: DECIDE (CROWN routing ya calculado) ──────────
 
       // ── FASE 6: ACT (Execution Authority real) + AUDIT ───────
-      // Decide → Authorization → Approval → Execution → Validation → Audit.
-      // Sin toolRequest no hay ejecución (toolExecuted: false legítimo).
       let toolExecuted = false;
       if (input.toolRequest) {
         const authority = createExecutionAuthority({
@@ -287,8 +283,8 @@ export function createSovereignPipeline(opts?: {
     verifyAuditChain() {
       return (
         opts?.auditRepository?.verifyChain() ?? {
-          success: true,
-          error: "Sin repositorio de auditoría.",
+          success: false,
+          error: "Sin repositorio de auditoría; la cadena no puede verificarse.",
         }
       );
     },
