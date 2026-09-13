@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ObservabilityService } from "../../lib/telemetry/observability";
+import { getPersistedObservabilityOverview } from "../../lib/telemetry/observability-repository";
 
 export const Route = createFileRoute("/api/observability")({
   server: {
     handlers: {
-      GET: async () =>
-        new Response(
+      GET: async () => {
+        const snapshot = ObservabilityService.getSnapshot();
+        const persisted = await getPersistedObservabilityOverview();
+        return new Response(
           JSON.stringify({
             schema: "isabella.observability.v1",
             status: "ok",
@@ -24,10 +27,12 @@ export const Route = createFileRoute("/api/observability")({
               "middleware",
               "runtime-cache",
             ],
-            snapshot: ObservabilityService.getSnapshot(),
+            snapshot,
+            persisted,
           }),
           { headers: { "content-type": "application/json" } },
-        ),
+        );
+      },
     },
   },
 });
