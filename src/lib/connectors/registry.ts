@@ -47,7 +47,9 @@ function subject(context: PrincipalContext) {
 }
 
 function origin(request: Request): string {
-  const environment = config();
+  const environment = config() as typeof config extends () => infer T
+    ? T & Record<string, string | undefined>
+    : never;
   if (environment.NODE_ENV !== "production" && environment.V0_RUNTIME_URL) {
     return environment.V0_RUNTIME_URL;
   }
