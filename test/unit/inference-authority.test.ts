@@ -94,6 +94,7 @@ describe("production authority (6 autoridades)", () => {
   it("en producción completa no aborta y todo está ok", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("ISABELLA_RUNTIME_MODE", "production");
+    vi.stubEnv("ISABELLA_STORAGE_PROVIDER", "postgres");
     // Blindar contra .env.local del desarrollador (Vite lo carga en proceso).
     vi.stubEnv("AUTH_DEV_SESSION_ENABLED", "false");
     vi.stubEnv("ALLOW_GUEST_CHAT", "false");
