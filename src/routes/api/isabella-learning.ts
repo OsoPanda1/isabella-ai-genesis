@@ -23,6 +23,19 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
+async function enforceLearningQuota(tenantId: string, ip: string) {
+  const limit = Math.max(1, Math.min(config().RATE_LIMIT_DEFAULT_PER_MINUTE, 120));
+  const [tenantLimit, clientLimit] = await Promise.all([
+    SecuritySystem.checkRateLimitDistributed(`learning-tenant:${tenantId}`, limit),
+    SecuritySystem.checkRateLimitDistributed(`learning-client:${ip}`, limit),
+  ]);
+  if (tenantLimit.degraded || clientLimit.degraded) {
+    return json({ error: "RATE_LIMIT_INFRASTRUCTURE_UNAVAILABLE" }, 503);
+  }
+  if (!tenantLimit.allowed || !clientLimit.allowed) return json({ error: "RATE_LIMITED" }, 429);
+  return null;
+}
+
 async function runtimeFor(tenantId: string, correlationId: string) {
   try {
     return await loadLearningRuntime(tenantId);
@@ -41,6 +54,8 @@ export const Route = createFileRoute("/api/isabella-learning")({
   server: {
     handlers: {
       GET: withSovereignAuth("system", "read", async (context, request) => {
+        const quotaResponse = await enforceLearningQuota(context.tenantId, context.ip);
+        if (quotaResponse) return quotaResponse;
         const runtime = await runtimeFor(context.tenantId, context.correlationId);
         if ("error" in runtime) return json({ error: runtime.error }, 503);
         const url = new URL(request.url);
@@ -75,6 +90,8 @@ export const Route = createFileRoute("/api/isabella-learning")({
       }),
 
       POST: withSovereignAuth("system", "execute", async (context, request) => {
+        const quotaResponse = await enforceLearningQuota(context.tenantId, context.ip);
+        if (quotaResponse) return quotaResponse;
         let body: unknown;
         try {
           body = await readJsonBody(request, config().INPUT_MAX_BODY_BYTES);
