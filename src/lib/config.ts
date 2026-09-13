@@ -102,10 +102,10 @@ export function loadConfig(source: RawEnv = process.env): Env {
       ((source.DATABASE_URL ??
         source.NEON_DATABASE_POSTGRES_URL ??
         source.POSTGRES_PRISMA_URL ??
-        source.POSTGRES_URL_NON_POOLING) && isProductionLikeRaw
+        source.POSTGRES_URL_NON_POOLING) &&
+      isProductionLikeRaw
         ? "neon"
-        : !isProductionLikeRaw &&
-            (source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL)
+        : !isProductionLikeRaw && (source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL)
           ? "postgres"
           : undefined),
   };

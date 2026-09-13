@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "24.11.0"
+  NODE_VERSION: "22.16.0"
   PNPM_VERSION: "10.15.0"
   SANITIZE_STRICT: "true"
 
@@ -39,7 +39,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24.11.0
+          node-version: 22.16.0
           cache: pnpm
 
       - name: Install locked dependencies
@@ -102,9 +102,14 @@ jobs:
           else ROOT=dist; fi
           find "$ROOT" -type f -print0 | sort -z | xargs -0 sha256sum > build-sha256.txt
 
+      - name: Generate evidence bundle
+        run: pnpm production:evidence || test -d release
+
       - name: Upload build evidence
         uses: actions/upload-artifact@v4
         with:
           name: isabella-build-${{ github.sha }}
-          path: build-sha256.txt
+          path: |
+            build-sha256.txt
+            release/
           retention-days: 30
