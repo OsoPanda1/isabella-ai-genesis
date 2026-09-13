@@ -34,6 +34,7 @@
     "db:restore": "node scripts/db-restore.mjs",
     "capabilities": "node scripts/capability-matrix.mjs --check",
     "audit:routes": "node scripts/genesis-route-audit.mjs",
+    "audit:repository": "node scripts/repository-audit.mjs",
     "security:scan": "eslint . --config eslint.security.mjs && node scripts/secret-scan.mjs",
     "production:preflight": "node scripts/production-preflight.mjs",
     "production:integrity": "node scripts/production-integrity-gate.mjs",

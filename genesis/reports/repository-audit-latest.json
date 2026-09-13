@@ -1,0 +1,16 @@
+{
+  "generatedAt": "2026-09-13T16:13:18.442Z",
+  "trackedFiles": 588,
+  "codeFiles": 424,
+  "documentationFiles": 65,
+  "riskSignals": {
+    "todo": 12,
+    "mocks": 113,
+    "consoleLogs": 92
+  },
+  "canonicalEntrypoints": {
+    "nativeML": "src/lib/native-ml/canonical-engine.ts",
+    "aiVault": "src/lib/governance/ai-vault.ts",
+    "openness": "docs/rfcs/RFC-0001-openness-cooperacion-cognitiva.md"
+  }
+}
