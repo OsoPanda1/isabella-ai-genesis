@@ -53,6 +53,7 @@ isabella_audit_store.json
 *.bak
 audit/
 coverage/
+release/
 
 # ---------------------------------------------------------------------------
 # PACKAGE MANAGERS — pnpm es canónico (packageManager). Solo pnpm-lock.yaml.

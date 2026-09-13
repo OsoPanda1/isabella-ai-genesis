@@ -11,7 +11,6 @@ const VERSION = "isabella-double-flow-v1";
 const PBKDF2_ITERATIONS = 120_000;
 const SALT_BYTES = 16;
 const IV_BYTES = 12;
-const TAG_BYTES = 16;
 
 export interface EncryptedEnvelope {
   version: typeof VERSION;

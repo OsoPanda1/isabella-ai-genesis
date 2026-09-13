@@ -83,6 +83,7 @@ pnpm test
 pnpm build
 pnpm production:integrity
 pnpm production:preflight
+pnpm production:evidence
 pnpm capabilities
 pnpm audit:routes
 pnpm audit:repository
@@ -102,6 +103,7 @@ Variables y proveedores se configuran en el entorno de despliegue. No se deben c
 ## Documentación normativa
 
 - [Auditoría integral 2026-09-13](./docs/audit-report-2026-09-13.md)
+- [Runbook de recuperación productiva](./docs/operations/PRODUCTION-RECOVERY-RUNBOOK.md)
 - [Índice RFC/ARC](./docs/RFC-ARC-INDEX.md)
 - [RFC de conectores gobernados](./docs/rfcs/RFC-0002-connectors-governed-por-usuario.md)
 - [Constitución FGAIS](./docs/governance/01-FGAIS-Governance-Constitution.md)

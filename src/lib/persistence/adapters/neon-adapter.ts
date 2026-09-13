@@ -75,7 +75,8 @@ export class NeonRepository<T extends object> implements IRepository<T> {
     const payload = { ...data, tenant_id: tenantId } as Record<string, unknown>;
     const row = toSnake(payload);
     if (options?.idempotencyKey && !row.id) row.id = options.idempotencyKey;
-    if (Object.keys(row).length === 0) throw toRepositoryError("create payload is empty", 400, tenantId);
+    if (Object.keys(row).length === 0)
+      throw toRepositoryError("create payload is empty", 400, tenantId);
     const cols = Object.keys(row).join(", ");
     const vals = Object.values(row);
     const placeholders = vals.map((_, i) => `$${i + 1}`).join(", ");
@@ -140,7 +141,8 @@ export class NeonRepository<T extends object> implements IRepository<T> {
   async update(tenantId: string, id: string, data: Partial<T>): Promise<T> {
     if (!tenantId) throw toRepositoryError("tenantId required for update", 400);
     const row = toSnake(data as Record<string, unknown>);
-    if (Object.keys(row).length === 0) throw toRepositoryError("update payload is empty", 400, tenantId);
+    if (Object.keys(row).length === 0)
+      throw toRepositoryError("update payload is empty", 400, tenantId);
     const sets = Object.keys(row)
       .map((k, i) => `${k} = $${i + 3}`)
       .join(", ");

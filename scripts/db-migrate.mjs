@@ -75,9 +75,7 @@ async function psql(args, options = {}) {
     const queryIndex = args.indexOf("-tAc");
     if (queryIndex !== -1) {
       const result = await client.query(args[queryIndex + 1]);
-      const stdout = result.rows
-        .map((row) => Object.values(row).join(" | "))
-        .join("\\n");
+      const stdout = result.rows.map((row) => Object.values(row).join(" | ")).join("\\n");
       return { status: 0, stdout, stderr: "" };
     }
     const fileIndex = args.indexOf("-f");
@@ -94,7 +92,11 @@ async function psql(args, options = {}) {
     }
     throw new Error("Unsupported migration command");
   } catch (error) {
-    return { status: 1, stdout: "", stderr: error instanceof Error ? error.message : String(error) };
+    return {
+      status: 1,
+      stdout: "",
+      stderr: error instanceof Error ? error.message : String(error),
+    };
   }
 }
 
@@ -328,7 +330,9 @@ try {
     stdio: "inherit",
   });
   if (result.status !== 0)
-    fail(`transaction failed; PostgreSQL rolled back the complete migration batch: ${result.stderr}`);
+    fail(
+      `transaction failed; PostgreSQL rolled back the complete migration batch: ${result.stderr}`,
+    );
 } finally {
   rmSync(workDir, { recursive: true, force: true });
 }

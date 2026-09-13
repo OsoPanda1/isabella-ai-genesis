@@ -38,6 +38,7 @@
     "security:scan": "eslint . --config eslint.security.mjs && node scripts/secret-scan.mjs",
     "production:preflight": "node scripts/production-preflight.mjs",
     "production:integrity": "node scripts/production-integrity-gate.mjs",
+    "production:evidence": "node scripts/production-evidence.mjs",
     "production:gate": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm production:integrity && pnpm production:preflight && pnpm capabilities && pnpm audit:routes",
     "postinstall": "prisma generate"
   },
