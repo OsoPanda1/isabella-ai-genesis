@@ -73,7 +73,7 @@ jobs:
         run: pnpm production:integrity
 
       - name: Production preflight
-        run: pnpm production:preflight
+        run: pnpm production:preflight -- --json
 
       - name: Production build
         env:
@@ -83,6 +83,17 @@ jobs:
       - name: Validate Vercel/Nitro output
         run: |
           test -f .vercel/output/config.json || test -d .output || test -d dist
+
+      - name: Runtime smoke (opt-in)
+        if: ${{ vars.RUNTIME_SMOKE_URL != '' }}
+        env:
+          RUNTIME_SMOKE_URL: ${{ vars.RUNTIME_SMOKE_URL }}
+        run: |
+          curl --fail-with-body --silent --show-error --location \
+            --max-time 20 \
+            --retry 2 \
+            --retry-delay 2 \
+            "$RUNTIME_SMOKE_URL/api/health/ready"
 
       - name: Build evidence
         run: |

@@ -2,6 +2,12 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = process.cwd();
+const jsonOutput = process.argv.includes("--json");
+const phases = {
+  STATIC_PREFLIGHT: "running",
+  EXTERNAL_DEPENDENCY_PREFLIGHT: "not-run",
+  RUNTIME_PREFLIGHT: "not-run",
+};
 const required = [
   "package.json",
   "pnpm-lock.yaml",
@@ -78,12 +84,29 @@ for (const [pattern, label] of [
   ["Automatic baseline is disabled", "unknown-baseline fail-closed gate"],
 ])
   if (!migrationRunner.includes(pattern)) errors.push(`Neon migration runner missing ${label}`);
+phases.STATIC_PREFLIGHT = errors.length ? "failed" : "passed";
 if (errors.length) {
-  console.error("Production preflight FAILED");
-  for (const error of errors) console.error(`- ${error}`);
+  const result = { status: "failed", phases, errors };
+  if (jsonOutput) console.log(JSON.stringify(result));
+  else {
+    console.error("Production preflight FAILED");
+    for (const error of errors) console.error(`- ${error}`);
+  }
   process.exit(1);
 }
-console.log("Production preflight OK");
-console.log(
-  `Validated ${required.length} production-critical files and canonical runtime/database contracts.`,
-);
+phases.EXTERNAL_DEPENDENCY_PREFLIGHT = "not-configured";
+phases.RUNTIME_PREFLIGHT = "not-configured";
+const result = {
+  status: "static_ready",
+  phases,
+  validatedFiles: required.length,
+  note: "Static validation passed; external dependencies and runtime smoke checks were not executed.",
+};
+if (jsonOutput) console.log(JSON.stringify(result));
+else {
+  console.log("Production preflight OK (static validation only)");
+  console.log(
+    `Validated ${required.length} production-critical files and canonical runtime/database contracts.`,
+  );
+  console.log("External dependency and runtime readiness require explicit environment checks.");
+}

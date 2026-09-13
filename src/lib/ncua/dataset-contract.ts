@@ -84,15 +84,21 @@ export function canonicalDocumentLine(document: SovereignDocument): string {
 }
 
 export function byteSizeOfDocuments(documents: readonly SovereignDocument[]): number {
-  return documents.reduce((total, document) => total + encodeUtf8(canonicalDocumentLine(document) + "\n").byteLength, 0);
+  return documents.reduce(
+    (total, document) => total + encodeUtf8(canonicalDocumentLine(document) + "\n").byteLength,
+    0,
+  );
 }
 
 export function buildManifest(
   documents: readonly SovereignDocument[],
   options: DatasetBuildOptions,
 ): SovereignDatasetManifest {
-  if (!options.version.trim() || !options.provenance.trim()) throw new Error("Dataset metadata is required");
-  const invalid = documents.flatMap((document) => validateDocument(document).map((error) => `${document.id}: ${error}`));
+  if (!options.version.trim() || !options.provenance.trim())
+    throw new Error("Dataset metadata is required");
+  const invalid = documents.flatMap((document) =>
+    validateDocument(document).map((error) => `${document.id}: ${error}`),
+  );
   if (invalid.length > 0) throw new Error(`Invalid sovereign dataset: ${invalid.join("; ")}`);
   const splits = { train: 0, validation: 0, test: 0 } satisfies Record<DatasetSplit, number>;
   for (const document of documents) splits[stableSplit(document.id, options.ratios)] += 1;
@@ -109,7 +115,9 @@ export function buildManifest(
 }
 
 function sortRecord(record: Record<string, string>): Record<string, string> {
-  return Object.fromEntries(Object.entries(record).sort(([left], [right]) => left.localeCompare(right)));
+  return Object.fromEntries(
+    Object.entries(record).sort(([left], [right]) => left.localeCompare(right)),
+  );
 }
 
 export function isDatasetSplit(value: string): value is DatasetSplit {
@@ -121,7 +129,8 @@ export function emptySplitCounts(): Record<DatasetSplit, number> {
 }
 
 export function assertManifest(manifest: SovereignDatasetManifest): void {
-  if (manifest.schema !== SOVEREIGN_DATASET_SCHEMA) throw new Error("Unsupported dataset manifest schema");
+  if (manifest.schema !== SOVEREIGN_DATASET_SCHEMA)
+    throw new Error("Unsupported dataset manifest schema");
   if (!manifest.version || !manifest.provenance) throw new Error("Incomplete dataset manifest");
   if (manifest.documents < 0 || manifest.bytes < 0) throw new Error("Invalid dataset totals");
   const shardRecords = manifest.shards.reduce((total, shard) => total + shard.records, 0);
