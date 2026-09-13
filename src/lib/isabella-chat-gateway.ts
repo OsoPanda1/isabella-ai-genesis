@@ -11,6 +11,7 @@ import {
 import { createSovereignPipeline } from "@/lib/sovereign-pipeline";
 import { parseSafeJsonBody } from "@/lib/input-limits";
 import { prepareIsabellaCognitiveRuntime } from "@/lib/isabella-cognitive-runtime";
+import { classifyTextRisk } from "@/lib/native-ml";
 import {
   IsabellaChatRequestSchema,
   standardError,
@@ -170,7 +171,8 @@ async function aiGatewaySse(
     system,
     messages: messages.map((message) => ({
       role: message.role,
-      content: typeof message.content === "string" ? message.content : "Analiza el material adjunto.",
+      content:
+        typeof message.content === "string" ? message.content : "Analiza el material adjunto.",
     })),
     temperature,
     maxOutputTokens: 8192,
@@ -181,7 +183,9 @@ async function aiGatewaySse(
       try {
         for await (const chunk of result.textStream) {
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: chunk } }] })}\\n\\n`),
+            encoder.encode(
+              `data: ${JSON.stringify({ choices: [{ delta: { content: chunk } }] })}\\n\\n`,
+            ),
           );
         }
         controller.enqueue(encoder.encode("data: [DONE]\\n\\n"));
@@ -317,6 +321,7 @@ export async function handleIsabellaChat(
   }
   const last = messages.at(-1)?.content;
   const lastUserMessage = typeof last === "string" ? last : "Analiza el material adjunto.";
+  const nativeTextSignal = classifyTextRisk(lastUserMessage);
   const intercept = LatamAegisXFirewall.interceptRequest(
     lastUserMessage,
     { qecErrorRate: 0 },
@@ -365,6 +370,7 @@ export async function handleIsabellaChat(
       `[ISABELLA_LEARNING] retrieval_failed trace=${context.traceId} error=${error instanceof Error ? error.message : "unknown"}`,
     );
   }
+  cognitiveSystem = `${cognitiveSystem} Señal ML nativa: riesgo=${nativeTextSignal.riskScore.toFixed(3)}, confianza=${nativeTextSignal.confidence.toFixed(3)}. Úsala solo como señal auxiliar; no sustituye la política ni la aprobación humana.`;
   const sanitizedCognitiveSystem = SecuritySystem.sanitizePayload(cognitiveSystem);
   if (sanitizedCognitiveSystem.flagged)
     return contractError(
