@@ -14,16 +14,35 @@ export class RequestLimitError extends Error {
 
 export function requestBodyLimitBytes(request: Request, configured: number): number {
   const parsed = Number.parseInt(request.headers.get("content-length") ?? "", 10);
-  if (Number.isFinite(parsed) && parsed > configured) throw new RequestLimitError("REQUEST_BODY_TOO_LARGE");
-  return Math.max(1024, Math.min(configured, 1_048_576));
+  const maxBytes = Math.max(1024, Math.min(configured, 1_048_576));
+  if (Number.isFinite(parsed) && parsed > maxBytes) throw new RequestLimitError("REQUEST_BODY_TOO_LARGE");
+  return maxBytes;
 }
 
 export async function readJsonBody(request: Request, configured: number): Promise<unknown> {
   const maxBytes = requestBodyLimitBytes(request, configured);
-  const body = await request.text();
-  if (new TextEncoder().encode(body).byteLength > maxBytes) {
-    throw new RequestLimitError("REQUEST_BODY_TOO_LARGE");
+  if (!request.body) return null;
+
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+  let totalBytes = 0;
+  let body = "";
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel("request_body_too_large");
+        throw new RequestLimitError("REQUEST_BODY_TOO_LARGE");
+      }
+      body += decoder.decode(value, { stream: true });
+    }
+    body += decoder.decode();
+  } finally {
+    reader.releaseLock();
   }
+
   try {
     return JSON.parse(body) as unknown;
   } catch {
