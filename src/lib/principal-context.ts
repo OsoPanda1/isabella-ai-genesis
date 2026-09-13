@@ -185,10 +185,7 @@ export class PrincipalContext {
       const isGuestAllowed = (() => {
         try {
           const cfg = config() as unknown as Record<string, unknown>;
-          return (
-            cfg.ALLOW_GUEST_CHAT === true ||
-            (cfg.NODE_ENV === "development" && cfg.AUTH_DEV_SESSION_ENABLED === true)
-          );
+          return cfg.ALLOW_GUEST_CHAT === true || cfg.NODE_ENV === "development";
         } catch {
           return false;
         }
@@ -274,7 +271,7 @@ export class PrincipalContext {
       const isGuestAllowed = (() => {
         try {
           const cfg = config() as unknown as Record<string, unknown>;
-          return cfg.ALLOW_GUEST_CHAT === true;
+          return cfg.ALLOW_GUEST_CHAT === true || cfg.NODE_ENV === "development";
         } catch {
           return false;
         }
@@ -531,13 +528,13 @@ export function withSovereignAuth(
       );
     }
 
-    const { CROWN, assessIntent, evaluatePolicy, createDefaultContext } = await import("./crown");
+    const { assessIntent, evaluatePolicy, createDefaultContext } = await import("./crown");
     const intent = assessIntent(`API Operation: ${resource}:${action}`);
     const identityAssessment = {
       authenticated: true,
       roles: [context.role],
       permissions: context.scope ? context.scope.split(" ") : [],
-      dataScopes: ["territorial"] as any,
+      dataScopes: ["territorial"] as ["territorial"],
     };
     const reqContext = createDefaultContext(`API Operation: ${resource}:${action}`, {
       actorId: context.userId,

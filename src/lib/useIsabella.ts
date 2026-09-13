@@ -59,19 +59,33 @@ function loadSession(): TerminalMessage[] | null {
     return null;
   }
 }
+const TRANSPORT_TEXT_LIMIT = 12_000;
+const TRANSPORT_ATTACHMENT_LIMIT = 8;
+
+function normalizeTransportText(value: string, fallback = "Analiza el material adjunto.") {
+  const normalized = value.trim().slice(0, TRANSPORT_TEXT_LIMIT);
+  return normalized || fallback;
+}
+
 function buildContent(text: string, attachments?: Attachment[]) {
-  if (!attachments?.length) return text;
-  const blocks: unknown[] = [{ type: "text", text: text || "Analiza el material adjunto." }];
-  for (const a of attachments) {
-    if (a.kind === "image") blocks.push({ type: "image_url", image_url: { url: a.dataUrl } });
-    else
-      blocks.push({
-        type: "input_audio",
-        input_audio: {
-          data: a.dataUrl.split(",")[1] ?? "",
-          format: audioFormatFromMime(a.mime),
-        },
-      });
+  const safeAttachments = attachments?.slice(0, TRANSPORT_ATTACHMENT_LIMIT) ?? [];
+  if (!safeAttachments.length) return normalizeTransportText(text);
+  const blocks: unknown[] = [{ type: "text", text: normalizeTransportText(text) }];
+  for (const a of safeAttachments) {
+    if (a.kind === "image" && a.dataUrl) {
+      blocks.push({ type: "image_url", image_url: { url: a.dataUrl.slice(0, 11_000_000) } });
+    } else if (a.kind === "audio" && a.dataUrl) {
+      const data = a.dataUrl.split(",")[1] ?? "";
+      if (data) {
+        blocks.push({
+          type: "input_audio",
+          input_audio: {
+            data: data.slice(0, 11_000_000),
+            format: audioFormatFromMime(a.mime),
+          },
+        });
+      }
+    }
   }
   return blocks;
 }
@@ -184,7 +198,7 @@ export function useIsabella() {
       const userMsg: TerminalMessage = {
         id: uid(),
         role: "user",
-        content: input.trim(),
+        content: effectiveText || normalizeTransportText(text),
         timestamp: now(),
         attachments,
       };
@@ -232,7 +246,7 @@ export function useIsabella() {
           },
           signal: controller.signal,
           body: JSON.stringify({
-            system: buildSystemPrompt(routing, preset) + skillContext,
+            system: (buildSystemPrompt(routing, preset) + skillContext).slice(0, 8000),
             temperature: preset.temperature,
             messages: history,
             context: validatedPayload.context,

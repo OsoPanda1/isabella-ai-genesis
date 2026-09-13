@@ -119,8 +119,16 @@ export const Route = createFileRoute("/api/billing")({
               });
             }
 
-            const costAmount = parseFloat(block.costDecimal);
-            const taxCents = Math.round(Math.abs(costAmount * 16)); // 16% IVA simulado
+            const costAmount = Number(block.costDecimal);
+            if (!Number.isFinite(costAmount) || costAmount < 0) {
+              return new Response(JSON.stringify({ error: "Importe de invoice inválido." }), {
+                status: 422,
+                headers,
+              });
+            }
+            const subtotalCents = Math.round(costAmount * 100);
+            const taxCents = Math.round((subtotalCents * 16) / 100); // IVA 16%, en centavos
+            const totalCents = subtotalCents + taxCents;
 
             return new Response(
               JSON.stringify({
@@ -132,9 +140,9 @@ export const Route = createFileRoute("/api/billing")({
                 userId: block.userId,
                 description: block.operation,
                 category: block.category,
-                subtotalUSD: costAmount,
+                subtotalUSD: subtotalCents / 100,
                 taxUSD: taxCents / 100,
-                totalUSD: costAmount,
+                totalUSD: totalCents / 100,
                 hashChain: {
                   blockHash: block.blockHash,
                   previousHash: block.previousHash,
@@ -173,10 +181,19 @@ export const Route = createFileRoute("/api/billing")({
             });
           }
 
-          return withSovereignAuth("audit", "read", async () => {
+          return withSovereignAuth("audit", "read", async (context) => {
             const indexInt = parseInt(blockIndex, 10);
-            const fullLedger = await sovereignStateRepository.getFullLedger();
-            const block = fullLedger.find((b) => b.index === indexInt);
+            if (!Number.isInteger(indexInt) || indexInt < 0) {
+              return new Response(JSON.stringify({ error: "Índice de bloque inválido." }), {
+                status: 400,
+                headers,
+              });
+            }
+            const tenantLedger = await sovereignStateRepository.getLedger(context.tenantId);
+            const block = tenantLedger.find(
+              (candidate) =>
+                candidate.index === indexInt && candidate.tenantId === context.tenantId,
+            );
 
             if (!block) {
               return new Response(JSON.stringify({ error: "Bloque de auditoría no encontrado." }), {
@@ -237,14 +254,17 @@ export const Route = createFileRoute("/api/billing")({
           // 1. CHECKOUT CREATION (STRIPE)
           if (action === "checkout") {
             return withSovereignAuth("system", "write", async (context) => {
-              const { planId } = body as { planId?: string };
-              if (!planId) {
-                return new Response(JSON.stringify({ error: "planId requerido." }), {
-                  status: 400,
-                  headers,
-                });
+              const parsed = z.object({ planId: z.enum(["pro", "enterprise"]) }).safeParse(body);
+              if (!parsed.success) {
+                return new Response(
+                  JSON.stringify({ error: "planId debe ser pro o enterprise." }),
+                  {
+                    status: 400,
+                    headers,
+                  },
+                );
               }
-
+              const { planId } = parsed.data;
               const stripe = getStripe();
               if (!stripe) {
                 return new Response(

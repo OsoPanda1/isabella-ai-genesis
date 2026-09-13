@@ -3,6 +3,7 @@ import { z } from "zod";
 import { CATALOG_ENTRIES } from "@/lib/api-catalog";
 import { routeRequest } from "@/lib/crown";
 import { SecuritySystem } from "@/lib/security";
+import { PrincipalContext } from "@/lib/principal-context";
 
 const executeSchema = z.object({
   id: z.string(),
@@ -75,7 +76,11 @@ export const Route = createFileRoute("/api/catalog")({
           }),
         );
 
-        const publicItems = items.map(({ mockResponse: _mockResponse, ...item }) => item);
+        const publicItems = items.map((item) => {
+          const { mockResponse: omittedResponse, ...publicItem } = item;
+          void omittedResponse;
+          return publicItem;
+        });
 
         return new Response(
           JSON.stringify({
@@ -89,7 +94,21 @@ export const Route = createFileRoute("/api/catalog")({
       },
 
       POST: async ({ request }) => {
-        const ip = request.headers.get("x-forwarded-for") || "local_client";
+        const authResult = await PrincipalContext.authorize(request, "isabella:chat");
+        if (!authResult.success) return authResult.response;
+        const { context } = authResult;
+        if (context.role === "Guest") {
+          return new Response(
+            JSON.stringify({ error: "Autenticación requerida para ejecutar contratos." }),
+            {
+              status: 401,
+              headers: SecuritySystem.injectSecureHeaders(
+                new Headers({ "content-type": "application/json" }),
+              ),
+            },
+          );
+        }
+        const ip = context.ip;
         const rateLimit = SecuritySystem.checkRateLimit(ip, 30); // 30 executions/min allowed
         if (!rateLimit.allowed) {
           const headers = SecuritySystem.injectSecureHeaders(
@@ -179,7 +198,8 @@ export const Route = createFileRoute("/api/catalog")({
             return new Response(
               JSON.stringify({
                 error: "CONTRACT_NOT_IMPLEMENTED",
-                message: "El contrato está registrado, pero no tiene un handler productivo conectado.",
+                message:
+                  "El contrato está registrado, pero no tiene un handler productivo conectado.",
                 contractId: id,
                 status: entry.status,
               }),
