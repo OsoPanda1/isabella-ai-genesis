@@ -1,7 +1,14 @@
+import { vi, beforeEach } from "vitest";
 import { describe, expect, it } from "vitest";
 import { runNativeComprehension } from "@/lib/native-comprehension";
 
 describe("native comprehension conectada al runtime", () => {
+  beforeEach(async () => {
+    vi.stubEnv("GEMINI_API_KEY", "");
+    vi.stubEnv("NODE_ENV", "development");
+    const { resetConfigCache } = await import("@/lib/config");
+    resetConfigCache();
+  });
   it("produce comprensión determinista con resumen auditable", () => {
     const result = runNativeComprehension({
       input: "¿Cuál es el estado del patrimonio documentado de Real del Monte?",

@@ -112,6 +112,7 @@ describe("production authority (6 autoridades)", () => {
     vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_1234567890abcdef");
     vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test_1234567890");
     vi.stubEnv("PROVISION_OWNER_TOKEN", "provision-owner-test-token");
+    vi.stubEnv("ISABELLA_STORAGE_PROVIDER", "postgres");
     vi.stubEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "https://otel.example.com");
     const { resetConfigCache } = await import("@/lib/config");
     resetConfigCache();

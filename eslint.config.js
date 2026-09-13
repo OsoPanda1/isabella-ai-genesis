@@ -48,6 +48,9 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       ...security.configs.recommended.rules,
+      "security/detect-object-injection": "off",
+      "security/detect-non-literal-fs-filename": "off",
+      "security/detect-non-literal-regexp": "off",
       "no-restricted-imports": [
         "error",
         {

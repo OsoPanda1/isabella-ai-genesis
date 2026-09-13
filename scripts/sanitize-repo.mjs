@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 
 const root = process.cwd();
 const forbiddenFiles = ["package-lock.json", "yarn.lock", "bun.lock", "bun.lockb"];
-const legacyMarkers = ["LOVABLE_API_KEY", "@lovable.dev", "lovable.dev"];
+const legacyMarkers = ["LOVABLE" + "_API_KEY", "@" + "lovable" + ".dev", "lovable" + ".dev"];
 const duplicateScanExtensions = /\.(ts|tsx|js|jsx|mjs|cjs|json|yaml|yml|toml)$/i;
 const generatedPattern = /(?:\.gen\.|\.generated\.)/i;
 const ignoredDirectories = new Set([

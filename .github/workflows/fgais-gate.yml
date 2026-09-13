@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: fgais-gate-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
   cancel-in-progress: true
 
 env:
@@ -33,13 +33,13 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: ${{ env.PNPM_VERSION }}
+          version: 10.15.0
           run_install: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: 24.11.0
           cache: pnpm
 
       - name: Install locked dependencies
@@ -85,7 +85,7 @@ jobs:
           test -f .vercel/output/config.json || test -d .output || test -d dist
 
       - name: Runtime smoke (opt-in)
-        if: ${{ vars.RUNTIME_SMOKE_URL != '' }}
+        if: vars.RUNTIME_SMOKE_URL != ''
         env:
           RUNTIME_SMOKE_URL: ${{ vars.RUNTIME_SMOKE_URL }}
         run: |

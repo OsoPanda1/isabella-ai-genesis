@@ -916,7 +916,8 @@ export const Route = createFileRoute("/api/db")({
                 tenantId: context.tenantId,
                 userId: context.userId,
                 operation: val.data.operation,
-                category: val.data.category as any,
+                category: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                val.data.category as any,
                 cost: val.data.cost,
                 tokens: val.data.tokens,
               });
@@ -928,7 +929,7 @@ export const Route = createFileRoute("/api/db")({
                 context.ip,
                 "Transacción Ledger Registrada",
                 "S3",
-                `Costo: $${(block as any).cost} debitado para el tenant aislado ${context.tenantId}`,
+                `Costo: $${val.data.cost} debitado para el tenant aislado ${context.tenantId}`,
                 context.tenantId,
               );
 
@@ -1339,7 +1340,8 @@ export const Route = createFileRoute("/api/db")({
                 tenantId: context.tenantId,
                 userId: context.userId,
                 operation: `MONETIZATION_CREDIT: ${description} (+$${(centsToAdd / 100).toFixed(2)} USD)`,
-                category: "other" as any,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    category: "other" as any,
                 cost: 0,
                 // no deduction for credits earned
                 tokens: 0,
@@ -1527,6 +1529,7 @@ export const Route = createFileRoute("/api/db")({
                     tenantId: context.tenantId,
                     userId: entry.userId,
                     operation: `MONETIZATION_EVENT: ${entry.type} (payoutId:${entry.payoutId || "N/A"}) (risk:${entry.riskScore || 0}) (idempotencyKey:${entry.idempotencyKey || "N/A"})`,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     category: "other" as any,
                     cost: cost,
                     tokens: 0,
