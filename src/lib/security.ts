@@ -309,13 +309,14 @@ export const SecuritySystem = {
 
   // --- LAYER 4: Hardened OWASP Secure Headers (No unsafe-eval, migration to nonce CSP) ---
   injectSecureHeaders(headers: Headers = new Headers()): Headers {
-    // TanStack hydration still requires inline bootstrap. The enforced policy is
-    // deliberately transitional and the nonce policy is Report-Only until the
-    // framework emits matching per-request nonces.
-    headers.set(
-      "Content-Security-Policy",
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' blob:; connect-src 'self' https://generativelanguage.googleapis.com https://*.supabase.co https://*.neon.tech; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
-    );
+    // Route handlers may already carry the stronger application CSP from server.ts.
+    // Do not overwrite it with a weaker policy when adding API response headers.
+    if (!headers.has("Content-Security-Policy")) {
+      headers.set(
+        "Content-Security-Policy",
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' blob:; connect-src 'self' https://generativelanguage.googleapis.com https://*.supabase.co https://*.neon.tech; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+      );
+    }
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("X-Frame-Options", "DENY");
     // Modern secure browsers ignore X-XSS-Protection or suffer from filter bypasses; 0 disables the legacy auditor safely

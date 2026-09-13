@@ -108,11 +108,11 @@ export function loadConfig(source: RawEnv = process.env): Env {
       source.SUPABASE_ANON_KEY?.trim() || source.SUPABASE_DATABASE_SUPABASE_ANON_KEY?.trim(),
     SUPABASE_JWT_SECRET:
       source.SUPABASE_JWT_SECRET?.trim() || source.SUPABASE_DATABASE_SUPABASE_JWT_SECRET?.trim(),
-    TURSO_AUTH_TOKEN: source.TURSO_AUTH_TOKEN ?? source.TURSO_AUTH_TOKEN_3,
-    TURSO_DATABASE_URL: source.TURSO_DATABASE_URL ?? source.TURSO_DATABASE_URL_3,
-    MUX_TOKEN_ID: source.MUX_TOKEN_ID ?? source.MUX_TOKEN_ID_3,
-    MUX_TOKEN_SECRET: source.MUX_TOKEN_SECRET ?? source.MUX_TOKEN_SECRET_3,
-    MUX_INTRO_ASSET_ID: source.MUX_INTRO_ASSET_ID ?? source.MUX_ASSET_ID,
+    TURSO_AUTH_TOKEN: source.TURSO_AUTH_TOKEN?.trim(),
+    TURSO_DATABASE_URL: source.TURSO_DATABASE_URL?.trim(),
+    MUX_TOKEN_ID: source.MUX_TOKEN_ID?.trim(),
+    MUX_TOKEN_SECRET: source.MUX_TOKEN_SECRET?.trim(),
+    MUX_INTRO_ASSET_ID: source.MUX_INTRO_ASSET_ID?.trim() || source.MUX_ASSET_ID?.trim(),
     ISABELLA_STORAGE_PROVIDER: source.ISABELLA_STORAGE_PROVIDER?.trim().toLowerCase(),
   };
 
