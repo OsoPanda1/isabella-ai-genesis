@@ -69,11 +69,31 @@ export function loadConfig(source: RawEnv = process.env): Env {
 
   const effectiveSource: RawEnv = {
     ...source,
+    ISABELLA_RUNTIME_MODE:
+      source.ISABELLA_RUNTIME_MODE?.trim() ||
+      (source.NODE_ENV === "production" ? "production" : "development"),
+    AUTH_DEV_SESSION_ENABLED:
+      source.AUTH_DEV_SESSION_ENABLED?.trim() ||
+      (source.NODE_ENV === "production" ? "false" : "true"),
+    ALLOW_GUEST_CHAT:
+      source.ALLOW_GUEST_CHAT?.trim() ||
+      (source.NODE_ENV === "production" ? "false" : "true"),
     DATABASE_URL:
       source.DATABASE_URL ??
       source.NEON_DATABASE_POSTGRES_URL ??
       source.NEON_DATABASE_DATABASE_URL ??
       source.SUPABASE_DATABASE_POSTGRES_URL,
+    AUTH_JWT_SECRET:
+      source.AUTH_JWT_SECRET?.trim() ||
+      source.SUPABASE_DATABASE_SUPABASE_JWT_SECRET?.trim() ||
+      source.SUPABASE_DATABASE_SUPABASE_SECRET_KEY?.trim() ||
+      source.SUPABASE_DATABASE_SUPABASE_SERVICE_ROLE_KEY?.trim(),
+    SUPABASE_URL:
+      source.SUPABASE_URL?.trim() || source.SUPABASE_DATABASE_SUPABASE_URL?.trim(),
+    SUPABASE_ANON_KEY:
+      source.SUPABASE_ANON_KEY?.trim() || source.SUPABASE_DATABASE_SUPABASE_ANON_KEY?.trim(),
+    SUPABASE_JWT_SECRET:
+      source.SUPABASE_JWT_SECRET?.trim() || source.SUPABASE_DATABASE_SUPABASE_JWT_SECRET?.trim(),
     TURSO_AUTH_TOKEN: source.TURSO_AUTH_TOKEN ?? source.TURSO_AUTH_TOKEN_3,
     TURSO_DATABASE_URL: source.TURSO_DATABASE_URL ?? source.TURSO_DATABASE_URL_3,
     ISABELLA_STORAGE_PROVIDER:

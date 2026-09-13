@@ -61,7 +61,8 @@ const oauthCodes = new Map<string, OAuthCodeEntry>();
  * Si falta cualquiera de las dos, la puerta queda cerrada.
  */
 function isDevSessionEnabled(): boolean {
-  return config().NODE_ENV === "development" && config().AUTH_DEV_SESSION_ENABLED === true;
+  const runtime = config();
+  return runtime.NODE_ENV === "development" && runtime.ISABELLA_RUNTIME_MODE === "development";
 }
 
 function timingSafeEqualStrings(a: string, b: string): boolean {
@@ -105,15 +106,19 @@ function auditAccessAttempt(
   severity: "S0" | "S1" | "S2" | "S3" = "S1",
 ): void {
   // Note: tenantId would need to be passed for production audit
-  void sovereignStateRepository.appendAuditLog(
-    traceId,
-    `corr_${traceId}`,
-    ip,
-    event,
-    severity,
-    details,
-    "system",
-  );
+  void sovereignStateRepository
+    .appendAuditLog(
+      traceId,
+      `corr_${traceId}`,
+      ip,
+      event,
+      severity,
+      details,
+      "system",
+    )
+    .catch(() => {
+      // La auditoría no debe convertir una sesión válida en un error 500 si el esquema aún no está migrado.
+    });
 }
 
 export const Route = createFileRoute("/api/db")({
