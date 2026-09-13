@@ -43,49 +43,12 @@ function assertDevelopmentOnly(): void {
   }
 }
 
-function guestContext(
-  ip: string,
-  traceId: string,
-  correlationId: string,
-): PrincipalContext {
-  const claims: TokenClaims = {
-    iss: "isabella.guest",
-    sub: "guest_user",
-    aud: "nodo_cero_rdm",
-    exp: Math.floor(Date.now() / 1000) + 3600,
-    tenantId: "nodo_cero_rdm",
-    role: "Guest" as Role,
-    scope: "isabella:chat",
-  };
-  return new PrincipalContext(
-    claims,
-    { id: "nodo_cero_rdm", slug: "nodo-cero", tier: "sovereign", quotaBalance: 0 },
-    "guest_user",
-    ip,
-    traceId,
-    correlationId,
-  );
+function guestContext(ip: string, traceId: string, correlationId: string): PrincipalContext {
+  return PrincipalContext.createGuestContext(ip, traceId, correlationId);
 }
 
 function devContext(ip: string, traceId: string, correlationId: string): PrincipalContext {
-  assertDevelopmentOnly();
-  const claims: TokenClaims = {
-    iss: "isabella.dev",
-    sub: "dev_user",
-    aud: "tenant-dev",
-    exp: Math.floor(Date.now() / 1000) + 3600,
-    tenantId: "tenant-dev",
-    role: "SovereignOwner" as Role,
-    scope: "isabella:chat isabella:voice isabella:tools",
-  };
-  return new PrincipalContext(
-    claims,
-    { id: "tenant-dev", slug: "dev", tier: "sovereign", quotaBalance: 9999 },
-    "dev_user",
-    ip,
-    traceId,
-    correlationId,
-  );
+  return PrincipalContext.createDevContext(ip, traceId, correlationId);
 }
 
 function sessionExpiryMillis(value: unknown): number | null {
@@ -131,6 +94,53 @@ export class PrincipalContext {
 
   public toRequestIdentity(): RequestIdentity {
     return { userId: this.userId, role: this.role, tenantId: this.tenantId, scope: this.scope };
+  }
+
+  public static createGuestContext(
+    ip: string,
+    traceId: string,
+    correlationId: string,
+  ): PrincipalContext {
+    return new PrincipalContext(
+      {
+        iss: "isabella.guest",
+        sub: "guest_user",
+        aud: "nodo_cero_rdm",
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        tenantId: "nodo_cero_rdm",
+        role: "Guest" as Role,
+        scope: "isabella:chat",
+      },
+      { id: "nodo_cero_rdm", slug: "nodo-cero", tier: "sovereign", quotaBalance: 0 },
+      "guest_user",
+      ip,
+      traceId,
+      correlationId,
+    );
+  }
+
+  public static createDevContext(
+    ip: string,
+    traceId: string,
+    correlationId: string,
+  ): PrincipalContext {
+    assertDevelopmentOnly();
+    return new PrincipalContext(
+      {
+        iss: "isabella.dev",
+        sub: "dev_user",
+        aud: "tenant-dev",
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        tenantId: "tenant-dev",
+        role: "SovereignOwner" as Role,
+        scope: "isabella:chat isabella:voice isabella:tools",
+      },
+      { id: "tenant-dev", slug: "dev", tier: "sovereign", quotaBalance: 9999 },
+      "dev_user",
+      ip,
+      traceId,
+      correlationId,
+    );
   }
 
   public static async authorize(
@@ -197,11 +207,18 @@ export class PrincipalContext {
           ),
         };
 
-      const expMillis = principal.expiresAt ? new Date(principal.expiresAt).getTime() : Date.now() + 86400000;
+      const expMillis = principal.expiresAt
+        ? new Date(principal.expiresAt).getTime()
+        : Date.now() + 86400000;
       if (!Number.isFinite(expMillis) || expMillis <= Date.now())
         return {
           success: false,
-          response: jsonError("Acceso Denegado: API Key expirada.", telemetry.traceId, 401, headers),
+          response: jsonError(
+            "Acceso Denegado: API Key expirada.",
+            telemetry.traceId,
+            401,
+            headers,
+          ),
         };
 
       const claims: TokenClaims = {
@@ -242,10 +259,16 @@ export class PrincipalContext {
       try {
         const cfg = config();
         if (canUseGuestChat(cfg) && (!requiredScope || requiredScope === "isabella:chat")) {
-          return { success: true, context: guestContext(ip, telemetry.traceId, telemetry.correlationId) };
+          return {
+            success: true,
+            context: guestContext(ip, telemetry.traceId, telemetry.correlationId),
+          };
         }
         if (isExplicitDevelopmentAuth(cfg)) {
-          return { success: true, context: devContext(ip, telemetry.traceId, telemetry.correlationId) };
+          return {
+            success: true,
+            context: devContext(ip, telemetry.traceId, telemetry.correlationId),
+          };
         }
       } catch {
         // Configuration failures must fall through to 401, never to a permissive fallback.
@@ -264,7 +287,12 @@ export class PrincipalContext {
     if (!/^Bearer\s+\S+$/i.test(authHeader))
       return {
         success: false,
-        response: jsonError("Acceso Denegado: formato Bearer inválido.", telemetry.traceId, 401, headers),
+        response: jsonError(
+          "Acceso Denegado: formato Bearer inválido.",
+          telemetry.traceId,
+          401,
+          headers,
+        ),
       };
 
     const token = authHeader.replace(/^Bearer\s+/i, "").trim();
@@ -281,7 +309,8 @@ export class PrincipalContext {
       };
 
     const claims = { ...verification.claims } as TokenClaims;
-    if (claims.role === "Guest" || (claims.role as string) === "guest") claims.scope = "isabella:chat";
+    if (claims.role === "Guest" || (claims.role as string) === "guest")
+      claims.scope = "isabella:chat";
 
     if (requiredScope) {
       const scopeCheck = await SecuritySystem.verifyApiScope(token, requiredScope);
@@ -323,7 +352,12 @@ export class PrincipalContext {
       if (typeof jti !== "string" || !jti)
         return {
           success: false,
-          response: jsonError("Acceso Denegado: token sin identificador de sesión.", telemetry.traceId, 401, headers),
+          response: jsonError(
+            "Acceso Denegado: token sin identificador de sesión.",
+            telemetry.traceId,
+            401,
+            headers,
+          ),
         };
 
       const { items: sessions } = await repositoryFactory
@@ -358,7 +392,12 @@ export class PrincipalContext {
         if (expiresMillis === null || expiresMillis <= Date.now())
           return {
             success: false,
-            response: jsonError("Acceso Denegado: sesión expirada o con fecha inválida.", telemetry.traceId, 401, headers),
+            response: jsonError(
+              "Acceso Denegado: sesión expirada o con fecha inválida.",
+              telemetry.traceId,
+              401,
+              headers,
+            ),
           };
       }
 
@@ -386,7 +425,8 @@ export function withSovereignAuth(
   handler: (context: PrincipalContext, request: Request, body?: unknown) => Promise<Response>,
 ) {
   return async ({ request }: { request: Request }): Promise<Response> => {
-    const requiredScope = resource === "system" && action === "execute" ? "isabella:chat" : undefined;
+    const requiredScope =
+      resource === "system" && action === "execute" ? "isabella:chat" : undefined;
     const authResult = await PrincipalContext.authorize(request, requiredScope);
     if (!authResult.success) return authResult.response;
 
@@ -473,7 +513,5 @@ export function withSovereignAuth(
 }
 
 function headersForJson(): Headers {
-  return SecuritySystem.injectSecureHeaders(
-    new Headers({ "content-type": "application/json" }),
-  );
+  return SecuritySystem.injectSecureHeaders(new Headers({ "content-type": "application/json" }));
 }

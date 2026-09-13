@@ -100,6 +100,7 @@ describe("production authority (6 autoridades)", () => {
     vi.stubEnv("DURABLE_JSON_ALLOWED", "false");
     vi.stubEnv("PUBLIC_URL", "https://isabella.example.com");
     vi.stubEnv("DATABASE_URL", "postgres://user:pass@localhost:5432/isabella");
+    vi.stubEnv("ISABELLA_STORAGE_PROVIDER", "postgres");
     vi.stubEnv("SUPABASE_URL", "https://xyz.supabase.co");
     vi.stubEnv("SUPABASE_ANON_KEY", "anon-key-value");
     vi.stubEnv("AUTH_JWT_SECRET", "0123456789abcdef0123456789abcdef");

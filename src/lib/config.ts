@@ -8,9 +8,7 @@ let loadError: string | null = null;
 function resolveEnv(source: RawEnv): Env {
   const parsed = envSchema.safeParse(source);
   if (!parsed.success) {
-    const issues = parsed.error.issues
-      .map((i) => `${i.path.join(".")}: ${i.message}`)
-      .join("; ");
+    const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
     throw new Error(`Configuración de entorno inválida: ${issues}`);
   }
   return parsed.data;
@@ -51,7 +49,7 @@ function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, pars
   const provider = rawProvider.trim().toLowerCase();
   if (provider !== "postgres" && provider !== "neon") {
     throw new Error(
-      `ISABELLA_STORAGE_PROVIDER=\"${provider}\" no es una autoridad durable válida en staging/production. Permitidos: postgres|neon.`,
+      `ISABELLA_STORAGE_PROVIDER="${provider}" no es una autoridad durable válida en staging/production. Permitidos: postgres|neon.`,
     );
   }
   if (parsed.ISABELLA_STORAGE_PROVIDER !== provider) {
@@ -92,7 +90,7 @@ export function loadConfig(source: RawEnv = process.env): Env {
     if (mode === "production" || mode === "staging") {
       if (parsed.NODE_ENV !== "production") {
         throw new Error(
-          `NODE_ENV=\"${parsed.NODE_ENV}\" es incompatible con ISABELLA_RUNTIME_MODE=\"${mode}\". Producción/staging requieren NODE_ENV=production.`,
+          `NODE_ENV="${parsed.NODE_ENV}" es incompatible con ISABELLA_RUNTIME_MODE="${mode}". Producción/staging requieren NODE_ENV=production.`,
         );
       }
       if (parsed.DURABLE_JSON_ALLOWED) {

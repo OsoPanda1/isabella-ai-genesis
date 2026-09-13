@@ -13,6 +13,15 @@ describe("configuration hardening", () => {
     expect(result.success).toBe(false);
   });
 
+  it("treats empty runtime mode values as unset and applies the default", () => {
+    expect(envSchema.safeParse({ ISABELLA_RUNTIME_MODE: "" }).data?.ISABELLA_RUNTIME_MODE).toBe(
+      "development",
+    );
+    expect(envSchema.safeParse({ ISABELLA_RUNTIME_MODE: "   " }).data?.ISABELLA_RUNTIME_MODE).toBe(
+      "development",
+    );
+  });
+
   it("requires explicit and authoritative development guest configuration", () => {
     expect(
       canUseGuestChat({

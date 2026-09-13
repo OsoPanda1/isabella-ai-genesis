@@ -1,12 +1,15 @@
 import { z } from "zod";
 
-export const runtimeModeSchema = z.enum([
+const enumish = <T extends readonly [string, ...string[]]>(values: T, def: T[number]) =>
+  z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.enum(values).default(def),
+  );
+
+export const runtimeModeSchema = enumish(
+  ["development", "staging", "production", "emergency", "maintenance"] as const,
   "development",
-  "staging",
-  "production",
-  "emergency",
-  "maintenance",
-]);
+);
 export type RuntimeMode = z.infer<typeof runtimeModeSchema>;
 const coercedInt = (def: number) => z.coerce.number().int().nonnegative().default(def);
 const optionalString = () =>
@@ -48,8 +51,8 @@ const bool = (def: boolean) =>
   );
 
 export const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  ISABELLA_RUNTIME_MODE: runtimeModeSchema.default("development"),
+  NODE_ENV: enumish(["development", "test", "production"] as const, "development"),
+  ISABELLA_RUNTIME_MODE: runtimeModeSchema,
   PUBLIC_URL: z.string().url().default("http://localhost:3000"),
   VERCEL_GIT_COMMIT_SHA: optionalString(),
   DATABASE_URL: optionalString(),
@@ -76,18 +79,20 @@ export const envSchema = z.object({
   CROWN_CONSTITUTION_VERSION: z.string().min(1).default("v4.2.0-sovereign"),
   CROWN_POLICY_SIGNING_KEY: optionalString(),
   AEGIS_AUDIT_SECRET: optionalMinString(32),
-  CROWN_ENFORCEMENT_MODE: z.enum(["enforce", "dry-run"]).default("enforce"),
-  BOOKPI_SIGNATURE_ALGORITHM: z
-    .enum(["ML-DSA-87", "ECDSA-P384", "RSA-SHA256"])
-    .default("ECDSA-P384"),
+  CROWN_ENFORCEMENT_MODE: enumish(["enforce", "dry-run"] as const, "enforce"),
+  BOOKPI_SIGNATURE_ALGORITHM: enumish(
+    ["ML-DSA-87", "ECDSA-P384", "RSA-SHA256"] as const,
+    "ECDSA-P384",
+  ),
   BOOKPI_SIGNING_KEY: optionalMinString(32),
   STRIPE_SECRET_KEY: optionalMinString(16),
   STRIPE_WEBHOOK_SECRET: optionalMinString(16),
   QUP_ZNE_LEVEL: coercedInt(3),
   QUP_PEC_ENABLED: bool(true),
-  QUP_QEC_DECODER: z
-    .enum(["mwpm", "uf", "tensor-network", "neural-network"])
-    .default("tensor-network"),
+  QUP_QEC_DECODER: enumish(
+    ["mwpm", "uf", "tensor-network", "neural-network"] as const,
+    "tensor-network",
+  ),
   QUP_STRICT_ISOLATION: bool(true),
   SANDBOX_ENABLED: bool(false),
   REDIS_URL: optionalString(),
@@ -125,9 +130,10 @@ export const envSchema = z.object({
   API_KEY_ROTATION_GRACE_SECONDS: coercedInt(300),
   API_KEY_RATE_LIMIT_DEFAULT: coercedInt(100),
   GENESIS_MAX_TEST_FILES: coercedInt(8),
-  ISABELLA_STORAGE_PROVIDER: z
-    .enum(["postgres", "neon", "supabase", "json", "memory"])
-    .default("postgres"),
+  ISABELLA_STORAGE_PROVIDER: enumish(
+    ["postgres", "neon", "supabase", "json", "memory"] as const,
+    "postgres",
+  ),
   DURABLE_JSON_ALLOWED: bool(false),
   ISABELLA_PAYOUT_CIRCUIT_CERTIFIED: bool(false),
   OLLAMA_ENABLED: bool(false),
