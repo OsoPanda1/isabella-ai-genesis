@@ -3,6 +3,9 @@ import { withSovereignAuth } from "@/lib/principal-context";
 import { SecuritySystem } from "@/lib/security";
 import { runIsabellaSkill } from "@/lib/skills/run-skill";
 import { listIsabellaSkills, type IsabellaSkillId } from "@/lib/skills/registry";
+import { parseSkillInput } from "@/lib/skills/input-schemas";
+import { config } from "@/lib/config";
+import { readJsonBody, RequestLimitError } from "@/lib/request-limits";
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -24,29 +27,34 @@ export const Route = createFileRoute("/api/isabella-skills")({
       POST: withSovereignAuth("system", "execute", async (context, request) => {
         let body: unknown;
         try {
-          body = await request.json();
-        } catch {
+          body = await readJsonBody(request, config().INPUT_MAX_BODY_BYTES);
+        } catch (error) {
+          if (error instanceof RequestLimitError) return json({ error: error.code }, 413);
           return json({ error: "INVALID_JSON" }, 400);
         }
-        if (!body || typeof body !== "object") return json({ error: "VALIDATION_ERROR" }, 400);
+        if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "VALIDATION_ERROR" }, 400);
         const payload = body as Record<string, unknown>;
         const skillId = typeof payload.skillId === "string" ? payload.skillId : "";
-        const input = payload.input;
         const known = listIsabellaSkills().some((skill) => skill.id === skillId);
         if (!known) return json({ error: "SKILL_NOT_FOUND", skills: listIsabellaSkills() }, 404);
-        if (!input || typeof input !== "object" || Array.isArray(input)) {
-          return json({ error: "INPUT_OBJECT_REQUIRED" }, 400);
+
+        const parsedInput = parseSkillInput(skillId as IsabellaSkillId, payload.input);
+        if (!parsedInput.success) {
+          return json(
+            { error: "INVALID_SKILL_INPUT", issues: parsedInput.error.issues },
+            400,
+          );
         }
 
-        const result = await runIsabellaSkill(skillId as IsabellaSkillId, input, {
+        const result = await runIsabellaSkill(skillId as IsabellaSkillId, parsedInput.data, {
           requestId: context.correlationId,
           actorId: context.userId,
           tenantId: context.tenantId,
           role: context.role,
           authenticated: context.role !== "Guest",
           ipAddress: context.ip,
-          intent: typeof payload.intent === "string" ? payload.intent : "API skill execution",
-          locale: typeof payload.locale === "string" ? payload.locale : "es-MX",
+          intent: typeof payload.intent === "string" ? payload.intent.slice(0, 2_000) : "API skill execution",
+          locale: typeof payload.locale === "string" ? payload.locale.slice(0, 32) : "es-MX",
         });
         const status = result.error ? (result.error.code === "CROWN_POLICY_DENY" ? 403 : 422) : 200;
         return json(result, status);
