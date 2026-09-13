@@ -6,7 +6,7 @@
   "sideEffects": false,
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "node scripts/check-env.mjs && vite dev --host 0.0.0.0",
