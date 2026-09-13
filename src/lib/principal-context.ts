@@ -110,7 +110,7 @@ export class PrincipalContext {
   public readonly correlationId: string;
   public readonly tenant: { id: string; slug: string; tier: string; quotaBalance: number };
 
-  private constructor(
+  public constructor(
     claims: TokenClaims,
     tenant: { id: string; slug: string; tier: string; quotaBalance: number },
     username: string,
