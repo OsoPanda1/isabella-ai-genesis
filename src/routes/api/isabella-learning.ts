@@ -8,6 +8,8 @@ import {
   LearningQueryApiSchema,
 } from "@/lib/isabella-learning-api";
 import { loadLearningRuntime, persistLearningRuntime } from "@/lib/isabella-learning-persistence";
+import { config } from "@/lib/config";
+import { readJsonBody, RequestLimitError } from "@/lib/request-limits";
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -21,13 +23,17 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
-async function runtimeFor(tenantId: string) {
+async function runtimeFor(tenantId: string, correlationId: string) {
   try {
     return await loadLearningRuntime(tenantId);
   } catch (error) {
-    return {
-      error: error instanceof Error ? error.message : "LEARNING_RUNTIME_UNAVAILABLE",
-    } as const;
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error("[isabella-learning] runtime unavailable", {
+      correlationId,
+      tenantId,
+      error: detail,
+    });
+    return { error: "LEARNING_RUNTIME_UNAVAILABLE" } as const;
   }
 }
 
@@ -35,7 +41,7 @@ export const Route = createFileRoute("/api/isabella-learning")({
   server: {
     handlers: {
       GET: withSovereignAuth("system", "read", async (context, request) => {
-        const runtime = await runtimeFor(context.tenantId);
+        const runtime = await runtimeFor(context.tenantId, context.correlationId);
         if ("error" in runtime) return json({ error: runtime.error }, 503);
         const url = new URL(request.url);
         const action = url.searchParams.get("action") ?? "snapshot";
@@ -71,12 +77,13 @@ export const Route = createFileRoute("/api/isabella-learning")({
       POST: withSovereignAuth("system", "execute", async (context, request) => {
         let body: unknown;
         try {
-          body = await request.json();
-        } catch {
+          body = await readJsonBody(request, config().INPUT_MAX_BODY_BYTES);
+        } catch (error) {
+          if (error instanceof RequestLimitError) return json({ error: error.code }, 413);
           return json({ error: "INVALID_JSON" }, 400);
         }
 
-        const runtime = await runtimeFor(context.tenantId);
+        const runtime = await runtimeFor(context.tenantId, context.correlationId);
         if ("error" in runtime) return json({ error: runtime.error }, 503);
         const action =
           typeof body === "object" && body !== null && "action" in body
