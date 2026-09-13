@@ -17,6 +17,7 @@ export * from "./privacy";
 export * from "./federations";
 export * from "./metrics";
 export * from "./pipeline";
+export * from "./dataset-contract";
 
 export interface NativeEngine {
   intent: NativeIntentClassifier;
