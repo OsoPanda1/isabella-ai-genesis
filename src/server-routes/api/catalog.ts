@@ -76,11 +76,7 @@ export const Route = createFileRoute("/api/catalog")({
           }),
         );
 
-        const publicItems = items.map((item) => {
-          const { mockResponse: omittedResponse, ...publicItem } = item;
-          void omittedResponse;
-          return publicItem;
-        });
+        const publicItems = items.map((item) => ({ ...item }));
 
         return new Response(
           JSON.stringify({
