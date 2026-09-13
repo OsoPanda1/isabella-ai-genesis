@@ -54,6 +54,8 @@ export const envSchema = z.object({
   VERCEL_GIT_COMMIT_SHA: optionalString(),
   DATABASE_URL: optionalString(),
   DATABASE_DIRECT_URL: optionalString(),
+  TURSO_DATABASE_URL: optionalUrl(),
+  TURSO_AUTH_TOKEN: optionalString(),
   INTERNAL_ORIGIN: optionalUrl(),
   SUPABASE_URL: optionalUrl(),
   SUPABASE_ANON_KEY: optionalString(),
