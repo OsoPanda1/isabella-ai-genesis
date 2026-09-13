@@ -6,7 +6,8 @@
 -- primary key (index, tenant_id), which made production append/refund paths
 -- fail against a freshly migrated database.
 --
--- This migration is additive and preserves the composite primary key.
+-- This migration is additive and preserves the composite primary key and the
+-- append-only status constraint already established by the canonical schema.
 -- ============================================================================
 
 ALTER TABLE public.bookpi_ledger
@@ -31,11 +32,3 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_bookpi_ledger_id
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_bookpi_ledger_tenant_nonce
   ON public.bookpi_ledger(tenant_id, nonce);
-
--- The TypeScript contract permits a pending state for durable processing.
--- Keep the append-only model; status is never mutated after insertion.
-ALTER TABLE public.bookpi_ledger
-  DROP CONSTRAINT IF EXISTS bookpi_ledger_status_check;
-ALTER TABLE public.bookpi_ledger
-  ADD CONSTRAINT bookpi_ledger_status_check
-  CHECK (status IN ('settled', 'pending', 'refunded'));
