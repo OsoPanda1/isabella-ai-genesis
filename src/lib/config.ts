@@ -96,6 +96,12 @@ export function loadConfig(source: RawEnv = process.env): Env {
       source.SUPABASE_JWT_SECRET?.trim() || source.SUPABASE_DATABASE_SUPABASE_JWT_SECRET?.trim(),
     TURSO_AUTH_TOKEN: source.TURSO_AUTH_TOKEN ?? source.TURSO_AUTH_TOKEN_3,
     TURSO_DATABASE_URL: source.TURSO_DATABASE_URL ?? source.TURSO_DATABASE_URL_3,
+    // Mux credentials may be provisioned under a numbered slot. Normalize them
+    // here so server routes never need to know which slot supplied the secret.
+    MUX_TOKEN_ID: source.MUX_TOKEN_ID ?? source.MUX_TOKEN_ID_3,
+    MUX_TOKEN_SECRET: source.MUX_TOKEN_SECRET ?? source.MUX_TOKEN_SECRET_3,
+    MUX_INTRO_ASSET_ID:
+      source.MUX_INTRO_ASSET_ID ?? source.MUX_ASSET_ID,
     ISABELLA_STORAGE_PROVIDER:
       source.ISABELLA_STORAGE_PROVIDER ??
       (!isProductionLikeRaw && (source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL)
