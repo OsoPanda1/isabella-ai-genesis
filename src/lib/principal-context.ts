@@ -9,14 +9,34 @@ import { runWithIdentity, type RequestIdentity } from "./identity-context";
 
 function assertDevelopmentOnly(): void {
   const cfg = config();
-  const nodeEnv = cfg.NODE_ENV;
-  const runtimeMode = cfg.ISABELLA_RUNTIME_MODE;
-  const devSessionEnabled = cfg.AUTH_DEV_SESSION_ENABLED;
-  if (nodeEnv !== "development" || runtimeMode !== "development" || devSessionEnabled !== true) {
+  if (!isExplicitDevelopmentAuth(cfg)) {
     throw new Error(
       "[SovereignGuard Violation] Intento ilícito de activar fallback de desarrollo en entorno de producción/producción-crítica.",
     );
   }
+}
+
+export function isExplicitDevelopmentAuth(cfg: {
+  NODE_ENV?: string;
+  ISABELLA_RUNTIME_MODE?: string;
+  AUTH_DEV_SESSION_ENABLED?: boolean;
+}): boolean {
+  return (
+    cfg.NODE_ENV === "development" &&
+    cfg.ISABELLA_RUNTIME_MODE === "development" &&
+    cfg.AUTH_DEV_SESSION_ENABLED === true
+  );
+}
+
+export function canUseGuestChat(cfg: {
+  ALLOW_GUEST_CHAT?: boolean;
+  NODE_ENV?: string;
+  ISABELLA_RUNTIME_MODE?: string;
+}): boolean {
+  return (
+    cfg.ALLOW_GUEST_CHAT === true &&
+    (cfg.NODE_ENV === "development" || cfg.ISABELLA_RUNTIME_MODE === "development")
+  );
 }
 
 export class PrincipalContext {
@@ -184,8 +204,7 @@ export class PrincipalContext {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       const isGuestAllowed = (() => {
         try {
-          const cfg = config() as unknown as Record<string, unknown>;
-          return cfg.ALLOW_GUEST_CHAT === true || cfg.NODE_ENV === "development";
+          return canUseGuestChat(config());
         } catch {
           return false;
         }
@@ -270,8 +289,7 @@ export class PrincipalContext {
     if (!verification.success || !verification.claims) {
       const isGuestAllowed = (() => {
         try {
-          const cfg = config() as unknown as Record<string, unknown>;
-          return cfg.ALLOW_GUEST_CHAT === true || cfg.NODE_ENV === "development";
+          return canUseGuestChat(config());
         } catch {
           return false;
         }
