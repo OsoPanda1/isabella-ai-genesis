@@ -9,7 +9,7 @@ import {
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Component, useEffect, type ErrorInfo, type ReactNode } from "react";
 
-import appCss from "../styles.css?url";
+import appCss from "../styles.css?inline";
 
 function NotFoundComponent() {
   return (
@@ -91,7 +91,6 @@ export const Route = createRootRouteWithContext()({
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
@@ -104,9 +103,10 @@ export const Route = createRootRouteWithContext()({
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className="bg-background">
-      <head>
-        <HeadContent />
-      </head>
+        <head>
+          <HeadContent />
+          <style dangerouslySetInnerHTML={{ __html: appCss }} />
+        </head>
       <body>
         {children}
         <SpeedInsights />
