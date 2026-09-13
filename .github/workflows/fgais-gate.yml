@@ -103,7 +103,7 @@ jobs:
           find "$ROOT" -type f -print0 | sort -z | xargs -0 sha256sum > build-sha256.txt
 
       - name: Generate evidence bundle
-        run: pnpm production:evidence || test -d release
+        run: pnpm production:evidence
 
       - name: Upload build evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
