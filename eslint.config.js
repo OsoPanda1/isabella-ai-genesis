@@ -12,8 +12,11 @@ export default tseslint.config(
     ignores: [
       "dist",
       ".output",
+      ".vercel",
       ".vinxi",
       "**/routeTree.gen.ts",
+      "src/generated/prisma/**/*",
+      "prisma.config.ts",
       "coverage",
       "test",
       "test/**/*",
