@@ -55,36 +55,41 @@ function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, pars
   if (parsed.ISABELLA_STORAGE_PROVIDER !== provider) {
     throw new Error("ISABELLA_STORAGE_PROVIDER no coincide con el proveedor normalizado.");
   }
+
+  if (typeof source.DATABASE_URL !== "string" || source.DATABASE_URL.trim() === "") {
+    throw new Error("DATABASE_URL debe declararse explícitamente como autoridad durable única en staging/production.");
+  }
+
+  const providerAliases = [
+    "NEON_DATABASE_POSTGRES_URL",
+    "NEON_DATABASE_DATABASE_URL",
+    "POSTGRES_PRISMA_URL",
+    "POSTGRES_URL_NON_POOLING",
+    "SUPABASE_DATABASE_POSTGRES_URL",
+  ] as const;
+  const conflictingAliases = providerAliases.filter((key) => {
+    const value = source[key];
+    return typeof value === "string" && value.trim() !== "" && value.trim() !== source.DATABASE_URL?.trim();
+  });
+  if (conflictingAliases.length > 0) {
+    throw new Error(
+      `DATABASE_URL es la única autoridad durable permitida en staging/production; variables alternativas detectadas: ${conflictingAliases.join(", ")}.`,
+    );
+  }
 }
 
 export function loadConfig(source: RawEnv = process.env): Env {
   if (cached) return cached;
-
-  const isProductionLikeRaw =
-    source.ISABELLA_RUNTIME_MODE === "production" ||
-    source.ISABELLA_RUNTIME_MODE === "staging" ||
-    source.NODE_ENV === "production";
 
   const effectiveSource: RawEnv = {
     ...source,
     ISABELLA_RUNTIME_MODE:
       source.ISABELLA_RUNTIME_MODE?.trim() ||
       (source.NODE_ENV === "production" ? "production" : "development"),
-    AUTH_DEV_SESSION_ENABLED:
-      source.AUTH_DEV_SESSION_ENABLED?.trim() ||
-      (source.NODE_ENV === "production" ? "false" : "true"),
-    ALLOW_GUEST_CHAT:
-      source.ALLOW_GUEST_CHAT?.trim() || (source.NODE_ENV === "production" ? "false" : "true"),
-    DATABASE_URL:
-      source.DATABASE_URL ??
-      source.NEON_DATABASE_POSTGRES_URL ??
-      source.NEON_DATABASE_DATABASE_URL ??
-      source.SUPABASE_DATABASE_POSTGRES_URL,
-    AUTH_JWT_SECRET:
-      source.AUTH_JWT_SECRET?.trim() ||
-      source.SUPABASE_DATABASE_SUPABASE_JWT_SECRET?.trim() ||
-      source.SUPABASE_DATABASE_SUPABASE_SECRET_KEY?.trim() ||
-      source.SUPABASE_DATABASE_SUPABASE_SERVICE_ROLE_KEY?.trim(),
+    AUTH_DEV_SESSION_ENABLED: source.AUTH_DEV_SESSION_ENABLED?.trim() || "false",
+    ALLOW_GUEST_CHAT: source.ALLOW_GUEST_CHAT?.trim() || "false",
+    DATABASE_URL: source.DATABASE_URL?.trim(),
+    AUTH_JWT_SECRET: source.AUTH_JWT_SECRET?.trim(),
     SUPABASE_URL: source.SUPABASE_URL?.trim() || source.SUPABASE_DATABASE_SUPABASE_URL?.trim(),
     SUPABASE_ANON_KEY:
       source.SUPABASE_ANON_KEY?.trim() || source.SUPABASE_DATABASE_SUPABASE_ANON_KEY?.trim(),
@@ -92,22 +97,10 @@ export function loadConfig(source: RawEnv = process.env): Env {
       source.SUPABASE_JWT_SECRET?.trim() || source.SUPABASE_DATABASE_SUPABASE_JWT_SECRET?.trim(),
     TURSO_AUTH_TOKEN: source.TURSO_AUTH_TOKEN ?? source.TURSO_AUTH_TOKEN_3,
     TURSO_DATABASE_URL: source.TURSO_DATABASE_URL ?? source.TURSO_DATABASE_URL_3,
-    // Mux credentials may be provisioned under a numbered slot. Normalize them
-    // here so server routes never need to know which slot supplied the secret.
     MUX_TOKEN_ID: source.MUX_TOKEN_ID ?? source.MUX_TOKEN_ID_3,
     MUX_TOKEN_SECRET: source.MUX_TOKEN_SECRET ?? source.MUX_TOKEN_SECRET_3,
     MUX_INTRO_ASSET_ID: source.MUX_INTRO_ASSET_ID ?? source.MUX_ASSET_ID,
-    ISABELLA_STORAGE_PROVIDER:
-      source.ISABELLA_STORAGE_PROVIDER ??
-      ((source.DATABASE_URL ??
-        source.NEON_DATABASE_POSTGRES_URL ??
-        source.POSTGRES_PRISMA_URL ??
-        source.POSTGRES_URL_NON_POOLING) &&
-      isProductionLikeRaw
-        ? "neon"
-        : !isProductionLikeRaw && (source.DATABASE_URL ?? source.NEON_DATABASE_POSTGRES_URL)
-          ? "postgres"
-          : undefined),
+    ISABELLA_STORAGE_PROVIDER: source.ISABELLA_STORAGE_PROVIDER?.trim().toLowerCase(),
   };
 
   const parsed = resolveEnv(effectiveSource);
@@ -133,10 +126,11 @@ export function loadConfig(source: RawEnv = process.env): Env {
       if (parsed.ALLOW_GUEST_CHAT) {
         throw new Error("ALLOW_GUEST_CHAT debe estar desactivado en staging/production");
       }
-      if (!parsed.DATABASE_URL && !(parsed.SUPABASE_URL && parsed.AUTH_JWT_SECRET)) {
-        throw new Error(
-          "Se requiere autoridad durable: DATABASE_URL o Supabase con AUTH_JWT_SECRET",
-        );
+      if (!parsed.DATABASE_URL) {
+        throw new Error("Se requiere DATABASE_URL como autoridad durable explícita");
+      }
+      if (!parsed.AUTH_JWT_SECRET) {
+        throw new Error("Se requiere AUTH_JWT_SECRET dedicado; no se aceptan credenciales Supabase como fallback");
       }
     }
   } catch (error) {
@@ -178,6 +172,11 @@ export function isPayoutCircuitCertified(source: RawEnv = process.env): boolean 
 export function resetConfigCache(): void {
   cached = undefined;
   loadError = null;
+}
+
+export function refreshConfig(): Env {
+  resetConfigCache();
+  return loadConfig();
 }
 
 export function config(): Env {
