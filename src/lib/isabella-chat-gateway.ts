@@ -42,11 +42,13 @@ function contractError(
   message: string,
   status: number,
   retryable = false,
+  details?: Record<string, unknown>,
 ): Response {
   return standardError(code, message, context.correlationId, context.traceId, {
     status,
     retryable,
     tenantId: context.tenantId,
+    ...(details ? { details } : {}),
   });
 }
 function sseHeaders(
@@ -225,13 +227,20 @@ export async function handleIsabellaChat(
     );
   }
   const validation = IsabellaChatRequestSchema.safeParse(rawBody);
-  if (!validation.success)
+  if (!validation.success) {
+    const fields = validation.error.issues.slice(0, 5).map((issue) => ({
+      path: issue.path.map(String).join(".") || "body",
+      code: issue.code,
+    }));
     return contractError(
       context,
       IsabellaChatErrorCode.VALIDATION_ERROR,
       "La petición no cumple el contrato de Isabella.",
       400,
+      false,
+      { fields },
     );
+  }
   const { messages, temperature, context: requestContext } = validation.data;
   void requestContext;
   const providerKeys = {
