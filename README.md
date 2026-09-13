@@ -146,6 +146,17 @@ Los porcentajes siguientes son una **estimación de readiness basada en implemen
 
 **Porcentaje de producción recomendado para comunicar externamente: ~71% de readiness, no 71% de certificación.**
 
+### Actualización visual — Intro cinematográfico Enterprise Sovereign v2.0
+
+La entrada de Isabella ahora utiliza un campo WebGL procedural con núcleo poliédrico, capas orbitales, partículas estelares, iluminación volumétrica simulada, telemetría de reproducción y una secuencia narrativa de 59 segundos. La experiencia conserva el audio local real (`public/assets/isabella-intro-mashup.mp3`) y puede superponer un stream Mux únicamente cuando el endpoint server-side devuelve un playback ID válido; nunca inventa datos ni bloquea el arranque si Mux no está configurado.
+
+- **Rendimiento:** pixel ratio adaptativo (1.25 en móvil, 1.75 máximo en escritorio), `ResizeObserver`, limpieza explícita de geometrías/materiales y fallback visual con `isabella-intro-backdrop.png` cuando WebGL no está disponible.
+- **Accesibilidad:** compuerta activada por gesto para audio, teclado (`Enter`, `Espacio`, `Esc`, `M`), `prefers-reduced-motion`, barra de progreso semántica y etiqueta accesible para la banda sonora.
+- **Resiliencia:** Mux es una mejora opcional; el intro funciona con WebGL, fallback de imagen y audio local. Los errores de red no rompen la ruta principal.
+- **Telemetría:** `TelemetryPayload` mide progreso, escena, FPS y frames descartados sin enviar datos fuera del navegador por defecto.
+
+**Readiness actualizado tras esta evolución:** ingeniería visual **~94%**, experiencia end-to-end **~88%**, deployment readiness **~70%**. Estos porcentajes expresan evidencia de código y pruebas locales; no sustituyen un deploy, smoke test HTTP, CI remoto ni la validación operacional de producción descrita arriba.
+
 ---
 
 ## 4. Arquitectura FGAIS
