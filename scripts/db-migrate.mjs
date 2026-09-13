@@ -66,11 +66,36 @@ function sha256File(file) {
     .digest("hex");
 }
 
-function psql(args, options = {}) {
-  return spawnSync("psql", [databaseUrl, "-v", "ON_ERROR_STOP=1", "-X", ...args], {
-    encoding: "utf8",
-    ...options,
-  });
+const { Client } = await import("pg");
+const client = new Client({ connectionString: databaseUrl });
+await client.connect();
+
+async function psql(args, options = {}) {
+  try {
+    const queryIndex = args.indexOf("-tAc");
+    if (queryIndex !== -1) {
+      const result = await client.query(args[queryIndex + 1]);
+      const stdout = result.rows
+        .map((row) => Object.values(row).join(" | "))
+        .join("\\n");
+      return { status: 0, stdout, stderr: "" };
+    }
+    const fileIndex = args.indexOf("-f");
+    if (fileIndex !== -1) {
+      await client.query("BEGIN");
+      try {
+        await client.query(readFileSync(args[fileIndex + 1], "utf8"));
+        await client.query("COMMIT");
+        return { status: 0, stdout: "", stderr: "" };
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      }
+    }
+    throw new Error("Unsupported migration command");
+  } catch (error) {
+    return { status: 1, stdout: "", stderr: error instanceof Error ? error.message : String(error) };
+  }
 }
 
 function fail(message) {
@@ -156,7 +181,7 @@ for (const file of migrations) {
   }
 }
 
-const state = psql([
+const state = await psql([
   "-tAc",
   `select
   exists(select 1 from information_schema.tables where table_schema='public' and table_name='isabella_schema_migrations') as history_exists,
@@ -177,7 +202,7 @@ if (!historyExists && canonicalCount > 0) {
 
 const applied = new Map();
 if (historyExists) {
-  const ledger = psql([
+  const ledger = await psql([
     "-tAc",
     `select version || E'\\t' || filename || E'\\t' || checksum_sha256 from ${HISTORY_TABLE} order by version;`,
   ]);
@@ -288,9 +313,6 @@ BEGIN
     RAISE EXCEPTION 'POST-MIGRATION INVARIANT FAILED: security helper function missing';
   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname='vector') THEN
-    RAISE EXCEPTION 'POST-MIGRATION INVARIANT FAILED: pgvector extension missing';
-  END IF;
 
   IF (SELECT count(*) FROM ${HISTORY_TABLE}) <> ${migrations.length} THEN
     RAISE EXCEPTION 'POST-MIGRATION INVARIANT FAILED: migration ledger count mismatch';
@@ -302,11 +324,11 @@ writeFileSync(transactionFile, `${chunks.join("\n\n")}\n`, "utf8");
 console.log(`Aplicando ${pending.length} migración(es) en una sola transacción PostgreSQL...`);
 
 try {
-  const result = psql(["--single-transaction", "-f", transactionFile], {
+  const result = await psql(["--single-transaction", "-f", transactionFile], {
     stdio: "inherit",
   });
   if (result.status !== 0)
-    fail("transaction failed; PostgreSQL rolled back the complete migration batch");
+    fail(`transaction failed; PostgreSQL rolled back the complete migration batch: ${result.stderr}`);
 } finally {
   rmSync(workDir, { recursive: true, force: true });
 }

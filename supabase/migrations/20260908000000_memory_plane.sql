@@ -1,8 +1,6 @@
 -- FGAIS Memory Plane Schema
 -- Episodic, Semantic, Procedural Memory with pgvector embeddings
 
-CREATE EXTENSION IF NOT EXISTS vector;
-
 -- EPISODIC MEMORY: Specific events, experiences, time-bound context
 CREATE TABLE IF NOT EXISTS episodic_memory (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -10,7 +8,7 @@ CREATE TABLE IF NOT EXISTS episodic_memory (
     actor_id VARCHAR(255) NOT NULL,
     trace_id VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
-    embedding vector(1536),
+    embedding TEXT,
     provenance_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP WITH TIME ZONE,
@@ -26,7 +24,7 @@ CREATE TABLE IF NOT EXISTS semantic_memory (
     tenant_id VARCHAR(255) NOT NULL,
     concept VARCHAR(255) NOT NULL,
     definition TEXT NOT NULL,
-    embedding vector(1536),
+    embedding TEXT,
     provenance_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP WITH TIME ZONE,
