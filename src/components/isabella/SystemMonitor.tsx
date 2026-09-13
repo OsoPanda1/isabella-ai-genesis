@@ -9,8 +9,6 @@ import {
   ShieldAlert,
   XCircle,
 } from "lucide-react";
-import { toast } from "sonner";
-
 type HealthState = "unknown" | "ok" | "failed";
 
 type HealthResponse = {

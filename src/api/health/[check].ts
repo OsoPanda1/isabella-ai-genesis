@@ -1,9 +1,17 @@
 import { config } from "@/lib/config";
 import { prisma } from "@/lib/db";
 
-// Assuming standard API route handler export
-export default async function handler(req: any, res: any) {
-  const { check } = req.query; // live, ready, deep
+type HealthRequest = {
+  query: Record<string, string | string[] | undefined>;
+};
+
+type HealthResponse = {
+  status: (code: number) => HealthResponse;
+  json: (body: unknown) => HealthResponse;
+};
+
+export default async function handler(req: HealthRequest, res: HealthResponse) {
+  const check = Array.isArray(req.query.check) ? req.query.check[0] : req.query.check;
 
   const versionInfo = {
     sha: config().VERCEL_GIT_COMMIT_SHA || "dev-local",
