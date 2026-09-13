@@ -81,6 +81,7 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.3",
     "@upstash/vector": "^1.2.3",
+    "@vercel/connect": "^2.0.4",
     "@vercel/speed-insights": "^2.0.0",
     "ai": "^7.0.99",
     "braintrust": "^3.30.0",
