@@ -15,6 +15,7 @@ export function aggregateFederatedUpdates(
   model: ModelIdentity,
   baseArtifact: ModelArtifact,
   updates: readonly FederatedUpdate[],
+  verifySignature: (update: FederatedUpdate) => boolean,
 ): { round: FederatedRound; artifact: ModelArtifact } {
   if (model.approvalStatus !== "APPROVED") throw new Error("model_not_approved");
   if (updates.length < 2) throw new Error("federated_round_requires_multiple_nodes");
@@ -23,6 +24,7 @@ export function aggregateFederatedUpdates(
 
   const accepted = updates.filter(
     (update) =>
+      verifySignature(update) &&
       update.modelId === model.modelId &&
       update.territoryId === model.territoryId &&
       update.baseModelVersion === model.version &&
