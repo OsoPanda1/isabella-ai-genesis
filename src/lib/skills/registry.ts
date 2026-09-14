@@ -8,6 +8,7 @@ import { HELIOS, KAIROS } from "./economy-pack";
 import { UTAMV } from "./education-pack";
 import { HEPTA } from "./hepta.skill";
 import { evolvedSkillsPack } from "./evolved-skills-pack";
+import { NATIVE_SKILLS_PACK } from "./native-skills-pack";
 
 export const isabellaSkills = {
   ORION,
@@ -35,9 +36,11 @@ export const isabellaSkills = {
   SENTINEL,
   UTAMV,
   HEPTA,
-  // 733-754: Evolved Skills Pack
+  // Evolved Skills Pack
   ...evolvedSkillsPack,
-  // Direct kebab-case alias registrations for canonical URL and command matching
+  // Native Isabella Skills Pack
+  ...NATIVE_SKILLS_PACK,
+  // Direct kebab-case alias registrations for evolved skills
   "firecrawl-market-research": evolvedSkillsPack.FIRECRAWL_MARKET_RESEARCH,
   "firecrawl-monitor": evolvedSkillsPack.FIRECRAWL_MONITOR,
   "ckm-brand": evolvedSkillsPack.CKM_BRAND,
