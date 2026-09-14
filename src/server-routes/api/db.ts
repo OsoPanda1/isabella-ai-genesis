@@ -107,15 +107,7 @@ function auditAccessAttempt(
 ): void {
   // Note: tenantId would need to be passed for production audit
   void sovereignStateRepository
-    .appendAuditLog(
-      traceId,
-      `corr_${traceId}`,
-      ip,
-      event,
-      severity,
-      details,
-      "system",
-    )
+    .appendAuditLog(traceId, `corr_${traceId}`, ip, event, severity, details, "system")
     .catch(() => {
       // La auditoría no debe convertir una sesión válida en un error 500 si el esquema aún no está migrado.
     });
@@ -876,12 +868,48 @@ export const Route = createFileRoute("/api/db")({
               tenantId: "nodo-cero",
             };
 
+            const tenantRepository = repositoryFactory.getTenantRepository();
+            const existingTenant = await tenantRepository.read(
+              DEV_USER.tenantId,
+              DEV_USER.tenantId,
+            );
+            if (!existingTenant) {
+              await tenantRepository.create(DEV_USER.tenantId, {
+                id: DEV_USER.tenantId,
+                slug: "nodo-cero",
+                tier: "sovereign",
+                quotaBalance: 0,
+                quotaTierLimit: 1_000_000,
+                createdAt: new Date().toISOString(),
+                createdBy: DEV_USER.userId,
+                metadata: { environment: "development", purpose: "preview-chat" },
+              });
+            }
+
             const devToken = await SecuritySystem.generateSovereignToken(
               DEV_USER.userId,
               DEV_USER.role,
               DEV_USER.tenantId,
               "isabella:chat isabella:ledger:write isabella:sandbox:run",
             );
+            const tokenPayload = devToken.split(".")[1];
+            const tokenClaims = tokenPayload
+              ? (JSON.parse(Buffer.from(tokenPayload, "base64url").toString("utf8")) as {
+                  jti?: string;
+                })
+              : {};
+            if (!tokenClaims.jti) throw new Error("dev_session_missing_jti");
+
+            const sessionRepository = repositoryFactory.getSessionRepository();
+            await sessionRepository.create(`${DEV_USER.userId}:${tokenClaims.jti}`, {
+              id: `${DEV_USER.userId}:${tokenClaims.jti}`,
+              tenantId: DEV_USER.tenantId,
+              userId: DEV_USER.userId,
+              principalType: "user",
+              tokenJti: tokenClaims.jti,
+              expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+              createdAt: new Date().toISOString(),
+            });
 
             auditAccessAttempt(
               `trc_dev_${nodeCrypto.randomUUID().slice(0, 8)}`,
@@ -921,8 +949,8 @@ export const Route = createFileRoute("/api/db")({
                 tenantId: context.tenantId,
                 userId: context.userId,
                 operation: val.data.operation,
-                category: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                val.data.category as any,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                category: val.data.category as any,
                 cost: val.data.cost,
                 tokens: val.data.tokens,
               });
@@ -1346,7 +1374,7 @@ export const Route = createFileRoute("/api/db")({
                 userId: context.userId,
                 operation: `MONETIZATION_CREDIT: ${description} (+$${(centsToAdd / 100).toFixed(2)} USD)`,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    category: "other" as any,
+                category: "other" as any,
                 cost: 0,
                 // no deduction for credits earned
                 tokens: 0,

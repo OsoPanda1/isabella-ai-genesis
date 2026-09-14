@@ -41,7 +41,7 @@ export function useIsabellaObservability() {
         const payload = {
           text: input,
           attachments,
-          context: "isabella", // Ensuring 'isabella' context is correctly included
+          context: { source: "isabella" },
         };
 
         // Zod validation layer

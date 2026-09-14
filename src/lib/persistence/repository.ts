@@ -58,6 +58,7 @@ export interface Session {
   tenantId: string;
   userId: string;
   principalType: "user" | "machine" | "service";
+  tokenJti?: string;
   expiresAt: string;
   createdAt: string;
 }

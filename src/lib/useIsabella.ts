@@ -62,6 +62,12 @@ function loadSession(): TerminalMessage[] | null {
 const TRANSPORT_TEXT_LIMIT = 12_000;
 const TRANSPORT_ATTACHMENT_LIMIT = 8;
 
+type SendConfig = {
+  mode?: "fast" | "deep_reasoning" | "web_research" | "agent_tools";
+  webSearch?: boolean;
+  toolsEnabled?: boolean;
+};
+
 function normalizeTransportText(value: string, fallback = "Analiza el material adjunto.") {
   const normalized = value.trim().slice(0, TRANSPORT_TEXT_LIMIT);
   return normalized || fallback;
@@ -134,7 +140,7 @@ export function useIsabella() {
   }, [messages, presetId, telemetry, hydrated]);
 
   const send = useCallback(
-    async (input: string, attachments: Attachment[] = []) => {
+    async (input: string, attachments: Attachment[] = [], config: SendConfig = {}) => {
       const text = input.trim();
       if ((!text && attachments.length === 0) || isProcessing) return;
       logLifecycleEvent("INIT", {
@@ -249,7 +255,14 @@ export function useIsabella() {
             system: (buildSystemPrompt(routing, preset) + skillContext).slice(0, 8000),
             temperature: preset.temperature,
             messages: history,
-            context: { source: "isabella", preset: preset.id, runId },
+            context: {
+              source: "isabella",
+              preset: preset.id,
+              runId,
+              executionMode: config.mode ?? "fast",
+              webSearch: config.webSearch ?? false,
+              toolsEnabled: config.toolsEnabled ?? false,
+            },
           }),
         });
         if (!res.ok || !res.body) {
@@ -261,6 +274,18 @@ export function useIsabella() {
               },
           );
           const rawMessage = detail.message ?? detail.error ?? "Fallo de percepción.";
+          if (
+            res.status === 403 &&
+            typeof rawMessage === "string" &&
+            /tenant|aislamiento/i.test(rawMessage)
+          ) {
+            try {
+              window.sessionStorage.removeItem("isabella_session_token");
+            } catch {
+              // El siguiente intento aún puede obtener una sesión nueva del servidor.
+            }
+            throw new Error("Sesión renovada requerida. Reintenta la percepción.");
+          }
           throw new Error(typeof rawMessage === "string" ? rawMessage : JSON.stringify(rawMessage));
         }
         const degradedHeader = res.headers.get("x-isabella-degraded-mode");
