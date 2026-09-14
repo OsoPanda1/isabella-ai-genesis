@@ -45,8 +45,3 @@ CREATE TABLE IF NOT EXISTS public.billing_run_authorizations (
 );
 CREATE INDEX IF NOT EXISTS idx_billing_run_auth_lookup
     ON public.billing_run_authorizations(tenant_id, user_id, skill_id, expires_at);
-
--- Restrict ownership rows to application identity in environments where RLS is enabled.
-ALTER TABLE public.billing_payment_intents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.billing_checkout_idempotency ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.billing_run_authorizations ENABLE ROW LEVEL SECURITY;
