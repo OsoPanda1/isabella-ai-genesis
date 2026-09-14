@@ -21,28 +21,49 @@ interface IntroConfig {
 
 const CACHE_TTL_SECONDS = 60;
 const FALLBACK_URL = "/assets/isabella-intro-backdrop.png";
+const INTRO_TITLE = "Isabella AI Genesis — Cinematic Introduction";
 const PLAYBACK_ID_PATTERN = /^[A-Za-z0-9_-]{3,128}$/;
 const ASSET_ID_PATTERN = /^[A-Za-z0-9_-]{3,128}$/;
 
-function json<T extends Record<string, unknown>>(data: T, status = 200): Response {
-  const ttl = typeof data.cacheTtl === "number" ? data.cacheTtl : CACHE_TTL_SECONDS;
+function json(data: IntroConfig, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: SecuritySystem.injectSecureHeaders(
       new Headers({
         "content-type": "application/json; charset=utf-8",
-        "cache-control": `private, max-age=${ttl}, stale-while-revalidate=300`,
+        "cache-control": `private, max-age=${data.cacheTtl}, stale-while-revalidate=300`,
         "x-cache-status": "MISS",
       }),
     ),
   });
 }
 
+function fallbackConfig(
+  type: IntroConfig["fallback"]["type"],
+  assetId?: string,
+  metadata?: IntroConfig["metadata"],
+): IntroConfig {
+  return {
+    enabled: type !== "none",
+    assetId,
+    metadata: {
+      title: INTRO_TITLE,
+      aspectRatio: "16:9",
+      ...metadata,
+    },
+    fallback: {
+      type,
+      url: type === "static" ? FALLBACK_URL : undefined,
+    },
+    cacheTtl: CACHE_TTL_SECONDS,
+  };
+}
+
 function recordIntroRequest(startTime: number, result: "mux" | "fallback" | "disabled" | "error") {
   try {
     ObservabilityService.recordEvent(performance.now() - startTime, result === "error" ? 1 : 0);
   } catch {
-    // Observability must never change the intro response contract.
+    // Observability must never change the intro media contract.
   }
 }
 
@@ -50,7 +71,7 @@ async function resolveIntroConfig(): Promise<IntroConfig> {
   const cfg = loadConfig();
   const fallbackType = cfg.MUX_INTRO_FALLBACK_TYPE ?? "static";
   const configuredPlaybackId = cfg.MUX_PLAYBACK_ID?.trim();
-  const requestedAssetId = (cfg.MUX_INTRO_ASSET_ID ?? cfg.MUX_ASSET_ID)?.trim();
+  const requestedAssetId = cfg.MUX_INTRO_ASSET_ID?.trim();
   const tokenId = cfg.MUX_TOKEN_ID?.trim();
   const tokenSecret = cfg.MUX_TOKEN_SECRET?.trim();
 
@@ -58,10 +79,7 @@ async function resolveIntroConfig(): Promise<IntroConfig> {
     return {
       enabled: true,
       playbackId: configuredPlaybackId,
-      metadata: {
-        title: "Isabella AI Genesis — Cinematic Introduction",
-        aspectRatio: "16:9",
-      },
+      metadata: { title: INTRO_TITLE, aspectRatio: "16:9" },
       fallback: {
         type: fallbackType,
         url: fallbackType === "static" ? FALLBACK_URL : undefined,
@@ -71,23 +89,11 @@ async function resolveIntroConfig(): Promise<IntroConfig> {
   }
 
   if (!tokenId || !tokenSecret || !requestedAssetId || !ASSET_ID_PATTERN.test(requestedAssetId)) {
-    return {
-      enabled: fallbackType !== "none",
-      metadata: {
-        title: "Isabella AI Genesis — Cinematic Introduction",
-        aspectRatio: "16:9",
-      },
-      fallback: {
-        type: fallbackType,
-        url: fallbackType === "static" ? FALLBACK_URL : undefined,
-      },
-      cacheTtl: CACHE_TTL_SECONDS,
-    };
+    return fallbackConfig(fallbackType, requestedAssetId);
   }
 
-  const authorization = `Basic ${Buffer.from(`${tokenId}:${tokenSecret}`).toString("base64")}`;
   const endpoint = `https://api.mux.com/video/v1/assets/${encodeURIComponent(requestedAssetId)}`;
-
+  const authorization = `Basic ${Buffer.from(`${tokenId}:${tokenSecret}`).toString("base64")}`;
   const response = await SecuritySystem.fetchSafeUpstream(endpoint, {
     headers: { authorization, accept: "application/json" },
     signal: AbortSignal.timeout(Math.min(cfg.LLM_UPSTREAM_TIMEOUT_MS, 5000)),
@@ -107,38 +113,18 @@ async function resolveIntroConfig(): Promise<IntroConfig> {
   const asset = payload.data;
 
   if (!asset || asset.id !== requestedAssetId || asset.status !== "ready") {
-    return {
-      enabled: fallbackType !== "none",
-      assetId: requestedAssetId,
-      metadata: {
-        title: "Isabella AI Genesis — Cinematic Introduction",
-        aspectRatio: asset?.aspect_ratio,
-        duration: asset?.duration,
-      },
-      fallback: {
-        type: fallbackType,
-        url: fallbackType === "static" ? FALLBACK_URL : undefined,
-      },
-      cacheTtl: CACHE_TTL_SECONDS,
-    };
+    return fallbackConfig(fallbackType, requestedAssetId, {
+      aspectRatio: asset?.aspect_ratio,
+      duration: asset?.duration,
+    });
   }
 
   const playbackId = asset.playback_ids?.find((candidate) => candidate.policy === "public")?.id;
   if (!playbackId || !PLAYBACK_ID_PATTERN.test(playbackId)) {
-    return {
-      enabled: fallbackType !== "none",
-      assetId: requestedAssetId,
-      metadata: {
-        title: "Isabella AI Genesis — Cinematic Introduction",
-        aspectRatio: asset.aspect_ratio,
-        duration: asset.duration,
-      },
-      fallback: {
-        type: fallbackType,
-        url: fallbackType === "static" ? FALLBACK_URL : undefined,
-      },
-      cacheTtl: CACHE_TTL_SECONDS,
-    };
+    return fallbackConfig(fallbackType, requestedAssetId, {
+      aspectRatio: asset.aspect_ratio,
+      duration: asset.duration,
+    });
   }
 
   return {
@@ -146,7 +132,7 @@ async function resolveIntroConfig(): Promise<IntroConfig> {
     playbackId,
     assetId: requestedAssetId,
     metadata: {
-      title: "Isabella AI Genesis — Cinematic Introduction",
+      title: INTRO_TITLE,
       aspectRatio: asset.aspect_ratio ?? "16:9",
       duration: asset.duration,
     },
@@ -165,24 +151,16 @@ export const Route = createFileRoute("/api/mux-intro")({
         const startTime = performance.now();
         try {
           const resolved = await resolveIntroConfig();
-          const result = resolved.playbackId ? "mux" : resolved.enabled ? "fallback" : "disabled";
-          recordIntroRequest(startTime, result);
-          return json(resolved as unknown as Record<string, unknown>);
+          recordIntroRequest(
+            startTime,
+            resolved.playbackId ? "mux" : resolved.enabled ? "fallback" : "disabled",
+          );
+          return json(resolved);
         } catch {
           const cfg = loadConfig();
           const fallbackType = cfg.MUX_INTRO_FALLBACK_TYPE ?? "static";
           recordIntroRequest(startTime, "error");
-          return json(
-            {
-              enabled: fallbackType !== "none",
-              fallback: {
-                type: fallbackType,
-                url: fallbackType === "static" ? FALLBACK_URL : undefined,
-              },
-              cacheTtl: CACHE_TTL_SECONDS,
-            },
-            503,
-          );
+          return json(fallbackConfig(fallbackType), 503);
         }
       },
     },
