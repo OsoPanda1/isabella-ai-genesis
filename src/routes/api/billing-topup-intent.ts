@@ -17,6 +17,24 @@ export const Route = createFileRoute("/api/billing-topup-intent")({
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json" }),
         );
+        const rateLimit = await SecuritySystem.checkRateLimitDistributed(
+          `billing-topup:${context.tenantId}:${context.userId}:${context.ip}`,
+          5,
+        );
+        if (!rateLimit.allowed) {
+          return new Response(
+            JSON.stringify({
+              error:
+                rateLimit.reason === "rate-limit-infrastructure-unavailable"
+                  ? "Servicio temporalmente no disponible para operaciones financieras."
+                  : "Límite de recargas excedido. Intenta nuevamente más tarde.",
+            }),
+            {
+              status: rateLimit.reason === "rate-limit-infrastructure-unavailable" ? 503 : 429,
+              headers,
+            },
+          );
+        }
         const parsed = schema.safeParse(body);
         if (!parsed.success) {
           return new Response(JSON.stringify({ error: "Monto de recarga inválido." }), {
