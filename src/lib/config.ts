@@ -32,18 +32,13 @@ function assertRequired(mode: RuntimeMode, source: RawEnv): void {
   for (const key of required) {
     const raw = source[key];
     if (raw === undefined || raw === null || raw === "") {
-      throw new Error(
-        `Variable de entorno obligatoria no definida en modo "${mode}": ${String(key)}`,
-      );
+      throw new Error(`Variable de entorno obligatoria no definida en modo "${mode}": ${String(key)}`);
     }
   }
 }
 
 function assertProductionCrypto(mode: RuntimeMode, parsed: Env): void {
-  if (
-    (mode === "production" || mode === "staging") &&
-    parsed.BOOKPI_SIGNATURE_ALGORITHM === "ML-DSA-87"
-  ) {
+  if ((mode === "production" || mode === "staging") && parsed.BOOKPI_SIGNATURE_ALGORITHM === "ML-DSA-87") {
     throw new Error(
       "CRITICAL_SECURITY_ERROR: ML-DSA-87 no es un proveedor criptográfico productivo en este runtime. " +
         "Producción y staging requieren ECDSA-P384 o RSA-SHA256 hasta integrar un proveedor ML-DSA real.",
@@ -55,9 +50,7 @@ function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, pars
   if (mode !== "production" && mode !== "staging") return;
   const rawProvider = source.ISABELLA_STORAGE_PROVIDER;
   if (typeof rawProvider !== "string" || rawProvider.trim() === "") {
-    throw new Error(
-      "ISABELLA_STORAGE_PROVIDER debe declararse explícitamente como postgres o neon en staging/production.",
-    );
+    throw new Error("ISABELLA_STORAGE_PROVIDER debe declararse explícitamente como postgres o neon en staging/production.");
   }
   const provider = rawProvider.trim().toLowerCase();
   if (provider !== "postgres" && provider !== "neon") {
@@ -69,9 +62,7 @@ function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, pars
     throw new Error("ISABELLA_STORAGE_PROVIDER no coincide con el proveedor normalizado.");
   }
   if (typeof source.DATABASE_URL !== "string" || source.DATABASE_URL.trim() === "") {
-    throw new Error(
-      "DATABASE_URL debe declararse explícitamente como autoridad durable única en staging/production.",
-    );
+    throw new Error("DATABASE_URL debe declararse explícitamente como autoridad durable única en staging/production.");
   }
 
   const providerAliases = [
@@ -83,11 +74,7 @@ function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, pars
   ] as const;
   const conflictingAliases = providerAliases.filter((key) => {
     const value = source[key];
-    return (
-      typeof value === "string" &&
-      value.trim() !== "" &&
-      value.trim() !== source.DATABASE_URL?.trim()
-    );
+    return typeof value === "string" && value.trim() !== "" && value.trim() !== source.DATABASE_URL?.trim();
   });
   if (conflictingAliases.length > 0) {
     throw new Error(
@@ -110,15 +97,13 @@ export function loadConfig(source: RawEnv = process.env): Env {
     DATABASE_URL: source.DATABASE_URL?.trim(),
     AUTH_JWT_SECRET: source.AUTH_JWT_SECRET?.trim(),
     SUPABASE_URL: source.SUPABASE_URL?.trim() || source.SUPABASE_DATABASE_SUPABASE_URL?.trim(),
-    SUPABASE_ANON_KEY:
-      source.SUPABASE_ANON_KEY?.trim() || source.SUPABASE_DATABASE_SUPABASE_ANON_KEY?.trim(),
-    SUPABASE_JWT_SECRET:
-      source.SUPABASE_JWT_SECRET?.trim() || source.SUPABASE_DATABASE_SUPABASE_JWT_SECRET?.trim(),
+    SUPABASE_ANON_KEY: source.SUPABASE_ANON_KEY?.trim() || source.SUPABASE_DATABASE_SUPABASE_ANON_KEY?.trim(),
+    SUPABASE_JWT_SECRET: source.SUPABASE_JWT_SECRET?.trim() || source.SUPABASE_DATABASE_SUPABASE_JWT_SECRET?.trim(),
     TURSO_AUTH_TOKEN: source.TURSO_AUTH_TOKEN?.trim(),
     TURSO_DATABASE_URL: source.TURSO_DATABASE_URL?.trim(),
     MUX_TOKEN_ID: source.MUX_TOKEN_ID?.trim(),
     MUX_TOKEN_SECRET: source.MUX_TOKEN_SECRET?.trim(),
-    MUX_INTRO_ASSET_ID: source.MUX_INTRO_ASSET_ID?.trim() || source.MUX_ASSET_ID?.trim(),
+    MUX_INTRO_ASSET_ID: source.MUX_INTRO_ASSET_ID?.trim(),
     ISABELLA_STORAGE_PROVIDER: source.ISABELLA_STORAGE_PROVIDER?.trim().toLowerCase(),
   };
 
@@ -136,14 +121,10 @@ export function loadConfig(source: RawEnv = process.env): Env {
           `NODE_ENV="${parsed.NODE_ENV}" es incompatible con ISABELLA_RUNTIME_MODE="${mode}". Producción/staging requieren NODE_ENV=production.`,
         );
       }
-      if (parsed.DURABLE_JSON_ALLOWED)
-        throw new Error("DURABLE_JSON_ALLOWED debe ser false en modos no locales");
-      if (parsed.AUTH_DEV_SESSION_ENABLED)
-        throw new Error("AUTH_DEV_SESSION_ENABLED debe estar desactivado");
-      if (parsed.ALLOW_GUEST_CHAT)
-        throw new Error("ALLOW_GUEST_CHAT debe estar desactivado en staging/production");
-      if (!parsed.DATABASE_URL)
-        throw new Error("Se requiere DATABASE_URL como autoridad durable explícita");
+      if (parsed.DURABLE_JSON_ALLOWED) throw new Error("DURABLE_JSON_ALLOWED debe ser false en modos no locales");
+      if (parsed.AUTH_DEV_SESSION_ENABLED) throw new Error("AUTH_DEV_SESSION_ENABLED debe estar desactivado");
+      if (parsed.ALLOW_GUEST_CHAT) throw new Error("ALLOW_GUEST_CHAT debe estar desactivado en staging/production");
+      if (!parsed.DATABASE_URL) throw new Error("Se requiere DATABASE_URL como autoridad durable explícita");
       if (!parsed.AUTH_JWT_SECRET) {
         throw new Error(
           "Se requiere AUTH_JWT_SECRET dedicado; no se aceptan credenciales Supabase como fallback",
@@ -153,8 +134,7 @@ export function loadConfig(source: RawEnv = process.env): Env {
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     loadError = msg;
-    if (mode === "production" || mode === "staging")
-      throw new Error(`[SovereignConfig Fail-Fast] ${msg}`);
+    if (mode === "production" || mode === "staging") throw new Error(`[SovereignConfig Fail-Fast] ${msg}`);
   }
 
   cached = parsed;
@@ -178,27 +158,3 @@ export function isCiEnvironment(source: RawEnv = process.env): boolean {
 export function getCiRunId(source: RawEnv = process.env): string {
   return source.GITHUB_RUN_ID ?? "local";
 }
-
-export function isPayoutCircuitCertified(source: RawEnv = process.env): boolean {
-  const raw = source.ISABELLA_PAYOUT_CIRCUIT_CERTIFIED;
-  if (typeof raw === "boolean") return raw;
-  if (typeof raw !== "string") return false;
-  return raw.trim().toLowerCase() === "true";
-}
-
-export function resetConfigCache(): void {
-  cached = undefined;
-  cachedFingerprint = undefined;
-  loadError = null;
-}
-
-export function refreshConfig(): Env {
-  resetConfigCache();
-  return loadConfig();
-}
-
-export function config(): Env {
-  return loadConfig();
-}
-
-export type { Env, RuntimeMode } from "./env-schema";
