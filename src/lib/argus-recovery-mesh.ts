@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import type { AionRecoveryPlan } from "./argus-aion";
 
 export interface RecoveryAttestation {
@@ -28,6 +28,14 @@ function hmac(secret: string, value: unknown): string {
 function safeEqualHex(left: string, right: string): boolean {
   if (!/^[a-f0-9]{64}$/u.test(left) || !/^[a-f0-9]{64}$/u.test(right)) return false;
   return timingSafeEqual(Buffer.from(left, "hex"), Buffer.from(right, "hex"));
+}
+
+/** A deterministic epoch bound to one exact recovery plan and checkpoint. */
+export function deriveRecoveryEpoch(plan: AionRecoveryPlan): string {
+  return createHash("sha256")
+    .update(`${plan.planId}:${plan.planDigest}:${plan.targetCheckpoint.sequence}`)
+    .digest("hex")
+    .slice(0, 32);
 }
 
 /**
@@ -63,18 +71,31 @@ export class ArgusRecoveryMesh {
   ): RecoveryMeshResult {
     if (this.consumedPlanIds.has(plan.planId))
       return { accepted: false, reason: "REPLAYED_PLAN", acceptedNodeIds: [] };
-    if (!epoch || epoch !== plan.planDigest.slice(0, epoch.length))
+    if (epoch !== deriveRecoveryEpoch(plan))
       return { accepted: false, reason: "EPOCH_MISMATCH", acceptedNodeIds: [] };
 
     const allowed = new Set(plan.requiredNodeIds);
     const acceptedNodeIds = new Set<string>();
+    let sawInvalid = false;
     for (const attestation of attestations) {
-      if (!allowed.has(attestation.nodeId) || acceptedNodeIds.has(attestation.nodeId)) continue;
-      if (attestation.planId !== plan.planId || attestation.planDigest !== plan.planDigest || attestation.epoch !== epoch) continue;
+      if (!allowed.has(attestation.nodeId) || acceptedNodeIds.has(attestation.nodeId)) {
+        sawInvalid = true;
+        continue;
+      }
+      if (attestation.planId !== plan.planId || attestation.planDigest !== plan.planDigest || attestation.epoch !== epoch) {
+        sawInvalid = true;
+        continue;
+      }
       const timestamp = Date.parse(attestation.attestedAt);
-      if (!Number.isFinite(timestamp) || Math.abs(now - timestamp) > this.maxClockSkewMs) continue;
+      if (!Number.isFinite(timestamp) || Math.abs(now - timestamp) > this.maxClockSkewMs) {
+        sawInvalid = true;
+        continue;
+      }
       const secret = nodeSecrets.get(attestation.nodeId);
-      if (!secret || secret.length < 32) continue;
+      if (!secret || secret.length < 32) {
+        sawInvalid = true;
+        continue;
+      }
       const unsigned = {
         nodeId: attestation.nodeId,
         planId: attestation.planId,
@@ -84,10 +105,11 @@ export class ArgusRecoveryMesh {
       };
       const expected = hmac(secret, unsigned);
       if (safeEqualHex(expected, attestation.signature)) acceptedNodeIds.add(attestation.nodeId);
+      else sawInvalid = true;
     }
 
     if (acceptedNodeIds.size < this.quorum)
-      return { accepted: false, reason: attestations.length ? "INSUFFICIENT_ATTESTATIONS" : "INVALID_ATTESTATION", acceptedNodeIds: [...acceptedNodeIds] };
+      return { accepted: false, reason: sawInvalid ? "INVALID_ATTESTATION" : "INSUFFICIENT_ATTESTATIONS", acceptedNodeIds: [...acceptedNodeIds].sort() };
 
     this.consumedPlanIds.add(plan.planId);
     return { accepted: true, reason: "QUORUM_REACHED", acceptedNodeIds: [...acceptedNodeIds].sort() };
