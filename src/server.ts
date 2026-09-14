@@ -4,6 +4,7 @@ import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { createRequestContext, withRequestContext } from "./lib/request-context";
 import { redact } from "./lib/secret-redactor";
+import { resolveTrustedClientIp } from "./lib/trusted-client-ip";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -26,9 +27,9 @@ export async function handleRequest(
   ctx: unknown = {},
 ): Promise<Response> {
   const url = new URL(request.url);
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const clientIp = resolveTrustedClientIp(request);
   const requestContext = createRequestContext({
-    clientIp: forwarded || request.headers.get("x-real-ip") || undefined,
+    clientIp,
     method: request.method,
     path: url.pathname,
   });
@@ -100,10 +101,7 @@ export function withSecurityHeaders(response: Response): Response {
   setIfMissing("Cross-Origin-Opener-Policy", "same-origin");
   setIfMissing("Cross-Origin-Resource-Policy", "same-origin");
 
-  // Production contract: production = process.env.NODE_ENV === "production" (Vite-safe equivalent below).
   const production = import.meta.env.PROD;
-  // Production enforces the policy. Development keeps the less restrictive
-  // policy so local framework tooling can run without a framework nonce.
   const scriptSource = production ? "'self'" : "'self' 'unsafe-inline'";
   const csp = [
     "default-src 'self'",
@@ -114,17 +112,15 @@ export function withSecurityHeaders(response: Response): Response {
     "upgrade-insecure-requests",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data: https:",
-    "connect-src 'self' https:",
+    "connect-src 'self' https://generativelanguage.googleapis.com https://api.groq.com https://api.x.ai https://api.stripe.com https://stream.mux.com https://*.supabase.co",
     "style-src 'self' 'unsafe-inline'",
     `script-src ${scriptSource}`,
     "worker-src 'self' blob:",
   ].join("; ");
   setIfMissing("Content-Security-Policy", csp);
-  const reportOnlyCsp = csp
-    .replace(`script-src ${scriptSource}`, "script-src 'self' 'nonce-{REQUEST_NONCE}'")
-    .replaceAll(" 'unsafe-inline'", "")
-    .replaceAll("'unsafe-inline' ", "");
-  setIfMissing("Content-Security-Policy-Report-Only", reportOnlyCsp);
+  // Do not emit a fake nonce. A report-only policy containing a literal
+  // nonce placeholder is misleading and provides no useful enforcement data.
+  if (production) headers.delete("Content-Security-Policy-Report-Only");
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
