@@ -5,7 +5,7 @@
  *
  * Sin DATABASE_URL: verifica estáticamente las migraciones.
  * Con DATABASE_URL: consulta la DB viva y verifica tablas, columnas críticas,
- * RLS, triggers de inmutabilidad y pgvector. No confunde archivos SQL con DB.
+ * RLS, FORCE RLS, triggers de inmutabilidad y pgvector.
  */
 
 import { readdirSync, readFileSync } from "node:fs";
@@ -31,6 +31,7 @@ const REQUIRED_COLUMNS = {
 };
 
 const RLS_REQUIRED = ["memories", "audit_events", "bookpi_ledger", "api_keys", "webhook_events", "economic_events"];
+const FORCE_RLS_REQUIRED = ["memories", "audit_events", "bookpi_ledger", "api_keys", "webhook_events", "economic_events"];
 const IMMUTABLE_TABLES = ["bookpi_ledger", "audit_events"];
 
 function listMigrations() {
@@ -41,19 +42,15 @@ function staticCheck() {
   const files = listMigrations();
   const errors = [];
   const allSql = files.map((file) => readFileSync(resolve(MIGRATIONS_DIR, file), "utf8")).join("\n");
-
   for (const table of Object.keys(REQUIRED_COLUMNS)) {
     const declared = new RegExp(`create\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?[^;]*\\b${table}\\b`, "i").test(allSql);
     if (!declared) errors.push(`Tabla canónica no declarada: ${table}`);
-    for (const column of REQUIRED_COLUMNS[table]) {
-      if (!new RegExp(`\\b${column}\\b`, "i").test(allSql)) errors.push(`Columna crítica no declarada: ${table}.${column}`);
-    }
+    for (const column of REQUIRED_COLUMNS[table]) if (!new RegExp(`\\b${column}\\b`, "i").test(allSql)) errors.push(`Columna crítica no declarada: ${table}.${column}`);
   }
   if (!/create\\s+extension[\\s\S]*vector/i.test(allSql) && !/pgvector/i.test(allSql)) errors.push("pgvector no aparece en migraciones");
-  for (const table of RLS_REQUIRED) {
-    if (!new RegExp(`alter\\s+table\\s+[^;]*\\b${table}\\b[^;]*enable\\s+row\\s+level\\s+security`, "i").test(allSql)) errors.push(`RLS no declarada para ${table}`);
-  }
-  if (!/prevent_bookpi_mutation|bookpi.*immutable|immutable.*bookpi/i.test(allSql)) errors.push("No se encontró evidencia estática de trigger de inmutabilidad BookPI");
+  for (const table of RLS_REQUIRED) if (!new RegExp(`alter\\s+table\\s+[^;]*\\b${table}\\b[^;]*enable\\s+row\\s+level\\s+security`, "i").test(allSql)) errors.push(`RLS no declarada para ${table}`);
+  for (const table of FORCE_RLS_REQUIRED) if (!new RegExp(`alter\\s+table\\s+[^;]*\\b${table}\\b[^;]*force\\s+row\\s+level\\s+security`, "i").test(allSql)) errors.push(`FORCE RLS no declarada para ${table}`);
+  if (!/prevent_bookpi_mutation|bookpi.*immutable|immutable.*bookpi/i.test(allSql)) errors.push("No se encontró evidencia estática de inmutabilidad BookPI");
   return { errors, files };
 }
 
@@ -62,64 +59,45 @@ async function liveCheck() {
   try {
     const errors = [];
     const tables = Object.keys(REQUIRED_COLUMNS);
-    const { rows: tableRows } = await pool.query(
-      `SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name = ANY($1::text[])`,
-      [tables],
-    );
+    const { rows: tableRows } = await pool.query(`SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name = ANY($1::text[])`, [tables]);
     const tableSet = new Set(tableRows.map((row) => String(row.table_name)));
     for (const table of tables) if (!tableSet.has(table)) errors.push(`Tabla ausente en DB viva: ${table}`);
 
     for (const [table, columns] of Object.entries(REQUIRED_COLUMNS)) {
       if (!tableSet.has(table)) continue;
-      const { rows } = await pool.query(
-        `SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name=$1 AND column_name = ANY($2::text[])`,
-        [table, columns],
-      );
+      const { rows } = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name=$1 AND column_name = ANY($2::text[])`, [table, columns]);
       const found = new Set(rows.map((row) => String(row.column_name)));
       const missing = columns.filter((column) => !found.has(column));
       if (missing.length) errors.push(`Columnas ausentes en ${table}: ${missing.join(", ")}`);
     }
 
-    const { rows: rlsRows } = await pool.query(
-      `SELECT c.relname AS table_name, c.relrowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname = ANY($1::text[])`,
-      [RLS_REQUIRED],
-    );
+    const { rows: rlsRows } = await pool.query(`SELECT c.relname AS table_name, c.relrowsecurity, c.relforcerowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname = ANY($1::text[])`, [RLS_REQUIRED]);
     for (const table of RLS_REQUIRED) {
       const row = rlsRows.find((item) => String(item.table_name) === table);
       if (!row?.relrowsecurity) errors.push(`RLS desactivada en DB viva: ${table}`);
+      if (!row?.relforcerowsecurity) errors.push(`FORCE RLS desactivada en DB viva: ${table}`);
     }
 
-    const { rows: triggerRows } = await pool.query(
-      `SELECT event_object_table AS table_name, trigger_name FROM information_schema.triggers WHERE trigger_schema='public' AND event_object_table = ANY($1::text[])`,
-      [IMMUTABLE_TABLES],
-    );
+    const { rows: triggerRows } = await pool.query(`SELECT event_object_table AS table_name, trigger_name FROM information_schema.triggers WHERE trigger_schema='public' AND event_object_table = ANY($1::text[])`, [IMMUTABLE_TABLES]);
     for (const table of IMMUTABLE_TABLES) if (!triggerRows.some((row) => String(row.table_name) === table)) errors.push(`Trigger de inmutabilidad ausente: ${table}`);
 
     const vector = await pool.query(`SELECT 1 FROM pg_extension WHERE extname='vector'`);
     if (vector.rowCount === 0) errors.push("Extensión vector ausente en DB viva");
 
     if (errors.length) throw new Error(errors.join("\n"));
-    console.log(`DB viva verificada: ${tables.length} tablas, columnas críticas, RLS, triggers y vector OK.`);
+    console.log(`DB viva verificada: ${tables.length} tablas, contratos, RLS/FORCE RLS, triggers y vector OK.`);
   } finally {
     await pool.end();
   }
 }
 
 if (databaseUrl) {
-  try {
-    await liveCheck();
-    process.exit(0);
-  } catch (error) {
-    console.error(`Verificación SQL falló:\n${error instanceof Error ? error.message : error}`);
-    process.exit(1);
-  }
+  try { await liveCheck(); process.exit(0); }
+  catch (error) { console.error(`Verificación SQL falló:\n${error instanceof Error ? error.message : error}`); process.exit(1); }
 }
 
 const { errors, files } = staticCheck();
 console.log(`Migraciones detectadas: ${files.length}`);
-if (errors.length) {
-  console.error(errors.join("\n"));
-  process.exit(1);
-}
+if (errors.length) { console.error(errors.join("\n")); process.exit(1); }
 console.log("Contrato estático de migraciones OK.");
 console.log("Sin DATABASE_URL no se declara que una base viva esté verificada.");
