@@ -54,7 +54,7 @@ import {
   createEvidenceCoverageMeasurer,
   isClaimSatisfiedByStatus,
   ReleaseGateInput,
-} from "../release/release-gate";
+} from "../release-gate";
 
 export interface AuditOrchestratorConfig {
   rootDir?: string;
