@@ -38,23 +38,12 @@ function json(data: IntroConfig, status = 200): Response {
   });
 }
 
-function fallbackConfig(
-  type: IntroConfig["fallback"]["type"],
-  assetId?: string,
-  metadata?: IntroConfig["metadata"],
-): IntroConfig {
+function fallbackConfig(type: IntroConfig["fallback"]["type"], assetId?: string): IntroConfig {
   return {
     enabled: type !== "none",
     assetId,
-    metadata: {
-      title: INTRO_TITLE,
-      aspectRatio: "16:9",
-      ...metadata,
-    },
-    fallback: {
-      type,
-      url: type === "static" ? FALLBACK_URL : undefined,
-    },
+    metadata: { title: INTRO_TITLE, aspectRatio: "16:9" },
+    fallback: { type, url: type === "static" ? FALLBACK_URL : undefined },
     cacheTtl: CACHE_TTL_SECONDS,
   };
 }
@@ -63,78 +52,33 @@ function recordIntroRequest(startTime: number, result: "mux" | "fallback" | "dis
   try {
     ObservabilityService.recordEvent(performance.now() - startTime, result === "error" ? 1 : 0);
   } catch {
-    // Observability must never change the intro media contract.
+    // Observability never changes the media response contract.
   }
 }
 
-async function resolveIntroConfig(): Promise<IntroConfig> {
+function resolveIntroConfig(): IntroConfig {
   const cfg = loadConfig();
   const fallbackType = cfg.MUX_INTRO_FALLBACK_TYPE ?? "static";
-  const configuredPlaybackId = cfg.MUX_PLAYBACK_ID?.trim();
-  const requestedAssetId = cfg.MUX_INTRO_ASSET_ID?.trim();
-  const tokenId = cfg.MUX_TOKEN_ID?.trim();
-  const tokenSecret = cfg.MUX_TOKEN_SECRET?.trim();
+  const playbackId = cfg.MUX_PLAYBACK_ID?.trim();
+  const assetId = cfg.MUX_INTRO_ASSET_ID?.trim();
 
-  if (configuredPlaybackId && PLAYBACK_ID_PATTERN.test(configuredPlaybackId) && !requestedAssetId) {
-    return {
-      enabled: true,
-      playbackId: configuredPlaybackId,
-      metadata: { title: INTRO_TITLE, aspectRatio: "16:9" },
-      fallback: {
-        type: fallbackType,
-        url: fallbackType === "static" ? FALLBACK_URL : undefined,
-      },
-      cacheTtl: CACHE_TTL_SECONDS,
-    };
-  }
-
-  if (!tokenId || !tokenSecret || !requestedAssetId || !ASSET_ID_PATTERN.test(requestedAssetId)) {
-    return fallbackConfig(fallbackType, requestedAssetId);
-  }
-
-  const endpoint = `https://api.mux.com/video/v1/assets/${encodeURIComponent(requestedAssetId)}`;
-  const authorization = `Basic ${Buffer.from(`${tokenId}:${tokenSecret}`).toString("base64")}`;
-  const response = await SecuritySystem.fetchSafeUpstream(endpoint, {
-    headers: { authorization, accept: "application/json" },
-    signal: AbortSignal.timeout(Math.min(cfg.LLM_UPSTREAM_TIMEOUT_MS, 5000)),
-  });
-
-  if (!response.ok) throw new Error(`mux_asset_http_${response.status}`);
-
-  const payload = (await response.json()) as {
-    data?: {
-      id?: string;
-      status?: string;
-      duration?: number;
-      aspect_ratio?: string;
-      playback_ids?: Array<{ id?: string; policy?: string }>;
-    };
-  };
-  const asset = payload.data;
-
-  if (!asset || asset.id !== requestedAssetId || asset.status !== "ready") {
-    return fallbackConfig(fallbackType, requestedAssetId, {
-      aspectRatio: asset?.aspect_ratio,
-      duration: asset?.duration,
-    });
-  }
-
-  const playbackId = asset.playback_ids?.find((candidate) => candidate.policy === "public")?.id;
+  // Runtime uses exactly one canonical media reference: the configured public
+  // Mux playback ID. The asset ID is provenance metadata, never a second source
+  // for selecting playback. Mux API management stays outside the request path.
   if (!playbackId || !PLAYBACK_ID_PATTERN.test(playbackId)) {
-    return fallbackConfig(fallbackType, requestedAssetId, {
-      aspectRatio: asset.aspect_ratio,
-      duration: asset.duration,
-    });
+    return fallbackConfig(fallbackType, assetId);
+  }
+  if (assetId && !ASSET_ID_PATTERN.test(assetId)) {
+    return fallbackConfig(fallbackType);
   }
 
   return {
     enabled: true,
     playbackId,
-    assetId: requestedAssetId,
+    assetId,
     metadata: {
       title: INTRO_TITLE,
-      aspectRatio: asset.aspect_ratio ?? "16:9",
-      duration: asset.duration,
+      aspectRatio: "16:9",
     },
     fallback: {
       type: fallbackType,
@@ -150,7 +94,7 @@ export const Route = createFileRoute("/api/mux-intro")({
       GET: async () => {
         const startTime = performance.now();
         try {
-          const resolved = await resolveIntroConfig();
+          const resolved = resolveIntroConfig();
           recordIntroRequest(
             startTime,
             resolved.playbackId ? "mux" : resolved.enabled ? "fallback" : "disabled",
