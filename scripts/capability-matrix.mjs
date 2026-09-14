@@ -76,11 +76,20 @@ function validateProductionCapabilities() {
     }
     const provider = capability.provider ?? "repository";
     const version = capability.version ?? manifest.version;
-    const verificationMethod = capability.verification_method ??
-      (Array.isArray(capability.evidence) && capability.evidence.length > 0 ? "repository-evidence" : "");
-    if (typeof provider !== "string" || provider.trim() === "") errors.push(`${label}.provider debe ser texto no vacío.`);
-    if (typeof version !== "string" || version.trim() === "") errors.push(`${label}.version debe ser texto no vacío.`);
-    if (typeof verificationMethod !== "string" || verificationMethod.trim() === "") errors.push(`${label}.verification_method debe ser texto no vacío.`);
+    const verificationMethod =
+      capability.verification_method ??
+      (Array.isArray(capability.evidence) && capability.evidence.length > 0
+        ? "repository-evidence"
+        : "");
+    if (typeof provider !== "string" || provider.trim() === "") {
+      errors.push(`${label}.provider debe ser texto no vacío.`);
+    }
+    if (typeof version !== "string" || version.trim() === "") {
+      errors.push(`${label}.version debe ser texto no vacío.`);
+    }
+    if (typeof verificationMethod !== "string" || verificationMethod.trim() === "") {
+      errors.push(`${label}.verification_method debe ser texto no vacío.`);
+    }
     const lastVerified = Object.prototype.hasOwnProperty.call(capability, "last_verified")
       ? capability.last_verified
       : normalizedStatus === "verified"

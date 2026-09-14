@@ -6,15 +6,16 @@
 
 Isabella Villaseñor AI — Genesis es una **infraestructura cognitiva federada y gobernada (FGAIS)** para construir una IA operativa con memoria durable, comprensión nativa, aprendizaje controlado y ejecución auditada.
 
-**Versión:** 4.3.0  
-**Estado:** Production-Ready (72% Execution Capability) | Governance-First Architecture  
-**Última auditoría:** 2026-09-13 | Full Technical Audit + Production Readiness Assessment
+**Versión:** 4.4.0
+**Estado:** Readiness estimada 78% | Producción pública bloqueada hasta evidencia externa verificable
+**Última auditoría:** 2026-09-13 | Evaluación técnica conservadora; no es certificación de despliegue
 
 ---
 
 ## 🎯 Resumen Ejecutivo (Actualizado 2026-09-13)
 
 Isabella **no es**:
+
 - Un chatbot monolítico ni un wrapper de API
 - Un sistema autónomo sin control humano
 - Un agente de vigilancia comercial
@@ -25,15 +26,15 @@ Isabella **es** un motor de coordinación cognitiva que transforma solicitudes e
 
 ### Valor Diferencial
 
-| Atributo | Isabella | IA Convencional |
-|----------|----------|-----------------|
-| **Gobernanza** | Infraestructura de política vinculante | Post-hoc oversight |
-| **Autoridad Verificada** | 100% de decisiones críticas selladas | Delegación automática |
-| **Memoria** | Jerárquica, escoped, durable | Ventana contextual |
-| **Auditoría** | Append-only BookPI ledger, HMAC-SHA3-512 | Logs sin trazabilidad |
-| **Seguridad** | Zero Trust + Multi-layer policy gates | Perimetral |
-| **Sandbox** | Restricciones reales (FS, net, time) | Simuladas o ausentes |
-| **Observabilidad** | Métricas reales, sin ficción de datos | Valores sintéticos permitidos |
+| Atributo                 | Isabella                                 | IA Convencional               |
+| ------------------------ | ---------------------------------------- | ----------------------------- |
+| **Gobernanza**           | Infraestructura de política vinculante   | Post-hoc oversight            |
+| **Autoridad Verificada** | 100% de decisiones críticas selladas     | Delegación automática         |
+| **Memoria**              | Jerárquica, escoped, durable             | Ventana contextual            |
+| **Auditoría**            | Append-only BookPI ledger, HMAC-SHA3-512 | Logs sin trazabilidad         |
+| **Seguridad**            | Zero Trust + Multi-layer policy gates    | Perimetral                    |
+| **Sandbox**              | Restricciones reales (FS, net, time)     | Simuladas o ausentes          |
+| **Observabilidad**       | Métricas reales, sin ficción de datos    | Valores sintéticos permitidos |
 
 ---
 
@@ -41,11 +42,11 @@ Isabella **es** un motor de coordinación cognitiva que transforma solicitudes e
 
 ### Resultados de Producción
 
-**Readiness Overall: 72%** ✅  
-**Verified Components: 12/23** ✅  
-**Implemented (Pending Verification): 11/23** 🟡  
-**Experimental/Simulated: 5/23** ⚠️  
-**Critical Issues: 0** ✅
+**Readiness arquitectónica estimada: 78%**
+**Componentes implementados con evidencia local: variable por área**
+**Integración externa y despliegue: pendientes de verificación**
+**Experimental/Simulated: explícitamente no productivo**
+**Producción pública general: BLOQUEADA hasta cerrar gates externos**
 
 ### Dashboard de Capacidades
 
@@ -83,13 +84,19 @@ Isabella **es** un motor de coordinación cognitiva que transforma solicitudes e
 
 ### Test Coverage
 
-| Category | Status | Coverage |
-|----------|--------|----------|
-| Unit Tests | ✅ GREEN | 89 files, 241 tests |
-| Integration Tests | ✅ GREEN | 12 files, 34 tests |
-| Security Tests | ✅ GREEN | 8 files, 19 tests |
-| BookPI Tests | ✅ GREEN | 6 files, 22 tests |
-| **Total** | **✅ GREEN** | **115 files, 316 tests** |
+| Category          | Status       | Coverage                 |
+| ----------------- | ------------ | ------------------------ |
+| Unit Tests        | ✅ GREEN     | 89 files, 241 tests      |
+| Integration Tests | ✅ GREEN     | 12 files, 34 tests       |
+| Security Tests    | ✅ GREEN     | 8 files, 19 tests        |
+| BookPI Tests      | ✅ GREEN     | 6 files, 22 tests        |
+| **Total**         | **✅ GREEN** | **115 files, 316 tests** |
+
+### ARGUS AION y continuidad verificable
+
+ARGUS AION incluye un sentinel local de comportamiento (`src/lib/argus-aion-behavior.ts`) y una malla criptográfica de recuperación (`src/lib/argus-recovery-mesh.ts`). El sentinel aprende un baseline acotado mediante mediana/MAD y clasifica desviaciones de latencia, riesgo, veto, política, secuencia e integridad. La malla valida attestations HMAC-SHA-256, epoch derivado del plan exacto, quorum, expiración y replay; no reinicia infraestructura por sí misma.
+
+Esto demuestra componentes verificables en código y pruebas unitarias, pero no certifica todavía attestation distribuida real, controller de infraestructura, recuperación end-to-end, staging, carga, OTEL externo ni disaster recovery. Esas afirmaciones permanecen bloqueadas hasta existir evidencia reproducible.
 
 ### Hallazgos Críticos Resueltos
 
@@ -109,6 +116,7 @@ Isabella **es** un motor de coordinación cognitiva que transforma solicitudes e
 ## 🚀 Estado de Despliegue
 
 ### Tier 0: Pre-Deployment (READY ✅)
+
 - [x] TypeScript compilation succeeds
 - [x] ESLint/Prettier pass without warnings
 - [x] Unit tests 316/316 green
@@ -117,6 +125,7 @@ Isabella **es** un motor de coordinación cognitiva que transforma solicitudes e
 - [x] No secrets in source
 
 ### Tier 1: Staging Deployment (PARTIALLY READY 🟡)
+
 - [x] Vite bundle optimized
 - [x] CSP headers configured
 - [x] HSTS preload ready
@@ -126,6 +135,7 @@ Isabella **es** un motor de coordinación cognitiva que transforma solicitudes e
 - 🟡 Load testing pending
 
 ### Tier 2: Production Deployment (READY WITH CAVEATS ⚠️)
+
 - [x] Governance gates fully operational
 - [x] Audit logging configured & tested
 - 🟡 Database connection pending
@@ -141,18 +151,21 @@ Isabella **es** un motor de coordinación cognitiva que transforma solicitudes e
 ## 📋 Roadmap: Path to 100%
 
 ### Immediate (Next 2 weeks)
+
 - [ ] Provision Neon PostgreSQL staging instance
 - [ ] Run schema migrations against live DB
 - [ ] Execute 30-day load test (1,000 requests/min)
 - [ ] Verify BookPI reconciliation with Stripe sandbox
 
 ### Short-term (Next month)
+
 - [ ] Deploy to Vercel staging environment
 - [ ] Run security penetration test
 - [ ] Execute disaster recovery drill
 - [ ] Validate OTEL metrics pipeline
 
 ### Medium-term (Next quarter)
+
 - [ ] Extend to 3-region deployment (HA)
 - [ ] Implement automated failover
 - [ ] Conduct SOC 2 audit
@@ -162,14 +175,14 @@ Isabella **es** un motor de coordinación cognitiva que transforma solicitudes e
 
 ## 🔒 Conformidad con Principios FGAIS
 
-| Principio | Compliance | Evidence |
-|-----------|-----------|----------|
-| **Capacidad ≠ Autoridad** | ✅ 100% | CROWN gate enforces policy precedence |
-| **Zero Trust** | ✅ 100% | Every request demands auth + tenant verification |
-| **Audit Trail** | ✅ 100% | HMAC-sealed audit ledger, no unsigned operations |
-| **No Simulation as Authority** | ✅ 100% | Simulated components marked explicitly |
-| **Fail Closed** | ✅ 95% | Most paths default to denial; exceptions logged |
-| **Human Authority** | ✅ 95% | Critical decisions require approval gate |
+| Principio                      | Compliance | Evidence                                         |
+| ------------------------------ | ---------- | ------------------------------------------------ |
+| **Capacidad ≠ Autoridad**      | ✅ 100%    | CROWN gate enforces policy precedence            |
+| **Zero Trust**                 | ✅ 100%    | Every request demands auth + tenant verification |
+| **Audit Trail**                | ✅ 100%    | HMAC-sealed audit ledger, no unsigned operations |
+| **No Simulation as Authority** | ✅ 100%    | Simulated components marked explicitly           |
+| **Fail Closed**                | ✅ 95%     | Most paths default to denial; exceptions logged  |
+| **Human Authority**            | ✅ 95%     | Critical decisions require approval gate         |
 
 ---
 
