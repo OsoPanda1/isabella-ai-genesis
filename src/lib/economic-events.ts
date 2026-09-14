@@ -1,6 +1,4 @@
-/**
- * ECONOMIC EVENTS — PostgreSQL economic authority and Stripe payment binding.
- */
+/** Economic events — PostgreSQL economic authority and Stripe payment binding. */
 import { Pool } from "pg";
 import { createHash, randomUUID } from "node:crypto";
 import { config } from "./config";
@@ -26,12 +24,7 @@ export type WebhookClaimResult =
   | { status: "duplicate"; id: string }
   | { status: "error"; id: string; message: string };
 
-export async function claimWebhookEvent(input: {
-  provider: string;
-  providerEventId: string;
-  eventType: string;
-  payloadHash?: string;
-}): Promise<WebhookClaimResult> {
+export async function claimWebhookEvent(input: { provider: string; providerEventId: string; eventType: string; payloadHash?: string }): Promise<WebhookClaimResult> {
   let client;
   try {
     client = await getPool().connect();
@@ -44,8 +37,7 @@ export async function claimWebhookEvent(input: {
     const { rows } = await client.query(
       `INSERT INTO webhook_events (provider, provider_event_id, event_type, payload_hash, status, processed_at, error)
        VALUES ($1,$2,$3,$4,'processed',NOW(),NULL)
-       ON CONFLICT (provider, provider_event_id) DO NOTHING
-       RETURNING id`,
+       ON CONFLICT (provider, provider_event_id) DO NOTHING RETURNING id`,
       [input.provider, input.providerEventId, input.eventType, payloadHash],
     );
     if (rows[0]) {
@@ -77,25 +69,30 @@ export type EconomicEventInput = {
   metadata?: Record<string, unknown>;
 };
 
-/**
- * P0 invariant: QUOTA_TOPUP events cannot be recorded from an arbitrary
- * PaymentIntent. Stripe metadata and the durable binding table must both
- * prove tenant + user + amount + currency ownership before crediting.
- */
+export function validateQuotaTopupMetadata(
+  paymentIntent: { status?: string; currency?: string; amount?: number; metadata?: Record<string, string> },
+  tenantId: string,
+  userId: string,
+  amountMinor: number | bigint,
+): { ok: true } | { ok: false; error: string } {
+  if (paymentIntent.status !== "succeeded") return { ok: false, error: "PaymentIntent is not succeeded." };
+  if ((paymentIntent.currency ?? "").toLowerCase() !== "usd") return { ok: false, error: "Unsupported PaymentIntent currency." };
+  if (BigInt(paymentIntent.amount ?? -1) !== BigInt(amountMinor)) return { ok: false, error: "PaymentIntent amount mismatch." };
+  if (paymentIntent.metadata?.purpose !== "quota_topup") return { ok: false, error: "PaymentIntent purpose mismatch." };
+  if (paymentIntent.metadata?.tenantId !== tenantId) return { ok: false, error: "PaymentIntent tenant binding mismatch." };
+  if (paymentIntent.metadata?.userId !== userId) return { ok: false, error: "PaymentIntent user binding mismatch." };
+  return { ok: true };
+}
+
 async function verifyQuotaTopupBinding(input: EconomicEventInput, amountMinor: bigint): Promise<{ ok: true } | { ok: false; error: string }> {
   if (input.eventType !== "QUOTA_TOPUP") return { ok: true };
   if (input.provider !== "stripe" || !input.providerEventId) return { ok: false, error: "QUOTA_TOPUP requires a Stripe PaymentIntent." };
-
   const cfg = config();
   if (!cfg.STRIPE_SECRET_KEY) return { ok: false, error: "Stripe configuration unavailable." };
   const stripe = new Stripe(cfg.STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" as Stripe.LatestApiVersion });
   const paymentIntent = await stripe.paymentIntents.retrieve(input.providerEventId);
-  if (paymentIntent.status !== "succeeded") return { ok: false, error: "PaymentIntent is not succeeded." };
-  if (paymentIntent.currency.toLowerCase() !== "usd") return { ok: false, error: "Unsupported PaymentIntent currency." };
-  if (BigInt(paymentIntent.amount) !== amountMinor) return { ok: false, error: "PaymentIntent amount mismatch." };
-  if (paymentIntent.metadata?.purpose !== "quota_topup") return { ok: false, error: "PaymentIntent purpose mismatch." };
-  if (paymentIntent.metadata?.tenantId !== input.tenantId) return { ok: false, error: "PaymentIntent tenant binding mismatch." };
-  if (paymentIntent.metadata?.userId !== input.actorId) return { ok: false, error: "PaymentIntent user binding mismatch." };
+  const metadataCheck = validateQuotaTopupMetadata(paymentIntent, input.tenantId, input.actorId, amountMinor);
+  if (!metadataCheck.ok) return metadataCheck;
 
   const { rows } = await getPool().query(
     `SELECT tenant_id,user_id,purpose,currency,amount_minor,consumed_at
