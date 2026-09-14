@@ -298,34 +298,34 @@ export const Route = createFileRoute("/api/billing")({
                 try {
                   const stripeSession = await stripe.checkout.sessions.create(
                     {
-                    payment_method_types: ["card"],
-                    line_items: [
-                      {
-                        price_data: {
-                          currency: "usd",
-                          product_data: {
-                            name: `Isabella AI - Suscripción ${planId.toUpperCase()}`,
-                            description: `Acceso Premium al orquestador cognitivo de Isabella (${planId}).`,
+                      payment_method_types: ["card"],
+                      line_items: [
+                        {
+                          price_data: {
+                            currency: "usd",
+                            product_data: {
+                              name: `Isabella AI - Suscripción ${planId.toUpperCase()}`,
+                              description: `Acceso Premium al orquestador cognitivo de Isabella (${planId}).`,
+                            },
+                            unit_amount: planId === "pro" ? 2900 : 9900, // $29 o $99 USD
+                            recurring: { interval: "month" },
                           },
-                          unit_amount: planId === "pro" ? 2900 : 9900, // $29 o $99 USD
-                          recurring: { interval: "month" },
+                          quantity: 1,
                         },
-                        quantity: 1,
+                      ],
+                      mode: "subscription",
+                      success_url: `${url.origin}/billing-success?session_id={CHECKOUT_SESSION_ID}`,
+                      cancel_url: `${url.origin}/billing-cancel`,
+                      client_reference_id: context.userId,
+                      metadata: {
+                        tenantId: context.tenantId,
+                        planId,
                       },
-                    ],
-                    mode: "subscription",
-                    success_url: `${url.origin}/billing-success?session_id={CHECKOUT_SESSION_ID}`,
-                    cancel_url: `${url.origin}/billing-cancel`,
-                    client_reference_id: context.userId,
-                    metadata: {
-                      tenantId: context.tenantId,
-                      planId,
                     },
-                  },
-                  {
-                    idempotencyKey: `checkout:${context.tenantId}:${idempotencyKey ?? context.correlationId}`,
-                  },
-                );
+                    {
+                      idempotencyKey: `checkout:${context.tenantId}:${idempotencyKey ?? context.correlationId}`,
+                    },
+                  );
                   sessionId = stripeSession.id;
                   checkoutUrl = stripeSession.url ?? "";
                 } catch (stripeError) {

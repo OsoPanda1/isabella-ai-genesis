@@ -77,11 +77,16 @@ export class ArgusAion {
     capturedAt?: string;
   }): ArgusCheckpoint {
     if (!/^[a-f0-9]{64}$/u.test(input.stateDigest)) throw new Error("aion_invalid_state_digest");
-    if (!input.argusEpoch || !Number.isInteger(input.sequence) || input.sequence <= this.lastSequence)
+    if (
+      !input.argusEpoch ||
+      !Number.isInteger(input.sequence) ||
+      input.sequence <= this.lastSequence
+    )
       throw new Error("aion_invalid_sequence");
     if (!Number.isFinite(input.healthScore) || input.healthScore < 0 || input.healthScore > 1)
       throw new Error("aion_invalid_health_score");
-    if (input.nodeIds.length === 0 || input.nodeIds.length > 256) throw new Error("aion_invalid_node_set");
+    if (input.nodeIds.length === 0 || input.nodeIds.length > 256)
+      throw new Error("aion_invalid_node_set");
 
     this.argusEpoch = input.argusEpoch;
     this.lastSequence = input.sequence;
@@ -114,29 +119,57 @@ export class ArgusAion {
 
     if (event === "ARGUS_HEARTBEAT") {
       if (this.mode !== "AION_ACTIVE" && this.mode !== "RECOVERY") this.mode = "SHADOW";
-      return { event, sequence: this.lastSequence, observedAt, argusEpoch: this.argusEpoch, evidenceDigest };
+      return {
+        event,
+        sequence: this.lastSequence,
+        observedAt,
+        argusEpoch: this.argusEpoch,
+        evidenceDigest,
+      };
     }
 
-    if (event === "ARGUS_LOST" || (this.lastHeartbeatAt > 0 && now - this.lastHeartbeatAt > this.lossThresholdMs)) {
+    if (
+      event === "ARGUS_LOST" ||
+      (this.lastHeartbeatAt > 0 && now - this.lastHeartbeatAt > this.lossThresholdMs)
+    ) {
       if (this.mode !== "AION_ACTIVE" && this.mode !== "RECOVERY") this.mode = "AION_ACTIVE";
-      return { event: "ARGUS_LOST", sequence: this.lastSequence, observedAt, argusEpoch: this.argusEpoch, evidenceDigest };
+      return {
+        event: "ARGUS_LOST",
+        sequence: this.lastSequence,
+        observedAt,
+        argusEpoch: this.argusEpoch,
+        evidenceDigest,
+      };
     }
 
     if (event === "ARGUS_DEGRADED") {
       this.mode = "SHADOW";
-      return { event, sequence: this.lastSequence, observedAt, argusEpoch: this.argusEpoch, evidenceDigest };
+      return {
+        event,
+        sequence: this.lastSequence,
+        observedAt,
+        argusEpoch: this.argusEpoch,
+        evidenceDigest,
+      };
     }
 
     if (event === "ARGUS_RESTORED") {
       if (this.mode !== "QUARANTINED") this.mode = "SHADOW";
-      return { event, sequence: this.lastSequence, observedAt, argusEpoch: this.argusEpoch, evidenceDigest };
+      return {
+        event,
+        sequence: this.lastSequence,
+        observedAt,
+        argusEpoch: this.argusEpoch,
+        evidenceDigest,
+      };
     }
 
     return null;
   }
 
   activateRecovery(now = Date.now()): AionRecoveryPlan {
-    if (this.mode !== "AION_ACTIVE" && this.mode !== "RECOVERY") throw new Error("aion_not_activated");
+    if (this.mode !== "AION_ACTIVE" && this.mode !== "RECOVERY")
+      throw new Error("aion_not_activated");
     const checkpoints = this.checkpoints;
     if (checkpoints.length < 2) throw new Error("aion_insufficient_recovery_history");
 
@@ -144,7 +177,8 @@ export class ArgusAion {
     // the first corrupted state. Prefer the checkpoint two positions behind it.
     const target = checkpoints[Math.max(0, checkpoints.length - 3)]!;
     const requiredNodeIds = target.nodeIds.slice(0, Math.max(this.minimumRecoveryNodes, 1));
-    if (requiredNodeIds.length < this.minimumRecoveryNodes) throw new Error("aion_insufficient_recovery_nodes");
+    if (requiredNodeIds.length < this.minimumRecoveryNodes)
+      throw new Error("aion_insufficient_recovery_nodes");
 
     const planCore = {
       planId: randomUUID(),

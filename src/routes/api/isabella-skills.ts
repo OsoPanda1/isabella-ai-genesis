@@ -25,7 +25,8 @@ async function enforceSkillQuota(tenantId: string, ip: string) {
     SecuritySystem.checkRateLimitDistributed(`skill-tenant:${tenantId}`, limit),
     SecuritySystem.checkRateLimitDistributed(`skill-client:${ip}`, limit),
   ]);
-  if (tenantLimit.degraded || clientLimit.degraded) return json({ error: "RATE_LIMIT_INFRASTRUCTURE_UNAVAILABLE" }, 503);
+  if (tenantLimit.degraded || clientLimit.degraded)
+    return json({ error: "RATE_LIMIT_INFRASTRUCTURE_UNAVAILABLE" }, 503);
   if (!tenantLimit.allowed || !clientLimit.allowed) return json({ error: "RATE_LIMITED" }, 429);
   return null;
 }
@@ -46,14 +47,16 @@ export const Route = createFileRoute("/api/isabella-skills")({
           if (error instanceof RequestLimitError) return json({ error: error.code }, 413);
           return json({ error: "INVALID_JSON" }, 400);
         }
-        if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "VALIDATION_ERROR" }, 400);
+        if (!body || typeof body !== "object" || Array.isArray(body))
+          return json({ error: "VALIDATION_ERROR" }, 400);
         const payload = body as Record<string, unknown>;
         const skillId = typeof payload.skillId === "string" ? payload.skillId : "";
         const known = listIsabellaSkills().some((skill) => skill.id === skillId);
         if (!known) return json({ error: "SKILL_NOT_FOUND", skills: listIsabellaSkills() }, 404);
 
         const parsedInput = parseSkillInput(skillId as IsabellaSkillId, payload.input);
-        if (!parsedInput.success) return json({ error: "INVALID_SKILL_INPUT", issues: parsedInput.error.issues }, 400);
+        if (!parsedInput.success)
+          return json({ error: "INVALID_SKILL_INPUT", issues: parsedInput.error.issues }, 400);
 
         const result = await runIsabellaSkill(skillId as IsabellaSkillId, parsedInput.data, {
           requestId: context.correlationId,
@@ -62,7 +65,10 @@ export const Route = createFileRoute("/api/isabella-skills")({
           role: context.role,
           authenticated: context.role !== "Guest",
           ipAddress: context.ip,
-          intent: typeof payload.intent === "string" ? payload.intent.slice(0, 2_000) : "API skill execution",
+          intent:
+            typeof payload.intent === "string"
+              ? payload.intent.slice(0, 2_000)
+              : "API skill execution",
           locale: typeof payload.locale === "string" ? payload.locale.slice(0, 32) : "es-MX",
         });
         const status = result.error ? (result.error.code === "CROWN_POLICY_DENY" ? 403 : 422) : 200;

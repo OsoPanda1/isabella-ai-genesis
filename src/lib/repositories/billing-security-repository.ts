@@ -10,7 +10,12 @@ function getPool(): Pool {
   if (!url) throw new Error("DATABASE_URL is required for billing security persistence.");
   if (!pool || poolUrl !== url) {
     if (pool) void pool.end().catch(() => undefined);
-    pool = new Pool({ connectionString: url, max: 5, connectionTimeoutMillis: 10000, statement_timeout: 15000 });
+    pool = new Pool({
+      connectionString: url,
+      max: 5,
+      connectionTimeoutMillis: 10000,
+      statement_timeout: 15000,
+    });
     poolUrl = url;
   }
   return pool;
@@ -37,7 +42,13 @@ export async function registerPaymentIntentBinding(input: {
            currency = EXCLUDED.currency,
            amount_minor = EXCLUDED.amount_minor
      WHERE billing_payment_intents.consumed_at IS NULL`,
-    [input.stripePaymentIntentId, input.tenantId, input.userId, input.currency.toLowerCase(), input.amountMinor],
+    [
+      input.stripePaymentIntentId,
+      input.tenantId,
+      input.userId,
+      input.currency.toLowerCase(),
+      input.amountMinor,
+    ],
   );
 }
 
@@ -50,7 +61,11 @@ export async function getPaymentIntentBinding(stripePaymentIntentId: string) {
   return rows[0] ?? null;
 }
 
-export async function consumePaymentIntentBinding(stripePaymentIntentId: string, tenantId: string, userId: string): Promise<boolean> {
+export async function consumePaymentIntentBinding(
+  stripePaymentIntentId: string,
+  tenantId: string,
+  userId: string,
+): Promise<boolean> {
   const { rowCount } = await getPool().query(
     `UPDATE billing_payment_intents
         SET consumed_at = NOW()
@@ -98,7 +113,11 @@ export async function reserveCheckoutIdempotency(input: {
       throw new Error("IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST");
     }
     await client.query("COMMIT");
-    return { created: false, sessionId: row.stripe_session_id ?? null, checkoutUrl: row.checkout_url ?? null };
+    return {
+      created: false,
+      sessionId: row.stripe_session_id ?? null,
+      checkoutUrl: row.checkout_url ?? null,
+    };
   } catch (error) {
     await client.query("ROLLBACK").catch(() => undefined);
     throw error;
@@ -136,9 +155,19 @@ export async function issueRunAuthorization(input: {
       (capability_hash,tenant_id,user_id,skill_id,estimated_cost_minor,expires_at)
      VALUES ($1,$2,$3,$4,$5,$6)
      RETURNING id, expires_at`,
-    [input.tokenHash, input.tenantId, input.userId, input.skillId, input.estimatedCostMinor, expiresAt],
+    [
+      input.tokenHash,
+      input.tenantId,
+      input.userId,
+      input.skillId,
+      input.estimatedCostMinor,
+      expiresAt,
+    ],
   );
-  return { authorizationId: String(rows[0].id), expiresAt: new Date(rows[0].expires_at).toISOString() };
+  return {
+    authorizationId: String(rows[0].id),
+    expiresAt: new Date(rows[0].expires_at).toISOString(),
+  };
 }
 
 export async function consumeRunAuthorization(input: {

@@ -15,7 +15,8 @@ export class RequestLimitError extends Error {
 export function requestBodyLimitBytes(request: Request, configured: number): number {
   const parsed = Number.parseInt(request.headers.get("content-length") ?? "", 10);
   const maxBytes = Math.max(1024, Math.min(configured, 1_048_576));
-  if (Number.isFinite(parsed) && parsed > maxBytes) throw new RequestLimitError("REQUEST_BODY_TOO_LARGE");
+  if (Number.isFinite(parsed) && parsed > maxBytes)
+    throw new RequestLimitError("REQUEST_BODY_TOO_LARGE");
   return maxBytes;
 }
 

@@ -45,10 +45,8 @@ export function aggregateFederatedUpdates(
     );
     return base + delta / totalSamples;
   });
-  const biasDelta = accepted.reduce(
-    (sum, update) => sum + update.deltaBias * update.sampleCount,
-    0,
-  ) / totalSamples;
+  const biasDelta =
+    accepted.reduce((sum, update) => sum + update.deltaBias * update.sampleCount, 0) / totalSamples;
   const artifactHash = hash({ weights, bias: baseArtifact.bias + biasDelta });
   const artifact: ModelArtifact = {
     weights,

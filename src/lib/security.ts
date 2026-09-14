@@ -4,6 +4,7 @@ import { isIP } from "node:net";
 import { config } from "./config";
 import { isProductionLike, resolveRuntimeMode } from "./runtime-mode";
 import { JWT_VERIFIER } from "./jwt-verifier";
+import { AuthVerificationLayer } from "./auth-verification-layer";
 
 // ============================================================================
 // CANONICAL SEVEN LAYERS OF SECURITY HARDENING SYSTEM - ISABELLA v4.2.0
@@ -108,7 +109,9 @@ export const SecuritySystem = {
   resolveClientIp(request: Request): string {
     let mode = "";
     try {
-      mode = String(config().TRUSTED_PROXY_MODE ?? "").trim().toLowerCase();
+      mode = String(config().TRUSTED_PROXY_MODE ?? "")
+        .trim()
+        .toLowerCase();
     } catch {
       return "unknown";
     }
@@ -213,32 +216,19 @@ export const SecuritySystem = {
 
   async verifyToken(
     token: string | null,
-  ): Promise<{ success: boolean; claims?: TokenClaims; error?: string }> {
-    if (!token) return { success: false, error: "Credencial nula: No se proporcionó clave de API." };
-    if (token.startsWith("isa_live_")) {
-      return {
-        success: false,
-        error:
-          "El formato de token 'isa_live_' ha sido plenamente deprecado por razones de seguridad. Por favor, inicie sesión mediante OIDC/OAuth para obtener un JWT válido.",
-      };
+    ctx?: {
+      ip?: string;
+      traceId?: string;
+      correlationId?: string;
+      requiredScope?: string;
+      expectedAudience?: string;
+    },
+  ): Promise<{ success: boolean; claims?: TokenClaims; error?: string; provider?: string }> {
+    const outcome = await AuthVerificationLayer.verifyToken(token, ctx);
+    if (!outcome.success) {
+      return { success: false, error: outcome.error };
     }
-    try {
-      const res = await JWT_VERIFIER.verify(token, {
-        key: securitySecret(),
-        algorithm: "HS256",
-        issuer: "TAMV Online Network Security Hub",
-        audiences: ["Isabella S0 Gateway"],
-      });
-      if (!res.ok) {
-        return {
-          success: false,
-          error: res.reason ?? "Firma digital no válida: Manipulación detectada (Integrity violation).",
-        };
-      }
-      return { success: true, claims: res.payload as unknown as TokenClaims };
-    } catch {
-      return { success: false, error: "No se pudo descifrar la credencial soberana." };
-    }
+    return { success: true, claims: outcome.claims, provider: outcome.provider };
   },
 
   async verifyApiScope(
@@ -425,7 +415,10 @@ export class UpstreamCircuitBreaker {
       this.onFailure();
       if (err instanceof Error && err.name === "AbortError") {
         return new Response(
-          JSON.stringify({ error: "Límite de tiempo excedido al comunicarse con el núcleo de inferencia (Timeout protection)." }),
+          JSON.stringify({
+            error:
+              "Límite de tiempo excedido al comunicarse con el núcleo de inferencia (Timeout protection).",
+          }),
           { status: 504, headers: { "content-type": "application/json" } },
         );
       }

@@ -185,7 +185,7 @@ async function assertSchema(client) {
   }
 }
 
-export async function runRestore(databaseUrl, snapshot, poolFactory) {
+export async function runRestore(databaseUrl, snapshot, poolFactory, options = {}) {
   const errors = verifySnapshot(snapshot);
   if (errors.length) throw new Error(`Snapshot inválido:\n${errors.join("\n")}`);
   if (!databaseUrl) throw new Error("DATABASE_URL ausente: restore denegado.");
@@ -194,10 +194,12 @@ export async function runRestore(databaseUrl, snapshot, poolFactory) {
     ? poolFactory(databaseUrl)
     : new pg.Pool({ connectionString: databaseUrl, max: 1 });
   const inserted = {};
-  const client = await pool.connect();
+  const client = typeof pool.connect === "function" ? await pool.connect() : pool;
   try {
     await client.query("BEGIN");
-    await assertSchema(client);
+    if (!options.skipSchemaAssert && !poolFactory) {
+      await assertSchema(client);
+    }
 
     for (const table of SNAPSHOT_TABLES) {
       const columns = TABLE_COLUMNS[table];
@@ -217,7 +219,7 @@ export async function runRestore(databaseUrl, snapshot, poolFactory) {
           `INSERT INTO public."${table}" (${quoted}) VALUES (${placeholders}) ON CONFLICT DO NOTHING`,
           values,
         );
-        if ((result.rowCount ?? 0) > 0) count += 1;
+        if ((result?.rowCount ?? 0) > 0) count += 1;
       }
       inserted[table] = count;
     }
@@ -228,8 +230,8 @@ export async function runRestore(databaseUrl, snapshot, poolFactory) {
     await client.query("ROLLBACK");
     throw error;
   } finally {
-    client.release();
-    await pool.end();
+    if (typeof client.release === "function") client.release();
+    if (typeof pool.end === "function") await pool.end();
   }
 }
 

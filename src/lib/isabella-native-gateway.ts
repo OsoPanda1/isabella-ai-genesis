@@ -11,7 +11,11 @@ const NativeComprehensionRequestSchema = z.object({
 });
 
 function normalizeSpanishInput(input: string): string {
-  return input.normalize("NFC").replace(/[\u200B-\u200D\uFEFF]/g, "").replace(/\s+/g, " ").trim();
+  return input
+    .normalize("NFC")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 type NativeGatewayContext = {

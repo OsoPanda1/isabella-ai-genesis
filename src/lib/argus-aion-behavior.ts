@@ -67,8 +67,15 @@ export class ArgusAionBehavioralSentinel {
     veto: [],
     policyVersions: [],
   };
+  private readonly maxBaseline: number;
+  private readonly minimumSamples: number;
   private lastSequence = -1;
   private lastTimestamp = 0;
+
+  constructor(config: { baselineWindow?: number; minimumSamples?: number } = {}) {
+    this.maxBaseline = Math.max(4, config.baselineWindow ?? MAX_BASELINE);
+    this.minimumSamples = Math.max(1, config.minimumSamples ?? 4);
+  }
 
   observe(observation: ArgusObservation): AionAssessment {
     if (!validObservation(observation)) {
@@ -98,7 +105,7 @@ export class ArgusAionBehavioralSentinel {
       .filter(([, value]) => value >= 0.5)
       .map(([key]) => `${key}_deviation`);
     const state: AionState =
-      this.baseline.latency.length < 4
+      this.baseline.latency.length < this.minimumSamples
         ? "LEARNING"
         : score >= 0.8
           ? "CRITICAL"
@@ -117,7 +124,10 @@ export class ArgusAionBehavioralSentinel {
 
   snapshot() {
     return {
-      state: this.baseline.latency.length < 4 ? ("LEARNING" as const) : ("NORMAL" as const),
+      state:
+        this.baseline.latency.length < this.minimumSamples
+          ? ("LEARNING" as const)
+          : ("NORMAL" as const),
       size: this.baseline.latency.length,
       lastSequence: this.lastSequence,
     };
@@ -125,7 +135,7 @@ export class ArgusAionBehavioralSentinel {
 
   private push<T>(values: T[], value: T) {
     values.push(value);
-    if (values.length > MAX_BASELINE) values.shift();
+    if (values.length > this.maxBaseline) values.shift();
   }
   private assessment(
     state: AionState,
@@ -151,8 +161,8 @@ export class ArgusAionBehaviorSentinel {
   private readonly sentinel: ArgusAionBehavioralSentinel;
   private lastSequence = 0;
 
-  constructor(_config: { baselineWindow?: number; minimumSamples?: number } = {}) {
-    this.sentinel = new ArgusAionBehavioralSentinel();
+  constructor(config: { baselineWindow?: number; minimumSamples?: number } = {}) {
+    this.sentinel = new ArgusAionBehavioralSentinel(config);
   }
 
   observe(sample: {

@@ -296,7 +296,12 @@ export class PrincipalContext {
       };
 
     const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-    const verification = await SecuritySystem.verifyToken(token);
+    const verification = await SecuritySystem.verifyToken(token, {
+      ip,
+      traceId: telemetry.traceId,
+      correlationId: telemetry.correlationId,
+      requiredScope,
+    });
     if (!verification.success || !verification.claims)
       return {
         success: false,

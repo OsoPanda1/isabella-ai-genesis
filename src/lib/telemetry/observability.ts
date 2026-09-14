@@ -47,8 +47,16 @@ class ObservabilityEngine {
 
   public getLatencyBudget(): LatencyBudget {
     const values = [...this.latencySamples].sort((a, b) => a - b);
-    const percentile = (p: number) => values.length === 0 ? 0 : values[Math.min(values.length - 1, Math.ceil(values.length * p) - 1)]!;
-    return { p50Ms: percentile(0.5), p95Ms: percentile(0.95), p99Ms: percentile(0.99), sampleCount: values.length };
+    const percentile = (p: number) =>
+      values.length === 0
+        ? 0
+        : values[Math.min(values.length - 1, Math.ceil(values.length * p) - 1)]!;
+    return {
+      p50Ms: percentile(0.5),
+      p95Ms: percentile(0.95),
+      p99Ms: percentile(0.99),
+      sampleCount: values.length,
+    };
   }
 
   constructor() {
