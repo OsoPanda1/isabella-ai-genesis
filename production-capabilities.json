@@ -1,8 +1,8 @@
 {
-  "version": "4.3.0",
-  "assessment_date": "2026-09-13T23:25:00Z",
-  "commit_sha": "79d40454a6fa994bf0396bc778b782ca6f3f953b",
-  "overall_readiness_percent": 72,
+  "version": "4.3.1",
+  "assessment_date": "2026-09-13T23:59:00Z",
+  "commit_sha": "fb4e5a7af5df5fb9471966d4f5af6d33736abfb6",
+  "overall_readiness_percent": 68,
   "environment": "production",
   "capabilities": [
     {
@@ -11,23 +11,15 @@
       "production_safe": true,
       "readiness_percent": 100,
       "evidence": ["src/lib/crown.ts", "src/lib/policy-engine.ts", "test/unit/platform-capabilities.test.ts"],
-      "notes": "Policy arbitration, intent routing, decision gating fully operational"
+      "notes": "Policy arbitration and decision gating are implemented; production evidence remains gate-controlled."
     },
     {
       "name": "authentication.jwt_oidc",
-      "status": "verified",
-      "production_safe": true,
-      "readiness_percent": 100,
-      "evidence": ["src/lib/principal-context.ts", "src/lib/jwt-verifier.ts"],
-      "notes": "Server-side principal resolution, tenant context isolation"
-    },
-    {
-      "name": "correlation.tracing",
-      "status": "verified",
-      "production_safe": true,
-      "readiness_percent": 100,
-      "evidence": ["src/lib/request-context.ts"],
-      "notes": "TraceID/CorrelationID propagation via AsyncLocalStorage"
+      "status": "implemented",
+      "production_safe": false,
+      "readiness_percent": 90,
+      "evidence": ["src/lib/principal-context.ts", "src/lib/security.ts"],
+      "notes": "JWT/OIDC and tenant isolation are implemented. Public authentication error sanitization remains a release blocker."
     },
     {
       "name": "authorization.rbac_abac",
@@ -35,206 +27,87 @@
       "production_safe": true,
       "readiness_percent": 100,
       "evidence": ["src/lib/authorization.ts", "src/lib/rbac.ts", "test/unit/pdp-real.test.ts"],
-      "notes": "Role-based + attribute-based access control, 8+ tests green"
-    },
-    {
-      "name": "audit.seal_hmac_sha3",
-      "status": "verified",
-      "production_safe": true,
-      "readiness_percent": 100,
-      "evidence": ["src/lib/sovereign-audit.ts"],
-      "notes": "Immutable audit trail, HMAC-SHA3-512 cryptographic roundtrip"
-    },
-    {
-      "name": "build.vite_vitest",
-      "status": "verified",
-      "production_safe": true,
-      "readiness_percent": 100,
-      "evidence": ["vite.config.ts", "vitest.config.ts", "package.json scripts"],
-      "notes": "TypeScript compilation, bundling, code splitting fully operational"
-    },
-    {
-      "name": "linting.eslint_prettier",
-      "status": "verified",
-      "production_safe": true,
-      "readiness_percent": 100,
-      "evidence": ["eslint.config.js", ".prettierrc"],
-      "notes": "Code quality automation, no production TODOs"
-    },
-    {
-      "name": "config.schema_validation",
-      "status": "verified",
-      "production_safe": true,
-      "readiness_percent": 100,
-      "evidence": ["src/lib/env-schema.ts"],
-      "notes": "Environment variable Zod validation, fail-fast on missing vars"
-    },
-    {
-      "name": "security.headers_csp_hsts",
-      "status": "verified",
-      "production_safe": true,
-      "readiness_percent": 100,
-      "evidence": ["src/server.ts"],
-      "notes": "HTTP hardening, Content Security Policy, HSTS preload"
-    },
-    {
-      "name": "session.keyring_rotation",
-      "status": "verified",
-      "production_safe": true,
-      "readiness_percent": 100,
-      "evidence": ["src/lib/keyring.ts", "src/lib/identity-context.ts"],
-      "notes": "Durable session isolation, key material management"
-    },
-    {
-      "name": "ml_fusion.copilot_ncua",
-      "status": "verified",
-      "production_safe": true,
-      "readiness_percent": 100,
-      "evidence": ["src/lib/ml-fusion/copilot-ml-engine.ts", "src/lib/ml-fusion/ml-observability.ts"],
-      "notes": "Hybrid ML/NCUA decision signals, fail-safe defaults, governance-first"
-    },
-    {
-      "name": "capability_registry.honest_tracking",
-      "status": "verified",
-      "production_safe": true,
-      "readiness_percent": 100,
-      "evidence": ["src/lib/platform-capabilities.ts"],
-      "notes": "Honest capability tracking, no fabricated claims"
-    },
-    {
-      "name": "aegis_x.firewall",
-      "status": "implemented",
-      "production_safe": false,
-      "readiness_percent": 65,
-      "evidence": ["src/lib/latam-aegis-x.ts", "src/routes/api/security.ts"],
-      "notes": "Code implemented but no live attack surface tested"
-    },
-    {
-      "name": "memory.pentacapa_hierarchy",
-      "status": "implemented",
-      "production_safe": false,
-      "readiness_percent": 60,
-      "evidence": ["src/lib/memory-engine.ts", "src/lib/repositories/memory-repository.ts"],
-      "notes": "No production persistence evidence against Neon"
-    },
-    {
-      "name": "bookpi.ledger_reconciliation",
-      "status": "implemented",
-      "production_safe": false,
-      "readiness_percent": 55,
-      "evidence": ["src/lib/bookpi.ts", "src/lib/repositories/bookpi-repository.ts"],
-      "notes": "No reconciliation with real Stripe account"
-    },
-    {
-      "name": "sandbox.executor_isolation",
-      "status": "implemented",
-      "production_safe": false,
-      "readiness_percent": 50,
-      "evidence": ["src/lib/sovereign-sandbox.ts", "src/lib/tool-registry.ts"],
-      "notes": "No real container/VM isolation verified"
+      "notes": "Centralized RBAC/ABAC decision point is implemented. Billing-specific scopes are defined and must be wired into billing handlers before release."
     },
     {
       "name": "monetization.payments",
       "status": "implemented",
       "production_safe": false,
-      "readiness_percent": 60,
-      "evidence": ["src/lib/monetization/", "src/server-routes/api/billing.ts"],
-      "notes": "No live payment provider integration tested"
+      "readiness_percent": 75,
+      "evidence": ["src/server-routes/api/billing.ts", "src/lib/economic-events.ts", "src/lib/repositories/billing-security-repository.ts", "supabase/migrations/20260913210000_billing_security_contract.sql", "src/routes/api/billing-topup-intent.ts"],
+      "notes": "Stripe top-up ownership validation, durable PaymentIntent binding and server-created tenant-bound intents are implemented. Legacy billing checkout/run capability wiring remains a release blocker."
     },
     {
-      "name": "voice.mux_streaming",
+      "name": "billing.checkout_idempotency",
+      "status": "implemented",
+      "production_safe": false,
+      "readiness_percent": 70,
+      "evidence": ["src/lib/repositories/billing-security-repository.ts", "supabase/migrations/20260913210000_billing_security_contract.sql"],
+      "notes": "Durable idempotency storage exists, but the legacy /api/billing checkout handler still needs to consume it before this capability can be marked production-safe."
+    },
+    {
+      "name": "billing.run_capability",
       "status": "implemented",
       "production_safe": false,
       "readiness_percent": 65,
-      "evidence": ["src/routes/api/isabella-voice.ts"],
-      "notes": "No live MUX streaming verified"
+      "evidence": ["src/lib/repositories/billing-security-repository.ts", "supabase/migrations/20260913210000_billing_security_contract.sql", "src/lib/billing-authorization.ts"],
+      "notes": "Durable one-time capability persistence and least-privilege policy are implemented as building blocks; legacy authorize-run handler still returns an ephemeral token."
+    },
+    {
+      "name": "security.secret_redaction",
+      "status": "verified",
+      "production_safe": true,
+      "readiness_percent": 100,
+      "evidence": ["src/lib/secret-redactor.ts", "test/security/billing-security.test.ts"],
+      "notes": "Provider credential registry expanded to Stripe, AI, Mux, Redis/KV, Supabase, database and signing/encryption secrets."
+    },
+    {
+      "name": "linting.eslint_prettier",
+      "status": "implemented",
+      "production_safe": false,
+      "readiness_percent": 80,
+      "evidence": ["eslint.config.js", "scripts/capability-matrix.mjs"],
+      "notes": "Release gate remains blocked until the reported capability-matrix formatting failures are objectively cleared by CI."
     },
     {
       "name": "database.migrations",
       "status": "implemented",
       "production_safe": false,
-      "readiness_percent": 85,
-      "evidence": ["prisma/schema.prisma", "supabase/migrations/"],
-      "notes": "Schema designed, not run against production instance"
-    },
-    {
-      "name": "ratelimit.upstash_distributed",
-      "status": "implemented",
-      "production_safe": false,
-      "readiness_percent": 70,
-      "evidence": ["src/lib/rate-limit.ts"],
-      "notes": "No distributed load test executed"
-    },
-    {
-      "name": "observability.otel_pipeline",
-      "status": "implemented",
-      "production_safe": false,
-      "readiness_percent": 60,
-      "evidence": ["src/lib/telemetry/observability.ts"],
-      "notes": "No collector pipeline verified"
+      "readiness_percent": 88,
+      "evidence": ["supabase/migrations/20260913210000_billing_security_contract.sql", "supabase/migrations/20260905100000_economic_contract.sql"],
+      "notes": "Billing security schema is versioned. Live migration replay and restore evidence are still required."
     },
     {
       "name": "cicd.vercel_workflows",
       "status": "implemented",
       "production_safe": false,
       "readiness_percent": 75,
-      "evidence": [".github/workflows/ci.yml", "vercel.json"],
-      "notes": "Workflows defined, not smoke-tested end-to-end"
-    },
-    {
-      "name": "recovery.failover_procedures",
-      "status": "implemented",
-      "production_safe": false,
-      "readiness_percent": 50,
-      "evidence": ["docs/DEPLOYMENT-ROUTE-RECOVERY.md"],
-      "notes": "No real failover drilled"
-    },
-    {
-      "name": "quantum.bridge_simulator",
-      "status": "experimental",
-      "production_safe": false,
-      "readiness_percent": 0,
-      "evidence": ["quantum_utility_platform/"],
-      "notes": "Simulator only; no QPU"
-    },
-    {
-      "name": "cryptography.pqc_ml_dsa",
-      "status": "simulated",
-      "production_safe": false,
-      "readiness_percent": 0,
-      "evidence": ["src/lib/qup-v3-engine.ts"],
-      "notes": "ML-DSA stub only. NEVER advertise as verified signature authority."
+      "evidence": [".github/workflows/ci.yml", ".github/workflows/fgais-gate.yml", "vercel.json"],
+      "notes": "Vercel deployment is currently pending verification on the hardened main branch."
     }
   ],
   "test_summary": {
-    "total_test_files": 115,
-    "total_passing_tests": 316,
-    "unit_tests": { "files": 89, "passing": 241, "status": "green" },
-    "integration_tests": { "files": 12, "passing": 34, "status": "green" },
-    "security_tests": { "files": 8, "passing": 19, "status": "green" },
-    "bookpi_tests": { "files": 6, "passing": 22, "status": "green" }
+    "status": "evidence_required",
+    "note": "Historical counts are intentionally not asserted as current evidence until CI reruns against the current commit."
   },
   "deployment_tiers": {
-    "tier_0_predeployment": { "status": "ready", "percent_complete": 100 },
-    "tier_1_staging": { "status": "partially_ready", "percent_complete": 65 },
-    "tier_2_production": { "status": "ready_with_caveats", "percent_complete": 72 }
+    "tier_0_predeployment": { "status": "blocked", "percent_complete": 85 },
+    "tier_1_staging": { "status": "blocked", "percent_complete": 65 },
+    "tier_2_production": { "status": "blocked", "percent_complete": 68 }
   },
   "security_audit": {
-    "critical_issues": 0,
+    "critical_issues": 4,
     "high_issues": 3,
-    "medium_issues": 8,
-    "low_issues": 12,
-    "overall_posture": "reasonable_for_governed_deployment"
+    "medium_issues": 3,
+    "low_issues": 0,
+    "overall_posture": "blocked_until_billing_release_gates_pass"
   },
-  "next_steps": [
-    "Provision Neon PostgreSQL staging instance",
-    "Execute schema migrations against live database",
-    "Run 30-day load test (1,000 requests/min minimum)",
-    "Verify BookPI reconciliation with Stripe sandbox",
-    "Deploy to Vercel staging and execute smoke tests",
-    "Run security penetration testing",
-    "Execute disaster recovery drill",
-    "Validate OTEL metrics pipeline"
+  "release_blockers": [
+    "Wire dedicated billing scopes and step-up authentication into the legacy billing handlers.",
+    "Replace legacy authorize-run ephemeral authToken with durable one-time capability consumption.",
+    "Wire durable checkout idempotency into the legacy checkout handler.",
+    "Clear capability-matrix ESLint/Prettier failures and obtain fresh CI evidence.",
+    "Sanitize authentication verification errors at the public boundary and retain detail only in server telemetry."
   ],
   "maintained_by": "FGAIS Governance Committee",
   "certification_authority": "Human + Automated Gates"
