@@ -1,17 +1,13 @@
 /**
  * MOTOR DE MEMORIA (src/lib/memory-engine.ts)
  * -----------------------------------------------------------------
- * Orquesta la recuperación de memoria jerárquica con control de acceso
- * real (fail-closed):
- *  - Verifica la frontera de tenant antes de cualquier lectura.
- *  - Comprueba el scope requerido contra el actor.
- *  - Aplica sensibilidad: datos personales/restringidos solo para el
- *    propietario (o roles de alcance global explícito).
- *  - Retención mínima: purga registros caducados.
+ * Autoridad de memoria con selección explícita del adaptador por entorno.
  *
- * La decisión de autorización NUNCA se delega al cliente; este motor es
- * la autoridad de memoria real (no mockdata). La persistencia/integridad
- * la delega al `MemoryRepository` inyectado.
+ * Producción/staging => PostgreSQL durable.
+ * Desarrollo/test => repositorio JSON inyectable permitido.
+ *
+ * El motor mantiene la autorización por tenant, scope y sensibilidad en la
+ * capa de dominio; la persistencia solo almacena/recupera el estado autorizado.
  */
 
 import {
@@ -20,6 +16,9 @@ import {
   type MemoryRecord,
   type MemoryScope,
 } from "./repositories/memory-repository";
+import { createMemoryPostgresRepository } from "./repositories/memory-postgres-repository";
+import { config } from "./config";
+import { isProductionLike, resolveRuntimeMode } from "./runtime-mode";
 
 export type MemoryActorRole = "SovereignOwner" | "Operator" | "Auditor" | "Guest" | "System";
 
@@ -36,6 +35,26 @@ export interface MemoryAccessRequest {
 export interface MemoryDecision {
   allowed: boolean;
   reason: string;
+}
+
+export interface MemoryRepositoryAsync {
+  add: MemoryRepository["add"];
+  list: (
+    tenantId: string,
+    scope?: MemoryScope,
+  ) => MemoryRecord[] | Promise<MemoryRecord[]>;
+  prune: (
+    now?: number,
+  ) => { removed: number } | Promise<{ removed: number }>;
+  verifyIntegrity: () =>
+    | { success: boolean; error?: string; corruptedId?: string }
+    | Promise<{ success: boolean; error?: string; corruptedId?: string }>;
+}
+
+function createRuntimeMemoryRepository(): MemoryRepositoryAsync {
+  const runtime = resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE);
+  if (isProductionLike(runtime)) return createMemoryPostgresRepository();
+  return createMemoryRepository();
 }
 
 /** Comprueba si el actor posee el scope requerido (mínimo privilegio). */
@@ -74,7 +93,6 @@ export function canReadRecord(request: MemoryAccessRequest, record: MemoryRecord
         ? { allowed: true, reason: "Propietario del registro restringido." }
         : { allowed: false, reason: "Registro restringido ajeno." };
     }
-    // personal
     if (!isOwner) {
       if (request.role === "SovereignOwner" || request.role === "Auditor") {
         return {
@@ -89,42 +107,42 @@ export function canReadRecord(request: MemoryAccessRequest, record: MemoryRecord
 }
 
 /**
- * Crea un motor de memoria con un repositorio inyectable (para test/aislamiento).
+ * Crea un motor de memoria. En producción/staging, el repositorio por defecto
+ * es PostgreSQL. En test/dev se conserva el adaptador JSON para fixtures aislados.
  */
-export function createMemoryEngine(repository: MemoryRepository = createMemoryRepository()) {
+export function createMemoryEngine(repository?: MemoryRepositoryAsync) {
+  const activeRepository = repository ?? createRuntimeMemoryRepository();
+
   return {
-    /** Recupera memoria de un scope, aplicando autorización real por registro. */
-    retrieve(request: MemoryAccessRequest): {
-      records: MemoryRecord[];
-      denied: number;
-    } {
+    retrieve(request: MemoryAccessRequest):
+      | { records: MemoryRecord[]; denied: number }
+      | Promise<{ records: MemoryRecord[]; denied: number }> {
       const scopeDecision = canAccessScope(request);
-      if (!scopeDecision.allowed) {
-        return { records: [], denied: 0 };
-      }
-      const candidates = repository.list(request.tenantId, request.scope);
-      const allowed: MemoryRecord[] = [];
-      let denied = 0;
-      for (const record of candidates) {
-        const access = canReadRecord(request, record);
-        if (access.allowed) allowed.push(record);
-        else denied++;
-      }
-      return { records: allowed, denied };
+      if (!scopeDecision.allowed) return { records: [], denied: 0 };
+
+      const resolve = (candidates: MemoryRecord[]) => {
+        const allowed: MemoryRecord[] = [];
+        let denied = 0;
+        for (const record of candidates) {
+          const access = canReadRecord(request, record);
+          if (access.allowed) allowed.push(record);
+          else denied++;
+        }
+        return { records: allowed, denied };
+      };
+
+      const candidates = activeRepository.list(request.tenantId, request.scope);
+      return candidates instanceof Promise ? candidates.then(resolve) : resolve(candidates);
     },
 
-    /** Purga registros caducados (retención mínima necesaria). */
-    pruneExpired(): { removed: number } {
-      return repository.prune();
+    pruneExpired(): { removed: number } | Promise<{ removed: number }> {
+      return activeRepository.prune();
     },
 
-    /** Verifica la integridad de la cadena de memoria. */
-    verifyIntegrity(): {
-      success: boolean;
-      error?: string;
-      corruptedId?: string;
-    } {
-      return repository.verifyIntegrity();
+    verifyIntegrity():
+      | { success: boolean; error?: string; corruptedId?: string }
+      | Promise<{ success: boolean; error?: string; corruptedId?: string }> {
+      return activeRepository.verifyIntegrity();
     },
   };
 }
