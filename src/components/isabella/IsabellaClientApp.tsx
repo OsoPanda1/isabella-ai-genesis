@@ -209,7 +209,7 @@ function IsabellaInterface() {
                     Isabella Villaseñor AI
                   </h2>
                   <p className="mt-0.5 font-mono text-[8px] uppercase tracking-[0.24em] text-muted-foreground">
-                    Nacimos para guiar, no para explotar
+                    Contexto, límites y decisión humana
                   </p>
                 </div>
               )}
@@ -266,7 +266,8 @@ function IsabellaInterface() {
                     Isabella C.R.O.W.N. Terminal
                   </h1>
                   <p className="mt-0.5 font-mono text-[9.5px] uppercase tracking-widest text-muted-foreground">
-                    {activeTab === "terminal" && `Conexión Activa: ${isabella.preset.name}`}
+                    {activeTab === "terminal" &&
+                      `                    Canal gobernado: ${isabella.preset.name} · Decisión humana`}
                     {activeTab === "cli" && "Consola Retro Directa"}
                     {activeTab === "governance" && "Gobernanza y Salud de Módulos Cognitivos"}
                     {activeTab === "catalog" && "Gobernanza de APIs e Invocaciones"}
