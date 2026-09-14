@@ -84,10 +84,7 @@ export const envSchema = z.object({
   CROWN_POLICY_SIGNING_KEY: optionalString(),
   AEGIS_AUDIT_SECRET: optionalMinString(32),
   CROWN_ENFORCEMENT_MODE: enumish(["enforce", "dry-run"] as const, "enforce"),
-  BOOKPI_SIGNATURE_ALGORITHM: enumish(
-    ["ML-DSA-87", "ECDSA-P384", "RSA-SHA256"] as const,
-    "ECDSA-P384",
-  ),
+  BOOKPI_SIGNATURE_ALGORITHM: enumish(["ML-DSA-87", "ECDSA-P384", "RSA-SHA256"] as const, "ECDSA-P384"),
   BOOKPI_SIGNING_KEY: optionalMinString(32),
   STRIPE_SECRET_KEY: optionalMinString(16),
   STRIPE_WEBHOOK_SECRET: optionalMinString(16),
@@ -114,6 +111,7 @@ export const envSchema = z.object({
   MUX_INTRO_ASSET_ID: optionalString(),
   MUX_PLAYBACK_ID: optionalString(),
   MUX_WEBHOOK_ID: optionalString(),
+  MUX_INTRO_FALLBACK_TYPE: enumish(["static", "procedural", "none"] as const, "static"),
   LLM_DEFAULT_MODEL: z.string().default("google/gemini-3.8-flash"),
   LLM_VOICE_MODEL: z.string().default("openai/gpt-4o-mini-tts"),
   VOICE_API_URL: optionalUrl(),
@@ -154,7 +152,6 @@ export type EnvVarVisibility = "secret" | "public";
 export type EnvVarProvider =
   | "postgres" | "neon" | "supabase" | "stripe" | "gemini" | "openai" | "redis" | "upstash"
   | "crown" | "bookpi" | "otel" | "oidc" | "vercel" | "self";
-
 export interface EnvVarDescriptor {
   name: keyof Env;
   visibility: EnvVarVisibility;
@@ -166,32 +163,21 @@ export interface EnvVarDescriptor {
   description?: string;
 }
 
-const requiredCritical: Array<[keyof Env, EnvVarProvider, string?]> = [
-  ["DATABASE_URL", "postgres"],
-  ["AUTH_JWT_SECRET", "self"],
-  ["ENCRYPTION_MASTER_KEY", "self"],
-  ["CROWN_POLICY_SIGNING_KEY", "crown"],
-  ["AEGIS_AUDIT_SECRET", "crown"],
-  ["BOOKPI_SIGNING_KEY", "bookpi"],
-  ["GEMINI_API_KEY", "gemini"],
-  ["PROVISION_OWNER_TOKEN", "self"],
-  ["STRIPE_SECRET_KEY", "stripe"],
-  ["STRIPE_WEBHOOK_SECRET", "stripe"],
-];
-
 export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
   { name: "NODE_ENV", visibility: "public", required: [], forbidden: [], provider: "vercel", criticality: "HIGH" },
   { name: "ISABELLA_RUNTIME_MODE", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "self", criticality: "CRITICAL" },
   { name: "PUBLIC_URL", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "vercel", criticality: "HIGH" },
   { name: "ISABELLA_STORAGE_PROVIDER", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "postgres", criticality: "CRITICAL" },
-  ...requiredCritical.map(([name, provider]) => ({
-    name,
-    visibility: "secret" as const,
-    required: ["staging", "production"] as RuntimeMode[],
-    forbidden: [] as RuntimeMode[],
-    provider,
-    criticality: "CRITICAL" as const,
-  })),
+  { name: "DATABASE_URL", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "postgres", criticality: "CRITICAL" },
+  { name: "AUTH_JWT_SECRET", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "self", criticality: "CRITICAL" },
+  { name: "ENCRYPTION_MASTER_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "self", criticality: "CRITICAL" },
+  { name: "CROWN_POLICY_SIGNING_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "crown", criticality: "CRITICAL" },
+  { name: "AEGIS_AUDIT_SECRET", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "crown", criticality: "CRITICAL" },
+  { name: "BOOKPI_SIGNING_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "bookpi", criticality: "CRITICAL" },
+  { name: "GEMINI_API_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "gemini", criticality: "CRITICAL" },
+  { name: "PROVISION_OWNER_TOKEN", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "self", criticality: "CRITICAL" },
+  { name: "STRIPE_SECRET_KEY", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "stripe", criticality: "CRITICAL" },
+  { name: "STRIPE_WEBHOOK_SECRET", visibility: "secret", required: ["staging", "production"], forbidden: [], provider: "stripe", criticality: "CRITICAL" },
   { name: "AUTH_DEV_SESSION_ENABLED", visibility: "public", required: [], forbidden: ["staging", "production"], provider: "self", criticality: "CRITICAL" },
   { name: "ALLOW_GUEST_CHAT", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH" },
   { name: "CROWN_ENFORCEMENT_MODE", visibility: "public", required: [], forbidden: ["staging", "production"], provider: "crown", criticality: "CRITICAL" },
@@ -206,15 +192,18 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
   { name: "RATE_LIMIT_INFERENCE_PER_MINUTE", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
   { name: "INPUT_MAX_BODY_BYTES", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
   { name: "INPUT_MAX_ATTACHMENT_BYTES", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
-  { name: "OLLAMA_ENABLED", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH", description: "Opt-in explícito para Ollama local." },
+  { name: "MUX_INTRO_ASSET_ID", visibility: "secret", required: [], forbidden: [], provider: "self", criticality: "MEDIUM", description: "Mux asset provenance identifier for the cinematic introduction." },
+  { name: "MUX_PLAYBACK_ID", visibility: "secret", required: [], forbidden: [], provider: "self", criticality: "MEDIUM", description: "Canonical public playback identifier for the cinematic introduction." },
+  { name: "MUX_INTRO_FALLBACK_TYPE", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
+  { name: "OLLAMA_ENABLED", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH" },
   { name: "OLLAMA_BASE_URL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH" },
   { name: "OLLAMA_MODEL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
-  { name: "OPENAI_COMPATIBLE_LOCAL_ENABLED", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH", description: "Opt-in explícito para backend local compatible." },
+  { name: "OPENAI_COMPATIBLE_LOCAL_ENABLED", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH" },
   { name: "OPENAI_COMPATIBLE_BASE_URL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH" },
   { name: "OPENAI_COMPATIBLE_MODEL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
   { name: "OPENAI_COMPATIBLE_API_KEY", visibility: "secret", required: [], forbidden: [], provider: "openai", criticality: "HIGH" },
-  { name: "VERCEL", visibility: "public", required: [], forbidden: [], provider: "vercel", criticality: "LOW", description: "Indicador de runtime Vercel (plataforma, no credencial)." },
-  { name: "NATIVE_COMPREHENSION_ENABLED", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW", description: "Opt-in de comprensión nativa (NCUA) en el gateway conversacional." },
+  { name: "VERCEL", visibility: "public", required: [], forbidden: [], provider: "vercel", criticality: "LOW" },
+  { name: "NATIVE_COMPREHENSION_ENABLED", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW" },
 ];
 
 export function requiredEnvKeys(mode: RuntimeMode): Array<keyof Env> {
