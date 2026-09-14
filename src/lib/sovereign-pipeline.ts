@@ -95,7 +95,6 @@ export function createSovereignPipeline(opts?: {
 
   return {
     async execute(input: PipelineInput): Promise<PipelineResult> {
-      // ── FASE 1: PERCEIVE ──────────────────────────────────────
       const context: CROWN.RequestContext = {
         requestId: input.requestId,
         input: input.input,
@@ -111,7 +110,6 @@ export function createSovereignPipeline(opts?: {
         evidence: input.evidence,
       });
 
-      // ── FASE 2: CONSTITUTIONAL GATE ──────────────────────────
       const gate = evaluateConstitutionalGate(context, input.identity, input.evidence, intent);
 
       if (!gate.passed) {
@@ -144,7 +142,6 @@ export function createSovereignPipeline(opts?: {
         };
       }
 
-      // ── FASE 3: REMEMBER ─────────────────────────────────────
       const allowedScopes = CROWN.resolveAllowedMemoryScopes(intent, input.identity);
       const roleNames = input.identity.roles.map((role) => role.toLowerCase());
       const actorRole: MemoryActorRole = roleNames.includes("sovereignowner")
@@ -157,7 +154,7 @@ export function createSovereignPipeline(opts?: {
               ? "System"
               : "Guest";
 
-      const memoryResult = memoryEngine.retrieve({
+      const memoryResult = await memoryEngine.retrieve({
         tenantId: input.tenantId,
         actorId: input.actorId,
         role: actorRole,
@@ -166,7 +163,6 @@ export function createSovereignPipeline(opts?: {
         grantedScopes: allowedScopes as unknown as readonly CROWN.MemoryScope[],
       });
 
-      // ── FASE 4: POLICY GATE / ARGUS ──────────────────────────
       let policyResult: PolicyEvaluationResult | null = null;
       if (input.toolRequest) {
         const toolMeta = toolRegistry.lookup(input.toolRequest);
@@ -206,9 +202,6 @@ export function createSovereignPipeline(opts?: {
         }
       }
 
-      // ── FASE 5: DECIDE (CROWN routing ya calculado) ──────────
-
-      // ── FASE 6: ACT (Execution Authority real) + AUDIT ───────
       let toolExecuted = false;
       if (input.toolRequest) {
         const authority = createExecutionAuthority({
