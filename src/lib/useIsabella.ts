@@ -350,6 +350,11 @@ export function useIsabella() {
             /* final incomplete event */
           }
         }
+        if (!acc.trim()) {
+          throw new Error(
+            "El proveedor de inferencia cerró el stream sin emitir síntesis. Reintenta la percepción.",
+          );
+        }
         setMessages((prev) =>
           prev.map((m) =>
             m.id === replyId
@@ -358,8 +363,7 @@ export function useIsabella() {
                   streaming: false,
                   degraded: m.degraded ?? degradedMode !== null,
                   provider: m.provider ?? providerHeader ?? "gemini",
-                  content:
-                    acc || "Silencio cognitivo: el núcleo no emitió síntesis para esta percepción.",
+                  content: acc,
                 }
               : m,
           ),

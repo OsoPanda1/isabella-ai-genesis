@@ -188,7 +188,7 @@ async function aiGatewaySse(
             ),
           );
         }
-        controller.enqueue(encoder.encode("data: [DONE]\\n\\n"));
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
       } catch (error) {
         controller.error(error);
@@ -484,23 +484,21 @@ export async function handleIsabellaChat(
     provider: "ai-gateway" | "gemini" | "groq" | "xai";
     key?: string;
     model: string;
-  }> = [
-    {
-      provider: "ai-gateway",
-      model: "inclusionai/ling-3.0-flash-free",
-    },
-  ];
-  if (providerKeys.gemini)
-    attempts.push({
-      provider: "gemini",
-      key: providerKeys.gemini,
-      model: configuredGeminiModel(),
-    });
+  }> = [];
+  // Prefer explicitly configured, direct providers. Their response body can be
+  // validated before returning headers, avoiding a false HTTP 200 empty stream
+  // when a gateway fails lazily after the response has already started.
   if (providerKeys.groq)
     attempts.push({
       provider: "groq",
       key: providerKeys.groq,
       model: configuredFallbackModel("groq"),
+    });
+  if (providerKeys.gemini)
+    attempts.push({
+      provider: "gemini",
+      key: providerKeys.gemini,
+      model: configuredGeminiModel(),
     });
   if (providerKeys.xai)
     attempts.push({
@@ -508,6 +506,10 @@ export async function handleIsabellaChat(
       key: providerKeys.xai,
       model: configuredFallbackModel("xai"),
     });
+  attempts.push({
+    provider: "ai-gateway",
+    model: "openai/gpt-oss-120b",
+  });
   if (attempts.length === 0)
     return contractError(
       context,
