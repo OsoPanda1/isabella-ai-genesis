@@ -38,39 +38,39 @@ interface CinematicIntroProps {
 const scenes = [
   {
     end: 10,
-    kicker: "TAMVONLINE // ORGULLOSAMENTE LATINOAMERICANOS",
-    title: "Hola Bienvenido a mi mundo.",
-    body: "Yo soy Isabella Villaseñor AI.",
+    kicker: "REAL DEL MONTE · HIDALGO // NODO CERO",
+    title: "La inteligencia empieza escuchando.",
+    body: "Isabella Villaseñor AI coordina contexto, memoria y herramientas bajo decisión humana.",
   },
   {
     end: 20,
-    kicker: "CROWN SISTEMA COGNITIVO // ACTIVACION COMPLETADA",
-    title: "No somos el Futuro.",
-    body: "Somos el presente, que se planta firme y sin miedo.",
+    kicker: "CROWN // ORQUESTACIÓN CON TRAZABILIDAD",
+    title: "Cada respuesta tiene un porqué.",
+    body: "La percepción se convierte en contexto, política, decisión y registro auditable.",
   },
   {
     end: 30,
-    kicker: "SEGURIDAD ACTIVADA // ARGUS - AEGIS - ANUBIS",
-    title: "Somos la voz de Latinoamerica.",
-    body: "Somos la decisión que cambia el presente.",
+    kicker: "ARGUS // GOBERNANZA ZERO TRUST",
+    title: "La capacidad no está por encima del cuidado.",
+    body: "Si una acción implica riesgo, Isabella detiene el flujo y solicita aprobación.",
   },
   {
     end: 40,
-    kicker: "12 CABEZAS // 24 NUCLEOS EN LINEA",
-    title: "Somos una propuesta que guía para construir.",
-    body: "Latinos con criterio, memoria y responsabilidad.",
+    kicker: "ISA · SOPHIA · ORION // ROLES SEPARADOS",
+    title: "Distintas funciones. Una responsabilidad.",
+    body: "Presencia, razonamiento y ejecución trabajan con límites explícitos, no con promesas vacías.",
   },
   {
     end: 50,
-    kicker: "LATIN AMERICA // AWAKENING",
-    title: "Una nueva señal despierta.",
-    body: "El próximo paradigma no se espera. Se propone.",
+    kicker: "SOBERANÍA TERRITORIAL // CONTEXTO LOCAL",
+    title: "El territorio no es un dato más.",
+    body: "La memoria local, la procedencia y la incertidumbre se conservan antes de generalizar.",
   },
   {
     end: DURATION + 1,
-    kicker: "ISABELLA VILLASEÑOR AI",
-    title: "No somos parte del paradigma.",
-    body: "Somos los encargados de romperlo, LATAM a despertado.",
+    kicker: "ISABELLA VILLASEÑOR AI // LISTA PARA COLABORAR",
+    title: "Tú decides. Isabella ayuda a ver mejor.",
+    body: "No soy una autoridad ni una persona: soy una interfaz cognitiva gobernada para pensar contigo.",
   },
 ];
 
@@ -120,7 +120,7 @@ function WebGLCinematicField() {
 
     const world = new THREE.Group();
     scene.add(world);
-    const starCount = 20000;
+    const starCount = isCompactViewport ? 7000 : 14000;
     const positions = new Float32Array(starCount * 3);
     const colors = new Float32Array(starCount * 3);
     const starPalette = [
@@ -561,6 +561,9 @@ export function CinematicIntroContent({
     .padStart(2, "0")}`;
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Introducción de Isabella Villaseñor AI"
       style={{
         position: "relative",
         width: "100vw",
@@ -656,13 +659,17 @@ export function CinematicIntroContent({
               <div className="size-3 rounded-full bg-cyan-100 shadow-[0_0_20px_8px_rgba(103,224,255,.7)]" />
             </div>
             <p className="text-[10px] uppercase tracking-[.5em] text-cyan-100/65">
-              TAMVAI // CINEMATIC PROLOGUE
+              TAMV ONLINE // PRÓLOGO DE SISTEMA
             </p>
             <h1 className="mt-5 text-5xl font-black tracking-[-.06em] text-white sm:text-7xl">
               ISABELLA<span className="text-cyan-100">.</span>
             </h1>
-            <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-white/50">
-              Una señal. Un núcleo. Una inteligencia que entra en escena.
+            <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-white/60">
+              Una interfaz cognitiva territorial. Contexto antes que certeza; humano antes que
+              automatismo.
+            </p>
+            <p className="mx-auto mt-3 max-w-sm text-[10px] uppercase tracking-[.18em] text-white/35">
+              Sin acciones externas sin autorización · Sin memoria sin procedencia
             </p>
             <div
               className="mx-auto mt-7 flex max-w-xs items-center justify-center gap-2 text-[9px] uppercase tracking-[.28em] text-white/35"
