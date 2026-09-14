@@ -1,17 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Route as ServerRoute } from "../../server-routes/api/security";
 
-// Autoridad única de routing: la lógica canónica vive en
-// src/server-routes/api/security.ts. Este archivo solo delega
-// (ver ADR-001-source-of-truth). Import estático para que el
-// bundler (Nitro/Rolldown) resuelva el módulo en build.
-type Handlers = {
-  POST: (ctx: unknown) => Promise<Response>;
+// Canonical handler lives in server-routes/api/security.ts. Keep the public
+// route as a typed delegation boundary so future edits cannot silently widen
+// the endpoint to an untyped/unauthenticated handler.
+type ServerRequestContext = { request: Request };
+type ServerHandlers = {
+  POST: (context: ServerRequestContext) => Promise<Response>;
 };
+
 const server = ServerRoute.options.server;
-if (!server) throw new Error("Ruta servidora sin handlers.");
-const handlers = server.handlers as unknown as Handlers;
+if (!server?.handlers) throw new Error("Ruta servidora sin handlers.");
+const handlers = server.handlers as unknown as ServerHandlers;
 
 export const Route = createFileRoute("/api/security")({
-  server: { handlers: { POST: (context) => handlers.POST(context) } },
+  server: {
+    handlers: {
+      POST: ({ request }) => handlers.POST({ request }),
+    },
+  },
 });
