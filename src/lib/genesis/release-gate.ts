@@ -1,6 +1,6 @@
-import { Claim } from "../schemas/claim.schema";
-import { Finding } from "../schemas";
-import { Evidence } from "../schemas/evidence.schema";
+import { Claim } from "./schemas/claim.schema";
+import { Finding } from "./schemas";
+import { Evidence } from "./schemas/evidence.schema";
 
 /**
  * RELEASE GATE (src/lib/genesis/release/release-gate.ts) — P0-90
