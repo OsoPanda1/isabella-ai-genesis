@@ -34,10 +34,27 @@ export async function handleRequest(
     path: url.pathname,
   });
 
+  // Forwarding headers are untrusted input. Remove every client-controlled
+  // forwarding variant before the framework/router sees the request, then
+  // re-inject only the IP resolved by the explicit proxy contract.
+  const sanitizedHeaders = new Headers(request.headers);
+  for (const header of [
+    "x-forwarded-for",
+    "x-forwarded-host",
+    "x-forwarded-proto",
+    "x-real-ip",
+    "cf-connecting-ip",
+    "x-vercel-forwarded-for",
+  ]) {
+    sanitizedHeaders.delete(header);
+  }
+  if (clientIp !== "unknown") sanitizedHeaders.set("x-real-ip", clientIp);
+  const sanitizedRequest = new Request(request, { headers: sanitizedHeaders });
+
   return withRequestContext(requestContext, async () => {
     try {
       const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
+      const response = await handler.fetch(sanitizedRequest, env, ctx);
       return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       const captured = consumeLastCapturedError();
