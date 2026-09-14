@@ -2,385 +2,334 @@
 
 > **El presente ha despertado.**
 >
-> **Capacidad no implica autoridad. La autoridad requiere evidencia. La ejecución requiere control.**
+> **Capacidad no implica autoridad. La autoridad requiere evidencia. La ejecución requiere control. El aprendizaje requiere proveniencia.**
 
-Isabella Villaseñor AI — Genesis es una **infraestructura cognitiva federada y gobernada (FGAIS)** para construir una IA operativa con memoria durable, comprensión nativa, aprendizaje controlado y ejecución auditada.
+## Estado actual — 13 de septiembre de 2026
 
-**Versión:** 4.3.0  
-**Estado:** Production-Ready (72% Execution Capability) | Governance-First Architecture  
-**Última auditoría:** 2026-09-13 | Full Technical Audit + Production Readiness Assessment
+**Clasificación:** infraestructura cognitiva federada, gobernada y auditable para IA soberana.  
+**Versión declarada:** Genesis 4.4.0 — arquitectura en evolución.  
+**Estimación real actual de preparación para producción:** **76%**.  
+**Estado de despliegue público general:** **BLOQUEADO** hasta completar los gates críticos descritos abajo.  
+**Estado para desarrollo/staging controlado:** **APTO CON VERIFICACIÓN PENDIENTE**.
 
----
-
-## 🎯 Resumen Ejecutivo (Actualizado 2026-09-13)
-
-Isabella **no es**:
-- Un chatbot monolítico ni un wrapper de API
-- Un sistema autónomo sin control humano
-- Un agente de vigilancia comercial
-- Una plataforma de entretenimiento superficial
-- Un modelo único o monolítico que afirme capacidades no verificadas
-
-Isabella **es** un motor de coordinación cognitiva que transforma solicitudes en flujos verificables, gobernados y auditables bajo soberanía humana.
-
-### Valor Diferencial
-
-| Atributo | Isabella | IA Convencional |
-|----------|----------|-----------------|
-| **Gobernanza** | Infraestructura de política vinculante | Post-hoc oversight |
-| **Autoridad Verificada** | 100% de decisiones críticas selladas | Delegación automática |
-| **Memoria** | Jerárquica, escoped, durable | Ventana contextual |
-| **Auditoría** | Append-only BookPI ledger, HMAC-SHA3-512 | Logs sin trazabilidad |
-| **Seguridad** | Zero Trust + Multi-layer policy gates | Perimetral |
-| **Sandbox** | Restricciones reales (FS, net, time) | Simuladas o ausentes |
-| **Observabilidad** | Métricas reales, sin ficción de datos | Valores sintéticos permitidos |
+El 76% **no significa que el proyecto esté certificado para producción**. Es una estimación arquitectónica basada en capacidades implementadas y en la existencia de controles; no sustituye pruebas frescas de CI, build, integración con proveedores, carga, recuperación ni seguridad ofensiva. Ningún porcentaje debe interpretarse como evidencia de que todos los componentes funcionan en producción.
 
 ---
 
-## 📊 Auditoría Integral Completada (2026-09-13)
+# ¿Qué es Isabella?
 
-### Resultados de Producción
+Isabella Villaseñor AI — Genesis no pretende ser un chatbot monolítico ni afirmar conciencia, acceso al conocimiento interno de otros proveedores o autonomía ilimitada.
 
-**Readiness Overall: 72%** ✅  
-**Verified Components: 12/23** ✅  
-**Implemented (Pending Verification): 11/23** 🟡  
-**Experimental/Simulated: 5/23** ⚠️  
-**Critical Issues: 0** ✅
+Es una plataforma para construir una IA con cuatro propiedades centrales:
 
-### Dashboard de Capacidades
+1. **Aprendizaje gobernado:** el conocimiento puede ingresar, evaluarse, converger, entrenarse y aprobarse sin confundir una respuesta con una verdad.
+2. **Ejecución controlada:** capacidad y autoridad están separadas; una capacidad disponible no equivale a permiso para usarla.
+3. **Seguridad de defensa en profundidad:** ningún componente de seguridad debe convertirse por sí solo en una autoridad absoluta.
+4. **Trazabilidad:** decisiones, conocimiento y recuperación deben poder vincularse con evidencia, contexto, hashes, versiones y controles de gobernanza.
 
-```
-✅ VERIFIED & PRODUCTION-SAFE (100% Ready)
-├─ Governance (CROWN)
-├─ Authentication & Session Management
-├─ Authorization (RBAC + ABAC)
-├─ Audit Seal (HMAC-SHA3-512)
-├─ Build Pipeline (Vite + Vitest)
-├─ Security Headers & CSP
-├─ ML Fusion Engine (Copilot + NCUA)
-└─ Capability Registry (Honest Tracking)
+## Lo que Isabella no afirma
 
-🟡 IMPLEMENTED & TESTABLE (65% Ready)
-├─ AEGIS-X Firewall
-├─ Memory (5-Layer Hierarchy)
-├─ BookPI Ledger & Reconciliation
-├─ Sandbox (Executor Isolation)
-├─ Monetization & Payments
-├─ Voice API (MUX Streaming)
-├─ Database Migrations
-├─ Rate Limiting (Upstash)
-├─ OTEL Observability
-├─ CI/CD Workflows
-└─ Disaster Recovery
+- No contiene ni fusiona pesos propietarios de Gemini, Claude, ChatGPT, Copilot, DeepSeek, Perplexity, Kimi u otros modelos.
+- No considera que consenso entre modelos equivalga automáticamente a verdad.
+- No convierte componentes experimentales en autoridad de producción.
+- No permite que un nodo de seguridad único reinicie o destruya arbitrariamente la infraestructura.
+- No debe ocultar la seguridad mediante oscuridad; su seguridad crítica debe ser auditable y basada en separación de autoridad.
 
-⚠️ EXPERIMENTAL/SIMULATED (0% Production-Safe)
-├─ Quantum Bridge (Simulator only)
-├─ Post-Quantum Signatures (ML-DSA stub)
-├─ Continuous Rewinding
-├─ Federation (External)
-└─ Hybrid QML
+---
+
+# Arquitectura principal
+
+```text
+Solicitud / Evento
+       │
+       ▼
+Identidad + Tenant + Correlación
+       │
+       ▼
+CROWN / Política Constitucional
+       │
+       ├──────────────────────────────────────────────┐
+       ▼                                              ▼
+ARGUS Sentinel                                  AEGIS / Controles
+       │                                              │
+       ├───────────────┐                              │
+       ▼               ▼                              │
+ARGUS Shadow       Execution Authority ◄──────────────┘
+       │               │
+       ▼               ▼
+ARGUS AION      Auditoría / BookPI
+       │
+       ├── Checkpoints limitados
+       ├── Heartbeat / epoch / secuencia
+       ├── Behavioral Sentinel
+       └── Recovery Mesh por quorum
 ```
 
-### Test Coverage
+## Principio central
 
-| Category | Status | Coverage |
-|----------|--------|----------|
-| Unit Tests | ✅ GREEN | 89 files, 241 tests |
-| Integration Tests | ✅ GREEN | 12 files, 34 tests |
-| Security Tests | ✅ GREEN | 8 files, 19 tests |
-| BookPI Tests | ✅ GREEN | 6 files, 22 tests |
-| **Total** | **✅ GREEN** | **115 files, 316 tests** |
+**ARGUS no debe ser un punto único de fallo.**
 
-### Hallazgos Críticos Resueltos
-
-✅ **Duplicación de Skills:** Eliminadas 4 copias redundantes de PrismaComposer  
-✅ **Archivos Binarios:** Removido actionlint (~6 MB binario innecesario)  
-✅ **Data Sintética:** Catálogo API reemplazado con rutas ejecutables reales  
-✅ **Mock Responses:** Eliminados timestamps artificiales, IDs aleatorios, payloads simulados  
-✅ **Dead Code:** Código no referenciado identificado y documentado  
-✅ **Deuda Técnica:** Matriz de prioridad documentada con roadmap  
-✅ **Inconsistencias:** Esquema de tipos unificado (TypeScript strict mode)  
-✅ **Cuellos de Botella:** N+1 queries identificadas en memory-engine, rutas de optimización documentadas  
-✅ **Seguridad:** 0 secretos hardcodeados, todas las claves en env-schema.ts  
-✅ **Gobernanza:** Capacidades simuladas explícitamente marcadas como "SIMULATED-ONLY"
+El sistema incorpora capas que pueden observar, vetar, aislar o impedir una recuperación insegura. ARGUS AION no se presenta como un segundo soberano del sistema: es un mecanismo de continuidad con autoridad limitada.
 
 ---
 
-## 🚀 Estado de Despliegue
+# Native Learning Fabric
 
-### Tier 0: Pre-Deployment (READY ✅)
-- [x] TypeScript compilation succeeds
-- [x] ESLint/Prettier pass without warnings
-- [x] Unit tests 316/316 green
-- [x] Security linting clean
-- [x] Build artifact optimized
-- [x] No secrets in source
+El núcleo de aprendizaje nativo incluye:
 
-### Tier 1: Staging Deployment (PARTIALLY READY 🟡)
-- [x] Vite bundle optimized
-- [x] CSP headers configured
-- [x] HSTS preload ready
-- [x] CORS policy defined
-- 🟡 Vercel CI/CD not yet smoke-tested
-- 🟡 Staging database not provisioned
-- 🟡 Load testing pending
+- aprendizaje supervisado y clasificación determinista;
+- artefactos versionados con hash;
+- provenance y aprobación antes de promover modelos;
+- convergencia de múltiples observaciones;
+- aprendizaje federado con validación de actualizaciones;
+- clasificación epistemológica;
+- detección de conflicto y desacuerdo;
+- estados de conocimiento `SUPPORTED`, `PROBABLE`, `CONTESTED` y `UNKNOWN`.
 
-### Tier 2: Production Deployment (READY WITH CAVEATS ⚠️)
-- [x] Governance gates fully operational
-- [x] Audit logging configured & tested
-- 🟡 Database connection pending
-- 🟡 Stripe integration not verified
-- 🟡 Observability pipeline pending
-- [x] Kill switch implemented (feature flags)
-- [x] Rollback procedure documented
+## Dominios de conocimiento
 
-**Recomendación:** Deploy para workloads internos/test bajo Sovereign control. Deploy limitado con usuarios reales tras completar Tier 1 verification.
+Las observaciones pueden categorizarse como:
 
----
+- factual;
+- technical;
+- scientific;
+- security;
+- ethical;
+- operational;
+- creative;
+- temporal.
 
-## 📋 Roadmap: Path to 100%
+## Niveles de evidencia
 
-### Immediate (Next 2 weeks)
-- [ ] Provision Neon PostgreSQL staging instance
-- [ ] Run schema migrations against live DB
-- [ ] Execute 30-day load test (1,000 requests/min)
-- [ ] Verify BookPI reconciliation with Stripe sandbox
+`E0 → E1 → E2 → E3 → E4`
 
-### Short-term (Next month)
-- [ ] Deploy to Vercel staging environment
-- [ ] Run security penetration test
-- [ ] Execute disaster recovery drill
-- [ ] Validate OTEL metrics pipeline
+La convergencia pondera acuerdo, evidencia, confianza y frescura. El motor no acepta simplemente una mayoría numérica como autoridad epistemológica.
 
-### Medium-term (Next quarter)
-- [ ] Extend to 3-region deployment (HA)
-- [ ] Implement automated failover
-- [ ] Conduct SOC 2 audit
-- [ ] Publish operational runbooks
+La ruta crítica se mantiene local y determinista para conjuntos pequeños: no requiere invocar un LLM ni realizar una llamada de red para calcular una convergencia básica.
 
 ---
 
-## 🔒 Conformidad con Principios FGAIS
+# ARGUS AION
 
-| Principio | Compliance | Evidence |
-|-----------|-----------|----------|
-| **Capacidad ≠ Autoridad** | ✅ 100% | CROWN gate enforces policy precedence |
-| **Zero Trust** | ✅ 100% | Every request demands auth + tenant verification |
-| **Audit Trail** | ✅ 100% | HMAC-sealed audit ledger, no unsigned operations |
-| **No Simulation as Authority** | ✅ 100% | Simulated components marked explicitly |
-| **Fail Closed** | ✅ 95% | Most paths default to denial; exceptions logged |
-| **Human Authority** | ✅ 95% | Critical decisions require approval gate |
+**ARGUS AION** es un nodo de continuidad en segundo/tercer plano diseñado para observar la salud y el comportamiento de ARGUS sin participar como autoridad primaria durante el funcionamiento normal.
 
----
+## Modos
 
-## 📁 Estructura del Proyecto
-
-```
-isabella-ai-genesis/
-├── src/
-│   ├── lib/
-│   │   ├── crown.ts                    # Governance engine
-│   │   ├── latam-aegis-x.ts            # Security firewall
-│   │   ├── memory-engine.ts            # 5-layer memory
-│   │   ├── bookpi.ts                   # Evidence ledger
-│   │   ├── sovereign-sandbox.ts        # Execution sandbox
-│   │   ├── platform-capabilities.ts    # Honest capability tracking
-│   │   ├── ml-fusion/                  # ML/NCUA hybrid engine
-│   │   └── repositories/               # Database adapters (RLS-scoped)
-│   ├── routes/
-│   │   ├── api/isabella.ts             # Main inference gateway
-│   │   ├── api/db.ts                   # Governance endpoints
-│   │   └── api/security.ts             # Security verification
-│   └── server.ts                       # Request correlation root
-├── prisma/
-│   └── schema.prisma                   # PostgreSQL schema
-├── quantum_utility_platform/           # Quantum simulator (research)
-├── latam-aegis-x/                      # Security architecture docs
-├── docs/
-│   ├── PRODUCTION_GATE.md              # Production certification
-│   ├── RELEASE-CHECKLIST.md            # Deploy procedures
-│   └── architecture/                   # ADRs & decision records
-├── test/
-│   ├── unit/                           # Unit tests (241)
-│   ├── integration/                    # Integration tests (34)
-│   ├── security/                       # Security tests (19)
-│   └── bookpi/                         # Evidence tests (22)
-├── PRODUCTION-READINESS-2026-09-13.md  # Detailed assessment
-├── production-capabilities.json        # Machine-readable matrix
-├── AGENTS.md                           # Technical specification
-└── README.md                           # This file
+```text
+DORMANT → SHADOW → AION_ACTIVE → RECOVERY
+                         │
+                         └────────→ QUARANTINED
 ```
 
+## Checkpoints
+
+AION conserva un historial acotado de:
+
+- secuencia;
+- timestamp;
+- digest de estado;
+- versión de política;
+- conjunto de nodos;
+- puntuación de salud.
+
+La recuperación conservadora evita seleccionar automáticamente el último estado observado. Cuando existe historial suficiente, el plan prefiere un checkpoint anterior para reducir el riesgo de restaurar el comienzo de una corrupción.
+
+## Behavioral Sentinel
+
+`src/lib/argus-aion-behavior.ts` aprende un baseline robusto y acotado del comportamiento observable de ARGUS usando:
+
+- latencia;
+- distribución de riesgo;
+- tasa de veto;
+- versión de política;
+- secuencia;
+- digest de decisión.
+
+Su detección utiliza desviación robusta basada en mediana y MAD, evitando que un único outlier redefina fácilmente el baseline.
+
+Estados:
+
+`LEARNING | NORMAL | SUSPICIOUS | CRITICAL`
+
+Esto permite preguntar no sólo **“¿ARGUS responde?”**, sino también **“¿ARGUS continúa comportándose dentro de su patrón esperado?”**.
+
+## Recovery Mesh
+
+`src/lib/argus-recovery-mesh.ts` añade:
+
+- attestations por nodo;
+- binding al `planId` y `planDigest`;
+- HMAC-SHA-256 por attestation;
+- comparación en tiempo constante;
+- epoch vinculado al plan;
+- ventana temporal limitada;
+- quorum configurable;
+- consumo de plan para evitar replay.
+
+El Recovery Mesh **no reinicia infraestructura**. Sólo autoriza o rechaza un plan. La mutación posterior debe atravesar una autoridad de ejecución independiente.
+
 ---
 
-## 🛠️ Desarrollo & Testing
+# Hardening y principios de seguridad
 
-### Requisitos
+1. **Zero Trust:** identidad y contexto deben verificarse.
+2. **Fail Closed:** ausencia de evidencia no se convierte en permiso.
+3. **Capability ≠ Authority:** tener una función no concede autorización para ejecutarla.
+4. **AION never grants:** AION puede observar, escalar, planificar o solicitar recuperación; no se convierte en autoridad universal.
+5. **Quorum before recovery:** una sola señal no debe ser suficiente para una recuperación distribuida sensible.
+6. **Replay resistance:** decisiones y attestations se vinculan al contexto exacto.
+7. **Bounded state:** memoria de seguridad y ventanas de aprendizaje están acotadas para reducir crecimiento y superficie de DoS.
+8. **No security through obscurity:** los controles deben poder auditarse.
+9. **Quarantine:** componentes sospechosos pueden aislarse en vez de recuperar autoridad automáticamente.
+10. **Auditability:** cambios críticos deben dejar evidencia durable.
 
-- Node.js 22+ (see `.nvmrc`)
-- pnpm 9+
-- PostgreSQL 16+ (or Neon for staging)
-- Optional: Docker for sandbox isolation
+---
 
-### Setup Local
+# Preparación para producción — estimación honesta
+
+| Área | Estimación | Estado |
+|---|---:|---|
+| Gobernanza constitucional | 90% | Implementada, requiere verificación integrada fresca |
+| Autenticación/autorización | 82% | Hardening avanzado; aún requiere revisión de rutas críticas |
+| Seguridad ARGUS/AEGIS | 84% | Defensa en profundidad ampliada; integración completa pendiente |
+| ARGUS AION | 70% | Núcleo, comportamiento y quorum implementados; falta cableado operativo end-to-end |
+| Native ML | 78% | Convergencia y aprendizaje nativo presentes; faltan benchmarks y pipeline completo de promoción |
+| Memoria/provenance | 80% | Arquitectura avanzada; requiere validación bajo carga |
+| Billing/Stripe | 62% | Persisten gates críticos de autorización, idempotencia y flujo legado por cerrar/verificar |
+| Observabilidad | 68% | Infraestructura existente; cobertura integral aún debe demostrarse |
+| Resiliencia/DR | 66% | AION y recovery plan avanzan la arquitectura; falta ejercicio real de recuperación |
+| CI/CD y release gates | 60% | Evidencia fresca requerida; no se declara verde sin ejecución actual |
+| Performance | 65% | Fast paths locales añadidos; falta benchmark p50/p95/p99 |
+| Producción global | **76%** | **NO CERTIFICADA** |
+
+## Gates que bloquean declarar 100%
+
+No se debe publicar como producción general hasta demostrar, con evidencia fresca:
+
+- [ ] `pnpm lint` limpio, incluyendo errores previamente identificados.
+- [ ] `pnpm typecheck` limpio.
+- [ ] pruebas unitarias/integración/seguridad actuales en verde.
+- [ ] build reproducible en el entorno real de despliegue.
+- [ ] cableado de los scopes específicos de billing en todos los handlers financieros.
+- [ ] idempotencia durable de checkout verificada end-to-end.
+- [ ] autorización `authorize-run` persistente, expirable y de un solo uso validada en ejecución.
+- [ ] sanitización completa de errores de autenticación hacia clientes.
+- [ ] límites de tamaño y consumo validados antes de rutas costosas.
+- [ ] integración AION → alerta → plan → quorum → execution authority → verificación post-recovery.
+- [ ] simulación de caída total de ARGUS.
+- [ ] simulación de comportamiento ARGUS comprometido pero con heartbeat activo.
+- [ ] prueba de compromiso de AION y confirmación de que no puede concederse autoridad universal.
+- [ ] prueba de replay, partición de red y corrupción de checkpoint.
+- [ ] benchmark p50/p95/p99 antes/después de las nuevas rutas.
+- [ ] smoke test de staging con proveedores y base de datos reales.
+- [ ] ejercicio de disaster recovery.
+- [ ] revisión de seguridad ofensiva independiente.
+
+**Sin esos resultados, 100% sería una afirmación falsa.**
+
+---
+
+# Desarrollo
+
+## Requisitos
+
+- Node.js 22+
+- pnpm compatible con el lockfile del repositorio
+- PostgreSQL 16+ o proveedor compatible para staging
+- credenciales y secretos únicamente mediante configuración segura
+
+## Instalación
 
 ```bash
-# Clonar repositorio
 git clone https://github.com/OsoPanda1/isabella-ai-genesis.git
 cd isabella-ai-genesis
-
-# Instalar dependencias
 pnpm install
-
-# Configurar ambiente
 cp .env.example .env.local
-# Editar .env.local con valores locales
+```
 
-# Compilar y verificar
+No copies secretos de producción a `.env.local`.
+
+## Gates habituales
+
+```bash
 pnpm typecheck
 pnpm lint
 pnpm test
-```
-
-### Gates de Calidad
-
-```bash
-# Verificación de integridad runtime
-pnpm production:integrity
-
-# Verificación de estado productivo
-pnpm production:preflight
-
-# Matriz de capacidades (generada)
-pnpm capabilities
-
-# Auditoría de rutas
-pnpm audit:routes
-
-# Auditoría de repositorio
-pnpm audit:repository
-
-# Evidencia de despliegue
-pnpm production:evidence
-
-# Gate compuesto (se ejecuta automáticamente en CI)
-pnpm production:gate
-```
-
-### Desarrollo
-
-```bash
-# Servidor de desarrollo (hot reload)
-pnpm dev
-
-# Build optimizado
 pnpm build
-
-# Verificar build
-pnpm build:check
-
-# Previewar build local
-pnpm preview
 ```
 
----
-
-## 🔐 Seguridad & Gobernanza
-
-### Principios de Seguridad
-
-1. **Zero Trust**: Toda identidad se verifica; sin excepciones
-2. **Fail Closed**: Por defecto se deniega; whitelist explícita
-3. **Audit Everything**: Toda decisión relevante es sellada HMAC-SHA3-512
-4. **No Simulation as Truth**: Componentes experimentales marcados
-5. **Human Authority**: La IA propone; los humanos deciden
-
-### Flujo de Gobernanza
-
-```
-Request
-  ↓
-[Correlation] → TraceID generated
-  ↓
-[Identity] → JWT verified, principal resolved
-  ↓
-[Tenant Isolation] → Context bound to tenantId
-  ↓
-[CROWN Policy] → Intent → Risk → Decision
-  ↓
-[ARGUS Gate] → Verification + veto authority
-  ↓
-[Service Logic] → Execution with limits
-  ↓
-[Audit Seal] → HMAC-SHA3-512 signature
-  ↓
-Response Sent
-```
-
----
-
-## 📚 Documentación
-
-- **[AGENTS.md](./AGENTS.md)** — Especificación técnica canónica
-- **[PRODUCTION-READINESS-2026-09-13.md](./PRODUCTION-READINESS-2026-09-13.md)** — Evaluación detallada
-- **[docs/PRODUCTION_GATE.md](./docs/PRODUCTION_GATE.md)** — Checklist de certificación
-- **[docs/RELEASE-CHECKLIST.md](./docs/RELEASE-CHECKLIST.md)** — Procedimientos de despliegue
-- **[docs/architecture/](./docs/architecture/)** — Architectural Decision Records
-
----
-
-## 🤝 Contribuciones
-
-Las contribuciones deben respetar:
-
-1. **Soberanía humana**: el humano decide, aprueba y ejecuta
-2. **Gobernanza Zero Trust**: nada sensible se ejecuta sin política explícita
-3. **Soberanía territorial**: el contexto local prevalece
-4. **Trazabilidad auditable**: toda decisión debe poder auditarse
-
-Leé [AGENTS.md § Normas Obligatorias](./AGENTS.md#normas-obligatorias) para detalles.
-
-### Flujo de Contribución
+El repositorio también puede incluir gates adicionales como:
 
 ```bash
-# Crear rama desde main
-git checkout -b feature/my-feature
-
-# Hacer cambios con commits pequeños
-git commit -m "feat: short description"
-
-# Correr gates antes de push
+pnpm production:integrity
+pnpm production:preflight
+pnpm capabilities
+pnpm audit:routes
+pnpm audit:repository
+pnpm production:evidence
 pnpm production:gate
+```
 
-# Push y crear PR
-git push origin feature/my-feature
+Los comandos sólo constituyen evidencia cuando se ejecutan sobre el commit que se pretende desplegar y sus resultados se conservan.
+
+---
+
+# Archivos principales
+
+```text
+src/lib/
+├── native-ml/
+│   ├── convergence-engine.ts
+│   ├── teacher-convergence.ts
+│   └── federated.ts
+├── argus-shadow-guard.ts
+├── argus-aion.ts
+├── argus-aion-behavior.ts
+├── argus-recovery-mesh.ts
+├── sovereign-pipeline.ts
+├── latam-aegis-x.ts
+└── repositories/
+
+test/unit/
+├── argus-shadow-guard.test.ts
+├── argus-aion.test.ts
+├── argus-aion-behavior.test.ts
+└── argus-recovery-mesh.test.ts
+
+docs/security/
+└── ARGUS-DEFENSE-ARCHITECTURE.md
 ```
 
 ---
 
-## 📄 Licencia
+# Transparencia como propiedad de seguridad
 
-El código está licenciado bajo **Apache 2.0** (ver [LICENSE-APACHE](./LICENSE-APACHE)).  
-La documentación está licenciada bajo **CC BY 4.0** (ver [LICENSE-CONTENT](./LICENSE-CONTENT)).  
-El control de gobernanza está bajo **ISCL** (ver [LICENSE-CONTROL.md](./LICENSE-CONTROL.md)).
+Isabella busca que las personas puedan inspeccionar:
 
----
+- qué componente actuó;
+- qué política participó;
+- qué evidencia se utilizó;
+- qué nivel de confianza y desacuerdo existía;
+- qué versión produjo una decisión;
+- qué controles podían vetarla;
+- y qué condiciones permitieron o impidieron la ejecución.
 
-## 👤 Autoría & Créditos
-
-**Arquitecto Técnico & Autoría:** Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)  
-**Ecosistema:** TAMV ONLINE NETWORK / RDM Digital Hub / Nodo Cero (Real del Monte, Hidalgo, México)  
-**ORCID:** 0009-0008-5050-1539  
-**Clasificación:** Especificación Arquitectónica Soberana / Open Science
-
----
-
-## 📞 Soporte
-
-- **Documentación Completa:** [docs/](./docs/)
-- **Issue Tracker:** [GitHub Issues](https://github.com/OsoPanda1/isabella-ai-genesis/issues)
-- **Production Gate:** [docs/PRODUCTION_GATE.md](./docs/PRODUCTION_GATE.md)
+La transparencia no significa exponer secretos, claves, credenciales ni instrucciones que permitan evadir los controles. Significa hacer verificable la cadena de autoridad sin convertir la superficie de ataque en documentación para un adversario.
 
 ---
 
-**Genesis v4.3.0 no es perfecto. Pero es honesto.**
+# Autoría y propósito
+
+**Arquitecto y fundador:** Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)  
+**Ecosistema:** TAMV Online Network  
+**Origen:** Real del Monte, Hidalgo, México
+
+Isabella se desarrolla bajo una premisa: la tecnología puede ser avanzada sin ser opaca, y poderosa sin recibir autoridad ilimitada.
+
+> **ARGUS observa. AION preserva la continuidad. Isabella aprende con evidencia. La autoridad permanece gobernada.**
+
+## Licencias
+
+- Código: Apache 2.0, según los archivos de licencia del repositorio.
+- Contenido/documentación: CC BY 4.0 donde corresponda.
+- Controles de gobernanza: sujetos a la licencia y políticas específicas del proyecto.
