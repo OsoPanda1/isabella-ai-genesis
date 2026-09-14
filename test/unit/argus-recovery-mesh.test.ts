@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ArgusRecoveryMesh } from "@/lib/argus-recovery-mesh";
+import { ArgusRecoveryMesh, deriveRecoveryEpoch } from "@/lib/argus-recovery-mesh";
 import type { AionRecoveryPlan } from "@/lib/argus-aion";
 
 const plan: AionRecoveryPlan = {
@@ -19,7 +19,7 @@ const plan: AionRecoveryPlan = {
   planDigest: "b".repeat(64),
 };
 
-const epoch = plan.planDigest.slice(0, 16);
+const epoch = deriveRecoveryEpoch(plan);
 const secrets = new Map([
   ["node-a", "a".repeat(32)],
   ["node-b", "b".repeat(32)],
@@ -52,6 +52,7 @@ describe("ARGUS recovery mesh", () => {
     const bad = { ...attest("node-a", now), signature: "0".repeat(64) };
     const result = mesh.verifyAndAuthorize(plan, [bad, attest("node-b", now)], secrets, epoch, now);
     expect(result.accepted).toBe(false);
+    expect(result.reason).toBe("INVALID_ATTESTATION");
   });
 
   it("rejects the wrong epoch", () => {
