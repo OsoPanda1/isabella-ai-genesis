@@ -156,7 +156,7 @@ describe("crossover de tenant", () => {
       ownerId: "alice",
     });
 
-    const alien = engine.retrieve({
+    const alien = await engine.retrieve({
       tenantId: "tenant_b",
       actorId: "mallory",
       role: "Operator",
@@ -166,7 +166,7 @@ describe("crossover de tenant", () => {
     });
     expect(alien.records).toHaveLength(0);
 
-    const owner = engine.retrieve({
+    const owner = await engine.retrieve({
       tenantId: "tenant_a",
       actorId: "alice",
       role: "Operator",

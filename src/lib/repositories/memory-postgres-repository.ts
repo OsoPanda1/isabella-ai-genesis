@@ -113,7 +113,7 @@ export function createMemoryPostgresRepository() {
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb,$15,$16)
            RETURNING *`,
           [id, input.tenantId, input.ownerId ?? null, input.content, input.scope, input.sensitivity, input.purpose,
-           input.consentRequired, input.consentGranted, input.provenance.join(","), digest, previousChainHash,
+           input.consentRequired, input.consentGranted, input.provenance?.join(",") ?? "", digest, previousChainHash,
            nextChainHash, JSON.stringify({ source: input.source }), input.expiresAt ?? null, input.source],
         );
         await client.query("COMMIT");

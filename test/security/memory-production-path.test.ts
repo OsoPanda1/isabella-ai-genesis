@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
+import type { MemoryRecord } from "@/lib/repositories/memory-repository";
 
-const repositoryFactory = (records = []) => ({
+const repositoryFactory = (records: MemoryRecord[] = []) => ({
   list: vi.fn(async () => records),
   prune: vi.fn(async () => ({ removed: 0 })),
   verifyIntegrity: vi.fn(async () => ({ success: true as const })),

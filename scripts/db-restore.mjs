@@ -19,15 +19,133 @@ import { SNAPSHOT_TABLES, verifySnapshot } from "./db-snapshot-lib.mjs";
 const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 
 const TABLE_COLUMNS = {
-  tenants: ["id", "name", "slug", "region", "tier", "quota_balance", "quota_tier_limit", "created_by", "metadata", "created_at", "updated_at"],
+  tenants: [
+    "id",
+    "name",
+    "slug",
+    "region",
+    "tier",
+    "quota_balance",
+    "quota_tier_limit",
+    "created_by",
+    "metadata",
+    "created_at",
+    "updated_at",
+  ],
   profiles: ["id", "username", "tenant_id", "role", "oidc_sub", "created_at", "updated_at"],
-  sessions: ["id", "user_id", "tenant_id", "token_jti", "ip_address", "user_agent", "is_active", "expires_at", "created_at"],
-  memories: ["id", "tenant_id", "user_id", "owner_id", "content", "source", "scope", "sensitivity", "purpose", "consent_required", "consent", "provenance", "content_hash", "previous_chain_hash", "chain_hash", "metadata", "expires_at", "created_at"],
-  audit_events: ["id", "timestamp", "trace_id", "correlation_id", "actor_ip", "actor", "action", "resource", "event", "severity", "result", "details", "remediated", "verification_hash", "previous_log_hash", "tenant_id"],
-  bookpi_ledger: ["index", "tenant_id", "user_id", "timestamp", "operation", "category", "cost_decimal", "tokens_consumed", "previous_hash", "block_hash", "pqc_signature", "signature_algorithm", "status", "nonce", "original_event_id"],
-  api_keys: ["id", "tenant_id", "user_id", "name", "role", "scopes", "key_hash", "key_prefix", "prefix", "secret_hint", "status", "expires_at", "created_at", "revoked_at", "rotated_at", "last_used_at", "created_by", "metadata"],
-  webhook_events: ["id", "provider", "provider_event_id", "event_type", "payload_hash", "received_at", "processed_at", "status", "error"],
-  economic_events: ["id", "tenant_id", "actor_id", "event_type", "currency", "amount_minor", "direction", "source", "provider", "provider_event_id", "idempotency_key", "correlation_id", "metadata", "created_at"],
+  sessions: [
+    "id",
+    "user_id",
+    "tenant_id",
+    "token_jti",
+    "ip_address",
+    "user_agent",
+    "is_active",
+    "expires_at",
+    "created_at",
+  ],
+  memories: [
+    "id",
+    "tenant_id",
+    "user_id",
+    "owner_id",
+    "content",
+    "source",
+    "scope",
+    "sensitivity",
+    "purpose",
+    "consent_required",
+    "consent",
+    "provenance",
+    "content_hash",
+    "previous_chain_hash",
+    "chain_hash",
+    "metadata",
+    "expires_at",
+    "created_at",
+  ],
+  audit_events: [
+    "id",
+    "timestamp",
+    "trace_id",
+    "correlation_id",
+    "actor_ip",
+    "actor",
+    "action",
+    "resource",
+    "event",
+    "severity",
+    "result",
+    "details",
+    "remediated",
+    "verification_hash",
+    "previous_log_hash",
+    "tenant_id",
+  ],
+  bookpi_ledger: [
+    "index",
+    "tenant_id",
+    "user_id",
+    "timestamp",
+    "operation",
+    "category",
+    "cost_decimal",
+    "tokens_consumed",
+    "previous_hash",
+    "block_hash",
+    "pqc_signature",
+    "signature_algorithm",
+    "status",
+    "nonce",
+    "original_event_id",
+  ],
+  api_keys: [
+    "id",
+    "tenant_id",
+    "user_id",
+    "name",
+    "role",
+    "scopes",
+    "key_hash",
+    "key_prefix",
+    "prefix",
+    "secret_hint",
+    "status",
+    "expires_at",
+    "created_at",
+    "revoked_at",
+    "rotated_at",
+    "last_used_at",
+    "created_by",
+    "metadata",
+  ],
+  webhook_events: [
+    "id",
+    "provider",
+    "provider_event_id",
+    "event_type",
+    "payload_hash",
+    "received_at",
+    "processed_at",
+    "status",
+    "error",
+  ],
+  economic_events: [
+    "id",
+    "tenant_id",
+    "actor_id",
+    "event_type",
+    "currency",
+    "amount_minor",
+    "direction",
+    "source",
+    "provider",
+    "provider_event_id",
+    "idempotency_key",
+    "correlation_id",
+    "metadata",
+    "created_at",
+  ],
   sovereign_state: ["id", "payload", "version", "updated_at"],
 };
 
@@ -37,7 +155,13 @@ function toJsonb(value) {
 }
 
 function isJsonbColumn(table, column) {
-  return (table === "tenants" && column === "metadata") || column === "metadata" || column === "scopes" || column === "payload" || column === "provenance";
+  return (
+    (table === "tenants" && column === "metadata") ||
+    column === "metadata" ||
+    column === "scopes" ||
+    column === "payload" ||
+    column === "provenance"
+  );
 }
 
 async function assertSchema(client) {
@@ -66,7 +190,9 @@ export async function runRestore(databaseUrl, snapshot, poolFactory) {
   if (errors.length) throw new Error(`Snapshot inválido:\n${errors.join("\n")}`);
   if (!databaseUrl) throw new Error("DATABASE_URL ausente: restore denegado.");
 
-  const pool = poolFactory ? poolFactory(databaseUrl) : new pg.Pool({ connectionString: databaseUrl, max: 1 });
+  const pool = poolFactory
+    ? poolFactory(databaseUrl)
+    : new pg.Pool({ connectionString: databaseUrl, max: 1 });
   const inserted = {};
   const client = await pool.connect();
   try {
@@ -136,7 +262,9 @@ if (isMain) {
       console.log(`Restore OK (aditivo/transaccional): ${total} filas restauradas.`);
     })
     .catch((error) => {
-      console.error(`Restore falló y fue revertido: ${error instanceof Error ? error.message : error}`);
+      console.error(
+        `Restore falló y fue revertido: ${error instanceof Error ? error.message : error}`,
+      );
       process.exit(1);
     });
 }
