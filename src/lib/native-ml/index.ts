@@ -2,4 +2,6 @@ export * from "./types";
 export * from "./engine";
 export * from "./text-classifier";
 export * from "./teacher-convergence";
+export * from "./convergence-engine";
 export * from "./federated";
+export * from "./evolved-skills-ml";
