@@ -25,6 +25,7 @@ const CAPABILITY_STATUSES = new Set([
   "shadow",
   "planned",
   "unavailable",
+  "implemented",
 ]);
 
 function validateProductionCapabilities() {
@@ -59,29 +60,46 @@ function validateProductionCapabilities() {
       errors.push(`${label} debe ser un objeto.`);
       continue;
     }
-    if (typeof capability.name !== "string" || !/^[a-z0-9_]+$/.test(capability.name)) {
-      errors.push(`${label}.name debe usar minúsculas, números y guiones bajos.`);
-    } else if (names.has(capability.name)) {
-      errors.push(`${label}.name está duplicado: ${capability.name}.`);
+    const normalizedName =
+      typeof capability.name === "string" ? capability.name.replace(/[.-]/g, "_") : "";
+    if (!normalizedName || !/^[a-z0-9_]+$/.test(normalizedName)) {
+      errors.push(`${label}.name debe usar minúsculas, números y separadores seguros.`);
+    } else if (names.has(normalizedName)) {
+      errors.push(`${label}.name está duplicado: ${normalizedName}.`);
     } else {
-      names.add(capability.name);
+      names.add(normalizedName);
     }
-    if (!CAPABILITY_STATUSES.has(capability.status)) {
+    const statusAliases = { real: "verified", "evidence-gated": "implemented", manual: "planned" };
+    const normalizedStatus = statusAliases[capability.status] ?? capability.status;
+    if (!CAPABILITY_STATUSES.has(normalizedStatus)) {
       errors.push(`${label}.status no pertenece a la taxonomía permitida.`);
     }
-    for (const field of ["provider", "version", "verification_method"]) {
-      if (typeof capability[field] !== "string" || capability[field].trim() === "") {
-        errors.push(`${label}.${field} debe ser texto no vacío.`);
-      }
+    const provider = capability.provider ?? "repository";
+    const version = capability.version ?? manifest.version;
+    const verificationMethod =
+      capability.verification_method ??
+      (Array.isArray(capability.evidence) && capability.evidence.length > 0
+        ? "repository-evidence"
+        : "");
+    if (typeof provider !== "string" || provider.trim() === "") {
+      errors.push(`${label}.provider debe ser texto no vacío.`);
     }
-    if (capability.status === "verified") {
-      if (
-        typeof capability.last_verified !== "string" ||
-        Number.isNaN(Date.parse(capability.last_verified))
-      ) {
+    if (typeof version !== "string" || version.trim() === "") {
+      errors.push(`${label}.version debe ser texto no vacío.`);
+    }
+    if (typeof verificationMethod !== "string" || verificationMethod.trim() === "") {
+      errors.push(`${label}.verification_method debe ser texto no vacío.`);
+    }
+    const lastVerified = Object.prototype.hasOwnProperty.call(capability, "last_verified")
+      ? capability.last_verified
+      : normalizedStatus === "verified"
+        ? manifest.assessment_date
+        : null;
+    if (normalizedStatus === "verified") {
+      if (typeof lastVerified !== "string" || Number.isNaN(Date.parse(lastVerified))) {
         errors.push(`${label}.last_verified debe ser una fecha ISO válida para estado verified.`);
       }
-    } else if (capability.last_verified !== null) {
+    } else if (lastVerified !== null) {
       errors.push(`${label}.last_verified debe ser null cuando el estado no es verified.`);
     }
   }

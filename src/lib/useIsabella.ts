@@ -62,6 +62,12 @@ function loadSession(): TerminalMessage[] | null {
 const TRANSPORT_TEXT_LIMIT = 12_000;
 const TRANSPORT_ATTACHMENT_LIMIT = 8;
 
+type SendConfig = {
+  mode?: "fast" | "deep_reasoning" | "web_research" | "agent_tools";
+  webSearch?: boolean;
+  toolsEnabled?: boolean;
+};
+
 function normalizeTransportText(value: string, fallback = "Analiza el material adjunto.") {
   const normalized = value.trim().slice(0, TRANSPORT_TEXT_LIMIT);
   return normalized || fallback;
@@ -134,7 +140,7 @@ export function useIsabella() {
   }, [messages, presetId, telemetry, hydrated]);
 
   const send = useCallback(
-    async (input: string, attachments: Attachment[] = []) => {
+    async (input: string, attachments: Attachment[] = [], config: SendConfig = {}) => {
       const text = input.trim();
       if ((!text && attachments.length === 0) || isProcessing) return;
       logLifecycleEvent("INIT", {
@@ -166,27 +172,28 @@ export function useIsabella() {
       const { getSessionToken, ensureSessionToken, setSessionToken } =
         await import("@/lib/auth-client");
       let token = getSessionToken();
-      if (!token) {
-        try {
-          const devRes = await fetch("/api/db?action=dev-session", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-          });
-          if (devRes.ok) {
-            const devData = (await devRes.json()) as {
-              token?: string;
-              userId?: string;
-            };
-            if (devData.token) {
-              const { setStoredSovereignUserId } = await import("@/lib/auth-client");
-              setSessionToken(devData.token);
-              if (devData.userId) setStoredSovereignUserId(devData.userId);
-              token = devData.token;
-            }
+      try {
+        // Refresh the preview session on every send. Preview/serverless workers can
+        // rotate their in-memory session state while the browser keeps an old JWT.
+        // Production rejects this endpoint and continues with the real token.
+        const devRes = await fetch("/api/db?action=dev-session", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+        });
+        if (devRes.ok) {
+          const devData = (await devRes.json()) as {
+            token?: string;
+            userId?: string;
+          };
+          if (devData.token) {
+            const { setStoredSovereignUserId } = await import("@/lib/auth-client");
+            setSessionToken(devData.token);
+            if (devData.userId) setStoredSovereignUserId(devData.userId);
+            token = devData.token;
           }
-        } catch {
-          /* dev auth is optional */
         }
+      } catch {
+        /* Development auth is optional; keep the real session when unavailable. */
       }
       if (!token) {
         try {
@@ -249,7 +256,14 @@ export function useIsabella() {
             system: (buildSystemPrompt(routing, preset) + skillContext).slice(0, 8000),
             temperature: preset.temperature,
             messages: history,
-            context: { source: "isabella", preset: preset.id, runId },
+            context: {
+              source: "isabella",
+              preset: preset.id,
+              runId,
+              executionMode: config.mode ?? "fast",
+              webSearch: config.webSearch ?? false,
+              toolsEnabled: config.toolsEnabled ?? false,
+            },
           }),
         });
         if (!res.ok || !res.body) {
@@ -261,6 +275,18 @@ export function useIsabella() {
               },
           );
           const rawMessage = detail.message ?? detail.error ?? "Fallo de percepción.";
+          if (
+            res.status === 403 &&
+            typeof rawMessage === "string" &&
+            /tenant|aislamiento/i.test(rawMessage)
+          ) {
+            try {
+              window.sessionStorage.removeItem("isabella_session_token");
+            } catch {
+              // El siguiente intento aún puede obtener una sesión nueva del servidor.
+            }
+            throw new Error("Sesión renovada requerida. Reintenta la percepción.");
+          }
           throw new Error(typeof rawMessage === "string" ? rawMessage : JSON.stringify(rawMessage));
         }
         const degradedHeader = res.headers.get("x-isabella-degraded-mode");
@@ -324,6 +350,11 @@ export function useIsabella() {
             /* final incomplete event */
           }
         }
+        if (!acc.trim()) {
+          throw new Error(
+            "El proveedor de inferencia cerró el stream sin emitir síntesis. Reintenta la percepción.",
+          );
+        }
         setMessages((prev) =>
           prev.map((m) =>
             m.id === replyId
@@ -332,8 +363,7 @@ export function useIsabella() {
                   streaming: false,
                   degraded: m.degraded ?? degradedMode !== null,
                   provider: m.provider ?? providerHeader ?? "gemini",
-                  content:
-                    acc || "Silencio cognitivo: el núcleo no emitió síntesis para esta percepción.",
+                  content: acc,
                 }
               : m,
           ),

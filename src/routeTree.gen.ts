@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PakeRouteImport } from './routes/pake'
 import { Route as ApiBillingRouteImport } from './routes/api/billing'
+import { Route as ApiBillingTopupIntentRouteImport } from './routes/api/billing-topup-intent'
 import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiDbRouteImport } from './routes/api/db'
 import { Route as ApiEconomicIntegrityRouteImport } from './routes/api/economic-integrity'
@@ -53,6 +54,11 @@ const PakeRoute = PakeRouteImport.update({
 const ApiBillingRoute = ApiBillingRouteImport.update({
   id: '/api/billing',
   path: '/api/billing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingTopupIntentRoute = ApiBillingTopupIntentRouteImport.update({
+  id: '/api/billing-topup-intent',
+  path: '/api/billing-topup-intent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCatalogRoute = ApiCatalogRouteImport.update({
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/pake': typeof PakeRoute
   '/api/billing': typeof ApiBillingRoute
+  '/api/billing-topup-intent': typeof ApiBillingTopupIntentRoute
   '/api/catalog': typeof ApiCatalogRoute
   '/api/db': typeof ApiDbRoute
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
@@ -230,6 +237,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/pake': typeof PakeRoute
   '/api/billing': typeof ApiBillingRoute
+  '/api/billing-topup-intent': typeof ApiBillingTopupIntentRoute
   '/api/catalog': typeof ApiCatalogRoute
   '/api/db': typeof ApiDbRoute
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
@@ -263,6 +271,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/pake': typeof PakeRoute
   '/api/billing': typeof ApiBillingRoute
+  '/api/billing-topup-intent': typeof ApiBillingTopupIntentRoute
   '/api/catalog': typeof ApiCatalogRoute
   '/api/db': typeof ApiDbRoute
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
@@ -297,6 +306,7 @@ export interface FileRouteTypes {
     | '/'
     | '/pake'
     | '/api/billing'
+    | '/api/billing-topup-intent'
     | '/api/catalog'
     | '/api/db'
     | '/api/economic-integrity'
@@ -329,6 +339,7 @@ export interface FileRouteTypes {
     | '/'
     | '/pake'
     | '/api/billing'
+    | '/api/billing-topup-intent'
     | '/api/catalog'
     | '/api/db'
     | '/api/economic-integrity'
@@ -361,6 +372,7 @@ export interface FileRouteTypes {
     | '/'
     | '/pake'
     | '/api/billing'
+    | '/api/billing-topup-intent'
     | '/api/catalog'
     | '/api/db'
     | '/api/economic-integrity'
@@ -394,6 +406,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PakeRoute: typeof PakeRoute
   ApiBillingRoute: typeof ApiBillingRoute
+  ApiBillingTopupIntentRoute: typeof ApiBillingTopupIntentRoute
   ApiCatalogRoute: typeof ApiCatalogRoute
   ApiDbRoute: typeof ApiDbRoute
   ApiEconomicIntegrityRoute: typeof ApiEconomicIntegrityRoute
@@ -434,6 +447,13 @@ declare module '@tanstack/react-router' {
       path: '/api/billing'
       fullPath: '/api/billing'
       preLoaderRoute: typeof ApiBillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing-topup-intent': {
+      id: '/api/billing-topup-intent'
+      path: '/api/billing-topup-intent'
+      fullPath: '/api/billing-topup-intent'
+      preLoaderRoute: typeof ApiBillingTopupIntentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/catalog': {
@@ -700,6 +720,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PakeRoute: PakeRoute,
   ApiBillingRoute: ApiBillingRoute,
+  ApiBillingTopupIntentRoute: ApiBillingTopupIntentRoute,
   ApiCatalogRoute: ApiCatalogRoute,
   ApiDbRoute: ApiDbRoute,
   ApiEconomicIntegrityRoute: ApiEconomicIntegrityRoute,

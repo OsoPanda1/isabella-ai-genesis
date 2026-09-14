@@ -5,8 +5,14 @@ import { parseSafeJsonBody } from "@/lib/input-limits";
 import { runNativeComprehension } from "@/lib/native-comprehension";
 
 const NativeComprehensionRequestSchema = z.object({
-  input: z.string().min(1).max(8000),
+  input: z.string().trim().min(1).max(8000),
+  locale: z.enum(["es", "es-MX", "es-419", "auto"]).default("auto"),
+  responseMode: z.enum(["concise", "balanced", "deep"]).default("balanced"),
 });
+
+function normalizeSpanishInput(input: string): string {
+  return input.normalize("NFC").replace(/[\u200B-\u200D\uFEFF]/g, "").replace(/\s+/g, " ").trim();
+}
 
 type NativeGatewayContext = {
   ip: string;
@@ -55,8 +61,9 @@ export async function handleNativeComprehension(
       { status: 400, tenantId: context.tenantId },
     );
   }
+  const normalizedInput = normalizeSpanishInput(validation.data.input);
   const output = runNativeComprehension({
-    input: validation.data.input,
+    input: normalizedInput,
     tenantId: context.tenantId,
     traceId: context.traceId,
   });
@@ -72,5 +79,7 @@ export async function handleNativeComprehension(
     riskDetected: output.riskDetected,
     latencyMs: output.latencyMs,
     chainHash: output.chainHash,
+    locale: validation.data.locale,
+    responseMode: validation.data.responseMode,
   });
 }

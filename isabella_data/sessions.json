@@ -1,0 +1,32 @@
+[
+  {
+    "id": "dev_user_local:535988cc-a351-4504-8cc6-757c31427628",
+    "tenantId": "dev_user_local:535988cc-a351-4504-8cc6-757c31427628",
+    "userId": "dev_user_local",
+    "principalType": "user",
+    "tokenJti": "535988cc-a351-4504-8cc6-757c31427628",
+    "expiresAt": "2026-09-14T06:52:27.980Z",
+    "createdAt": "2026-09-14T05:52:27.980Z",
+    "tenant_id": "dev_user_local:535988cc-a351-4504-8cc6-757c31427628"
+  },
+  {
+    "id": "dev_user_local:5397427c-a6aa-4700-9057-b61e5beb50f8",
+    "tenantId": "dev_user_local:5397427c-a6aa-4700-9057-b61e5beb50f8",
+    "userId": "dev_user_local",
+    "principalType": "user",
+    "tokenJti": "5397427c-a6aa-4700-9057-b61e5beb50f8",
+    "expiresAt": "2026-09-14T06:53:06.205Z",
+    "createdAt": "2026-09-14T05:53:06.205Z",
+    "tenant_id": "dev_user_local:5397427c-a6aa-4700-9057-b61e5beb50f8"
+  },
+  {
+    "id": "dev_user_local:9846e37d-0d6b-4448-acf1-66b21960a765",
+    "tenantId": "dev_user_local:9846e37d-0d6b-4448-acf1-66b21960a765",
+    "userId": "dev_user_local",
+    "principalType": "user",
+    "tokenJti": "9846e37d-0d6b-4448-acf1-66b21960a765",
+    "expiresAt": "2026-09-14T06:53:32.462Z",
+    "createdAt": "2026-09-14T05:53:32.462Z",
+    "tenant_id": "dev_user_local:9846e37d-0d6b-4448-acf1-66b21960a765"
+  }
+]

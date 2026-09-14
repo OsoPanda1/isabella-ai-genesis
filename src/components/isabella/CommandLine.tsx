@@ -259,7 +259,10 @@ export function CommandLine({ onSend, onStop, onReset, isProcessing }: CommandLi
                   : "bg-emerald-400"
             }`}
           />
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          <span
+            className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground"
+            aria-live="polite"
+          >
             Canal Perceptivo · Isabella AI
           </span>
         </div>
@@ -293,7 +296,12 @@ export function CommandLine({ onSend, onStop, onReset, isProcessing }: CommandLi
           value={value}
           onChange={handleInputChange}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
+            if (
+              e.key === "Enter" &&
+              !e.shiftKey &&
+              !e.nativeEvent.isComposing &&
+              e.keyCode !== 229
+            ) {
               e.preventDefault();
               submit();
             }

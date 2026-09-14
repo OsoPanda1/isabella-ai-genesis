@@ -127,7 +127,11 @@ function IsabellaInterface() {
   const [middleOpen, setMiddleOpen] = useState(false);
   const [lowerOpen, setLowerOpen] = useState(false);
   const [navModule, setNavModule] = useState<NavModule | null>(null);
-  const lastInput = useRef("");
+  const lastInput = useRef<{
+    text: string;
+    attachments: Parameters<typeof isabella.send>[1];
+    config?: Parameters<typeof isabella.send>[2];
+  }>({ text: "", attachments: [] });
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -151,9 +155,13 @@ function IsabellaInterface() {
   }, []);
 
   const send = useCallback(
-    (text: string) => {
-      lastInput.current = text;
-      void isabella.send(text);
+    (
+      text: string,
+      attachments: Parameters<typeof isabella.send>[1] = [],
+      config?: Parameters<typeof isabella.send>[2],
+    ) => {
+      lastInput.current = { text, attachments, config };
+      void isabella.send(text, attachments, config);
     },
     [isabella],
   );
@@ -318,7 +326,10 @@ function IsabellaInterface() {
                   <div className="glass min-h-[56vh] flex-1 overflow-y-auto rounded-3xl p-1 crystal-glow-electric">
                     <MessageStream
                       messages={isabella.messages}
-                      onRetry={() => lastInput.current && send(lastInput.current)}
+                      onRetry={() => {
+                        const retry = lastInput.current;
+                        if (retry.text) send(retry.text, retry.attachments, retry.config);
+                      }}
                     />
                   </div>
                   <div className="rounded-2xl crystal-glow-electric">

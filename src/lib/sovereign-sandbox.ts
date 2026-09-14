@@ -8,7 +8,11 @@ function isSandboxEnabled(): boolean {
     const cfg = config();
     // Contrato canónico: SANDBOX_ENABLED vía config() (§12). Default false.
     if (cfg.SANDBOX_ENABLED === true) return true;
-    if (cfg.NODE_ENV === "production" || cfg.ISABELLA_RUNTIME_MODE === "production") {
+    if (
+      cfg.NODE_ENV === "production" ||
+      cfg.ISABELLA_RUNTIME_MODE === "production" ||
+      cfg.ISABELLA_RUNTIME_MODE === "staging"
+    ) {
       return false;
     }
   } catch {

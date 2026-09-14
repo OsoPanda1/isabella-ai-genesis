@@ -23,6 +23,15 @@ export interface ObservabilitySnapshot {
 
 type TelemetryListener = (snapshot: ObservabilitySnapshot) => void;
 
+export interface LatencyBudget {
+  p50Ms: number;
+  p95Ms: number;
+  p99Ms: number;
+  sampleCount: number;
+}
+
+const LATENCY_SAMPLES = 512;
+
 /**
  * Runtime observability state.
  *
@@ -34,6 +43,13 @@ type TelemetryListener = (snapshot: ObservabilitySnapshot) => void;
 class ObservabilityEngine {
   private currentSnapshot: ObservabilitySnapshot;
   private readonly listeners = new Set<TelemetryListener>();
+  private readonly latencySamples: number[] = [];
+
+  public getLatencyBudget(): LatencyBudget {
+    const values = [...this.latencySamples].sort((a, b) => a - b);
+    const percentile = (p: number) => values.length === 0 ? 0 : values[Math.min(values.length - 1, Math.ceil(values.length * p) - 1)]!;
+    return { p50Ms: percentile(0.5), p95Ms: percentile(0.95), p99Ms: percentile(0.99), sampleCount: values.length };
+  }
 
   constructor() {
     this.currentSnapshot = this.createEmptySnapshot();
@@ -92,6 +108,8 @@ class ObservabilityEngine {
     if (!Number.isFinite(latencyMs) || latencyMs < 0) throw new Error("invalid_latency");
     if (!Number.isFinite(score)) throw new Error("invalid_anomaly_score");
     const s = this.currentSnapshot;
+    this.latencySamples.push(latencyMs);
+    if (this.latencySamples.length > LATENCY_SAMPLES) this.latencySamples.shift();
     const previousEvents = s.totalEventsProcessed;
     s.totalEventsProcessed += 1;
     s.avgLatencyMs =
