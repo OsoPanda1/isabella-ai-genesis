@@ -368,15 +368,12 @@ export class PrincipalContext {
         return String(rec.tokenJti ?? rec.token_jti ?? "") === jti;
       });
       if (!session) {
-        // Development preview workers may lose JSON session state between requests.
-        // Accept only a valid signed SovereignOwner token in explicit development mode;
-        // production and staging remain fail-closed and require the durable session.
+        // A signed SovereignOwner token is recoverable only when ALL explicit
+        // development controls are enabled. NODE_ENV alone is never sufficient.
         let allowDevelopmentRecovery = false;
         try {
-          const developmentRuntime = process.env.NODE_ENV === "development";
           allowDevelopmentRecovery =
-            (developmentRuntime || isExplicitDevelopmentAuth(config())) &&
-            claims.role === "SovereignOwner";
+            isExplicitDevelopmentAuth(config()) && claims.role === "SovereignOwner";
         } catch {
           allowDevelopmentRecovery = false;
         }
@@ -467,7 +464,7 @@ export function withSovereignAuth(
       role: context.role,
       authenticated: true,
       context: {
-        ip_address: request.headers.get("x-forwarded-for") ?? context.ip,
+        ip_address: context.ip,
         user_agent: request.headers.get("user-agent") ?? "unknown",
         timestamp: new Date(),
       },
