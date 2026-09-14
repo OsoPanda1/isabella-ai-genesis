@@ -367,38 +367,60 @@ export class PrincipalContext {
         const rec = candidate as unknown as Record<string, unknown>;
         return String(rec.tokenJti ?? rec.token_jti ?? "") === jti;
       });
-      if (!session)
-        return {
-          success: false,
-          response: jsonError(
-            "Acceso Denegado: La sesión asociada al token ya no se encuentra activa en el nodo.",
-            telemetry.traceId,
-            401,
-            headers,
-          ),
-        };
-
-      const sessionRecord = session as unknown as Record<string, unknown>;
-      const activeFlag = sessionRecord.is_active ?? sessionRecord.isActive;
-      if (activeFlag === false)
-        return {
-          success: false,
-          response: jsonError("Acceso Denegado: sesión revocada.", telemetry.traceId, 401, headers),
-        };
-
-      const expiresRaw = sessionRecord.expiresAt ?? sessionRecord.expires_at ?? sessionRecord.exp;
-      if (expiresRaw !== undefined && expiresRaw !== null) {
-        const expiresMillis = sessionExpiryMillis(expiresRaw);
-        if (expiresMillis === null || expiresMillis <= Date.now())
+      if (!session) {
+        // Development preview workers may lose JSON session state between requests.
+        // Accept only a valid signed SovereignOwner token in explicit development mode;
+        // production and staging remain fail-closed and require the durable session.
+        let allowDevelopmentRecovery = false;
+        try {
+          const developmentRuntime = process.env.NODE_ENV === "development";
+          allowDevelopmentRecovery =
+            (developmentRuntime || isExplicitDevelopmentAuth(config())) &&
+            claims.role === "SovereignOwner";
+        } catch {
+          allowDevelopmentRecovery = false;
+        }
+        if (!allowDevelopmentRecovery) {
           return {
             success: false,
             response: jsonError(
-              "Acceso Denegado: sesión expirada o con fecha inválida.",
+              "Acceso Denegado: La sesión asociada al token ya no se encuentra activa en el nodo.",
               telemetry.traceId,
               401,
               headers,
             ),
           };
+        }
+      }
+
+      const sessionRecord = session as unknown as Record<string, unknown> | undefined;
+      if (sessionRecord) {
+        const activeFlag = sessionRecord.is_active ?? sessionRecord.isActive;
+        if (activeFlag === false)
+          return {
+            success: false,
+            response: jsonError(
+              "Acceso Denegado: sesión revocada.",
+              telemetry.traceId,
+              401,
+              headers,
+            ),
+          };
+
+        const expiresRaw = sessionRecord.expiresAt ?? sessionRecord.expires_at ?? sessionRecord.exp;
+        if (expiresRaw !== undefined && expiresRaw !== null) {
+          const expiresMillis = sessionExpiryMillis(expiresRaw);
+          if (expiresMillis === null || expiresMillis <= Date.now())
+            return {
+              success: false,
+              response: jsonError(
+                "Acceso Denegado: sesión expirada o con fecha inválida.",
+                telemetry.traceId,
+                401,
+                headers,
+              ),
+            };
+        }
       }
 
       const context = new PrincipalContext(
@@ -409,7 +431,7 @@ export class PrincipalContext {
           tier: tenantRecord.tier,
           quotaBalance: tenantRecord.quotaBalance,
         },
-        String(sessionRecord.username ?? ""),
+        String(sessionRecord?.username ?? ""),
         ip,
         telemetry.traceId,
         telemetry.correlationId,

@@ -172,27 +172,28 @@ export function useIsabella() {
       const { getSessionToken, ensureSessionToken, setSessionToken } =
         await import("@/lib/auth-client");
       let token = getSessionToken();
-      if (!token) {
-        try {
-          const devRes = await fetch("/api/db?action=dev-session", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-          });
-          if (devRes.ok) {
-            const devData = (await devRes.json()) as {
-              token?: string;
-              userId?: string;
-            };
-            if (devData.token) {
-              const { setStoredSovereignUserId } = await import("@/lib/auth-client");
-              setSessionToken(devData.token);
-              if (devData.userId) setStoredSovereignUserId(devData.userId);
-              token = devData.token;
-            }
+      try {
+        // Refresh the preview session on every send. Preview/serverless workers can
+        // rotate their in-memory session state while the browser keeps an old JWT.
+        // Production rejects this endpoint and continues with the real token.
+        const devRes = await fetch("/api/db?action=dev-session", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+        });
+        if (devRes.ok) {
+          const devData = (await devRes.json()) as {
+            token?: string;
+            userId?: string;
+          };
+          if (devData.token) {
+            const { setStoredSovereignUserId } = await import("@/lib/auth-client");
+            setSessionToken(devData.token);
+            if (devData.userId) setStoredSovereignUserId(devData.userId);
+            token = devData.token;
           }
-        } catch {
-          /* dev auth is optional */
         }
+      } catch {
+        /* Development auth is optional; keep the real session when unavailable. */
       }
       if (!token) {
         try {
