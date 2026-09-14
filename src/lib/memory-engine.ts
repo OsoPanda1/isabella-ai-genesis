@@ -39,13 +39,8 @@ export interface MemoryDecision {
 
 export interface MemoryRepositoryAsync {
   add: MemoryRepository["add"];
-  list: (
-    tenantId: string,
-    scope?: MemoryScope,
-  ) => MemoryRecord[] | Promise<MemoryRecord[]>;
-  prune: (
-    now?: number,
-  ) => { removed: number } | Promise<{ removed: number }>;
+  list: (tenantId: string, scope?: MemoryScope) => MemoryRecord[] | Promise<MemoryRecord[]>;
+  prune: (now?: number) => { removed: number } | Promise<{ removed: number }>;
   verifyIntegrity: () =>
     | { success: boolean; error?: string; corruptedId?: string }
     | Promise<{ success: boolean; error?: string; corruptedId?: string }>;
@@ -114,7 +109,9 @@ export function createMemoryEngine(repository?: MemoryRepositoryAsync) {
   const activeRepository = repository ?? createRuntimeMemoryRepository();
 
   return {
-    retrieve(request: MemoryAccessRequest):
+    retrieve(
+      request: MemoryAccessRequest,
+    ):
       | { records: MemoryRecord[]; denied: number }
       | Promise<{ records: MemoryRecord[]; denied: number }> {
       const scopeDecision = canAccessScope(request);

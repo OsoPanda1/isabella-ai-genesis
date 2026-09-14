@@ -47,7 +47,8 @@ function LandingFallback() {
         <h1 className="mt-4 text-3xl font-semibold tracking-tight">Isabella Villaseñor AI</h1>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
           Inicializando la interfaz cognitiva gobernada. El núcleo visual se monta en el navegador
-          para aislar WebGL, audio, almacenamiento local y telemetría de la renderización del servidor.
+          para aislar WebGL, audio, almacenamiento local y telemetría de la renderización del
+          servidor.
         </p>
         <p className="mt-6 font-mono text-[9px] uppercase tracking-[0.22em] text-electric/80">
           El presente ha despertado

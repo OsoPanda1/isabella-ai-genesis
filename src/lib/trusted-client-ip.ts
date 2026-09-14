@@ -17,7 +17,9 @@ import { config } from "./config";
 export function resolveTrustedClientIp(request: Request): string {
   let mode = "";
   try {
-    mode = String(config().TRUSTED_PROXY_MODE ?? "").trim().toLowerCase();
+    mode = String(config().TRUSTED_PROXY_MODE ?? "")
+      .trim()
+      .toLowerCase();
   } catch {
     return "unknown";
   }

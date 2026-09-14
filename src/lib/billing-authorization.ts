@@ -1,6 +1,12 @@
 import type { Role } from "./rbac";
 
-export type BillingOperation = "checkout" | "topup" | "refund" | "marketplace-publish" | "marketplace-purchase" | "authorize-run";
+export type BillingOperation =
+  | "checkout"
+  | "topup"
+  | "refund"
+  | "marketplace-publish"
+  | "marketplace-purchase"
+  | "authorize-run";
 
 const REQUIRED_SCOPE: Record<BillingOperation, string> = {
   checkout: "billing:checkout",

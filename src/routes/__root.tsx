@@ -90,9 +90,7 @@ export const Route = createRootRouteWithContext()({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
-    ],
+    links: [{ rel: "icon", href: "/favicon.ico", type: "image/x-icon" }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -103,10 +101,10 @@ export const Route = createRootRouteWithContext()({
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className="bg-background">
-        <head>
-          <HeadContent />
-          <style dangerouslySetInnerHTML={{ __html: appCss }} />
-        </head>
+      <head>
+        <HeadContent />
+        <style dangerouslySetInnerHTML={{ __html: appCss }} />
+      </head>
       <body>
         {children}
         <SpeedInsights />

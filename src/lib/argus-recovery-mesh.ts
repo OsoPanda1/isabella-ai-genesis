@@ -127,6 +127,9 @@ export class ArgusRecoveryMesh {
   ) {
     if (epoch !== deriveRecoveryEpoch(plan))
       return { accepted: false, reason: "EPOCH_MISMATCH" } as const;
+    const expiresAt = (plan as { expiresAt?: number }).expiresAt;
+    if (typeof expiresAt === "number" && now > expiresAt)
+      return { accepted: false, reason: "PLAN_EXPIRED" } as const;
     if (this.consumed.has(plan.planId))
       return { accepted: false, reason: "REPLAYED_PLAN" } as const;
     const valid = new Set<string>();

@@ -49,7 +49,21 @@ export async function handleRequest(
     sanitizedHeaders.delete(header);
   }
   if (clientIp !== "unknown") sanitizedHeaders.set("x-real-ip", clientIp);
-  const sanitizedRequest = new Request(request, { headers: sanitizedHeaders });
+  let sanitizedRequest: Request;
+  try {
+    sanitizedRequest = new Request(request, { headers: sanitizedHeaders });
+  } catch {
+    const init: RequestInit & { duplex?: "half" } = {
+      method: request.method,
+      headers: sanitizedHeaders,
+      signal: request.signal,
+    };
+    if (request.method !== "GET" && request.method !== "HEAD" && request.body) {
+      init.body = request.body;
+      init.duplex = "half";
+    }
+    sanitizedRequest = new Request(request.url, init as RequestInit);
+  }
 
   return withRequestContext(requestContext, async () => {
     try {
@@ -118,7 +132,7 @@ export function withSecurityHeaders(response: Response): Response {
   setIfMissing("Cross-Origin-Opener-Policy", "same-origin");
   setIfMissing("Cross-Origin-Resource-Policy", "same-origin");
 
-  const production = import.meta.env.PROD;
+  const production = process.env.NODE_ENV === "production";
   const scriptSource = production ? "'self'" : "'self' 'unsafe-inline'";
   const csp = [
     "default-src 'self'",

@@ -72,7 +72,9 @@ function cosineSimilarity(a: string, b: string): number {
  * Deterministic O(n²) convergence for small teacher sets. The intended hot path
  * is 3-16 observations; it avoids model inference and network calls entirely.
  */
-export function convergeKnowledge(observations: readonly KnowledgeObservation[]): ConvergenceResult {
+export function convergeKnowledge(
+  observations: readonly KnowledgeObservation[],
+): ConvergenceResult {
   if (observations.length < 2) throw new Error("convergence_requires_multiple_observations");
   if (observations.length > 32) throw new Error("convergence_batch_too_large");
 
@@ -119,9 +121,12 @@ export function convergeKnowledge(observations: readonly KnowledgeObservation[])
     scored.reduce((sum, item) => sum + EVIDENCE_WEIGHT[item.observation.evidenceLevel], 0) /
       scored.length,
   );
-  const freshnessScore = scored.reduce((sum, item) => sum + item.observation.freshness, 0) / scored.length;
-  const confidenceScore = scored.reduce((sum, item) => sum + item.observation.confidence, 0) / scored.length;
-  const diversityScore = new Set(scored.map((item) => item.observation.teacherId)).size / scored.length;
+  const freshnessScore =
+    scored.reduce((sum, item) => sum + item.observation.freshness, 0) / scored.length;
+  const confidenceScore =
+    scored.reduce((sum, item) => sum + item.observation.confidence, 0) / scored.length;
+  const diversityScore =
+    new Set(scored.map((item) => item.observation.teacherId)).size / scored.length;
 
   const state: EpistemicState =
     consensusScore >= 0.78 && evidenceScore >= 0.7

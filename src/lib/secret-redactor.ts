@@ -45,7 +45,8 @@ function escapeRegExp(value: string): string {
 function buildSecretPatterns(values: string[]): RegExp {
   const seeded = values.filter((v) => v && v.length >= 8).map(escapeRegExp);
   const literals = seeded.join("|");
-  const generic = /(\b(?:api[_-]?key|secret|token|password|passwd|auth|bearer|authorization|credential)\b\s*[:=]\s*["']?)([^\s"']{12,})(["']?)/gi;
+  const generic =
+    /(\b(?:api[_-]?key|secret|token|password|passwd|auth|bearer|authorization|credential)\b\s*[:=]\s*["']?)([^\s"']{12,})(["']?)/gi;
   const bearer = /(\bBearer\s+)[A-Za-z0-9_\-.+=/]{20,}/gi;
   const querySecret = /([?&](?:token|key|secret|password|signature)=)[^&\s]{8,}/gi;
   const parts = [generic.source, bearer.source, querySecret.source];
@@ -55,7 +56,9 @@ function buildSecretPatterns(values: string[]): RegExp {
 
 export function createRedactor(extraValues: string[] = []): Redactor {
   const cfg = config();
-  const extraKeys = cfg.REDACT_EXTRA_KEYS.split(",").map((s) => s.trim()).filter(Boolean);
+  const extraKeys = cfg.REDACT_EXTRA_KEYS.split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const dynamicValues: string[] = [];
   const cfgRecord = cfg as unknown as Record<string, unknown>;
   const secureEnvLookup = (key: string): string | undefined => {
@@ -67,7 +70,11 @@ export function createRedactor(extraValues: string[] = []): Redactor {
     if (value) dynamicValues.push(value);
   }
   try {
-    for (const value of [secrets.jwtSecret(), secrets.aiGatewayKey(), secrets.encryptionMasterKey()]) {
+    for (const value of [
+      secrets.jwtSecret(),
+      secrets.aiGatewayKey(),
+      secrets.encryptionMasterKey(),
+    ]) {
       if (value) dynamicValues.push(value);
     }
   } catch {
@@ -81,7 +88,7 @@ export function createRedactor(extraValues: string[] = []): Redactor {
   );
 
   function redact(input: string): string {
-    let out = input.replace(pattern, (_match, prefix = "") => `${prefix}[REDACTED]`);
+    const out = input.replace(pattern, (_match, prefix = "") => `${prefix}[REDACTED]`);
     return out.replace(patternKeys, "$1[REDACTED]$2");
   }
 
@@ -91,7 +98,8 @@ export function createRedactor(extraValues: string[] = []): Redactor {
     if (input && typeof input === "object") {
       const out: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
-        out[key] = typeof value === "string" && isSensitiveKey(key) ? "[REDACTED]" : redactObject(value);
+        out[key] =
+          typeof value === "string" && isSensitiveKey(key) ? "[REDACTED]" : redactObject(value);
       }
       return out;
     }
@@ -102,7 +110,9 @@ export function createRedactor(extraValues: string[] = []): Redactor {
 }
 
 function isSensitiveKey(key: string): boolean {
-  return /(secret|token|password|passwd|api[_-]?key|jwt|signing|encryption|bearer|credential|private[_-]?key)/i.test(key);
+  return /(secret|token|password|passwd|api[_-]?key|jwt|signing|encryption|bearer|credential|private[_-]?key)/i.test(
+    key,
+  );
 }
 
 export const redactor: Redactor = createRedactor();

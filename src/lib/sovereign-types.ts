@@ -1,7 +1,7 @@
 /**
  * CANONICAL TYPES — Isabella Sovereign Architecture
  * ═════════════════════════════════════════════════════════════════════
- * 
+ *
  * Core type definitions for Isabella's governance model.
  * All critical objects must conform to these contracts.
  */
@@ -19,8 +19,8 @@ export interface IsabellaPerception {
 export interface IsabellaDecision {
   decisionId: string;
   intent: string;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  policyDecision: 'ALLOWED' | 'REQUIRES_APPROVAL' | 'DENIED';
+  riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  policyDecision: "ALLOWED" | "REQUIRES_APPROVAL" | "DENIED";
   toolAuthorizations: string[];
   reasoning: string;
 }

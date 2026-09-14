@@ -30,7 +30,8 @@ export const PLATFORM_CAPABILITIES: readonly PlatformCapability[] = [
     status: "implemented",
     productionSafe: false,
     evidence: ["src/lib/latam-aegis-x.ts", "src/routes/api/security.ts"],
-    notes: "Implemented and testable, but production runtime evidence is not yet equivalent to the verified CROWN gate.",
+    notes:
+      "Implemented and testable, but production runtime evidence is not yet equivalent to the verified CROWN gate.",
   },
   {
     id: "evidence.bookpi",
@@ -38,7 +39,8 @@ export const PLATFORM_CAPABILITIES: readonly PlatformCapability[] = [
     status: "implemented",
     productionSafe: false,
     evidence: ["src/lib/bookpi.ts", "src/lib/repositories/bookpi-repository.ts"],
-    notes: "Durable evidence path exists; production database and operational evidence are still required before this registry can mark it production-safe.",
+    notes:
+      "Durable evidence path exists; production database and operational evidence are still required before this registry can mark it production-safe.",
   },
   {
     id: "memory.pentacapa",
@@ -46,7 +48,8 @@ export const PLATFORM_CAPABILITIES: readonly PlatformCapability[] = [
     status: "implemented",
     productionSafe: false,
     evidence: ["src/lib/memory-engine.ts", "src/lib/repositories/memory-repository.ts"],
-    notes: "Implementation exists; production-safe status requires runtime isolation and persistence evidence.",
+    notes:
+      "Implementation exists; production-safe status requires runtime isolation and persistence evidence.",
   },
   {
     id: "tools.sandbox",
@@ -54,7 +57,8 @@ export const PLATFORM_CAPABILITIES: readonly PlatformCapability[] = [
     status: "implemented",
     productionSafe: false,
     evidence: ["src/lib/sovereign-sandbox.ts", "src/lib/tool-registry.ts"],
-    notes: "Sandbox boundary is implemented, but real executor isolation and image/runtime evidence are required before production approval.",
+    notes:
+      "Sandbox boundary is implemented, but real executor isolation and image/runtime evidence are required before production approval.",
   },
   {
     id: "quantum.bridge",

@@ -1,4 +1,3 @@
-/* eslint-disable security/detect-object-injection, security/detect-non-literal-regexp */
 /**
  * ISABELLA NATIVE ML — Clasificador determinista es-MX (NO generativo)
  * -----------------------------------------------------------------

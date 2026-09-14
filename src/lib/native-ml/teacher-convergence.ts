@@ -47,7 +47,8 @@ function similarity(a: string, b: string): number {
 export function convergeTeacherObservations(
   observations: readonly TeacherObservation[],
 ): TeacherConsensus {
-  if (observations.length < 2) throw new Error("teacher_convergence_requires_multiple_observations");
+  if (observations.length < 2)
+    throw new Error("teacher_convergence_requires_multiple_observations");
   if (observations.length > 16) throw new Error("teacher_convergence_observation_limit");
 
   const clean = observations.map((observation) => ({
@@ -73,7 +74,7 @@ export function convergeTeacherObservations(
   const agreementScore = clamp01(winner.score);
   const conflict = agreementScore < 0.35;
   const confidence = clamp01(
-    clean.reduce((sum, item) => sum + item.confidence, 0) / clean.length * 0.5 +
+    (clean.reduce((sum, item) => sum + item.confidence, 0) / clean.length) * 0.5 +
       agreementScore * 0.5,
   );
   const provenanceHash = hash(

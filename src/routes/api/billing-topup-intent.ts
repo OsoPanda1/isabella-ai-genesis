@@ -53,10 +53,13 @@ export const Route = createFileRoute("/api/billing-topup-intent")({
         const amountMinor = Math.round(parsed.data.amountUSD * 100);
         const requestKey = request.headers.get("idempotency-key")?.trim();
         if (!requestKey || requestKey.length < 16 || requestKey.length > 255) {
-          return new Response(JSON.stringify({ error: "Idempotency-Key requerido para crear una recarga." }), {
-            status: 400,
-            headers,
-          });
+          return new Response(
+            JSON.stringify({ error: "Idempotency-Key requerido para crear una recarga." }),
+            {
+              status: 400,
+              headers,
+            },
+          );
         }
 
         const paymentIntent = await stripe.paymentIntents.create(

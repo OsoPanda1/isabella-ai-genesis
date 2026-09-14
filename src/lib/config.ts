@@ -69,7 +69,9 @@ function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, pars
     throw new Error("ISABELLA_STORAGE_PROVIDER no coincide con el proveedor normalizado.");
   }
   if (typeof source.DATABASE_URL !== "string" || source.DATABASE_URL.trim() === "") {
-    throw new Error("DATABASE_URL debe declararse explícitamente como autoridad durable única en staging/production.");
+    throw new Error(
+      "DATABASE_URL debe declararse explícitamente como autoridad durable única en staging/production.",
+    );
   }
 
   const providerAliases = [
@@ -81,7 +83,11 @@ function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, pars
   ] as const;
   const conflictingAliases = providerAliases.filter((key) => {
     const value = source[key];
-    return typeof value === "string" && value.trim() !== "" && value.trim() !== source.DATABASE_URL?.trim();
+    return (
+      typeof value === "string" &&
+      value.trim() !== "" &&
+      value.trim() !== source.DATABASE_URL?.trim()
+    );
   });
   if (conflictingAliases.length > 0) {
     throw new Error(
@@ -130,18 +136,25 @@ export function loadConfig(source: RawEnv = process.env): Env {
           `NODE_ENV="${parsed.NODE_ENV}" es incompatible con ISABELLA_RUNTIME_MODE="${mode}". Producción/staging requieren NODE_ENV=production.`,
         );
       }
-      if (parsed.DURABLE_JSON_ALLOWED) throw new Error("DURABLE_JSON_ALLOWED debe ser false en modos no locales");
-      if (parsed.AUTH_DEV_SESSION_ENABLED) throw new Error("AUTH_DEV_SESSION_ENABLED debe estar desactivado");
-      if (parsed.ALLOW_GUEST_CHAT) throw new Error("ALLOW_GUEST_CHAT debe estar desactivado en staging/production");
-      if (!parsed.DATABASE_URL) throw new Error("Se requiere DATABASE_URL como autoridad durable explícita");
+      if (parsed.DURABLE_JSON_ALLOWED)
+        throw new Error("DURABLE_JSON_ALLOWED debe ser false en modos no locales");
+      if (parsed.AUTH_DEV_SESSION_ENABLED)
+        throw new Error("AUTH_DEV_SESSION_ENABLED debe estar desactivado");
+      if (parsed.ALLOW_GUEST_CHAT)
+        throw new Error("ALLOW_GUEST_CHAT debe estar desactivado en staging/production");
+      if (!parsed.DATABASE_URL)
+        throw new Error("Se requiere DATABASE_URL como autoridad durable explícita");
       if (!parsed.AUTH_JWT_SECRET) {
-        throw new Error("Se requiere AUTH_JWT_SECRET dedicado; no se aceptan credenciales Supabase como fallback");
+        throw new Error(
+          "Se requiere AUTH_JWT_SECRET dedicado; no se aceptan credenciales Supabase como fallback",
+        );
       }
     }
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     loadError = msg;
-    if (mode === "production" || mode === "staging") throw new Error(`[SovereignConfig Fail-Fast] ${msg}`);
+    if (mode === "production" || mode === "staging")
+      throw new Error(`[SovereignConfig Fail-Fast] ${msg}`);
   }
 
   cached = parsed;
