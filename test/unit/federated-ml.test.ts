@@ -36,12 +36,16 @@ function update(nodeId: string, sampleCount: number, deltaWeights: number[]): Fe
   };
 }
 
+const verifySignature = (update: FederatedUpdate) => update.signature === "verified-by-caller";
+
 describe("federated ML aggregation", () => {
-  it("weights updates by sample count and commits a deterministic round", () => {
-    const result = aggregateFederatedUpdates(model, base, [
-      update("node-a", 1, [1, 0]),
-      update("node-b", 3, [0, 1]),
-    ]);
+  it("weights verified updates by sample count and commits a deterministic round", () => {
+    const result = aggregateFederatedUpdates(
+      model,
+      base,
+      [update("node-a", 1, [1, 0]), update("node-b", 3, [0, 1])],
+      verifySignature,
+    );
     expect(result.round.aggregation).toBe("FEDAVG");
     expect(result.round.status).toBe("COMMITTED");
     expect(result.artifact.weights[0]).toBeCloseTo(1.25);
@@ -51,10 +55,26 @@ describe("federated ML aggregation", () => {
 
   it("rejects updates that do not belong to the same approved model", () => {
     expect(() =>
-      aggregateFederatedUpdates(model, base, [
-        update("node-a", 1, [1, 0]),
-        { ...update("node-b", 1, [0, 1]), modelId: "other-model" },
-      ]),
+      aggregateFederatedUpdates(
+        model,
+        base,
+        [update("node-a", 1, [1, 0]), { ...update("node-b", 1, [0, 1]), modelId: "other-model" }],
+        verifySignature,
+      ),
+    ).toThrow("insufficient_valid_federated_updates");
+  });
+
+  it("never aggregates an update whose signature verifier rejects it", () => {
+    expect(() =>
+      aggregateFederatedUpdates(
+        model,
+        base,
+        [
+          update("node-a", 1, [1, 0]),
+          { ...update("node-b", 1, [0, 1]), signature: "forged" },
+        ],
+        verifySignature,
+      ),
     ).toThrow("insufficient_valid_federated_updates");
   });
 });
