@@ -93,10 +93,7 @@ export const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: optionalMinString(16),
   QUP_ZNE_LEVEL: coercedInt(3),
   QUP_PEC_ENABLED: bool(true),
-  QUP_QEC_DECODER: enumish(
-    ["mwpm", "uf", "tensor-network", "neural-network"] as const,
-    "tensor-network",
-  ),
+  QUP_QEC_DECODER: enumish(["mwpm", "uf", "tensor-network", "neural-network"] as const, "tensor-network"),
   QUP_STRICT_ISOLATION: bool(true),
   SANDBOX_ENABLED: bool(false),
   REDIS_URL: optionalString(),
@@ -136,10 +133,7 @@ export const envSchema = z.object({
   API_KEY_ROTATION_GRACE_SECONDS: coercedInt(300),
   API_KEY_RATE_LIMIT_DEFAULT: coercedInt(100),
   GENESIS_MAX_TEST_FILES: coercedInt(8),
-  ISABELLA_STORAGE_PROVIDER: enumish(
-    ["postgres", "neon", "supabase", "json", "memory"] as const,
-    "postgres",
-  ),
+  ISABELLA_STORAGE_PROVIDER: enumish(["postgres", "neon", "supabase", "json", "memory"] as const, "postgres"),
   DURABLE_JSON_ALLOWED: bool(false),
   ISABELLA_PAYOUT_CIRCUIT_CERTIFIED: bool(false),
   OLLAMA_ENABLED: bool(false),
@@ -158,20 +152,9 @@ export const PUBLIC_ENV_KEYS = [] as const;
 export type EnvVarCriticality = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 export type EnvVarVisibility = "secret" | "public";
 export type EnvVarProvider =
-  | "postgres"
-  | "neon"
-  | "supabase"
-  | "stripe"
-  | "gemini"
-  | "openai"
-  | "redis"
-  | "upstash"
-  | "crown"
-  | "bookpi"
-  | "otel"
-  | "oidc"
-  | "vercel"
-  | "self";
+  | "postgres" | "neon" | "supabase" | "stripe" | "gemini" | "openai" | "redis" | "upstash"
+  | "crown" | "bookpi" | "otel" | "oidc" | "vercel" | "self";
+
 export interface EnvVarDescriptor {
   name: keyof Env;
   visibility: EnvVarVisibility;
@@ -182,48 +165,58 @@ export interface EnvVarDescriptor {
   rotation?: string;
   description?: string;
 }
+
+const requiredCritical: Array<[keyof Env, EnvVarProvider, string?]> = [
+  ["DATABASE_URL", "postgres"],
+  ["AUTH_JWT_SECRET", "self"],
+  ["ENCRYPTION_MASTER_KEY", "self"],
+  ["CROWN_POLICY_SIGNING_KEY", "crown"],
+  ["AEGIS_AUDIT_SECRET", "crown"],
+  ["BOOKPI_SIGNING_KEY", "bookpi"],
+  ["GEMINI_API_KEY", "gemini"],
+  ["PROVISION_OWNER_TOKEN", "self"],
+  ["STRIPE_SECRET_KEY", "stripe"],
+  ["STRIPE_WEBHOOK_SECRET", "stripe"],
+];
+
 export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
-  {
-    name: "NODE_ENV",
-    visibility: "public",
-    required: [],
-    forbidden: [],
-    provider: "vercel",
-    criticality: "HIGH",
-  },
-  {
-    name: "ISABELLA_RUNTIME_MODE",
-    visibility: "public",
-    required: ["staging", "production"],
-    forbidden: [],
-    provider: "self",
-    criticality: "CRITICAL",
-  },
-  {
-    name: "PUBLIC_URL",
-    visibility: "public",
-    required: ["staging", "production"],
-    forbidden: [],
-    provider: "vercel",
-    criticality: "HIGH",
-  },
-  {
-    name: "ISABELLA_STORAGE_PROVIDER",
-    visibility: "public",
-    required: ["staging", "production"],
-    forbidden: [],
-    provider: "postgres",
-    criticality: "CRITICAL",
-  },
+  { name: "NODE_ENV", visibility: "public", required: [], forbidden: [], provider: "vercel", criticality: "HIGH" },
+  { name: "ISABELLA_RUNTIME_MODE", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "self", criticality: "CRITICAL" },
+  { name: "PUBLIC_URL", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "vercel", criticality: "HIGH" },
+  { name: "ISABELLA_STORAGE_PROVIDER", visibility: "public", required: ["staging", "production"], forbidden: [], provider: "postgres", criticality: "CRITICAL" },
+  ...requiredCritical.map(([name, provider]) => ({
+    name,
+    visibility: "secret" as const,
+    required: ["staging", "production"] as RuntimeMode[],
+    forbidden: [] as RuntimeMode[],
+    provider,
+    criticality: "CRITICAL" as const,
+  })),
+  { name: "AUTH_DEV_SESSION_ENABLED", visibility: "public", required: [], forbidden: ["staging", "production"], provider: "self", criticality: "CRITICAL" },
+  { name: "ALLOW_GUEST_CHAT", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH" },
+  { name: "CROWN_ENFORCEMENT_MODE", visibility: "public", required: [], forbidden: ["staging", "production"], provider: "crown", criticality: "CRITICAL" },
+  { name: "DURABLE_JSON_ALLOWED", visibility: "public", required: [], forbidden: ["staging", "production"], provider: "self", criticality: "CRITICAL" },
+  { name: "SANDBOX_ENABLED", visibility: "public", required: [], forbidden: ["emergency", "maintenance"], provider: "self", criticality: "CRITICAL" },
+  { name: "BOOKPI_SIGNATURE_ALGORITHM", visibility: "public", required: [], forbidden: [], provider: "bookpi", criticality: "HIGH" },
+  { name: "REDIS_URL", visibility: "secret", required: [], forbidden: [], provider: "redis", criticality: "HIGH" },
+  { name: "REDIS_TOKEN", visibility: "secret", required: [], forbidden: [], provider: "redis", criticality: "HIGH" },
+  { name: "OTEL_EXPORTER_OTLP_ENDPOINT", visibility: "secret", required: [], forbidden: [], provider: "otel", criticality: "MEDIUM" },
+  { name: "LLM_DEFAULT_MODEL", visibility: "public", required: [], forbidden: [], provider: "gemini", criticality: "HIGH" },
+  { name: "LLM_UPSTREAM_TIMEOUT_MS", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
+  { name: "RATE_LIMIT_INFERENCE_PER_MINUTE", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
+  { name: "INPUT_MAX_BODY_BYTES", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
+  { name: "INPUT_MAX_ATTACHMENT_BYTES", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
+  { name: "OLLAMA_ENABLED", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH", description: "Opt-in explícito para Ollama local." },
+  { name: "OLLAMA_BASE_URL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH" },
+  { name: "OLLAMA_MODEL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
+  { name: "OPENAI_COMPATIBLE_LOCAL_ENABLED", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH", description: "Opt-in explícito para backend local compatible." },
+  { name: "OPENAI_COMPATIBLE_BASE_URL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "HIGH" },
+  { name: "OPENAI_COMPATIBLE_MODEL", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "MEDIUM" },
+  { name: "OPENAI_COMPATIBLE_API_KEY", visibility: "secret", required: [], forbidden: [], provider: "openai", criticality: "HIGH" },
+  { name: "VERCEL", visibility: "public", required: [], forbidden: [], provider: "vercel", criticality: "LOW", description: "Indicador de runtime Vercel (plataforma, no credencial)." },
+  { name: "NATIVE_COMPREHENSION_ENABLED", visibility: "public", required: [], forbidden: [], provider: "self", criticality: "LOW", description: "Opt-in de comprensión nativa (NCUA) en el gateway conversacional." },
 ];
 
 export function requiredEnvKeys(mode: RuntimeMode): Array<keyof Env> {
-  if (mode !== "production" && mode !== "staging") return [];
-  return [
-    "PUBLIC_URL",
-    "DATABASE_URL",
-    "AUTH_JWT_SECRET",
-    "ISABELLA_RUNTIME_MODE",
-    "ISABELLA_STORAGE_PROVIDER",
-  ];
+  return ENV_VAR_CATALOG.filter((item) => item.required.includes(mode)).map((item) => item.name);
 }
