@@ -1,0 +1,173 @@
+import { createHash } from "node:crypto";
+
+export type KnowledgeDomain =
+  | "factual"
+  | "technical"
+  | "scientific"
+  | "security"
+  | "ethical"
+  | "operational"
+  | "creative"
+  | "temporal";
+
+export type EvidenceLevel = "E0" | "E1" | "E2" | "E3" | "E4";
+export type EpistemicState = "SUPPORTED" | "PROBABLE" | "CONTESTED" | "UNKNOWN";
+
+export interface KnowledgeObservation {
+  teacherId: string;
+  modelId: string;
+  domain: KnowledgeDomain;
+  claim: string;
+  evidenceLevel: EvidenceLevel;
+  confidence: number;
+  freshness: number;
+  provenanceHash: string;
+}
+
+export interface ConvergenceResult {
+  state: EpistemicState;
+  consensusScore: number;
+  evidenceScore: number;
+  freshnessScore: number;
+  confidenceScore: number;
+  diversityScore: number;
+  disagreementScore: number;
+  selectedClaim: string | null;
+  participatingTeachers: string[];
+  rejectedTeachers: string[];
+  rationale: string[];
+  resultHash: string;
+}
+
+const EVIDENCE_WEIGHT: Record<EvidenceLevel, number> = {
+  E0: 0.15,
+  E1: 0.35,
+  E2: 0.55,
+  E3: 0.78,
+  E4: 1,
+};
+
+function clamp(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+function hash(value: unknown): string {
+  return createHash("sha256").update(JSON.stringify(value)).digest("hex");
+}
+
+function normalizedClaim(claim: string): string {
+  return claim.normalize("NFKC").trim().toLocaleLowerCase("es-MX");
+}
+
+function cosineSimilarity(a: string, b: string): number {
+  const ta = new Set(normalizedClaim(a).split(/\s+/u).filter(Boolean));
+  const tb = new Set(normalizedClaim(b).split(/\s+/u).filter(Boolean));
+  if (!ta.size || !tb.size) return 0;
+  let intersection = 0;
+  for (const token of ta) if (tb.has(token)) intersection++;
+  return intersection / Math.sqrt(ta.size * tb.size);
+}
+
+/**
+ * Deterministic O(n²) convergence for small teacher sets. The intended hot path
+ * is 3-16 observations; it avoids model inference and network calls entirely.
+ */
+export function convergeKnowledge(observations: readonly KnowledgeObservation[]): ConvergenceResult {
+  if (observations.length < 2) throw new Error("convergence_requires_multiple_observations");
+  if (observations.length > 32) throw new Error("convergence_batch_too_large");
+
+  const valid = observations.filter(
+    (item) =>
+      item.teacherId.length > 0 &&
+      item.modelId.length > 0 &&
+      item.claim.length > 0 &&
+      Number.isFinite(item.confidence) &&
+      Number.isFinite(item.freshness) &&
+      item.confidence >= 0 &&
+      item.confidence <= 1 &&
+      item.freshness >= 0 &&
+      item.freshness <= 1 &&
+      /^[a-f0-9]{64}$/u.test(item.provenanceHash),
+  );
+  if (valid.length < 2) throw new Error("insufficient_valid_observations");
+
+  const scored = valid.map((observation, index) => {
+    let similarity = 0;
+    let count = 0;
+    for (let i = 0; i < valid.length; i++) {
+      if (i === index) continue;
+      similarity += cosineSimilarity(observation.claim, valid[i]!.claim);
+      count++;
+    }
+    const agreement = count ? similarity / count : 0;
+    const evidence = EVIDENCE_WEIGHT[observation.evidenceLevel];
+    const score = clamp(
+      0.38 * agreement +
+        0.27 * evidence +
+        0.2 * observation.confidence +
+        0.15 * observation.freshness,
+    );
+    return { observation, score, agreement };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  const winner = scored[0]!;
+  const second = scored[1]!;
+  const disagreementScore = clamp(1 - second.agreement);
+  const consensusScore = clamp(0.65 * winner.agreement + 0.35 * (1 - disagreementScore));
+  const evidenceScore = clamp(
+    scored.reduce((sum, item) => sum + EVIDENCE_WEIGHT[item.observation.evidenceLevel], 0) /
+      scored.length,
+  );
+  const freshnessScore = scored.reduce((sum, item) => sum + item.observation.freshness, 0) / scored.length;
+  const confidenceScore = scored.reduce((sum, item) => sum + item.observation.confidence, 0) / scored.length;
+  const diversityScore = new Set(scored.map((item) => item.observation.teacherId)).size / scored.length;
+
+  const state: EpistemicState =
+    consensusScore >= 0.78 && evidenceScore >= 0.7
+      ? "SUPPORTED"
+      : consensusScore >= 0.58 && evidenceScore >= 0.5
+        ? "PROBABLE"
+        : consensusScore < 0.35
+          ? "CONTESTED"
+          : "UNKNOWN";
+
+  const selectedClaim = state === "CONTESTED" ? null : winner.observation.claim;
+  const participatingTeachers = scored
+    .filter((item) => item.agreement >= 0.45)
+    .map((item) => item.observation.teacherId);
+  const rejectedTeachers = scored
+    .filter((item) => item.agreement < 0.45)
+    .map((item) => item.observation.teacherId);
+  const rationale = [
+    `consensus=${consensusScore.toFixed(4)}`,
+    `evidence=${evidenceScore.toFixed(4)}`,
+    `freshness=${freshnessScore.toFixed(4)}`,
+    `confidence=${confidenceScore.toFixed(4)}`,
+    `diversity=${diversityScore.toFixed(4)}`,
+    `disagreement=${disagreementScore.toFixed(4)}`,
+  ];
+
+  const resultHash = hash({
+    state,
+    selectedClaim,
+    participants: participatingTeachers,
+    observations: valid.map((item) => item.provenanceHash).sort(),
+    rationale,
+  });
+
+  return {
+    state,
+    consensusScore,
+    evidenceScore,
+    freshnessScore,
+    confidenceScore,
+    diversityScore,
+    disagreementScore,
+    selectedClaim,
+    participatingTeachers,
+    rejectedTeachers,
+    rationale,
+    resultHash,
+  };
+}
