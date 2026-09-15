@@ -1,3 +1,4 @@
+import * as crypto from "node:crypto";
 import { repositoryFactory } from "./persistence/repository-factory";
 import type { ApiKey } from "./persistence/repository";
 import { ApiKeyCrypto } from "./api-key-crypto";
