@@ -171,6 +171,8 @@ export function loadConfig(source: RawEnv = process.env): Env {
   return parsed;
 }
 
+export const config = loadConfig();
+
 export function getConfigLoadError(): string | null {
   return loadError;
 }
