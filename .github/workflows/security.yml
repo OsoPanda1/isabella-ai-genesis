@@ -18,8 +18,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "22"
-  PNPM_VERSION: "10"
+  NODE_VERSION: "24.11.0"
+  PNPM_VERSION: "10.15.0"
 
 jobs:
   security:
@@ -43,7 +43,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      - name: Install dependencies
+      - name: Verify lockfile determinism
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
@@ -107,7 +107,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      - name: Install dependencies
+      - name: Verify lockfile determinism
         run: pnpm install --frozen-lockfile
 
       - name: Build
