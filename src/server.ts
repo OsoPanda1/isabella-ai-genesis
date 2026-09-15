@@ -1,3 +1,4 @@
+import "./lib/runtime-bootstrap";
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
@@ -21,50 +22,21 @@ async function getServerEntry(): Promise<ServerEntry> {
   return serverEntryPromise;
 }
 
-export async function handleRequest(
-  request: Request,
-  env: unknown = {},
-  ctx: unknown = {},
-): Promise<Response> {
+export async function handleRequest(request: Request, env: unknown = {}, ctx: unknown = {}): Promise<Response> {
   const url = new URL(request.url);
   const clientIp = resolveTrustedClientIp(request);
-  const requestContext = createRequestContext({
-    clientIp,
-    method: request.method,
-    path: url.pathname,
-  });
-
-  // Forwarding headers are untrusted input. Remove every client-controlled
-  // forwarding variant before the framework/router sees the request, then
-  // re-inject only the IP resolved by the explicit proxy contract.
+  const requestContext = createRequestContext({ clientIp, method: request.method, path: url.pathname });
   const sanitizedHeaders = new Headers(request.headers);
-  for (const header of [
-    "x-forwarded-for",
-    "x-forwarded-host",
-    "x-forwarded-proto",
-    "x-real-ip",
-    "cf-connecting-ip",
-    "x-vercel-forwarded-for",
-  ]) {
-    sanitizedHeaders.delete(header);
-  }
+  for (const header of ["x-forwarded-for", "x-forwarded-host", "x-forwarded-proto", "x-real-ip", "cf-connecting-ip", "x-vercel-forwarded-for"]) sanitizedHeaders.delete(header);
   if (clientIp !== "unknown") sanitizedHeaders.set("x-real-ip", clientIp);
   let sanitizedRequest: Request;
   try {
     sanitizedRequest = new Request(request, { headers: sanitizedHeaders });
   } catch {
-    const init: RequestInit & { duplex?: "half" } = {
-      method: request.method,
-      headers: sanitizedHeaders,
-      signal: request.signal,
-    };
-    if (request.method !== "GET" && request.method !== "HEAD" && request.body) {
-      init.body = request.body;
-      init.duplex = "half";
-    }
+    const init: RequestInit & { duplex?: "half" } = { method: request.method, headers: sanitizedHeaders, signal: request.signal };
+    if (request.method !== "GET" && request.method !== "HEAD" && request.body) { init.body = request.body; init.duplex = "half"; }
     sanitizedRequest = new Request(request.url, init as RequestInit);
   }
-
   return withRequestContext(requestContext, async () => {
     try {
       const handler = await getServerEntry();
@@ -74,15 +46,7 @@ export async function handleRequest(
       const captured = consumeLastCapturedError();
       const err = captured ?? error;
       console.error(redact(err instanceof Error ? (err.stack ?? err.message) : String(err)));
-      return withSecurityHeaders(
-        new Response(renderErrorPage(), {
-          status: 500,
-          headers: {
-            "content-type": "text/html; charset=utf-8",
-            "cache-control": "no-store",
-          },
-        }),
-      );
+      return withSecurityHeaders(new Response(renderErrorPage(), { status: 500, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } }));
     }
   });
 }
@@ -97,32 +61,16 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   if (!isH3SwallowedErrorBody(body)) return response;
   const err = consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`);
   console.error(redact(err instanceof Error ? (err.stack ?? err.message) : String(err)));
-  return new Response(renderErrorPage(), {
-    status: 500,
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "cache-control": "no-store",
-    },
-  });
+  return new Response(renderErrorPage(), { status: 500, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
 }
 
 function isH3SwallowedErrorBody(body: string): boolean {
-  try {
-    const payload = JSON.parse(body) as {
-      unhandled?: unknown;
-      message?: unknown;
-    };
-    return payload.unhandled === true && payload.message === "HTTPError";
-  } catch {
-    return false;
-  }
+  try { const payload = JSON.parse(body) as { unhandled?: unknown; message?: unknown }; return payload.unhandled === true && payload.message === "HTTPError"; } catch { return false; }
 }
 
 export function withSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
-  const setIfMissing = (name: string, value: string) => {
-    if (!headers.has(name)) headers.set(name, value);
-  };
+  const setIfMissing = (name: string, value: string) => { if (!headers.has(name)) headers.set(name, value); };
   setIfMissing("X-Content-Type-Options", "nosniff");
   setIfMissing("X-Frame-Options", "DENY");
   setIfMissing("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -131,30 +79,15 @@ export function withSecurityHeaders(response: Response): Response {
   setIfMissing("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   setIfMissing("Cross-Origin-Opener-Policy", "same-origin");
   setIfMissing("Cross-Origin-Resource-Policy", "same-origin");
-
   const production = process.env.NODE_ENV === "production";
   const scriptSource = production ? "'self'" : "'self' 'unsafe-inline'";
   const csp = [
-    "default-src 'self'",
-    "base-uri 'self'",
-    "object-src 'none'",
-    "frame-ancestors 'none'",
-    "form-action 'self'",
-    "upgrade-insecure-requests",
-    "img-src 'self' data: blob: https:",
-    "font-src 'self' data: https:",
+    "default-src 'self'", "base-uri 'self'", "object-src 'none'", "frame-ancestors 'none'", "form-action 'self'", "upgrade-insecure-requests",
+    "img-src 'self' data: blob: https:", "font-src 'self' data: https:",
     "connect-src 'self' https://generativelanguage.googleapis.com https://api.groq.com https://api.x.ai https://api.stripe.com https://stream.mux.com https://*.supabase.co",
-    "style-src 'self' 'unsafe-inline'",
-    `script-src ${scriptSource}`,
-    "worker-src 'self' blob:",
+    "style-src 'self' 'unsafe-inline'", `script-src ${scriptSource}`, "worker-src 'self' blob:",
   ].join("; ");
   setIfMissing("Content-Security-Policy", csp);
-  // Do not emit a fake nonce. A report-only policy containing a literal
-  // nonce placeholder is misleading and provides no useful enforcement data.
   if (production) headers.delete("Content-Security-Policy-Report-Only");
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
