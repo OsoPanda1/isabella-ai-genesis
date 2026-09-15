@@ -173,6 +173,16 @@ export function loadConfig(source: RawEnv = process.env): Env {
 
 export const config = loadConfig();
 
+export function isPayoutCircuitCertified(source: RawEnv = process.env): boolean {
+  return cleanEnvValue(source.ISABELLA_PAYOUT_CIRCUIT_CERTIFIED)?.toLowerCase() === "true";
+}
+
+export function resetConfigCache(): void {
+  cached = undefined;
+  cachedFingerprint = undefined;
+  loadError = null;
+}
+
 export function getConfigLoadError(): string | null {
   return loadError;
 }
