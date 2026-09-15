@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { embed, cosine } from "../ncua/embed";
 import { classifyTextRisk } from "./text-classifier";
+import type { IsabellaSkill, SkillContext, SkillResult } from "../skills/contracts";
 
 export type NativeSkillDomain =
   | "frontend_design" | "agent_development" | "skill_engineering" | "knowledge_work"
@@ -63,7 +64,6 @@ const DOMAIN_RULES: ReadonlyArray<{ domain: NativeSkillDomain; terms: readonly s
   { domain: "automation", terms: ["automation", "workflow", "cron", "scheduled", "webhook", "orchestration"] },
   { domain: "mcp_integrations", terms: ["mcp", "connector", "github", "slack", "linear", "tool-server", "integration"] },
 ];
-
 const EXTERNAL_SIDE_EFFECT_TERMS = ["browser", "crawl", "scrape", "deploy", "publish", "send", "email", "payment", "stripe", "github", "slack", "linear", "upload", "delete", "execute", "shell", "video generation", "image generation"] as const;
 const DOMAIN_PLANS: Record<NativeSkillDomain, readonly string[]> = {
   frontend_design: ["Interpretar objetivo y audiencia", "Definir jerarquía visual", "Aplicar tokens y accesibilidad", "Validar responsive e interacción"],
@@ -87,7 +87,6 @@ const DOMAIN_PLANS: Record<NativeSkillDomain, readonly string[]> = {
   mcp_integrations: ["Definir herramienta y scopes", "Validar identidad y tenant", "Aplicar allowlist", "Auditar revocación"],
   general_reasoning: ["Normalizar intención", "Extraer señales", "Separar hechos e inferencias", "Generar resultado trazable"],
 };
-
 function stableHash(value: unknown): string { return createHash("sha256").update(JSON.stringify(value)).digest("hex"); }
 function normalize(value: string): string { return value.normalize("NFKC").toLocaleLowerCase("es-MX").trim(); }
 function detectDomain(skillId: string, task: string): NativeSkillDomain {
@@ -141,5 +140,62 @@ export function executeNativeSkill(request: NativeSkillRequest): NativeSkillExec
     provenanceHash, warnings, missingAdapters,
   };
 }
+
+export function createNativeFusedSkill<TInput extends Record<string, unknown> = Record<string, unknown>>(
+  definition: Pick<IsabellaSkill<TInput, Record<string, unknown>>, "id" | "name" | "version" | "federation" | "risk" | "description">,
+): IsabellaSkill<TInput, Record<string, unknown>> {
+  return {
+    ...definition,
+    canRun: (input: TInput, context: SkillContext) => Boolean(input && context.requestId),
+    async run(input: TInput, context: SkillContext): Promise<SkillResult<Record<string, unknown>>> {
+      const execution = executeNativeSkill({
+        skillId: definition.id,
+        task: typeof input.task === "string" ? input.task : typeof input.prompt === "string" ? input.prompt : definition.description,
+        input,
+        locale: context.locale,
+        actorId: context.actorId,
+        requestId: context.requestId,
+      });
+      return {
+        skillId: definition.id,
+        status: execution.status,
+        summary: execution.summary,
+        data: {
+          native: true,
+          domain: execution.domain,
+          plan: execution.plan,
+          semanticVector: execution.semanticVector,
+          risk: execution.risk,
+          provenanceHash: execution.provenanceHash,
+          missingAdapters: execution.missingAdapters,
+        },
+        evidence: execution.evidence.map((item) => ({
+          id: item.id,
+          source: item.source,
+          uri: `sovereign://evidence/${item.hash}`,
+          score: item.type === "native-analysis" ? 1 : 0.8,
+          timestamp: new Date().toISOString(),
+        })),
+        warnings: [...execution.warnings],
+        auditEvents: [
+          {
+            id: randomUUID(),
+            type: "SKILL_COMPLETED",
+            skillId: definition.id,
+            actorId: context.actorId,
+            timestamp: new Date().toISOString(),
+            payload: {
+              requestId: context.requestId,
+              provenanceHash: execution.provenanceHash,
+              status: execution.status,
+            },
+          },
+        ],
+        requiresHumanReview: execution.risk.score >= 0.6 || execution.status === "PARTIAL",
+      };
+    },
+  };
+}
+
 export function nativeSkillSimilarity(left: string, right: string): number { return cosine(embed(left, { dim: 64 }), embed(right, { dim: 64 })); }
 export function resolveNativeSkillFamily(skillId: string): NativeSkillSource { return inferSource(skillId); }
