@@ -18,6 +18,33 @@ function environmentFingerprint(source: RawEnv): string {
     .digest("hex");
 }
 
+function cleanEnvValue(value: string | undefined): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (!trimmed || ["undefined", "null"].includes(trimmed.toLowerCase())) return undefined;
+  if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    return trimmed.slice(1, -1).trim() || undefined;
+  }
+  return trimmed;
+}
+
+function resolvePublicUrl(source: RawEnv): string | undefined {
+  const explicit = cleanEnvValue(source.PUBLIC_URL);
+  if (explicit) return explicit;
+
+  const vercelUrl = cleanEnvValue(source.VERCEL_URL);
+  if (vercelUrl) {
+    return /^https?:\/\//i.test(vercelUrl) ? vercelUrl : `https://${vercelUrl}`;
+  }
+
+  const branchUrl = cleanEnvValue(source.VERCEL_BRANCH_URL);
+  if (branchUrl) {
+    return /^https?:\/\//i.test(branchUrl) ? branchUrl : `https://${branchUrl}`;
+  }
+
+  return undefined;
+}
+
 function resolveEnv(source: RawEnv): Env {
   const parsed = envSchema.safeParse(source);
   if (!parsed.success) {
@@ -52,7 +79,7 @@ function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, pars
   if (typeof rawProvider !== "string" || rawProvider.trim() === "") {
     throw new Error("ISABELLA_STORAGE_PROVIDER debe declararse explícitamente como postgres o neon en staging/production.");
   }
-  const provider = rawProvider.trim().toLowerCase();
+  const provider = cleanEnvValue(rawProvider)?.toLowerCase();
   if (provider !== "postgres" && provider !== "neon") {
     throw new Error(
       `ISABELLA_STORAGE_PROVIDER="${provider}" no es una autoridad durable válida en staging/production. Permitidos: postgres|neon.`,
@@ -87,24 +114,26 @@ export function loadConfig(source: RawEnv = process.env): Env {
   const fingerprint = environmentFingerprint(source);
   if (cached && cachedFingerprint === fingerprint) return cached;
 
+  const runtimeMode = cleanEnvValue(source.ISABELLA_RUNTIME_MODE);
   const effectiveSource: RawEnv = {
     ...source,
     ISABELLA_RUNTIME_MODE:
-      source.ISABELLA_RUNTIME_MODE?.trim() ||
+      runtimeMode ||
       (source.NODE_ENV === "production" ? "production" : "development"),
-    AUTH_DEV_SESSION_ENABLED: source.AUTH_DEV_SESSION_ENABLED?.trim() || "false",
-    ALLOW_GUEST_CHAT: source.ALLOW_GUEST_CHAT?.trim() || "false",
-    DATABASE_URL: source.DATABASE_URL?.trim(),
-    AUTH_JWT_SECRET: source.AUTH_JWT_SECRET?.trim(),
-    SUPABASE_URL: source.SUPABASE_URL?.trim() || source.SUPABASE_DATABASE_SUPABASE_URL?.trim(),
-    SUPABASE_ANON_KEY: source.SUPABASE_ANON_KEY?.trim() || source.SUPABASE_DATABASE_SUPABASE_ANON_KEY?.trim(),
-    SUPABASE_JWT_SECRET: source.SUPABASE_JWT_SECRET?.trim() || source.SUPABASE_DATABASE_SUPABASE_JWT_SECRET?.trim(),
-    TURSO_AUTH_TOKEN: source.TURSO_AUTH_TOKEN?.trim(),
-    TURSO_DATABASE_URL: source.TURSO_DATABASE_URL?.trim(),
-    MUX_TOKEN_ID: source.MUX_TOKEN_ID?.trim(),
-    MUX_TOKEN_SECRET: source.MUX_TOKEN_SECRET?.trim(),
-    MUX_INTRO_ASSET_ID: source.MUX_INTRO_ASSET_ID?.trim(),
-    ISABELLA_STORAGE_PROVIDER: source.ISABELLA_STORAGE_PROVIDER?.trim().toLowerCase(),
+    PUBLIC_URL: resolvePublicUrl(source),
+    AUTH_DEV_SESSION_ENABLED: cleanEnvValue(source.AUTH_DEV_SESSION_ENABLED) || "false",
+    ALLOW_GUEST_CHAT: cleanEnvValue(source.ALLOW_GUEST_CHAT) || "false",
+    DATABASE_URL: cleanEnvValue(source.DATABASE_URL),
+    AUTH_JWT_SECRET: cleanEnvValue(source.AUTH_JWT_SECRET),
+    SUPABASE_URL: cleanEnvValue(source.SUPABASE_URL) || cleanEnvValue(source.SUPABASE_DATABASE_SUPABASE_URL),
+    SUPABASE_ANON_KEY: cleanEnvValue(source.SUPABASE_ANON_KEY) || cleanEnvValue(source.SUPABASE_DATABASE_SUPABASE_ANON_KEY),
+    SUPABASE_JWT_SECRET: cleanEnvValue(source.SUPABASE_JWT_SECRET) || cleanEnvValue(source.SUPABASE_DATABASE_SUPABASE_JWT_SECRET),
+    TURSO_AUTH_TOKEN: cleanEnvValue(source.TURSO_AUTH_TOKEN),
+    TURSO_DATABASE_URL: cleanEnvValue(source.TURSO_DATABASE_URL),
+    MUX_TOKEN_ID: cleanEnvValue(source.MUX_TOKEN_ID),
+    MUX_TOKEN_SECRET: cleanEnvValue(source.MUX_TOKEN_SECRET),
+    MUX_INTRO_ASSET_ID: cleanEnvValue(source.MUX_INTRO_ASSET_ID),
+    ISABELLA_STORAGE_PROVIDER: cleanEnvValue(source.ISABELLA_STORAGE_PROVIDER)?.toLowerCase(),
   };
 
   const parsed = resolveEnv(effectiveSource);
