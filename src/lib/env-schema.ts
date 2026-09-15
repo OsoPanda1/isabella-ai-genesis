@@ -54,6 +54,7 @@ export const envSchema = z.object({
   NODE_ENV: enumish(["development", "test", "production"] as const, "development"),
   ISABELLA_RUNTIME_MODE: runtimeModeSchema,
   PUBLIC_URL: z.string().url().default("http://localhost:3000"),
+  VERCEL_URL: optionalString(),
   VERCEL_GIT_COMMIT_SHA: optionalString(),
   DATABASE_URL: optionalString(),
   DATABASE_DIRECT_URL: optionalString(),
