@@ -1,6 +1,6 @@
 {
   "name": "tanamv-isabella-ai-genesis",
-  "version": "4.3.2",
+  "version": "4.3.3",
   "packageManager": "pnpm@10.15.0",
   "private": true,
   "sideEffects": false,
@@ -88,6 +88,7 @@
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.45.2",
     "embla-carousel-react": "^8.6.0",
+    "esbuild": "^0.27.3",
     "input-otp": "^1.4.2",
     "jspdf": "^4.2.1",
     "lenis": "^1.2.3",
