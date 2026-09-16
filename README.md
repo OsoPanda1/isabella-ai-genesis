@@ -1,470 +1,875 @@
 # ISABELLA AI GENESIS
 
-## Governed Cognitive Infrastructure
+## Governed Cognitive Infrastructure · Production Engineering Manual
 
-**Isabella AI Genesis** is a sovereign-oriented software platform for governed interaction with artificial intelligence. Its architecture brings identity, authorization, tenant isolation, security controls, native machine-learning primitives, memory, auditability, economic accounting, external providers and operational evidence into one governed execution path.
+**Estado de ingeniería: 69.8% de preparación real para producción y despliegue**  
+**Fecha de corte:** 2026-09-16  
+**Repositorio:** `OsoPanda1/isabella-ai-genesis`  
+**Plataforma objetivo:** Vercel + TanStack Start/Nitro + PostgreSQL/Neon  
+**Dominio de producción declarado:** `isabella-ai.visitarealdelmonte.online`
 
-The project is developed from **Real del Monte, Hidalgo, México** and is published as inspectable software. The repository is the authoritative technical source for what Isabella actually implements. Marketing language, diagrams and conceptual documents do not override the behavior that can be verified in code.
-
-> **No pedir que el mundo crea. Publicar para que el mundo pueda comprobar.**
-
----
-
-## What Isabella is
-
-Isabella is not presented here as artificial general intelligence, machine consciousness or an autonomous authority over people. It is a software system designed to make AI-enabled operations more explicit, governable and auditable.
-
-The platform is built around a simple principle:
-
-**The model proposes. Policy evaluates. The user authorizes. The system records evidence.**
-
-This principle is implemented through a combination of request context, authentication, authorization, tenant policy, skills, native ML, persistence and audit pathways.
-
-The project is intentionally provider-agnostic. External model and infrastructure providers may be used where they deliver specialized capabilities, while Isabella retains its own application-level identity, policy, security and orchestration layers.
+> **Este porcentaje no es marketing ni certificación. Es un índice reproducible definido por evidencia disponible en el repositorio y por el estado operativo observado en Vercel.**
 
 ---
 
-## Why the architecture exists
+# 1. Qué es Isabella
 
-AI applications become infrastructure as soon as they move beyond a single prompt-and-response interaction.
+Isabella AI Genesis es una infraestructura de software para interacción con IA gobernada, auditable y orientada a identidad, tenant isolation, políticas, memoria, seguridad, capacidades nativas, proveedores externos y evidencia operacional.
 
-Once an AI system can remember information, operate on behalf of an identity, access organizational data, call tools, initiate economic operations or modify durable state, the important engineering question is no longer only whether the generated answer is useful. The system must also answer who acted, what was permitted, what policy was applied, which tenant was affected, what evidence exists, whether the action was reversible, and whether the same state can be reconstructed after a failure.
-
-Isabella therefore treats governance as a runtime property rather than a page of terms and conditions.
-
----
-
-## Architectural model
-
-The intended execution chain is:
+La regla de diseño es:
 
 ```text
-Request
-  ↓
-Authentication
-  ↓
-Principal Context
-  ↓
-Tenant Resolution
-  ↓
-Policy Decision Point
-  ├─ RBAC
-  ├─ ABAC
-  ├─ Credential Scopes
-  ├─ Tenant Policy
-  └─ Contextual Risk
-  ↓
-Policy Enforcement
-  ↓
-C.R.O.W.N. Governance
-  ↓
-Skill / Native ML / Tool
-  ↓
-Durable Repository
-  ↓
-Audit + Evidence + Telemetry
+El modelo propone.
+La política evalúa.
+La identidad delimita.
+El usuario autoriza.
+El sistema registra evidencia.
 ```
 
-A security interceptor such as AEGIS is treated as a defense layer, not as an undocumented second authorization authority.
-
-The objective is to prevent individual routes from becoming independent security universes.
+Isabella **no se presenta como AGI, conciencia artificial, autoridad autónoma ni sistema infalible**. Las capacidades deben considerarse implementadas, verificadas o aptas para producción únicamente cuando exista evidencia correspondiente.
 
 ---
 
-## Native Machine Learning
+# 2. Índice real de producción y despliegue
 
-The repository contains a native ML layer under `src/lib/native-ml/` together with the NCUA processing substrate.
+## 2.1 Método de cálculo
 
-The current native implementation includes deterministic and inspectable primitives for:
+El índice se calcula sobre ocho dominios con pesos fijos. Cada dominio se puntúa por evidencia observable: código ejecutable, pruebas, integración real, despliegue, configuración y validación operacional.
 
-- binary logistic classification and prediction;
-- provenance-aware model artifacts;
-- input validation and bounded data structures;
-- text risk classification;
-- semantic representations derived from byte n-gram hashing;
-- similarity and cosine operations;
-- SimHash-compatible signatures;
-- intent classification;
-- knowledge convergence;
-- teacher/model evidence structures;
-- federated-update contracts;
-- skill-domain classification and native skill fusion.
+| Dominio | Peso | Estado actual | Evidencia | Contribución |
+|---|---:|---:|---|---:|
+| Gobernanza C.R.O.W.N. / seguridad | 15% | 95% | políticas, gates y pruebas existentes | 14.25 |
+| Identidad / autenticación / autorización | 15% | 90% | principal context, JWT/OIDC, scopes, tenant context | 13.50 |
+| ML nativo / NCUA | 15% | 85% | pipeline determinista, convergencia, caching, proveedores | 12.75 |
+| Persistencia / PostgreSQL / memoria | 15% | 75% | repositorios y contratos; evidencia live incompleta | 11.25 |
+| Integraciones externas | 15% | 50% | adaptadores implementados; validación operacional incompleta | 7.50 |
+| Operaciones / observabilidad / DR | 10% | 45% | telemetría y scripts presentes; drills incompletos | 4.50 |
+| Vercel / CI-CD / smoke de producción | 10% | 20% | deployments READY históricos; los deployments recientes están ERROR | 2.00 |
+| Cliente / UX cognitiva | 5% | 80% | terminal, streaming, accesibilidad y mejoras recientes | 4.00 |
+| **TOTAL** | **100%** | **69.75% ≈ 69.8%** | | **69.75** |
 
-The native ML implementation is intentionally explicit about its limits. Deterministic local inference is not described as equivalent to a frontier foundation model. A native fallback is not described as AGI. Capability is not authority.
+### Interpretación
 
-### NCUA substrate
+- **69.8%:** infraestructura avanzada, pero **no certificada como producción integral**.
+- El porcentaje no significa que 69.8% de cada archivo esté terminado.
+- El principal déficit actual no es conceptual: es **evidencia operacional, despliegue reproducible, integraciones live, resiliencia y pruebas end-to-end**.
+- Vercel constituye actualmente un bloqueo objetivo porque los deployments más recientes asociados a `main` aparecen como `ERROR / BUILD_FAILED / Resource provisioning failed`, aunque existen deployments anteriores `READY`.
 
-`src/lib/ncua/` provides the continuous/byte-oriented representation layer used by several native capabilities. It includes UTF-8 byte processing, hashed dense embeddings, approximate similarity primitives, tensor-lite numerical operations, intent classification, a sovereign knowledge graph, privacy computations and a twelve-stage processing pipeline.
-
-The embedding implementation is deterministic and uses byte n-gram hashing into a fixed-dimensional vector. This provides a local semantic substrate without requiring an external tokenizer.
-
-### Native skill fusion
-
-`src/lib/native-ml/skill-fusion.ts` provides the canonical fusion layer for skill families. External skill collections are treated as **capability specifications and source families**, not as executable code copied into Isabella.
-
-The fusion layer provides:
-
-1. domain classification;
-2. deterministic semantic representation;
-3. text risk scoring;
-4. execution planning;
-5. provenance hashing;
-6. evidence envelopes;
-7. explicit detection of tasks that require external side effects;
-8. registry-compatible skill wrappers.
-
-This architecture is deliberately conservative: an external effect such as deployment, payment, browsing, messaging or a connector operation is not simulated merely to report success. It requires an explicit, authorized adapter.
+La evaluación previa de `2026-09-13` reportaba **72%**. El nuevo índice reduce el valor porque incorpora el estado real de despliegue observado después de esa evaluación y no reutiliza un porcentaje histórico como si fuera evidencia actual.
 
 ---
 
-## Integrated capability families
+# 3. Matriz de estados
 
-The current native fusion catalog represents the capability families requested from the following public skill ecosystems:
+| Estado | Significado |
+|---|---|
+| **Código presente** | Existe implementación en el repositorio. |
+| **Implementado** | Existe flujo funcional suficiente para ser ejercitado. |
+| **Verificado** | Existe una prueba reproducible que cubre el comportamiento. |
+| **Live verified** | Se ejecutó contra infraestructura real. |
+| **Production-safe** | Pasó pruebas de configuración, seguridad, recuperación y despliegue en el entorno objetivo. |
+| **Production certified** | Existe evidencia operacional sostenida, controles, runbooks y sign-off correspondiente. |
 
-- `anthropics/skills`
-- `anthropics/knowledge-work-plugins`
-- `anthropics/claude-code`
-- `anthropics/claude-plugins-official`
-- `anthropics/financial-services`
-- `anthropics/claude-for-legal`
-- `anthropics/defending-code-reference-harness`
-- `anthropics/claude-plugins-community`
-- `anthropics/healthcare`
-- `anthropics/claude-cookbooks`
-- `anthropics/claude-agent-sdk-demos`
-- `anthropics/life-sciences`
-- `anthropics/claude-tag-plugins`
-- `anthropics/cwc-workshops`
-- `anthropics/k12-teacher-skills`
-- `anthropics/launch-your-agent`
-- `anthropics/claude-quickstarts`
-- `anthropics/commerce-agents`
-- `anthropics/code-migration-kit-with-claude-code`
-- `anthropics/claude-agent-sdk-python`
-
-The integration is intentionally not a vendor-code dump. Isabella retains a native execution model and uses adapters only when an operation actually needs an external system.
+Nunca deben mezclarse estos estados.
 
 ---
 
-## Skill execution contract
+# 4. Arquitectura de ejecución
 
-Every governed skill execution is expected to pass through the hardened skill runner in `src/lib/skills/run-skill.ts`.
+```text
+Browser
+  │
+  ├── IsabellaClientApp
+  │     ├── Cognitive Terminal
+  │     ├── CommandLine
+  │     ├── MessageStream
+  │     ├── telemetry
+  │     └── cognitive preferences
+  │
+  ▼
+HTTP Request
+  ▼
+Request Context / Trace / Correlation
+  ▼
+Principal Context
+  ├── JWT/OIDC
+  ├── API Key
+  ├── tenant
+  ├── role
+  └── scopes
+  ▼
+Rate Limit
+  ▼
+ARGUS / AEGIS
+  ▼
+C.R.O.W.N.
+  ▼
+Native ML / NCUA
+  ▼
+Memory / Knowledge / Skills
+  ▼
+Authorized Provider Adapter
+  ▼
+Streaming Response
+  ▼
+Audit / Evidence / Telemetry
+  ▼
+Browser
+```
 
-The runner requires explicit identity context, validates input, evaluates authorization, resolves the registered skill, runs its contract, validates output and records the operation through the durable economic/audit path.
-
-The implementation rejects anonymous execution for privileged skills. Missing actor, tenant, role or authentication state is not silently replaced by an administrative default.
-
-This is a critical invariant: **a skill cannot become privileged merely because someone knows its identifier.**
-
----
-
-## Governance: C.R.O.W.N.
-
-C.R.O.W.N. — **Constitutional Runtime for Orchestration, Witnessing and Normative Governance** — is the project's deterministic governance layer.
-
-Its contracts model:
-
-- action kind;
-- intent category;
-- risk level;
-- identity assessment;
-- decision state;
-- response mode;
-- evidence requirements;
-- memory scope;
-- sensitivity level.
-
-C.R.O.W.N. is not an autonomous sovereign authority. It exists to make runtime decisions explicit and reviewable.
-
----
-
-## Security architecture
-
-Security controls exist at several layers rather than in one function.
-
-### Trusted proxy handling
-
-The server recognizes explicit proxy modes and validates the resulting client IP as IPv4 or IPv6. Incoming forwarding headers are sanitized before routing so an arbitrary client cannot simply define its own forwarded address.
-
-### Content Security Policy
-
-The application uses explicit connection allowlists for external providers instead of a broad `connect-src https:` policy. This reduces the outbound browser surface and makes new destinations deliberate configuration changes.
-
-### Sensitive endpoint protection
-
-Stripe top-up intent creation is rate-limited using a distributed limiter keyed by tenant, user and resolved client address. Production/staging paths fail closed when the distributed limiter is unavailable.
-
-### Development authentication
-
-Development session recovery requires explicit development mode, runtime mode and an explicit enable flag. `NODE_ENV` by itself is not intended to grant privileged recovery behavior.
-
-### Cryptography
-
-The application includes AES-256-GCM, ChaCha20-Poly1305, PBKDF2-HMAC-SHA512 and HMAC-SHA256 based mechanisms. Production key management is expected to use a secret manager/KMS with rotation and controlled access.
-
-Cryptography in the code is not presented as a guarantee of absolute security or as evidence of post-quantum production readiness.
+No route should invent its own authentication, tenant, authorization or persistence model.
 
 ---
 
-## Identity, tenants and authorization
+# 5. Current implemented improvements
 
-The system uses a principal context to carry the resolved identity through protected operations.
+## 5.1 Cognitive theme persistence
 
-The target security model is:
+The terminal now supports persistent visual cognitive palettes:
+
+- Abyss;
+- Arctic;
+- Aurora;
+- Ember.
+
+Preference storage key:
+
+```text
+isabella.cognitive-theme.v1
+```
+
+The selected palette is applied through `data-cognitive-theme` on `<html>` and overrides the default Abyss variables without duplicating the entire component design system.
+
+## 5.2 Keyboard workflow
+
+Implemented shortcuts:
+
+| Shortcut | Action |
+|---|---|
+| `Cmd/Ctrl + K` | Focus command input |
+| `Cmd/Ctrl + Enter` | Send current command |
+| `Esc` | Stop active inference / close settings |
+| `Enter` | Send |
+| `Shift + Enter` | New line |
+
+## 5.3 Native voice-to-text
+
+The CommandLine now exposes a microphone button for Spanish Mexican dictation.
+
+Target locale:
+
+```text
+es-MX
+```
+
+The implementation uses the browser Speech Recognition interface when available and verifies microphone capability before activation. Unsupported browsers receive a visible fallback message rather than a silent failure.
+
+A separate audio-note path remains available through `MediaRecorder` for multimodal attachments.
+
+## 5.4 Cognitive state indicator
+
+The terminal header contains a small non-authoritative cognitive-state indicator:
+
+- `EN ESPERA`;
+- `ANALIZANDO`;
+- `ESTABLE`;
+- `ALERTA`.
+
+The indicator is deliberately heuristic. It is a UI signal, **not a claim that Isabella possesses an internal human-like emotional state**. It must never be used for safety, authorization or financial decisions.
+
+The next hardening step is to feed it directly from the canonical assistant stream rather than from UI-local text.
+
+---
+
+# 6. Vercel: estado real y corrección requerida
+
+## 6.1 Evidence observed
+
+Recent Vercel production deployments associated with the latest commits are marked `ERROR` with:
+
+```text
+BUILD_FAILED
+Resource provisioning failed
+```
+
+The Vercel build-log endpoint reported no compiler error events for the latest failed deployment, indicating that the failure is occurring at the Vercel provisioning/deployment layer rather than proving an application compile failure.
+
+Older deployments of the same project are recorded as `READY`.
+
+## 6.2 Production smoke gate
+
+```text
+[ ] Latest production deployment READY
+[ ] Production alias points to that deployment
+[ ] / returns 200
+[ ] /api/health/live returns 200
+[ ] /api/mux-intro returns an intentional response
+[ ] Browser intro renders/falls back
+[ ] authenticated /api/isabella accepts a valid principal
+[ ] SSE response produces first token
+[ ] provider header is present
+[ ] audit event is written
+[ ] memory read/write uses PostgreSQL
+[ ] API key issuance and verification work
+[ ] tenant isolation test passes
+[ ] rate limiter works against the real distributed backend
+[ ] rollback deployment remains available
+```
+
+A Vercel deployment being `READY` is not sufficient by itself. A production smoke test is required.
+
+## 6.3 Vercel configuration principle
+
+The project uses TanStack Start with Nitro integration. Vercel currently identifies the project as a Nitro deployment. Framework detection, build output and the actual Vite/Nitro integration must remain consistent.
+
+Do not solve provisioning failures by weakening application fail-fast checks or by introducing JSON/memory persistence as an undocumented production fallback.
+
+---
+
+# 7. Production configuration contract
+
+Production/staging require a canonical durable database configuration.
+
+The current configuration authority is `src/lib/config.ts`.
+
+Important invariant:
+
+```text
+DATABASE_URL + ISABELLA_STORAGE_PROVIDER=postgres|neon
+```
+
+If `DATABASE_URL` exists and the provider alias is omitted, the configuration layer can derive `postgres`; this avoids the previous Vercel startup failure caused by the missing provider alias while preserving the durable-database requirement.
+
+If the database is absent, production must **fail closed**. It must not silently fall back to JSON or browser memory.
+
+Required production categories include database, authentication, encryption, CROWN, AEGIS, BookPI and the credentials of every enabled external provider. Exact variables remain defined by the environment schema; secrets must never be copied into documentation.
+
+---
+
+# 8. Authentication, authorization and API keys
+
+The production authority chain is:
 
 ```text
 Credential
-  → validated identity
-  → principal context
-  → tenant
-  → policy decision
-  → effective permissions
+ → Authentication
+ → Principal
+ → Tenant
+ → Role
+ → Scope
+ → Policy
+ → Operation
+ → Audit
 ```
 
-Effective permissions are intended to be constrained by the intersection of role permissions, credential scopes, tenant policy and contextual policy.
+API keys must be cryptographically random, stored as hashes, prefixed, scoped, tenant-bound, revocable, expirable, rotatable and audited.
 
-API credentials are not supposed to mint privileges that exceed the authority of their issuer.
-
-Tenant isolation is reinforced at application level and intended to be reinforced at database level with PostgreSQL RLS.
-
----
-
-## Persistence and memory
-
-Production persistence is PostgreSQL-oriented. The system contains repositories for durable application data and a dedicated PostgreSQL memory implementation.
-
-Memory is treated as governed durable state rather than as a browser cache. Production memory records should carry sufficient context for isolation, purpose, consent, provenance, retention and deletion policies.
-
-The project has historically contained JSON stores and legacy persistence paths. These are considered migration/development concerns, not a second production authority. The long-term production invariant is a single canonical durable source of truth.
-
----
-
-## Audit and evidence
-
-An AI operation is valuable only when the system can explain what happened afterward.
-
-Isabella therefore carries request, trace and decision identifiers through important flows and records evidence hashes and provenance metadata where applicable.
-
-The evidence model distinguishes between:
-
-- source data;
-- model/artifact identity;
-- policy decisions;
-- execution results;
-- provenance hashes;
-- operational evidence.
-
-A hash is evidence of integrity for the content it covers. It is not, by itself, evidence that the underlying claim is true.
-
----
-
-## BookPI and economic operations
-
-BookPI is the project's economic/ledger layer.
-
-The production design treats the frontend as a presentation surface, never as the monetary authority.
-
-The intended flow is:
+Required tests:
 
 ```text
-Client
-  → Monetization API
-  → Authorization
-  → Payment provider
-  → Signed webhook
-  → Idempotent event
-  → Canonical ledger
-  → Projection / balance
-  → Audit
+[ ] valid key accepted
+[ ] invalid key rejected
+[ ] expired key rejected
+[ ] revoked key rejected
+[ ] wrong tenant rejected
+[ ] missing scope rejected
+[ ] excessive scope rejected
+[ ] rotation invalidates previous key when policy requires it
+[ ] key creation itself is authorized
+[ ] secret never appears in logs
 ```
-
-Payment-intent creation is rate-limited and idempotency is part of the expected contract.
-
-Refunds and reversals should be recorded as new financial events rather than silently rewriting the original transaction.
 
 ---
 
-## External providers and adapters
+# 9. Isabella chat pipeline and latency debt
 
-Isabella can operate with external model, infrastructure and integration providers. Current repository contracts include integrations around providers such as Stripe, Supabase/Neon, Vercel Connect and external AI endpoints.
+The gateway contains multiple sequential controls before provider streaming. The next optimization must parallelize only independent read-only work.
 
-The architectural rule is simple:
+Target shape:
 
-**integration does not equal authority.**
+```text
+                 ┌─ runtime context
+Request ─ parse ├─ memory context
+                 ├─ kill-switch state
+                 └─ provider availability
+                       ↓
+                 policy arbitration
+                       ↓
+                    stream
+```
 
-A connector may execute an operation, but authorization remains local to Isabella and the operation must be attributable to an identity and tenant.
+Required latency metrics:
 
-External side effects in the native skill layer are therefore blocked until a corresponding adapter is explicitly authorized.
+- request parse;
+- authentication;
+- policy;
+- memory;
+- NCUA;
+- provider selection;
+- time-to-first-token;
+- stream duration;
+- total response;
+- provider retries/errors.
+
+Provider retries must not silently duplicate billable generations.
 
 ---
 
-## Vercel deployment model
+# 10. NCUA and native ML debt
 
-The project is integrated with Vercel and currently uses Vite/TanStack Start rather than Next.js App Router.
+The current NCUA pipeline caches the deterministic knowledge graph, intent classifier, memory index and corpus metrics. This removes repeated construction from the request hot path.
 
-The Vercel deployment contract is governed by the repository's CI and production scripts. The expected installation path is:
+Next:
 
-```bash
-pnpm install --frozen-lockfile
+```text
+[ ] cold/warm benchmark
+[ ] p50/p95/p99 NCUA latency
+[ ] cache hit/miss telemetry
+[ ] bounded corpus and embedding work
+[ ] tenant-safe cache keys
+[ ] Spanish regression corpus
+[ ] confidence calibration
+[ ] artifact versioning
+[ ] reproducible training/promotion gates for future learned models
 ```
 
-The production validation sequence includes:
+Deterministic local ML must not be represented as equivalent to a frontier generative model.
+
+---
+
+# 11. Spanish Latin American native layer
+
+Default product locale:
+
+```text
+es-MX → es-419 fallback
+```
+
+Required:
+
+```text
+[ ] canonical locale constant
+[ ] system prompt localization contract
+[ ] Mexican/Latin American terminology policy
+[ ] date/time/number formatting
+[ ] Spanish error messages
+[ ] Spanish UI labels
+[ ] provider prompt locale metadata
+[ ] Mexican Spanish test corpus
+[ ] no accidental Spain-specific forms
+[ ] preserve code and technical identifiers
+```
+
+Multilingual operation remains possible; the default should be Latin American Spanish rather than forced translation of a user who explicitly communicates in another language.
+
+---
+
+# 12. Mux cinematic intro
+
+The client uses a Mux playback ID and a browser-compatible MP4 rendition:
+
+```text
+https://stream.mux.com/<playbackId>/high.mp4
+```
+
+This avoids relying on native HLS support in every desktop browser. The fail-safe path is:
+
+```text
+Mux MP4 → static/procedural fallback → usable terminal
+```
+
+Required evidence:
+
+```text
+[ ] Mux credentials configured
+[ ] asset exists
+[ ] playback ID returned
+[ ] Chrome playback
+[ ] Edge playback
+[ ] 403/404/network fallback
+[ ] reduced-motion behavior
+[ ] intro never blocks terminal access
+```
+
+---
+
+# 13. ARGUS / AEGIS debt
+
+ARGUS/AEGIS must remain a security/governance boundary and must not become an opaque source of random false positives.
+
+Required corpus:
+
+```text
+[ ] classification reason
+[ ] safe operator-facing block reason
+[ ] false-positive regression tests
+[ ] Spanish threat patterns
+[ ] prompt-injection tests
+[ ] personal-data tests
+[ ] financial-data tests
+[ ] adversarial encoding tests
+[ ] tenant breakout
+[ ] scope escalation
+[ ] replay
+[ ] malformed SSE
+[ ] oversized input
+[ ] provider timeout/failure
+[ ] database failure
+[ ] rate-limit failure
+```
+
+Responsibility separation is mandatory:
+
+```text
+Authentication ≠ authorization
+AEGIS ≠ business authorization
+CROWN ≠ identity provider
+Rate limit ≠ permission
+```
+
+---
+
+# 14. PostgreSQL and memory
+
+Production memory must use canonical PostgreSQL authority.
+
+Required evidence:
+
+```text
+[ ] clean migration
+[ ] representative migration
+[ ] CRUD
+[ ] tenant filter/RLS
+[ ] retention
+[ ] provenance
+[ ] consent metadata
+[ ] backup
+[ ] restore
+[ ] rollback
+[ ] pool exhaustion
+[ ] timeout
+[ ] unavailable database
+```
+
+Browser storage must never become production memory authority.
+
+---
+
+# 15. BookPI / Stripe
+
+Required financial evidence:
+
+```text
+[ ] test payment
+[ ] signed webhook
+[ ] idempotency
+[ ] duplicate webhook
+[ ] delayed webhook
+[ ] out-of-order webhook
+[ ] refund
+[ ] partial refund
+[ ] failed payment
+[ ] reconciliation
+[ ] ledger projection
+[ ] audit seal
+[ ] browser cannot authoritatively set balance
+```
+
+Simulated cryptography must never become financial authority.
+
+---
+
+# 16. Sandbox / ORION
+
+Privileged execution requires real isolation evidence:
+
+```text
+[ ] filesystem isolation
+[ ] network egress policy
+[ ] CPU/memory/process limits
+[ ] timeout/cancellation
+[ ] secret isolation
+[ ] container escape test
+[ ] malicious workload test
+```
+
+Until this exists, privileged execution remains disabled or controlled.
+
+---
+
+# 17. Observability and SLOs
+
+Minimum production metrics:
+
+```text
+request count
+error rate
+4xx/5xx
+p50/p95/p99
+TTFT
+provider latency
+NCUA latency
+DB latency
+rate-limit rejects
+auth failures
+AEGIS blocks
+CROWN denials
+stream aborts
+deployment version
+```
+
+Never log API secrets, JWTs, plaintext API keys, payment credentials or ungoverned private user content.
+
+---
+
+# 18. Disaster recovery
+
+Define and execute RPO/RTO. A runbook is incomplete until exercised.
+
+```text
+[ ] database outage
+[ ] provider outage
+[ ] rate-limit outage
+[ ] bad deployment
+[ ] bad migration
+[ ] webhook failure
+[ ] credential expiry
+[ ] secret rotation
+[ ] rollback
+[ ] backup restore
+```
+
+---
+
+# 19. CI/CD production gate
+
+Target release gate:
 
 ```bash
 pnpm typecheck
 pnpm lint
 pnpm test
 pnpm security:scan
+pnpm build
+pnpm production:integrity
+pnpm production:preflight
 pnpm capabilities
 pnpm audit:routes
-pnpm db:verify
-pnpm production:integrity
-pnpm production:preflight -- --json
-pnpm build
 ```
 
-A deployment that fails before dependency installation is not a runtime failure: it is a supply-chain/build configuration failure and must be corrected at that layer.
+Green build without runtime smoke testing is not sufficient.
 
 ---
 
-## Vercel failure class currently observed
+# 20. 100% production definition
 
-The most recent Vercel production failures were stopping at dependency installation with:
+The 100% gate requires all code, infrastructure, runtime, operational and evidence gates to pass simultaneously.
+
+### Code
 
 ```text
-ERR_PNPM_OUTDATED_LOCKFILE
-Cannot install with "frozen-lockfile" because pnpm-lock.yaml is not up to date with <ROOT>/package.json
+[ ] typecheck
+[ ] lint
+[ ] tests
+[ ] security scan
+[ ] production integrity
+[ ] route audit
 ```
 
-This means Vercel was not reaching the TypeScript compilation or application runtime. The correct fix is lockfile synchronization, not another application workaround.
-
-The repository now includes an explicit lockfile synchronization workflow using the project's declared pnpm version. Once the synchronized lockfile is committed, Vercel can return to the actual build/test gates.
-
----
-
-## Development
-
-Requirements:
-
-- Node.js 22 or newer;
-- pnpm 10.15.x;
-- PostgreSQL/Neon/Supabase when durable persistence is required;
-- appropriate provider credentials only for features that actually need external services.
-
-Install:
-
-```bash
-pnpm install --frozen-lockfile
-```
-
-Run locally:
-
-```bash
-pnpm dev
-```
-
-Validate:
-
-```bash
-pnpm typecheck
-pnpm lint
-pnpm test
-pnpm build
-```
-
-Run the consolidated production gate:
-
-```bash
-pnpm production:gate
-```
-
----
-
-## Repository structure
-
-The repository is organized around several major technical areas:
+### Infrastructure
 
 ```text
-src/
-├── lib/
-│   ├── native-ml/        Native ML, skill fusion and convergence
-│   ├── ncua/             Byte/continuous cognitive substrate
-│   ├── skills/           Governed skill registry and execution
-│   ├── security/         Security controls and policy enforcement
-│   ├── repositories/     Durable data access
-│   ├── crypto/           Cryptographic primitives
-│   ├── governance/       Governance and evidence
-│   └── intelligence/     Provider abstraction / model access
-├── routes/               HTTP routes
-├── server-routes/        Canonical server handlers
-└── components/           Product and interface layer
-
-test/                     Unit, integration and security verification
-scripts/                  Build, integrity, database and release gates
-docs/                     Technical audit and architecture records
-.github/workflows/        CI/CD and production verification
+[ ] Vercel READY
+[ ] canonical domain healthy
+[ ] PostgreSQL live
+[ ] migrations applied
+[ ] backups verified
+[ ] restore verified
+[ ] rate limiter live
+[ ] enabled providers live
+[ ] Mux live if enabled
+[ ] Stripe reconciliation if enabled
 ```
 
-The exact source of truth remains the repository itself; this diagram is intentionally conceptual.
+### Runtime
+
+```text
+[ ] health 200
+[ ] browser no SSR 500
+[ ] intro works
+[ ] chat works
+[ ] streaming works
+[ ] auth works
+[ ] API keys work
+[ ] tenant isolation works
+[ ] ARGUS/AEGIS works
+[ ] CROWN works
+[ ] memory works
+[ ] audit works
+[ ] metrics work
+```
+
+### Operations
+
+```text
+[ ] SLOs
+[ ] alerts
+[ ] incident runbook tested
+[ ] rollback tested
+[ ] backup restore tested
+[ ] security assessment
+[ ] load test
+[ ] failure/chaos tests
+```
+
+Every capability requires:
+
+```text
+implementation → test → live evidence → deployment evidence → runbook
+```
 
 ---
 
-## Evidence discipline
+# 21. Technical debt register
 
-Isabella follows a strict distinction between capability and proof.
+## P0 — production blockers
 
-**Implemented** means that the corresponding behavior exists in source code.
+1. Vercel production deployment stability.
+2. Live PostgreSQL evidence.
+3. Full production smoke suite.
+4. Real browser authentication flow.
+5. End-to-end `/api/isabella` streaming verification.
+6. Tenant-isolation runtime tests.
+7. Distributed rate-limit validation.
+8. Production observability evidence.
+9. Backup/restore drill.
+10. Stripe reconciliation if enabled.
+11. Sandbox isolation proof if ORION is enabled.
+12. Current CI evidence on the exact release commit.
 
-**Verified** means that the behavior has been exercised by a reproducible automated or operational test.
+## P1 — performance/reliability
 
-**Production-safe** means that the capability has survived deployment, configuration, failure-mode and operational checks in the intended environment.
+1. Parallelize independent gateway reads.
+2. TTFT and p95/p99 instrumentation.
+3. NCUA warm caches.
+4. Bound memory/attachment work.
+5. Provider retry accounting.
+6. Reduce duplicate serialization.
+7. Browser smoke tests.
+8. Mux compatibility tests.
 
-The project does not use these terms interchangeably.
+## P2 — maintainability
 
-That distinction prevents a documented interface, a mock endpoint or an unexecuted branch from being presented as an operational production capability.
+1. Consolidate configuration helpers.
+2. Remove obsolete compatibility paths after migration evidence.
+3. Decompose oversized UI components.
+4. Centralize locale constants.
+5. Extract sentiment classifier.
+6. Provider adapter contract tests.
+7. Explicit subsystem ownership.
 
----
+## P3 — research
 
-## What Isabella does not claim
+1. Continuous rewinding.
+2. External federation contracts.
+3. Hybrid QML.
+4. Real post-quantum provider integration.
+5. Multi-region active/active.
+6. Model drift detection.
 
-The repository does not provide evidence to justify claims that Isabella is:
-
-- AGI;
-- conscious;
-- infallible;
-- absolutely secure;
-- post-quantum secure in production;
-- a military-certified system;
-- a replacement for every frontier AI provider;
-- a production deployment of hundreds of external APIs merely because contracts or catalog entries exist.
-
-Those are not failures of communication. They are boundaries of technical evidence.
-
----
-
-## Current engineering posture
-
-The project is in an advanced hardening phase rather than a finished certification state.
-
-The codebase already contains substantial implementation across governance, security, native ML, skill orchestration, persistence, audit and integration layers. The remaining gap to a fully certified global production posture is primarily operational: reproducible CI, canonical dependency state, live database verification, complete end-to-end isolation tests, durable memory, production payment/reconciliation testing, observability, backup/restore drills and deployment smoke/rollback evidence.
-
-For that reason the project should be evaluated by passing gates and reproducible behavior, not by a marketing percentage alone.
-
-A target of **90% general production readiness** is therefore treated as an engineering milestone: enough of the system must be operationally verified that remaining work is concentrated in the final production controls rather than in missing architecture.
-
----
-
-## Responsible use
-
-This software can be used to orchestrate AI-assisted analysis, engineering, documentation, research, business workflows and other governed tasks. High-impact domains such as healthcare, finance and legal work require additional domain-specific controls and qualified human oversight.
-
-The system should not be treated as an autonomous decision maker where the consequences exceed the evidence available to it.
+Experimental capabilities must never silently become production authority.
 
 ---
 
-## License
+# 22. Manual exacto para llegar a 100%
 
-The repository's licensing model is defined by its license files. Code, documentation and branding are not assumed to have identical terms. Always inspect the applicable license before redistributing a specific asset.
+## Fase A — Stabilize
+
+1. Make the production branch deterministic.
+2. Resolve Vercel provisioning failure.
+3. Verify canonical alias.
+4. Smoke `/` and health.
+5. Prove no SSR 500.
+
+## Fase B — Identity
+
+1. Production OIDC/JWT authority.
+2. Browser session establishment.
+3. Tenant binding.
+4. API-key issuance.
+5. Scope enforcement.
+6. Revocation/expiry.
+
+## Fase C — Cognition
+
+1. NCUA cold/warm benchmark.
+2. Spanish classification benchmark.
+3. ARGUS/AEGIS regression corpus.
+4. CROWN policy verification.
+5. Provider selection verification.
+6. TTFT measurement.
+
+## Fase D — Persistence
+
+1. Staging migration.
+2. CRUD.
+3. RLS/tenant tests.
+4. Backup.
+5. Restore.
+6. DB outage simulation.
+
+## Fase E — Integrations
+
+1. Mux.
+2. AI providers.
+3. distributed rate limiting.
+4. Stripe/BookPI.
+5. external adapters.
+
+Each integration needs contract and failure-mode tests.
+
+## Fase F — Operations
+
+1. Observability.
+2. SLOs.
+3. Alerts.
+4. Load test.
+5. Failure test.
+6. Rollback.
+7. Incident drill.
+
+## Fase G — Release
+
+1. Freeze dependency graph.
+2. Generate production evidence.
+3. Run full gate.
+4. Deploy staging.
+5. Smoke staging.
+6. Promote production.
+7. Smoke production.
+8. Record deployment SHA.
+9. Record evidence artifacts.
+10. Keep rollback candidate.
+
+---
+
+# 23. Files under continuous production attention
+
+### P0
+
+```text
+src/lib/config.ts
+src/lib/principal-context.ts
+src/lib/api-key-service.ts
+src/lib/isabella-chat-gateway.ts
+src/lib/auth-client.ts
+src/lib/useIsabella.ts
+src/server.ts
+src/components/isabella/CommandLine.tsx
+src/components/isabella/CinematicIntro.tsx
+src/lib/ncua/pipeline.ts
+src/lib/native-comprehension.ts
+src/lib/latam-aegis-x.ts
+src/lib/repositories/memory-postgres-repository.ts
+vercel.json
+pnpm-lock.yaml
+.github/workflows/*
+```
+
+### P1
+
+```text
+src/lib/crown.ts
+src/lib/policy-engine.ts
+src/lib/authorization.ts
+src/lib/request-context.ts
+src/lib/sovereign-audit.ts
+src/lib/inference-policy.ts
+src/lib/skills/run-skill.ts
+src/lib/platform-capabilities.ts
+src/components/isabella/MessageStream.tsx
+src/components/isabella/IsabellaClientApp.tsx
+```
+
+### Evidence / operations
+
+```text
+PRODUCTION-READINESS-*.md
+scripts/production-preflight.mjs
+scripts/production-integrity-gate.mjs
+scripts/production-evidence.mjs
+scripts/db-*.mjs
+scripts/genesis-route-audit.mjs
+```
+
+---
+
+# 24. Anti-regression rules
+
+Never reintroduce:
+
+- JSON as production durable authority;
+- anonymous privileged skill execution;
+- `SovereignDB.hydrate()` in the authentication hot path;
+- synthetic teacher evidence presented as real evidence;
+- provider detection that ignores configured authorized providers;
+- broad CSP `connect-src https:`;
+- untrusted forwarded IP headers;
+- plaintext API keys;
+- production dev-session recovery;
+- guest production chat without an explicit governed product decision;
+- simulated cryptography represented as production authority;
+- browser-authoritative financial balances.
+
+---
+
+# 25. Engineering standard
+
+```text
+Code
+  ↓
+Test
+  ↓
+Live integration
+  ↓
+Failure test
+  ↓
+Observability
+  ↓
+Deployment
+  ↓
+Rollback
+  ↓
+Evidence
+```
+
+If a stage is missing, the capability is not fully production-proven.
+
+---
+
+# 26. Current conclusion
+
+**Current real production/deployment index: 69.8%.**
+
+The project has substantial production-grade architecture and executable infrastructure. The decisive gap is operational proof: recent Vercel production deployments are not healthy, and several integrations have implementation without sufficient live evidence.
+
+The next milestone is not another marketing percentage. It is:
+
+```text
+GREEN CI
++ GREEN VERCEL
++ GREEN DB
++ GREEN AUTH
++ GREEN CHAT
++ GREEN STREAM
++ GREEN MEMORY
++ GREEN SECURITY
++ GREEN OBSERVABILITY
++ GREEN RECOVERY
+= 100% production gate
+```
+
+**No component should be called production-ready merely because its source file exists.**
 
 ---
 
@@ -474,28 +879,4 @@ The repository's licensing model is defined by its license files. Code, document
 Governed Cognitive Infrastructure  
 Real del Monte, Hidalgo, México
 
-**Repository:** https://github.com/OsoPanda1/isabella-ai-genesis
-
-**Primary engineering principle:**
-
 > Build what can be demonstrated. Measure what can be executed. Refuse to claim what cannot be proved.
-
----
-
-## Final statement
-
-The strategic value of Isabella is not that a repository can be made to sound revolutionary.
-
-Its value is that a complex AI system can be designed so that identity, policy, memory, security, economic operations and evidence are treated as first-class runtime concerns.
-
-That architecture can be criticized.
-
-Its code can be inspected.
-
-Its claims can be tested.
-
-Its failures can be reproduced.
-
-And its progress can be measured by the evidence it produces.
-
-**Isabella AI Genesis is therefore not a promise that the future is finished. It is an engineering position: the future of governed AI can be designed, implemented and challenged from anywhere capable of producing verifiable software.**
