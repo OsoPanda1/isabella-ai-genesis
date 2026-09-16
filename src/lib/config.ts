@@ -33,14 +33,10 @@ function resolvePublicUrl(source: RawEnv): string | undefined {
   if (explicit) return explicit;
 
   const vercelUrl = cleanEnvValue(source.VERCEL_URL);
-  if (vercelUrl) {
-    return /^https?:\/\//i.test(vercelUrl) ? vercelUrl : `https://${vercelUrl}`;
-  }
+  if (vercelUrl) return /^https?:\/\//i.test(vercelUrl) ? vercelUrl : `https://${vercelUrl}`;
 
   const branchUrl = cleanEnvValue(source.VERCEL_BRANCH_URL);
-  if (branchUrl) {
-    return /^https?:\/\//i.test(branchUrl) ? branchUrl : `https://${branchUrl}`;
-  }
+  if (branchUrl) return /^https?:\/\//i.test(branchUrl) ? branchUrl : `https://${branchUrl}`;
 
   return undefined;
 }
@@ -114,16 +110,16 @@ export function loadConfig(source: RawEnv = process.env): Env {
   const fingerprint = environmentFingerprint(source);
   if (cached && cachedFingerprint === fingerprint) return cached;
 
-  const runtimeMode = cleanEnvValue(source.ISABELLA_RUNTIME_MODE);
+  const databaseUrl = cleanEnvValue(source.DATABASE_URL);
   const effectiveSource: RawEnv = {
     ...source,
     ISABELLA_RUNTIME_MODE:
-      runtimeMode ||
+      cleanEnvValue(source.ISABELLA_RUNTIME_MODE) ||
       (source.NODE_ENV === "production" ? "production" : "development"),
     PUBLIC_URL: resolvePublicUrl(source),
     AUTH_DEV_SESSION_ENABLED: cleanEnvValue(source.AUTH_DEV_SESSION_ENABLED) || "false",
     ALLOW_GUEST_CHAT: cleanEnvValue(source.ALLOW_GUEST_CHAT) || "false",
-    DATABASE_URL: cleanEnvValue(source.DATABASE_URL),
+    DATABASE_URL: databaseUrl,
     AUTH_JWT_SECRET: cleanEnvValue(source.AUTH_JWT_SECRET),
     SUPABASE_URL: cleanEnvValue(source.SUPABASE_URL) || cleanEnvValue(source.SUPABASE_DATABASE_SUPABASE_URL),
     SUPABASE_ANON_KEY: cleanEnvValue(source.SUPABASE_ANON_KEY) || cleanEnvValue(source.SUPABASE_DATABASE_SUPABASE_ANON_KEY),
@@ -133,7 +129,9 @@ export function loadConfig(source: RawEnv = process.env): Env {
     MUX_TOKEN_ID: cleanEnvValue(source.MUX_TOKEN_ID),
     MUX_TOKEN_SECRET: cleanEnvValue(source.MUX_TOKEN_SECRET),
     MUX_INTRO_ASSET_ID: cleanEnvValue(source.MUX_INTRO_ASSET_ID),
-    ISABELLA_STORAGE_PROVIDER: cleanEnvValue(source.ISABELLA_STORAGE_PROVIDER)?.toLowerCase(),
+    ISABELLA_STORAGE_PROVIDER:
+      cleanEnvValue(source.ISABELLA_STORAGE_PROVIDER)?.toLowerCase() ||
+      (databaseUrl ? "postgres" : undefined),
   };
 
   const parsed = resolveEnv(effectiveSource);
@@ -155,9 +153,7 @@ export function loadConfig(source: RawEnv = process.env): Env {
       if (parsed.ALLOW_GUEST_CHAT) throw new Error("ALLOW_GUEST_CHAT debe estar desactivado en staging/production");
       if (!parsed.DATABASE_URL) throw new Error("Se requiere DATABASE_URL como autoridad durable explícita");
       if (!parsed.AUTH_JWT_SECRET) {
-        throw new Error(
-          "Se requiere AUTH_JWT_SECRET dedicado; no se aceptan credenciales Supabase como fallback",
-        );
+        throw new Error("Se requiere AUTH_JWT_SECRET dedicado; no se aceptan credenciales Supabase como fallback");
       }
     }
   } catch (error) {
@@ -171,7 +167,14 @@ export function loadConfig(source: RawEnv = process.env): Env {
   return parsed;
 }
 
-export const config = loadConfig();
+/**
+ * Backward-compatible configuration accessor. Existing server modules use
+ * `config()` as the canonical read API; keeping it callable avoids runtime
+ * TypeErrors while preserving a single cached configuration authority.
+ */
+export function config(): Env {
+  return loadConfig();
+}
 
 export function isPayoutCircuitCertified(source: RawEnv = process.env): boolean {
   return cleanEnvValue(source.ISABELLA_PAYOUT_CIRCUIT_CERTIFIED)?.toLowerCase() === "true";
