@@ -1,4 +1,3 @@
-import "./lib/runtime-bootstrap";
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
