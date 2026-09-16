@@ -65,11 +65,6 @@ const route = (
   verification: "source-present",
 });
 
-/**
- * Only routes with a concrete handler in the repository are listed here.
- * Dynamic subroutes are represented separately when they have their own
- * executable route module. No synthetic CRUD surface is generated.
- */
 export const CATALOG_ENTRIES: CatalogEntry[] = [
   route("isabella.chat", "heads", "POST", "/api/isabella", "server-auth + tenant + governed policy", true, true, "Goberned Isabella conversation gateway.", "src/routes/api/isabella.ts"),
   route("isabella.v1.chat", "heads", "POST", "/api/v1/isabella", "server-auth + tenant + governed policy", true, true, "Versioned Isabella conversation endpoint backed by the canonical gateway.", "src/routes/api/v1/isabella.ts"),
@@ -85,6 +80,7 @@ export const CATALOG_ENTRIES: CatalogEntry[] = [
   route("economic-integrity.gateway", "billing", "GET", "/api/economic-integrity", "server-auth + tenant + economic policy", false, true, "Economic integrity verification endpoint.", "src/server-routes/api/economic-integrity.ts"),
   route("voice.gateway", "heads", "POST", "/api/isabella-voice", "server-auth + governed media policy", true, true, "Isabella voice operation backed by the configured provider path.", "src/server-routes/api/isabella-voice.ts"),
   route("mux.intro", "ops", "GET", "/api/mux-intro", "server-auth + media policy", false, true, "Canonical cinematic introduction media configuration and fallback resolution.", "src/routes/api/mux-intro.tsx"),
+  route("ai.transparency", "ops", "GET", "/api/ai/transparency", "public-transparency contract", false, false, "Machine-readable AI identity, human oversight, safety, traceability and standards-alignment disclosure.", "src/server-routes/api/ai-transparency.ts", "isabella.ai.governance.v1"),
   route("connect.slack", "topology", "GET", "/api/connect/slack", "user-scoped connector auth", false, true, "User-scoped Slack connection lifecycle/status.", "src/routes/api/connect/slack.ts"),
   route("connect.linear", "topology", "GET", "/api/connect/linear", "user-scoped connector auth", false, true, "User-scoped Linear connection lifecycle/status.", "src/routes/api/connect/linear.ts"),
 ];
