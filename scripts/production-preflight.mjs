@@ -17,6 +17,7 @@ const required = [
   "src/lib/persistence/repository-factory.ts", "docs/architecture/RUNTIME-AUTHORITY-MAP.md",
   "src/server-routes/api/health.ts", "src/lib/intelligence/router.ts",
   "src/lib/intelligence/durable-model-registry.ts", "src/lib/intelligence/production-model-gate.ts",
+  "src/lib/ai-governance.ts", "src/server-routes/api/ai-transparency.ts", "src/routes/api/ai/transparency.ts",
   "supabase/migrations/20260908123000_fgais_model_runtime_registry.sql",
   "supabase/migrations/20260912220000_align_bookpi_runtime_contract.sql",
   ".env.example", "scripts/db-neon-preflight.mjs", "scripts/db-migrate.mjs",
@@ -58,6 +59,13 @@ for (const [pattern, label] of [["ISABELLA_STORAGE_PROVIDER", "explicit storage 
 const migrationRunner = readFileSync(resolve(root, "scripts/db-migrate.mjs"), "utf8");
 for (const [pattern, label] of [["--single-transaction", "atomic migration transaction"], ["pg_advisory_xact_lock", "migration concurrency lock"], ["checksum_sha256", "migration checksum ledger"], ["POST-MIGRATION INVARIANT FAILED", "post-migration invariant gate"], ["Automatic baseline is disabled", "unknown-baseline fail-closed gate"]])
   if (!migrationRunner.includes(pattern)) errors.push(`Neon migration runner missing ${label}`);
+const governance = readFileSync(resolve(root, "src/lib/ai-governance.ts"), "utf8");
+for (const [pattern, label] of [["humanOversight: true", "human oversight disclosure"], ["shutdownCapability: true", "shutdown capability disclosure"], ["auditability: true", "auditability disclosure"], ["failClosedOnCriticalConfiguration: true", "fail-closed safety disclosure"], ["legalNotice", "non-certification legal notice"]])
+  if (!governance.includes(pattern)) errors.push(`AI governance profile missing ${label}`);
+const transparencyRoute = readFileSync(resolve(root, "src/server-routes/api/ai-transparency.ts"), "utf8");
+if (!transparencyRoute.includes("getAIGovernanceProfile")) errors.push("AI transparency route must serve the canonical governance profile");
+const catalog = readFileSync(resolve(root, "src/lib/api-catalog.ts"), "utf8");
+if (!catalog.includes('"/api/ai/transparency"')) errors.push("AI transparency endpoint missing from API catalog");
 phases.STATIC_PREFLIGHT = errors.length ? "failed" : "passed";
 if (errors.length) {
   const result = { status: "failed", phases, errors };
@@ -71,6 +79,6 @@ const result = { status: "static_ready", phases, validatedFiles: required.length
 if (jsonOutput) console.log(JSON.stringify(result));
 else {
   console.log("Production preflight OK (static validation only)");
-  console.log(`Validated ${required.length} production-critical files and canonical runtime/database contracts.`);
+  console.log(`Validated ${required.length} production-critical files and canonical runtime/database/governance contracts.`);
   console.log("External dependency and runtime readiness require explicit environment checks.");
 }
