@@ -34,10 +34,10 @@ describe("useIsabella Hook", () => {
     expect(result.current.presetId).toBe("prime"); // Default
 
     act(() => {
-      result.current.setPresetId("expert");
+      result.current.setPresetId("strategic");
     });
 
-    expect(result.current.presetId).toBe("expert");
+    expect(result.current.presetId).toBe("strategic");
   });
 
   it("should purge session when reset is called", () => {

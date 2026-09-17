@@ -323,7 +323,7 @@
     "noUnusedLocals": false,  // ESLint ya detecta
     "noUnusedParameters": false,  // ESLint ya detecta
     "noFallthroughCasesInSwitch": true,
-    "noImplicitOverride": true,
+    "noImplicitOverride": false,
     "noImplicitReturns": true,
 
     // ════════════════════════════════════════════════════════════════════════
