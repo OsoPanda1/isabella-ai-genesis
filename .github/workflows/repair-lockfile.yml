@@ -1,5 +1,6 @@
 name: Repair committed pnpm lockfile
 
+# Bootstrap workflow: synchronize the committed lockfile once; subsequent bot pushes do not retrigger it.
 on:
   push:
     branches: [main]
