@@ -67,6 +67,12 @@ const vercel = JSON.parse(readFileSync(resolve(root, "vercel.json"), "utf8"));
 if (vercel.framework !== "tanstack-start") errors.push("vercel.framework must be tanstack-start");
 if (vercel.installCommand !== "pnpm install --frozen-lockfile")
   errors.push("Vercel installCommand must use frozen lockfile");
+const viteConfig = readFileSync(resolve(root, "vite.config.ts"), "utf8");
+if (!viteConfig.includes('tanstackStart(')) errors.push("vite.config must use TanStack Start plugin");
+if (!viteConfig.includes('nitro({ preset: "vercel"'))
+  errors.push("vite.config must use Nitro Vercel output adapter");
+if (!viteConfig.includes('runtime: "nodejs24.x"'))
+  errors.push("Nitro Vercel functions must pin Node 24.x");
 const server = readFileSync(resolve(root, "src/server.ts"), "utf8");
 if (/public-chat/i.test(server))
   errors.push("server.ts must not expose the emergency public-chat demo gateway");
@@ -77,10 +83,12 @@ if (route.includes("CROWN-SSR-01"))
   errors.push("root route must not be the emergency recovery page");
 const gateway = readFileSync(resolve(root, "src/lib/isabella-chat-gateway.ts"), "utf8");
 for (const [pattern, label] of [
-  ["streamGenerateContent?alt=sse", "Gemini SSE streaming"],
   ["createSovereignPipeline", "sovereign governance"],
   ["checkRateLimitDistributed", "distributed rate limiting"],
   ['isKilled("inference")', "inference kill-switch"],
+  ["GEMINI_API_KEY", "Gemini provider contract"],
+  ["GROQ_API_KEY", "Groq provider contract"],
+  ["XAI_API_KEY", "xAI provider contract"],
 ])
   if (!gateway.includes(pattern)) errors.push(`canonical Isabella gateway missing ${label}`);
 const principal = readFileSync(resolve(root, "src/lib/principal-context.ts"), "utf8");
