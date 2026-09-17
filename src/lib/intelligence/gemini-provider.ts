@@ -7,7 +7,7 @@ export class GeminiProvider implements IntelligenceProvider {
   readonly modelId: string;
   readonly capabilities = new Set(["text", "image"] as const);
 
-  constructor(modelId = "gemini-3-flash") {
+  constructor(modelId = "gemini-3.8-flash") {
     this.modelId = modelId;
   }
 

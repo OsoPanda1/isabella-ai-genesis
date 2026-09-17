@@ -18,10 +18,23 @@ export interface DurableModelRecord {
   createdAt: string;
 }
 
+// One pooled Neon client per process (re-created only if the URL changes).
+// Creating a client per query added a full connection setup to every request.
+function makeSql(url: string) {
+  return neon(url);
+}
+
+let cachedSql: ReturnType<typeof makeSql> | undefined;
+let cachedSqlUrl: string | undefined;
+
 function sql() {
   const url = config().DATABASE_URL;
   if (!url) throw new Error("durable_model_registry_unavailable: DATABASE_URL is required");
-  return neon(url);
+  if (!cachedSql || cachedSqlUrl !== url) {
+    cachedSql = makeSql(url);
+    cachedSqlUrl = url;
+  }
+  return cachedSql;
 }
 
 export async function getDurableModel(
@@ -29,15 +42,23 @@ export async function getDurableModel(
   modelId: string,
   version?: string,
 ): Promise<DurableModelRecord | null> {
-  const rows = await sql()`
-    SELECT tenant_id, model_id, version, provider_id, territory_id, modalities, capabilities,
-           enabled, production_approved, status, artifact_hash, license, created_at
-    FROM fgais_model_registry
-    WHERE tenant_id = ${tenantId} AND model_id = ${modelId}
-      AND (${version ?? null}::text IS NULL OR version = ${version ?? null})
-    ORDER BY created_at DESC
-    LIMIT 1
-  `;
+  const rows = version
+    ? await sql()`
+        SELECT tenant_id, model_id, version, provider_id, territory_id, modalities, capabilities,
+               enabled, production_approved, status, artifact_hash, license, created_at
+        FROM fgais_model_registry
+        WHERE tenant_id = ${tenantId} AND model_id = ${modelId} AND version = ${version}
+        ORDER BY created_at DESC
+        LIMIT 1
+      `
+    : await sql()`
+        SELECT tenant_id, model_id, version, provider_id, territory_id, modalities, capabilities,
+               enabled, production_approved, status, artifact_hash, license, created_at
+        FROM fgais_model_registry
+        WHERE tenant_id = ${tenantId} AND model_id = ${modelId}
+        ORDER BY created_at DESC
+        LIMIT 1
+      `;
   return rows[0] ? mapRow(rows[0]) : null;
 }
 

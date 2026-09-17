@@ -8,7 +8,7 @@ import type {
   IntelligenceResponse,
 } from "./contracts";
 import { approveModel, getModel, registerProvider } from "./model-registry";
-import { assertModelRuntimeAuthority, ensureModelRecord } from "./production-model-gate";
+import { authorizeModelForRuntime } from "./production-model-gate";
 import { inspectInferenceInput } from "./inference-firewall";
 
 const providers = new Map<string, IntelligenceProvider>();
@@ -19,7 +19,12 @@ const MAX_CANDIDATES = 3;
 
 function circuitOpen(modelId: string): boolean {
   const state = failures.get(modelId);
-  return Boolean(state && state.openUntil > Date.now());
+  if (!state) return false;
+  if (state.openUntil > Date.now()) return true;
+  // Cooldown elapsed: half-open. Reset the streak so a single new failure does
+  // not immediately re-open the circuit, and drop the stale entry.
+  failures.delete(modelId);
+  return false;
 }
 
 function recordFailure(modelId: string): void {
@@ -41,7 +46,7 @@ export function addProvider(provider: IntelligenceProvider, productionApproved =
   if (productionApproved) approveModel(provider.modelId);
 }
 
-export function governIntelligence(request: IntelligenceRequest): GovernanceDecision {
+function evaluateGovernance(request: IntelligenceRequest): GovernanceDecision {
   if (!request.tenantId || !request.actorId)
     return {
       decision: "DENY",
@@ -64,14 +69,6 @@ export function governIntelligence(request: IntelligenceRequest): GovernanceDeci
       riskScore: 50,
       policyIds: [],
     };
-  const firewall = inspectInferenceInput(request.messages);
-  if (!firewall.allowed)
-    return {
-      decision: "DENY",
-      reasons: firewall.reasons,
-      riskScore: 95,
-      policyIds: ["inference-firewall-v1"],
-    };
   return {
     decision: "ALLOW",
     reasons: [],
@@ -80,9 +77,25 @@ export function governIntelligence(request: IntelligenceRequest): GovernanceDeci
   };
 }
 
+export function governIntelligence(request: IntelligenceRequest): GovernanceDecision {
+  const base = evaluateGovernance(request);
+  if (base.decision !== "ALLOW") return base;
+  const firewall = inspectInferenceInput(request.messages);
+  if (!firewall.allowed)
+    return {
+      decision: "DENY",
+      reasons: firewall.reasons,
+      riskScore: 95,
+      policyIds: ["inference-firewall-v1"],
+    };
+  return base;
+}
+
 export async function invokeIntelligence(
   input: Omit<IntelligenceRequest, "requestId"> & { requestId?: string },
 ): Promise<IntelligenceResponse> {
+  // Single firewall pass: the sanitized result is reused for governance below
+  // instead of scanning (and hashing) the payload twice per request.
   const firewall = inspectInferenceInput(input.messages);
   if (!firewall.allowed) throw new Error(`intelligence_DENY:${firewall.reasons.join(",")}`);
   const request: IntelligenceRequest = {
@@ -90,7 +103,7 @@ export async function invokeIntelligence(
     messages: firewall.sanitized,
     requestId: input.requestId ?? randomUUID(),
   };
-  const governance = governIntelligence(request);
+  const governance = evaluateGovernance(request);
   if (governance.decision !== "ALLOW")
     throw new Error(`intelligence_${governance.decision.toLowerCase()}`);
 
@@ -106,8 +119,7 @@ export async function invokeIntelligence(
     if (!provider || !descriptor || !descriptor.enabled) continue;
     if (production) {
       try {
-        await ensureModelRecord(request.tenantId, provider);
-        await assertModelRuntimeAuthority(request.tenantId, provider);
+        await authorizeModelForRuntime(request.tenantId, provider);
       } catch (error) {
         lastError = error;
         recordFailure(modelId);

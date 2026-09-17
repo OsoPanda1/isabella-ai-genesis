@@ -1,20 +1,31 @@
 import { isProductionLike, resolveRuntimeMode } from "@/lib/runtime-mode";
 import { config } from "@/lib/config";
 import {
-  assertProductionModel,
   getDurableModel,
   upsertDurableModel,
+  type DurableModelRecord,
 } from "./durable-model-registry";
 import type { IntelligenceProvider } from "./contracts";
 
 /** Runtime authority for model selection. Registration in process memory is never production approval. */
-export async function ensureModelRecord(
+
+function isRuntimeApproved(model: DurableModelRecord): boolean {
+  return (
+    model.enabled && model.productionApproved && ["APPROVED", "DEPLOYED"].includes(model.status)
+  );
+}
+
+/**
+ * Single read/write for both registration and authority. Reusing the fetched
+ * record avoids the previous 3 chained SELECTs per candidate per request.
+ */
+async function loadOrRegisterModel(
   tenantId: string,
   provider: IntelligenceProvider,
-): Promise<void> {
+): Promise<DurableModelRecord> {
   const existing = await getDurableModel(tenantId, provider.modelId, provider.modelId);
-  if (existing) return;
-  await upsertDurableModel({
+  if (existing) return existing;
+  return upsertDurableModel({
     tenantId,
     modelId: provider.modelId,
     version: provider.modelId,
@@ -30,6 +41,27 @@ export async function ensureModelRecord(
   });
 }
 
+export async function ensureModelRecord(
+  tenantId: string,
+  provider: IntelligenceProvider,
+): Promise<void> {
+  await loadOrRegisterModel(tenantId, provider);
+}
+
+/**
+ * Registers (if needed) and authorizes a model in production with a single
+ * durable read. Non-production runtimes only register, never authorize.
+ */
+export async function authorizeModelForRuntime(
+  tenantId: string,
+  provider: IntelligenceProvider,
+): Promise<void> {
+  const record = await loadOrRegisterModel(tenantId, provider);
+  const production = isProductionLike(resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE));
+  if (!production) return;
+  if (!isRuntimeApproved(record)) throw new Error("production_model_not_approved");
+}
+
 export async function assertModelRuntimeAuthority(
   tenantId: string,
   provider: IntelligenceProvider,
@@ -38,5 +70,5 @@ export async function assertModelRuntimeAuthority(
   if (!production) return;
   const model = await getDurableModel(tenantId, provider.modelId, provider.modelId);
   if (!model) throw new Error("inference_unavailable: model-not-registered");
-  await assertProductionModel(tenantId, provider.modelId, provider.modelId);
+  if (!isRuntimeApproved(model)) throw new Error("production_model_not_approved");
 }
