@@ -60,10 +60,12 @@ describe("smoke de despliegue", () => {
   });
 
   it("configuración de deploy Vercel: Nitro + pnpm + output prebuilt", () => {
-    // Sin preset Nitro, Vercel despliega estático y todo devuelve 404.
+    // Nitro auto-detecta el preset Vercel (el build local emite .vercel/output);
+    // el override de `functions` fue retirado por ser rechazado por el proveedor.
     const viteConfig = readFileSync(resolve(root, "vite.config.ts"), "utf8");
     expect(viteConfig.includes("nitro/vite"), "falta plugin nitro en vite.config").toBe(true);
-    expect(viteConfig.includes('preset: "vercel"'), "falta preset vercel").toBe(true);
+    expect(viteConfig.includes("nitro()"), "falta nitro() canónico en vite.config").toBe(true);
+    expect(viteConfig.includes("vercel: { functions"), "no debe haber override de functions").toBe(false);
 
     const vercel = JSON.parse(readFileSync(resolve(root, "vercel.json"), "utf8")) as {
       installCommand?: string;

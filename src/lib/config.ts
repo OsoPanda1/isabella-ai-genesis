@@ -47,7 +47,8 @@ function assertRequired(mode: RuntimeMode, source: RawEnv): void {
   for (const key of requiredEnvKeys(mode)) {
     // PUBLIC_URL and the storage-provider selector are derivable in Vercel.
     // Durable authority is still enforced below through DATABASE_URL.
-    if (key === "PUBLIC_URL" || key === "GEMINI_API_KEY" || key === "ISABELLA_STORAGE_PROVIDER") continue;
+    if (key === "PUBLIC_URL" || key === "GEMINI_API_KEY" || key === "ISABELLA_STORAGE_PROVIDER")
+      continue;
     const raw = source[key];
     if (raw === undefined || raw === null || raw === "")
       throw new Error(
@@ -90,7 +91,9 @@ function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, pars
   const provider = (cleanEnvValue(source.ISABELLA_STORAGE_PROVIDER)?.toLowerCase() ||
     parsed.ISABELLA_STORAGE_PROVIDER) as string;
   if (provider !== "postgres" && provider !== "neon")
-    throw new Error("ISABELLA_STORAGE_PROVIDER debe resolver a postgres o neon en staging/production.");
+    throw new Error(
+      "ISABELLA_STORAGE_PROVIDER debe resolver a postgres o neon en staging/production.",
+    );
   if (parsed.ISABELLA_STORAGE_PROVIDER !== provider)
     throw new Error("ISABELLA_STORAGE_PROVIDER no coincide con el proveedor normalizado.");
   if (typeof source.DATABASE_URL !== "string" || source.DATABASE_URL.trim() === "")
