@@ -19,7 +19,14 @@ export * from "./metrics";
 export * from "./dataset-contract";
 export * from "./audit-bundle";
 export * from "./pipeline";
-export * from "./dataset-contract";
+export * from "./entropy-patcher";
+export * from "./eri";
+export * from "./sophia-epistemics";
+export * from "./concept-engine";
+export * from "./quantum-align";
+export * from "./bookpi-trajectory";
+export * from "./academic-pipeline";
+export * from "./benchmark";
 
 export interface NativeEngine {
   intent: NativeIntentClassifier;

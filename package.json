@@ -28,6 +28,8 @@
     "test:integration": "vitest run --project integration",
     "test:bookpi": "vitest run --project bookpi",
     "test:security": "vitest run --project security",
+    "ncua:benchmark": "vitest run test/unit/ncua-benchmark.test.ts",
+    "ncua:load": "vitest run test/security/ncua-load.test.ts",
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:neon:preflight": "node scripts/db-neon-preflight.mjs",
     "db:verify": "node scripts/db-verify.mjs",

@@ -17,7 +17,12 @@ export default defineConfig({
         test: {
           name: "unit",
           environment: "node",
-          include: ["test/unit/**/*.test.ts", "test/unit/**/*.test.tsx", "test/*.test.ts"],
+          include: [
+            "test/unit/**/*.test.ts",
+            "test/unit/**/*.test.tsx",
+            "test/*.test.ts",
+            "test/native-ml/**/*.test.ts",
+          ],
           setupFiles: ["./test/setup.ts"],
         },
       },

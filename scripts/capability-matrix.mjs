@@ -314,6 +314,31 @@ const CAPABILITIES = [
     status: "real",
   },
   {
+    capability: "NCUA v2.0 tokenless academic pipeline (SOPHIA E0–E4, ERI gate, BookPI)",
+    sources: [
+      "src/lib/ncua/entropy-patcher.ts",
+      "src/lib/ncua/eri.ts",
+      "src/lib/ncua/sophia-epistemics.ts",
+      "src/lib/ncua/concept-engine.ts",
+      "src/lib/ncua/quantum-align.ts",
+      "src/lib/ncua/bookpi-trajectory.ts",
+      "src/lib/ncua/academic-pipeline.ts",
+      "src/lib/ncua/benchmark.ts",
+    ],
+    tests: [
+      "test/unit/ncua-entropy-patcher.test.ts",
+      "test/unit/ncua-concept-eri.test.ts",
+      "test/unit/ncua-quantum-align.test.ts",
+      "test/unit/ncua-bookpi-ledger.test.ts",
+      "test/unit/ncua-academic-pipeline.test.ts",
+      "test/unit/ncua-benchmark.test.ts",
+      "test/security/ncua-load.test.ts",
+    ],
+    runtime:
+      "Pipeline síncrono 6 pasos: entropy patching, SOPHIA E0–E4, ERI ≥ 95 gate, QUP SHA3-512 + Merkle, BookPI append-only HMAC-SHA3-512. Tests unit + load 50–500 concurrentes.",
+    status: "real",
+  },
+  {
     capability: "Governance charter FGAIS v2.0 (Nivel 0)",
     sources: ["docs/governance/01-FGAIS-Governance-Constitution.md"],
     tests: [],

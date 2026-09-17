@@ -84,6 +84,24 @@
       "readiness_percent": 75,
       "evidence": [".github/workflows/ci.yml", ".github/workflows/fgais-gate.yml", "vercel.json"],
       "notes": "Vercel deployment is currently pending verification on the hardened main branch."
+    },
+    {
+      "name": "ncua.v2_academic_pipeline",
+      "status": "implemented",
+      "production_safe": true,
+      "readiness_percent": 85,
+      "evidence": [
+        "src/lib/ncua/entropy-patcher.ts",
+        "src/lib/ncua/eri.ts",
+        "src/lib/ncua/sophia-epistemics.ts",
+        "src/lib/ncua/concept-engine.ts",
+        "src/lib/ncua/quantum-align.ts",
+        "src/lib/ncua/bookpi-trajectory.ts",
+        "src/lib/ncua/academic-pipeline.ts",
+        "test/unit/ncua-academic-pipeline.test.ts",
+        "test/security/ncua-load.test.ts"
+      ],
+      "notes": "Tokenless byte patching with SOPHIA E0–E4 classification, canonical ERI ≥ 95 gate with iterative refinement, QUP SHA3-512 merkle seal, and BookPI append-only ledger with HMAC-SHA3-512. Shared key derived from AEGIS_AUDIT_SECRET or injected for tests."
     }
   ],
   "test_summary": {
