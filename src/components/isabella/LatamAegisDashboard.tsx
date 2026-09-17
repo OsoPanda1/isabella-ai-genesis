@@ -23,6 +23,9 @@ const SovereignCompliancePanel = lazy(() =>
 const SovereignSkillsPanel = lazy(() =>
   import("./SovereignSkillsPanel").then((module) => ({ default: module.SovereignSkillsPanel })),
 );
+const SecurityAuditDashboard = lazy(() =>
+  import("./SecurityAuditDashboard").then((module) => ({ default: module.SecurityAuditDashboard })),
+);
 
 export enum AegisLevel {
   OPEN = 0,
@@ -88,7 +91,7 @@ export function LatamAegisDashboard() {
     "idle",
   );
   const [corruptedIndex, setCorruptedIndex] = useState<number | null>(null);
-  const [subTab, setSubTab] = useState<"firewall" | "observability" | "compliance" | "skills">(
+  const [subTab, setSubTab] = useState<"firewall" | "audit" | "observability" | "compliance" | "skills">(
     "firewall",
   );
   const [actor, setActor] = useState("operator");
@@ -227,7 +230,7 @@ export function LatamAegisDashboard() {
       </div>
 
       <div className="flex gap-2 overflow-x-auto border-b border-border/15 pb-1">
-        {(["firewall", "observability", "compliance", "skills"] as const).map((tab) => (
+        {(["firewall", "audit", "observability", "compliance", "skills"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setSubTab(tab)}
@@ -237,6 +240,12 @@ export function LatamAegisDashboard() {
           </button>
         ))}
       </div>
+
+      {subTab === "audit" && (
+        <Suspense fallback={<PanelLoading />}>
+          <SecurityAuditDashboard />
+        </Suspense>
+      )}
 
       {subTab === "observability" && (
         <Suspense fallback={<PanelLoading />}>

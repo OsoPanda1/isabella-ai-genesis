@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { getSessionToken, ensureSessionToken } from "@/lib/auth-client";
 import type { QupExperimentResult } from "@/lib/qup-v3-engine";
 import { SystemMonitor } from "./SystemMonitor";
+import { QuantumBridgeStatus } from "./QuantumBridgeStatus";
 import { CertificateVerification } from "./CertificateVerification";
 import { GobernanzaVigia } from "./GobernanzaVigia";
 import { QuantumJobMonitor } from "./QuantumJobMonitor";
@@ -415,6 +416,9 @@ export function QuantumUtilityDashboard() {
 
       {/* COMPACT KUBERNETES SYSTEM MONITOR */}
       <SystemMonitor />
+
+      {/* QUANTUM BRIDGE STATUS & OBSERVABILITY */}
+      <QuantumBridgeStatus />
 
       {/* PRIMARY CONTROLLER GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

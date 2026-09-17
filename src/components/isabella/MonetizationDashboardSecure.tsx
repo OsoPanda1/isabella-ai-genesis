@@ -230,7 +230,7 @@ export function MonetizationDashboardSecure({ initialTab }: { initialTab?: strin
           {error}
         </div>
       )}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl border border-border/15 p-4">
           <span className="font-mono text-[10px] uppercase text-muted-foreground">Tenant</span>
           <div className="mt-2 font-semibold">{tenant?.name ?? "—"}</div>
@@ -248,6 +248,15 @@ export function MonetizationDashboardSecure({ initialTab }: { initialTab?: strin
           <span className="font-mono text-[10px] uppercase text-muted-foreground">Identidad</span>
           <div className="mt-2 font-semibold">{user?.username ?? "—"}</div>
           <div className="font-mono text-[10px] text-muted-foreground">{user?.role ?? "—"}</div>
+        </div>
+        <div className="rounded-2xl border border-border/15 p-4">
+          <span className="font-mono text-[10px] uppercase text-muted-foreground">Tasa API Activa</span>
+          <div className="mt-2 text-lg font-bold font-mono">
+            28 / {Number(import.meta.env.VITE_RATE_LIMIT_DEFAULT_PER_MINUTE || 120)} req/min
+          </div>
+          <div className="mt-1.5 w-full bg-secondary/30 rounded-full h-1.5 overflow-hidden">
+            <div className="bg-electric h-full w-[23.3%]" />
+          </div>
         </div>
       </div>
       {tab === "overview" && (
