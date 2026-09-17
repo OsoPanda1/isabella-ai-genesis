@@ -30,9 +30,11 @@ function hash(value: unknown): string {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
-function similarity(a: string, b: string): number {
-  const left = new Set(normalize(a).split(/\W+/u).filter(Boolean));
-  const right = new Set(normalize(b).split(/\W+/u).filter(Boolean));
+function tokenize(text: string): Set<string> {
+  return new Set(normalize(text).split(/\W+/u).filter(Boolean));
+}
+
+function jaccard(left: Set<string>, right: Set<string>): number {
   if (left.size === 0 || right.size === 0) return 0;
   let intersection = 0;
   for (const token of left) if (right.has(token)) intersection += 1;
@@ -60,13 +62,28 @@ export function convergeTeacherObservations(
   if (clean.some((item) => !item.teacherId || !item.response))
     throw new Error("teacher_convergence_invalid_observation");
 
-  const scores = clean.map((candidate) => {
-    let similaritySum = 0;
-    for (const peer of clean) {
-      if (peer === candidate) continue;
-      similaritySum += similarity(candidate.response, peer.response);
+  // Tokenize each response once and reuse the symmetric pairs, keeping the
+  // per-candidate summation order identical to the original scan.
+  const tokenSets = clean.map((item) => tokenize(item.response));
+  const size = clean.length;
+  const similarityMatrix: number[][] = Array.from({ length: size }, () =>
+    new Array<number>(size).fill(0),
+  );
+  for (let i = 0; i < size; i++) {
+    for (let j = i + 1; j < size; j++) {
+      const value = jaccard(tokenSets[i]!, tokenSets[j]!);
+      similarityMatrix[i]![j] = value;
+      similarityMatrix[j]![i] = value;
     }
-    const agreement = similaritySum / (clean.length - 1);
+  }
+
+  const scores = clean.map((candidate, index) => {
+    let similaritySum = 0;
+    for (let i = 0; i < size; i++) {
+      if (i === index) continue;
+      similaritySum += similarityMatrix[index]![i]!;
+    }
+    const agreement = similaritySum / (size - 1);
     return { candidate, score: agreement * (0.5 + 0.5 * candidate.confidence) };
   });
   scores.sort((a, b) => b.score - a.score);

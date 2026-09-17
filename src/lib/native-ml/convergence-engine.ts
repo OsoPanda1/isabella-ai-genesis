@@ -59,13 +59,15 @@ function normalizedClaim(claim: string): string {
   return claim.normalize("NFKC").trim().toLocaleLowerCase("es-MX");
 }
 
-function cosineSimilarity(a: string, b: string): number {
-  const ta = new Set(normalizedClaim(a).split(/\s+/u).filter(Boolean));
-  const tb = new Set(normalizedClaim(b).split(/\s+/u).filter(Boolean));
-  if (!ta.size || !tb.size) return 0;
+function tokenizeClaim(claim: string): Set<string> {
+  return new Set(normalizedClaim(claim).split(/\s+/u).filter(Boolean));
+}
+
+function cosineFromSets(a: Set<string>, b: Set<string>): number {
+  if (!a.size || !b.size) return 0;
   let intersection = 0;
-  for (const token of ta) if (tb.has(token)) intersection++;
-  return intersection / Math.sqrt(ta.size * tb.size);
+  for (const token of a) if (b.has(token)) intersection++;
+  return intersection / Math.sqrt(a.size * b.size);
 }
 
 function unknownResult(
@@ -136,15 +138,29 @@ export function convergeKnowledge(
     return unknownResult("duplicate_teacher_identity_rejected", valid);
   }
 
+  // Tokenize every claim once and evaluate each pair a single time (symmetric
+  // similarity). This preserves the original summation order per index, so the
+  // deterministic scores are bit-for-bit identical to the previous O(n²) scan.
+  const tokenSets = valid.map((item) => tokenizeClaim(item.claim));
+  const size = valid.length;
+  const similarityMatrix: number[][] = Array.from({ length: size }, () =>
+    new Array<number>(size).fill(0),
+  );
+  for (let i = 0; i < size; i++) {
+    for (let j = i + 1; j < size; j++) {
+      const value = cosineFromSets(tokenSets[i]!, tokenSets[j]!);
+      similarityMatrix[i]![j] = value;
+      similarityMatrix[j]![i] = value;
+    }
+  }
+
   const scored = valid.map((observation, index) => {
     let similarity = 0;
-    let count = 0;
-    for (let i = 0; i < valid.length; i++) {
+    for (let i = 0; i < size; i++) {
       if (i === index) continue;
-      similarity += cosineSimilarity(observation.claim, valid[i]!.claim);
-      count++;
+      similarity += similarityMatrix[index]![i]!;
     }
-    const agreement = count ? similarity / count : 0;
+    const agreement = size > 1 ? similarity / (size - 1) : 0;
     const evidence = EVIDENCE_WEIGHT[observation.evidenceLevel];
     const score = clamp(
       0.38 * agreement +

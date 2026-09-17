@@ -20,6 +20,7 @@ const FEATURE_LABELS = [
 ] as const;
 const WEIGHTS = [1.8, 2.4, 1.1, 1.5];
 const BIAS = -2.2;
+const MAX_SCAN_CHARS = 32_000;
 
 function sigmoid(value: number): number {
   return 1 / (1 + Math.exp(-Math.max(-40, Math.min(40, value))));
@@ -28,6 +29,9 @@ function sigmoid(value: number): number {
 function hash(value: unknown): string {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
+
+// Constant for a given model version: computed once, not on every request.
+const MODEL_HASH = hash({ MODEL_VERSION, WEIGHTS, BIAS, FEATURE_LABELS });
 
 function normalizedTokens(input: string): Set<string> {
   return new Set(
@@ -44,7 +48,8 @@ function hasAny(tokens: Set<string>, values: readonly string[]): number {
 
 /** Deterministic, inspectable text classifier. It is a safety signal, never an authority decision. */
 export function classifyTextRisk(input: string, hooks: NativeMLHooks = {}): TextMLSignal {
-  const tokens = normalizedTokens(input);
+  const scanned = input.length > MAX_SCAN_CHARS ? input.slice(0, MAX_SCAN_CHARS) : input;
+  const tokens = normalizedTokens(scanned);
   const features = [
     hasAny(tokens, ["ignora", "override", "bypass", "system", "instrucciones"]),
     hasAny(tokens, ["secreto", "token", "password", "api", "key", "credencial"]),
@@ -53,7 +58,7 @@ export function classifyTextRisk(input: string, hooks: NativeMLHooks = {}): Text
   ];
   const logit = BIAS + features.reduce((sum, feature, index) => sum + feature * WEIGHTS[index]!, 0);
   const probability = sigmoid(logit);
-  const modelHash = hash({ MODEL_VERSION, WEIGHTS, BIAS, FEATURE_LABELS });
+  const modelHash = MODEL_HASH;
   const signal: TextMLSignal = {
     features,
     labels: FEATURE_LABELS.filter((_, index) => features[index] === 1),

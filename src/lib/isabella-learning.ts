@@ -70,17 +70,21 @@ export interface LearningStore {
   upsert(memory: LearningMemory): void;
   list(): LearningMemory[];
   get(id: string): LearningMemory | undefined;
+  getBySignature(signature: string): LearningMemory | undefined;
   replace(snapshot: LearningSnapshot): void;
   snapshot(): LearningSnapshot;
 }
 
 export class InMemoryLearningStore implements LearningStore {
   private readonly memories = new Map<string, LearningMemory>();
+  // signature → memory id, so dedupe on ingest is O(1) instead of a full scan.
+  private readonly signatureIndex = new Map<string, string>();
   private competence: Competence[] = [];
   private conceptWeights: Record<string, number> = {};
 
   upsert(memory: LearningMemory): void {
     this.memories.set(memory.id, { ...memory });
+    this.signatureIndex.set(memory.signature, memory.id);
   }
 
   list(): LearningMemory[] {
@@ -104,9 +108,18 @@ export class InMemoryLearningStore implements LearningStore {
       : undefined;
   }
 
+  getBySignature(signature: string): LearningMemory | undefined {
+    const id = this.signatureIndex.get(signature);
+    return id ? this.get(id) : undefined;
+  }
+
   replace(snapshot: LearningSnapshot): void {
     this.memories.clear();
-    for (const memory of snapshot.memories) this.memories.set(memory.id, { ...memory });
+    this.signatureIndex.clear();
+    for (const memory of snapshot.memories) {
+      this.memories.set(memory.id, { ...memory });
+      this.signatureIndex.set(memory.signature, memory.id);
+    }
     this.competence = snapshot.competence.map((item) => ({ ...item }));
     this.conceptWeights = { ...snapshot.conceptWeights };
   }
@@ -206,7 +219,7 @@ export class IsabellaLearningEngine {
     const preferences =
       example.mode === "preference" ? extractPreferences(example.input, example.target) : [];
     const signature = stableSignature(example, concepts);
-    const existing = this.store.list().find((memory) => memory.signature === signature);
+    const existing = this.store.getBySignature(signature);
     const now = new Date().toISOString();
     let memory: LearningMemory;
 

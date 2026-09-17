@@ -20,6 +20,16 @@ function hash(value: unknown): string {
 function sigmoid(x: number): number {
   return 1 / (1 + Math.exp(-Math.max(-40, Math.min(40, x))));
 }
+// The artifact hash only depends on the weights array identity and bias, so it
+// is memoized per weight vector instead of re-hashing on every prediction.
+const artifactHashByWeights = new WeakMap<number[], { bias: number; hash: string }>();
+function artifactHashOf(weights: number[], bias: number): string {
+  const cached = artifactHashByWeights.get(weights);
+  if (cached && Object.is(cached.bias, bias)) return cached.hash;
+  const artifactHash = hash({ weights, bias });
+  artifactHashByWeights.set(weights, { bias, hash: artifactHash });
+  return artifactHash;
+}
 function validateArtifact(model: ModelIdentity, artifact: ModelArtifact): void {
   if (
     !Number.isFinite(artifact.bias) ||
@@ -27,7 +37,7 @@ function validateArtifact(model: ModelIdentity, artifact: ModelArtifact): void {
     artifact.weights.some((v) => !Number.isFinite(v))
   )
     throw new Error("invalid_model_artifact");
-  const artifactHash = hash({ weights: artifact.weights, bias: artifact.bias });
+  const artifactHash = artifactHashOf(artifact.weights, artifact.bias);
   if (artifactHash !== model.modelHash || artifact.artifactHash !== artifactHash)
     throw new Error("model_artifact_hash_mismatch");
 }
@@ -124,7 +134,7 @@ export async function predictBinary(
   const artifact: ModelArtifact = {
     weights,
     bias,
-    artifactHash: hash({ weights, bias }),
+    artifactHash: artifactHashOf(weights, bias),
   };
   validateArtifact(model, artifact);
   if (features.some((row) => row.length !== weights.length || row.some((v) => !Number.isFinite(v))))

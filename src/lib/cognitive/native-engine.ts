@@ -207,12 +207,26 @@ export class NativeMLEngine {
   }
   anomaly(X: Vector[], z = 3): { scores: number[]; anomalies: boolean[] } {
     assertMatrix(X);
-    const mu = X[0].map((_, j) => mean(X.map((r) => r[j]))),
-      sd = X[0].map((_, j) => {
-        const m = mu[j];
-        return Math.sqrt(mean(X.map((r) => (r[j] - m) ** 2))) || 1;
-      });
-    const scores = X.map((r) => Math.sqrt(mean(r.map((v, j) => ((v - mu[j]) / sd[j]) ** 2))));
+    const rows = X.length;
+    const dims = X[0]!.length;
+    // Single pass for the mean and one for the variance: avoids allocating a
+    // temporary column array per feature (previous form built O(dims) arrays).
+    const mu = new Array<number>(dims).fill(0);
+    for (let i = 0; i < rows; i++) {
+      const row = X[i]!;
+      for (let j = 0; j < dims; j++) mu[j] += row[j]!;
+    }
+    for (let j = 0; j < dims; j++) mu[j] /= rows;
+    const variance = new Array<number>(dims).fill(0);
+    for (let i = 0; i < rows; i++) {
+      const row = X[i]!;
+      for (let j = 0; j < dims; j++) {
+        const delta = row[j]! - mu[j]!;
+        variance[j] += delta * delta;
+      }
+    }
+    const sd = variance.map((value) => Math.sqrt(value / rows) || 1);
+    const scores = X.map((r) => Math.sqrt(mean(r.map((v, j) => ((v - mu[j]!) / sd[j]!) ** 2))));
     return { scores, anomalies: scores.map((s) => s >= z) };
   }
   drift(
