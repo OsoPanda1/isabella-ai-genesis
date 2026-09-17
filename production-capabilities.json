@@ -1,7 +1,7 @@
 {
-  "version": "4.3.1",
-  "assessment_date": "2026-09-13T23:59:00Z",
-  "commit_sha": "fb4e5a7af5df5fb9471966d4f5af6d33736abfb6",
+  "version": "4.3.3",
+  "assessment_date": "2026-09-17T23:59:00Z",
+  "commit_sha": "6f6d3778e5e319d57a3898ec24a71ebae62ef148",
   "overall_readiness_percent": 68,
   "environment": "production",
   "capabilities": [
@@ -67,7 +67,7 @@
       "production_safe": false,
       "readiness_percent": 80,
       "evidence": ["eslint.config.js", "scripts/capability-matrix.mjs"],
-      "notes": "Release gate remains blocked until the reported capability-matrix formatting failures are objectively cleared by CI."
+      "notes": "Local lint is green (0 errors / 0 warnings) and the Nitro/Vercel preflight gate now validates the built .vercel/output artifact. CI sign-off remains pending because GitHub Actions execution is blocked by an account billing lock."
     },
     {
       "name": "database.migrations",
@@ -83,7 +83,7 @@
       "production_safe": false,
       "readiness_percent": 75,
       "evidence": [".github/workflows/ci.yml", ".github/workflows/fgais-gate.yml", "vercel.json"],
-      "notes": "Vercel deployment is currently pending verification on the hardened main branch."
+      "notes": "Workflows and vercel.json are hardened and the local production gate is green. GitHub Actions execution is currently blocked by an account billing lock (jobs never start, ~4s); Vercel deploys independently of GitHub Actions on push to main."
     },
     {
       "name": "ncua.v2_academic_pipeline",
