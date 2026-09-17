@@ -1,5 +1,6 @@
 import "./lib/error-capture";
 
+import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { createRequestContext, withRequestContext } from "./lib/request-context";
@@ -8,36 +9,16 @@ import { resolveTrustedClientIp } from "./lib/trusted-client-ip";
 import { validateStartupEnvironment } from "./lib/env-validator";
 import { initOpenTelemetry, withSpan, recordMetric } from "./lib/telemetry/otel-init";
 
-// Validación de variables de entorno al arranque y arranque de observabilidad OTel
 const envCheck = validateStartupEnvironment();
 if (!envCheck.valid && (envCheck.mode === "production" || envCheck.mode === "staging")) {
   console.error(
-    "🛑 [C.R.O.W.N. Startup Gate] Fallo crítico de validación de entorno:",
+    "[C.R.O.W.N. Startup Gate] Fallo crítico de validación de entorno:",
     envCheck.criticalMissing,
   );
 }
 initOpenTelemetry();
 
-type ServerEntry = {
-  fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
-};
-
-let serverEntryPromise: Promise<ServerEntry> | undefined;
-
-async function getServerEntry(): Promise<ServerEntry> {
-  if (!serverEntryPromise) {
-    serverEntryPromise = import("@tanstack/react-start/server-entry").then(
-      (m) => (m.default ?? m) as ServerEntry,
-    );
-  }
-  return serverEntryPromise;
-}
-
-export async function handleRequest(
-  request: Request,
-  env: unknown = {},
-  ctx: unknown = {},
-): Promise<Response> {
+export async function handleRequest(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const clientIp = resolveTrustedClientIp(request);
   const requestContext = createRequestContext({
@@ -45,6 +26,7 @@ export async function handleRequest(
     method: request.method,
     path: url.pathname,
   });
+
   const sanitizedHeaders = new Headers(request.headers);
   for (const header of [
     "x-forwarded-for",
@@ -53,9 +35,11 @@ export async function handleRequest(
     "x-real-ip",
     "cf-connecting-ip",
     "x-vercel-forwarded-for",
-  ])
+  ]) {
     sanitizedHeaders.delete(header);
+  }
   if (clientIp !== "unknown") sanitizedHeaders.set("x-real-ip", clientIp);
+
   let sanitizedRequest: Request;
   try {
     sanitizedRequest = new Request(request, { headers: sanitizedHeaders });
@@ -71,13 +55,13 @@ export async function handleRequest(
     }
     sanitizedRequest = new Request(request.url, init as RequestInit);
   }
-  return withRequestContext(requestContext, async () => {
-    return withSpan(
+
+  return withRequestContext(requestContext, () =>
+    withSpan(
       `HTTP ${request.method} ${url.pathname}`,
       async () => {
         try {
-          const handler = await getServerEntry();
-          const response = await handler.fetch(sanitizedRequest, env, ctx);
+          const response = await handler.fetch(sanitizedRequest);
 
           recordMetric({
             name: "http.server.requests",
@@ -110,7 +94,10 @@ export async function handleRequest(
           return withSecurityHeaders(
             new Response(renderErrorPage(), {
               status: 500,
-              headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
+              headers: {
+                "content-type": "text/html; charset=utf-8",
+                "cache-control": "no-store",
+              },
             }),
           );
         }
@@ -123,23 +110,30 @@ export async function handleRequest(
           "client.ip": clientIp,
         },
       },
-    );
-  });
+    ),
+  );
 }
 
-export default { fetch: handleRequest };
+export default createServerEntry({ fetch: handleRequest });
 
 async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
   if (response.status < 500) return response;
+
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) return response;
+
   const body = await response.clone().text();
   if (!isH3SwallowedErrorBody(body)) return response;
+
   const err = consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`);
   console.error(redact(err instanceof Error ? (err.stack ?? err.message) : String(err)));
+
   return new Response(renderErrorPage(), {
     status: 500,
-    headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+    },
   });
 }
 
@@ -157,6 +151,7 @@ export function withSecurityHeaders(response: Response): Response {
   const setIfMissing = (name: string, value: string) => {
     if (!headers.has(name)) headers.set(name, value);
   };
+
   setIfMissing("X-Content-Type-Options", "nosniff");
   setIfMissing("X-Frame-Options", "DENY");
   setIfMissing("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -165,6 +160,7 @@ export function withSecurityHeaders(response: Response): Response {
   setIfMissing("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   setIfMissing("Cross-Origin-Opener-Policy", "same-origin");
   setIfMissing("Cross-Origin-Resource-Policy", "same-origin");
+
   const production = process.env.NODE_ENV === "production";
   const scriptSource = production ? "'self'" : "'self' 'unsafe-inline'";
   const csp = [
@@ -181,8 +177,10 @@ export function withSecurityHeaders(response: Response): Response {
     `script-src ${scriptSource}`,
     "worker-src 'self' blob:",
   ].join("; ");
+
   setIfMissing("Content-Security-Policy", csp);
   if (production) headers.delete("Content-Security-Policy-Report-Only");
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
