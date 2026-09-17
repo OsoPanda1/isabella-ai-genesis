@@ -7,7 +7,9 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { Component, useEffect, type ErrorInfo, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import { IsabellaErrorBoundary } from "@/components/isabella/ErrorBoundary";
+import { EmergencyModeView } from "@/components/isabella/EmergencyModeView";
 
 import appCss from "../styles.css?inline";
 
@@ -42,37 +44,17 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
-      <section className="glass-strong w-full max-w-xl rounded-3xl p-8 text-center">
-        <p className="font-mono text-xs uppercase tracking-[0.24em] text-electric">
-          C.R.O.W.N. Recovery
-        </p>
-        <h1 className="mt-4 text-2xl font-semibold">Isabella encontró un error de montaje</h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          El servidor respondió, pero la ruta o uno de sus módulos no pudo montarse. El detalle
-          técnico permanece en los logs del runtime.
-        </p>
-        <div className="mt-6 flex justify-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              void router.invalidate();
-              reset();
-            }}
-            className="rounded-xl bg-primary px-5 py-3 font-mono text-xs uppercase tracking-wider text-primary-foreground"
-          >
-            Reintentar
-          </button>
-          <a
-            href="/api/health/live"
-            className="rounded-xl border border-border px-5 py-3 font-mono text-xs uppercase tracking-wider"
-          >
-            Health
-          </a>
-        </div>
-        <p className="mt-5 font-mono text-[10px] text-muted-foreground">CROWN-RENDER-01</p>
-      </section>
-    </main>
+    <EmergencyModeView
+      mode="critical_error"
+      errorDetails={{
+        code: "CROWN-RENDER-MOUNT-FAIL",
+        message: error.message || "Error crítico durante el montaje de la ruta raíz.",
+      }}
+      onRetry={() => {
+        void router.invalidate();
+        reset();
+      }}
+    />
   );
 }
 
@@ -114,58 +96,10 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-class ClientErrorBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean; message: string }
-> {
-  override state = { hasError: false, message: "" };
-
-  static getDerivedStateFromError(error: unknown) {
-    return {
-      hasError: true,
-      message: error instanceof Error ? error.message : "Error de renderizado del cliente",
-    };
-  }
-
-  override componentDidCatch(error: unknown, info: ErrorInfo) {
-    console.error("[Isabella] client render failure", {
-      error,
-      componentStack: info.componentStack,
-    });
-  }
-
-  override render() {
-    if (this.state.hasError) {
-      return (
-        <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
-          <section className="glass-strong w-full max-w-xl rounded-3xl p-8 text-center">
-            <p className="font-mono text-xs uppercase tracking-[0.24em] text-electric">
-              C.R.O.W.N. Recovery
-            </p>
-            <h1 className="mt-4 text-2xl font-semibold">La interfaz encontró un error</h1>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              El backend permanece protegido. Recarga la interfaz para reintentar el montaje.
-            </p>
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="mt-6 rounded-xl bg-primary px-5 py-3 font-mono text-xs uppercase tracking-wider text-primary-foreground"
-            >
-              Reintentar interfaz
-            </button>
-            <p className="mt-4 font-mono text-[10px] text-muted-foreground">CROWN-RENDER-01</p>
-          </section>
-        </main>
-      );
-    }
-    return this.props.children;
-  }
-}
-
 function RootComponent() {
   return (
-    <ClientErrorBoundary>
+    <IsabellaErrorBoundary>
       <Outlet />
-    </ClientErrorBoundary>
+    </IsabellaErrorBoundary>
   );
 }

@@ -184,7 +184,7 @@ export function createBookpiPostgresRepository() {
         );
         await client.query("COMMIT");
         return { success: true as const, block: mapRow(rows[0]!) };
-      } catch (err) {
+      } catch {
         await client.query("ROLLBACK");
         return { success: false as const, error: "Fallo transaccional" };
       } finally {
@@ -306,7 +306,7 @@ export function createBookpiPostgresRepository() {
 
         await client.query("COMMIT");
         return { success: true as const, blocks: results };
-      } catch (err) {
+      } catch {
         await client.query("ROLLBACK");
         return { success: false as const, error: "Fallo transaccional" };
       } finally {
@@ -429,7 +429,7 @@ export function createBookpiPostgresRepository() {
 
         await client.query("COMMIT");
         return { success: true, prunedCount };
-      } catch (err) {
+      } catch {
         await client.query("ROLLBACK");
         return { success: false, error: "Fallo transaccional", prunedCount: 0 };
       } finally {
@@ -468,7 +468,7 @@ export function createBookpiPostgresRepository() {
 
         await client.query("COMMIT");
         return { success: true, prunedTenants: tenantsToPrune };
-      } catch (err) {
+      } catch {
         await client.query("ROLLBACK");
         return {
           success: false,
@@ -573,7 +573,7 @@ export function createBookpiPostgresRepository() {
         );
         await client.query("COMMIT");
         return { success: true as const, block: mapRow(rows[0]!) };
-      } catch (err) {
+      } catch {
         await client.query("ROLLBACK");
         return {
           success: false as const,

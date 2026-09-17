@@ -1,7 +1,5 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { createHash } from "node:crypto";
-import { Evidence } from "../schemas/evidence.schema";
 import { Claim, DEFAULT_CLAIMS } from "../schemas/claim.schema";
 
 export interface GovernanceScannerConfig {

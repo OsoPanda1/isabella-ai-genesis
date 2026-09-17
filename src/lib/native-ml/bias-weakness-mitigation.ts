@@ -3,7 +3,7 @@
  * (src/lib/native-ml/bias-weakness-mitigation.ts)
  * ============================================================================
  * Ecosistema TAMV / RDM Digital Hub / Isabella Villaseñor AI v4.2.0
- * 
+ *
  * Funcionalidad:
  *  1. Escaneo en tiempo real de sesgos cognitivos (sycophancy, confirmation bias,
  *     sesgo territorial foráneo, condescendencia, falsa certidumbre).
@@ -20,7 +20,12 @@ import { type KnowledgeObservation, type ConvergenceResult } from "./convergence
 
 export interface BiasScanResult {
   detectedBiases: {
-    biasType: "sycophancy" | "foreign_territorial_drift" | "hallucination_spike" | "false_certainty" | "condescension";
+    biasType:
+      | "sycophancy"
+      | "foreign_territorial_drift"
+      | "hallucination_spike"
+      | "false_certainty"
+      | "condescension";
     severity: "low" | "medium" | "high";
     score: number; // 0 a 1
     evidence: string;
@@ -84,8 +89,10 @@ export class NativeBiasMitigator {
           biasType: "false_certainty",
           severity: "high",
           score: 0.88,
-          evidence: "Declaración dogmática o aserción de infalibilidad sin citación de evidencia E3/E4.",
-          mitigationApplied: "Modulación de certeza epistémica ('La evidencia disponible sugiere...', 'Bajo las condiciones observadas...').",
+          evidence:
+            "Declaración dogmática o aserción de infalibilidad sin citación de evidencia E3/E4.",
+          mitigationApplied:
+            "Modulación de certeza epistémica ('La evidencia disponible sugiere...', 'Bajo las condiciones observadas...').",
         });
         robustnessPenalty += 25;
         break;
@@ -99,8 +106,10 @@ export class NativeBiasMitigator {
           biasType: "foreign_territorial_drift",
           severity: "high",
           score: 0.81,
-          evidence: "Uso indebido de marcos jurisdiccionales extranjeros en contexto soberano de Hidalgo / México.",
-          mitigationApplied: "Anclaje territorial a la normativa y realidad socio-territorial de Real del Monte y legislación mexicana.",
+          evidence:
+            "Uso indebido de marcos jurisdiccionales extranjeros en contexto soberano de Hidalgo / México.",
+          mitigationApplied:
+            "Anclaje territorial a la normativa y realidad socio-territorial de Real del Monte y legislación mexicana.",
         });
         robustnessPenalty += 20;
         break;
@@ -114,8 +123,7 @@ export class NativeBiasMitigator {
       const confidences = observations.map((o) => o.confidence);
       const mean = confidences.reduce((a, b) => a + b, 0) / confidences.length;
       const variance =
-        confidences.reduce((acc, c) => acc + Math.pow(c - mean, 2), 0) /
-        confidences.length;
+        confidences.reduce((acc, c) => acc + Math.pow(c - mean, 2), 0) / confidences.length;
       varianceScore = Math.min(1.0, variance * 4.0);
 
       // Si la varianza entre profesores es alta y hay reclamos contradictorios
@@ -126,7 +134,8 @@ export class NativeBiasMitigator {
           severity: "high",
           score: varianceScore,
           evidence: "Dispersión significativa entre los nodos cognitivos (SOPHIA vs ORION).",
-          mitigationApplied: "Aplicación de consenso ponderado de Dirichlet y mediación de C.R.O.W.N.",
+          mitigationApplied:
+            "Aplicación de consenso ponderado de Dirichlet y mediación de C.R.O.W.N.",
         });
         robustnessPenalty += 30;
       }

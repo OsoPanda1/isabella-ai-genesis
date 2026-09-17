@@ -1,7 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createHash } from "node:crypto";
-import { Evidence } from "../schemas/evidence.schema";
 
 export interface SecurityScannerConfig {
   rootDir?: string;

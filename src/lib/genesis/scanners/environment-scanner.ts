@@ -1,9 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { createHash } from "node:crypto";
 import { z } from "zod";
-import { Evidence } from "../schemas/evidence.schema";
-import { Configuration } from "../graph/evidence-graph";
 import { EnvironmentFinding } from "../schemas/environment.schema";
 
 export interface EnvScannerConfig {

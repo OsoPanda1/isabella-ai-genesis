@@ -1,7 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createHash } from "node:crypto";
-import { Evidence } from "../schemas/evidence.schema";
 import { CodeArtifact } from "../graph/evidence-graph";
 
 export interface SourceScannerConfig {

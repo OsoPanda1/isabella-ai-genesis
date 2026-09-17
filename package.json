@@ -6,7 +6,9 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
-  "engines": {"node": ">=22 <25"},
+  "engines": {
+    "node": ">=22 <25"
+  },
   "scripts": {
     "dev": "node --env-file-if-exists=.env scripts/check-env.mjs && vite dev --host 0.0.0.0",
     "prebuild": "node scripts/check-client-env.mjs",
@@ -38,7 +40,7 @@
     "production:preflight": "node scripts/production-preflight.mjs",
     "production:integrity": "node scripts/production-integrity-gate.mjs",
     "production:evidence": "node scripts/production-evidence.mjs",
-    "production:gate": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm production:integrity && pnpm production:preflight && pnpm capabilities && pnpm audit:routes",
+    "production:gate": "npm run typecheck && npm run lint && npm run test && npm run build && npm run production:integrity && npm run production:preflight && npm run capabilities && npm run audit:routes",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -115,6 +117,8 @@
     "@firebase/eslint-plugin-security-rules": "^0.0.2",
     "@lovable.dev/vite-tanstack-config": "^2.14.0",
     "@prisma/client": "^5.22.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^22.16.5",
     "@types/pg": "^8.23.1",
     "@types/react": "^19.2.0",

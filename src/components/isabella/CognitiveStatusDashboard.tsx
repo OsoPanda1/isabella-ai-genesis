@@ -14,6 +14,7 @@ import {
   Filter,
 } from "lucide-react";
 import { toast } from "sonner";
+import { QuantumBridgeMonitor } from "@/components/quantum/QuantumBridgeMonitor";
 import metadata from "@/../metadata.json";
 
 interface CognitiveModule {
@@ -492,6 +493,10 @@ export function CognitiveStatusDashboard() {
             Metadatos (.json)
           </button>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <QuantumBridgeMonitor />
       </div>
 
       {activeTab === "modules" ? (

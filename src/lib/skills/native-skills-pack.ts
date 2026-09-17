@@ -1,4 +1,10 @@
-import { createAuditEvent, nowIso, type IsabellaSkill, type SkillContext, type SkillResult } from "./contracts";
+import {
+  createAuditEvent,
+  nowIso,
+  type IsabellaSkill,
+  type SkillContext,
+  type SkillResult,
+} from "./contracts";
 
 /**
  * Native capability pack derived from external skill patterns.
@@ -37,7 +43,12 @@ function result(
     evidence: context.evidence ?? [],
     warnings: data.warnings,
     auditEvents: [
-      createAuditEvent("SKILL_COMPLETED", skillId, { execution: data.execution, status: data.status }, context.actorId),
+      createAuditEvent(
+        "SKILL_COMPLETED",
+        skillId,
+        { execution: data.execution, status: data.status },
+        context.actorId,
+      ),
     ],
     requiresHumanReview: status === "ESCALATED" || status === "BLOCKED",
   };
@@ -53,7 +64,8 @@ export const NATIVE_FRONTEND_DESIGN: IsabellaSkill<Record<string, unknown>, Nati
   version: "1.0.0",
   federation: "INFRASTRUCTURE",
   risk: "LOW",
-  description: "Sistema de diseño deliberado para interfaces Isabella: propósito, composición, tipografía, tokens, motion y accesibilidad.",
+  description:
+    "Sistema de diseño deliberado para interfaces Isabella: propósito, composición, tipografía, tokens, motion y accesibilidad.",
   canRun: commonCanRun,
   async run(input, context) {
     return result(this.id, context, {
@@ -81,7 +93,8 @@ export const NATIVE_WEB_DESIGN_GUIDELINES: IsabellaSkill<Record<string, unknown>
   version: "1.0.0",
   federation: "INFRASTRUCTURE",
   risk: "LOW",
-  description: "Auditoría nativa de interfaz y accesibilidad basada en reglas verificables de interacción, contenido y responsive design.",
+  description:
+    "Auditoría nativa de interfaz y accesibilidad basada en reglas verificables de interacción, contenido y responsive design.",
   canRun: commonCanRun,
   async run(input, context) {
     return result(this.id, context, {
@@ -109,11 +122,20 @@ export const NATIVE_CAVEMAN: IsabellaSkill<Record<string, unknown>, NativeOutput
   version: "1.0.0",
   federation: "EDUCATION",
   risk: "LOW",
-  description: "Modo de comunicación de baja verbosidad que conserva números, restricciones, código y negaciones.",
+  description:
+    "Modo de comunicación de baja verbosidad que conserva números, restricciones, código y negaciones.",
   canRun: commonCanRun,
   async run(input, context) {
     const mode = String(input.mode ?? "full");
-    const allowed = new Set(["lite", "full", "ultra", "wenyan-lite", "wenyan-full", "wenyan-ultra", "off"]);
+    const allowed = new Set([
+      "lite",
+      "full",
+      "ultra",
+      "wenyan-lite",
+      "wenyan-full",
+      "wenyan-ultra",
+      "off",
+    ]);
     return result(this.id, context, {
       capability: "caveman",
       version: this.version,
@@ -138,7 +160,8 @@ export const NATIVE_PRISMA_CLIENT_API: IsabellaSkill<Record<string, unknown>, Na
   version: "1.0.0",
   federation: "INFRASTRUCTURE",
   risk: "HIGH",
-  description: "Contrato nativo para CRUD, filtros, relaciones y transacciones Prisma sobre la autoridad PostgreSQL.",
+  description:
+    "Contrato nativo para CRUD, filtros, relaciones y transacciones Prisma sobre la autoridad PostgreSQL.",
   canRun: commonCanRun,
   async run(input, context) {
     return result(this.id, context, {
@@ -166,7 +189,8 @@ export const NATIVE_PRISMA_CLI: IsabellaSkill<Record<string, unknown>, NativeOut
   version: "1.0.0",
   federation: "INFRASTRUCTURE",
   risk: "HIGH",
-  description: "Operación controlada de Prisma para generación, validación y migraciones reproducibles.",
+  description:
+    "Operación controlada de Prisma para generación, validación y migraciones reproducibles.",
   canRun: commonCanRun,
   async run(input, context) {
     return result(this.id, context, {
@@ -222,7 +246,8 @@ export const NATIVE_PRISMA_POSTGRES: IsabellaSkill<Record<string, unknown>, Nati
   version: "1.0.0",
   federation: "INFRASTRUCTURE",
   risk: "HIGH",
-  description: "Gobierno de conexiones PostgreSQL, regiones, migraciones y operación durable sin una segunda fuente de verdad.",
+  description:
+    "Gobierno de conexiones PostgreSQL, regiones, migraciones y operación durable sin una segunda fuente de verdad.",
   canRun: commonCanRun,
   async run(input, context) {
     return result(this.id, context, {
@@ -244,9 +269,15 @@ export const NATIVE_PRISMA_POSTGRES: IsabellaSkill<Record<string, unknown>, Nati
   },
 };
 
-const MEDIA_PROVIDER_WARNING = "Render real requiere un proveedor de medios configurado. Esta skill no fabrica MP4, audio, imagen ni avatar.";
+const MEDIA_PROVIDER_WARNING =
+  "Render real requiere un proveedor de medios configurado. Esta skill no fabrica MP4, audio, imagen ni avatar.";
 
-function mediaSkill(id: string, name: string, description: string, providerRequired = true): IsabellaSkill<Record<string, unknown>, NativeOutput> {
+function mediaSkill(
+  id: string,
+  name: string,
+  description: string,
+  providerRequired = true,
+): IsabellaSkill<Record<string, unknown>, NativeOutput> {
   return {
     id,
     name,
@@ -267,7 +298,9 @@ function mediaSkill(id: string, name: string, description: string, providerRequi
           "Crear brief durable y conservar procedencia de assets.",
           "Validar relaciones de aspecto, duración, texto, safe zones y accesibilidad.",
           "Construir manifest determinista y composición verificable.",
-          providerRequired ? "Enviar a renderer/proveedor externo solo después del gate humano." : "Usar renderer nativo disponible.",
+          providerRequired
+            ? "Enviar a renderer/proveedor externo solo después del gate humano."
+            : "Usar renderer nativo disponible.",
         ],
         artifacts: ["media-brief", "storyboard", "composition-manifest"],
         evidencePolicy: "repo-and-runtime-only",
@@ -277,13 +310,41 @@ function mediaSkill(id: string, name: string, description: string, providerRequi
   };
 }
 
-export const NATIVE_PRODUCT_LAUNCH_VIDEO = mediaSkill("product-launch-video", "Isabella Native Product Launch Video", "Pipeline estructurada para lanzamiento de producto con brief, storyboard, audio, composición y render.");
-export const NATIVE_MOTION_GRAPHICS = mediaSkill("motion-graphics", "Isabella Native Motion Graphics", "Pipeline breve de motion graphics orientada a diseño y mensaje visual.");
-export const NATIVE_FACELESS_EXPLAINER = mediaSkill("faceless-explainer", "Isabella Native Faceless Explainer", "Pipeline de explicación audiovisual desde texto, storyboard y composición.");
-export const NATIVE_TALKING_HEAD_RECUT = mediaSkill("talking-head-recut", "Isabella Native Talking Head Recut", "Capas gráficas sincronizadas sobre video existente, separadas de captions.");
-export const NATIVE_EMBEDDED_CAPTIONS = mediaSkill("embedded-captions", "Isabella Native Embedded Captions", "Composición de subtítulos legibles con safe zones y opción de embed cinematográfico.");
-export const NATIVE_AI_VIDEO_GENERATION = mediaSkill("ai-video-generation", "Isabella Native AI Video Generation", "Contrato de generación de video multimodelo con provider gate, trazabilidad y artefactos.");
-export const NATIVE_AI_IMAGE_GENERATION = mediaSkill("ai-image-generation", "Isabella Native AI Image Generation", "Contrato de generación de imágenes con briefing, restricciones de marca, provenance y provider gate.");
+export const NATIVE_PRODUCT_LAUNCH_VIDEO = mediaSkill(
+  "product-launch-video",
+  "Isabella Native Product Launch Video",
+  "Pipeline estructurada para lanzamiento de producto con brief, storyboard, audio, composición y render.",
+);
+export const NATIVE_MOTION_GRAPHICS = mediaSkill(
+  "motion-graphics",
+  "Isabella Native Motion Graphics",
+  "Pipeline breve de motion graphics orientada a diseño y mensaje visual.",
+);
+export const NATIVE_FACELESS_EXPLAINER = mediaSkill(
+  "faceless-explainer",
+  "Isabella Native Faceless Explainer",
+  "Pipeline de explicación audiovisual desde texto, storyboard y composición.",
+);
+export const NATIVE_TALKING_HEAD_RECUT = mediaSkill(
+  "talking-head-recut",
+  "Isabella Native Talking Head Recut",
+  "Capas gráficas sincronizadas sobre video existente, separadas de captions.",
+);
+export const NATIVE_EMBEDDED_CAPTIONS = mediaSkill(
+  "embedded-captions",
+  "Isabella Native Embedded Captions",
+  "Composición de subtítulos legibles con safe zones y opción de embed cinematográfico.",
+);
+export const NATIVE_AI_VIDEO_GENERATION = mediaSkill(
+  "ai-video-generation",
+  "Isabella Native AI Video Generation",
+  "Contrato de generación de video multimodelo con provider gate, trazabilidad y artefactos.",
+);
+export const NATIVE_AI_IMAGE_GENERATION = mediaSkill(
+  "ai-image-generation",
+  "Isabella Native AI Image Generation",
+  "Contrato de generación de imágenes con briefing, restricciones de marca, provenance y provider gate.",
+);
 
 export const NATIVE_SKILLS_PACK = {
   "frontend-design": NATIVE_FRONTEND_DESIGN,

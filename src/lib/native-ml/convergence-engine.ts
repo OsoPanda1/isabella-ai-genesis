@@ -68,7 +68,10 @@ function cosineSimilarity(a: string, b: string): number {
   return intersection / Math.sqrt(ta.size * tb.size);
 }
 
-function unknownResult(reason: string, observations: readonly KnowledgeObservation[]): ConvergenceResult {
+function unknownResult(
+  reason: string,
+  observations: readonly KnowledgeObservation[],
+): ConvergenceResult {
   const participatingTeachers = observations.map((item) => item.teacherId).filter(Boolean);
   const rationale = [reason, "No se fabricó ni aceptó evidencia sintética como segundo maestro."];
   return {
@@ -83,7 +86,10 @@ function unknownResult(reason: string, observations: readonly KnowledgeObservati
     participatingTeachers,
     rejectedTeachers: [],
     rationale,
-    resultHash: hash({ reason, observations: observations.map((item) => item.provenanceHash).sort() }),
+    resultHash: hash({
+      reason,
+      observations: observations.map((item) => item.provenanceHash).sort(),
+    }),
   };
 }
 
@@ -118,7 +124,9 @@ export function convergeKnowledge(
   );
   if (valid.length < 2) return unknownResult("insufficient_valid_observations", valid);
 
-  const syntheticValidatorObservations = valid.filter((item) => /(?:^|_)validator(?:_|$)/u.test(item.teacherId));
+  const syntheticValidatorObservations = valid.filter((item) =>
+    /(?:^|_)validator(?:_|$)/u.test(item.teacherId),
+  );
   if (syntheticValidatorObservations.length > 0) {
     return unknownResult("synthetic_validator_observation_rejected", valid);
   }

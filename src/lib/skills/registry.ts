@@ -18,20 +18,52 @@ export type RuntimeSkill = {
   readonly risk: import("./contracts").SkillRisk;
   readonly description: string;
   canRun(input: Record<string, unknown>, context: import("./contracts").SkillContext): boolean;
-  run(input: Record<string, unknown>, context: import("./contracts").SkillContext): Promise<import("./contracts").SkillResult<unknown>>;
+  run(
+    input: Record<string, unknown>,
+    context: import("./contracts").SkillContext,
+  ): Promise<import("./contracts").SkillResult<unknown>>;
 };
 
 const nativeFusedEvolvedSkills = Object.fromEntries(
   Object.values(evolvedSkillsPack).map((skill) => [
     skill.id,
-    createNativeFusedSkill({ id: skill.id, name: skill.name, version: skill.version, federation: skill.federation, risk: skill.risk, description: skill.description }),
+    createNativeFusedSkill({
+      id: skill.id,
+      name: skill.name,
+      version: skill.version,
+      federation: skill.federation,
+      risk: skill.risk,
+      description: skill.description,
+    }),
   ]),
 ) as Record<string, RuntimeSkill>;
 
 export const isabellaSkills = {
-  ORION, SOPHIA, ARGUS, HERMES, ATLAS, ANUBIS, GEMET, AURORA, CITEMESH, MNEMOSYNE,
-  HELIOS, GAIA, NODO_CERO, CHRONOS, VIGIA, LYRA, PROMETEO, THEMIS, PHAROS, KAIROS,
-  HEPHAESTUS, EIRENE, SENTINEL, UTAMV, HEPTA,
+  ORION,
+  SOPHIA,
+  ARGUS,
+  HERMES,
+  ATLAS,
+  ANUBIS,
+  GEMET,
+  AURORA,
+  CITEMESH,
+  MNEMOSYNE,
+  HELIOS,
+  GAIA,
+  NODO_CERO,
+  CHRONOS,
+  VIGIA,
+  LYRA,
+  PROMETEO,
+  THEMIS,
+  PHAROS,
+  KAIROS,
+  HEPHAESTUS,
+  EIRENE,
+  SENTINEL,
+  UTAMV,
+  HEPTA,
   ...evolvedSkillsPack,
   ...nativeFusedEvolvedSkills,
   "firecrawl-market-research": nativeFusedEvolvedSkills["firecrawl-market-research"],
@@ -69,15 +101,30 @@ export function getIsabellaSkill(id: IsabellaSkillId) {
 
 export function listIsabellaSkills() {
   const seen = new Set<string>();
-  const unique: Array<{ id: string; name: string; version: string; federation: import("./contracts").FederationId; risk: import("./contracts").SkillRisk; description: string }> = [];
+  const unique: Array<{
+    id: string;
+    name: string;
+    version: string;
+    federation: import("./contracts").FederationId;
+    risk: import("./contracts").SkillRisk;
+    description: string;
+  }> = [];
   for (const skill of Object.values(isabellaSkills)) {
     if (!skill || typeof skill !== "object") continue;
     if (!seen.has(skill.id)) {
       seen.add(skill.id);
-      unique.push({ id: skill.id, name: skill.name, version: skill.version, federation: skill.federation, risk: skill.risk, description: skill.description });
+      unique.push({
+        id: skill.id,
+        name: skill.name,
+        version: skill.version,
+        federation: skill.federation,
+        risk: skill.risk,
+        description: skill.description,
+      });
     }
   }
   return unique;
 }
 
-export const getRuntimeSkill = (id: IsabellaSkillId): RuntimeSkill => isabellaSkills[id] as unknown as RuntimeSkill;
+export const getRuntimeSkill = (id: IsabellaSkillId): RuntimeSkill =>
+  isabellaSkills[id] as unknown as RuntimeSkill;

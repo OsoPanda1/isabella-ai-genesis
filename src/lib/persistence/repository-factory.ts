@@ -33,7 +33,9 @@ class ProductionRepositoryFactory implements RepositoryFactory {
       if (typeof cfg.DURABLE_JSON_ALLOWED === "boolean") return cfg.DURABLE_JSON_ALLOWED as boolean;
       if (typeof cfg.DURABLE_JSON_ALLOWED === "string")
         return (cfg.DURABLE_JSON_ALLOWED as string) === "true";
-    } catch {}
+    } catch {
+      // Ignored
+    }
     return false;
   }
 

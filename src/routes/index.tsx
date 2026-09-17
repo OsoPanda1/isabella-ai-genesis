@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
+import { EmergencyModeView } from "@/components/isabella/EmergencyModeView";
 
 const IsabellaClientApp = lazy(() => import("@/components/isabella/IsabellaClientApp"));
 
@@ -59,6 +60,74 @@ function LandingFallback() {
 }
 
 function Index() {
+  const [emergencyState, setEmergencyState] = useState<{
+    active: boolean;
+    mode: "emergency" | "maintenance";
+    message?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    // 1. Revisar si la URL o el entorno fuerza modo de emergencia o mantenimiento
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const forcedMode = params.get("mode");
+      if (forcedMode === "emergency" || forcedMode === "maintenance") {
+        setEmergencyState({
+          active: true,
+          mode: forcedMode,
+          message: `Activado explícitamente por política de contingencia (${forcedMode}).`,
+        });
+        return;
+      }
+    }
+
+    // 2. Comprobar salud del backend de forma no bloqueante para detectar estado de mantenimiento o caída
+    let isSubscribed = true;
+    fetch("/api/health/ready", { signal: AbortSignal.timeout(2500) })
+      .then(async (res) => {
+        if (!isSubscribed) return;
+        if (res.status === 503) {
+          const data = (await res.json().catch(() => ({}))) as {
+            checks?: { runtimeMode?: { ok?: boolean }; config?: { ok?: boolean } };
+            status?: string;
+          };
+          if (data.status === "maintenance") {
+            setEmergencyState({
+              active: true,
+              mode: "maintenance",
+              message: "El backend ha ingresado a ventana de mantenimiento programado.",
+            });
+          }
+        }
+      })
+      .catch(() => {
+        // Red resiliente: no forzar emergencia en red lenta local
+      });
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, []);
+
+  if (emergencyState?.active) {
+    return (
+      <EmergencyModeView
+        mode={emergencyState.mode}
+        errorDetails={{
+          code: emergencyState.mode === "maintenance" ? "SOVCON-MAINT-WINDOW" : "SOVCON-CRITICAL-VETO",
+          message: emergencyState.message,
+        }}
+        onRetry={() => {
+          if (typeof window !== "undefined") {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("mode");
+            window.location.href = url.pathname;
+          }
+        }}
+      />
+    );
+  }
+
   return (
     <ClientOnly fallback={<LandingFallback />}>
       <Suspense fallback={<LandingFallback />}>
@@ -67,3 +136,4 @@ function Index() {
     </ClientOnly>
   );
 }
+

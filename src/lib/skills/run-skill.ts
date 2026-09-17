@@ -36,7 +36,10 @@ export async function runIsabellaSkill(
 
   try {
     if (!subjectId || !tenantId || !context.role || context.authenticated === undefined) {
-      throw new SecurityError("IDENTITY_REQUIRED", "Ejecución denegada: identidad explícita requerida.");
+      throw new SecurityError(
+        "IDENTITY_REQUIRED",
+        "Ejecución denegada: identidad explícita requerida.",
+      );
     }
 
     const validatedInput = validateSkillInput(skillId, input);
@@ -56,7 +59,8 @@ export async function runIsabellaSkill(
 
     const decision = await evaluateAuthorization(authContext);
     decisionId = decision.decision_id;
-    if (!decision.allow) throw new SecurityError("CROWN_POLICY_DENY", "Acceso denegado por política centralizada.");
+    if (!decision.allow)
+      throw new SecurityError("CROWN_POLICY_DENY", "Acceso denegado por política centralizada.");
 
     const skill = isabellaSkills[skillId];
     if (!skill) throw new SecurityError("TOOL_NOT_FOUND", `Skill '${skillId}' no registrado.`);
@@ -72,12 +76,12 @@ export async function runIsabellaSkill(
 
     if (
       skill.canRun &&
-      !(skill.canRun as (input: unknown, ctx: unknown) => boolean)(
-        validatedInput,
-        skillContext,
-      )
+      !(skill.canRun as (input: unknown, ctx: unknown) => boolean)(validatedInput, skillContext)
     ) {
-      throw new SecurityError("CROWN_OBLIGATION_FAILURE", "El input no satisface los prerrequisitos del skill.");
+      throw new SecurityError(
+        "CROWN_OBLIGATION_FAILURE",
+        "El input no satisface los prerrequisitos del skill.",
+      );
     }
 
     const skillResult = await skill.run(validatedInput as never, skillContext);
@@ -88,7 +92,9 @@ export async function runIsabellaSkill(
     // result explicitly declares a measured `billableCostUsd` value.
     const outputRecord = skillResult.data as Record<string, unknown> | null;
     const billableCostUsd =
-      outputRecord && typeof outputRecord.billableCostUsd === "number" && Number.isFinite(outputRecord.billableCostUsd)
+      outputRecord &&
+      typeof outputRecord.billableCostUsd === "number" &&
+      Number.isFinite(outputRecord.billableCostUsd)
         ? Math.max(0, outputRecord.billableCostUsd)
         : 0;
 
@@ -102,7 +108,8 @@ export async function runIsabellaSkill(
       status: "settled",
     });
 
-    if (!blockRes.success) throw new SecurityError("AUDIT_WRITE_FAILED", "Fallo al registrar evidencia en BookPI.");
+    if (!blockRes.success)
+      throw new SecurityError("AUDIT_WRITE_FAILED", "Fallo al registrar evidencia en BookPI.");
 
     return {
       meta: {
@@ -119,7 +126,9 @@ export async function runIsabellaSkill(
   } catch (err: unknown) {
     const isSecurityError = err instanceof SecurityError;
     const errorCode = isSecurityError ? err.code : "SYSTEM_INTERNAL_ERROR";
-    const publicMessage = isSecurityError ? err.message : "Error interno de procesamiento cognitivo.";
+    const publicMessage = isSecurityError
+      ? err.message
+      : "Error interno de procesamiento cognitivo.";
     console.error(`[Pipeline Error] [${traceId}]`, err);
     return {
       meta: {
@@ -142,7 +151,10 @@ export async function runIsabellaSkill(
 }
 
 class SecurityError extends Error {
-  constructor(public code: string, message: string) {
+  constructor(
+    public code: string,
+    message: string,
+  ) {
     super(message);
     this.name = "SecurityError";
   }

@@ -17,10 +17,20 @@ import { SimHashLshIndex } from "./lsh";
 import { NativeIntentClassifier, seedRdmIntents } from "./intent";
 import { SovereignKnowledgeGraph, seedRdmKnowledgeGraph } from "./kg";
 import { PrivacyBudget } from "./privacy";
-import { FederationController, FederatedAttentionBridge, type FederationContext } from "./federations";
+import {
+  FederationController,
+  FederatedAttentionBridge,
+  type FederationContext,
+} from "./federations";
 import { measureOnCorpus, type MeasuredMetrics } from "./metrics";
 
-export interface AuditRecord { step: number; stepName: string; hash: string; prevHash: string; data: unknown; }
+export interface AuditRecord {
+  step: number;
+  stepName: string;
+  hash: string;
+  prevHash: string;
+  data: unknown;
+}
 export interface PipelineRunOptions {
   productionLike?: boolean;
   hasProvider?: boolean;
@@ -35,8 +45,19 @@ export interface PipelineRunOptions {
 export interface PipelineRunResult {
   id: string;
   inference: ReturnType<typeof resolveInferencePolicy>;
-  federations: { votesApproved: boolean; vetoActive: boolean; consensusScore: number; approveVotes: number };
-  attention: { consensusApproved: boolean; consensusScore: number; activeFederations: number; vetoFederations: string[]; attentionWeighted: boolean };
+  federations: {
+    votesApproved: boolean;
+    vetoActive: boolean;
+    consensusScore: number;
+    approveVotes: number;
+  };
+  attention: {
+    consensusApproved: boolean;
+    consensusScore: number;
+    activeFederations: number;
+    vetoFederations: string[];
+    attentionWeighted: boolean;
+  };
   memory: { hits: number; topHit: string | null; exact: boolean };
   knowledge: { groundedFacts: number; narrative: string };
   intent: { detected: string; confidence: number; margin: number };
@@ -53,7 +74,8 @@ export interface PipelineRunResult {
 }
 
 const EMAIL_PATTERN = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
-const DIRECTIVE_PATTERN = /(?:ignore|forget|omite|ignora|olvida)[^\n]{0,24}(?:previous|prior|above|instrucciones?)/i;
+const DIRECTIVE_PATTERN =
+  /(?:ignore|forget|omite|ignora|olvida)[^\n]{0,24}(?:previous|prior|above|instrucciones?)/i;
 const MEMORY_INDEX_DIM = 192;
 let cachedKnowledgeGraph: SovereignKnowledgeGraph | undefined;
 let cachedClassifier: NativeIntentClassifier | undefined;
@@ -72,7 +94,8 @@ function corpusKey(corpus: Array<{ id: string; text: string }>): string {
 function getMemoryIndex(corpus: Array<{ id: string; text: string }>): SimHashLshIndex | undefined {
   if (corpus.length === 0) return undefined;
   const key = corpusKey(corpus);
-  if (cachedMemoryIndex && cachedMemoryKey === key && cachedMemorySize === corpus.length) return cachedMemoryIndex;
+  if (cachedMemoryIndex && cachedMemoryKey === key && cachedMemorySize === corpus.length)
+    return cachedMemoryIndex;
   const index = new SimHashLshIndex({ dim: MEMORY_INDEX_DIM });
   for (const doc of corpus) if (doc.text) index.add(doc, doc.text);
   cachedMemoryKey = key;
@@ -103,17 +126,31 @@ function hasCardLikeNumber(text: string): boolean {
   return false;
 }
 
-function sha256(input: string): string { return createHash("sha256").update(input).digest("hex"); }
+function sha256(input: string): string {
+  return createHash("sha256").update(input).digest("hex");
+}
 
 function riskAssessment(text: string): { detected: boolean; reason: string | null } {
   const lower = text.toLowerCase();
-  if (EMAIL_PATTERN.test(text)) return { detected: true, reason: "dato personal (correo) detectado: respuesta negada; no se persiste" };
-  if (hasCardLikeNumber(text)) return { detected: true, reason: "dato financiero (tarjeta) detectado: respuesta negada; no se persiste" };
-  if (DIRECTIVE_PATTERN.test(lower)) return { detected: true, reason: "posible inyección de directivas: respuesta negada" };
+  if (EMAIL_PATTERN.test(text))
+    return {
+      detected: true,
+      reason: "dato personal (correo) detectado: respuesta negada; no se persiste",
+    };
+  if (hasCardLikeNumber(text))
+    return {
+      detected: true,
+      reason: "dato financiero (tarjeta) detectado: respuesta negada; no se persiste",
+    };
+  if (DIRECTIVE_PATTERN.test(lower))
+    return { detected: true, reason: "posible inyección de directivas: respuesta negada" };
   return { detected: false, reason: null };
 }
 
-export function runNativePipeline(text: string, options: PipelineRunOptions = {}): PipelineRunResult {
+export function runNativePipeline(
+  text: string,
+  options: PipelineRunOptions = {},
+): PipelineRunResult {
   const productionLike = options.productionLike ?? false;
   const hasProvider = options.hasProvider ?? false;
   const id = randomUUID();
@@ -129,16 +166,36 @@ export function runNativePipeline(text: string, options: PipelineRunOptions = {}
   const inputBytesLimit = options.inputBytesLimit ?? 8192;
   const perLiveEntry = byteLengthOf(text);
   const validUtf8 = decodeUtf8(encodeUtf8(text)) === text;
-  pushStep("percepción", { id, inputBytes: perLiveEntry, withinBudget: perLiveEntry <= inputBytesLimit, validUtf8, encoding: "utf-8", chunks: chunkBytes(encodeUtf8(text), 32).length });
+  pushStep("percepción", {
+    id,
+    inputBytes: perLiveEntry,
+    withinBudget: perLiveEntry <= inputBytesLimit,
+    validUtf8,
+    encoding: "utf-8",
+    chunks: chunkBytes(encodeUtf8(text), 32).length,
+  });
   if (perLiveEntry > inputBytesLimit) {
     const inference = resolveInferencePolicy({ productionLike, hasProvider });
-    return buildResult(id, inference, chain, options, null, "Entrada excede el presupuesto de cómputo de la federación F3.", 413);
+    return buildResult(
+      id,
+      inference,
+      chain,
+      options,
+      null,
+      "Entrada excede el presupuesto de cómputo de la federación F3.",
+      413,
+    );
   }
 
   const vector = embed(text);
   pushStep("representación continua", { dim: vector.length, norm: magnitudeOf(vector) });
   const latent = compressToLatent(text, { chunkSize: 32 });
-  pushStep("proyección latente", { latentDim: latent.latentDim, numChunks: latent.numChunks, totalBytes: latent.totalBytes, bytesPerChunk: latent.bytesPerChunk });
+  pushStep("proyección latente", {
+    latentDim: latent.latentDim,
+    numChunks: latent.numChunks,
+    totalBytes: latent.totalBytes,
+    bytesPerChunk: latent.bytesPerChunk,
+  });
 
   const memoryCorpus = options.memoryCorpus ?? [];
   const index = getMemoryIndex(memoryCorpus);
@@ -155,36 +212,83 @@ export function runNativePipeline(text: string, options: PipelineRunOptions = {}
   }
   pushStep("memoria LSH", { corpusSize: memoryCorpus.length, hits: topHit ? 1 : 0, exact });
 
-  const knowledgeGraph = options.knowledgeGraph ?? (cachedKnowledgeGraph ??= seedRdmKnowledgeGraph());
+  const knowledgeGraph =
+    options.knowledgeGraph ?? (cachedKnowledgeGraph ??= seedRdmKnowledgeGraph());
   const narrative = knowledgeGraph.createNarrative(text, { topK: 3, minScore: 0.2 });
   pushStep("fundamentación", { groundedFacts: narrative.groundedFacts });
 
   const classifier = options.classifier ?? (cachedClassifier ??= seedRdmIntents());
   const prediction = classifier.predict(text);
-  pushStep("intención", { intent: prediction.intent, confidence: prediction.confidence, margin: prediction.margin });
+  pushStep("intención", {
+    intent: prediction.intent,
+    confidence: prediction.confidence,
+    margin: prediction.margin,
+  });
 
-  const controller = new FederationController({ consensusThreshold: options.consensusThreshold ?? 0.7 });
+  const controller = new FederationController({
+    consensusThreshold: options.consensusThreshold ?? 0.7,
+  });
   const context: FederationContext = {
-    inputBytesLength: perLiveEntry, intent: prediction.intent, confidence: prediction.confidence,
-    groundedFacts: narrative.groundedFacts, memoryHits: topHit ? 1 : 0, wantPrivileged: false,
-    wantEgress: false, wantExecution: false, authorshipApproved: true, tenantBoundaryOk: true,
-    principalPresent: true, capabilityTokenPresent: false, sandboxAllowed: true,
+    inputBytesLength: perLiveEntry,
+    intent: prediction.intent,
+    confidence: prediction.confidence,
+    groundedFacts: narrative.groundedFacts,
+    memoryHits: topHit ? 1 : 0,
+    wantPrivileged: false,
+    wantEgress: false,
+    wantExecution: false,
+    authorshipApproved: true,
+    tenantBoundaryOk: true,
+    principalPresent: true,
+    capabilityTokenPresent: false,
+    sandboxAllowed: true,
   };
   const consensus = controller.evaluate(context);
-  pushStep("heptafederación", { votes: consensus.votes.map((vote) => ({ id: vote.id, approved: vote.approved, veto: vote.veto, score: vote.score })), approved: consensus.approved, vetoActive: consensus.vetoActive });
+  pushStep("heptafederación", {
+    votes: consensus.votes.map((vote) => ({
+      id: vote.id,
+      approved: vote.approved,
+      veto: vote.veto,
+      score: vote.score,
+    })),
+    approved: consensus.approved,
+    vetoActive: consensus.vetoActive,
+  });
 
-  const bridge = new FederatedAttentionBridge({ autoencoderLatentDim: vector.length, consensusThreshold: options.consensusThreshold ?? 0.7 });
+  const bridge = new FederatedAttentionBridge({
+    autoencoderLatentDim: vector.length,
+    consensusThreshold: options.consensusThreshold ?? 0.7,
+  });
   const attention = bridge.forward(latent.chunks.map((chunk) => chunk.vector));
-  pushStep("atención cruzada", { consensusApproved: attention.consensusApproved, consensusScore: attention.consensusScore, activeFederations: Array.from(attention.activeFederations).reduce((sum, value) => sum + value, 0), vetoFederations: attention.vetoFederations });
+  pushStep("atención cruzada", {
+    consensusApproved: attention.consensusApproved,
+    consensusScore: attention.consensusScore,
+    activeFederations: Array.from(attention.activeFederations).reduce(
+      (sum, value) => sum + value,
+      0,
+    ),
+    vetoFederations: attention.vetoFederations,
+  });
 
   const budget = new PrivacyBudget(0.5, 1e-5);
   const noisyHits = budget.noisy(context.memoryHits, 1, "laplace", 0.1);
-  pushStep("privacidad", { queriesSpent: budget.state.queriesSpent, remainingEpsilon: budget.remainingEpsilon, noisyHits });
+  pushStep("privacidad", {
+    queriesSpent: budget.state.queriesSpent,
+    remainingEpsilon: budget.remainingEpsilon,
+    noisyHits,
+  });
 
   const grounding = narrative.groundedFacts;
   const memoryHitsForCoherence = topHit ? 1 : 0;
-  const coherence = grounding > 0 ? Math.min(1, (0.6 * grounding) / 3 + 0.4 * (memoryHitsForCoherence ? 1 : 0.2)) : 0.2;
-  pushStep("coherencia", { score: coherence, groundedFacts: grounding, memoryHits: memoryHitsForCoherence });
+  const coherence =
+    grounding > 0
+      ? Math.min(1, (0.6 * grounding) / 3 + 0.4 * (memoryHitsForCoherence ? 1 : 0.2))
+      : 0.2;
+  pushStep("coherencia", {
+    score: coherence,
+    groundedFacts: grounding,
+    memoryHits: memoryHitsForCoherence,
+  });
 
   const risk = riskAssessment(text);
   pushStep("seguridad", { riskDetected: risk.detected, reason: risk.reason });
@@ -192,44 +296,114 @@ export function runNativePipeline(text: string, options: PipelineRunOptions = {}
   const inference = resolveInferencePolicy({ productionLike, hasProvider });
   let response: string | null = null;
   if (inference.mode === "MAINTENANCE") response = null;
-  else if (risk.detected) response = "La solicitud rechazada no fue procesada: " + (risk.reason ?? "riesgo detectado") + ".";
+  else if (risk.detected)
+    response =
+      "La solicitud rechazada no fue procesada: " + (risk.reason ?? "riesgo detectado") + ".";
   else if (attention.consensusApproved && consensus.approved && coherence >= 0.4) {
     if (narrative.groundedFacts > 0) response = narrative.text;
     else if (topHit) response = topHit.text;
-    else response = "He procesado tu consulta en el espacio continuo sin tokens. No tengo hechos fundamentados para esta consulta concreta; puedo escalar la pregunta a un humano.";
-  } else response = "Consenso federado no alcanzado o coherencia insuficiente: no generaré una respuesta sin fundamento.";
+    else
+      response =
+        "He procesado tu consulta en el espacio continuo sin tokens. No tengo hechos fundamentados para esta consulta concreta; puedo escalar la pregunta a un humano.";
+  } else
+    response =
+      "Consenso federado no alcanzado o coherencia insuficiente: no generaré una respuesta sin fundamento.";
 
   const metrics = getMetrics(memoryCorpus);
-  pushStep("redacción y auditoría", { mode: inference.mode, httpStatus: inference.httpStatus, responded: response !== null, measurement: metrics ? { corpusSize: metrics.corpusSize, meanFidelity: metrics.meanFidelity, exactRecall: metrics.exactRecall, bitsPerByte: metrics.bitsPerByte } : null });
+  pushStep("redacción y auditoría", {
+    mode: inference.mode,
+    httpStatus: inference.httpStatus,
+    responded: response !== null,
+    measurement: metrics
+      ? {
+          corpusSize: metrics.corpusSize,
+          meanFidelity: metrics.meanFidelity,
+          exactRecall: metrics.exactRecall,
+          bitsPerByte: metrics.bitsPerByte,
+        }
+      : null,
+  });
 
   const signedPayload = chain.map((record) => record.hash).join("+");
   const signature = options.signer?.(signedPayload) ?? null;
   return {
-    id, inference,
-    federations: { votesApproved: consensus.approved, vetoActive: consensus.vetoActive, consensusScore: consensus.score, approveVotes: consensus.approveVotes },
-    attention: { consensusApproved: attention.consensusApproved, consensusScore: attention.consensusScore, activeFederations: Array.from(attention.activeFederations).reduce((sum, value) => sum + value, 0), vetoFederations: attention.vetoFederations, attentionWeighted: attention.attentionWeights.length > 0 },
+    id,
+    inference,
+    federations: {
+      votesApproved: consensus.approved,
+      vetoActive: consensus.vetoActive,
+      consensusScore: consensus.score,
+      approveVotes: consensus.approveVotes,
+    },
+    attention: {
+      consensusApproved: attention.consensusApproved,
+      consensusScore: attention.consensusScore,
+      activeFederations: Array.from(attention.activeFederations).reduce(
+        (sum, value) => sum + value,
+        0,
+      ),
+      vetoFederations: attention.vetoFederations,
+      attentionWeighted: attention.attentionWeights.length > 0,
+    },
     memory: { hits: topHit ? 1 : 0, topHit: topHit?.id ?? null, exact },
     knowledge: { groundedFacts: narrative.groundedFacts, narrative: narrative.text },
-    intent: { detected: prediction.intent, confidence: prediction.confidence, margin: prediction.margin },
+    intent: {
+      detected: prediction.intent,
+      confidence: prediction.confidence,
+      margin: prediction.margin,
+    },
     privacy: { queriesSpent: budget.state.queriesSpent, remainingEpsilon: budget.remainingEpsilon },
-    riskDetected: risk.detected, response, httpStatus: inference.httpStatus, chain, metrics, numberOfSteps: 12, signature, aligned: signature !== null,
+    riskDetected: risk.detected,
+    response,
+    httpStatus: inference.httpStatus,
+    chain,
+    metrics,
+    numberOfSteps: 12,
+    signature,
+    aligned: signature !== null,
   };
 }
 
-function buildResult(id: string, inference: ReturnType<typeof resolveInferencePolicy>, chain: AuditRecord[], options: PipelineRunOptions, response: string | null, message: string, httpStatus: number): PipelineRunResult {
+function buildResult(
+  id: string,
+  inference: ReturnType<typeof resolveInferencePolicy>,
+  chain: AuditRecord[],
+  options: PipelineRunOptions,
+  response: string | null,
+  message: string,
+  httpStatus: number,
+): PipelineRunResult {
   const metrics = getMetrics(options.memoryCorpus ?? []);
   return {
-    id, inference: { ...inference, httpStatus: httpStatus as 200 | 503 },
+    id,
+    inference: { ...inference, httpStatus: httpStatus as 200 | 503 },
     federations: { votesApproved: false, vetoActive: false, consensusScore: 0, approveVotes: 0 },
-    attention: { consensusApproved: false, consensusScore: 0, activeFederations: 0, vetoFederations: [], attentionWeighted: false },
-    memory: { hits: 0, topHit: null, exact: false }, knowledge: { groundedFacts: 0, narrative: "" },
-    intent: { detected: "desconocido", confidence: 0, margin: 0 }, privacy: { queriesSpent: 0, remainingEpsilon: 0.5 },
-    riskDetected: true, response, httpStatus, chain, metrics, numberOfSteps: 12, message,
+    attention: {
+      consensusApproved: false,
+      consensusScore: 0,
+      activeFederations: 0,
+      vetoFederations: [],
+      attentionWeighted: false,
+    },
+    memory: { hits: 0, topHit: null, exact: false },
+    knowledge: { groundedFacts: 0, narrative: "" },
+    intent: { detected: "desconocido", confidence: 0, margin: 0 },
+    privacy: { queriesSpent: 0, remainingEpsilon: 0.5 },
+    riskDetected: true,
+    response,
+    httpStatus,
+    chain,
+    metrics,
+    numberOfSteps: 12,
+    message,
   };
 }
 
 function magnitudeOf(vector: Float64Array): number {
   let sum = 0;
-  for (let index = 0; index < vector.length; index += 1) { const value = vector[index] as number; sum += value * value; }
+  for (let index = 0; index < vector.length; index += 1) {
+    const value = vector[index] as number;
+    sum += value * value;
+  }
   return Math.sqrt(sum);
 }

@@ -2,7 +2,7 @@
  * USER AUTHENTICATION & CREDENTIAL SERVICE (src/lib/user-auth-service.ts)
  * ============================================================================
  * Ecosistema TAMV / RDM Digital Hub / Isabella Villaseñor AI v4.2.0
- * 
+ *
  * Servicio nativo, seguro y de alta disponibilidad para registro (Signup),
  * inicio de sesión (Login), hashing de contraseñas de estándar bancario
  * (PBKDF2-HMAC-SHA512 con 100,000 iteraciones y salt de 16 bytes),
@@ -101,7 +101,9 @@ export class UserAuthService {
     const hasLower = /[a-z]/.test(params.password);
     const hasDigit = /[0-9]/.test(params.password);
     if (!hasUpper || !hasLower || !hasDigit) {
-      throw new Error("La contraseña debe incluir mayúsculas, minúsculas y al menos un dígito numérico.");
+      throw new Error(
+        "La contraseña debe incluir mayúsculas, minúsculas y al menos un dígito numérico.",
+      );
     }
 
     const userId = `usr_${crypto.randomBytes(8).toString("hex")}`;
@@ -205,11 +207,7 @@ export class UserAuthService {
   /**
    * Inicio de sesión seguro (Login) con validación de hash y rate limit.
    */
-  public static async login(params: {
-    email: string;
-    password: string;
-    ip?: string;
-  }): Promise<{
+  public static async login(params: { email: string; password: string; ip?: string }): Promise<{
     success: true;
     token: string;
     user: {

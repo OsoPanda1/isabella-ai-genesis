@@ -40,10 +40,7 @@ function tokenF1(expected: string, actual: string): number {
  * a training engine and cannot grant production authority by itself.
  */
 export class AdvancedReinforcementEngine {
-  public static async evaluateSample(
-    sample: MLTrainingSample,
-    _modelVersion: string,
-  ): Promise<number> {
+  public static async evaluateSample(sample: MLTrainingSample): Promise<number> {
     if (typeof sample.actualOutput !== "string") {
       throw new Error("evaluation_requires_actual_model_output");
     }
@@ -69,7 +66,7 @@ export class AdvancedReinforcementEngine {
     let measuredLatencySamples = 0;
 
     for (const sample of samples) {
-      const loss = await this.evaluateSample(sample, version);
+      const loss = await this.evaluateSample(sample);
       totalLoss += loss;
       if (typeof sample.actualOutput !== "string")
         throw new Error("evaluation_requires_actual_model_output");

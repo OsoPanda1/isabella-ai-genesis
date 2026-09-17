@@ -3,16 +3,16 @@
  * (src/lib/emergency-governance-protocol.ts)
  * ============================================================================
  * Ecosistema TAMV / RDM Digital Hub / Isabella Villaseñor AI v4.2.0
- * 
+ *
  * Especificación de Gobernanza Cardinal y Planes de Emergencia Soberana (SOVCON).
- * 
+ *
  * 1. CARDINALIZACIÓN COGNITIVA:
  *    - Norte: Epistemología y Síntesis Lógica (SOPHIA Engine)
  *    - Sur: Anclaje Territorial y Patrimonio Cultural (Nodo Cero - Real del Monte)
  *    - Este: Ejecución Operativa, Síntesis Visual y Cuántica (ORION Engine)
  *    - Oeste: Gobernanza Zero-Trust, Ciberdefensa y Veto Ético (ARGUS Sentinel)
  *    - Cenit / Centro: Presencia, Empatía y Orquestación Humano-Soberana (C.R.O.W.N. / ISA)
- * 
+ *
  * 2. NIVELES DE DEFENSA SOVCON:
  *    - SOVCON 5 (Nominal): Operación completa sin restricciones extraordinarias.
  *    - SOVCON 4 (Precaución): Alerta por deriva o varianza epistémica inusual.
@@ -77,9 +77,7 @@ export class EmergencyGovernanceProtocol {
     const west = 99.8; // ARGUS: Zero Trust activo y RBAC estricto
     const zenith = 97.9; // C.R.O.W.N. / ISA: Orquestación humana central
 
-    const cardinalBalanceIndex = Number(
-      ((north + south + east + west + zenith) / 5).toFixed(2),
-    );
+    const cardinalBalanceIndex = Number(((north + south + east + west + zenith) / 5).toFixed(2));
 
     return {
       north_sophia: north,

@@ -44,7 +44,6 @@ export function splitZeroLossRevenue(input: ZeroLossRevenueInput): RevenueSplit 
 
   // 2. ALLOCATE PLATFORM FEE FROM NET MARGIN
   const platformFeeCents = Math.round((netMarginCents * PLATFORM_FEE_BASIS_POINTS) / 10_000);
-  const totalPlatformTakeCents = infrastructureCostCents + platformFeeCents;
 
   // 3. ALLOCATE COMMUNITY SHARE
   const communityShareCents = Math.round(netMarginCents * communityShareRatio);

@@ -34,7 +34,8 @@ export const AI_GOVERNANCE_PROFILE = {
     preDeploymentTesting: true,
     runtimeMonitoring: true,
     independentReviewSupported: true,
-    uncertaintyReporting: "required where applicable; deterministic governance signals are not presented as probability",
+    uncertaintyReporting:
+      "required where applicable; deterministic governance signals are not presented as probability",
   },
   privacy: {
     dataMinimization: true,
@@ -48,7 +49,8 @@ export const AI_GOVERNANCE_PROFILE = {
     "OWASP Top 10 for LLM Applications 2025",
     "OWASP Top 10 Web Application Security Risks 2025",
   ],
-  legalNotice: "This profile documents engineering controls and intended alignment. It is not a legal certification or conformity assessment.",
+  legalNotice:
+    "This profile documents engineering controls and intended alignment. It is not a legal certification or conformity assessment.",
 } as const;
 
 export type AIGovernanceProfile = typeof AI_GOVERNANCE_PROFILE;

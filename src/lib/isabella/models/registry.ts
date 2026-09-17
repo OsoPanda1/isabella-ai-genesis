@@ -64,11 +64,7 @@ export class EvaluationRegistry {
    * Deliberately disabled. Production promotion must be performed through the
    * durable, tenant-scoped governance registry and an authorized approval.
    */
-  public static transitionToProduction(
-    _modelId: string,
-    _version: string,
-    _actorId: string,
-  ): never {
+  public static transitionToProduction(): never {
     throw new Error(
       "production_authority_is_durable_only: use assertModelRuntimeAuthority and the durable governance registry",
     );

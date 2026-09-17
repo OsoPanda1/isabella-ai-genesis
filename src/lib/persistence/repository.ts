@@ -61,6 +61,7 @@ export interface Session {
   tokenJti?: string;
   expiresAt: string;
   createdAt: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ReadOptions {

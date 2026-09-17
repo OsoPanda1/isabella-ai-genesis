@@ -400,7 +400,7 @@ export function useIsabella() {
         abortRef.current = null;
       }
     },
-    [isProcessing, messages, preset, logLifecycleEvent, validatePayload],
+    [isProcessing, messages, preset, logLifecycleEvent, validatePayload, runId],
   );
   const stop = useCallback(() => abortRef.current?.abort(), []);
   const reset = useCallback(() => {

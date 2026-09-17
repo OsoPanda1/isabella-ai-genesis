@@ -3,26 +3,26 @@
  * (src/lib/crypto/triple-hardening-triangulation.ts)
  * ============================================================================
  * Ecosistema TAMV / RDM Digital Hub / Isabella Villaseñor AI v4.2.0
- * 
+ *
  * Implementación canónica de la Triangulación Criptográfica Soberana.
  * Protege datos ultra-sensibles, estados de gobernanza, tokens de identidad
  * y bloques del ledger BookPI mediante un triple cerrojo simultáneo:
- * 
+ *
  *  Vértice Alfa (Stream Simétrico Autenticado):
  *    - Algoritmo: AES-256-GCM.
  *    - Llave: Data Encryption Key (DEK) efímera de 256 bits generada por CSPRNG.
  *    - AAD (Additional Authenticated Data): Enlace criptográfico estricto al tenantId,
  *      traceId y propósito operativo.
- * 
+ *
  *  Vértice Beta (Permutación de Flujo y Mac Independiente):
  *    - Algoritmo: ChaCha20-Poly1305.
  *    - Derivación: PBKDF2-HMAC-SHA512 (120,000 iteraciones con salt de 16 bytes).
  *    - Verificación secundaria: HMAC-SHA256 con separación de dominio.
- * 
+ *
  *  Vértice Gamma (Sello de Consenso y Ledger Inmutable):
  *    - Algoritmo: HMAC-SHA3-512 + ECDSA-P384/SHA-384.
  *    - Propósito: Trazabilidad inmutable e indexación en el libro mayor BookPI.
- * 
+ *
  * PROPIEDAD MATEMÁTICA DE RESONANCIA TRIANGULAR:
  * La alteración o corrupción de un solo bit en cualquiera de los 3 vértices
  * invalida la resonancia criptográfica, abortando de inmediato (Fail-Closed).
@@ -88,7 +88,10 @@ export class CryptographicTriangulation {
       return Buffer.from(overrideKey, "utf8").subarray(0, 32);
     }
     const cfg = config();
-    const secret = cfg.ENCRYPTION_MASTER_KEY || cfg.AUTH_JWT_SECRET || "isabella-sovereign-triangulation-master-key-32-chars-min";
+    const secret =
+      cfg.ENCRYPTION_MASTER_KEY ||
+      cfg.AUTH_JWT_SECRET ||
+      "isabella-sovereign-triangulation-master-key-32-chars-min";
     return Buffer.from(createHash("sha256").update(secret).digest());
   }
 
@@ -97,9 +100,7 @@ export class CryptographicTriangulation {
    */
   private static computeTenantBinding(tenantId: string, purpose: string): Buffer {
     return Buffer.from(
-      createHash("sha256")
-        .update(`isabella-triangulation|${tenantId}|${purpose}`)
-        .digest("hex"),
+      createHash("sha256").update(`isabella-triangulation|${tenantId}|${purpose}`).digest("hex"),
       "utf8",
     );
   }
@@ -120,7 +121,9 @@ export class CryptographicTriangulation {
       throw new Error("TriangulationError: Plaintext must be a non-empty string.");
     }
     if (!options.tenantId || !options.purpose) {
-      throw new Error("TriangulationError: tenantId and purpose are mandatory for cryptographic binding.");
+      throw new Error(
+        "TriangulationError: tenantId and purpose are mandatory for cryptographic binding.",
+      );
     }
 
     const envelopeId = `tri_${randomBytes(12).toString("hex")}`;
@@ -155,17 +158,11 @@ export class CryptographicTriangulation {
     // ------------------------------------------------------------------------
     const betaSalt = randomBytes(16);
     const betaIv = randomBytes(12);
-    const derivedBeta = pbkdf2Sync(
-      masterKey,
-      betaSalt,
-      this.PBKDF2_ROUNDS,
-      64,
-      "sha512",
-    );
+    const derivedBeta = pbkdf2Sync(masterKey, betaSalt, this.PBKDF2_ROUNDS, 64, "sha512");
     const betaKey = derivedBeta.subarray(0, 32);
     const betaMacKey = derivedBeta.subarray(32, 64);
 
-    const betaCipher = createCipheriv("chacha20-poly1305", betaKey, betaIv) as ReturnType<
+    const betaCipher = createCipheriv("chacha20-poly1305", betaKey, betaIv) as unknown as ReturnType<
       typeof createCipheriv
     > & {
       setAAD: (aad: Buffer) => void;
@@ -274,7 +271,9 @@ export class CryptographicTriangulation {
       envelope.vertexGamma.blockSeal,
     );
     if (!isSealValid) {
-      throw new Error("TriangulationSecurityError: Vertex Gamma consensus seal verification failed.");
+      throw new Error(
+        "TriangulationSecurityError: Vertex Gamma consensus seal verification failed.",
+      );
     }
 
     const alphaTag = Buffer.from(envelope.vertexAlpha.tag, "base64url");
@@ -307,13 +306,7 @@ export class CryptographicTriangulation {
     const betaCiphertext = Buffer.from(envelope.vertexBeta.ciphertext, "base64url");
     const secondaryMac = Buffer.from(envelope.vertexBeta.secondaryMac, "base64url");
 
-    const derivedBeta = pbkdf2Sync(
-      masterKey,
-      betaSalt,
-      this.PBKDF2_ROUNDS,
-      64,
-      "sha512",
-    );
+    const derivedBeta = pbkdf2Sync(masterKey, betaSalt, this.PBKDF2_ROUNDS, 64, "sha512");
     const betaMacKey = derivedBeta.subarray(32, 64);
 
     const expectedBetaMac = createHmac("sha256", betaMacKey)
@@ -349,7 +342,9 @@ export class CryptographicTriangulation {
 
       return decryptedAlpha;
     } catch {
-      throw new Error("TriangulationSecurityError: Vertex Alpha AES-GCM decryption failed (tampered data).");
+      throw new Error(
+        "TriangulationSecurityError: Vertex Alpha AES-GCM decryption failed (tampered data).",
+      );
     }
   }
 }

@@ -10,7 +10,14 @@ function getTrackedFiles() {
       .filter(Boolean);
   } catch {
     const files = [];
-    const IGNORED = new Set(["node_modules", "dist", ".output", ".git", ".system_generated", "build"]);
+    const IGNORED = new Set([
+      "node_modules",
+      "dist",
+      ".output",
+      ".git",
+      ".system_generated",
+      "build",
+    ]);
     function walk(dir) {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         if (IGNORED.has(entry.name)) continue;

@@ -2,10 +2,10 @@
  * PENNYLANE QUANTUM BRIDGE (src/lib/quantum/pennylane-bridge.ts)
  * ============================================================================
  * Ecosistema TAMV / RDM Digital Hub / Isabella Villaseñor AI v4.2.0
- * 
+ *
  * Implementación nativa, operativa y matemáticamente exacta del puente cuántico
  * con PennyLane (Xanadu Quantum Machine Learning).
- * 
+ *
  * Capacidades:
  *  1. QNode Simulator con Circuitos Cuánticos Parametrizados (PQC).
  *  2. Cálculo analítico exacto de gradientes cuánticos mediante la regla
@@ -60,21 +60,6 @@ export interface PennyLaneQNodeConfig {
 export interface Complex {
   re: number;
   im: number;
-}
-
-function cAdd(a: Complex, b: Complex): Complex {
-  return { re: a.re + b.re, im: a.im + b.im };
-}
-
-function cSub(a: Complex, b: Complex): Complex {
-  return { re: a.re - b.re, im: a.im - b.im };
-}
-
-function cMul(a: Complex, b: Complex): Complex {
-  return {
-    re: a.re * b.re - a.im * b.im,
-    im: a.re * b.im + a.im * b.re,
-  };
 }
 
 export class PennyLaneBridge {
@@ -324,7 +309,7 @@ export class PennyLaneBridge {
       "def isabella_circuit(params):",
     ];
 
-    gates.forEach((gate, gIdx) => {
+    gates.forEach((gate) => {
       if (gate.type === "Hadamard") {
         lines.push(`    qml.Hadamard(wires=${gate.wires[0]})`);
       } else if (gate.type === "RX" || gate.type === "RY" || gate.type === "RZ") {
@@ -343,7 +328,9 @@ export class PennyLaneBridge {
     lines.push(`    return ${obsStr.length ? obsStr : "qml.state()"}`);
     lines.push("");
     lines.push(`# Parámetros iniciales optimizados`);
-    lines.push(`initial_params = np.array([${parameters.map((p) => p.toFixed(6)).join(", ")}], requires_grad=True)`);
+    lines.push(
+      `initial_params = np.array([${parameters.map((p) => p.toFixed(6)).join(", ")}], requires_grad=True)`,
+    );
     lines.push("");
     lines.push(`if __name__ == "__main__":`);
     lines.push(`    cost = isabella_circuit(initial_params)`);

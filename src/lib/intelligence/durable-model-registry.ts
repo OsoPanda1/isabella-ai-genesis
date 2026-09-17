@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { config } from "@/lib/config";
-import type { ModelDescriptor, ModelStatus } from "./model-registry";
+import type { ModelStatus } from "./model-registry";
 
 export interface DurableModelRecord {
   tenantId: string;
