@@ -45,7 +45,9 @@ function resolveEnv(source: RawEnv): Env {
 }
 function assertRequired(mode: RuntimeMode, source: RawEnv): void {
   for (const key of requiredEnvKeys(mode)) {
-    if (key === "PUBLIC_URL" || key === "GEMINI_API_KEY") continue;
+    // PUBLIC_URL and the storage-provider selector are derivable in Vercel.
+    // Durable authority is still enforced below through DATABASE_URL.
+    if (key === "PUBLIC_URL" || key === "GEMINI_API_KEY" || key === "ISABELLA_STORAGE_PROVIDER") continue;
     const raw = source[key];
     if (raw === undefined || raw === null || raw === "")
       throw new Error(
@@ -83,27 +85,18 @@ function isSameDatabaseInstance(url1Str: string, url2Str: string): boolean {
     return false;
   }
 }
-
 function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, parsed: Env): void {
   if (mode !== "production" && mode !== "staging") return;
-
-  // DATABASE_URL is the durable authority. The storage-provider variable is
-  // optional metadata and may be omitted when the durable database authority
-  // is Postgres/Neon; in that case env-schema defaults it to postgres.
   const provider = (cleanEnvValue(source.ISABELLA_STORAGE_PROVIDER)?.toLowerCase() ||
     parsed.ISABELLA_STORAGE_PROVIDER) as string;
-
   if (provider !== "postgres" && provider !== "neon")
     throw new Error("ISABELLA_STORAGE_PROVIDER debe resolver a postgres o neon en staging/production.");
-
   if (parsed.ISABELLA_STORAGE_PROVIDER !== provider)
     throw new Error("ISABELLA_STORAGE_PROVIDER no coincide con el proveedor normalizado.");
-
   if (typeof source.DATABASE_URL !== "string" || source.DATABASE_URL.trim() === "")
     throw new Error(
       "DATABASE_URL debe declararse como autoridad durable única en staging/production.",
     );
-
   const providerAliases = [
     "NEON_DATABASE_POSTGRES_URL",
     "NEON_DATABASE_DATABASE_URL",
