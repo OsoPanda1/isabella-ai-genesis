@@ -11,14 +11,19 @@
  * OBJECT STORAGE ......... S3-compatible cuando aplique
  * OBSERVABILITY .......... OTLP Collector → backend durable/SIEM
  * IDENTITY ............... OIDC/JWT + API keys (principal-context)
- * INFERENCE .............. canonical Isabella gateway → Gemini
+ * INFERENCE .............. canonical Isabella gateway → authorized provider
  */
 
 import { config } from "./config";
 import { isProductionLike, resolveRuntimeMode, type RuntimeMode } from "./runtime-mode";
 
 export type AuthorityId =
-  "identity" | "database" | "inference" | "audit" | "payment" | "observability";
+  | "identity"
+  | "database"
+  | "inference"
+  | "audit"
+  | "payment"
+  | "observability";
 export type AuthorityStatus = "real" | "partial";
 
 export interface AuthorityCheck {
@@ -38,6 +43,11 @@ export interface AuthorityDefinition {
 
 function has(value: unknown): boolean {
   return typeof value === "string" ? value.length > 0 : value !== undefined && value !== null;
+}
+
+function hasAuthorizedInferenceProvider(): boolean {
+  const cfg = config();
+  return Boolean(has(cfg.GEMINI_API_KEY) || has(cfg.GROQ_API_KEY) || has(cfg.XAI_API_KEY));
 }
 
 export const PRODUCTION_AUTHORITIES: readonly AuthorityDefinition[] = [
@@ -77,8 +87,8 @@ export const PRODUCTION_AUTHORITIES: readonly AuthorityDefinition[] = [
   {
     id: "inference",
     name: "Inference Authority",
-    authority: "Canonical Isabella Chat Gateway → Google Gemini Generative Language API",
-    infrastructure: ["Google Generative AI"],
+    authority: "Canonical Isabella Chat Gateway → authorized inference provider",
+    infrastructure: ["Gemini", "Groq", "xAI"],
     status: "real",
     implementations: [
       "src/lib/isabella-chat-gateway.ts",
@@ -87,10 +97,10 @@ export const PRODUCTION_AUTHORITIES: readonly AuthorityDefinition[] = [
     ],
     verify: () => [
       {
-        ok: has(config().GEMINI_API_KEY),
+        ok: hasAuthorizedInferenceProvider(),
         critical: true,
         detail:
-          "GEMINI_API_KEY requerido; sin proveedor se responde 503, nunca con una simulación.",
+          "Se requiere al menos un proveedor de inferencia autorizado; sin proveedor se responde 503, nunca con una simulación.",
       },
     ],
   },
