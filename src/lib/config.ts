@@ -86,15 +86,24 @@ function isSameDatabaseInstance(url1Str: string, url2Str: string): boolean {
 
 function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, parsed: Env): void {
   if (mode !== "production" && mode !== "staging") return;
-  const provider = cleanEnvValue(source.ISABELLA_STORAGE_PROVIDER)?.toLowerCase();
+
+  // DATABASE_URL is the durable authority. The storage-provider variable is
+  // optional metadata and may be omitted when the durable database authority
+  // is Postgres/Neon; in that case env-schema defaults it to postgres.
+  const provider = (cleanEnvValue(source.ISABELLA_STORAGE_PROVIDER)?.toLowerCase() ||
+    parsed.ISABELLA_STORAGE_PROVIDER) as string;
+
   if (provider !== "postgres" && provider !== "neon")
-    throw new Error("ISABELLA_STORAGE_PROVIDER debe ser postgres o neon en staging/production.");
+    throw new Error("ISABELLA_STORAGE_PROVIDER debe resolver a postgres o neon en staging/production.");
+
   if (parsed.ISABELLA_STORAGE_PROVIDER !== provider)
     throw new Error("ISABELLA_STORAGE_PROVIDER no coincide con el proveedor normalizado.");
+
   if (typeof source.DATABASE_URL !== "string" || source.DATABASE_URL.trim() === "")
     throw new Error(
       "DATABASE_URL debe declararse como autoridad durable única en staging/production.",
     );
+
   const providerAliases = [
     "NEON_DATABASE_POSTGRES_URL",
     "NEON_DATABASE_DATABASE_URL",
