@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { assertBoundedJsonValue, RequestLimitError } from "@/lib/request-limits";
 import { parseSkillInput, skillInputSchemas } from "@/lib/skills/input-schemas";
-
-const SKILL_IDS = Object.keys(skillInputSchemas);
+import { listIsabellaSkills, type IsabellaSkillId } from "@/lib/skills/registry";
 
 describe("request boundary hardening", () => {
   it("rejects prototype-pollution keys", () => {
@@ -23,9 +22,12 @@ describe("request boundary hardening", () => {
   });
 
   it("has an explicit bounded schema for every registered Isabella skill", () => {
-    expect(SKILL_IDS.length).toBeGreaterThanOrEqual(25);
-    for (const skillId of SKILL_IDS) {
-      const result = parseSkillInput(skillId as keyof typeof skillInputSchemas, {});
+    const registeredIds = listIsabellaSkills().map((skill) => skill.id);
+    const schemaIds = Object.keys(skillInputSchemas);
+    expect(schemaIds.length).toBeGreaterThanOrEqual(registeredIds.length);
+    for (const skillId of registeredIds) {
+      expect(schemaIds).toContain(skillId);
+      const result = parseSkillInput(skillId as IsabellaSkillId, {});
       expect(result.success).toBe(true);
     }
   });

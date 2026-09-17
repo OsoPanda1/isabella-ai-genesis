@@ -54,6 +54,7 @@ isabella_audit_store.json
 audit/
 coverage/
 release/
+!src/lib/genesis/release/release-gate.ts
 
 # ---------------------------------------------------------------------------
 # PACKAGE MANAGERS — pnpm es canónico (packageManager). Solo pnpm-lock.yaml.

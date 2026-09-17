@@ -390,7 +390,7 @@ export class AuditOrchestrator {
     const graph = this.evidenceGraphBuilder.build();
 
     // Calculate summary with real evidence + release gate (P0-90)
-    const coverageMeasurer = createEvidenceCoverageMeasurer(claims, (claimId) =>
+    const coverageMeasurer = createEvidenceCoverageMeasurer(claims, (claimId: string) =>
       this.claimEngine.getEvidences(claimId),
     );
     const gateInput: ReleaseGateInput = {
@@ -398,9 +398,10 @@ export class AuditOrchestrator {
       findings,
       productionReadiness: this.calculateProductionReadiness(claims, findings),
       evidenceCoverage: coverageMeasurer.overallCoverage,
-      claimSatisfied: (claimId) =>
+      claimSatisfied: (claimId: string) =>
         isClaimSatisfiedByStatus(this.claimEngine.evaluateClaimStatus(claimId)),
-      domainEvidenceCoverage: (domainId) => coverageMeasurer.domainEvidenceCoverage(domainId),
+      domainEvidenceCoverage: (domainId: string) =>
+        coverageMeasurer.domainEvidenceCoverage(domainId),
     };
     const summary = this.calculateSummary(claims, findings, gateInput);
 

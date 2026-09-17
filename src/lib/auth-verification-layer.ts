@@ -496,7 +496,7 @@ class AuthVerificationLayerImpl {
     error: string;
     reasonCode: AuthFailureReasonCode;
     spoofingAttempt: boolean;
-    severity: AuditSeverity;
+    severity: Exclude<AuditSeverity, "S3">;
   }): Promise<AuthVerificationFailure> {
     const eventName = params.spoofingAttempt
       ? `AUTH_SPOOFING_PREVENTED_${params.reasonCode}`
