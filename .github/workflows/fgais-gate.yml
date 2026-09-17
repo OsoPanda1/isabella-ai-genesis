@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "24.x"
+  NODE_VERSION: "24.11.0"
   PNPM_VERSION: "10.15.0"
   SANITIZE_STRICT: "true"
 
@@ -42,10 +42,15 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
+      - name: Verify toolchain pins
+        run: |
+          test "$(node --version)" = "v24.11.0"
+          test "$(pnpm --version)" = "10.15.0"
+          test "$(cat .nvmrc | tr -d '\\r\\n')" = "24.11.0"
+          node -e 'const p=require("./package.json"); if(p.packageManager!=="pnpm@10.15.0") process.exit(1); if(p.engines?.node!==">=22 <25") process.exit(1)'
+
       - name: Install dependencies
-        # The repository lockfile is being converged with the production manifest.
-        # Do not fail the release gate on a stale importer; the build remains fully audited below.
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm typecheck
