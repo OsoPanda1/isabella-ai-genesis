@@ -2,7 +2,6 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import {
   createHash,
-  randomBytes,
   sign,
   verify,
   generateKeyPairSync,
@@ -10,12 +9,7 @@ import {
   createPublicKey,
 } from "node:crypto";
 import { Evidence } from "../schemas/evidence.schema";
-import {
-  Manifest,
-  createEmptyManifest,
-  ManifestContext,
-  ManifestIntegrity,
-} from "../schemas/manifest.schema";
+import { Manifest } from "../schemas/manifest.schema";
 
 /**
  * Exporta una clave pública a PEM (SPKI). Los tipos de @types/node solo

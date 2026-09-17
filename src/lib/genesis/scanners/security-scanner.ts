@@ -272,7 +272,9 @@ export class SecurityScanner {
         secrets.push(...this.scanSecrets(relativePath, content, lines));
         vulnerabilities.push(...this.scanVulnerabilities(relativePath, content, lines));
         configIssues.push(...this.scanConfigIssues(relativePath, content, lines));
-      } catch {}
+      } catch {
+        /* intentional empty: skip unreadable files */
+      }
     }
 
     return {
@@ -291,7 +293,7 @@ export class SecurityScanner {
   private scanSecrets(filePath: string, content: string, lines: string[]): SecretFinding[] {
     const findings: SecretFinding[] = [];
 
-    for (const { type, pattern, entropy: checkEntropy } of SECRET_PATTERNS) {
+    for (const { type, pattern, entropy: _checkEntropy } of SECRET_PATTERNS) {
       const regex = new RegExp(pattern.source, pattern.flags);
       let match;
       while ((match = regex.exec(content)) !== null) {
@@ -348,7 +350,7 @@ export class SecurityScanner {
   private scanVulnerabilities(
     filePath: string,
     content: string,
-    lines: string[],
+    _lines: string[],
   ): VulnerabilityFinding[] {
     const findings: VulnerabilityFinding[] = [];
 
@@ -357,7 +359,6 @@ export class SecurityScanner {
       let match;
       while ((match = regex.exec(content)) !== null) {
         const lineIndex = content.substring(0, match.index).split("\n").length - 1;
-        const line = lines[lineIndex] ?? "";
         const column = match.index - content.lastIndexOf("\n", match.index);
 
         findings.push({
@@ -379,7 +380,7 @@ export class SecurityScanner {
   private scanConfigIssues(
     filePath: string,
     content: string,
-    lines: string[],
+    _lines: string[],
   ): ConfigIssueFinding[] {
     const findings: ConfigIssueFinding[] = [];
 
@@ -401,7 +402,6 @@ export class SecurityScanner {
       } else {
         for (const match of matches) {
           const lineIndex = content.substring(0, match.index).split("\n").length - 1;
-          const line = lines[lineIndex] ?? "";
 
           findings.push({
             id: `CFG-${type}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
@@ -461,7 +461,9 @@ export class SecurityScanner {
             if (included) files.push(fullPath);
           }
         }
-      } catch {}
+      } catch {
+        /* intentional empty: skip inaccessible dirs */
+      }
     };
 
     walk(dir);

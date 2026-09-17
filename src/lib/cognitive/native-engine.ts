@@ -113,7 +113,12 @@ export class NativeMLEngine {
     }
     return this.artifact("classification", "logistic-regression", [w], [b], X, y);
   }
-  private trainOvR(X: Vector[], y: number[], classes: number[], options: {}): ModelArtifact {
+  private trainOvR(
+    X: Vector[],
+    y: number[],
+    classes: number[],
+    options: { epochs?: number; learningRate?: number },
+  ): ModelArtifact {
     const ws: number[][] = [],
       bs: number[] = [];
     for (const c of classes) {

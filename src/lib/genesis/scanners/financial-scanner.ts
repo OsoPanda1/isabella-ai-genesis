@@ -136,7 +136,9 @@ export class FinancialScanner {
       try {
         const content = fs.readFileSync(file, "utf8");
         allContent.set(file, content);
-      } catch {}
+      } catch {
+        /* intentional empty: skip unreadable files */
+      }
     }
 
     const operations = this.detectOperations(allContent);
@@ -229,8 +231,8 @@ export class FinancialScanner {
   }
 
   private runAtomicityTests(
-    operations: FinancialOperation[],
-    allContent: Map<string, string>,
+    _operations: FinancialOperation[],
+    _allContent: Map<string, string>,
   ): AtomicityTest[] {
     return [
       {
@@ -276,7 +278,7 @@ export class FinancialScanner {
 
   private runIdempotencyTests(
     operations: FinancialOperation[],
-    allContent: Map<string, string>,
+    _allContent: Map<string, string>,
   ): IdempotencyTest[] {
     const webhookOps = operations.filter((o) => o.type === "webhook_handling");
     const mechanism =
@@ -299,7 +301,7 @@ export class FinancialScanner {
 
   private findCriticalIssues(
     operations: FinancialOperation[],
-    allContent: Map<string, string>,
+    _allContent: Map<string, string>,
   ): FinancialCriticalFinding[] {
     const findings: FinancialCriticalFinding[] = [];
 
@@ -409,7 +411,9 @@ export class FinancialScanner {
             if (included) files.push(fullPath);
           }
         }
-      } catch {}
+      } catch {
+        /* intentional empty: skip inaccessible dirs */
+      }
     };
 
     walk(dir);

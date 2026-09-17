@@ -100,7 +100,10 @@ export default tseslint.config(
     ],
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
+      ],
       "@typescript-eslint/no-empty-object-type": "warn",
       "@typescript-eslint/no-require-imports": "warn",
       "no-empty": "warn",
@@ -116,6 +119,16 @@ export default tseslint.config(
     files: ["**/server/**/*.{ts,tsx}", "src/server.ts", "src/routes/api/**/*.{ts,tsx}"],
     languageOptions: {
       globals: { ...globals.node, ...globals.browser },
+    },
+  },
+  {
+    files: [
+      "src/components/ui/*.tsx",
+      "src/components/isabella/LatamAegisDashboard.tsx",
+      "src/components/quantum/QuantumBridgeMonitor.tsx",
+    ],
+    rules: {
+      "react-refresh/only-export-components": "off",
     },
   },
   eslintPluginPrettier,

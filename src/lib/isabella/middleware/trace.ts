@@ -12,8 +12,8 @@ export interface TraceContext {
  * Injects traceId, correlationId, and actorId into the request context.
  * Propagates headers across the Cognitive Orchestra and C.R.O.W.N layers.
  */
-export function injectTelemetry<T extends (...args: any[]) => any>(handler: T) {
-  return async (req: Request, ...args: any[]) => {
+export function injectTelemetry<T extends (...args: unknown[]) => unknown>(handler: T) {
+  return async (req: Request, ...args: Parameters<T>) => {
     const traceId = req.headers.get("x-trace-id") || randomUUID();
     const correlationId = req.headers.get("x-correlation-id") || randomUUID();
     const actorId = req.headers.get("x-actor-id") || "anonymous";
@@ -31,7 +31,7 @@ export function injectTelemetry<T extends (...args: any[]) => any>(handler: T) {
       headers: headers,
       body: req.body,
       duplex: "half", // required for node fetch with body streams
-    } as any);
+    } as RequestInit & { duplex: "half" });
 
     return handler(reqWithTelemetry, ...args);
   };

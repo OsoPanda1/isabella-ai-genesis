@@ -8,7 +8,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 import { IsabellaErrorBoundary } from "@/components/isabella/ErrorBoundary";
 import { EmergencyModeView } from "@/components/isabella/EmergencyModeView";
 
@@ -35,7 +35,10 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
-  const err = error instanceof Error ? error : new Error(String(error ?? "Error de ejecución"));
+  const err = useMemo(
+    () => (error instanceof Error ? error : new Error(String(error ?? "Error de ejecución"))),
+    [error],
+  );
   console.error("[Isabella] root error", err);
   const router = useRouter();
   useEffect(() => {

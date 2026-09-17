@@ -98,8 +98,8 @@ const REQUIRED_GATES = {
   postRelease: ["health_check", "smoke_test", "monitoring_verification"],
 };
 
-const NODE_VERSION_PATTERN = /node-version:\s*\[?([^\]]+)\]?/g;
-const PACKAGE_JSON_NODE = /"node"\s*:\s*">?=?\s*(\d+)"/;
+const _NODE_VERSION_PATTERN = /node-version:\s*\[?([^\]]+)\]?/g;
+const _PACKAGE_JSON_NODE = /"node"\s*:\s*">?=?\s*(\d+)"/;
 
 export class CIScanner {
   private config: Required<CIScannerConfig>;
@@ -146,7 +146,9 @@ export class CIScanner {
         const content = fs.readFileSync(path.join(workflowsDir, file), "utf8");
         const workflow = this.parseWorkflow(file, content);
         workflows.push(workflow);
-      } catch {}
+      } catch {
+        /* intentional empty: skip unreadable workflows */
+      }
     }
 
     return workflows;
@@ -534,7 +536,9 @@ export class CIScanner {
           files.push(path.join(workflowsDir, entry.name));
         }
       }
-    } catch {}
+    } catch {
+      /* intentional empty: skip if no workflows dir */
+    }
 
     return files;
   }

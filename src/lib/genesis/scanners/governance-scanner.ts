@@ -191,7 +191,9 @@ export class GovernanceScanner {
           return files.some((f) => new RegExp(regex).test(f));
         }
       }
-    } catch {}
+    } catch {
+      /* intentional empty: skip unreadable files */
+    }
     return false;
   }
 
@@ -225,12 +227,14 @@ export class GovernanceScanner {
         if (keywords.some((k) => content.includes(k.toLowerCase()))) {
           return true;
         }
-      } catch {}
+      } catch {
+        /* intentional empty: skip unreadable files */
+      }
     }
     return false;
   }
 
-  private checkClaimTests(claim: Claim): boolean {
+  private checkClaimTests(_claim: Claim): boolean {
     const testPaths = ["src/tests/", "tests/", "**/*.test.ts", "**/*.spec.ts"];
 
     for (const testPath of testPaths) {
@@ -323,7 +327,9 @@ export class GovernanceScanner {
             policy.location = file;
             break;
           }
-        } catch {}
+        } catch {
+          /* intentional empty: skip unreadable files */
+        }
       }
     }
 
@@ -352,7 +358,9 @@ export class GovernanceScanner {
             });
           }
         }
-      } catch {}
+      } catch {
+        /* intentional empty: skip match errors */
+      }
     }
 
     return results;
@@ -374,7 +382,9 @@ export class GovernanceScanner {
                 if (entry.isDirectory()) walk(p);
                 else if (entry.name.endsWith(".md")) files.push(p);
               }
-            } catch {}
+            } catch {
+              /* intentional empty: skip doc dirs */
+            }
           };
           walk(fullPath);
         } else {
@@ -569,7 +579,9 @@ export class GovernanceScanner {
             if (included) files.push(fullPath);
           }
         }
-      } catch {}
+      } catch {
+        /* intentional empty: skip inaccessible dirs */
+      }
     };
 
     walk(this.config.rootDir);

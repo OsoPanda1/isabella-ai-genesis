@@ -115,7 +115,7 @@ export async function assertProductionModel(
   return model;
 }
 
-function mapRow(row: any): DurableModelRecord {
+function mapRow(row: Record<string, unknown>): DurableModelRecord {
   return {
     tenantId: String(row.tenant_id),
     modelId: String(row.model_id),
@@ -129,6 +129,6 @@ function mapRow(row: any): DurableModelRecord {
     status: row.status as ModelStatus,
     artifactHash: String(row.artifact_hash),
     license: String(row.license),
-    createdAt: new Date(row.created_at).toISOString(),
+    createdAt: new Date(String(row.created_at)).toISOString(),
   };
 }

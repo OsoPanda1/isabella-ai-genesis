@@ -142,7 +142,9 @@ export class DatabaseScanner {
       try {
         const content = fs.readFileSync(file, "utf8");
         allContent.set(file, content);
-      } catch {}
+      } catch {
+        /* intentional empty: skip unreadable files */
+      }
     }
 
     const engines = this.detectEngines(allContent);
@@ -226,7 +228,7 @@ export class DatabaseScanner {
     return engines;
   }
 
-  private inferAuthority(engineType: string, tables: string[]): string[] {
+  private inferAuthority(engineType: string, _tables: string[]): string[] {
     const authorityMap: Record<string, string[]> = {
       postgresql: ["EconomicState", "UserState", "AuditState", "SessionState", "LedgerState"],
       neon: ["EconomicState", "UserState", "AuditState", "SessionState", "LedgerState"],
@@ -242,7 +244,7 @@ export class DatabaseScanner {
 
   private buildAuthorityGraph(
     engines: DetectedEngine[],
-    allContent: Map<string, string>,
+    _allContent: Map<string, string>,
   ): AuthorityGraph {
     const nodes: AuthorityNode[] = [];
     const edges: AuthorityEdge[] = [];
@@ -326,7 +328,7 @@ export class DatabaseScanner {
 
   private findCriticalIssues(
     engines: DetectedEngine[],
-    authorityGraph: AuthorityGraph,
+    _authorityGraph: AuthorityGraph,
   ): CriticalFinding[] {
     const findings: CriticalFinding[] = [];
     const stateToAuthorities = new Map<string, string[]>();
@@ -423,7 +425,9 @@ export class DatabaseScanner {
             if (included) files.push(fullPath);
           }
         }
-      } catch {}
+      } catch {
+        /* intentional empty: skip inaccessible dirs */
+      }
     };
 
     walk(dir);

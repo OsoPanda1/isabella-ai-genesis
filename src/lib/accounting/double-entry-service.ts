@@ -5,7 +5,6 @@ import type {
   TrialBalance,
   BalanceSheet,
   DoubleEntryValidation,
-  AccountType,
 } from "./types";
 
 export interface DoubleEntryService {

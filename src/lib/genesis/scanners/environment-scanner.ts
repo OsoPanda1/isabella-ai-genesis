@@ -45,7 +45,7 @@ export interface CodeLocation {
   context: string;
 }
 
-const ENV_SCHEMA = z.object({
+const _ENV_SCHEMA = z.object({
   $schema: z.string().optional(),
   env: z.record(
     z.object({
@@ -151,9 +151,13 @@ export class EnvironmentScanner {
               }
             }
           }
-        } catch {}
+        } catch {
+          /* intentional empty: skip parse errors */
+        }
       }
-    } catch {}
+    } catch {
+      /* intentional empty: skip schema read errors */
+    }
 
     return result;
   }
@@ -176,7 +180,9 @@ export class EnvironmentScanner {
           result.set(name, { value });
         }
       }
-    } catch {}
+    } catch {
+      /* intentional empty: skip example parse errors */
+    }
 
     return result;
   }
@@ -211,7 +217,9 @@ export class EnvironmentScanner {
             result.set(varName, existing);
           }
         }
-      } catch {}
+      } catch {
+        /* intentional empty: skip file read errors */
+      }
     }
 
     return result;
@@ -241,7 +249,9 @@ export class EnvironmentScanner {
               result.set(secretMatch[1], { source: file });
             }
           }
-        } catch {}
+        } catch {
+          /* intentional empty: skip match errors */
+        }
       }
     }
 
@@ -257,11 +267,13 @@ export class EnvironmentScanner {
         const content = fs.readFileSync(vercelPath, "utf8");
         const parsed = JSON.parse(content);
         if (parsed.env) {
-          for (const [key, value] of Object.entries(parsed.env)) {
+          for (const [key, _value] of Object.entries(parsed.env)) {
             result.set(key, { source: "vercel.json" });
           }
         }
-      } catch {}
+      } catch {
+        /* intentional empty: skip vercel.json parse errors */
+      }
     }
 
     return result;
@@ -415,7 +427,9 @@ export class EnvironmentScanner {
             if (included) files.push(fullPath);
           }
         }
-      } catch {}
+      } catch {
+        /* intentional empty: skip vercel.json parse errors */
+      }
     };
 
     walk(dir);

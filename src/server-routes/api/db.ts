@@ -5,6 +5,7 @@ import { COGNITIVE_HEADS } from "@/lib/sovereign-engine";
 import { sovereignStateRepository } from "@/lib/sovereign-state-repository";
 import { prisma } from "@/lib/db";
 import { createBookpiPostgresRepository } from "@/lib/repositories/bookpi-postgres-repository";
+import type { LedgerCategory } from "@/lib/repositories/bookpi-repository";
 import { repositoryFactory } from "@/lib/persistence/repository-factory";
 import { SecuritySystem } from "@/lib/security";
 import { withSovereignAuth } from "@/lib/principal-context";
@@ -1018,8 +1019,7 @@ export const Route = createFileRoute("/api/db")({
                 tenantId: context.tenantId,
                 userId: context.userId,
                 operation: val.data.operation,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                category: val.data.category as any,
+                category: val.data.category as LedgerCategory,
                 cost: val.data.cost,
                 tokens: val.data.tokens,
               });
@@ -1442,8 +1442,7 @@ export const Route = createFileRoute("/api/db")({
                 tenantId: context.tenantId,
                 userId: context.userId,
                 operation: `MONETIZATION_CREDIT: ${description} (+$${(centsToAdd / 100).toFixed(2)} USD)`,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                category: "other" as any,
+                category: "other" as LedgerCategory,
                 cost: 0,
                 // no deduction for credits earned
                 tokens: 0,
@@ -1631,8 +1630,7 @@ export const Route = createFileRoute("/api/db")({
                     tenantId: context.tenantId,
                     userId: entry.userId,
                     operation: `MONETIZATION_EVENT: ${entry.type} (payoutId:${entry.payoutId || "N/A"}) (risk:${entry.riskScore || 0}) (idempotencyKey:${entry.idempotencyKey || "N/A"})`,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    category: "other" as any,
+                    category: "other" as LedgerCategory,
                     cost: cost,
                     tokens: 0,
                   });

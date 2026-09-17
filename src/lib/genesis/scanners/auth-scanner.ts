@@ -80,7 +80,7 @@ export interface AuthFinding {
   remediation: string;
 }
 
-const JWT_PATTERNS = {
+const _JWT_PATTERNS = {
   algorithm: /algorithm\s*[:=]\s*['"]([^'"]+)['"]/g,
   sign: /sign\s*\(/g,
   verify: /verify\s*\(/g,
@@ -88,14 +88,14 @@ const JWT_PATTERNS = {
   keyRotation: /key.*rotation|rotate.*key/gi,
 };
 
-const RBAC_PATTERNS = {
+const _RBAC_PATTERNS = {
   matrix: /permission[_-]?matrix|rbac[_-]?matrix/gi,
   abac: /abac|attribute[_-]?based/gi,
   denyByDefault: /deny[_-]?by[_-]?default|default[_-]?deny/gi,
   check: /hasPermission|checkPermission|authorize/gi,
 };
 
-const SESSION_PATTERNS = {
+const _SESSION_PATTERNS = {
   refreshRotation: /refresh.*rotation|rotate.*refresh/gi,
   revocation: /revoke|invalidate|blacklist|denylist/gi,
   jti: /jti|jwt[_-]?id/gi,
@@ -103,7 +103,7 @@ const SESSION_PATTERNS = {
   stepUp: /step[_-]?up|elevate|privilege.*escalation/gi,
 };
 
-const MFA_PATTERNS = {
+const _MFA_PATTERNS = {
   totp: /totp|authenticator|2fa|mfa/gi,
   webauthn: /webauthn|passkey|fido/gi,
   sms: /sms.*otp|otp.*sms/gi,
@@ -128,7 +128,9 @@ export class AuthScanner {
       try {
         const content = fs.readFileSync(file, "utf8");
         allContent.set(file, content);
-      } catch {}
+      } catch {
+        /* intentional empty: skip unreadable files */
+      }
     }
 
     const jwtValidation = this.scanJWTValidation(allContent);
@@ -498,7 +500,9 @@ export class AuthScanner {
             if (included) files.push(fullPath);
           }
         }
-      } catch {}
+      } catch {
+        /* intentional empty: skip inaccessible dirs */
+      }
     };
 
     walk(dir);

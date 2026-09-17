@@ -117,7 +117,6 @@
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "@firebase/eslint-plugin-security-rules": "^0.0.2",
-    "@lovable.dev/vite-tanstack-config": "^2.21.0",
     "@prisma/client": "^5.22.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",

@@ -8,9 +8,7 @@ import {
 } from "../schemas/finding.schema";
 import { Claim, Evidence } from "../schemas";
 
-export interface FindingGeneratorConfig {
-  // Configuración opcional
-}
+export type FindingGeneratorConfig = Record<string, never>;
 
 export class FindingGenerator {
   private config: FindingGeneratorConfig;

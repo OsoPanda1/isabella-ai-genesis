@@ -132,7 +132,12 @@ export class SupplyChainScanner {
     return lockfiles;
   }
 
-  private analyzeDependencies(pkg: any): DependencyAnalysis[] {
+  private analyzeDependencies(pkg: {
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+    peerDependencies?: Record<string, string>;
+    optionalDependencies?: Record<string, string>;
+  }): DependencyAnalysis[] {
     const deps: DependencyAnalysis[] = [];
 
     const allDeps = {
@@ -206,7 +211,7 @@ export class SupplyChainScanner {
   private generateFindings(
     dependencies: DependencyAnalysis[],
     lockfiles: LockfileAnalysis[],
-    vulnerabilities: VulnerabilityFinding[],
+    _vulnerabilities: VulnerabilityFinding[],
   ): SupplyChainFinding[] {
     const findings: SupplyChainFinding[] = [];
 

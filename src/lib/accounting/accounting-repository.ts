@@ -277,7 +277,7 @@ export class InMemoryAccountingRepository implements AccountingRepository {
 
     const assets = balances
       .filter((_, idx) => accounts[idx].type === "asset")
-      .map((balance, idx) => {
+      .map((balance) => {
         const account = accounts.find((a) => a.id === balance.accountId)!;
         return {
           accountId: balance.accountId,
@@ -288,7 +288,7 @@ export class InMemoryAccountingRepository implements AccountingRepository {
 
     const liabilities = balances
       .filter((_, idx) => accounts[idx].type === "liability")
-      .map((balance, idx) => {
+      .map((balance) => {
         const account = accounts.find((a) => a.id === balance.accountId)!;
         return {
           accountId: balance.accountId,
@@ -299,7 +299,7 @@ export class InMemoryAccountingRepository implements AccountingRepository {
 
     const equity = balances
       .filter((_, idx) => accounts[idx].type === "equity")
-      .map((balance, idx) => {
+      .map((balance) => {
         const account = accounts.find((a) => a.id === balance.accountId)!;
         return {
           accountId: balance.accountId,

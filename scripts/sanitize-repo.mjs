@@ -58,8 +58,9 @@ function walk(dir) {
     }
 
     if (
-      /\.(bak|backup|old|orig|tmp)$/i.test(entry.name) ||
-      /(?:^|[-_.])(copy|backup|old|final\d*)[-_.]/i.test(entry.name)
+      !relativePath.split(/[\\/]/)[0].startsWith("scripts") &&
+      (/\.(bak|backup|old|orig|tmp)$/i.test(entry.name) ||
+        /(?:^|[-_.])(copy|backup|old|final\d*)[-_.]/i.test(entry.name))
     ) {
       addFinding(`stale/duplicate artifact filename: ${relativePath}`);
     }

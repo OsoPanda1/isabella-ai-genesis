@@ -14,8 +14,8 @@ function sha3(value: string): string {
   return createHash("sha3-512").update(value).digest("hex");
 }
 
-function readJson(file: string): any {
-  return JSON.parse(fs.readFileSync(file, "utf8"));
+function readJson<T = unknown>(file: string): T {
+  return JSON.parse(fs.readFileSync(file, "utf8")) as T;
 }
 
 function writeJson(file: string, value: unknown): void {
@@ -23,11 +23,20 @@ function writeJson(file: string, value: unknown): void {
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + "\n", "utf8");
 }
 
+type PnpmTreeNode = {
+  name?: string;
+  version?: string;
+  dependencies?: Record<string, PnpmTreeNode>;
+  devDependencies?: Record<string, PnpmTreeNode>;
+  optionalDependencies?: Record<string, PnpmTreeNode>;
+  peerDependencies?: Record<string, PnpmTreeNode>;
+};
+
 function flattenPnpmTree(
-  root: any,
+  root: PnpmTreeNode,
 ): Array<{ name: string; version: string; dependencies: string[] }> {
   const seen = new Map<string, { name: string; version: string; dependencies: string[] }>();
-  const visit = (node: any) => {
+  const visit = (node: PnpmTreeNode) => {
     if (!node || typeof node !== "object") return;
     const name = typeof node.name === "string" ? node.name : undefined;
     const version = typeof node.version === "string" ? node.version : undefined;
@@ -42,7 +51,7 @@ function flattenPnpmTree(
         node.peerDependencies,
       ]) {
         if (!group || typeof group !== "object") continue;
-        for (const [depName, dep] of Object.entries(group as Record<string, any>)) {
+        for (const [depName, dep] of Object.entries(group)) {
           if (dep && typeof dep === "object" && typeof dep.version === "string") {
             current.dependencies.push(`${depName}@${dep.version}`);
           }
@@ -51,7 +60,7 @@ function flattenPnpmTree(
     }
     for (const group of [node.dependencies, node.devDependencies, node.optionalDependencies]) {
       if (!group || typeof group !== "object") continue;
-      for (const dep of Object.values(group as Record<string, any>)) visit(dep);
+      for (const dep of Object.values(group)) visit(dep);
     }
   };
   visit(root);
@@ -62,7 +71,7 @@ function flattenPnpmTree(
 }
 
 function generateSbom(rootDir: string, format: "cyclonedx" | "spdx"): unknown {
-  let trees: any[];
+  let trees: unknown;
   try {
     const raw = execFileSync("pnpm", ["list", "--json", "--depth", "Infinity"], {
       cwd: rootDir,
@@ -77,13 +86,13 @@ function generateSbom(rootDir: string, format: "cyclonedx" | "spdx"): unknown {
     );
   }
 
-  const root = Array.isArray(trees) ? trees[0] : trees;
+  const root = Array.isArray(trees) ? trees[0] : (trees as PnpmTreeNode);
   const packages = flattenPnpmTree(root);
   if (!packages.length)
     throw new Error("Dependency graph is empty; refusing to emit an incomplete SBOM");
 
   const generatedAt = new Date().toISOString();
-  const project = readJson(path.join(rootDir, "package.json"));
+  const project = readJson<{ name: string; version: string }>(path.join(rootDir, "package.json"));
   const rootRef = `pkg:npm/${project.name}@${project.version}`;
   const serialHash = sha3(`${project.name}:${project.version}:${generatedAt}`);
   const serial = `urn:uuid:${serialHash.slice(0, 8)}-${serialHash.slice(8, 12)}-${serialHash.slice(12, 16)}-${serialHash.slice(16, 20)}-${serialHash.slice(20, 32)}`;
@@ -223,22 +232,20 @@ program
     });
     const { manifest, success } = await orchestrator.runFullAudit();
     if (!success) process.exit(1);
-    const claim = manifest.claims.find(
-      (item: any) => item?.id === claimId || item?.claimId === claimId,
-    );
+    const claim = manifest.claims.find((item) => item?.id === claimId || item?.claimId === claimId);
     if (!claim) {
       console.error(`❌ Claim not found: ${claimId}`);
       process.exit(1);
     }
     console.log(`\nCLAIM ${claimId}`);
     console.log(JSON.stringify(claim, null, 2));
-    const evidence = manifest.evidenceReferences.filter((item: any) => item?.claimId === claimId);
+    const evidence = manifest.evidenceReferences.filter((item) => item?.claimId === claimId);
     if (options.showEvidence)
       console.log(`\nEVIDENCE (${evidence.length})\n${JSON.stringify(evidence, null, 2)}`);
     if (options.showTests)
       console.log(
         `\nTEST EVIDENCE\n${JSON.stringify(
-          evidence.filter((item: any) => /TEST/i.test(String(item?.type))),
+          evidence.filter((item) => /TEST/i.test(String(item?.type))),
           null,
           2,
         )}`,
@@ -246,14 +253,13 @@ program
     if (options.showCode)
       console.log(
         `\nCODE EVIDENCE\n${JSON.stringify(
-          evidence.filter((item: any) => /SOURCE_CODE/i.test(String(item?.type))),
+          evidence.filter((item) => /SOURCE_CODE/i.test(String(item?.type))),
           null,
           2,
         )}`,
       );
     const blocking = manifest.findings.filter(
-      (finding: any) =>
-        finding?.claimId === claimId && ["CRITICAL", "HIGH"].includes(finding?.severity),
+      (finding) => finding?.claimId === claimId && ["CRITICAL", "HIGH"].includes(finding?.severity),
     );
     process.exit(blocking.length ? 1 : 0);
   });
@@ -273,7 +279,7 @@ evidenceCmd
     const evidences = await storage.listEvidences();
     const now = Date.now();
     for (const id of evidences) {
-      const evidence: any = await storage.loadEvidence(id);
+      const evidence = await storage.loadEvidence(id);
       if (!evidence) continue;
       if (options.type && evidence.type !== options.type) continue;
       if (options.claim && evidence.claimId !== options.claim) continue;
@@ -309,7 +315,7 @@ evidenceCmd
       const valid = await storage.verifyEvidence(id);
       let ttlExpired = false;
       if (options.checkTtl) {
-        const evidence: any = await storage.loadEvidence(id);
+        const evidence = await storage.loadEvidence(id);
         ttlExpired = Boolean(
           evidence?.metadata?.ttlDays &&
           Date.parse(evidence.metadata.collectedAt) + evidence.metadata.ttlDays * 86400000 <
@@ -431,7 +437,10 @@ program
   .option("--key <keyFile>", "Public key PEM file")
   .option("--cert <certFile>", "Certificate PEM file")
   .action((signedFile, options) => {
-    const envelope = readJson(signedFile);
+    const envelope = readJson<{
+      manifest: unknown;
+      signature: { algorithm: string; signature: string; publicKey: string };
+    }>(signedFile);
     const manifest = validateManifest(envelope.manifest);
     const signature = envelope.signature;
     if (!signature?.algorithm || !signature?.signature)

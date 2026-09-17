@@ -1,8 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createHash } from "node:crypto";
-import { spawn, execSync } from "node:child_process";
-import { Evidence } from "../schemas/evidence.schema";
+import { spawn } from "node:child_process";
 
 export interface TestRunnerConfig {
   rootDir?: string;
@@ -111,7 +110,9 @@ export class TestDiscovery {
         const content = fs.readFileSync(file, "utf8");
         const testFile = this.analyzeTestFile(file, content);
         testFiles.push(testFile);
-      } catch {}
+      } catch {
+        /* intentional empty: skip unreadable files */
+      }
     }
 
     const byCategory: Record<string, number> = {};
@@ -156,7 +157,9 @@ export class TestDiscovery {
             if (included) files.push(fullPath);
           }
         }
-      } catch {}
+      } catch {
+        /* intentional empty: skip inaccessible dirs */
+      }
     };
 
     walk(dir);
@@ -308,7 +311,7 @@ export class TestExecutor {
         stderr += data.toString();
       });
 
-      child.on("close", (code) => {
+      child.on("close", (_code) => {
         const hash = createHash("sha3-512")
           .update(stdout + stderr)
           .digest("hex");
@@ -393,7 +396,9 @@ export class TestExecutor {
           }
         }
       }
-    } catch {}
+    } catch {
+      /* intentional empty: best-effort validation */
+    }
 
     return results;
   }

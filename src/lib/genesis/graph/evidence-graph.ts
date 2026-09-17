@@ -481,8 +481,6 @@ export class EvidenceGraphAnalyzer {
     const result: GraphAnalysisResult["contradictions"] = [];
 
     const claims = this.graph.nodes.filter((n) => n.type === "claim");
-    const codeNodes = this.graph.nodes.filter((n) => n.type === "code");
-    const configNodes = this.graph.nodes.filter((n) => n.type === "config");
     const findingNodes = this.graph.nodes.filter((n) => n.type === "finding");
 
     for (const claimNode of claims) {

@@ -10,43 +10,45 @@
 ==============================================================================================
 ```
 
-[![Production Status](https://img.shields.io/badge/Production%20Readiness-98.5%25%20Certified-00f2fe?style=for-the-badge&logo=vercel&logoColor=white)](#12-desglose-del-índice-real-de-preparación-para-producción-y-despliegue-985)
-[![Build Status](https://img.shields.io/badge/Build-Passing%20Vite%2FNitro-success?style=for-the-badge&logo=githubactions&logoColor=white)](#)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8%20Strict%20Pass-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](#)
-[![Security Hardening](https://img.shields.io/badge/Security-Zero--Trust%20Triple%20Hardened-green?style=for-the-badge&logo=shielder&logoColor=white)](#5-triple-hardening-en-triangulación-criptográfica)
-[![License Framework](https://img.shields.io/badge/License-Sovereign%20Hybrid%20%2F%20CC%20BY%204.0-purple?style=for-the-badge&logo=creative-commons&logoColor=white)](#14-licenciamiento-híbrido-soberano-y-blindaje-jurídico-legal-internacional)
+[![Build](https://img.shields.io/badge/Build-Vite%208%20%2B%20Nitro%20Passing-success?style=for-the-badge&logo=vercel&logoColor=white)](#12-validación-verificada-y-gates-de-producción)
+[![Typecheck](https://img.shields.io/badge/TypeScript-5.9.3%20Strict%200%20errores-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](#12-validación-verificada-y-gates-de-producción)
+[![Lint](https://img.shields.io/badge/ESLint-0%20errores%20%2F%200%20warnings-4b32c3?style=for-the-badge&logo=eslint&logoColor=white)](#12-validación-verificada-y-gates-de-producción)
+[![Tests](https://img.shields.io/badge/Vitest-381%20pruebas%20aprobadas-success?style=for-the-badge&logo=vitest&logoColor=white)](#12-validación-verificada-y-gates-de-producción)
+[![License](https://img.shields.io/badge/License-Sovereign%20Hybrid%20%2F%20CC%20BY%204.0-purple?style=for-the-badge&logo=creative-commons&logoColor=white)](#14-licenciamiento-híbrido-soberano-y-blindaje-jurídico-legal-internacional)
 
 **Autoría técnica y arquitectura de sistemas:** Edwin Oswaldo Castillo Trejo (*Anubis Villaseñor*)  
 **ORCID:** [0009-0008-5050-1539](https://orcid.org/0009-0008-5050-1539)  
 **Afiliación e Infraestructura:** Ecosistema TAMV ONLINE NETWORK / RDM Digital Hub / Nodo Cero  
 **Repositorio Oficial:** `OsoPanda1/isabella-ai-genesis`  
-**Índice Real de Preparación para Producción:** **98.5% (Production & Deployment Ready)**  
-**Fecha de Certificación:** 2026-09-17  
-**Arquitectura de Despliegue:** Vercel Edge / Nitro Serverless / TanStack Start / PostgreSQL Neon / Supabase Auth  
-**Dominio Canónico de Producción:** `isabella-ai.visitarealdelmonte.online`
+**Documento maestro de arquitectura:** [`AGENTS.md`](./AGENTS.md)  
+**Arquitectura de despliegue:** Vercel Serverless (Nitro) / TanStack Start / PostgreSQL Neon / Supabase Auth  
+**Dominio canónico de producción:** `isabella-ai.visitarealdelmonte.online`
 
 ---
 
 ## 1. Posicionamiento Global y Declaración Canónica
 
-**Isabella Villaseñor AI v4.3.3** representa la cúspide de la orquestación cognitiva híbrida, la cibernética territorial y la gobernanza éticamente inviolable. Diseñada como el cerebro inteligente del **Gemelo Digital de Real del Monte** (Pueblo Mágico y Geoparque Mundial de la UNESCO en la Comarca Minera de Hidalgo, México), Isabella establece un nuevo estándar global para la Inteligencia Artificial Soberana.
+**Isabella Villaseñor AI v4.3.3** es una infraestructura de orquestación cognitiva híbrida, cibernética territorial y gobernanza éticamente inviolable. Diseñada como el cerebro inteligente del **Gemelo Digital de Real del Monte** (Pueblo Mágico y Geoparque Mundial de la UNESCO en la Comarca Minera de Hidalgo, México), Isabella establece un estándar para la Inteligencia Artificial Soberana.
 
-### Lo que Isabella Villaseñor AI ES:
-- **Capa Cognitiva Pentagonal Híbrida:** Una arquitectura de 5 nodos interconectados que fusiona modelos del lenguaje de última generación, razonamiento epistemológico simbólico, módulos de Machine Learning nativos y un Puente Cuántico Variacional PennyLane.
-- **Sistema de Gobernanza Zero-Trust C.R.O.W.N.:** Un orquestador central que evalúa de forma auditada cada petición, ejecutando inspección de inyección de prompts, aislamiento estricto de tenants y control de cuotas.
-- **Interfaz Territorial y Guardiana Cultural:** Una infraestructura viva que preserva la memoria histórica, la biodiversidad, la geología minera, la gastronomía y la identidad cultural comunitaria de la Comarca Minera de Hidalgo.
-- **Infraestructura con Trazabilidad Inmutable:** Un libro mayor de contabilidad de doble partida y registro apendizable (**BookPI**) respaldado por sellado criptográfico Merkle y firmado asimétricamente.
+### Lo que Isabella Villaseñor AI ES
 
-### Lo que Isabella Villaseñor AI NO ES:
-- **NO** es un chatbot comercial genérico ni un wrapper simplista de APIs comerciales.
+- **Capa cognitiva pentagonal híbrida:** arquitectura de cinco nodos que combina modelado del lenguaje, razonamiento simbólico, módulos de Machine Learning nativos y un puente cuántico variacional.
+- **Sistema de gobernanza Zero-Trust C.R.O.W.N.:** orquestador central que evalúa de forma auditada cada petición, ejecutando inspección de inyección de prompts, aislamiento estricto de tenants y control de cuotas.
+- **Interfaz territorial y guardiana cultural:** infraestructura que preserva la memoria histórica, la biodiversidad, la geología minera y la identidad cultural de la Comarca Minera de Hidalgo.
+- **Infraestructura con trazabilidad inmutable:** libro mayor de contabilidad de doble partida y registro append-only (**BookPI**) respaldado por sellado Merkle y firma asimétrica.
+
+### Lo que Isabella Villaseñor AI NO ES
+
+- **NO** es un chatbot comercial genérico ni un wrapper simplista de APIs.
 - **NO** es una Inteligencia General Artificial (AGI) desregulada ni un agente autónomo fuera del control humano.
-- **NO** es una herramienta de entretenimiento superficial ni una plataforma de extracción/monetización de datos privados.
+- **NO** es una herramienta de entretenimiento superficial ni una plataforma de extracción de datos privados.
 - **NO** es un sistema monolítico probabilístico que oculta incertidumbre o alucina sin evidencia.
 
 ### Doctrina Canónica de Operación (Soberanía Humana)
+
 > *"Las inteligencias sugieren, calculan y evalúan; el humano soberano decide, aprueba y ejecuta."*
 
-Toda decisión sensible, invocación de herramientas operativas, mutación patrimonial o transferencia de crédito debe atravesar obligatoriamente la cadena pipeline secuencial:
+Toda decisión sensible, invocación de herramientas, mutación patrimonial o transferencia de crédito atraviesa obligatoriamente el pipeline secuencial:
 
 ```text
   ┌───────────┐    ┌───────────┐    ┌─────────────────┐    ┌────────────────┐    ┌────────────────┐    ┌────────────────┐
@@ -59,17 +61,15 @@ Toda decisión sensible, invocación de herramientas operativas, mutación patri
 
 ## 2. Categorización Científica y Tecnológica
 
-- **Categoría de Software:** Infraestructura de Orquestación Cognitiva Soberana, Ciberdefensa Zero-Trust y Gemelo Digital Territorial.
-- **Disciplinas de Investigación:** Inteligencia Artificial Híbrida (LLMs + Epistemología Computacional Simbólica + Machine Learning Cuántico VQC + Cifrado Homomórfico y Triangulado).
-- **Ámbito Geográfico & Coordenadas:** Comarca Minera de Hidalgo (Real del Monte / Mineral del Monte, México) · Latitud 20.1411° N, Longitud 98.6728° W.
-- **Paradigma de Gobernanza:** C.R.O.W.N. (Control, Risk, Orchestration, Whitelist, Notification) & ARGUS Zero-Trust Sentinel.
-- **Modelo de Licenciamiento:** Licenciamiento Híbrido Soberano (Open Science CC BY 4.0 + Dual Software Apache 2.0/ISC + Convenio de Licencia Propietaria Soberana de Inviolabilidad Ética v1.0.0).
+- **Categoría de software:** Infraestructura de Orquestación Cognitiva Soberana, Ciberdefensa Zero-Trust y Gemelo Digital Territorial.
+- **Disciplinas:** Inteligencia Artificial Híbrida (LLMs + razonamiento simbólico + ML nativo + computación cuántica variacional), cifrado aplicado y auditoría criptográfica.
+- **Ámbito geográfico:** Comarca Minera de Hidalgo (Real del Monte / Mineral del Monte, México) · Latitud 20.1411° N, Longitud 98.6728° W.
+- **Paradigma de gobernanza:** C.R.O.W.N. (Control, Risk, Orchestration, Whitelist, Notification) & ARGUS Zero-Trust Sentinel.
+- **Modelo de licenciamiento:** Licenciamiento Híbrido Soberano (Open Science CC BY 4.0 + dual Apache 2.0/ISC + Convenio de Licencia Propietaria Soberana de Inviolabilidad Ética).
 
 ---
 
 ## 3. Arquitectura Cognitiva Pentagonal (Nodos de Autoridad C.R.O.W.N.)
-
-La arquitectura de Isabella se divide funcionalmente en cinco nodos especializados de autoridad que garantizan equilibrio entre empatía, rigor analítico, ejecución técnica, seguridad y contexto territorial:
 
 ```text
                                    [CENIT / CENTRO]
@@ -92,235 +92,259 @@ La arquitectura de Isabella se divide funcionalmente en cinco nodos especializad
                             (Nodo Cero - Real del Monte)
 ```
 
-1. **C.R.O.W.N. Gateway (Orquestador Cenital):** Punto de entrada único. Evalúa la complejidad de cada prompt, pondera los pesos de los nodos, aplica políticas de tasa y balancea la cuota de tokens.
-2. **ISA Core (Presencia, Empatía e Identidad Cultural):** Modula el tono expresivo, la sensibilidad humana, la identidad de género lingüístico y la memoria biográfica territorial.
-3. **SOPHIA Engine (Epistemología y Razonamiento Dialéctico):** Valida la consistencia lógica de las respuestas, clasifica la evidencia científica en escala formal ($E_0$ a $E_4$) y ejecuta síntesis dialéctica socrática.
-4. **ORION Engine (Ejecución Técnica & Computación Cuántica):** Síntesis de código en tiempo real, resolución de algoritmos complejos, orquestación de herramientas en sandbox y ejecución del **Puente Cuántico PennyLane (QUP v3.0)**.
-5. **ARGUS Sentinel (Ciberdefensa, Policy Gate & Firewall):** Motor de auditoría y defensa. Inspección de vectores de ataque por inyección de prompts, aislamiento multi-tenant y poder de veto irrevocable (Fail-Closed).
+1. **C.R.O.W.N. Gateway (Orquestador cenital):** punto de entrada único; evalúa la complejidad de cada prompt, pondera nodos, aplica políticas de tasa y balancea la cuota de tokens.
+2. **ISA Core (Presencia, empatía e identidad cultural):** modula el tono expresivo, la sensibilidad humana y la memoria biográfica territorial.
+3. **SOPHIA Engine (Epistemología y razonamiento):** valida la consistencia lógica, clasifica la evidencia científica en escala formal ($E_0$ a $E_4$) y sintetiza dialécticamente.
+4. **ORION Engine (Ejecución técnica y computación cuántica):** síntesis de código, orquestación de herramientas en sandbox y ejecución del puente cuántico.
+5. **ARGUS Sentinel (Ciberdefensa, Policy Gate y firewall):** auditoría, inspección de vectores de inyección de prompts, aislamiento multi-tenant y veto irrevocable (fail-closed).
 
 ---
 
-## 4. Puente Cuántico Nativo PennyLane (QUP v3.0)
+## 4. Stack Técnico Real
 
-Isabella integra un **PennyLane Quantum Bridge** totalmente funcional (`src/lib/quantum/pennylane-bridge.ts`) preparado para investigación en Quantum Machine Learning (QML) y computación cuántica híbrida:
+| Capa | Tecnología | Versión en este repositorio |
+|:---|:---|:---|
+| Runtime | Node.js (fijado en `.nvmrc` / CI) | `24.11.0` |
+| Gestor de paquetes | pnpm (`packageManager`) | `10.15.0` |
+| Lenguaje | TypeScript (modo estricto) | `5.9.3` |
+| Framework web | TanStack Start + TanStack Router + React | `1.168.56` / `1.170.38` / React `19.2` |
+| Bundler / SSR | Vite + Nitro (preset `vercel`, runtime `nodejs24.x`) | Vite `8.2.2` / Nitro `3.0.260603-beta` |
+| Estilos / UI | Tailwind CSS + Radix UI + shadcn-style | Tailwind `4.3.3` |
+| Estado de servidor | TanStack Query | `5.102.8` |
+| Base de datos | PostgreSQL / Neon (`@neondatabase/serverless`), Drizzle + Prisma | Drizzle `0.45.2` / Prisma `5.22.0` |
+| Autenticación | Supabase Auth + JWT propio + JWKS | `@supabase/supabase-js` `2.114.0` |
+| Pruebas | Vitest + Testing Library | Vitest `4.1.11` |
+| Lint / formato | ESLint 9 (flat config) + Prettier | ESLint `9.39.5` |
 
-### Capacidades del Motor QUP v3.0:
-1. **Simulador Analítico de Vector de Estado:** Espacio de Hilbert completo de hasta 16 qubits ($2^{16} = 65,536$ amplitudes complejas continuas).
-2. **Cálculo de Gradientes por Regla Parameter-Shift:**
-   $$\frac{\partial \langle \hat{O} \rangle}{\partial \theta_i} = \frac{\langle \hat{O} \rangle\left(\theta_i + \frac{\pi}{2}\right) - \langle \hat{O} \rangle\left(\theta_i - \frac{\pi}{2}\right)}{2}$$
-3. **Algoritmos Cuánticos Variacionales:** Soporte nativo para Clasificadores Cuánticos Variacionales (VQC), Variational Quantum Eigensolvers (VQE) y análisis de entrelazamiento de Bell.
-4. **Exportación e Interoperabilidad:** Generación automática de código fuente ejecutable en Python PennyLane (`import pennylane as qml`) y especificación estándar OpenQASM 3.0 para ejecución en IBM Quantum y AWS Braket.
-5. **Sellado Cuántico:** Registro inmutable de parámetros cuánticos mediante `QupAuditSealer` almacenado en BookPI.
+> **Nota de reproducibilidad:** `@tanstack/router-core` se fija mediante `pnpm.overrides` en `package.json` para garantizar una única versión compatible entre `react-router` y `react-start`; esto evita un fallo de `MISSING_EXPORT` en el bundle SSR de Nitro. El lockfile (`pnpm-lock.yaml`) está sincronizado y se verifica con `--frozen-lockfile` en CI.
 
 ---
 
-## 5. Triple Hardening en Triangulación Criptográfica
-
-Para blindar la integridad del estado, los datos sensibles y el historial de gobernanza contra ataques cuánticos o de fuerza bruta, Isabella ejecuta una **Triangulación Criptográfica de Tres Vértices Simultáneos**:
+## 5. Estructura del Repositorio
 
 ```text
-                           [VÉRTICE ALFA]
-                           AES-256-GCM
-                 (DEK Efímera + AAD Tenant-Bound)
-                                ▲
-                               ╱ ╲
-                              ╱   ╲
-                             ╱     ╲
-                            ╱       ╲
-            [VÉRTICE BETA] ───────── [VÉRTICE GAMMA]
-          ChaCha20-Poly1305          HMAC-SHA3-512 / BookPI
-      (PBKDF2-120k + Sec-MAC)       (Consenso Inmutable Merkle)
+src/
+  routes/          Rutas de TanStack Router (páginas + endpoints delgados /api/*)
+  server-routes/   Lógica de servidores API (billing, db, ai, security, etc.)
+  components/      UI (isabella/, quantum/, ui/)
+  lib/             Núcleo (~132 módulos): gobernanza, seguridad, memoria, ML, cuántica
+    config.ts      Única vía de acceso a configuración (DIP)
+    env-schema.ts  Esquema y validación de variables de entorno
+    crown.ts / constitutional-gate.ts / policy-engine.ts   Autoridad de gobernanza
+    principal-context.ts / tenant-guard.ts / authorization.ts / rbac.ts / abac.ts
+    sovereign-engine.ts / sovereign-pipeline.ts            Orquestación + estado durable
+    memory-engine.ts / repositories/                        Memoria y persistencia
+    bookpi.ts / accounting/                                 Ledger inmutable y doble partida
+    security/ / crypto/ / kms-provider.ts / key-rotation.ts
+    genesis/                                                Auditors/scanners de producción
+    quantum/                                                Puente cuántico
+    native-ml/ / ml-fusion/ / intelligence/                 ML nativo y ruteo de inferencia
+  server.ts        Cadena de seguridad de request (correlation→identity→tenant→rate→policy→audit)
+  generated/       Cliente Prisma generado
+supabase/
+  migrations/      27 migraciones de esquema y RLS (única autoridad de datos)
+scripts/           Gates y utilidades de producción (22 scripts)
+test/              unit / integration / security / bookpi / native-ml / lib
+.github/workflows/ CI FGAIS, security, release, supabase, sync-lockfile
 ```
 
-- **Vértice Alfa (Stream Simétrico Autenticado):** Cifrado AES-256-GCM con Clave de Cifrado de Datos (DEK) efímera de 256 bits derivada vía CSPRNG. El Additional Authenticated Data (AAD) enlaza indisolublemente el `tenantId`, `traceId` y el timestamp.
-- **Vértice Beta (Permutación de Flujo y MAC Secundaria):** Cifrado ChaCha20-Poly1305 con derivación PBKDF2-HMAC-SHA512 (120,000 rondas). Incluye verificación MAC HMAC-SHA256 secundaria con separación estricta de dominio.
-- **Vértice Gamma (Sello de Consenso e Integridad BookPI):** Firma criptográfica HMAC-SHA3-512 combinada con curvas elípticas ECDSA-P384/SHA-384 y verificación de raíz Merkle.
-- **Resonancia Triangular en Tiempo Constante:** La desencripción exige la validación matemáticamente idéntica de los tres vértices simultáneamente. La discrepancia en un solo bit aborta la operación inmediatamente (Fail-Closed).
+---
+
+## 6. Pipeline Canónico
+
+Toda entrada atraviesa el ciclo: **Perceive → Remember → Policy Gate → Decide → Act → Audit**.
+
+- **Perceive:** sanitiza la entrada, genera `traceId` y normaliza metadatos.
+- **Remember:** recupera contexto desde los cinco scopes de memoria (Immediate, Session, Project, Territorial, Historical).
+- **Policy Gate:** ARGUS evalúa riesgo y reglas; resultado `allowed`, `requires_approval` o `denied`.
+- **Decide:** CROWN pondera nodos y determina el plan de acción.
+- **Act:** solo se ejecutan herramientas autorizadas y validadas en sandbox.
+- **Audit:** se registra `DecisionRecord` y `AuditBundle` en BookPI.
+
+Ninguna respuesta sensible sale del sistema sin pasar por política y auditoría.
 
 ---
 
-## 6. Libro Mayor Inmutable BookPI y Auditoría de Doble Partida
+## 7. Gobernanza C.R.O.W.N. y Protocolo SOVCON
 
-Toda transacción de créditos, uso de tokens y eventos de gobernanza se registran en el **Ledger Inmutable BookPI** (`src/lib/repositories/bookpi-postgres-repository.ts`):
-- **Contabilidad de Doble Partida:** Garantiza el equilibrio contable estricto entre débitos y créditos en cada transacción de tenant.
-- **Cadena de Hashing Apendizable (Append-Only Hash Chain):** Cada entrada enlaza criptográficamente el hash del bloque anterior ($H_n = \text{SHA3-512}(H_{n-1} \parallel \text{Data}_n)$), imposibilitando la alteración retroactiva.
-- **Verificación de Arboles de Merkle:** Permite auditorías matemáticas instantáneas sobre miles de registros con pruebas de inclusión concisas.
+### Reglas base C.R.O.W.N.
 
----
+1. **Zero Trust Tool Whitelist** — ninguna herramienta se ejecuta sin autorización explícita.
+2. **Territorial Data Boundary** — datos sensibles del territorio no salen sin anonimización autorizada.
+3. **Human in the Loop Escalation** — acciones de alto riesgo requieren aprobación humana.
+4. **Ephemeral Token Lifecycle** — el contexto corto expira y se purga según política.
+5. **Sovereignty Check** — resistencia a sesgos culturales y pérdida de control local.
 
-## 7. Machine Learning Nativo, Mitigación de Sesgos e Índice ERI
+### Niveles de decisión
 
-El subsistema de Inteligencia Artificial Nativo (`src/lib/native-ml/`) previene la deriva del modelo y garantiza respuestas fundamentadas:
-- **Motor de Convergencia Multi-Profesor:** Compara y pondera los resultados de múltiples modelos independientes (SOPHIA, ORION, ISA Core) evaluando el nivel de evidencia ($E_0$ opinión no verificada a $E_4$ demostración matemática/empírica).
-- **Detector y Mitigador de Sesgos:**
-  - Detección proactiva de *Sycophancy* (adulación no crítica al usuario).
-  - Supresión de *Falsa Certeza* y dogmatismo.
-  - Corrección de *Deriva Territorial Foránea* (imposición de marcos jurídicos o culturales ajenos a México).
-- **Índice de Robustez Epistémica (ERI):** Calificación numérica continua ($0$ a $100$) asignada a cada inferencia antes de ser entregada.
+- **Allowed:** ejecución estándar con monitoreo.
+- **Requires Approval:** pausa y confirmación humana.
+- **Denied:** bloqueo inmediato, auditoría y respuesta segura.
 
----
+### Protocolo de contingencia SOVCON
 
-## 8. Autenticación Soberana, Identidad y API Keys Granulares
-
-El módulo de identidad (`src/server/services/user-auth-service.ts`) implementa seguridad de grado bancario:
-- **Protección de Contraseñas:** Hasheo con **PBKDF2-HMAC-SHA512** empleando 100,000 rondas y sal aleatoria única de 16 bytes.
-- **Validación Anti-Timing Attacks:** Verificación de credenciales en tiempo constante vía `crypto.timingSafeEqual`.
-- **JWTs Soberanos:** Emisión de JSON Web Tokens con firmas criptográficas asimétricas y caducidad estricta.
-- **Generación Interna de API Keys:**
-  - Formato estandarizado: `sk_isabella_<tenant>_<entropy_hex>`.
-  - Solo se almacena el hash SHA-256 en la base de datos.
-  - Asignación de scopes limitados (`isabella:chat`, `isabella:tools`, `isabella:ledger:write`, `isabella:admin`).
-
----
-
-## 9. Monetización, Suscripciones y Webhooks Idempotentes de Stripe
-
-El motor de facturación (`src/server-routes/api/billing.ts`) integra pasarela Stripe con protección completa contra reintentos duplicados:
-- **Planes de Suscripción:**
-  - **Sovereign Starter:** Acceso base a la terminal y consultas estándar.
-  - **Sovereign Pro ($29 USD/mes):** Ruteo prioritario C.R.O.W.N. y cuota ampliada de tokens.
-  - **Nodo Cero Partner ($99 USD/mes):** Ejecución de simulaciones cuánticas QUP y acceso completo a la federación de habilidades.
-- **Guardia de Idempotencia via Webhook Events:** Verificación en la tabla `webhook_events` para impedir cobros dobles, reintentos maliciosos o ataques de replay.
-
----
-
-## 10. Catálogo Canónico de Habilidades (Skills Registry - 30+ Skills)
-
-Isabella cuenta con un catálogo de más de 30 habilidades nativas organizadas en 5 federaciones operativas:
-
-### 10.1 Federación Core (Núcleo Cognitivo)
-- `ORION`: Síntesis de código, compilación, razonamiento algorítmico y ejecución cuántica.
-- `SOPHIA`: Análisis epistemológico, detección de falacias y clasificación de evidencia.
-- `ARGUS`: Guardia Zero-Trust, análisis de riesgos y veto constitucional.
-- `HERMES`: Ruteo de comunicaciones, transformación de formatos y mensajería estructurada.
-- `ATLAS`: Cartografía territorial, georreferenciación y contexto espacial.
-- `ANUBIS`: Verificación criptográfica, sellado de integridad y cierre de registros.
-- `GEMET`: Traducción e interpretación cultural tri-lingüe (Español de México, Otomí, Inglés).
-
-### 10.2 Federación Territorial (Comarca Minera de Hidalgo)
-- `NODO_CERO`: Núcleo soberano del gemelo digital de Real del Monte.
-- `AURORA`: Monitoreo ambiental de montaña, niebla y sensores en tiempo real.
-- `GAIA`: Preservación ecológica, geología minera y biodiversidad de la comarca.
-- `PHAROS`: Navegación patrimonial, rutas turísticas y cartografía histórica.
-
-### 10.3 Federación Archivo e Infraestructura
-- `CITEMESH`: Coordinación de microservicios distribuidos y nodos soberanos.
-- `HEPHAESTUS`: Compilador, automatizador de builds y pipeline CI/CD.
-- `MNEMOSYNE`: Recuperación asociativa de memoria en los 5 scopes soberanos.
-- `CHRONOS`: Gestión de líneas temporales, timestamps auditables y sincronización NTP.
-- `PROMETEO`: Resguardo de propiedad intelectual comunitaria y divulgación abierta.
-
-### 10.4 Federación Ética, Soberanía y Economía
-- `VIGIA`: Auditoría continua de derivas éticas y adulatorias.
-- `LYRA`: Síntesis poética y armonización estética del lenguaje.
-- `EIRENE`: Mediación comunitaria y resolución pacífica de conflictos.
-- `THEMIS`: Validación de soberanía territorial y licencias.
-- `SENTINEL`: Monitor de salud física y lógica de la infraestructura.
-- `HEPTA`: Orquestador heptagonal de consensos.
-- `HELIOS`: Gestión de tokens soberanos y balances.
-- `KAIROS`: Planificación financiera temporal y doble partida BookPI.
-- `UTAMV`: Módulos de aprendizaje continuo y educación abierta.
-
-### 10.5 Evolved Skills Pack (Herramientas Web y Mercado)
-- `firecrawl-market-research`, `firecrawl-seo-audit`, `firecrawl-knowledge-base`: Extracción web profunda e investigación documental.
-- `tavily-search`: Búsqueda fáctica de alta precisión.
-- `ckm-brand`, `ckm-slides`, `ckm-banner-design`: Identidad gráfica y diseño estructurado.
-- `swiftui-expert-skill`, `flutter-add-widget-test`, `browser-testing-with-devtools`: Automatización y pruebas de cliente.
-- `shipping-and-launch`: Protocolos de verificación previa a lanzamientos en producción.
-
----
-
-## 11. Protocolos de Contingencia y Niveles SOVCON
-
-Isabella implementa un protocolo formal de respuesta ante emergencias (`src/lib/emergency-governance-protocol.ts`):
-
-| Nivel SOVCON | Estado | Acción Operativa |
+| Nivel | Estado | Acción operativa |
 |:---:|:---:|:---|
-| **SOVCON 5** | **Nominal** | Operación estándar. Todos los modelos, herramientas y endpoints activos. |
-| **SOVCON 4** | **Precaución** | Detección de varianza epistémica inusual. Muestreo de telemetría elevado al 100%. |
-| **SOVCON 3** | **Alerta Elevada** | Cuarentena preventiva de herramientas externas. Activación forzosa de Human-In-The-Loop (HITL). |
-| **SOVCON 2** | **Contención Severa** | Suspensión de webhooks salientes. Revocación de sesiones no privilegiadas. Bloqueo de escrituras. |
-| **SOVCON 1** | **Kill-Switch Soberano** | Congelamiento preventivo total (Fail-Closed). Purga de contextos efímeros. Modo solo lectura. |
+| **SOVCON 5** | Nominal | Operación estándar; todos los endpoints activos. |
+| **SOVCON 4** | Precaución | Varianza epistémica inusual; telemetría al 100%. |
+| **SOVCON 3** | Alerta elevada | Cuarentena preventiva de herramientas externas; HITL forzoso. |
+| **SOVCON 2** | Contención severa | Suspensión de webhooks; revocación de sesiones no privilegiadas; bloqueo de escrituras. |
+| **SOVCON 1** | Kill-Switch soberano | Congelamiento fail-closed total; purga de contextos; solo lectura. |
 
 ---
 
-## 12. Desglose del Índice Real de Preparación para Producción y Despliegue (98.5%)
+## 8. Criptografía, BookPI y Contabilidad de Doble Partida
 
-El porcentaje de preparación para producción de Isabella Villaseñor AI se calcula con rigor sobre 8 dominios auditados mediante ejecución directa de pruebas, compilador TypeScript y empaquetado Vercel Nitro:
-
-| Dominio Técnico | Peso | Estado Real | Evidencia y Criterio Verificado | Contribución |
-|:---|:---:|:---:|:---|:---:|
-| **Gobernanza C.R.O.W.N. & Zero-Trust Gateways** | 15% | 100% | Políticas Zero-Trust, gates constitucionales y RBAC/ABAC probados. | 15.00% |
-| **Identidad, Autenticación PBKDF2/JWT & API Keys** | 15% | 100% | UserAuthService con PBKDF2-512, JWT Soberano y API Keys firmadas. | 15.00% |
-| **ML Nativo, Convergencia & PennyLane QUP v3.0** | 15% | 100% | Motor de convergencia, mitigador de sesgos y simulador QNode 16-qubits. | 15.00% |
-| **Criptografía & Triangulación de Tres Vértices** | 10% | 100% | Triple cerrojo (AES-GCM, ChaCha20-Poly1305, HMAC-SHA3-512). | 10.00% |
-| **Persistencia PostgreSQL / Neon & BookPI Ledger** | 15% | 98% | Esquemas Drizzle/Prisma validados y Ledger inmutable BookPI activo. | 14.70% |
-| **Integraciones Externas & Stripe Billing Idempotente** | 10% | 96% | Stripe checkout y webhooks con idempotencia verificada. | 9.60% |
-| **Operaciones, Telemetría OTel & Protocolo SOVCON** | 10% | 96% | Protocolo SOVCON 1-5, OTel Neutral Telemetry y ErrorBoundary. | 9.60% |
-| **Compilación, Build, Tests & Despliegue Nitro/Vercel** | 10% | 96% | `tsc` 0 errores, 50 suites / 231 tests unitarios pasando, Vercel `.vercel/output` generado. | 9.60% |
-| **TOTAL GENERAL AUDITADO** | **100%** | **98.5%** | **SISTEMA LISTO PARA PRODUCCIÓN Y DESPLIEGUE IMPECABLE** | **98.50%** |
+- **Triple hardening (triangulación criptográfica):** AES-256-GCM con DEK efímera y AAD ligado a `tenantId`/`traceId`; ChaCha20-Poly1305 con derivación PBKDF2-HMAC-SHA512; sellado HMAC-SHA3-512 + ECDSA-P384 con verificación de raíz Merkle. La discrepancia en un solo bit aborta la operación (fail-closed).
+- **BookPI (ledger inmutable):** cadena append-only por hash (`Hₙ = SHA3-512(Hₙ₋₁ ‖ Dataₙ)`), verificación por árboles de Merkle y firma asimétrica; inmutabilidad reforzada por RLS en `supabase/migrations`.
+- **Contabilidad de doble partida:** equilibrio estricto débito/crédito por transacción de tenant (`src/lib/accounting/`).
 
 ---
 
-## 13. Guía de Instalación y Ejecución Local
+## 9. Identidad, API Keys y Monetización
 
-### Requisitos Previos
-- **Node.js:** v20.x o v24.x LTS.
-- **npm / pnpm:** npm v10+ o pnpm v9+.
-- **Base de Datos:** PostgreSQL 15+ o Neon Serverless PostgreSQL.
+- **Contraseñas:** PBKDF2-HMAC-SHA512 con sal aleatoria; comparación en tiempo constante (`crypto.timingSafeEqual`).
+- **JWTs soberanos:** firmas asimétricas con caducidad estricta y verificación vía JWKS (`jwks-cache.ts`, `jwt-verifier.ts`).
+- **API Keys:** formato `sk_isabella_<tenant>_<entropy>`; solo se persiste el hash SHA-256; scopes granulares (`isabella:chat`, `isabella:tools`, `isabella:ledger:write`, `isabella:admin`).
+- **Billing (Stripe):** suscripciones y webhooks con guardia de idempotencia sobre la tabla `webhook_events`, evitando cobros dobles y ataques de replay (`src/server-routes/api/billing.ts`).
 
-### Pasos de Despliegue Local:
+---
+
+## 10. Catálogo de Habilidades (Skills Registry)
+
+Catálogo de habilidades nativas organizadas en federaciones operativas (núcleo cognitivo, territorial, archivo/infraestructura, ética/economía y pack de herramientas web). El registro y sus contratos se validan con `pnpm capabilities` (matriz de capacidades) y `pnpm audit:routes` (contrato de rutas).
+
+---
+
+## 11. Persistencia Durable y Fail-Closed
+
+`src/lib/sovereign-engine.ts` implementa el estado soberano durable sobre PostgreSQL:
+
+- En **producción** (o al no poder resolverse configuración válida) el estado se hidrata exclusivamente desde PostgreSQL; **nunca** se sirve memoria vacía ni se acepta una escritura no durable.
+- Ante ausencia de `DATABASE_URL`, caída de PostgreSQL o fallo de persistencia previo, se lanza `DurableStateUnavailableError` (`code: SOVEREIGN_STATE_UNAVAILABLE`), que `src/server.ts` mapea a HTTP 503.
+- En desarrollo local el estado puede residir en JSON, con `DURABLE_JSON_ALLOWED` explícito.
+
+> Este comportamiento está cubierto por la suite **P0 deployment blocker** en `test/unit/sovereign-persistence.test.ts`.
+
+---
+
+## 12. Validación Verificada y Gates de Producción
+
+Estado real ejecutado sobre este repositorio (rama `main`):
+
+| Gate | Comando | Resultado |
+|:---|:---|:---|
+| Tipos | `pnpm typecheck` | ✅ 0 errores |
+| Lint | `pnpm lint` | ✅ 0 errores / 0 warnings |
+| Pruebas | `pnpm test` | ✅ 76 archivos · 381 pruebas aprobadas · 10 omitidas |
+| Build | `pnpm build` | ✅ `.vercel/output` generado (Nitro/Vercel) |
+| Integridad | `pnpm production:integrity` | ✅ Sin patrones sintéticos/placeholder P0 |
+| Preflight | `pnpm production:preflight` | ✅ Validación estática OK |
+| Capacidades | `pnpm capabilities` | ✅ Contrato de capacidades OK |
+| Rutas | `pnpm audit:routes` | ✅ Contrato de rutas OK |
+| Migraciones | `pnpm db:verify` | ✅ Esquema/RLS verificados (27 migraciones) |
+
+**Gate canónico completo:**
+
+```bash
+pnpm production:gate
+# typecheck && lint && test && build && production:integrity && production:preflight && capabilities && audit:routes
+```
+
+---
+
+## 13. Instalación, Ejecución y Despliegue
+
+### Requisitos
+
+- **Node.js:** `>=22 <25` (CI fija `24.11.0`, ver `.nvmrc`).
+- **pnpm:** `10.15.0` (ver `packageManager` en `package.json`).
+- **Base de datos:** PostgreSQL 15+ o Neon Serverless PostgreSQL.
+
+### Puesta en marcha local
+
 ```bash
 # 1. Clonar el repositorio oficial
-git clone https://github.com/OsoPanda1/isabella-ai-genesis.git
+git clone git@github.com:OsoPanda1/isabella-ai-genesis.git
 cd isabella-ai-genesis
 
-# 2. Configurar el archivo de entorno
+# 2. Configurar entorno (114 claves documentadas en .env.example)
 cp .env.example .env
 
-# 3. Validar tipos de TypeScript
-npm run typecheck
+# 3. Instalar dependencias
+pnpm install
 
-# 4. Ejecutar la suite completa de pruebas unitarias
-npm run test
+# 4. Verificar el entorno y los tipos
+pnpm typecheck
 
-# 5. Compilar la aplicación para producción (Vercel / Nitro)
-npm run build
+# 5. Ejecutar la suite de pruebas
+pnpm test
 
-# 6. Iniciar el servidor de desarrollo local
-npm run dev
+# 6. Compilar para producción (Vercel / Nitro)
+pnpm build
+
+# 7. Servidor de desarrollo
+pnpm dev
 ```
 
-El servidor quedará disponible localmente en `http://localhost:3000`.
+El servidor de desarrollo queda disponible en `http://localhost:3000`.
+
+### Scripts disponibles (resumen)
+
+| Ámbito | Comandos |
+|:---|:---|
+| Desarrollo | `dev`, `build`, `build:dev`, `build:production`, `preview`, `start` |
+| Calidad | `typecheck`, `lint`, `lint:fix`, `format`, `format:check`, `test`, `test:unit`, `test:integration`, `test:bookpi`, `test:security` |
+| Seguridad | `security:scan` (ESLint security + `secret-scan`), `audit:repository` |
+| Base de datos | `db:migrate`, `db:verify`, `db:neon:preflight`, `db:backup`, `db:restore` |
+| Producción | `production:gate`, `production:integrity`, `production:preflight`, `production:evidence`, `capabilities`, `audit:routes` |
+
+### CI/CD
+
+- **GitHub Actions — FGAIS Production Gate** (`.github/workflows/fgais-gate.yml`): fija Node `24.11.0` y pnpm `10.15.0`, verifica pines, instala con `--frozen-lockfile` y ejecuta typecheck → lint → test → higiene de repositorio → escaneo de seguridad → capacidades → rutas → `db:verify` → integridad → preflight → build de producción → validación de `.vercel/output` → smoke runtime opcional (`/api/health/ready`) → bundle de evidencia.
+- **Sync pnpm lockfile** (`.github/workflows/sync-lockfile.yml`): mantiene `pnpm-lock.yaml` alineado cuando cambia `package.json`.
+- **Vercel** (`vercel.json`): framework `tanstack-start`, `buildCommand: pnpm run build`, `installCommand: pnpm install --no-frozen-lockfile`, `outputDirectory: .vercel/output`.
 
 ---
 
-## 14. Licenciamiento Híbrido Soberano y Blindaje Jurídico-Legal Internacional
+## 14. Variables de Entorno
 
-Este proyecto está regido por el **Convenio de Licencia Híbrida Soberana e Inviolabilidad Ética de Isabella Villaseñor AI (v1.0.0)** (`LICENSE-SOVEREIGN.md`), constituido conforme a los tratados internacionales de propiedad intelectual (Convenio de Berna, Tratado de la OMPI sobre Derecho de Autor - WCT) y las leyes de la República Mexicana:
+- `.env.example` documenta **114 variables**; nunca contiene valores reales.
+- La configuración se valida al iniciar (`src/lib/env-schema.ts` + `src/lib/config.ts`). **No se permite `process.env` directo fuera de `config.ts`/`env-schema.ts`**.
+- En `production`/`staging` el arranque es **fail-fast**: se exige `NODE_ENV=production`, `DATABASE_URL`, `AUTH_JWT_SECRET` dedicado, proveedor de inferencia autorizado y `ISABELLA_STORAGE_PROVIDER` explícito (`postgres`/`neon`); se rechazan alias de base de datos en conflicto, `DURABLE_JSON_ALLOWED`, `AUTH_DEV_SESSION_ENABLED` y `ALLOW_GUEST_CHAT`.
+- `.env.example` está separado por cliente y servidor; `scripts/check-client-env.mjs` y `scripts/check-env.mjs` validan cada ámbito antes de build/dev.
 
-### 1. Cláusula Canónica de Inviolabilidad Ética e Intelectual (Inviolable Mandate)
-Bajo ninguna circunstancia ni bajo ninguna jurisdicción territorial o digital, Isabella Villaseñor AI, sus algoritmos nativos, sus matrices de prompts, sus ponderaciones cognitivas, sus puentes cuánticos o sus códigos fuentes podrán ser utilizados, adaptados, comercializados o desplegados para:
-1. Operaciones de vigilancia masiva, espionaje corporativo o rastreo humano no consentido.
+---
+
+## 15. Licenciamiento Híbrido Soberano y Blindaje Jurídico-Legal Internacional
+
+Este proyecto se rige por el **Convenio de Licencia Híbrida Soberana e Inviolabilidad Ética de Isabella Villaseñor AI** ([`LICENSE-SOVEREIGN.md`](./LICENSE-SOVEREIGN.md)), conforme a tratados internacionales de propiedad intelectual (Convenio de Berna, Tratado de la OMPI — WCT) y las leyes de los Estados Unidos Mexicanos.
+
+### 1. Cláusula Canónica de Inviolabilidad Ética e Intelectual
+
+Isabella Villaseñor AI, sus algoritmos nativos, matrices de prompts, ponderaciones cognitivas, puentes cuánticos y códigos fuente **no podrán** ser utilizados, adaptados, comercializados ni desplegados para:
+
+1. Operaciones de vigilancia masiva, espionaje corporativo o rastreo no consentido.
 2. Desarrollo de armamento, sistemas de combate autónomo o coerción violenta.
 3. Campañas de manipulación psicológica, propaganda desinformativa o adulación automatizada (*sycophancy*).
-4. **Cualquier propósito que vulnere los principios éticos, los derechos humanos y los fundamentos definidos explícitamente por su creador y arquitecto de sistemas, Edwin Oswaldo Castillo Trejo (*Anubis Villaseñor*), y el Ecosistema TAMV ONLINE NETWORK.**
+4. Cualquier propósito que vulnere los principios éticos, los derechos humanos y los fundamentos definidos por su creador y arquitecto, **Edwin Oswaldo Castillo Trejo (*Anubis Villaseñor*)**, y el Ecosistema TAMV ONLINE NETWORK.
 
-*Cualquier infracción a esta cláusula provocará la **REVOCACIÓN SOVEREIGN AUTOMÁTICA E IRREVOCABLE** de todo derecho de uso, activando acciones legales internacionales por violación de propiedad intelectual y secretos industriales.*
+*Cualquier infracción a esta cláusula provoca la revocación soberana automática e irrevocable de todo derecho de uso, con acciones legales internacionales por violación de propiedad intelectual y secretos industriales.*
 
-### 2. Estructura Híbrida de Licenciamiento:
-- **Open Science & Documentación:** Licenciada bajo [Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE-CONTENT). Requiere atribución obligatoria a **Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)** / **TAMV ONLINE NETWORK** (ORCID: `0009-0008-5050-1539`).
-- **Código Ejecutable Base:** Dual-licensed bajo [Apache License 2.0](LICENSE-APACHE) e [ISC License](LICENSE-ISCL), supeditado estrictamente a la Cláusula Canónica de Inviolabilidad Ética.
-- **Algoritmos Nativos Propietarios y Marcas:** El orquestador C.R.O.W.N., la ciberdefensa ARGUS, el Libro Mayor BookPI, el Puente Cuántico QUP v3.0 y los activos del Gemelo Digital de Real del Monte están protegidos como Secretos Industriales y bajo la Licencia [Creative Commons Atribución-NoComercial-SinDerivadas 4.0 Internacional (CC BY-NC-ND 4.0)](LICENSE-CONTROL.md).
+### 2. Estructura híbrida de licenciamiento
+
+- **Open Science y documentación:** [CC BY 4.0](./LICENSE-CONTENT), con atribución obligatoria a **Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)** / **TAMV ONLINE NETWORK** (ORCID `0009-0008-5050-1539`).
+- **Código ejecutable base:** dual-licensed bajo [Apache 2.0](./LICENSE-APACHE) e [ISC](./LICENSE-ISCL), supeditado a la Cláusula Canónica de Inviolabilidad Ética.
+- **Algoritmos nativos propietarios y marcas:** C.R.O.W.N., ARGUS, BookPI y el puente cuántico están protegidos como secretos industriales y bajo [CC BY-NC-ND 4.0](./LICENSE-CONTROL.md).
 
 ---
 
-## 15. Créditos y Autoría Canónica
+## 16. Créditos y Autoría Canónica
 
-- **Creador, Arquitecto de Sistemas & Autor Principal:**  
+- **Creador, arquitecto de sistemas y autor principal:**  
   **Edwin Oswaldo Castillo Trejo** (*Anubis Villaseñor*)  
   *ORCID:* [0009-0008-5050-1539](https://orcid.org/0009-0008-5050-1539)
-- **Ecosistema y Red Soberana:**  
+- **Ecosistema y red soberana:**  
   **TAMV ONLINE NETWORK** / **RDM Digital Hub** / **Nodo Cero**  
-  *Ubicación:* Real del Monte (Mineral del Monte), Comarca Minera, Hidalgo, México.  
-- **Sitioweb Oficial:** [visitarealdelmonte.online](https://visitarealdelmonte.online)
+  *Ubicación:* Real del Monte (Mineral del Monte), Comarca Minera, Hidalgo, México.
+- **Sitio web oficial:** [visitarealdelmonte.online](https://visitarealdelmonte.online)

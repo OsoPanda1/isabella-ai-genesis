@@ -74,8 +74,8 @@ export function createBookpiEngine(repository: BookpiRepository = createBookpiRe
       }
 
       // Ensure the repository has batchAppend, otherwise fallback to sequential
-      if (typeof (repository as any).batchAppend === "function") {
-        const write = (repository as any).batchAppend(requests);
+      if (typeof repository.batchAppend === "function") {
+        const write = repository.batchAppend(requests);
         if (!write.success) return { success: false, error: write.error };
         return { success: true, blocks: write.blocks };
       } else {
@@ -83,7 +83,7 @@ export function createBookpiEngine(repository: BookpiRepository = createBookpiRe
         for (const req of requests) {
           const write = repository.append(req);
           if (!write.success) return { success: false, error: write.error };
-          blocks.push((write as any).block);
+          blocks.push(write.block);
         }
         return { success: true, blocks };
       }
@@ -98,8 +98,8 @@ export function createBookpiEngine(repository: BookpiRepository = createBookpiRe
         toDate?: Date;
       },
     ): BlockPIBlock[] | Promise<BlockPIBlock[]> {
-      if (typeof (repository as any).query === "function") {
-        return (repository as any).query(tenantId, filter);
+      if (typeof repository.query === "function") {
+        return repository.query(tenantId, filter);
       }
       // Fallback for repositories without query
       let blocks = repository.list(tenantId);
@@ -170,8 +170,8 @@ export function createBookpiEngine(repository: BookpiRepository = createBookpiRe
       | { success: boolean; prunedCount?: number; error?: string }
       | Promise<{ success: boolean; prunedCount?: number; error?: string }> {
       if (maxAgeMs < 0) return { success: false, error: "maxAgeMs debe ser >= 0" };
-      if (typeof (repository as any).prune === "function") {
-        return (repository as any).prune(tenantId, maxAgeMs);
+      if (typeof repository.prune === "function") {
+        return repository.prune(tenantId, maxAgeMs);
       }
       return {
         success: false,
@@ -187,8 +187,8 @@ export function createBookpiEngine(repository: BookpiRepository = createBookpiRe
           error?: string;
         }> {
       if (inactiveDays <= 0) return { success: false, error: "inactiveDays must be > 0" };
-      if (typeof (repository as any).pruneInactive === "function") {
-        return (repository as any).pruneInactive(inactiveDays);
+      if (typeof repository.pruneInactive === "function") {
+        return repository.pruneInactive(inactiveDays);
       }
       return {
         success: false,
