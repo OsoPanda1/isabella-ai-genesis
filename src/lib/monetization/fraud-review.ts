@@ -125,12 +125,14 @@ export function createFraudReviewQueue(opts?: {
 }) {
   const cases = opts?.cases ?? new Map<string, FraudCase>();
   const disputes = opts?.disputes ?? new Map<string, Dispute>();
+  // providerEventId index, so duplicate webhook events resolve in O(1).
+  const disputeEventIndex = new Map<string, string>();
   const audit = opts?.audit;
 
   return {
     /** Abre un caso desde una evaluación de riesgo. */
     open(evaluation: RiskEvaluation, userId: string, amountCents: number): FraudCase {
-      const existing = [...cases.values()].find((c) => c.reviewId === evaluation.reviewId);
+      const existing = cases.get(evaluation.reviewId);
       if (existing) return existing;
       const fraudCase: FraudCase = {
         reviewId: evaluation.reviewId,
@@ -190,10 +192,9 @@ export function createFraudReviewQueue(opts?: {
       tenantId: string;
       amountMinor: number;
     }): Dispute {
-      const existing = [...disputes.values()].find(
-        (dispute) =>
-          dispute.provider === input.provider && dispute.providerEventId === input.providerEventId,
-      );
+      const eventKey = `${input.provider}::${input.providerEventId}`;
+      const existingId = disputeEventIndex.get(eventKey);
+      const existing = existingId ? disputes.get(existingId) : undefined;
       if (existing) return existing;
       const dispute: Dispute = {
         disputeId: `dp_${randomUUID().replace(/-/g, "")}`,
@@ -205,6 +206,7 @@ export function createFraudReviewQueue(opts?: {
         openedAt: new Date().toISOString(),
       };
       disputes.set(dispute.disputeId, dispute);
+      disputeEventIndex.set(eventKey, dispute.disputeId);
       audit?.("payment.dispute.opened", {
         ...input,
         disputeId: dispute.disputeId,

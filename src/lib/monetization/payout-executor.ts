@@ -32,13 +32,20 @@ export interface StripeLike {
   };
 }
 
+// One Stripe client per process (re-created only if the key rotates).
+let cachedStripe: StripeLike | undefined;
+let cachedStripeKey: string | undefined;
+
 function defaultClient(): StripeLike {
   const key = config().STRIPE_SECRET_KEY;
   if (!key) {
     throw new Error("Payout denegado: STRIPE_SECRET_KEY ausente (fail-closed).");
   }
-  const stripe = new Stripe(key, { apiVersion: "2022-11-15" as never });
-  return stripe as unknown as StripeLike;
+  if (!cachedStripe || cachedStripeKey !== key) {
+    cachedStripe = new Stripe(key, { apiVersion: "2022-11-15" as never }) as unknown as StripeLike;
+    cachedStripeKey = key;
+  }
+  return cachedStripe;
 }
 
 /**
