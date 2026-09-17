@@ -32,7 +32,7 @@ const nvm = readFileSync(resolve(root, ".nvmrc"), "utf8").trim();
 if (nvm !== "24.11.0") errors.push(".nvmrc must pin Node 24.11.0");
 const vercel = JSON.parse(readFileSync(resolve(root, "vercel.json"), "utf8"));
 if (vercel.framework !== "tanstack-start") errors.push("vercel.framework must be tanstack-start");
-if (vercel.installCommand !== "pnpm install --no-frozen-lockfile") errors.push("Vercel installCommand must synchronize the current lockfile");
+if (vercel.installCommand !== "pnpm install --frozen-lockfile") errors.push("Vercel installCommand must use the committed lockfile");
 const viteConfig = readFileSync(resolve(root, "vite.config.ts"), "utf8");
 if (!viteConfig.includes("tanstackStart(")) errors.push("vite.config must use TanStack Start plugin");
 if (!viteConfig.includes('nitro({ preset: "vercel"')) errors.push("vite.config must use Nitro Vercel output adapter");
