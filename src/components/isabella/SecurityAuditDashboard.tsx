@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { ShieldCheck, ShieldAlert, Shield, RefreshCw, Search, Filter, Lock, FileText, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import {
+  ShieldCheck,
+  ShieldAlert,
+  RefreshCw,
+  Search,
+  Filter,
+  Lock,
+  FileText,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+} from "lucide-react";
 import { getSessionToken } from "@/lib/auth-client";
 import { toast } from "sonner";
 
@@ -280,7 +291,9 @@ export function SecurityAuditDashboard() {
       </div>
 
       <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-2 border-t border-slate-900">
-        <span>Mostrando {filteredLogs.length} de {logs.length} eventos auditados</span>
+        <span>
+          Mostrando {filteredLogs.length} de {logs.length} eventos auditados
+        </span>
         <span>Canal HMAC: AEGIS_AUDIT_SECRET • CERO ALTERACIONES</span>
       </div>
     </div>

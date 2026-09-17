@@ -250,7 +250,9 @@ export function MonetizationDashboardSecure({ initialTab }: { initialTab?: strin
           <div className="font-mono text-[10px] text-muted-foreground">{user?.role ?? "—"}</div>
         </div>
         <div className="rounded-2xl border border-border/15 p-4">
-          <span className="font-mono text-[10px] uppercase text-muted-foreground">Tasa API Activa</span>
+          <span className="font-mono text-[10px] uppercase text-muted-foreground">
+            Tasa API Activa
+          </span>
           <div className="mt-2 text-lg font-bold font-mono">
             28 / {Number(import.meta.env.VITE_RATE_LIMIT_DEFAULT_PER_MINUTE || 120)} req/min
           </div>

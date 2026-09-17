@@ -26,6 +26,7 @@ import { Route as ApiIsabellaVoiceRouteImport } from './routes/api/isabella-voic
 import { Route as ApiMuxIntroRouteImport } from './routes/api/mux-intro'
 import { Route as ApiObservabilityRouteImport } from './routes/api/observability'
 import { Route as ApiSecurityRouteImport } from './routes/api/security'
+import { Route as ApiAiTransparencyRouteImport } from './routes/api/ai/transparency'
 import { Route as ApiConnectGithubRouteImport } from './routes/api/connect/github'
 import { Route as ApiConnectLinearRouteImport } from './routes/api/connect/linear'
 import { Route as ApiConnectSlackRouteImport } from './routes/api/connect/slack'
@@ -127,6 +128,11 @@ const ApiSecurityRoute = ApiSecurityRouteImport.update({
   path: '/api/security',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiTransparencyRoute = ApiAiTransparencyRouteImport.update({
+  id: '/api/ai/transparency',
+  path: '/api/ai/transparency',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiConnectGithubRoute = ApiConnectGithubRouteImport.update({
   id: '/api/connect/github',
   path: '/api/connect/github',
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/api/mux-intro': typeof ApiMuxIntroRoute
   '/api/observability': typeof ApiObservabilityRoute
   '/api/security': typeof ApiSecurityRoute
+  '/api/ai/transparency': typeof ApiAiTransparencyRoute
   '/api/connect/github': typeof ApiConnectGithubRouteWithChildren
   '/api/connect/linear': typeof ApiConnectLinearRouteWithChildren
   '/api/connect/slack': typeof ApiConnectSlackRouteWithChildren
@@ -251,6 +258,7 @@ export interface FileRoutesByTo {
   '/api/mux-intro': typeof ApiMuxIntroRoute
   '/api/observability': typeof ApiObservabilityRoute
   '/api/security': typeof ApiSecurityRoute
+  '/api/ai/transparency': typeof ApiAiTransparencyRoute
   '/api/connect/github': typeof ApiConnectGithubRouteWithChildren
   '/api/connect/linear': typeof ApiConnectLinearRouteWithChildren
   '/api/connect/slack': typeof ApiConnectSlackRouteWithChildren
@@ -285,6 +293,7 @@ export interface FileRoutesById {
   '/api/mux-intro': typeof ApiMuxIntroRoute
   '/api/observability': typeof ApiObservabilityRoute
   '/api/security': typeof ApiSecurityRoute
+  '/api/ai/transparency': typeof ApiAiTransparencyRoute
   '/api/connect/github': typeof ApiConnectGithubRouteWithChildren
   '/api/connect/linear': typeof ApiConnectLinearRouteWithChildren
   '/api/connect/slack': typeof ApiConnectSlackRouteWithChildren
@@ -320,6 +329,7 @@ export interface FileRouteTypes {
     | '/api/mux-intro'
     | '/api/observability'
     | '/api/security'
+    | '/api/ai/transparency'
     | '/api/connect/github'
     | '/api/connect/linear'
     | '/api/connect/slack'
@@ -353,6 +363,7 @@ export interface FileRouteTypes {
     | '/api/mux-intro'
     | '/api/observability'
     | '/api/security'
+    | '/api/ai/transparency'
     | '/api/connect/github'
     | '/api/connect/linear'
     | '/api/connect/slack'
@@ -386,6 +397,7 @@ export interface FileRouteTypes {
     | '/api/mux-intro'
     | '/api/observability'
     | '/api/security'
+    | '/api/ai/transparency'
     | '/api/connect/github'
     | '/api/connect/linear'
     | '/api/connect/slack'
@@ -420,6 +432,7 @@ export interface RootRouteChildren {
   ApiMuxIntroRoute: typeof ApiMuxIntroRoute
   ApiObservabilityRoute: typeof ApiObservabilityRoute
   ApiSecurityRoute: typeof ApiSecurityRoute
+  ApiAiTransparencyRoute: typeof ApiAiTransparencyRoute
   ApiConnectGithubRoute: typeof ApiConnectGithubRouteWithChildren
   ApiConnectLinearRoute: typeof ApiConnectLinearRouteWithChildren
   ApiConnectSlackRoute: typeof ApiConnectSlackRouteWithChildren
@@ -545,6 +558,13 @@ declare module '@tanstack/react-router' {
       path: '/api/security'
       fullPath: '/api/security'
       preLoaderRoute: typeof ApiSecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/transparency': {
+      id: '/api/ai/transparency'
+      path: '/api/ai/transparency'
+      fullPath: '/api/ai/transparency'
+      preLoaderRoute: typeof ApiAiTransparencyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/connect/github': {
@@ -734,6 +754,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiMuxIntroRoute: ApiMuxIntroRoute,
   ApiObservabilityRoute: ApiObservabilityRoute,
   ApiSecurityRoute: ApiSecurityRoute,
+  ApiAiTransparencyRoute: ApiAiTransparencyRoute,
   ApiConnectGithubRoute: ApiConnectGithubRouteWithChildren,
   ApiConnectLinearRoute: ApiConnectLinearRouteWithChildren,
   ApiConnectSlackRoute: ApiConnectSlackRouteWithChildren,

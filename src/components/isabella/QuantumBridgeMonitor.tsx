@@ -3,7 +3,7 @@
  * @description Componente de monitoreo de ejecuciones y rendimiento del Puente Cuántico PennyLane.
  * Renderiza gráficos de área en tiempo real con `recharts` visualizando latencia (ms) y rendimiento/throughput (ops/s),
  * suscribiéndose a un flujo continuo de telemetría derivado del estado cuántico.
- * 
+ *
  * Autoría: Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)
  * Ecosistema: TAMV ONLINE NETWORK / Nodo Cero (Real del Monte, Hidalgo, México)
  */
@@ -69,12 +69,15 @@ export function QuantumBridgeMonitor() {
     maxShots: Number(import.meta.env.VITE_QUANTUM_MAX_SHOTS) || 500000,
     maxFeatures: Number(import.meta.env.VITE_QUANTUM_MAX_FEATURES) || 64,
     maxWeights: Number(import.meta.env.VITE_QUANTUM_MAX_WEIGHTS) || 128,
-    bridgeScript: import.meta.env.VITE_QUANTUM_BRIDGE_SCRIPT || "scripts/quantum/isabella_quantum_bridge_v3.py",
+    bridgeScript:
+      import.meta.env.VITE_QUANTUM_BRIDGE_SCRIPT || "scripts/quantum/isabella_quantum_bridge_v3.py",
     pythonBin: import.meta.env.VITE_PYTHON_BIN || "python3",
   };
 
   const [telemetryHistory, setTelemetryHistory] = useState<QuantumTelemetryPoint[]>([]);
-  const [currentStatus, setCurrentStatus] = useState<"ACTIVE" | "SYNCHRONIZING" | "DEGRADED">("ACTIVE");
+  const [currentStatus, setCurrentStatus] = useState<"ACTIVE" | "SYNCHRONIZING" | "DEGRADED">(
+    "ACTIVE",
+  );
   const [activeCircuitCount, setActiveCircuitCount] = useState(1);
   const [isExecuting, setIsExecuting] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -96,11 +99,17 @@ export function QuantumBridgeMonitor() {
           : "COMPLETED";
 
       // Rendimiento / Throughput en operaciones por segundo
-      const baseThroughput = Math.round(1200 + (1 - simulatedLatency / envConfig.bridgeTimeoutMs) * 3800 + Math.random() * 600);
+      const baseThroughput = Math.round(
+        1200 + (1 - simulatedLatency / envConfig.bridgeTimeoutMs) * 3800 + Math.random() * 600,
+      );
       const shots = Math.floor(envConfig.maxShots * (0.15 + Math.random() * 0.5));
 
       return {
-        timestamp: now.toLocaleTimeString([], { hour12: false, minute: "2-digit", second: "2-digit" }),
+        timestamp: now.toLocaleTimeString([], {
+          hour12: false,
+          minute: "2-digit",
+          second: "2-digit",
+        }),
         circuitId: `pennylane-qnode-${Math.random().toString(36).substring(2, 7)}`,
         latencyMs: Math.round(simulatedLatency),
         throughputOps: isTimeout ? 120 : baseThroughput,
@@ -111,7 +120,7 @@ export function QuantumBridgeMonitor() {
         status: statusVal,
       };
     },
-    [envConfig.bridgeTimeoutMs, envConfig.maxWires, envConfig.maxShots]
+    [envConfig.bridgeTimeoutMs, envConfig.maxWires, envConfig.maxShots],
   );
 
   // Inicializar historial
@@ -120,7 +129,11 @@ export function QuantumBridgeMonitor() {
       const time = new Date(Date.now() - (12 - i) * 2500);
       const latency = 900 + Math.random() * 2400;
       return {
-        timestamp: time.toLocaleTimeString([], { hour12: false, minute: "2-digit", second: "2-digit" }),
+        timestamp: time.toLocaleTimeString([], {
+          hour12: false,
+          minute: "2-digit",
+          second: "2-digit",
+        }),
         circuitId: `pennylane-qnode-${Math.random().toString(36).substring(2, 7)}`,
         latencyMs: Math.round(latency),
         throughputOps: Math.round(1800 + Math.random() * 2200),
@@ -164,18 +177,22 @@ export function QuantumBridgeMonitor() {
       setIsExecuting(false);
       setTelemetryHistory((prev) =>
         prev.map((p, idx) =>
-          idx === prev.length - 1 && p.status === "EXECUTING" ? { ...p, status: "COMPLETED" } : p
-        )
+          idx === prev.length - 1 && p.status === "EXECUTING" ? { ...p, status: "COMPLETED" } : p,
+        ),
       );
     }, 1200);
   };
 
   const latestTelemetry = telemetryHistory[telemetryHistory.length - 1];
   const avgLatency = telemetryHistory.length
-    ? Math.round(telemetryHistory.reduce((acc, t) => acc + t.latencyMs, 0) / telemetryHistory.length)
+    ? Math.round(
+        telemetryHistory.reduce((acc, t) => acc + t.latencyMs, 0) / telemetryHistory.length,
+      )
     : 0;
   const avgThroughput = telemetryHistory.length
-    ? Math.round(telemetryHistory.reduce((acc, t) => acc + t.throughputOps, 0) / telemetryHistory.length)
+    ? Math.round(
+        telemetryHistory.reduce((acc, t) => acc + t.throughputOps, 0) / telemetryHistory.length,
+      )
     : 0;
 
   return (
@@ -259,7 +276,9 @@ export function QuantumBridgeMonitor() {
           <span className="text-[10px] uppercase text-slate-400 flex items-center gap-1">
             <Cpu className="size-3 text-emerald-400" /> Wires Activos
           </span>
-          <p className="text-base font-bold text-white">{latestTelemetry?.wiresUsed ?? 16} / {envConfig.maxWires}</p>
+          <p className="text-base font-bold text-white">
+            {latestTelemetry?.wiresUsed ?? 16} / {envConfig.maxWires}
+          </p>
         </div>
 
         <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
@@ -297,21 +316,26 @@ export function QuantumBridgeMonitor() {
         <div className="lg:col-span-8 p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 space-y-3">
           <div className="flex flex-wrap items-center justify-between font-mono text-xs gap-2">
             <span className="font-bold text-white flex items-center gap-2">
-              <Activity className="size-4 text-purple-400" /> Flujo en Tiempo Real: Latencia (ms) & Throughput (ops/s)
+              <Activity className="size-4 text-purple-400" /> Flujo en Tiempo Real: Latencia (ms) &
+              Throughput (ops/s)
             </span>
             <div className="flex items-center gap-4 text-slate-400 text-[11px]">
               <span className="flex items-center gap-1">
                 <span className="size-2.5 rounded-full bg-purple-500" /> Latencia ({avgLatency} ms)
               </span>
               <span className="flex items-center gap-1">
-                <span className="size-2.5 rounded-full bg-sky-400" /> Throughput ({avgThroughput} ops/s)
+                <span className="size-2.5 rounded-full bg-sky-400" /> Throughput ({avgThroughput}{" "}
+                ops/s)
               </span>
             </div>
           </div>
 
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={telemetryHistory} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+              <AreaChart
+                data={telemetryHistory}
+                margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+              >
                 <defs>
                   <linearGradient id="latencyAreaGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#a855f7" stopOpacity={0.45} />
@@ -401,12 +425,17 @@ export function QuantumBridgeMonitor() {
               <span className="font-bold text-white flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-emerald-400" /> Fidelidad Quantum Gate (%)
               </span>
-              <span className="text-emerald-400 font-bold">{latestTelemetry?.fidelity ?? 99.2}%</span>
+              <span className="text-emerald-400 font-bold">
+                {latestTelemetry?.fidelity ?? 99.2}%
+              </span>
             </div>
 
             <div className="h-48 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={telemetryHistory.slice(-8)} margin={{ top: 5, right: 0, left: -25, bottom: 0 }}>
+                <BarChart
+                  data={telemetryHistory.slice(-8)}
+                  margin={{ top: 5, right: 0, left: -25, bottom: 0 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                   <XAxis dataKey="timestamp" stroke="#64748b" fontSize={9} />
                   <YAxis domain={[80, 100]} stroke="#64748b" fontSize={9} />
@@ -419,7 +448,12 @@ export function QuantumBridgeMonitor() {
                       color: "#f8fafc",
                     }}
                   />
-                  <Bar dataKey="fidelity" fill="#10b981" radius={[4, 4, 0, 0]} name="Fidelidad QNode" />
+                  <Bar
+                    dataKey="fidelity"
+                    fill="#10b981"
+                    radius={[4, 4, 0, 0]}
+                    name="Fidelidad QNode"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -430,7 +464,9 @@ export function QuantumBridgeMonitor() {
               <span className="flex items-center gap-1">
                 <Layers className="size-3 text-purple-400" /> Circuito Activo:
               </span>
-              <span className="text-white font-bold truncate max-w-[140px]">{latestTelemetry?.circuitId}</span>
+              <span className="text-white font-bold truncate max-w-[140px]">
+                {latestTelemetry?.circuitId}
+              </span>
             </div>
             <div className="flex justify-between items-center text-slate-400">
               <span>Estado de Ejecución:</span>

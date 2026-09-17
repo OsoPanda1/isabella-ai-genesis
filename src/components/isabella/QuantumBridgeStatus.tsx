@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Zap, Wifi, WifiOff, RefreshCw, Cpu, Layers, Activity, CheckCircle2, Clock } from "lucide-react";
+import { Zap, Wifi, WifiOff, RefreshCw, Cpu, Activity, CheckCircle2, Clock } from "lucide-react";
 
 export interface QuantumBridgeStatusProps {
   connected?: boolean;
@@ -23,7 +23,7 @@ export function QuantumBridgeStatus({
   const [latency, setLatency] = useState(initialLatency);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastSeen, setLastSeen] = useState(
-    initialTime || new Date().toLocaleTimeString([], { hour12: false })
+    initialTime || new Date().toLocaleTimeString([], { hour12: false }),
   );
 
   useEffect(() => {

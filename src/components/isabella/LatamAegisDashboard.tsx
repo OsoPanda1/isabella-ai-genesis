@@ -91,9 +91,9 @@ export function LatamAegisDashboard() {
     "idle",
   );
   const [corruptedIndex, setCorruptedIndex] = useState<number | null>(null);
-  const [subTab, setSubTab] = useState<"firewall" | "audit" | "observability" | "compliance" | "skills">(
-    "firewall",
-  );
+  const [subTab, setSubTab] = useState<
+    "firewall" | "audit" | "observability" | "compliance" | "skills"
+  >("firewall");
   const [actor, setActor] = useState("operator");
   const [source, setSource] = useState("client");
   const [action, setAction] = useState("api_request");

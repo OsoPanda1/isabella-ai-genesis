@@ -163,8 +163,8 @@ export function UsageDashboard({
                   rateLimitPercentage >= 90
                     ? "bg-rose-500"
                     : rateLimitPercentage >= 70
-                    ? "bg-amber-400"
-                    : "bg-electric"
+                      ? "bg-amber-400"
+                      : "bg-electric"
                 }`}
                 style={{ width: `${rateLimitPercentage}%` }}
               />
@@ -174,14 +174,14 @@ export function UsageDashboard({
             <span>Límite (Threshold)</span>
             <span
               className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${getRateLimitColor(
-                rateLimitPercentage
+                rateLimitPercentage,
               )}`}
             >
               {rateLimitPercentage >= 90
                 ? "CRÍTICO"
                 : rateLimitPercentage >= 70
-                ? "ELEVADO"
-                : "NORMAL"}
+                  ? "ELEVADO"
+                  : "NORMAL"}
             </span>
           </div>
         </div>

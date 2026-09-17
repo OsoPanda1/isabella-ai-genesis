@@ -119,14 +119,9 @@ export function loadConfig(source: RawEnv = process.env): Env {
   const databaseUrl = cleanEnvValue(source.DATABASE_URL);
   const effectiveSource: RawEnv = {
     ...source,
-    ISABELLA_RUNTIME_MODE: (() => {
-      const modeFromEnv = cleanEnvValue(source.ISABELLA_RUNTIME_MODE);
-      const nodeEnv = cleanEnvValue(source.NODE_ENV);
-      if (nodeEnv !== "production" && modeFromEnv === "production") {
-        return "development";
-      }
-      return modeFromEnv || (nodeEnv === "production" ? "production" : "development");
-    })(),
+    ISABELLA_RUNTIME_MODE:
+      cleanEnvValue(source.ISABELLA_RUNTIME_MODE) ||
+      (source.NODE_ENV === "production" ? "production" : "development"),
     PUBLIC_URL: resolvePublicUrl(source),
     AUTH_DEV_SESSION_ENABLED: cleanEnvValue(source.AUTH_DEV_SESSION_ENABLED) || "false",
     ALLOW_GUEST_CHAT: cleanEnvValue(source.ALLOW_GUEST_CHAT) || "false",

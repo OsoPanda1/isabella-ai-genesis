@@ -44,7 +44,11 @@ export function IsabellaErrorBoundary({
 }: IsabellaErrorBoundaryProps) {
   const handleError = (error: unknown, info: ErrorInfo) => {
     const err = error instanceof Error ? error : new Error(String(error ?? "Unknown client error"));
-    console.error("[Isabella AI] Uncaught Runtime Exception caught by react-error-boundary:", err, info);
+    console.error(
+      "[Isabella AI] Uncaught Runtime Exception caught by react-error-boundary:",
+      err,
+      info,
+    );
 
     toOTelLog({
       traceId: `client-error-${Date.now().toString(16)}`,
@@ -79,6 +83,3 @@ export function IsabellaErrorBoundary({
 
 export const ErrorBoundary = IsabellaErrorBoundary;
 export default IsabellaErrorBoundary;
-
-
-
