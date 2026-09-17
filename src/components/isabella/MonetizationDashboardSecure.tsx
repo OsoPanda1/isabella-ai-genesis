@@ -9,6 +9,8 @@ import { UsageDashboard } from "./UsageDashboard";
 interface Tenant { id: string; name: string; region: string; quotaBalance: number; tier: "Free" | "Enterprise" | "Sovereign"; }
 interface UserSession { userId: string; username: string; tenantId: string; role: string; oidcSub: string; }
 interface MonetizationAccount { earnedBalanceCents: number; qualifiedUses: number; approvedContributions: number; }
+interface LedgerBlock { index: number; operation: string; category: LedgerItem["category"]; costDecimal: string; timestamp: string; status: LedgerItem["status"]; }
+interface ApiEnvelope { tenant?: Tenant; session?: UserSession; ledger?: LedgerBlock[]; account?: MonetizationAccount; message?: string; error?: string; }
 
 export function MonetizationDashboardSecure({ initialTab }: { initialTab?: string | null }) {
   const [token, setToken] = useState(() => getSessionToken() ?? "");
@@ -20,13 +22,13 @@ export function MonetizationDashboardSecure({ initialTab }: { initialTab?: strin
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState(initialTab || "overview");
 
-  const api = useCallback(async (action: string, init?: RequestInit) => {
+  const api = useCallback(async (action: string, init?: RequestInit): Promise<ApiEnvelope> => {
     if (!token) throw new Error("Sesión autenticada requerida.");
     const headers = new Headers(init?.headers);
     headers.set("Authorization", `Bearer ${token}`);
     if (init?.body) headers.set("content-type", "application/json");
     const response = await fetch(`/api/db?action=${encodeURIComponent(action)}`, { ...init, headers });
-    const data = await response.json().catch(() => ({}));
+    const data: ApiEnvelope = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || `Solicitud rechazada (${response.status}).`);
     return data;
   }, [token]);
@@ -39,7 +41,7 @@ export function MonetizationDashboardSecure({ initialTab }: { initialTab?: strin
       setTenant(session.tenant ?? null);
       setUser(session.session ?? null);
       const ledgerData = await api("ledger");
-      setLedger(Array.isArray(ledgerData.ledger) ? ledgerData.ledger.map((block: any) => ({
+      setLedger(Array.isArray(ledgerData.ledger) ? ledgerData.ledger.map((block) => ({
         id: `tx_block_${block.index}`,
         operation: block.operation,
         category: block.category,
@@ -74,7 +76,7 @@ export function MonetizationDashboardSecure({ initialTab }: { initialTab?: strin
     try {
       const redirectUri = `${window.location.origin}/api/db?action=oauth-callback`;
       const response = await fetch(`/api/db?action=oauth-url&redirect_uri=${encodeURIComponent(redirectUri)}`);
-      const data = await response.json();
+      const data: { url?: string; error?: string } = await response.json();
       if (!response.ok || !data.url) throw new Error(data.error || "No fue posible iniciar OAuth.");
       const popup = window.open(data.url, "isabella_oauth_popup", "width=500,height=600");
       if (!popup) toast.error("El navegador bloqueó la ventana de autenticación.");
