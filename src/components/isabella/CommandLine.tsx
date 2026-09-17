@@ -219,9 +219,7 @@ export function CommandLine({ onSend, onStop, onReset, isProcessing }: CommandLi
     }
     const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!Recognition) {
-      setNotice(
-        "La transcripción nativa no está disponible en este navegador. Usa Chrome/Edge o adjunta una nota de voz.",
-      );
+      void startAudioNote();
       return;
     }
     try {

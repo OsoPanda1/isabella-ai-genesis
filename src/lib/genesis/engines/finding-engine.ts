@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import {
   Finding,
   FindingSeverity,
@@ -7,8 +8,6 @@ import {
   calculatePriority,
 } from "../schemas/finding.schema";
 import { ClaimEngine } from "./claim-engine";
-import { Evidence } from "../schemas/evidence.schema";
-import { Claim } from "../schemas/claim.schema";
 
 export interface FindingEngineConfig {
   claimEngine: ClaimEngine;
@@ -130,7 +129,7 @@ export class FindingEngine {
         category: f.category,
       })),
     );
-    return require("node:crypto").createHash("sha3-512").update(content).digest("hex");
+    return createHash("sha3-512").update(content).digest("hex");
   }
 }
 

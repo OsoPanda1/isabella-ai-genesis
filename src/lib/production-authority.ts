@@ -18,12 +18,7 @@ import { config } from "./config";
 import { isProductionLike, resolveRuntimeMode, type RuntimeMode } from "./runtime-mode";
 
 export type AuthorityId =
-  | "identity"
-  | "database"
-  | "inference"
-  | "audit"
-  | "payment"
-  | "observability";
+  "identity" | "database" | "inference" | "audit" | "payment" | "observability";
 export type AuthorityStatus = "real" | "partial";
 
 export interface AuthorityCheck {

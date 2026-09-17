@@ -25,28 +25,33 @@ if (!fs.existsSync(examplePath)) {
   process.exit(1);
 }
 
-// Cargar .env manualmente si existe y no está poblado en process.env
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, "utf-8");
-  for (const line of envContent.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const firstEq = trimmed.indexOf("=");
-    if (firstEq > 0) {
-      const key = trimmed.slice(0, firstEq).trim();
-      let val = trimmed.slice(firstEq + 1).trim();
-      if (
-        (val.startsWith('"') && val.endsWith('"')) ||
-        (val.startsWith("'") && val.endsWith("'"))
-      ) {
-        val = val.slice(1, -1);
-      }
-      if (!process.env[key] && val) {
-        process.env[key] = val;
+// Cargar .env y .env.local manualmente si existen y no están poblados en process.env
+function loadEnvFile(filePath) {
+  if (fs.existsSync(filePath)) {
+    const envContent = fs.readFileSync(filePath, "utf-8");
+    for (const line of envContent.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const firstEq = trimmed.indexOf("=");
+      if (firstEq > 0) {
+        const key = trimmed.slice(0, firstEq).trim();
+        let val = trimmed.slice(firstEq + 1).trim();
+        if (
+          (val.startsWith('"') && val.endsWith('"')) ||
+          (val.startsWith("'") && val.endsWith("'"))
+        ) {
+          val = val.slice(1, -1);
+        }
+        if (val) {
+          process.env[key] = val;
+        }
       }
     }
   }
 }
+
+loadEnvFile(path.resolve(rootDir, ".env"));
+loadEnvFile(path.resolve(rootDir, ".env.local"));
 
 // Extraer variables declaradas en .env.example
 const exampleContent = fs.readFileSync(examplePath, "utf-8");

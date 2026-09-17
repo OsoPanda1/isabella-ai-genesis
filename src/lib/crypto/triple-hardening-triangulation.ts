@@ -162,9 +162,11 @@ export class CryptographicTriangulation {
     const betaKey = derivedBeta.subarray(0, 32);
     const betaMacKey = derivedBeta.subarray(32, 64);
 
-    const betaCipher = createCipheriv("chacha20-poly1305", betaKey, betaIv) as unknown as ReturnType<
-      typeof createCipheriv
-    > & {
+    const betaCipher = createCipheriv(
+      "chacha20-poly1305",
+      betaKey,
+      betaIv,
+    ) as unknown as ReturnType<typeof createCipheriv> & {
       setAAD: (aad: Buffer) => void;
       getAuthTag: () => Buffer;
     };

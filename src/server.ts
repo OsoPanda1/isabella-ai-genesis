@@ -11,7 +11,10 @@ import { initOpenTelemetry, withSpan, recordMetric } from "./lib/telemetry/otel-
 // Validación de variables de entorno al arranque y arranque de observabilidad OTel
 const envCheck = validateStartupEnvironment();
 if (!envCheck.valid && (envCheck.mode === "production" || envCheck.mode === "staging")) {
-  console.error("🛑 [C.R.O.W.N. Startup Gate] Fallo crítico de validación de entorno:", envCheck.criticalMissing);
+  console.error(
+    "🛑 [C.R.O.W.N. Startup Gate] Fallo crítico de validación de entorno:",
+    envCheck.criticalMissing,
+  );
 }
 initOpenTelemetry();
 

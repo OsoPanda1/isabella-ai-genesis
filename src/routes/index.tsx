@@ -114,7 +114,8 @@ function Index() {
       <EmergencyModeView
         mode={emergencyState.mode}
         errorDetails={{
-          code: emergencyState.mode === "maintenance" ? "SOVCON-MAINT-WINDOW" : "SOVCON-CRITICAL-VETO",
+          code:
+            emergencyState.mode === "maintenance" ? "SOVCON-MAINT-WINDOW" : "SOVCON-CRITICAL-VETO",
           message: emergencyState.message,
         }}
         onRetry={() => {
@@ -136,4 +137,3 @@ function Index() {
     </ClientOnly>
   );
 }
-
