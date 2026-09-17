@@ -1,39 +1,40 @@
 ===========================================================================
-ISABELLA VILLASEÑOR AI — MASTER CANONICAL LICENSING SUMMARY
+ISABELLA VILLASEÑOR AI — MASTER CANONICAL HYBRID LICENSING SUMMARY
 ===========================================================================
 
-This repository contains various components of Isabella Villaseñor AI, which are licensed
-under different, highly specific licenses depending on their functional nature (Software,
-Documentation, Artwork, Prompts, etc.).
+This repository contains Isabella Villaseñor AI v4.3.3, licensed under a 
+Sovereign Hybrid Legal Framework designed to protect software integrity, 
+international trade secrets, ethical mandates, and open-science collaboration.
 
 ---------------------------------------------------------------------------
-1. SOFTWARE CODEBASE (src/, tests/, server/, components/, scripts/)
+1. ETHICAL MANDATE & INVIOLABILITY COVENANT (LICENSE-SOVEREIGN.md)
 ---------------------------------------------------------------------------
-The core software, modules, and execution logic of Isabella Villaseñor AI are
-fully dual-licensed under:
+All components, algorithms, prompts, and routines are bound by the 
+ISABELLA SOVEREIGN PROPRIETARY COVENANT & HYBRID LICENSE v1.0.0. 
+Isabella shall NEVER be used for mass surveillance, military weaponization,
+coercion, or contrary to the foundational ethical mandates defined by 
+its creator: Edwin Oswaldo Castillo Trejo (Anubis Villaseñor).
 
+---------------------------------------------------------------------------
+2. SOFTWARE CODEBASE (src/, tests/, server/, components/, scripts/)
+---------------------------------------------------------------------------
+The software execution logic is dual-licensed under:
   - Apache License, Version 2.0 (see LICENSE-APACHE)
   - ISC License (see LICENSE-ISCL)
-
-You may choose to use, copy, modify, merge, publish, distribute, sublicense, or
-sell copies of the Software under the terms of either of these two licenses.
+  - Subject strictly to the Ethical Mandate in LICENSE-SOVEREIGN.md.
 
 ---------------------------------------------------------------------------
-2. DOCUMENTATION & CANONICAL SCHEMAS (docs/, AGENTS.md, *.md)
+3. PROPRIETARY CORE ALGORITHMS & BRAND ASSETS (public/, assets/, core/)
 ---------------------------------------------------------------------------
-All specifications, master architecture manuals (such as AGENTS.md), and
-explanatory documentation are licensed under:
-
-  - Creative Commons Attribution 4.0 International License (see LICENSE-CONTENT)
-    (CC BY 4.0)
+Native C.R.O.W.N. algorithms, ARGUS Firewall, PennyLane QUP v3.0, BookPI Ledger,
+and TAMV Online Network branding are proprietary assets protected under:
+  - Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International 
+    (CC BY-NC-ND 4.0) and Sovereign Trade Secret protections.
 
 ---------------------------------------------------------------------------
-3. BRAND, ARTWORK, VISUAL ASSETS & TERRITORIAL DATA (public/, assets/)
+4. DOCUMENTATION & CANONICAL SCHEMAS (docs/, AGENTS.md, *.md)
 ---------------------------------------------------------------------------
-All proprietary branding, visual artwork, icons, soundscapes, and territorial
-gemstone digital assets of the TAMV Online Network are protected under:
+All specifications, master manuals, and architecture guidelines are licensed under:
+  - Creative Commons Attribution 4.0 International License (CC BY 4.0).
 
-  - Creative Commons Attribution-NoDerivatives 4.0 International
-    (CC BY-ND 4.0)
-
-Please refer to the NOTICE file for copyright and attribution statements.
+Please refer to LICENSE-SOVEREIGN.md and NOTICE for full legal text and copyright details.
