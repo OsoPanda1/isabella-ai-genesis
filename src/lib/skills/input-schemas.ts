@@ -41,20 +41,6 @@ export const skillInputSchemas: Record<IsabellaSkillId, typeof BOUNDED_SKILL_INP
   "firecrawl-lead-gen": BOUNDED_SKILL_INPUT, "shipping-and-launch": BOUNDED_SKILL_INPUT,
   "firecrawl-lead-research": BOUNDED_SKILL_INPUT, "flutter-add-integration-test": BOUNDED_SKILL_INPUT,
   "firecrawl-competitive-intel": BOUNDED_SKILL_INPUT,
-  "frontend-design": BOUNDED_SKILL_INPUT,
-  "web-design-guidelines": BOUNDED_SKILL_INPUT,
-  caveman: BOUNDED_SKILL_INPUT,
-  "prisma-client-api": BOUNDED_SKILL_INPUT,
-  "prisma-cli": BOUNDED_SKILL_INPUT,
-  "prisma-database-setup": BOUNDED_SKILL_INPUT,
-  "prisma-postgres": BOUNDED_SKILL_INPUT,
-  "product-launch-video": BOUNDED_SKILL_INPUT,
-  "motion-graphics": BOUNDED_SKILL_INPUT,
-  "faceless-explainer": BOUNDED_SKILL_INPUT,
-  "talking-head-recut": BOUNDED_SKILL_INPUT,
-  "embedded-captions": BOUNDED_SKILL_INPUT,
-  "ai-video-generation": BOUNDED_SKILL_INPUT,
-  "ai-image-generation": BOUNDED_SKILL_INPUT,
 };
 
 export function parseSkillInput(skillId: IsabellaSkillId, value: unknown) {

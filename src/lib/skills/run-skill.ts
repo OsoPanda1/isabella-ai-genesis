@@ -70,7 +70,13 @@ export async function runIsabellaSkill(
       evidence: [],
     };
 
-    if (skill.canRun && !skill.canRun(validatedInput as Record<string, unknown>, skillContext)) {
+    if (
+      skill.canRun &&
+      !(skill.canRun as (input: unknown, ctx: unknown) => boolean)(
+        validatedInput,
+        skillContext,
+      )
+    ) {
       throw new SecurityError("CROWN_OBLIGATION_FAILURE", "El input no satisface los prerrequisitos del skill.");
     }
 

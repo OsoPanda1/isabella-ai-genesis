@@ -36,4 +36,18 @@ describe("AI governance profile", () => {
     );
     expect(profile.legalNotice).toMatch(/not a legal certification/i);
   });
+
+  it("serves the governance profile with secure headers at the endpoint handler", async () => {
+    const { Route } = await import("@/server-routes/api/ai-transparency");
+    const server = Route.options.server;
+    expect(server).toBeDefined();
+    // @ts-expect-error server handlers type
+    const response = await server.handlers.GET({} as any);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("application/json");
+    expect(response.headers.get("x-isabella-governance-schema")).toBe("isabella.ai.governance.v1");
+    const body = await response.json();
+    expect(body.schema).toBe("isabella.ai.governance.v1");
+    expect(body.system.name).toBe("Isabella AI Genesis");
+  });
 });

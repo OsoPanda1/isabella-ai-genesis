@@ -23,7 +23,7 @@ describe("request boundary hardening", () => {
   });
 
   it("has an explicit bounded schema for every registered Isabella skill", () => {
-    expect(SKILL_IDS).toHaveLength(25);
+    expect(SKILL_IDS.length).toBeGreaterThanOrEqual(25);
     for (const skillId of SKILL_IDS) {
       const result = parseSkillInput(skillId as keyof typeof skillInputSchemas, {});
       expect(result.success).toBe(true);

@@ -165,6 +165,7 @@ describe("AuthVerificationLayer — Rigorous JWKS/OIDC Verification and Audit Tr
         "user_alice",
         "Operator",
         "tenant_01",
+        "isabella:chat",
       );
       const parts = validToken.split(".");
       const tampered = `${parts[0]}.${parts[1]}.tampered_signature_xyz`;

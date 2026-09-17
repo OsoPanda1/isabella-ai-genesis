@@ -77,7 +77,7 @@ export interface AuthVerificationFailure {
   success: false;
   error: string;
   spoofingAttempt: boolean;
-  auditSeverity: "S0" | "S1" | "S2";
+  auditSeverity: AuditSeverity;
   traceId: string;
   correlationId: string;
   reasonCode: AuthFailureReasonCode;

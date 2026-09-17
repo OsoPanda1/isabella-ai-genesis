@@ -184,7 +184,7 @@ function IsabellaInterface() {
 
         <aside
           id="isabella-sidebar"
-          className={`glass sticky top-0 z-30 flex h-screen flex-col justify-between border-r border-border/20 transition-all duration-300 ease-in-out ${
+          className={`glass sticky top-0 z-30 flex h-screen flex-col justify-between border-r border-border/20 transition-all duration-300 ease-out ${
             isSidebarOpen ? "w-[310px]" : "w-[75px]"
           }`}
           aria-label="Navegación Isabella"
@@ -196,7 +196,7 @@ function IsabellaInterface() {
                 <img
                   src="/favicon.png"
                   alt="Isabella Logo"
-                  className={`relative rounded-xl border border-border/40 object-cover transition-all duration-300 ${
+                  className={`relative rounded-xl border border-border/40 object-cover transition-all duration-300 ease-out ${
                     isSidebarOpen ? "size-18" : "size-10"
                   }`}
                   width={isSidebarOpen ? 72 : 40}

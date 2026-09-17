@@ -835,10 +835,79 @@ export const Route = createFileRoute("/api/db")({
             return new Response(JSON.stringify({ success: true, tenantId, ownerId }), { headers });
           }
 
-          // [ELIMINADO] action "authenticate" era una puerta trasera: acuñaba un JWT
-          // para cualquier userId sin credencial. Sustituido por provision-owner
-          // (bootstrap con token) y el flujo OAuth manual (dev, código de un solo
-          // uso). No reintroducir sin acreditar la identidad.
+          // --- USER SIGNUP & LOGIN: NATIVE SOVEREIGN AUTHENTICATION ---
+          if (action === "user-signup") {
+            const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+            const signupSchema = z.object({
+              email: z.string().email(),
+              username: z.string().min(3).max(64),
+              password: z.string().min(8).max(128),
+              tenantSlug: z.string().optional(),
+              role: z.enum(["Operator", "Auditor", "Guest", "SovereignOwner"]).optional(),
+            });
+            const val = signupSchema.safeParse(body);
+            if (!val.success) {
+              return new Response(
+                JSON.stringify({
+                  error: "Datos de registro inválidos.",
+                  details: val.error.format(),
+                }),
+                { status: 400, headers },
+              );
+            }
+            const { UserAuthService } = await import("@/lib/user-auth-service");
+            try {
+              const res = await UserAuthService.signup({
+                email: val.data.email,
+                username: val.data.username,
+                password: val.data.password,
+                tenantSlug: val.data.tenantSlug,
+                role: val.data.role,
+                ip,
+              });
+              return new Response(JSON.stringify(res), { headers });
+            } catch (err: unknown) {
+              return new Response(
+                JSON.stringify({
+                  error: err instanceof Error ? err.message : "Error al registrar usuario.",
+                }),
+                { status: 400, headers },
+              );
+            }
+          }
+
+          if (action === "user-login") {
+            const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+            const loginSchema = z.object({
+              email: z.string().email(),
+              password: z.string().min(1),
+            });
+            const val = loginSchema.safeParse(body);
+            if (!val.success) {
+              return new Response(
+                JSON.stringify({
+                  error: "Correo o contraseña con formato incorrecto.",
+                }),
+                { status: 400, headers },
+              );
+            }
+            const { UserAuthService } = await import("@/lib/user-auth-service");
+            try {
+              const res = await UserAuthService.login({
+                email: val.data.email,
+                password: val.data.password,
+                ip,
+              });
+              return new Response(JSON.stringify(res), { headers });
+            } catch (err: unknown) {
+              return new Response(
+                JSON.stringify({
+                  error: err instanceof Error ? err.message : "Error de autenticación.",
+                }),
+                { status: 401, headers },
+              );
+            }
+          }
 
           // --- DEV SESSION: mock user para desarrollo local ---
           // Fail-closed: solo funciona cuando NODE_ENV=development Y
@@ -1702,6 +1771,40 @@ export const Route = createFileRoute("/api/db")({
               return new Response(JSON.stringify({ success: true, result }), {
                 headers,
               });
+            })({ request });
+          }
+
+          if (action === "pennylane-run") {
+            return withSovereignAuth("sandbox", "execute", async (context, _req, body: unknown) => {
+              const pennylaneSchema = z.object({
+                qubits: z.number().min(2).max(16).default(4),
+                depth: z.number().min(1).max(20).default(3),
+                objective: z
+                  .enum(["vqe_hamiltonian", "qml_classification", "bell_state_tomography"])
+                  .default("vqe_hamiltonian"),
+              });
+
+              const val = pennylaneSchema.safeParse(body);
+              if (!val.success) {
+                return new Response(
+                  JSON.stringify({
+                    error: "Parámetros de PennyLane inválidos.",
+                    details: val.error.format(),
+                  }),
+                  { status: 400, headers },
+                );
+              }
+
+              const { PennyLaneBridge } = await import("@/lib/quantum/pennylane-bridge");
+              const job = await PennyLaneBridge.runPennyLaneJob(
+                context.tenantId,
+                context.userId,
+                val.data.qubits,
+                val.data.depth,
+                val.data.objective,
+              );
+
+              return new Response(JSON.stringify({ success: true, job }), { headers });
             })({ request });
           }
 

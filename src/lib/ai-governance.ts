@@ -38,7 +38,7 @@ export const AI_GOVERNANCE_PROFILE = {
   },
   privacy: {
     dataMinimization: true,
-    secretsExcludedFromPublicProfile: true,
+    sensitiveDataExcludedFromPublicProfile: true,
     credentialsExcludedFromAuditOutput: true,
   },
   standardsAlignment: [

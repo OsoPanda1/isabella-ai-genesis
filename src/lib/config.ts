@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { envSchema, requiredEnvKeys, type Env, type RuntimeMode } from "./env-schema";
+export type { Env, RuntimeMode } from "./env-schema";
 type RawEnv = NodeJS.ProcessEnv;
 let cached: Env | undefined; let cachedFingerprint: string | undefined; let loadError: string | null = null;
 function environmentFingerprint(source: RawEnv): string { return createHash("sha256").update(Object.keys(source).sort().map((key) => `${key}=${source[key] ?? ""}`).join("\n")).digest("hex"); }
