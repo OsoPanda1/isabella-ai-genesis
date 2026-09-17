@@ -40,6 +40,7 @@
     "production:preflight": "node scripts/production-preflight.mjs",
     "production:integrity": "node scripts/production-integrity-gate.mjs",
     "production:evidence": "node scripts/production-evidence.mjs",
+    "clean:install": "bash scripts/clean-install.sh",
     "production:gate": "npm run typecheck && npm run lint && npm run test && npm run build && npm run production:integrity && npm run production:preflight && npm run capabilities && npm run audit:routes",
     "postinstall": "prisma generate"
   },
@@ -99,6 +100,7 @@
     "react": "^19.2.0",
     "react-day-picker": "^9.14.0",
     "react-dom": "^19.2.0",
+    "react-error-boundary": "^6.1.5",
     "react-hook-form": "^7.87.0",
     "react-resizable-panels": "^4.12.3",
     "recharts": "^2.15.4",

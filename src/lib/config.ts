@@ -69,6 +69,21 @@ function assertProductionCrypto(mode: RuntimeMode, parsed: Env): void {
       "CRITICAL_SECURITY_ERROR: ML-DSA-87 no es un proveedor criptográfico productivo en este runtime. Producción y staging requieren ECDSA-P384 o RSA-SHA256 hasta integrar un proveedor ML-DSA real.",
     );
 }
+function isSameDatabaseInstance(url1Str: string, url2Str: string): boolean {
+  const u1Trim = url1Str.trim();
+  const u2Trim = url2Str.trim();
+  if (u1Trim === u2Trim) return true;
+  try {
+    const u1 = new URL(u1Trim);
+    const u2 = new URL(u2Trim);
+    const host1 = u1.hostname.replace("-pooler", "");
+    const host2 = u2.hostname.replace("-pooler", "");
+    return host1 === host2 && u1.pathname === u2.pathname && u1.username === u2.username;
+  } catch {
+    return false;
+  }
+}
+
 function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, parsed: Env): void {
   if (mode !== "production" && mode !== "staging") return;
   const provider = cleanEnvValue(source.ISABELLA_STORAGE_PROVIDER)?.toLowerCase();
@@ -87,13 +102,11 @@ function assertProductionStorageProvider(mode: RuntimeMode, source: RawEnv, pars
     "POSTGRES_URL_NON_POOLING",
     "SUPABASE_DATABASE_POSTGRES_URL",
   ] as const;
+  const mainDbUrl = source.DATABASE_URL.trim();
   const conflictingAliases = providerAliases.filter((key) => {
     const value = source[key];
-    return (
-      typeof value === "string" &&
-      value.trim() !== "" &&
-      value.trim() !== source.DATABASE_URL?.trim()
-    );
+    if (typeof value !== "string" || value.trim() === "") return false;
+    return !isSameDatabaseInstance(value, mainDbUrl);
   });
   if (conflictingAliases.length > 0)
     throw new Error(

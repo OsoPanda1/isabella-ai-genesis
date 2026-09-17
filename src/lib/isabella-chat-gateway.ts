@@ -284,6 +284,7 @@ export async function handleIsabellaChat(
   }
   const { messages, temperature, context: requestContext } = validation.data;
   void requestContext;
+  // Provider contracts: GEMINI_API_KEY, GROQ_API_KEY, XAI_API_KEY
   const providerKeys = {
     gemini: secrets.optionalProviderKey("gemini"),
     groq: secrets.optionalProviderKey("groq"),

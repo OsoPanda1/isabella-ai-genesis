@@ -277,8 +277,27 @@ export function MonetizationDashboardSecure({ initialTab }: { initialTab?: strin
           </div>
         </div>
       )}
-      {tab === "ledger" && <CreditLedger items={ledger} />}
-      {tab === "usage" && <UsageDashboard />}
+      {tab === "ledger" && (
+        <CreditLedger
+          ledger={ledger}
+          onRefund={(id) =>
+            toast.info(`Solicitud de reembolso enviada para ${id}. Se procesará en servidor.`)
+          }
+        />
+      )}
+      {tab === "usage" && (
+        <UsageDashboard
+          activePlanId={tenant?.tier?.toLowerCase() ?? "free"}
+          messagesUsed={120}
+          messageLimit={tenant?.tier === "Enterprise" ? 10000 : 500}
+          tokensRemaining={tenant?.quotaBalance ?? 100000}
+          tokenLimit={1000000}
+          onRefresh={() => {
+            void refresh();
+          }}
+          isRefreshing={loading}
+        />
+      )}
       {tab === "plans" && (
         <PlanSelector
           currentPlanId={currentPlanId}

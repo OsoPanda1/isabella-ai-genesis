@@ -5,6 +5,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { useEffect, type ReactNode } from "react";
@@ -33,26 +34,27 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error("[Isabella] root error", error);
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
+  const err = error instanceof Error ? error : new Error(String(error ?? "Error de ejecución"));
+  console.error("[Isabella] root error", err);
   const router = useRouter();
   useEffect(() => {
     console.error("[Isabella] root error detail", {
-      message: error.message,
-      stack: error.stack,
+      message: err.message,
+      stack: err.stack,
     });
-  }, [error]);
+  }, [err]);
 
   return (
     <EmergencyModeView
       mode="critical_error"
       errorDetails={{
         code: "CROWN-RENDER-MOUNT-FAIL",
-        message: error.message || "Error crítico durante el montaje de la ruta raíz.",
+        message: err.message || "Error crítico durante el montaje de la ruta raíz.",
       }}
       onRetry={() => {
         void router.invalidate();
-        reset();
+        if (typeof reset === "function") reset();
       }}
     />
   );
