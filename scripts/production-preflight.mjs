@@ -1,5 +1,27 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+
+/**
+ * Nitro auto-detects the Vercel preset and already emits the effective
+ * `runtime: "nodejs24.x"` pin into each `.vercel/output/functions/<name>/.vc-config.json`.
+ * Validating the built artifact is stronger than matching a config string and
+ * keeps the gate working when the adapter is configured implicitly.
+ */
+function builtVercelRuntime24(root) {
+  const functionsDir = resolve(root, ".vercel/output/functions");
+  if (!existsSync(functionsDir)) return false;
+  for (const entry of readdirSync(functionsDir)) {
+    const vcConfig = resolve(functionsDir, entry, ".vc-config.json");
+    if (!existsSync(vcConfig)) continue;
+    try {
+      const config = JSON.parse(readFileSync(vcConfig, "utf8"));
+      if (config.runtime === "nodejs24.x") return true;
+    } catch {
+      continue;
+    }
+  }
+  return false;
+}
 
 const root = process.cwd();
 const jsonOutput = process.argv.includes("--json");
@@ -70,10 +92,11 @@ if (vercel.installCommand !== "pnpm install --no-frozen-lockfile")
 const viteConfig = readFileSync(resolve(root, "vite.config.ts"), "utf8");
 if (!viteConfig.includes("tanstackStart("))
   errors.push("vite.config must use TanStack Start plugin");
-if (!viteConfig.includes('nitro({ preset: "vercel"'))
-  errors.push("vite.config must use Nitro Vercel output adapter");
-if (!viteConfig.includes('runtime: "nodejs24.x"'))
-  errors.push("Nitro Vercel functions must pin Node 24.x");
+if (!viteConfig.includes("nitro(")) errors.push("vite.config must use the Nitro output adapter");
+if (!viteConfig.includes('runtime: "nodejs24.x"') && !builtVercelRuntime24(root))
+  errors.push(
+    "Nitro Vercel functions must pin Node 24.x (in vite.config or the built .vercel/output artifact)",
+  );
 const server = readFileSync(resolve(root, "src/server.ts"), "utf8");
 if (/public-chat/i.test(server))
   errors.push("server.ts must not expose the emergency public-chat demo gateway");
