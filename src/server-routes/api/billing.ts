@@ -3,9 +3,38 @@ import { z } from "zod";
 import * as nodeCrypto from "node:crypto";
 import { sovereignStateRepository } from "@/lib/sovereign-state-repository";
 import { SecuritySystem } from "@/lib/security";
-import { withSovereignAuth } from "@/lib/principal-context";
+import { withSovereignAuth, type PrincipalContext } from "@/lib/principal-context";
 import { config } from "@/lib/config";
+import type { BillingOperation } from "@/lib/billing-authorization";
+import {
+  BILLING_STEP_UP_HEADER,
+  authorizeBillingOperation,
+  billingRequestHash,
+} from "@/lib/billing-guard";
 import Stripe from "stripe";
+
+/**
+ * Autorización económica server-side para handlers de billing.
+ * Devuelve una Response 403 si el principal carece del scope dedicado o
+ * (para refund/topup) de un step-up firmado válido. `null` si autoriza.
+ */
+function enforceBilling(
+  request: Request,
+  context: PrincipalContext,
+  operation: BillingOperation,
+  headers: Headers,
+): Response | null {
+  const result = authorizeBillingOperation({
+    operation,
+    tenantId: context.tenantId,
+    userId: context.userId,
+    role: context.role,
+    scope: context.scope,
+    stepUpToken: request.headers.get(BILLING_STEP_UP_HEADER),
+  });
+  if (result.ok) return null;
+  return new Response(JSON.stringify({ error: result.reason }), { status: 403, headers });
+}
 
 // Initialize Stripe gracefully
 let stripeInstance: Stripe | null = null;
@@ -260,6 +289,8 @@ export const Route = createFileRoute("/api/billing")({
           // 1. CHECKOUT CREATION (STRIPE)
           if (action === "checkout") {
             return withSovereignAuth("system", "write", async (context) => {
+              const denied = enforceBilling(request, context, "checkout", headers);
+              if (denied) return denied;
               const parsed = z
                 .object({
                   planId: z.enum(["pro", "enterprise"]),
@@ -281,7 +312,15 @@ export const Route = createFileRoute("/api/billing")({
                   },
                 );
               }
-              const { planId, idempotencyKey } = parsed.data;
+              const { planId } = parsed.data;
+              const idempotencyKey =
+                request.headers.get("idempotency-key") ?? parsed.data.idempotencyKey;
+              if (!idempotencyKey) {
+                return new Response(JSON.stringify({ error: "IDEMPOTENCY_KEY_REQUIRED" }), {
+                  status: 400,
+                  headers,
+                });
+              }
               const stripe = getStripe();
               if (!stripe) {
                 return new Response(
@@ -291,10 +330,61 @@ export const Route = createFileRoute("/api/billing")({
                   { status: 500, headers },
                 );
               }
+
+              // Idempotencia durable: una clave solo produce una sesión.
+              // Reintentos devuelven la sesión original; reutilizar la clave
+              // con un request distinto ⇒ 409 (constraint, sin escaneos).
+              const {
+                reserveCheckoutIdempotency,
+                completeCheckoutIdempotency,
+                releaseCheckoutIdempotency,
+              } = await import("@/lib/repositories/billing-security-repository");
+              const requestHash = billingRequestHash({ planId, operation: "checkout" });
+              let reservation;
+              try {
+                reservation = await reserveCheckoutIdempotency({
+                  tenantId: context.tenantId,
+                  userId: context.userId,
+                  operation: "checkout",
+                  idempotencyKey,
+                  requestHash,
+                });
+              } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                if (message === "IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST") {
+                  return new Response(
+                    JSON.stringify({ error: "IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST" }),
+                    { status: 409, headers },
+                  );
+                }
+                console.error("[billing:checkout] idempotencia no disponible:", error);
+                return new Response(JSON.stringify({ error: "IDEMPOTENCY_STORE_UNAVAILABLE" }), {
+                  status: 503,
+                  headers,
+                });
+              }
+              if (!reservation.created) {
+                if (reservation.sessionId && reservation.checkoutUrl) {
+                  return new Response(
+                    JSON.stringify({
+                      success: true,
+                      replayed: true,
+                      sessionId: reservation.sessionId,
+                      checkoutUrl: reservation.checkoutUrl,
+                    }),
+                    { headers },
+                  );
+                }
+                return new Response(JSON.stringify({ error: "CHECKOUT_IN_PROGRESS" }), {
+                  status: 409,
+                  headers,
+                });
+              }
+
               let sessionId = "";
               let checkoutUrl = "";
 
-              if (stripe) {
+              {
                 try {
                   const stripeSession = await stripe.checkout.sessions.create(
                     {
@@ -323,13 +413,18 @@ export const Route = createFileRoute("/api/billing")({
                       },
                     },
                     {
-                      idempotencyKey: `checkout:${context.tenantId}:${idempotencyKey ?? context.correlationId}`,
+                      idempotencyKey: `checkout:${context.tenantId}:${idempotencyKey}`,
                     },
                   );
                   sessionId = stripeSession.id;
                   checkoutUrl = stripeSession.url ?? "";
                 } catch (stripeError) {
                   console.error("Fallo Stripe checkout:", stripeError);
+                  await releaseCheckoutIdempotency({
+                    tenantId: context.tenantId,
+                    operation: "checkout",
+                    idempotencyKey,
+                  }).catch(() => undefined);
                   return new Response(
                     JSON.stringify({ error: "No se pudo crear la sesión de checkout." }),
                     { status: 502, headers },
@@ -338,12 +433,38 @@ export const Route = createFileRoute("/api/billing")({
               }
 
               if (!checkoutUrl) {
+                await releaseCheckoutIdempotency({
+                  tenantId: context.tenantId,
+                  operation: "checkout",
+                  idempotencyKey,
+                }).catch(() => undefined);
                 return new Response(
                   JSON.stringify({
                     error: "Fallo al crear sesión de checkout.",
                   }),
                   { status: 500, headers },
                 );
+              }
+
+              try {
+                await completeCheckoutIdempotency({
+                  tenantId: context.tenantId,
+                  operation: "checkout",
+                  idempotencyKey,
+                  sessionId,
+                  checkoutUrl,
+                });
+              } catch (error) {
+                console.error("[billing:checkout] no se pudo confirmar la idempotencia:", error);
+                await releaseCheckoutIdempotency({
+                  tenantId: context.tenantId,
+                  operation: "checkout",
+                  idempotencyKey,
+                }).catch(() => undefined);
+                return new Response(JSON.stringify({ error: "IDEMPOTENCY_STORE_UNAVAILABLE" }), {
+                  status: 503,
+                  headers,
+                });
               }
 
               await sovereignStateRepository.appendAuditLog(
@@ -705,6 +826,8 @@ export const Route = createFileRoute("/api/billing")({
           // 4. TOPUP: ADMINISTRAR CARGA DIRECTA DE CRÉDITOS
           if (action === "topup") {
             return withSovereignAuth("system", "write", async (context) => {
+              const denied = enforceBilling(request, context, "topup", headers);
+              if (denied) return denied;
               const topupSchema = z.object({
                 amountUSD: z.number().positive().max(5000),
                 stripePaymentIntentId: z.string().min(1).max(128),
@@ -846,6 +969,8 @@ export const Route = createFileRoute("/api/billing")({
           // 5. PREAUTORIZACIÓN ANTES DE EJECUTAR UN SKILL O COMPUTACIÓN CUÁNTICA (PRE-RUN GATE)
           if (action === "authorize-run") {
             return withSovereignAuth("system", "write", async (context) => {
+              const denied = enforceBilling(request, context, "authorize-run", headers);
+              if (denied) return denied;
               const runSchema = z.object({
                 skillId: z.string().min(1),
                 estimatedCostUSD: z.number().nonnegative().default(0),
@@ -902,7 +1027,39 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              const authToken = nodeCrypto.randomBytes(16).toString("hex");
+              // Capability durable de un solo uso: se persiste únicamente el
+              // HASH; el valor en claro viaja al cliente una sola vez y se
+              // consume exactamente una vez contra el mismo binding.
+              const capability = nodeCrypto.randomBytes(32).toString("base64url");
+              const { issueRunAuthorization, hashCapability } =
+                await import("@/lib/repositories/billing-security-repository");
+              let issued;
+              try {
+                issued = await issueRunAuthorization({
+                  tenantId: context.tenantId,
+                  userId: context.userId,
+                  skillId: parsed.data.skillId,
+                  estimatedCostMinor: Math.round(parsed.data.estimatedCostUSD * 100),
+                  ttlSeconds: 120,
+                  tokenHash: hashCapability(capability),
+                });
+              } catch (error) {
+                console.error("[billing:authorize-run] capability store unavailable:", error);
+                return new Response(JSON.stringify({ error: "RUN_CAPABILITY_STORE_UNAVAILABLE" }), {
+                  status: 503,
+                  headers,
+                });
+              }
+
+              await sovereignStateRepository.appendAuditLog(
+                `trc_auth_ok_${issued.authorizationId}`,
+                context.correlationId,
+                context.ip,
+                "Preautorización de Ejecución Emitida",
+                "S3",
+                `Capability ${issued.authorizationId} emitida para ${parsed.data.skillId} (≈$${parsed.data.estimatedCostUSD.toFixed(2)} USD)`,
+                context.tenantId,
+              );
 
               return new Response(
                 JSON.stringify({
@@ -910,16 +1067,70 @@ export const Route = createFileRoute("/api/billing")({
                   reason: "SUCCESS",
                   estimatedCost: parsed.data.estimatedCostUSD,
                   currentBalance,
-                  authToken,
+                  capability,
+                  authorizationId: issued.authorizationId,
+                  expiresAt: issued.expiresAt,
                 }),
                 { headers },
               );
             })({ request });
           }
 
+          // 5b. CONSUMIR CAPABILITY DE EJECUCIÓN (ONE-TIME, DURABLE)
+          if (action === "consume-run") {
+            return withSovereignAuth("system", "write", async (context) => {
+              const denied = enforceBilling(request, context, "authorize-run", headers);
+              if (denied) return denied;
+              const consumeSchema = z.object({
+                capability: z.string().min(16),
+                skillId: z.string().min(1),
+                actualCostUSD: z.number().nonnegative().default(0),
+              });
+              const parsed = consumeSchema.safeParse(body);
+              if (!parsed.success) {
+                return new Response(
+                  JSON.stringify({ error: "Capability de ejecución inválida." }),
+                  {
+                    status: 400,
+                    headers,
+                  },
+                );
+              }
+              const { consumeRunAuthorization, hashCapability } =
+                await import("@/lib/repositories/billing-security-repository");
+              const consumed = await consumeRunAuthorization({
+                tokenHash: hashCapability(parsed.data.capability),
+                tenantId: context.tenantId,
+                userId: context.userId,
+                skillId: parsed.data.skillId,
+                estimatedCostMinor: Math.round(parsed.data.actualCostUSD * 100),
+              }).catch((error: unknown) => {
+                console.error("[billing:consume-run] capability store unavailable:", error);
+                return null;
+              });
+              if (consumed === null) {
+                return new Response(JSON.stringify({ error: "RUN_CAPABILITY_STORE_UNAVAILABLE" }), {
+                  status: 503,
+                  headers,
+                });
+              }
+              if (!consumed) {
+                return new Response(
+                  JSON.stringify({ allowed: false, reason: "RUN_CAPABILITY_INVALID_OR_CONSUMED" }),
+                  { status: 409, headers },
+                );
+              }
+              return new Response(JSON.stringify({ allowed: true, reason: "SUCCESS" }), {
+                headers,
+              });
+            })({ request });
+          }
+
           // 6. INICIAR REEMBOLSO (ADMINISTRATOR DE LA TRANSACCIÓN)
           if (action === "refund") {
             return withSovereignAuth("system", "write", async (context) => {
+              const denied = enforceBilling(request, context, "refund", headers);
+              if (denied) return denied;
               const refundSchema = z.object({
                 ledgerIndex: z.number().int().nonnegative(),
               });
@@ -977,6 +1188,8 @@ export const Route = createFileRoute("/api/billing")({
           // 7. PUBLICAR UN NUEVO ADDON / LISTING EN EL MARKETPLACE (OWNER DE LA COMUNIDAD)
           if (action === "marketplace-listing") {
             return withSovereignAuth("system", "write", async (context) => {
+              const denied = enforceBilling(request, context, "marketplace-publish", headers);
+              if (denied) return denied;
               const listingSchema = z.object({
                 skillId: z
                   .string()
@@ -1079,6 +1292,8 @@ export const Route = createFileRoute("/api/billing")({
           // 8. COMPRAR ADDON / HABILIDAD PREMIUM (REPARTO ECONÓMICO 85% PROVEEDOR / 15% PLATAFORMA)
           if (action === "marketplace-purchase") {
             return withSovereignAuth("system", "write", async (context) => {
+              const denied = enforceBilling(request, context, "marketplace-purchase", headers);
+              if (denied) return denied;
               const purchaseSchema = z.object({
                 skillId: z.string().min(1),
               });

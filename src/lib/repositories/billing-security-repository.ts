@@ -141,6 +141,24 @@ export async function completeCheckoutIdempotency(input: {
   );
 }
 
+/**
+ * Libera una reserva de checkout que nunca llegó a completarse (fallo de
+ * Stripe, timeout). Solo elimina la fila si aún no tiene sesión asociada,
+ * para no borrar una creación exitosa que un reintento debe recibir.
+ */
+export async function releaseCheckoutIdempotency(input: {
+  tenantId: string;
+  operation: string;
+  idempotencyKey: string;
+}): Promise<void> {
+  await getPool().query(
+    `DELETE FROM billing_checkout_idempotency
+      WHERE tenant_id=$1 AND operation=$2 AND idempotency_key=$3
+        AND stripe_session_id IS NULL`,
+    [input.tenantId, input.operation, input.idempotencyKey],
+  );
+}
+
 export async function issueRunAuthorization(input: {
   tenantId: string;
   userId: string;
