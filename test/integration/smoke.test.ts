@@ -84,4 +84,27 @@ describe("smoke de despliegue", () => {
     };
     expect(pkg.devDependencies?.nitro, "nitro debe ser dependencia directa").toBeDefined();
   });
+
+  it("registro IGDS: migración append-only y repositorio Postgres", async () => {
+    const migration = resolve(root, "supabase/migrations/20260917120000_igds_genesis_registry.sql");
+    expect(existsSync(migration)).toBe(true);
+    const sql = readFileSync(migration, "utf8");
+    for (const fragment of [
+      "CREATE TABLE IF NOT EXISTS public.igds_entries",
+      "CREATE TABLE IF NOT EXISTS public.igds_checkpoints",
+      "CREATE TABLE IF NOT EXISTS public.igds_revocations",
+      "trg_prevent_igds_entries_update",
+      "trg_prevent_igds_entries_delete",
+      "ENABLE ROW LEVEL SECURITY",
+    ]) {
+      expect(sql.includes(fragment), `migración IGDS sin: ${fragment}`).toBe(true);
+    }
+    const { createPostgresGenesisRegistry } = await import(
+      "@/lib/repositories/igds-genesis-repository"
+    );
+    const registry = createPostgresGenesisRegistry();
+    expect(typeof registry.appendSeal).toBe("function");
+    expect(typeof registry.appendRevocation).toBe("function");
+    expect(typeof registry.leafHashes).toBe("function");
+  });
 });
