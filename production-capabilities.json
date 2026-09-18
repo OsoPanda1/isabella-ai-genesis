@@ -1,7 +1,7 @@
 {
   "version": "4.3.3",
-  "assessment_date": "2026-09-17T23:59:00Z",
-  "commit_sha": "6f6d3778e5e319d57a3898ec24a71ebae62ef148",
+  "assessment_date": "2026-09-18T00:30:00Z",
+  "commit_sha": "f6a9fac0c0e8faa7314812f396176575d7f48930",
   "overall_readiness_percent": 68,
   "environment": "production",
   "capabilities": [
@@ -102,6 +102,29 @@
         "test/security/ncua-load.test.ts"
       ],
       "notes": "Tokenless byte patching with SOPHIA E0–E4 classification, canonical ERI ≥ 95 gate with iterative refinement, QUP SHA3-512 merkle seal, and BookPI append-only ledger with HMAC-SHA3-512. Shared key derived from AEGIS_AUDIT_SECRET or injected for tests."
+    },
+    {
+      "name": "igds.genesis_document_seal",
+      "status": "implemented",
+      "production_safe": true,
+      "readiness_percent": 85,
+      "evidence": [
+        "src/lib/igds/canonical.ts",
+        "src/lib/igds/merkle.ts",
+        "src/lib/igds/manifest.ts",
+        "src/lib/igds/keys.ts",
+        "src/lib/igds/seal.ts",
+        "src/lib/igds/verify.ts",
+        "src/lib/igds/rfc3161.ts",
+        "src/lib/igds-service.ts",
+        "src/lib/repositories/igds-genesis-repository.ts",
+        "src/server-routes/api/igds.ts",
+        "supabase/migrations/20260917120000_igds_genesis_registry.sql",
+        "test/unit/igds.test.ts",
+        "test/unit/igds-rfc3161.test.ts",
+        "test/unit/igds-service.test.ts"
+      ],
+      "notes": "Genesis document seal nativo: canonicalización JCS RFC 8785, firmas Ed25519 (ML-DSA-65 enchufable), id_alg P-521 conceptual, manifiesto C2PA-style JSON, registro append-only con inclusión/consistencia Merkle RFC 6962, revocación firmada y transporte RFC 3161 con verificación imprint-only. 26 tests verdes; migración PostgreSQL pendiente de aplicar en base viva."
     }
   ],
   "test_summary": {

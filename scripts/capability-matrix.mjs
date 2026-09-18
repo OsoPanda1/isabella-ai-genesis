@@ -339,6 +339,27 @@ const CAPABILITIES = [
     status: "real",
   },
   {
+    capability: "IGDS genesis document seal (JCS, Ed25519, Merkle RFC 6962, RFC 3161)",
+    sources: [
+      "src/lib/igds/canonical.ts",
+      "src/lib/igds/merkle.ts",
+      "src/lib/igds/manifest.ts",
+      "src/lib/igds/seal.ts",
+      "src/lib/igds/verify.ts",
+      "src/lib/igds/rfc3161.ts",
+      "src/lib/igds-service.ts",
+      "src/server-routes/api/igds.ts",
+    ],
+    tests: [
+      "test/unit/igds.test.ts",
+      "test/unit/igds-rfc3161.test.ts",
+      "test/unit/igds-service.test.ts",
+    ],
+    runtime:
+      "Sellado nativo: JCS RFC 8785, firma Ed25519 sobre digest del manifiesto, inclusión/consistencia Merkle RFC 6962, envío RFC 3161 a TSA y verificación imprint-only; /api/igds con auth audit/system.",
+    status: "real",
+  },
+  {
     capability: "Governance charter FGAIS v2.0 (Nivel 0)",
     sources: ["docs/governance/01-FGAIS-Governance-Constitution.md"],
     tests: [],
