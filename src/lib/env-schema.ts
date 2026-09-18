@@ -154,6 +154,9 @@ export const envSchema = z
     OPENAI_COMPATIBLE_API_KEY: optionalString(),
     VERCEL: bool(false),
     NATIVE_COMPREHENSION_ENABLED: bool(false),
+    IGDS_SIGNING_KEY: optionalString(),
+    IGDS_KEY_ID: z.string().default("isabella-ed25519-2026-01"),
+    IGDS_TSA_URL: optionalUrl(),
   })
   .passthrough();
 
@@ -509,6 +512,32 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
     forbidden: [],
     provider: "self",
     criticality: "LOW",
+  },
+  {
+    name: "IGDS_SIGNING_KEY",
+    visibility: "secret",
+    required: [],
+    forbidden: [],
+    provider: "bookpi",
+    criticality: "HIGH",
+    description: "Clave privada Ed25519 (PEM PKCS8) para el sello IGDS.",
+  },
+  {
+    name: "IGDS_KEY_ID",
+    visibility: "public",
+    required: [],
+    forbidden: [],
+    provider: "bookpi",
+    criticality: "MEDIUM",
+  },
+  {
+    name: "IGDS_TSA_URL",
+    visibility: "secret",
+    required: [],
+    forbidden: [],
+    provider: "self",
+    criticality: "MEDIUM",
+    description: "Endpoint RFC 3161 para sellado temporal externo (opcional).",
   },
 ];
 
