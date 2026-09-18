@@ -214,6 +214,7 @@ export const SecuritySystem = {
     return JWT_VERIFIER.signHs256(payload, securitySecret());
   },
 
+<<<<<<< Updated upstream
   async verifyToken(
     token: string | null,
     ctx?: {
@@ -227,6 +228,75 @@ export const SecuritySystem = {
     const outcome = await AuthVerificationLayer.verifyToken(token, ctx);
     if (!outcome.success) {
       return { success: false, error: outcome.error };
+=======
+  // --- LAYER 3b: Supabase RLS token (P0-13, tenant-scoped) ---
+  // Firma un JWT HS256 con el LEGACY JWT SECRET de Supabase (`SUPABASE_JWT_SECRET`)
+  // para que PostgREST/RLS lo valide y pueble `request.jwt.claims`. NO usa
+  // AUTH_JWT_SECRET: desde que Supabase migró a JWT Signing Keys (ECC P-256), el
+  // único secreto compartido que PostgREST acepta para HS256 es el Legacy secret.
+  // Sin él configurado, se niega la operación (fail-closed → RLS imposible).
+  generateSupabaseRlsToken(
+    userId: string,
+    tenantId: string,
+    scope: string,
+  ): string {
+    const legacy = config().SUPABASE_JWT_SECRET;
+    if (!legacy) {
+      throw new Error(
+        "securitySecret: SUPABASE_JWT_SECRET (Legacy JWT Secret de Supabase) no configurado. " +
+          "PostgREST no puede validar tokens soberanos para RLS tenant-scoped (P0-13).",
+      );
+    }
+    const now = Math.floor(Date.now() / 1000);
+    const payload = {
+      iss: "TAMV Online Network Security Hub",
+      sub: userId,
+      aud: "Isabella S0 Gateway",
+      iat: now,
+      exp: now + 3300, // 55 min — algo menor a la hora de sesión
+      jti: crypto.randomUUID(),
+      // Claims que consumen las políticas RLS (request.jwt.claims):
+      role: "authenticated", // rol Postgres real que PostgREST usa al ejecutar
+      tenantId, // auth.current_tenant_id() (init_schema.sql)
+      tenant_id: tenantId, // aislamiento api_keys (request.jwt.claims.tenant_id)
+      scope,
+    };
+    return JWT_VERIFIER.signHs256(payload, legacy);
+  },
+
+  verifyToken(token: string | null): { success: boolean; claims?: TokenClaims; error?: string } {
+    if (!token) {
+      return { success: false, error: "Credencial nula: No se proporcionó clave de API." };
+    }
+
+    if (token.startsWith("isa_live_")) {
+      return {
+        success: false,
+        error:
+          "El formato de token 'isa_live_' ha sido plenamente deprecado por razones de seguridad. Por favor, inicie sesión mediante OIDC/OAuth para obtener un JWT válido.",
+      };
+    }
+
+    try {
+      const res = JWT_VERIFIER.verify(token, {
+        key: securitySecret(),
+        algorithm: "HS256",
+        issuer: "TAMV Online Network Security Hub",
+        audiences: ["Isabella S0 Gateway"],
+      });
+
+      if (!res.ok) {
+        return {
+          success: false,
+          error:
+            res.reason ?? "Firma digital no válida: Manipulación detectada (Integrity violation).",
+        };
+      }
+
+      return { success: true, claims: res.payload as unknown as TokenClaims };
+    } catch {
+      return { success: false, error: "No se pudo descifrar la credencial soberana." };
+>>>>>>> Stashed changes
     }
     return { success: true, claims: outcome.claims, provider: outcome.provider };
   },

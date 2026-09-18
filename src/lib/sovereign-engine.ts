@@ -4,6 +4,7 @@ import * as crypto from "node:crypto";
 import { Pool } from "pg";
 import { config } from "./config";
 import { SecuritySystem } from "./security";
+import { config } from "./config";
 import type { ApiKeyRecord } from "./credential-types";
 
 // ============================================================================
@@ -11,6 +12,25 @@ import type { ApiKeyRecord } from "./credential-types";
 // ============================================================================
 
 const PERSISTENCE_FILE_PATH = path.join(process.cwd(), "isabella_sovereign_db.json");
+
+/**
+ * FASE 7 — fail-closed: la persistencia JSON soberana es un mock de archivos.
+ * En staging/production se exige una fuente de verdad transaccional
+ * (PostgreSQL/Supabase). Mientras dure la transición, `DURABLE_JSON_ALLOWED=true`
+ * (mismo contrato que `json-adapter`) permite el JSON; al llegar `false`,
+ * el runtime NIEga la operación en vez de persistir en JSON silenciosamente.
+ * El end-state certificado es `DURABLE_JSON_ALLOWED=false` con repos Postgres.
+ */
+function assertJsonPersistenceAllowed(): void {
+  const cfg = config();
+  const isProdLike =
+    cfg.ISABELLA_RUNTIME_MODE === "production" || cfg.ISABELLA_RUNTIME_MODE === "staging";
+  if (isProdLike && cfg.DURABLE_JSON_ALLOWED !== true) {
+    throw new Error(
+      "JSON SovereignDB persistence is disabled in staging and production (FASE 7). Use the PostgreSQL/Supabase repository as source of truth.",
+    );
+  }
+}
 
 // 1. Core Cryptographic Chaining Schema (BookPI Ledger)
 export interface BookPILedgerBlock {
@@ -217,6 +237,7 @@ export class SovereignDB {
    * share one refresh. Mutating paths must request a fresh read (`maxAgeMs: 0`)
    * before a read-modify-write sequence.
    */
+<<<<<<< Updated upstream
   public static async hydrate({
     maxAgeMs = 0,
   }: { maxAgeMs?: number } = {}): Promise<DatabaseSchema> {
@@ -233,6 +254,10 @@ export class SovereignDB {
     if (hydrationInFlight) return hydrationInFlight;
 
     hydrationInFlight = this.hydrateFresh();
+=======
+  public static load(): DatabaseSchema {
+    assertJsonPersistenceAllowed();
+>>>>>>> Stashed changes
     try {
       return await hydrationInFlight;
     } finally {
@@ -321,6 +346,7 @@ export class SovereignDB {
   }
 
   private static save(db: DatabaseSchema) {
+<<<<<<< Updated upstream
     memoryDb = db;
     lastHydratedAt = Date.now();
     const production = isProductionRuntime();
@@ -334,6 +360,13 @@ export class SovereignDB {
         fs.writeFileSync(PERSISTENCE_FILE_PATH, JSON.stringify(db, null, 2), "utf8");
       } catch (e) {
         console.error("Fallo crítico al escribir en la base de datos persistente:", e);
+=======
+    assertJsonPersistenceAllowed();
+    try {
+      const dir = path.dirname(PERSISTENCE_FILE_PATH);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+>>>>>>> Stashed changes
       }
       return;
     }

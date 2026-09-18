@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { Pool } from "pg";
 import { createHash, randomUUID } from "node:crypto";
 import { config } from "../config";
@@ -9,10 +10,17 @@ import {
   verifyBlockSignature,
   type BookPiSignatureAlgorithm,
 } from "../crypto/bookpi-signer";
+=======
+import { neon } from "@neondatabase/serverless";
+import { createHash, createSign, createVerify, randomUUID } from "node:crypto";
+import { config } from "../config";
+import { secrets } from "../secrets";
+>>>>>>> Stashed changes
 import type { BlockPIBlock, LedgerCategory, LedgerStatus } from "./bookpi-repository";
 
 const GENESIS_PREVIOUS_HASH = "0".repeat(64);
 
+<<<<<<< Updated upstream
 let pool: Pool | null = null;
 function getPool(url: string) {
   if (!pool) {
@@ -53,6 +61,40 @@ export function disposeBookpiPool(): Promise<void> {
  */
 function hashBlock(block: Omit<BlockPIBlock, "blockHash">): string {
   return createHash("sha256").update(canonicalBookPiPayload(block)).digest("hex");
+=======
+/**
+ * Algoritmos soportados por la columna `signature_algorithm` / `pqc_signature`.
+ * - NOT_IMPLEMENTED: sin firma criptográfica (default del esquema).
+ * - ECDSA_P256_SHA256 / ED25519: firma real sobre el hash del bloque.
+ * El entorno debe declarar BOOKPI_SIGNATURE_ALGORITHM y BOOKPI_SIGNING_KEY
+ * (clave privada PEM) para activar las firmas.
+ */
+export const BOOKPI_SIGNATURE_ALGORITHMS = [
+  "NOT_IMPLEMENTED",
+  "ECDSA_P256_SHA256",
+  "ED25519",
+] as const;
+export type BookpiSignatureAlgorithm = (typeof BOOKPI_SIGNATURE_ALGORITHMS)[number];
+
+function hashBlock(block: Omit<BlockPIBlock, "blockHash">): string {
+  return createHash("sha256")
+    .update(
+      [
+        block.index,
+        block.timestamp,
+        block.tenantId,
+        block.userId,
+        block.operation,
+        block.category,
+        block.costDecimal,
+        block.tokensConsumed,
+        block.previousHash,
+        block.signatureAlgorithm,
+        block.status,
+      ].join("|"),
+    )
+    .digest("hex");
+>>>>>>> Stashed changes
 }
 
 function mapRow(row: Record<string, unknown>): BlockPIBlock {
@@ -68,21 +110,117 @@ function mapRow(row: Record<string, unknown>): BlockPIBlock {
     previousHash: String(row.previous_hash),
     blockHash: String(row.block_hash ?? row.hash),
     pqcSignature: (row.pqc_signature as string) ?? null,
-    signatureAlgorithm: String(row.signature_algorithm ?? "SHA-256"),
+    signatureAlgorithm: String(row.signature_algorithm ?? "NOT_IMPLEMENTED"),
     status: (String(row.status) === "refunded" ? "refunded" : "settled") as LedgerStatus,
+    // El esquema no tiene columna `nonce`; se mantiene el campo con un valor
+    // sintético para compatibilidad del tipo, pero NO participa del hash.
     nonce: String(row.id ?? randomUUID()),
   };
+}
+
+function resolvedSignatureAlgorithm(): BookpiSignatureAlgorithm {
+  const raw = config().BOOKPI_SIGNATURE_ALGORITHM?.trim() || "NOT_IMPLEMENTED";
+  if ((BOOKPI_SIGNATURE_ALGORITHMS as readonly string[]).includes(raw)) {
+    return raw as BookpiSignatureAlgorithm;
+  }
+  throw new Error(
+    `BOOKPI_SIGNATURE_ALGORITHM inválido: "${raw}". Valores soportados: ${BOOKPI_SIGNATURE_ALGORITHMS.join(", ")} (fail-closed).`,
+  );
+}
+
+function signBlockHash(blockHash: string, key: string, algorithm: BookpiSignatureAlgorithm): string {
+  const signer = algorithm === "ED25519" ? createSign(null) : createSign("SHA256");
+  signer.update(blockHash);
+  return signer.end().sign({ key, padding: undefined }, "base64");
+}
+
+function verifyBlockHash(
+  blockHash: string,
+  signature: string,
+  key: string,
+  algorithm: BookpiSignatureAlgorithm,
+): boolean {
+  const verifier = algorithm === "ED25519" ? createVerify(null) : createVerify("SHA256");
+  verifier.update(blockHash);
+  return verifier.verify({ key, padding: undefined }, signature, "base64");
+}
+
+/**
+ * Respaldo de firma: devuelve la clave privada PEM de BOOKPI_SIGNING_KEY cuando
+ * el algoritmo declarado lo requiere (fail-closed si falta).
+ */
+function signingKeyFor(algorithm: BookpiSignatureAlgorithm): string | null {
+  if (algorithm === "NOT_IMPLEMENTED") return null;
+  return secrets.bookpiSigningKey() || null;
 }
 
 /**
  * Repositorio BookPI contra la tabla canónica `bookpi_ledger` (FASE 3 / P0-10).
  * Append-only: los refunds se registran como eventos nuevos, nunca como UPDATE
+<<<<<<< Updated upstream
  * del bloque original. La duplicación de refunds se impide con una UNIQUE
  * constraint en `original_event_id` (no búsqueda de texto con carreras).
  */
 export function createBookpiPostgresRepository() {
   const cfg = config();
   const pool = getPool(cfg.DATABASE_URL as string);
+=======
+ * del bloque original.
+ *
+ * Concurrencia: la PK compuesta `(index, tenant_id)` garantiza que dos append
+ * simultáneos al mismo tenant no dupliquen índice; ante violación 23505 se
+ * reintenta recalculando el último bloque (cubre también la raza del primer
+ * bloque índice 0).
+ */
+export function createBookpiPostgresRepository() {
+  const sql = neon(config().DATABASE_URL as string);
+
+  const readPrevious = async (tenantId: string) => {
+    const previous =
+      await sql`SELECT * FROM public.bookpi_ledger WHERE tenant_id = ${tenantId} ORDER BY index DESC LIMIT 1`;
+    return previous[0] ? mapRow(previous[0]) : null;
+  };
+
+  async function appendOnce(input: {
+    tenantId: string;
+    userId: string;
+    operation: string;
+    category: LedgerCategory;
+    cost: number;
+    tokens: number;
+    status?: LedgerStatus;
+  }) {
+    const previousBlock = await readPrevious(input.tenantId);
+    const index = previousBlock ? previousBlock.index + 1 : 0;
+    const timestamp = new Date().toISOString();
+    const costDecimal = input.cost.toFixed(2);
+    const status: LedgerStatus = input.status ?? "settled";
+    const signatureAlgorithm = resolvedSignatureAlgorithm();
+    const signingKey = signingKeyFor(signatureAlgorithm);
+    const base: Omit<BlockPIBlock, "blockHash"> = {
+      index,
+      timestamp,
+      tenantId: input.tenantId,
+      userId: input.userId,
+      operation: input.operation.slice(0, 200),
+      category: input.category,
+      costDecimal,
+      tokensConsumed: input.tokens,
+      previousHash: previousBlock?.blockHash ?? GENESIS_PREVIOUS_HASH,
+      pqcSignature: null,
+      signatureAlgorithm,
+      status,
+      nonce: randomUUID(),
+    };
+    const blockHash = hashBlock(base);
+    const pqcSignature = signingKey ? signBlockHash(blockHash, signingKey, signatureAlgorithm) : null;
+    const rows = await sql`INSERT INTO public.bookpi_ledger
+      (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed, previous_hash, block_hash, pqc_signature, signature_algorithm, status)
+      VALUES (${base.index}, ${base.tenantId}, ${base.userId}, ${base.operation}, ${base.category}, ${base.costDecimal}, ${base.tokensConsumed}, ${base.previousHash}, ${blockHash}, ${pqcSignature}, ${signatureAlgorithm}, ${status})
+      RETURNING *`;
+    return mapRow(rows[0]!);
+  }
+>>>>>>> Stashed changes
 
   return {
     list(tenantId: string): Promise<BlockPIBlock[]> {
@@ -106,6 +244,7 @@ export function createBookpiPostgresRepository() {
         return { success: false as const, error: "Costo inválido." };
       if (!Number.isInteger(input.tokens) || input.tokens < 0)
         return { success: false as const, error: "Tokens inválidos." };
+<<<<<<< Updated upstream
 
       const client = await pool.connect();
       try {
@@ -478,12 +617,33 @@ export function createBookpiPostgresRepository() {
       } finally {
         client.release();
       }
+=======
+      let lastError: unknown;
+      for (let attempt = 0; attempt < 4; attempt++) {
+        try {
+          const block = await appendOnce(input);
+          return { success: true as const, block };
+        } catch (err) {
+          const code = (err as { code?: string } | null)?.code;
+          if (code === "23505") {
+            lastError = err;
+            continue;
+          }
+          throw err;
+        }
+      }
+      return {
+        success: false as const,
+        error: `Conflicto de concurrencia en el ledger tras reintentos: ${String(lastError)}`,
+      };
+>>>>>>> Stashed changes
     },
     async refund(
       originalEventId: string,
       requestor: { tenantId: string; userId: string },
       reason: string,
     ) {
+<<<<<<< Updated upstream
       // FASE 3: refund como nuevo evento; NUNCA UPDATE del original.
       // §6.7: la idempotencia del refund la garantiza la UNIQUE PARTIAL index
       // sobre bookpi_ledger.original_event_id. Dos refunds simultáneos →
@@ -582,6 +742,28 @@ export function createBookpiPostgresRepository() {
       } finally {
         client.release();
       }
+=======
+      // FASE 3: refunds como nuevo evento, nunca UPDATE del original.
+      // El esquema no expone `id`; el identificador del evento es su `index`.
+      const index = Number(originalEventId);
+      if (!Number.isInteger(index) || index < 0)
+        return { success: false as const, error: "Índice de bloque inválido." };
+      const byIndex =
+        await sql`SELECT * FROM public.bookpi_ledger WHERE tenant_id = ${requestor.tenantId} AND index = ${index} LIMIT 1`;
+      const original = byIndex[0] ? mapRow(byIndex[0]) : null;
+      if (!original) return { success: false as const, error: "Evento original no encontrado." };
+      if (original.status === "refunded")
+        return { success: false as const, error: "Evento ya refundido." };
+      return this.append({
+        tenantId: requestor.tenantId,
+        userId: requestor.userId,
+        operation: `refund_of_${original.index}_${reason}`,
+        category: original.category,
+        cost: original.costDecimal ? Number(original.costDecimal) : 0,
+        tokens: 0,
+        status: "refunded",
+      });
+>>>>>>> Stashed changes
     },
     async verifyIntegrity(tenantId?: string) {
       let rows: Record<string, unknown>[];
@@ -599,6 +781,8 @@ export function createBookpiPostgresRepository() {
       }
       let previousTenant = "";
       let previousHash = GENESIS_PREVIOUS_HASH;
+      const signingAlgorithm = resolvedSignatureAlgorithm();
+      const verifyingKey = signingKeyFor(signingAlgorithm);
       for (const row of rows) {
         const block = mapRow(row);
         if (block.tenantId !== previousTenant) {
@@ -621,6 +805,7 @@ export function createBookpiPostgresRepository() {
             corruptedIndex: block.index,
           };
         }
+<<<<<<< Updated upstream
         // §6.5: verifica la firma real (rechaza bloques sin firma o con firma inválida).
         if (!verifyBlockSignature(block.blockHash, block.pqcSignature)) {
           return {
@@ -628,6 +813,22 @@ export function createBookpiPostgresRepository() {
             error: "Firma BookPI inválida o ausente.",
             corruptedIndex: block.index,
           };
+=======
+        if (block.pqcSignature && verifyingKey) {
+          const valid = verifyBlockHash(
+            block.blockHash,
+            block.pqcSignature,
+            verifyingKey,
+            signingAlgorithm,
+          );
+          if (!valid) {
+            return {
+              success: false as const,
+              error: "Firma BookPI inválida.",
+              corruptedIndex: block.index,
+            };
+          }
+>>>>>>> Stashed changes
         }
         previousHash = block.blockHash;
       }
@@ -636,5 +837,9 @@ export function createBookpiPostgresRepository() {
   };
 }
 
+<<<<<<< Updated upstream
 export type BookpiPostgresRepository = ReturnType<typeof createBookpiPostgresRepository>;
 export type { BookPiSignatureAlgorithm };
+=======
+export type BookpiPostgresRepository = ReturnType<typeof createBookpiPostgresRepository>;
+>>>>>>> Stashed changes

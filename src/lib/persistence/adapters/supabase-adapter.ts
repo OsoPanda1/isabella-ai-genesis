@@ -27,8 +27,9 @@ function toSupabaseClient(url: string, key: string): SupabaseClient {
 /**
  * Cliente Supabase con la identidad del request (tenant-scoped, RLS).
  * P0-13: NUNCA usa service_role. Si hay principal autenticado, se reemite un
- * JWT de Isabella (mismo secreto AUTH_JWT_SECRET/SUPABASE_JWT_SECRET) para que
- * Supabase pueble `request.jwt.claims` con tenantId/role y RLS aplique.
+ * JWT firmado HS256 con `SUPABASE_JWT_SECRET` (Legacy JWT Secret de Supabase,
+ * no `AUTH_JWT_SECRET`) para que PostgREST pueble `request.jwt.claims` con
+ * tenantId/role y RLS aplique.
  * Sin identidad devuelve `null` (fail-closed; solo diagnóstico puede usar anon).
  */
 async function getSupabase(): Promise<SupabaseClient | null> {
@@ -37,9 +38,12 @@ async function getSupabase(): Promise<SupabaseClient | null> {
   if (!url) return null;
   const identity = getRequestIdentity();
   if (!identity) return null;
+<<<<<<< Updated upstream
   const jwt = await SecuritySystem.generateSovereignToken(
+=======
+  const jwt = SecuritySystem.generateSupabaseRlsToken(
+>>>>>>> Stashed changes
     identity.userId,
-    identity.role,
     identity.tenantId,
     identity.scope,
   );

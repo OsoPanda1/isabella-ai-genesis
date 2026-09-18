@@ -7,6 +7,7 @@ import { nitro } from "nitro/vite";
 import { fileURLToPath } from "node:url";
 
 export default defineConfig({
+<<<<<<< Updated upstream
   plugins: [
     {
       name: "browser-node-crypto-shim",
@@ -16,6 +17,18 @@ export default defineConfig({
           return fileURLToPath(new URL("./src/lib/browser-node-crypto.ts", import.meta.url));
         }
         return null;
+=======
+  // P0-VERCEL: fijar el preset de Nitro a "vercel". Sin esto, Nitro auto-detecta
+  // `cloudflare-module` (defaultPreset) y el output no calza con el deploy de Vercel.
+  nitro: { preset: "vercel" },
+  tanstackStart: {
+    server: { entry: "server" },
+  },
+  vite: {
+    resolve: {
+      alias: {
+        "server-only": "vite/client",
+>>>>>>> Stashed changes
       },
     },
     tanstackStart({

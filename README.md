@@ -308,10 +308,23 @@ Ninguna respuesta sensible sale del sistema sin pasar por política y auditoría
 
 ## 10. Criptografía, BookPI y Contabilidad de Doble Partida
 
+<<<<<<< Updated upstream
 - **Triple hardening (triangulación criptográfica):** AES-256-GCM con DEK efímera y AAD ligado a `tenantId`/`traceId`; ChaCha20-Poly1305 con derivación PBKDF2-HMAC-SHA512; sellado HMAC-SHA3-512 + ECDSA-P384 con verificación de raíz Merkle. La discrepancia en un solo bit aborta la operación (fail-closed).
 - **BookPI (ledger inmutable):** cadena append-only por hash (`Hₙ = SHA3-512(Hₙ₋₁ ‖ Dataₙ)`), verificación por árboles de Merkle y firma asimétrica; inmutabilidad reforzada por RLS en `supabase/migrations`. La trayectoria NCUA (`bookpi-trajectory.ts`) usa la misma disciplina con HMAC-SHA3-512.
 - **IGDS — Genesis Document Seal (`src/lib/igds/`):** sellado de documentos nativo en TS: canonicalización **JCS RFC 8785**, firmas **Ed25519** sobre el digest del manifiesto (interfaz **ML-DSA-65** enchufable), manifiesto C2PA-style JSON con acciones del pipeline, registro Genesis **append-only** con inclusión/consistencia Merkle **RFC 6962**, revocación firmada sobre digest canónico y transporte **RFC 3161** hacia TSA (verificación *imprint-only*). Exposición HTTP en `/api/igds` (seal/verify/revoke/entries/checkpoint) y persistencia durable en `igds_entries`/`igds_checkpoints`/`igds_revocations`.
 - **Contabilidad de doble partida:** equilibrio estricto débito/crédito por transacción de tenant (`src/lib/accounting/`).
+=======
+**Eliminación del `SUPABASE_SERVICE_ROLE_KEY` del runtime y ruta única Postgres (`DATABASE_URL`) tenant-scoped:**
+
+- **`request-context.ts`** — contexto único de observabilidad por request (`traceId`, `correlationId`, `requestId`, `startedAt`) creado en `server.ts` y consumido por `error-contract.ts` (`getTraceId`).
+- **`identity-context.ts`** (nuevo) — contexto de identidad autenticada por request vía `AsyncLocalStorage` (`RequestIdentity` + `runWithIdentity`/`getRequestIdentity`). Los adaptadores leen la identidad actual para construir un cliente Supabase con **RLS** en lugar de `service_role`.
+- **`principal-context.ts`** — `authorize()` resuelve el token Bearer y la API key dentro de `runWithIdentity(...)`; `withSovereignAuth` y `ApiGateway` envuelven el handler con `context.toRequestIdentity()`.
+- **`supabase-adapter.ts`** — migrado a **tenant-scoped**: sin identidad retorna `null` y `requireSupabase()` falla de forma segura **fail-closed**; reemite un JWT scoped del usuario con `SecuritySystem.generateSovereignToken` en lugar del rol de servicio.
+- **`api-key-service.ts`** — `verifyApiKey` prioriza el repositorio Postgres (`DATABASE_URL`, `api-key-repository.ts`) para `findByPrefix`/`touchLastUsed`/`updateStatus`, con fallback JSON solo en dev.
+- **Repositorios Postgres nuevos:** `bookpi-postgres-repository.ts`, `memory-postgres-repository.ts`, `api-key-repository.ts`; servicios `tenant-service.ts`; migraciones `2026090312/1300/1400` de alineación de esquema y RLS.
+
+> **REQUERIMIENTO P0-13:** `SUPABASE_JWT_SECRET` es el **JWT Secret (Legacy)** del proyecto Supabase (Dashboard → Settings → API). `SecuritySystem.generateSupabaseRlsToken()` lo usa para firmar HS256 los JWT que PostgREST valida y con los que aplica RLS tenant-scoped. **NO debe ser igual a `AUTH_JWT_SECRET`** (Supabase ya no valida con app JWTs HS256 desde que migró a JWT Signing Keys ECC). `SUPABASE_SERVICE_ROLE_KEY` queda **fuera del runtime** (solo provisionamiento aislado).
+>>>>>>> Stashed changes
 
 ---
 
@@ -444,7 +457,11 @@ pnpm build
 pnpm dev
 ```
 
+<<<<<<< Updated upstream
 El servidor de desarrollo queda disponible en `http://localhost:3000`.
+=======
+> **P0-13:** en producción, `SUPABASE_JWT_SECRET` = **JWT Secret (Legacy)** de Supabase, usado por `generateSupabaseRlsToken()` (HS256) para el RLS tenant-scoped; **no** se iguala con `AUTH_JWT_SECRET` y `SUPABASE_SERVICE_ROLE_KEY` no se usa en el runtime.
+>>>>>>> Stashed changes
 
 ### Scripts disponibles (resumen)
 
@@ -469,11 +486,17 @@ El servidor de desarrollo queda disponible en `http://localhost:3000`.
 
 ## 17. Variables de Entorno
 
+<<<<<<< Updated upstream
 - `.env.example` documenta **117 variables**; nunca contiene valores reales.
 - La configuración se valida al iniciar (`src/lib/env-schema.ts` + `src/lib/config.ts`). **No se permite `process.env` directo fuera de `config.ts`/`env-schema.ts`**.
 - En `production`/`staging` el arranque es **fail-fast**: se exige `NODE_ENV=production`, `DATABASE_URL`, `AUTH_JWT_SECRET` dedicado, proveedor de inferencia autorizado y `ISABELLA_STORAGE_PROVIDER` explícito (`postgres`/`neon`); se rechazan alias de base de datos en conflicto, `DURABLE_JSON_ALLOWED`, `AUTH_DEV_SESSION_ENABLED` y `ALLOW_GUEST_CHAT`.
 - `.env.example` está separado por cliente y servidor; `scripts/check-client-env.mjs` y `scripts/check-env.mjs` validan cada ámbito antes de build/dev.
 - El motor NCUA v2.0 requiere `AEGIS_AUDIT_SECRET` para sellar en BookPI; en su ausencia el pipeline opera en modo `FAIL_CLOSED` (nunca con una clave embebida).
+=======
+Claves en `.env.example` validadas por `src/lib/env-schema.ts` (Zod) y única vía `src/lib/config.ts`. Obligatorias prod (`requiredEnvKeys`): `NODE_ENV, PUBLIC_URL, SUPABASE_URL, SUPABASE_ANON_KEY, AUTH_JWT_SECRET, GEMINI_API_KEY, ENCRYPTION_MASTER_KEY`. Ver `.env.example` para `AUTH_DEV_SESSION_ENABLED` (solo `development` + `true`), `PROVISION_OWNER_TOKEN`, `API_KEY_HASH_SECRET`, `BOOKPI_SIGNING_KEY`, `REDIS_URL`, etc. **Lovable fue retirado** (P0-13): el despliegue es exclusivamente Vercel y el proveedor LLM requerido en producción es Gemini.
+
+**Nota P0-13:** `SUPABASE_JWT_SECRET` (Legacy de Supabase) alimenta la firma HS256 de los tokens RLS en `generateSupabaseRlsToken()`; no coincide con `AUTH_JWT_SECRET` a menos que el proyecto siga usando el JWT legacy como app key.
+>>>>>>> Stashed changes
 
 ---
 
