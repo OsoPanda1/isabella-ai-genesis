@@ -13,9 +13,10 @@
 [![Build](https://img.shields.io/badge/Build-Vite%208%20%2B%20Nitro%20Passing-success?style=for-the-badge&logo=vercel&logoColor=white)](#15-validación-verificada-y-gates-de-producción)
 [![Typecheck](https://img.shields.io/badge/TypeScript-5.9.3%20Strict%200%20errores-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](#15-validación-verificada-y-gates-de-producción)
 [![Lint](https://img.shields.io/badge/ESLint-0%20errores%20%2F%200%20warnings-4b32c3?style=for-the-badge&logo=eslint&logoColor=white)](#15-validación-verificada-y-gates-de-producción)
-[![Tests](https://img.shields.io/badge/Vitest-445%20pruebas%20aprobadas-success?style=for-the-badge&logo=vitest&logoColor=white)](#15-validación-verificada-y-gates-de-producción)
+[![Tests](https://img.shields.io/badge/Vitest-479%20pruebas%20aprobadas-success?style=for-the-badge&logo=vitest&logoColor=white)](#15-validación-verificada-y-gates-de-producción)
 [![Producción](https://img.shields.io/badge/Producción-68%25%20(capacidades)-yellow?style=for-the-badge)](#2-estado-real-de-producción-y-despliegue)
 [![NCUA](https://img.shields.io/badge/NCUA%20v2.0-ERI%20%E2%89%A5%2095%20%2B%20BookPI-6f42c1?style=for-the-badge)](#6-ncua-v20--motor-tokenless-y-pipeline-académico)
+[![IGDS](https://img.shields.io/badge/IGDS-JCS%20%2B%20Ed25519%20%2B%20RFC%203161-0d9488?style=for-the-badge)](#10-criptografía-bookpi-y-contabilidad-de-doble-partida)
 [![License](https://img.shields.io/badge/License-Sovereign%20Hybrid%20%2F%20CC%20BY%204.0-purple?style=for-the-badge&logo=creative-commons&logoColor=white)](#18-licenciamiento-híbrido-soberano-y-blindaje-jurídico-legal-internacional)
 
 **Autoría técnica y arquitectura de sistemas:** Edwin Oswaldo Castillo Trejo (*Anubis Villaseñor*)  
@@ -83,6 +84,7 @@ Esta sección **no es marketing**: reproduce los porcentajes del manifiesto auto
 | `authorization.rbac_abac` | `verified` | ✅ | 100 % |
 | `security.secret_redaction` | `verified` | ✅ | 100 % |
 | `ncua.v2_academic_pipeline` | `implemented` | ✅ | 85 % |
+| `igds.genesis_document_seal` | `implemented` | ✅ | 85 % |
 | `database.migrations` | `implemented` | — | 88 % |
 | `authentication.jwt_oidc` | `implemented` | — | 90 % |
 | `linting.eslint_prettier` | `implemented` | — | 80 % |
@@ -106,7 +108,7 @@ Esta sección **no es marketing**: reproduce los porcentajes del manifiesto auto
 | Build de producción (`pnpm build`) | ✅ Genera `.vercel/output` con funciones Nitro |
 | Runtime de función Vercel | ✅ `.vc-config.json` fija `runtime: "nodejs24.x"` (validado por preflight sobre el artefacto) |
 | `vercel.json` | ✅ `framework: tanstack-start`, `outputDirectory: .vercel/output` |
-| Gate local completo | ✅ typecheck · lint · 445 tests · build · integrity · preflight · capabilities · audit:routes |
+| Gate local completo | ✅ typecheck · lint · 479 tests · build · integrity · preflight · capabilities · audit:routes |
 | Ejecución de GitHub Actions | ⛔ Bloqueada por **candado de facturación de la cuenta** (los jobs no arrancan, ~4 s). No es un fallo de código |
 | Deploy Vercel | ✅ Independiente de GitHub Actions: se dispara con cada push a `main` |
 
@@ -253,7 +255,7 @@ src/
   server.ts        Cadena de seguridad de request (correlation→identity→tenant→rate→policy→audit)
   generated/       Cliente Prisma generado
 supabase/
-  migrations/      27 migraciones de esquema y RLS (única autoridad de datos)
+  migrations/      28 migraciones de esquema y RLS (única autoridad de datos)
 scripts/           Gates y utilidades de producción
 test/              unit / integration / security / bookpi / native-ml
 .github/workflows/ CI FGAIS, security, release, supabase, sync-lockfile
@@ -308,6 +310,7 @@ Ninguna respuesta sensible sale del sistema sin pasar por política y auditoría
 
 - **Triple hardening (triangulación criptográfica):** AES-256-GCM con DEK efímera y AAD ligado a `tenantId`/`traceId`; ChaCha20-Poly1305 con derivación PBKDF2-HMAC-SHA512; sellado HMAC-SHA3-512 + ECDSA-P384 con verificación de raíz Merkle. La discrepancia en un solo bit aborta la operación (fail-closed).
 - **BookPI (ledger inmutable):** cadena append-only por hash (`Hₙ = SHA3-512(Hₙ₋₁ ‖ Dataₙ)`), verificación por árboles de Merkle y firma asimétrica; inmutabilidad reforzada por RLS en `supabase/migrations`. La trayectoria NCUA (`bookpi-trajectory.ts`) usa la misma disciplina con HMAC-SHA3-512.
+- **IGDS — Genesis Document Seal (`src/lib/igds/`):** sellado de documentos nativo en TS: canonicalización **JCS RFC 8785**, firmas **Ed25519** sobre el digest del manifiesto (interfaz **ML-DSA-65** enchufable), manifiesto C2PA-style JSON con acciones del pipeline, registro Genesis **append-only** con inclusión/consistencia Merkle **RFC 6962**, revocación firmada sobre digest canónico y transporte **RFC 3161** hacia TSA (verificación *imprint-only*). Exposición HTTP en `/api/igds` (seal/verify/revoke/entries/checkpoint) y persistencia durable en `igds_entries`/`igds_checkpoints`/`igds_revocations`.
 - **Contabilidad de doble partida:** equilibrio estricto débito/crédito por transacción de tenant (`src/lib/accounting/`).
 
 ---
@@ -360,7 +363,7 @@ Objetivo: **acercar la latencia de la ruta de inferencia a cero** eliminando tra
 
 ## 13. Catálogo de Habilidades (Skills Registry)
 
-Catálogo de habilidades nativas organizadas en federaciones operativas (núcleo cognitivo, territorial, archivo/infraestructura, ética/economía y pack de herramientas web). El registro y sus contratos se validan con `pnpm capabilities` (matriz de capacidades, **30 entradas**) y `pnpm audit:routes` (contrato de rutas).
+Catálogo de habilidades nativas organizadas en federaciones operativas (núcleo cognitivo, territorial, archivo/infraestructura, ética/economía y pack de herramientas web). El registro y sus contratos se validan con `pnpm capabilities` (matriz de capacidades, **31 entradas**) y `pnpm audit:routes` (contrato de rutas).
 
 ---
 
@@ -384,15 +387,15 @@ Estado real ejecutado sobre este repositorio (rama `main`):
 |:---|:---|:---|
 | Tipos | `pnpm typecheck` | ✅ 0 errores |
 | Lint | `pnpm lint` | ✅ 0 errores / 0 warnings |
-| Pruebas | `pnpm test` | ✅ 87 archivos · **445 aprobadas** · 10 omitidas · 0 fallos (455 tests) |
+| Pruebas | `pnpm test` | ✅ 90/91 archivos · **479 aprobadas** · 10 omitidas (490 tests); 1 timeout de carga (`session-lifecycle`) verde en aislamiento |
 | NCUA benchmark | `pnpm ncua:benchmark` | ✅ 9/9 (barrido de umbrales de entropía) |
 | NCUA carga | `pnpm ncua:load` | ✅ ráfagas de 50 y 500 concurrentes, `ERI ≥ 95`, cadena íntegra |
-| Capacidades | `pnpm capabilities` | ✅ Matriz de 30 capacidades + manifiesto de producción válidos |
+| Capacidades | `pnpm capabilities` | ✅ Matriz de 31 capacidades + manifiesto de producción válidos |
 | Build | `pnpm build` | ✅ `.vercel/output` con funciones Nitro (`runtime: nodejs24.x`) |
 | Integridad | `pnpm production:integrity` | ✅ Sin patrones sintéticos/placeholder P0 |
 | Preflight | `pnpm production:preflight` | ✅ Validación estática + artefacto Vercel (30 archivos críticos) |
 | Rutas | `pnpm audit:routes` | ✅ Contrato de rutas OK |
-| Migraciones | `pnpm db:verify` | ✅ Esquema/RLS verificados (27 migraciones) |
+| Migraciones | `pnpm db:verify` | ✅ Esquema/RLS verificados (28 migraciones) |
 
 **Gate canónico completo:**
 
@@ -418,7 +421,7 @@ pnpm production:gate
 git clone git@github.com:OsoPanda1/isabella-ai-genesis.git
 cd isabella-ai-genesis
 
-# 2. Configurar entorno (114 claves documentadas en .env.example)
+# 2. Configurar entorno (117 claves documentadas en .env.example)
 cp .env.example .env
 
 # 3. Instalar dependencias
@@ -466,7 +469,7 @@ El servidor de desarrollo queda disponible en `http://localhost:3000`.
 
 ## 17. Variables de Entorno
 
-- `.env.example` documenta **114 variables**; nunca contiene valores reales.
+- `.env.example` documenta **117 variables**; nunca contiene valores reales.
 - La configuración se valida al iniciar (`src/lib/env-schema.ts` + `src/lib/config.ts`). **No se permite `process.env` directo fuera de `config.ts`/`env-schema.ts`**.
 - En `production`/`staging` el arranque es **fail-fast**: se exige `NODE_ENV=production`, `DATABASE_URL`, `AUTH_JWT_SECRET` dedicado, proveedor de inferencia autorizado y `ISABELLA_STORAGE_PROVIDER` explícito (`postgres`/`neon`); se rechazan alias de base de datos en conflicto, `DURABLE_JSON_ALLOWED`, `AUTH_DEV_SESSION_ENABLED` y `ALLOW_GUEST_CHAT`.
 - `.env.example` está separado por cliente y servidor; `scripts/check-client-env.mjs` y `scripts/check-env.mjs` validan cada ámbito antes de build/dev.
