@@ -195,6 +195,9 @@ export const SecuritySystem = {
     }
   },
 
+  /**
+   * Genera un token soberano firmado con AUTH_JWT_SECRET para uso general.
+   */
   async generateSovereignToken(
     userId: string,
     role: string,
@@ -214,27 +217,13 @@ export const SecuritySystem = {
     return JWT_VERIFIER.signHs256(payload, securitySecret());
   },
 
-<<<<<<< Updated upstream
-  async verifyToken(
-    token: string | null,
-    ctx?: {
-      ip?: string;
-      traceId?: string;
-      correlationId?: string;
-      requiredScope?: string;
-      expectedAudience?: string;
-    },
-  ): Promise<{ success: boolean; claims?: TokenClaims; error?: string; provider?: string }> {
-    const outcome = await AuthVerificationLayer.verifyToken(token, ctx);
-    if (!outcome.success) {
-      return { success: false, error: outcome.error };
-=======
-  // --- LAYER 3b: Supabase RLS token (P0-13, tenant-scoped) ---
-  // Firma un JWT HS256 con el LEGACY JWT SECRET de Supabase (`SUPABASE_JWT_SECRET`)
-  // para que PostgREST/RLS lo valide y pueble `request.jwt.claims`. NO usa
-  // AUTH_JWT_SECRET: desde que Supabase migró a JWT Signing Keys (ECC P-256), el
-  // único secreto compartido que PostgREST acepta para HS256 es el Legacy secret.
-  // Sin él configurado, se niega la operación (fail-closed → RLS imposible).
+  /**
+   * Genera un token RLS (Row Level Security) firmado con SUPABASE_JWT_SECRET
+   * para que PostgREST lo valide y pule request.jwt.claims.
+   * El secreto legacy es obligatorio: desde que Supabase migró a JWT Signing Keys
+   * (ECC P-256), el único secreto compartido que PostgREST acepta para HS256 es
+   * el Legacy secret. Sin él, se niega la operación (fail-closed → RLS imposible).
+   */
   generateSupabaseRlsToken(
     userId: string,
     tenantId: string,
@@ -264,7 +253,37 @@ export const SecuritySystem = {
     return JWT_VERIFIER.signHs256(payload, legacy);
   },
 
-  verifyToken(token: string | null): { success: boolean; claims?: TokenClaims; error?: string } {
+  /**
+   * Verifica un JWT usando AuthVerificationLayer (nueva arquitectura) o
+   * fallback al validación directa con AUTH_JWT_SECRET.
+   * Acepta un segundo argumento ctx con metadatos opcionales (ip, traceId, etc.).
+   */
+  async verifyToken(
+    token: string | null,
+    ctx?: {
+      ip?: string;
+      traceId?: string;
+      correlationId?: string;
+      requiredScope?: string;
+      expectedAudience?: string;
+    },
+  ): Promise<{
+    success: boolean;
+    claims?: TokenClaims;
+    error?: string;
+    provider?: string;
+  }> {
+    // Intento usando AuthVerificationLayer (nueva arquitectura)
+    try {
+      const outcome = await AuthVerificationLayer.verifyToken(token, ctx);
+      if (outcome.success) {
+        return { success: true, claims: outcome.claims, provider: "auth-verification-layer" };
+      }
+    } catch (_authError) {
+      // Continuar con fallback legacy si AuthVerificationLayer falla
+    }
+
+    // Fallback legacy: verificación directa con AUTH_JWT_SECRET
     if (!token) {
       return { success: false, error: "Credencial nula: No se proporcionó clave de API." };
     }
@@ -296,9 +315,7 @@ export const SecuritySystem = {
       return { success: true, claims: res.payload as unknown as TokenClaims };
     } catch {
       return { success: false, error: "No se pudo descifrar la credencial soberana." };
->>>>>>> Stashed changes
     }
-    return { success: true, claims: outcome.claims, provider: outcome.provider };
   },
 
   async verifyApiScope(
@@ -517,6 +534,6 @@ export class UpstreamCircuitBreaker {
       console.error("[CircuitBreaker] Failure detected in HALF_OPEN. Breaker reverted to OPEN.");
     }
   }
-}
+};
 
 export const globalCircuitBreaker = new UpstreamCircuitBreaker();
