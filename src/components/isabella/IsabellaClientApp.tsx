@@ -69,6 +69,11 @@ const FindarepoDashboard = lazy(() =>
     default: m.FindarepoDashboard,
   })),
 );
+const VideoEngineXDashboard = lazy(() =>
+  import("@/components/isabella/VideoEngineXDashboard").then((m) => ({
+    default: m.VideoEngineXDashboard,
+  })),
+);
 
 const INTRO_SEEN_KEY = "isabella.entry.intro.v1";
 
@@ -394,6 +399,11 @@ function IsabellaInterface() {
             {activeTab === "findarepo" && (
               <div className="mx-auto h-[85vh] max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-electric">
                 <FindarepoDashboard />
+              </div>
+            )}
+            {activeTab === "video-x" && (
+              <div className="mx-auto max-w-[1300px] overflow-hidden rounded-3xl crystal-glow-electric">
+                <VideoEngineXDashboard />
               </div>
             )}
           </main>
