@@ -19,6 +19,7 @@ export * from "./merkle";
 export * from "./registry";
 export * from "./revocation";
 export * from "./tsa";
+export * from "./rfc3161";
 export * from "./seal";
 export * from "./verify";
 export * from "./configured";

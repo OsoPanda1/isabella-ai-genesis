@@ -12,6 +12,8 @@ import type {
   TrustStatus,
   GenesisRevocationPayload,
 } from "./types";
+import { canonicalize } from "./canonical";
+import { digestHex } from "./digests";
 
 export const REVOCATION_REASONS: readonly RevocationReason[] = [
   "key_compromise",
@@ -62,6 +64,11 @@ export function createRevocationPayload(input: {
     scope: input.scope ?? "all_signatures_after_effective_at",
     issued_by: input.issuedBy,
   };
+}
+
+/** Digest canónico que firma la entrada de revocación (independiente de su posición en la cadena). */
+export function revocationDigest(payload: GenesisRevocationPayload): string {
+  return digestHex("sha256", canonicalize(payload as unknown as Record<string, unknown>));
 }
 
 export interface TrustEvaluationInput {
