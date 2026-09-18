@@ -17,6 +17,7 @@ import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiDbRouteImport } from './routes/api/db'
 import { Route as ApiEconomicIntegrityRouteImport } from './routes/api/economic-integrity'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiIgdsRouteImport } from './routes/api/igds'
 import { Route as ApiIntelligenceRouteImport } from './routes/api/intelligence'
 import { Route as ApiIsabellaRouteImport } from './routes/api/isabella'
 import { Route as ApiIsabellaCognitiveTrainingRouteImport } from './routes/api/isabella-cognitive-training'
@@ -80,6 +81,11 @@ const ApiEconomicIntegrityRoute = ApiEconomicIntegrityRouteImport.update({
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiIgdsRoute = ApiIgdsRouteImport.update({
+  id: '/api/igds',
+  path: '/api/igds',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiIntelligenceRoute = ApiIntelligenceRouteImport.update({
@@ -215,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/api/db': typeof ApiDbRoute
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
   '/api/health': typeof ApiHealthRouteWithChildren
+  '/api/igds': typeof ApiIgdsRoute
   '/api/intelligence': typeof ApiIntelligenceRoute
   '/api/isabella': typeof ApiIsabellaRouteWithChildren
   '/api/isabella-cognitive-training': typeof ApiIsabellaCognitiveTrainingRoute
@@ -249,6 +256,7 @@ export interface FileRoutesByTo {
   '/api/db': typeof ApiDbRoute
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
   '/api/health': typeof ApiHealthRouteWithChildren
+  '/api/igds': typeof ApiIgdsRoute
   '/api/intelligence': typeof ApiIntelligenceRoute
   '/api/isabella': typeof ApiIsabellaRouteWithChildren
   '/api/isabella-cognitive-training': typeof ApiIsabellaCognitiveTrainingRoute
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/api/db': typeof ApiDbRoute
   '/api/economic-integrity': typeof ApiEconomicIntegrityRoute
   '/api/health': typeof ApiHealthRouteWithChildren
+  '/api/igds': typeof ApiIgdsRoute
   '/api/intelligence': typeof ApiIntelligenceRoute
   '/api/isabella': typeof ApiIsabellaRouteWithChildren
   '/api/isabella-cognitive-training': typeof ApiIsabellaCognitiveTrainingRoute
@@ -320,6 +329,7 @@ export interface FileRouteTypes {
     | '/api/db'
     | '/api/economic-integrity'
     | '/api/health'
+    | '/api/igds'
     | '/api/intelligence'
     | '/api/isabella'
     | '/api/isabella-cognitive-training'
@@ -354,6 +364,7 @@ export interface FileRouteTypes {
     | '/api/db'
     | '/api/economic-integrity'
     | '/api/health'
+    | '/api/igds'
     | '/api/intelligence'
     | '/api/isabella'
     | '/api/isabella-cognitive-training'
@@ -388,6 +399,7 @@ export interface FileRouteTypes {
     | '/api/db'
     | '/api/economic-integrity'
     | '/api/health'
+    | '/api/igds'
     | '/api/intelligence'
     | '/api/isabella'
     | '/api/isabella-cognitive-training'
@@ -423,6 +435,7 @@ export interface RootRouteChildren {
   ApiDbRoute: typeof ApiDbRoute
   ApiEconomicIntegrityRoute: typeof ApiEconomicIntegrityRoute
   ApiHealthRoute: typeof ApiHealthRouteWithChildren
+  ApiIgdsRoute: typeof ApiIgdsRoute
   ApiIntelligenceRoute: typeof ApiIntelligenceRoute
   ApiIsabellaRoute: typeof ApiIsabellaRouteWithChildren
   ApiIsabellaCognitiveTrainingRoute: typeof ApiIsabellaCognitiveTrainingRoute
@@ -495,6 +508,13 @@ declare module '@tanstack/react-router' {
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/igds': {
+      id: '/api/igds'
+      path: '/api/igds'
+      fullPath: '/api/igds'
+      preLoaderRoute: typeof ApiIgdsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/intelligence': {
@@ -745,6 +765,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDbRoute: ApiDbRoute,
   ApiEconomicIntegrityRoute: ApiEconomicIntegrityRoute,
   ApiHealthRoute: ApiHealthRouteWithChildren,
+  ApiIgdsRoute: ApiIgdsRoute,
   ApiIntelligenceRoute: ApiIntelligenceRoute,
   ApiIsabellaRoute: ApiIsabellaRouteWithChildren,
   ApiIsabellaCognitiveTrainingRoute: ApiIsabellaCognitiveTrainingRoute,

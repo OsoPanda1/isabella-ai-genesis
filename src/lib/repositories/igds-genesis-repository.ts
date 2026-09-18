@@ -283,3 +283,18 @@ export async function listGenesisCheckpoints(limit = 50): Promise<GenesisCheckpo
   );
   return (rows as GenesisCheckpointRow[]).map(toCheckpoint);
 }
+
+/** Revocación vigente más reciente para un objetivo (para evaluar confianza). */
+export async function latestRevocationForTarget(
+  targetType: string,
+  targetId: string,
+): Promise<GenesisRevocationPayload | null> {
+  const { rows } = await getPool().query(
+    `SELECT payload FROM igds_revocations
+      WHERE target_type = $1 AND target_id = $2
+      ORDER BY effective_at DESC LIMIT 1`,
+    [targetType, targetId],
+  );
+  const row = (rows as Array<{ payload: GenesisRevocationPayload }>)[0];
+  return row?.payload ?? null;
+}

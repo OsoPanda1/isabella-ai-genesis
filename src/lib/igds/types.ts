@@ -28,6 +28,22 @@ export type IgdsActionName =
   | "published"
   | "sealed";
 
+export const IGDS_ACTION_NAMES = [
+  "created",
+  "generated",
+  "edited",
+  "translated",
+  "upscaled",
+  "inpainted",
+  "dubbed",
+  "captioned",
+  "rendered",
+  "reviewed",
+  "approved",
+  "published",
+  "sealed",
+] as const satisfies readonly IgdsActionName[];
+
 export interface IgdsAction {
   action: IgdsActionName;
   when: string;
