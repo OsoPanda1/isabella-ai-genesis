@@ -237,8 +237,7 @@ export class SovereignDB {
    * share one refresh. Mutating paths must request a fresh read (`maxAgeMs: 0`)
    * before a read-modify-write sequence.
    */
-<<<<<<< Updated upstream
-  public static async hydrate({
+public static async hydrate({
     maxAgeMs = 0,
   }: { maxAgeMs?: number } = {}): Promise<DatabaseSchema> {
     // Fail-closed: si la persistencia anterior falló, no servir estado obsoleto.
@@ -254,7 +253,13 @@ export class SovereignDB {
     if (hydrationInFlight) return hydrationInFlight;
 
     hydrationInFlight = this.hydrateFresh();
-=======
+    try {
+      return await hydrationInFlight;
+    } finally {
+      hydrationInFlight = null;
+    }
+  }
+
   public static load(): DatabaseSchema {
     assertJsonPersistenceAllowed();
 >>>>>>> Stashed changes

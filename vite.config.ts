@@ -18,23 +18,6 @@ export default defineConfig({
         return null;
       },
     },
-    {
-      name: "tanstack-start-config",
-      enforce: "pre",
-      setup() {
-        return {
-          vite: {
-            config() {
-              return {
-                tanstackStart: {
-                  server: { entry: "server" },
-                },
-              };
-            },
-          };
-        };
-      },
-    },
   ],
   nitro: { preset: "vercel" },
   tanstackStart: {
