@@ -105,7 +105,7 @@ export function UsageDashboard({
               Mensajes Utilizados
             </span>
             <span className="font-mono text-[11px] text-platinum font-semibold">
-              {messagesUsed === null ? "No disponible" : `${messagesUsed} / ${messageLimit ?? "—"}`}
+              {messagesUsed == null ? "No disponible" : `${messagesUsed} / ${messageLimit ?? "—"}`}
             </span>
           </div>
           <div className="mt-3">
@@ -129,7 +129,7 @@ export function UsageDashboard({
               Tokens de Memoria
             </span>
             <span className="font-mono text-[11px] text-platinum font-semibold">
-              {tokensRemaining === null ? "No disponible" : tokensRemaining.toLocaleString()}
+              {tokensRemaining == null ? "No disponible" : tokensRemaining.toLocaleString()}
             </span>
           </div>
           <div className="mt-3">
@@ -142,7 +142,7 @@ export function UsageDashboard({
           </div>
           <div className="mt-3 pt-2.5 border-t border-border/15 text-[10px] text-muted-foreground font-mono flex justify-between">
             <span>Cuota máxima</span>
-            <span>{tokenLimit === null ? "No disponible" : `${tokenLimit.toLocaleString()} tokens`}</span>
+            <span>{tokenLimit == null ? "No disponible" : `${tokenLimit.toLocaleString()} tokens`}</span>
           </div>
         </div>
 
@@ -153,7 +153,7 @@ export function UsageDashboard({
               Tasa Solicitudes API
             </span>
             <span className="font-mono text-[11px] text-platinum font-semibold">
-              {currentRequestsPerMin === undefined ? "No disponible" : `${currentRequestsPerMin} / ${rateLimitThreshold ?? "—"} req/min`}
+              {currentRequestsPerMin == null ? "No disponible" : `${currentRequestsPerMin} / ${rateLimitThreshold ?? "—"} req/min`}
             </span>
           </div>
           <div className="mt-3 space-y-1">
