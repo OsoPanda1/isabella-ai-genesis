@@ -22,7 +22,7 @@ export interface SecurityAuditLogItem {
   source: string;
   securityStatus: "ALLOWED" | "CHALLENGED" | "QUARANTINED" | "BLOCKED";
   severity: string;
-  hashSignature: string;
+  evidenceId: string;
 }
 
 export const INITIAL_AUDIT_LOGS: SecurityAuditLogItem[] = [];
@@ -222,7 +222,7 @@ export function SecurityAuditDashboard() {
                   <td className="px-4 py-3">{getStatusBadge(log.securityStatus)}</td>
                   <td className="px-4 py-3 text-slate-400 font-semibold">{log.severity}</td>
                   <td className="px-4 py-3 text-right text-slate-500 font-mono text-[10px]">
-                    {log.hashSignature}
+                    {log.evidenceId}
                   </td>
                 </tr>
               ))
