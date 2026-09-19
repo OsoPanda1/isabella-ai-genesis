@@ -25,75 +25,15 @@ export interface SecurityAuditLogItem {
   hashSignature: string;
 }
 
-const INITIAL_AUDIT_LOGS: SecurityAuditLogItem[] = [
-  {
-    id: "sec_log_101",
-    timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
-    action: "CROWNGateway.evaluatePolicy",
-    actor: "system_sovereign",
-    source: "192.168.1.1",
-    securityStatus: "ALLOWED",
-    aegisLevel: "OPEN (Level 0)",
-    hashSignature: "0x8f32a...c4b1",
-  },
-  {
-    id: "sec_log_102",
-    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-    action: "QuantumBridge.executeQNode",
-    actor: "operator_dev",
-    source: "client_web",
-    securityStatus: "ALLOWED",
-    aegisLevel: "WATCH (Level 1)",
-    hashSignature: "0x1d9e7...a90f",
-  },
-  {
-    id: "sec_log_103",
-    timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-    action: "AegisFirewall.scanPromptInjection",
-    actor: "untrusted_external",
-    source: "10.0.4.88",
-    securityStatus: "BLOCKED",
-    aegisLevel: "CONTAIN (Level 2)",
-    hashSignature: "0x77ab4...f1e2",
-  },
-  {
-    id: "sec_log_104",
-    timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
-    action: "OIDCAuth.issueSessionToken",
-    actor: "sovereign_user_01",
-    source: "https://isabella.ai",
-    securityStatus: "ALLOWED",
-    aegisLevel: "OPEN (Level 0)",
-    hashSignature: "0x44c8d...3e7a",
-  },
-  {
-    id: "sec_log_105",
-    timestamp: new Date(Date.now() - 1000 * 60 * 40).toISOString(),
-    action: "BookPI.commitLedgerBlock",
-    actor: "bookpi_engine",
-    source: "nodo_cero_hgo",
-    securityStatus: "ALLOWED",
-    aegisLevel: "OPEN (Level 0)",
-    hashSignature: "0x992fa...11c6",
-  },
-  {
-    id: "sec_log_106",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-    action: "AegisSentinel.detectContextualAttack",
-    actor: "anon_scanner",
-    source: "185.220.101.4",
-    securityStatus: "QUARANTINED",
-    aegisLevel: "ISOLATE (Level 3)",
-    hashSignature: "0xef310...b2a8",
-  },
-];
+export const INITIAL_AUDIT_LOGS: SecurityAuditLogItem[] = [];
+
 
 export function SecurityAuditDashboard() {
   const [logs, setLogs] = useState<SecurityAuditLogItem[]>(INITIAL_AUDIT_LOGS);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [auditSecretVerified, setAuditSecretVerified] = useState(true);
+  const [auditSecretVerified, setAuditSecretVerified] = useState(false);
 
   const fetchSecurityAuditLogs = useCallback(async () => {
     setLoading(true);
