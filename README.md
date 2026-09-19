@@ -456,11 +456,7 @@ pnpm build
 pnpm dev
 ```
 
-<<<<<<< Updated upstream
 El servidor de desarrollo queda disponible en `http://localhost:3000`.
-=======
-> **P0-13:** en producción, `SUPABASE_JWT_SECRET` = **JWT Secret (Legacy)** de Supabase, usado por `generateSupabaseRlsToken()` (HS256) para el RLS tenant-scoped; **no** se iguala con `AUTH_JWT_SECRET` y `SUPABASE_SERVICE_ROLE_KEY` no se usa en el runtime.
->>>>>>> Stashed changes
 
 ### Scripts disponibles (resumen)
 
@@ -485,17 +481,11 @@ El servidor de desarrollo queda disponible en `http://localhost:3000`.
 
 ## 17. Variables de Entorno
 
-<<<<<<< Updated upstream
 - `.env.example` documenta **117 variables**; nunca contiene valores reales.
 - La configuración se valida al iniciar (`src/lib/env-schema.ts` + `src/lib/config.ts`). **No se permite `process.env` directo fuera de `config.ts`/`env-schema.ts`**.
 - En `production`/`staging` el arranque es **fail-fast**: se exige `NODE_ENV=production`, `DATABASE_URL`, `AUTH_JWT_SECRET` dedicado, proveedor de inferencia autorizado y `ISABELLA_STORAGE_PROVIDER` explícito (`postgres`/`neon`); se rechazan alias de base de datos en conflicto, `DURABLE_JSON_ALLOWED`, `AUTH_DEV_SESSION_ENABLED` y `ALLOW_GUEST_CHAT`.
 - `.env.example` está separado por cliente y servidor; `scripts/check-client-env.mjs` y `scripts/check-env.mjs` validan cada ámbito antes de build/dev.
 - El motor NCUA v2.0 requiere `AEGIS_AUDIT_SECRET` para sellar en BookPI; en su ausencia el pipeline opera en modo `FAIL_CLOSED` (nunca con una clave embebida).
-=======
-Claves en `.env.example` validadas por `src/lib/env-schema.ts` (Zod) y única vía `src/lib/config.ts`. Obligatorias prod (`requiredEnvKeys`): `NODE_ENV, PUBLIC_URL, SUPABASE_URL, SUPABASE_ANON_KEY, AUTH_JWT_SECRET, GEMINI_API_KEY, ENCRYPTION_MASTER_KEY`. Ver `.env.example` para `AUTH_DEV_SESSION_ENABLED` (solo `development` + `true`), `PROVISION_OWNER_TOKEN`, `API_KEY_HASH_SECRET`, `BOOKPI_SIGNING_KEY`, `REDIS_URL`, etc. **Lovable fue retirado** (P0-13): el despliegue es exclusivamente Vercel y el proveedor LLM requerido en producción es Gemini.
-
-**Nota P0-13:** `SUPABASE_JWT_SECRET` (Legacy de Supabase) alimenta la firma HS256 de los tokens RLS en `generateSupabaseRlsToken()`; no coincide con `AUTH_JWT_SECRET` a menos que el proyecto siga usando el JWT legacy como app key.
->>>>>>> Stashed changes
 
 ---
 
