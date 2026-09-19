@@ -1377,27 +1377,42 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              // Operación económica atómica: débito del comprador, reparto y ledger
-              // deben confirmarse juntos. El repositorio durable es la fuente de verdad.
-              const { executeMarketplacePurchase } =
-                await import("@/lib/repositories/bookpi-postgres-repository");
-              const purchase = await executeMarketplacePurchase({
-                tenantId: context.tenantId,
-                userId: context.userId,
-                sellerId: listing.ownerId,
-                skillId: listing.skillId,
-                title: listing.title,
-                costCents: listing.costCents,
-                correlationId: context.correlationId,
-              });
-              if (!purchase.success) {
-                return new Response(JSON.stringify({ error: purchase.error }), {
-                  status: purchase.retryable ? 503 : 409,
-                  headers,
-                });
-              }
+              // Ledger económico: el claim de idempotencia se persiste antes del
+              // débito para impedir compras concurrentes con la misma clave.
+              const platformFeeCents = Math.round(listing.costCents * 0.15);
+              const userNetCents = listing.costCents - platformFeeCents;
 
-              const block = purchase.block;
+              const freshBuyer = await sovereignStateRepository.getTenant(context.tenantId);
+              if (!freshBuyer || freshBuyer.quotaBalance < costUSD) {
+                return new Response(
+                  JSON.stringify({
+                    error: "Saldo insuficiente.",
+                    quotaBalance: freshBuyer?.quotaBalance ?? 0,
+                    required: costUSD,
+                  }),
+                  { status: 400, headers },
+                );
+              }
+              freshBuyer.quotaBalance =
+                Math.round((freshBuyer.quotaBalance - costUSD) * 1e9) / 1e9;
+              await sovereignStateRepository.upsertTenant(freshBuyer);
+
+              const ownerAccount = await sovereignStateRepository.getMonetizationAccount(
+                listing.ownerId,
+              );
+              await sovereignStateRepository.updateMonetizationAccount(listing.ownerId, {
+                earnedBalanceCents: ownerAccount.earnedBalanceCents + userNetCents,
+                approvedContributions: ownerAccount.approvedContributions + 1,
+              });
+
+              const block = await sovereignStateRepository.appendLedgerBlock(
+                context.tenantId,
+                context.userId,
+                `MARKETPLACE_PURCHASE: Compra del skill '${listing.title}' por $${costUSD.toFixed(2)} USD (Reparto: Vendedor +$${(userNetCents / 100).toFixed(2)}, Plataforma +$${(platformFeeCents / 100).toFixed(2)}) ${purchaseMarker}`,
+                "skills",
+                costUSD,
+                0,
+              );
               return new Response(
                 JSON.stringify({
                   success: true,
