@@ -259,7 +259,7 @@ public static async hydrate({
     }
   }
 
-  public static load(): DatabaseSchema {
+  public static load(): DatabaseSchema {\n    // Production persistence remains fail-closed; in-memory state is used until durable hydration completes.
     assertJsonPersistenceAllowed();
     try {
       return await hydrationInFlight;
