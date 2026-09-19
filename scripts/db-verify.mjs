@@ -114,10 +114,7 @@ const RLS_REQUIRED = [
   "webhook_events",
   "economic_events",
 ];
-// FORCE RLS is intentionally disabled for server-side PostgreSQL connections.
-// Tenant isolation is enforced by PrincipalContext + repository predicates and
-// ordinary RLS remains enabled for JWT/PostgREST clients.
-const FORCE_RLS_REQUIRED = [];
+
 const IMMUTABLE_TABLES = ["bookpi_ledger", "audit_events"];
 
 function listMigrations() {
