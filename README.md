@@ -308,12 +308,11 @@ Ninguna respuesta sensible sale del sistema sin pasar por política y auditoría
 
 ## 10. Criptografía, BookPI y Contabilidad de Doble Partida
 
-<<<<<<< Updated upstream
 - **Triple hardening (triangulación criptográfica):** AES-256-GCM con DEK efímera y AAD ligado a `tenantId`/`traceId`; ChaCha20-Poly1305 con derivación PBKDF2-HMAC-SHA512; sellado HMAC-SHA3-512 + ECDSA-P384 con verificación de raíz Merkle. La discrepancia en un solo bit aborta la operación (fail-closed).
 - **BookPI (ledger inmutable):** cadena append-only por hash (`Hₙ = SHA3-512(Hₙ₋₁ ‖ Dataₙ)`), verificación por árboles de Merkle y firma asimétrica; inmutabilidad reforzada por RLS en `supabase/migrations`. La trayectoria NCUA (`bookpi-trajectory.ts`) usa la misma disciplina con HMAC-SHA3-512.
 - **IGDS — Genesis Document Seal (`src/lib/igds/`):** sellado de documentos nativo en TS: canonicalización **JCS RFC 8785**, firmas **Ed25519** sobre el digest del manifiesto (interfaz **ML-DSA-65** enchufable), manifiesto C2PA-style JSON con acciones del pipeline, registro Genesis **append-only** con inclusión/consistencia Merkle **RFC 6962**, revocación firmada sobre digest canónico y transporte **RFC 3161** hacia TSA (verificación *imprint-only*). Exposición HTTP en `/api/igds` (seal/verify/revoke/entries/checkpoint) y persistencia durable en `igds_entries`/`igds_checkpoints`/`igds_revocations`.
 - **Contabilidad de doble partida:** equilibrio estricto débito/crédito por transacción de tenant (`src/lib/accounting/`).
-=======
+
 **Eliminación del `SUPABASE_SERVICE_ROLE_KEY` del runtime y ruta única Postgres (`DATABASE_URL`) tenant-scoped:**
 
 - **`request-context.ts`** — contexto único de observabilidad por request (`traceId`, `correlationId`, `requestId`, `startedAt`) creado en `server.ts` y consumido por `error-contract.ts` (`getTraceId`).
