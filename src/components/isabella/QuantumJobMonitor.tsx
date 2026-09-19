@@ -23,32 +23,24 @@ export function QuantumJobMonitor() {
 
   const handleSimulateNewJob = async () => {
     setIsSimulating(true);
-    const newId = `qup-job-${Math.random().toString(36).substring(2, 6)}`;
-
-    const randomObjectives = [
-      { obj: "qml_classification", label: "Clasificación QML Híbrido" },
-      { obj: "hamiltonian_spectrum", label: "Cálculo Hamiltonian VQE" },
-      { obj: "quantum_simulation", label: "Estado Bell (2 Qubits)" },
-      { obj: "hamiltonian_spectrum", label: "Ansatz QAOA de Espín" },
-    ] as const;
-
-    const randomBackends = ["aer_simulator_local", "aws_braket_dm1", "ibm_sherbrooke_qpu"] as const;
-
-    const choice = randomObjectives[Math.floor(Math.random() * randomObjectives.length)];
-    const backend = randomBackends[Math.floor(Math.random() * randomBackends.length)];
-    const qubits = Math.floor(Math.random() * 8) + 2;
+    const newId = `qup-job-${crypto.randomUUID().slice(0, 8)}`;
+    const choice = {
+      obj: "qml_classification" as const,
+      label: "Clasificación QML Híbrido",
+    };
+    const backend = "aer_simulator_local" as const;
+    const qubits = 2;
 
     const newJob: QuantumJob = {
       id: newId,
       objective: choice.label,
-      backend: backend,
+      backend,
       status: "Queued",
-      qubits: qubits,
+      qubits,
       fidelity: 0,
       durationMs: 0,
       timestamp: "Recién adicionado",
     };
-
     setJobs((prev) => [newJob, ...prev]);
     toast.info(`Trabajo ${newId} enviado a la cola del transpilador QUP.`);
 
@@ -72,7 +64,7 @@ export function QuantumJobMonitor() {
 
       const payload = {
         dataset: {
-          name: "random-job-dataset",
+          name: "canonical-qml-benchmark",
           features: [{ x: 1, y: 0 }],
         },
         backend: backend,
@@ -170,7 +162,7 @@ export function QuantumJobMonitor() {
           disabled={isSimulating}
           className="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold uppercase flex items-center gap-1 transition-all"
         >
-          <Play className="size-3" /> Inyectar Job a Cola
+          <Play className="size-3" /> Ejecutar Benchmark QUP
         </button>
       </div>
 
