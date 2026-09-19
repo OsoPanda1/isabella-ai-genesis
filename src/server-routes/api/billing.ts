@@ -1377,54 +1377,27 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              // REPARTO DE INGRESOS (85% para el owner del skill, 15% para la plataforma de infraestructura)
-              const platformFeeCents = Math.round(listing.costCents * 0.15);
-              const userNetCents = listing.costCents - platformFeeCents;
-
-              // Descontar saldo al comprador (re-leer: evitar carreras)
-              const freshBuyer = await sovereignStateRepository.getTenant(context.tenantId);
-              if (!freshBuyer || freshBuyer.quotaBalance < costUSD) {
-                return new Response(
-                  JSON.stringify({
-                    error: "Saldo insuficiente.",
-                    quotaBalance: freshBuyer?.quotaBalance ?? 0,
-                    required: costUSD,
-                  }),
-                  { status: 400, headers },
-                );
-              }
-              freshBuyer.quotaBalance = Math.round((freshBuyer.quotaBalance - costUSD) * 1e9) / 1e9;
-              await sovereignStateRepository.upsertTenant(freshBuyer);
-
-              // Acreditar saldo madurado al vendedor (owner del skill)
-              const ownerAccount = await sovereignStateRepository.getMonetizationAccount(
-                listing.ownerId,
-              );
-              await sovereignStateRepository.updateMonetizationAccount(listing.ownerId, {
-                earnedBalanceCents: ownerAccount.earnedBalanceCents + userNetCents,
-                approvedContributions: ownerAccount.approvedContributions + 1,
+              // Operación económica atómica: débito del comprador, reparto y ledger
+              // deben confirmarse juntos. El repositorio durable es la fuente de verdad.
+              const { executeMarketplacePurchase } =
+                await import("@/lib/repositories/bookpi-postgres-repository");
+              const purchase = await executeMarketplacePurchase({
+                tenantId: context.tenantId,
+                userId: context.userId,
+                sellerId: listing.ownerId,
+                skillId: listing.skillId,
+                title: listing.title,
+                costCents: listing.costCents,
+                correlationId: context.correlationId,
               });
+              if (!purchase.success) {
+                return new Response(JSON.stringify({ error: purchase.error }), {
+                  status: purchase.retryable ? 503 : 409,
+                  headers,
+                });
+              }
 
-              // Registrar transacción en el Ledger (BookPI)
-              const block = await sovereignStateRepository.appendLedgerBlock(
-                context.tenantId,
-                context.userId,
-                `MARKETPLACE_PURCHASE: Compra del skill '${listing.title}' por $${costUSD.toFixed(2)} USD (Reparto: Vendedor +$${(userNetCents / 100).toFixed(2)}, Plataforma +$${(platformFeeCents / 100).toFixed(2)}) ${purchaseMarker}`,
-                "skills",
-                costUSD,
-                0,
-              );
-
-              await sovereignStateRepository.appendAuditLog(
-                `trc_market_pur_${block.index}`,
-                context.correlationId,
-                context.ip,
-                "Compra en Marketplace Consumada",
-                "S3",
-                `El usuario ${context.userId} adquirió '${listing.title}'. El vendedor ${listing.ownerId} recibió un crédito de $${(userNetCents / 100).toFixed(2)} USD`,
-                context.tenantId,
-              );
-
+              const block = purchase.block;
               return new Response(
                 JSON.stringify({
                   success: true,
