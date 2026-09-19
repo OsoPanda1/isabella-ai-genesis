@@ -158,7 +158,7 @@ export function useIsabella() {
         skillResolution && "error" in skillResolution ? skillResolution.error : null;
       const skillContext =
         skillResolution && "skill" in skillResolution
-          ? `\n\n[SKILL AUTORIZADO: ${skillResolution.skill.id}]\n${skillResolution.skill.description}`
+          ? `\n\n[SKILL RESUELTO: ${skillResolution.skill.id}]\n${skillResolution.skill.description}`
           : "";
       const effectiveText =
         skillResolution && "skill" in skillResolution ? skillResolution.prompt : text;
