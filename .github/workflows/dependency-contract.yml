@@ -46,7 +46,25 @@ jobs:
           node -e "const p=require('./package.json'); console.log(JSON.stringify({packageManager:p.packageManager,engines:p.engines},null,2))"
 
       - name: Frozen install
-        run: pnpm install --frozen-lockfile
+        id: frozen-install
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pnpm install --frozen-lockfile 2>&1 | tee dependency-install.log
+          exit ${PIPESTATUS[0]}
+
+      - name: Upload dependency diagnostics
+        if: always()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
+        with:
+          name: dependency-contract-diagnostics-${{ github.run_id }}
+          path: dependency-install.log
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Enforce frozen install
+        if: steps.frozen-install.outcome != 'success'
+        run: exit 1
 
       - name: Verify dependency tree
         run: pnpm list --depth 0
