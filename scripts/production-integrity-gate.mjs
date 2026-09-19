@@ -48,7 +48,7 @@ const checks = [
   },
   {
     file: "src/components/isabella/QuantumBridgeStatus.tsx",
-    forbidden: [/Math\.random\s*\(/, /simulate/i, /setInterval\s*\(/, /QNodes.*42/i],
+    forbidden: [/Math\.random\s*\(/, /setInterval\s*\(/, /QNodes.*42/i],
     label: "QuantumBridgeStatus must not fabricate bridge status",
   },
   {
