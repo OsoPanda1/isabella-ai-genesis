@@ -143,7 +143,7 @@ export class NeonRepository<T extends object> implements IRepository<T> {
       params,
     );
     const total = Number.parseInt(String(countRows[0]?.count ?? "0"), 10);
-    let query = `SELECT * FROM ${this.table} ${where} ORDER BY created_at DESC`;
+    const orderColumn = this.type === "audit" ? "timestamp" : "created_at";\n    let query = `SELECT * FROM ${this.table} ${where} ORDER BY ${orderColumn} DESC`;
     if (limit !== undefined) {
       query += ` LIMIT $${index++}`;
       params.push(limit);
