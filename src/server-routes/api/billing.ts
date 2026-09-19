@@ -306,7 +306,7 @@ export const Route = createFileRoute("/api/billing")({
                 .safeParse(body);
               if (!parsed.success) {
                 return new Response(
-                  JSON.stringify({ error: "planId debe ser pro o enterprise." }),
+                  JSON.stringify({ error: "planId debe ser personal o pro." }),
                   {
                     status: 400,
                     headers,
