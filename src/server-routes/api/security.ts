@@ -161,61 +161,29 @@ function calculateTsAegisResponse(event: z.infer<typeof securityEventSchema>) {
 export const Route = createFileRoute("/api/security")({
   server: {
     handlers: {
-      GET: withSovereignAuth("audit", "read", async (context, request) => {
-        const headers = SecuritySystem.injectSecureHeaders(
-          new Headers({ "content-type": "application/json" }),
-        );
-
+      // Audit-log reads are tenant-scoped and fail closed when the durable store is unavailable.\n      GET: withSovereignAuth("system", "read", async (context, request) => {
         const url = new URL(request.url);
-        const action = url.searchParams.get("action");
-
-        if (action === "audit-logs") {
-          try {
-            const auditRepo = repositoryFactory.getAuditRepository();
-            const { items } = await auditRepo.list(context.tenantId, undefined, 100);
-            const logs = items.map((entry) => {
-              const statusMap: Record<string, "ALLOWED" | "CHALLENGED" | "QUARANTINED" | "BLOCKED"> = {
-                success: "ALLOWED",
-                denied: "BLOCKED",
-                failure: "QUARANTINED",
-              };
-              const levelMap: Record<string, string> = {
-                S0: "VAULT (Level 4)",
-                S1: "ISOLATE (Level 3)",
-                S2: "CONTAIN (Level 2)",
-                S3: "OPEN (Level 0)",
-              };
-              return {
-                id: entry.id,
-                timestamp: entry.timestamp,
-                action: entry.action,
-                actor: entry.actor,
-                source: String((entry.details as Record<string, unknown>)?.source || entry.resource || "system"),
-                securityStatus: statusMap[entry.result] || "ALLOWED",
-                aegisLevel: levelMap[entry.severity] || "OPEN (Level 0)",
-                hashSignature: entry.traceId ? `0x${entry.traceId.slice(0, 8)}...` : "0x000...000",
-              };
-            });
-
-            return new Response(
-              JSON.stringify({
-                logs,
-                auditSecretVerified: Boolean(secrets.aegisAuditSecret()),
-              }),
-              { headers },
-            );
-          } catch (e) {
-            return new Response(
-              JSON.stringify({ error: "No se pudieron obtener los registros de auditoría.", details: String(e) }),
-              { status: 500, headers },
-            );
-          }
+        if (url.searchParams.get("action") !== "audit-logs") {
+          return new Response(JSON.stringify({ error: "Acción GET desconocida." }), { status: 400, headers: SecuritySystem.injectSecureHeaders(new Headers({ "content-type": "application/json" })) });
         }
-
-        return new Response(JSON.stringify({ error: "Acción no soportada." }), {
-          status: 400,
-          headers,
-        });
+        try {
+          const result = await repositoryFactory.getAuditRepository().list(context.tenantId, {}, 100, 0);
+          const logs = result.items.map((entry) => ({
+            id: entry.id,
+            timestamp: entry.timestamp,
+            action: entry.action,
+            actor: entry.actor,
+            source: "backend",
+            securityStatus: entry.result === "denied" ? "BLOCKED" : entry.result === "failure" ? "CHALLENGED" : "ALLOWED",
+            severity: entry.severity,
+            evidenceId: entry.id,
+          }));
+          return new Response(JSON.stringify({ logs, auditSecretVerified: secrets.aegisAuditSecretConfigured() }), {
+            headers: SecuritySystem.injectSecureHeaders(new Headers({ "content-type": "application/json" })),
+          });
+        } catch {
+          return new Response(JSON.stringify({ error: "AUDIT_STORE_UNAVAILABLE" }), { status: 503, headers: SecuritySystem.injectSecureHeaders(new Headers({ "content-type": "application/json" })) });
+        }
       }),
       POST: withSovereignAuth("system", "execute", async (context, request) => {
         const headers = SecuritySystem.injectSecureHeaders(
