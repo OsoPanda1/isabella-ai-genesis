@@ -559,17 +559,14 @@ function normalizeInput(value: string): string {
 }
 
 function makeTraceId(): string {
-  const fallback = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-
   if (
-    typeof globalThis !== "undefined" &&
-    globalThis.crypto &&
-    typeof globalThis.crypto.randomUUID === "function"
+    typeof globalThis === "undefined" ||
+    !globalThis.crypto ||
+    typeof globalThis.crypto.randomUUID !== "function"
   ) {
-    return `tr-${globalThis.crypto.randomUUID()}`;
+    throw new Error("Secure trace ID generation unavailable");
   }
-
-  return `tr-${fallback}`;
+  return `tr-${globalThis.crypto.randomUUID()}`;
 }
 
 function nowIso(): string {
