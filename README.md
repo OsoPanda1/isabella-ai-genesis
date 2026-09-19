@@ -3,55 +3,88 @@
 ## Infraestructura cognitiva híbrida, contextual y gobernada
 
 **Repositorio:** `OsoPanda1/isabella-ai-genesis`  
-**Arquitectura:** Isabella Villaseñor AI / Ecosistema TAMV ONLINE NETWORK  
-**Autoría técnica y arquitectura:** Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)  
+**Arquitectura:** Isabella Villaseñor AI · Ecosistema TAMV ONLINE NETWORK  
+**Autoría técnica y arquitectura declarada:** Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)  
 **Ecosistema:** TAMV ONLINE NETWORK · RDM Digital Hub · Nodo Cero · Real del Monte, Hidalgo, México  
 **Versión del paquete:** `4.3.3`  
+**Node:** `24.11.0` en CI / `>=22 <25` como contrato del paquete  
 **Package manager:** pnpm `10.15.4`  
-**Node soportado:** `>=22 <25`  
-**Despliegue objetivo:** Vercel / Nitro / TanStack Start  
-**Fuente de verdad:** GitHub `main`
+**Runtime objetivo:** TanStack Start + Nitro + Vercel  
+**Rama de hardening auditada:** `repair/production-hardening-2026-09-19`  
+**Commit auditado en esta revisión:** `f960481becf939b15ba4453dca7cc062e7c21357`
 
-> **Estado de certificación:** este README describe la arquitectura y los mecanismos de validación del repositorio. Los resultados de producción solo se consideran certificados cuando existen evidencias generadas por los gates y por el proveedor de despliegue. Este documento no convierte una capacidad implementada en una afirmación de producción.
-
----
-
-## 1. Qué es Isabella
-
-Isabella Villaseñor AI es una **arquitectura cognitiva híbrida, contextual, territorial y gobernada**. El proyecto coordina memoria, interpretación, gobernanza, herramientas, persistencia, identidad y trazabilidad dentro de un marco de soberanía humana.
-
-No se define como un único modelo de lenguaje ni como un chatbot monolítico. Su arquitectura separa responsabilidades cognitivas y de gobierno para que una respuesta, una herramienta o una operación sensible pueda someterse a políticas explícitas, autorización y auditoría.
-
-### Principios
-
-1. **Soberanía humana:** las operaciones relevantes conservan aprobación y control humano.
-2. **Zero Trust:** identidad, tenant, permisos, herramientas y recursos se validan explícitamente.
-3. **Contexto territorial:** el conocimiento contextual puede incorporar territorio, patrimonio y memoria local bajo reglas de privacidad.
-4. **Trazabilidad:** las operaciones relevantes deben generar evidencia auditable.
-5. **Fail-closed:** configuraciones críticas ausentes o inválidas deben impedir operaciones sensibles.
-6. **No falsa certeza:** incertidumbre y límites deben permanecer visibles.
+> **Estado actual: PRE-PRODUCCIÓN / HARDENING.** La rama contiene correcciones reales de integración y seguridad, pero la producción no se considera certificada hasta que CI, build de Vercel, smoke/E2E, base de datos, BookPI, carga y evidencia reproducible resulten verificablemente PASS.
 
 ---
 
-## 2. Arquitectura cognitiva
+## 1. Resumen ejecutivo
 
-La especificación maestra organiza Isabella en cinco nodos funcionales:
+Isabella Villaseñor AI es una arquitectura cognitiva que separa **percepción, memoria, gobernanza, razonamiento, herramientas, persistencia, identidad y auditoría**. El objetivo técnico no es presentar un modelo de lenguaje como autoridad, sino construir una capa gobernada alrededor de modelos y servicios intercambiables.
 
-| Nodo | Responsabilidad |
+La implementación actual contiene:
+
+- gateway canónico de Isabella;
+- CROWN como plano de orquestación/gobernanza;
+- ARGUS y Constitutional Gate;
+- memoria por scopes;
+- Sovereign Engine / Sovereign Pipeline;
+- registro de skills nativas y skills evolucionadas;
+- ejecución endurecida mediante `runIsabellaSkill()`;
+- BookPI para trazabilidad económica y de ejecución;
+- persistencia PostgreSQL/Neon/Supabase según el contrato de despliegue;
+- autenticación, autorización, tenant isolation y RLS;
+- NCUA para benchmarks y carga;
+- gates de integridad, preflight, seguridad y evidencia;
+- integración de monetización con checkout e idempotencia;
+- dashboards que deben mostrar datos backend, no métricas inventadas.
+
+### Regla de evidencia
+
+> **La arquitectura se documenta. La funcionalidad se prueba. La producción se demuestra.**
+
+Una capacidad presente en código no se convierte automáticamente en capacidad certificada de producción.
+
+---
+
+## 2. Indicador público de madurez
+
+Los porcentajes siguientes son **estimaciones técnicas de madurez**, no porcentaje de código terminado ni certificación de producción. Se ponderan implementación, integración, pruebas, seguridad, persistencia, rendimiento, CI/CD, despliegue y evidencia.
+
+| Dimensión | Estimación | Estado | Bloqueador principal |
+|---|---:|---|---|
+| Arquitectura e integración | 78% | Consolidación | pruebas cruzadas del sistema completo |
+| Interacción Isabella ↔ usuario | 76% | Avanzada | E2E del flujo autenticado completo |
+| CROWN / gobernanza | 82% | Avanzada | evidencia bajo carga y proveedores |
+| Skills / ejecución | 74% | Integración | validar contratos de todas las skills nativas |
+| BookPI / trazabilidad | 78% | Avanzada | certificación real de cadena e integridad |
+| Seguridad / JWT / RLS | 70% | Hardening | gates y aislamiento con entorno real |
+| Monetización / billing | 75% | Integración | webhook Stripe + pruebas E2E |
+| NCUA / rendimiento | 80% | Avanzada | evidencia reproducible 50–500 concurrentes |
+| Testing | 72% | En expansión | E2E/regresión y pruebas de frontera |
+| CI/CD | 60% | Pendiente | ejecutar gates verdes tras los últimos cambios |
+| Vercel / despliegue | 45% | Bloqueado | deployment READY + smoke |
+| Observabilidad / evidencia | 68% | Consolidación | paquete de evidencia de producción |
+| **Madurez técnica global estimada** | **≈66%** | **Pre-producción / Hardening** | integración + certificación |
+
+**Interpretación:** un módulo puede estar muy avanzado y, aun así, el sistema completo permanecer sin certificar si falla una dependencia, una migración, un gate, una prueba de aislamiento o el despliegue.
+
+**Producción certificada ≠ porcentaje de código implementado.**
+
+---
+
+## 3. Arquitectura cognitiva
+
+| Núcleo | Responsabilidad |
 |---|---|
-| **CROWN** | Orquestación, ruteo, arbitraje y control de estado |
-| **ISA** | Presencia, tono, empatía y modulación expresiva |
-| **SOPHIA** | Epistemología, razonamiento, síntesis y análisis |
-| **ORION** | Ejecución de tareas operativas, creativas y técnicas |
-| **ARGUS** | Gobernanza, defensa, verificación y veto |
+| **CROWN** | Orquestación, ruteo, política y control del flujo cognitivo |
+| **ISA** | Presencia, tono y modulación de interacción |
+| **SOPHIA** | Investigación, síntesis, evidencia y razonamiento |
+| **ORION** | Recuperación y reconstrucción de conocimiento |
+| **ARGUS** | Gobernanza, defensa, observabilidad y veto |
 
-La autoridad está separada: los nodos cognitivos pueden proponer y procesar; las políticas determinan qué puede ejecutarse.
+La autoridad no reside en el modelo. El modelo opera dentro de un contexto construido y gobernado por el sistema.
 
----
-
-## 3. Pipeline operativo
-
-El flujo canónico definido por la arquitectura es:
+### Pipeline canónico
 
 ```text
 Perceive
@@ -67,127 +100,335 @@ Act
 Audit
 ```
 
-### Perceive
-Normaliza la entrada, sanitiza datos y genera contexto de correlación.
-
-### Remember
-Recupera únicamente memoria disponible para el scope y autoridad actuales.
-
-### Policy Gate
-ARGUS evalúa riesgo y restricciones. Los estados conceptuales son:
-
-- `allowed`
-- `requires_approval`
-- `denied`
-
-### Decide
-CROWN determina el plan y la combinación de capacidades.
-
-### Act
-Solo se ejecutan herramientas y operaciones autorizadas.
-
-### Audit
-Las operaciones relevantes generan registros de decisión y evidencia.
+Cada transición crítica debe poder asociarse a identidad, tenant, decisión, correlación y evidencia.
 
 ---
 
-## 4. Memoria
+## 4. CROWN: corrección de la inconsistencia principal
 
-La arquitectura define cinco scopes:
+Una inconsistencia importante detectada durante la auditoría era que CROWN podía producir `governance.systemPrompt`, pero determinadas rutas de inferencia no lo incorporaban realmente al contexto enviado al proveedor.
 
-- **Immediate**
-- **Session**
-- **Project**
-- **Territorial**
-- **Historical**
+La implementación corregida aplica el contexto gobernado a:
 
-La memoria debe conservar procedencia, confianza, vigencia y fuente cuando estos metadatos existan. Los secretos y datos personales innecesarios no deben convertirse en memoria persistente.
+- AI Gateway;
+- Gemini;
+- proveedores OpenAI-compatible directos, incluyendo Groq/xAI.
+
+La regla ahora es:
+
+```text
+CROWN governance
+      +
+sanitized cognitive context
+      ↓
+provider inference
+```
+
+Esto evita que un proveedor alternativo pueda recibir únicamente el contexto cognitivo sanitizado y omitir las obligaciones de gobernanza.
+
+**Pendiente de certificación:** comprobar el comportamiento real de cada proveedor mediante pruebas de integración y evidencia de ejecución.
 
 ---
 
-## 5. Seguridad, identidad y multi-tenancy
+## 5. Skills: reconciliación entre catálogo y runtime
 
-La implementación incluye una capa de seguridad que integra identidad, contexto de tenant, autorización y políticas.
+El proyecto contiene dos autoridades que cumplen funciones diferentes:
 
-### Contratos fundamentales
+1. `src/lib/skill-registry.ts): catálogo, resolución y metadatos de skills.
+2. `src/lib/skills/registry.ts): runtime ejecutable de skills evolucionadas/nativas de bajo nivel.
+3. `src/lib/skills/run-skill.ts`: pipeline endurecido de ejecución.
 
-- configuración centralizada;
-- identidad server-side;
-- tenant derivado de identidad;
-- RBAC/ABAC y matriz de permisos;
-- CROWN/constitutional gate;
-- validación de entradas;
+### Hallazgo corregido
+
+El primer endurecimiento intentó exigir que cada ID del catálogo existiera literalmente como key del runtime. Esto era incorrecto para las **skills nativas**, porque algunas están respaldadas por límites de API/capacidad y no por una key homónima de `isabellaSkills`.
+
+La regla corregida distingue:
+
+- **skills nativas del catálogo:** resueltas contra sus límites de capacidad;
+- **skills evolucionadas/directamente ejecutables:** deben tener runtime real.
+
+Esto evita falsos `SKILL_RUNTIME_NOT_FOUND` para las skills nativas sin eliminar la comprobación de runtime de las skills que realmente requieren ejecución directa.
+
+### Ejecución endurecida
+
+```text
+skill request
+   ↓
+identity
+   ↓
+schema validation
+   ↓
+authorization / CROWN
+   ↓
+runtime canRun()
+   ↓
+skill.run()
+   ↓
+output validation
+   ↓
+BookPI append
+   ↓
+response
+```
+
+El archivo canónico es:
+
+```text
+src/lib/skills/run-skill.ts
+```
+
+---
+
+## 6. Interacción Isabella ↔ usuario
+
+El cliente:
+
+1. valida y sanitiza la entrada;
+2. resuelve una skill explícita cuando existe;
+3. construye contexto de conversación;
+4. solicita identidad/sesión;
+5. llama al gateway canónico;
+6. procesa SSE;
+7. conserva trazabilidad local limitada para la experiencia;
+8. presenta errores de forma explícita.
+
+El servidor añade:
+
+- autenticación;
+- tenant context;
 - rate limiting;
+- kill-switch;
+- CROWN/ARGUS;
+- memoria;
+- provider routing;
+- telemetría;
+- evidencia.
+
+### Principio
+
+El navegador **no es fuente de verdad** para:
+
+- saldo;
+- BookPI;
+- uso facturable;
+- permisos;
 - auditoría;
-- protección contra inyección;
-- separación entre datos de usuario, sistema y telemetría.
+- identidad;
+- decisiones de seguridad.
+
+---
+
+## 7. Memoria
+
+Scopes definidos:
+
+- Immediate
+- Session
+- Project
+- Territorial
+- Historical
+
+La memoria persistente debe conservar, cuando corresponda:
+
+- procedencia;
+- confianza;
+- vigencia;
+- fuente;
+- tenant;
+- actor;
+- correlación.
+
+No debe convertirse información sensible innecesaria en memoria durable.
+
+---
+
+## 8. Identidad, autorización y multi-tenancy
+
+La arquitectura mantiene separados:
+
+- identidad;
+- autenticación;
+- autorización;
+- tenant context;
+- RBAC/ABAC;
+- RLS;
+- políticas cognitivas;
+- auditoría.
 
 ### JWT y RLS
 
-El proyecto mantiene dos responsabilidades que no deben confundirse:
+El JWT de aplicación y el JWT utilizado por Supabase/PostgREST no deben confundirse.
 
-- **JWT soberano de aplicación:** autenticación/autorización interna.
-- **JWT de Supabase RLS:** token firmado con el secreto compatible con PostgREST para transportar claims de tenant y scope hacia las políticas RLS.
+El principio operativo es:
 
-La generación de tokens debe permanecer en la capa de seguridad; los adaptadores de persistencia no deben inventar mecanismos alternativos de autorización.
+```text
+Identity
+  ↓
+Principal Context
+  ↓
+Authorization
+  ↓
+Tenant Context
+  ↓
+RLS / repository boundary
+```
 
-En producción, la ausencia de secretos críticos debe provocar fallo cerrado.
+La ausencia de secretos críticos debe producir comportamiento fail-closed.
 
 ---
 
-## 6. Persistencia y Sovereign Engine
+## 9. Persistencia y Sovereign Engine
 
-El Sovereign Engine coordina estado cognitivo y persistencia.
+La persistencia debe tener una única fuente durable por entorno.
 
-El diseño diferencia:
+Se distinguen:
 
-- memoria de ejecución;
-- persistencia durable;
-- adaptadores de proveedor;
+- estado cognitivo;
+- memoria;
 - repositorios;
-- PostgreSQL/Supabase como fuente durable prevista para producción;
-- JSON local únicamente bajo una política explícita y no como mecanismo silencioso de persistencia productiva.
+- adaptadores;
+- PostgreSQL/Neon;
+- Supabase;
+- JSON local de desarrollo.
 
-Esto evita que un fallback de desarrollo se convierta accidentalmente en una fuente de verdad de producción.
+**Regla:** un fallback de desarrollo no puede convertirse silenciosamente en fuente de verdad productiva.
 
----
+### Corrección aplicada
 
-## 7. BookPI
+El adaptador Neon ahora ordena los eventos de auditoría por `timestamp`, no por `created_at`, porque el esquema de `audit_events` utiliza `timestamp`.
 
-BookPI representa la capa de trazabilidad contable y de integridad de eventos del sistema.
-
-La arquitectura del repositorio contempla:
-
-- registros append-only;
-- aislamiento por tenant;
-- cadena criptográfica;
-- evidencia de integridad;
-- contabilidad de doble partida donde corresponda;
-- repositorios específicos;
-- auditoría separada de la lógica de aplicación.
-
-La existencia de estos componentes no implica por sí sola que una prueba de integridad o una operación contable esté certificada. La certificación requiere ejecución y evidencia.
+Esto elimina un fallo real que impedía recuperar auditoría correctamente en ese adaptador.
 
 ---
 
-## 8. NCUA y pruebas de carga
+## 10. BookPI
 
-El repositorio incorpora comandos específicos para NCUA:
+BookPI funciona como capa de:
+
+- trazabilidad;
+- ledger append-only;
+- operaciones económicas;
+- coste medido;
+- correlación de ejecución;
+- integridad.
+
+La ejecución de skills utiliza el repositorio PostgreSQL de BookPI y no genera automáticamente cargos monetarios: solo registra coste cuando el resultado declara explícitamente un `billableCostUsd` válido.
+
+### No confundir
+
+```text
+BookPI code exists
+      ≠
+BookPI production-certified
+```
+
+Para certificación deben ejecutarse:
+
+- integridad de cadena;
+- aislamiento tenant;
+- idempotencia;
+- doble partida donde corresponda;
+- reconciliación;
+- pruebas de concurrencia;
+- recuperación.
+
+---
+
+## 11. Monetización
+
+La capa de monetización fue revisada para eliminar señales de simulación.
+
+### Correcciones
+
+- checkout conectado al endpoint real `/api/billing?action=checkout`;
+- idempotency key en header y body;
+- Personal y Pro como planes de checkout directo;
+- Enterprise tratado como contratación institucional;
+- ciclos mensual/anual diferenciados;
+- métricas de uso sintéticas eliminadas;
+- panel de uso muestra `No disponible` cuando el backend no entrega un dato;
+- estado financiero se deriva del servidor.
+
+### Corrección de UX
+
+Enterprise ya no aparece como botón muerto: la acción puede abrir el flujo institucional existente.
+
+### Pendiente
+
+- webhook Stripe verificado;
+- reconciliación de suscripción;
+- pruebas E2E;
+- idempotencia bajo reintentos;
+- evidencia de conciliación BookPI ↔ Stripe.
+
+---
+
+## 12. Auditoría de seguridad
+
+El dashboard ya no inicia con eventos de seguridad sintéticos.
+
+Los registros deben venir del backend autenticado:
+
+```text
+/api/security?action=audit-logs
+```
+
+La interfaz falla cerrada cuando:
+
+- no existe sesión;
+- el endpoint devuelve error HTTP;
+- el store de auditoría no está disponible;
+- no existe evidencia positiva del secreto de auditoría.
+
+También se corrigió la semántica para no presentar `severity` como si fuera un nivel AEGIS 0–5.
+
+La UI identifica el dato como **severidad** y el identificador como **evidence ID**.
+
+---
+
+## 13. NCUA y rendimiento
+
+Scripts principales:
 
 ```bash
 pnpm ncua:benchmark
 pnpm ncua:load
 ```
 
-Estos mecanismos están destinados a medir comportamiento bajo concurrencia y a producir evidencia sobre latencia, transferencia, estabilidad del índice ERI y consistencia de operaciones.
+La suite está destinada a evaluar:
 
-**Importante:** la presencia de los scripts no equivale a una prueba ejecutada. Los resultados deben conservarse como evidencia con commit, configuración, dataset, concurrencia y métricas.
+- latencia;
+- throughput;
+- transferencia;
+- concurrencia;
+- estabilidad del ERI;
+- comportamiento de patching;
+- consistencia de operaciones.
+
+La campaña solicitada de referencia es:
+
+```text
+50 → 100 → 250 → 500 solicitudes concurrentes
+```
+
+Debe conservar:
+
+- commit;
+- entorno;
+- dataset;
+- configuración;
+- p50/p95/p99;
+- errores;
+- MB/s;
+- ERI;
+- consumo de recursos;
+- estado BookPI.
+
+**No se declara un resultado hasta ejecutar la prueba.**
 
 ---
 
-## 9. Contrato de producción
-
-El proyecto contiene gates separados para diferentes clases de riesgo.
+## 14. Contrato de producción
 
 ### Integridad
 
@@ -195,86 +436,90 @@ El proyecto contiene gates separados para diferentes clases de riesgo.
 pnpm production:integrity
 ```
 
-Comprueba patrones prohibidos de telemetría sintética, stubs, evidencia placeholder y requisitos críticos del boundary de producción.
-
 ### Preflight
 
 ```bash
-pnpm production:preflight
+pnpm production:preflight -- --json
 ```
 
-Comprueba archivos críticos, contrato de paquetes, runtime, Vercel, rutas, gateway de Isabella, gobernanza de IA, persistencia y migraciones.
-
-### Evidence
-
-```bash
-pnpm production:evidence
-```
-
-Genera artefactos de evidencia sin convertir resultados no ejecutados en falsos PASS.
-
-### Gate completo
+### Gate canónico
 
 ```bash
 pnpm production:gate
 ```
 
-Encadena:
+El gate canónico incluye:
 
 ```text
 typecheck
-  → lint
-  → test
-  → build
-  → production:integrity
-  → production:preflight
-  → capabilities
-  → audit:routes
+→ lint
+→ tests
+→ repository audit
+→ security scan
+→ capabilities
+→ route audit
+→ database verification
+→ production integrity
+→ production preflight
+→ build
+→ production evidence
 ```
+
+### Evidencia
+
+```bash
+pnpm production:evidence
+```
+
+El generador nunca debe convertir una comprobación no ejecutada en PASS.
 
 ---
 
-## 10. Desarrollo y validación
+## 15. Desarrollo local
 
-Instalación reproducible:
+Requisitos:
+
+```text
+Node 24.11.0
+pnpm 10.15.4
+```
+
+Instalación:
 
 ```bash
 pnpm install --frozen-lockfile
 ```
 
-Validación base:
+Desarrollo:
+
+```bash
+pnpm dev
+```
+
+El servidor de Vite se expone en el host configurado por el proyecto; normalmente se utiliza:
+
+```text
+http://localhost:5173
+```
+
+La aplicación requiere el conjunto de variables definido en `.env.example`. Los secretos de producción no deben copiarse al repositorio.
+
+Validación:
 
 ```bash
 pnpm typecheck
 pnpm lint
 pnpm test
 pnpm build
-```
-
-Seguridad:
-
-```bash
 pnpm security:scan
-```
-
-Base de datos:
-
-```bash
-pnpm db:migrate
-pnpm db:verify
-```
-
-Auditoría de rutas:
-
-```bash
-pnpm audit:routes
+pnpm audit:repository
 ```
 
 ---
 
-## 11. Dependencias y reproducibilidad
+## 16. Reproducibilidad
 
-El contrato actual del repositorio es:
+El contrato es:
 
 ```json
 {
@@ -285,116 +530,185 @@ El contrato actual del repositorio es:
 }
 ```
 
-La regla operativa es que `package.json`, `pnpm-lock.yaml`, CI y Vercel deben representar el mismo contrato.
+CI utiliza Node `24.11.0` y pnpm `10.15.4`.
 
-Un error de resolución de dependencias durante instalación impide considerar el build de producción certificado.
+Vercel también utiliza:
 
----
+```bash
+pnpm install --frozen-lockfile
+```
 
-## 12. CI/CD
-
-Los workflows se dividen por responsabilidad:
-
-- CI / gate de calidad;
-- security scanning;
-- release;
-- validaciones de producción.
-
-Las ramas de reparación deben pasar por gates antes de fusionarse con `main`.
-
-La historia publicada no debe reescribirse mediante force-push, rebase o amend sobre commits remotos existentes.
+Esto evita que Vercel reconstruya silenciosamente un lockfile diferente del commit evaluado.
 
 ---
 
-## 13. Vercel
+## 17. CI/CD
 
-El proyecto está diseñado para desplegarse mediante Vercel y generar el runtime Nitro correspondiente.
+Workflows relevantes:
 
-La secuencia recomendada para un artefacto validado es:
+- `.github/workflows/ci.yml`
+- `.github/workflows/fgais-gate.yml`
+- `.github/workflows/security.yml`
+- `.github/workflows/release.yml`
+
+### Estado conocido de la auditoría
+
+Las ejecuciones observadas antes de este último lote de correcciones presentaron fallos en:
+
+- **FGAIS Production Gate**
+- **Isabella Genesis — Security Gate**
+
+Además, un deployment de Vercel asociado al commit revisado anteriormente terminó en estado de error.
+
+Por tanto, esas ejecuciones históricas **no se reinterpretan como PASS** después de modificar el código. Deben volver a ejecutarse.
+
+---
+
+## 18. Vercel
+
+Contrato:
+
+```text
+Framework: TanStack Start
+Build: pnpm run build
+Install: pnpm install --frozen-lockfile
+Output: .vercel/output
+```
+
+Secuencia de liberación:
 
 ```text
 GitHub
   ↓
-Install reproducible
+frozen install
   ↓
-Typecheck / lint / tests
+typecheck / lint / tests
   ↓
-Build
+security / integrity / preflight
   ↓
-Integrity / preflight
+build
   ↓
 Preview
   ↓
-Smoke / E2E
+smoke / E2E
   ↓
 Production
   ↓
-Runtime verification
+runtime verification
 ```
 
-Un deployment `READY` es necesario pero no suficiente para una certificación completa: también deben existir verificaciones posteriores al despliegue.
+Un deployment `READY` es necesario pero no suficiente.
 
 ---
 
-## 14. Evidence-first production
+## 19. Evidence-first production
 
-La producción se considera certificable únicamente cuando existe evidencia reproducible.
+Un paquete de evidencia completo debe responder:
 
-El paquete de evidencia debe poder responder:
+- commit SHA;
+- estado limpio del repositorio;
+- Node/pnpm;
+- lockfile;
+- tests;
+- security;
+- migraciones;
+- build digest;
+- deployment ID;
+- smoke;
+- BookPI;
+- tenant isolation;
+- NCUA;
+- rollback.
 
-- ¿qué commit fue evaluado?
-- ¿qué versión de Node y pnpm se utilizó?
-- ¿qué lockfile se utilizó?
-- ¿qué gates pasaron?
-- ¿qué pruebas se ejecutaron?
-- ¿qué métricas NCUA se obtuvieron?
-- ¿qué estado tuvo BookPI?
-- ¿qué entorno de base de datos fue validado?
-- ¿qué deployment de Vercel se generó?
-- ¿qué smoke test se ejecutó?
-- ¿qué errores aparecieron después del deployment?
-- ¿existe rollback verificable?
+Los archivos generados por `production:evidence` diferencian:
 
-El sistema de evidencia existente evita marcar como PASS comprobaciones que no fueron ejecutadas.
+- `PASS`;
+- `UNVERIFIED`;
+- evidencia faltante.
 
----
-
-## 15. Checklist canónico de liberación
-
-La rama no debe fusionarse a `main` hasta obtener:
-
-```text
-Git conflicts       = 0
-typecheck            = PASS
-lint                 = PASS
-tests                = PASS
-build                = PASS
-security scan        = PASS
-production integrity = PASS
-production preflight = PASS
-route audit          = PASS
-Vercel build         = PASS
-runtime smoke        = PASS
-```
-
-Para una certificación más completa deben agregarse:
-
-```text
-BookPI integrity     = PASS
-tenant isolation     = PASS
-NCUA load             = PASS
-database verification = PASS
-rollback verification = PASS
-production evidence  = COMPLETE
-```
-
-**No se utilizará un porcentaje inventado para sustituir estas evidencias.**
+Eso evita que un JSON decorativo sea confundido con certificación.
 
 ---
 
-## 16. Estructura de autoridad
+## 20. Sesgos y debilidades detectados
 
-Los módulos de autoridad definidos por la especificación incluyen:
+La auditoría no se limitó a errores de compilación. También se revisaron riesgos metodológicos.
+
+### 20.1 Sesgo de implementación
+
+Una función presente en el repositorio puede parecer terminada aunque no esté integrada.
+
+**Corrección:** separar implementación, integración y certificación.
+
+### 20.2 Sesgo de UI
+
+Una interfaz terminada puede sugerir que existe backend funcional.
+
+**Corrección:** dashboards financieros y de seguridad dependen de datos backend reales.
+
+### 20.3 Sesgo de proveedor
+
+Un proveedor puede recibir una política diferente a otro.
+
+**Corrección:** CROWN se incorpora al prompt de inferencia en las rutas revisadas.
+
+### 20.4 Sesgo de evidencia
+
+Un valor hardcoded puede aparentar ser resultado de ejecución.
+
+**Corrección:** el Claim Engine deriva la versión de pnpm del contrato real de `package.json`.
+
+### 20.5 Sesgo de catálogo
+
+Un ID declarativo puede confundirse con una implementación runtime.
+
+**Corrección:** separación entre catálogo de skills nativas y runtime de skills evolucionadas.
+
+### 20.6 Sesgo de fallback
+
+Un fallback local puede terminar actuando como persistencia productiva.
+
+**Corrección:** repository factory y preflight deben fallar cerrado ante configuraciones productivas inválidas.
+
+---
+
+## 21. Checklist de liberación
+
+### Obligatorio
+
+- [ ] conflictos Git = 0
+- [ ] typecheck = PASS
+- [ ] lint = PASS
+- [ ] tests = PASS
+- [ ] repository audit = PASS
+- [ ] security scan = PASS
+- [ ] capability contract = PASS
+- [ ] route audit = PASS
+- [ ] database verification = PASS
+- [ ] production integrity = PASS
+- [ ] production preflight = PASS
+- [ ] build = PASS
+- [ ] Vercel build = PASS
+
+### Producción
+
+- [ ] deployment = READY
+- [ ] runtime smoke = PASS
+- [ ] E2E = PASS
+- [ ] tenant isolation = PASS
+- [ ] BookPI integrity = PASS
+- [ ] Stripe webhook verification = PASS
+- [ ] NCUA 50–500 concurrency = PASS
+- [ ] rollback verification = PASS
+- [ ] evidence bundle = COMPLETE
+
+### Condición
+
+Si un punto obligatorio no tiene evidencia, el estado debe permanecer **Pre-Producción / Hardening** o **Production Candidate**, nunca **Production Certified**.
+
+---
+
+## 22. Archivos de autoridad técnica
 
 ```text
 src/server.ts
@@ -406,67 +720,101 @@ src/lib/tenant-context.ts
 src/lib/authorization.ts
 src/lib/rbac.ts
 src/lib/abac.ts
-src/lib/permission-matrix.ts
 src/lib/crown.ts
 src/lib/constitutional-gate.ts
 src/lib/sovereign-engine.ts
 src/lib/sovereign-pipeline.ts
 src/lib/memory-engine.ts
-src/lib/repositories/memory-repository.ts
+src/lib/skill-registry.ts
+src/lib/skills/registry.ts
+src/lib/skills/run-skill.ts
 src/lib/bookpi*.ts
 src/lib/repositories/bookpi-repository.ts
 src/lib/repositories/audit-repository.ts
-src/lib/tool-registry.ts
-src/lib/orion-engine.ts
-src/lib/sovereign-sandbox.ts
+src/lib/persistence/repository-factory.ts
+src/lib/isabella-chat-gateway.ts
+src/server-routes/api/security.ts
+src/server-routes/api/billing.ts
 supabase/migrations/*
-src/routes/api/*
+scripts/production-integrity-gate.mjs
+scripts/production-preflight.mjs
+scripts/production-evidence.mjs
+.github/workflows/*
+vercel.json
 ```
 
-Los handlers de API deben permanecer delgados y delegar autoridad a estas capas.
+La documentación derivada nunca debe convertirse en una autoridad superior al código ejecutable y sus pruebas.
 
 ---
 
-## 17. Principios de contribución
+## 23. Cambios realizados en esta auditoría
 
-Antes de modificar una pieza crítica:
+Se corrigieron, entre otros:
 
-1. identifica la autoridad existente;
-2. evita crear una segunda implementación paralela;
-3. añade o actualiza pruebas;
-4. valida tipos;
-5. valida seguridad si corresponde;
-6. verifica migraciones si afecta persistencia;
-7. genera evidencia cuando el cambio afecte producción.
-
-No se deben introducir secretos, tokens, dumps ni credenciales en Git.
-
----
-
-## 18. Estado de esta rama
-
-Esta rama corresponde a una **reparación de integración y endurecimiento de producción**.
-
-No debe interpretarse este README como una declaración de que todos los gates ya pasaron. Los estados deben proceder de:
-
-- GitHub Actions;
-- pruebas reproducibles;
-- artefactos de evidencia;
-- validación de base de datos;
-- deployment de Vercel;
-- smoke/E2E posterior al deployment.
-
-La regla es simple:
-
-> **La arquitectura se documenta. La funcionalidad se prueba. La producción se demuestra.**
+1. contrato de instalación congelada en Vercel;
+2. duplicidad de permisos en release workflow;
+3. variables duplicadas en `.env.example`;
+4. mensaje inconsistente del endpoint de billing;
+5. acción Enterprise inutilizable en el selector;
+6. estados `undefined` en Usage Dashboard;
+7. afirmación implícita de renovación automática sin evidencia;
+8. estado fail-closed del Security Audit Dashboard;
+9. headers de seguridad en respuestas GET de error;
+10. lectura opcional del estado del secreto AEGIS;
+11. ordenamiento incorrecto de `audit_events`;
+12. semántica incorrecta de `aegisLevel`;
+13. identificación falsa de un ID como firma criptográfica;
+14. CROWN aplicado a proveedores directos;
+15. evidencia hardcoded de pnpm;
+16. reconciliación entre skills nativas y runtime;
+17. gate `production:gate` convertido en contrato más completo;
+18. README reconstruido como documento de evidencia y no como marketing técnico.
 
 ---
 
-## 19. Licenciamiento y atribución
+## 24. Lo que todavía NO debe afirmarse
 
-La especificación arquitectónica del proyecto declara Creative Commons Attribution 4.0 International (CC BY 4.0) para el material al que dicha licencia resulte aplicable. Los componentes de terceros conservan sus respectivas licencias.
+No debe afirmarse todavía que Isabella está:
 
-La atribución técnica y arquitectónica declarada para este proyecto es:
+- 100% terminada;
+- certificada para producción;
+- libre de deuda técnica;
+- validada bajo 500 concurrentes;
+- certificada por BookPI;
+- validada con Stripe en producción;
+- validada con tenant isolation en un entorno real;
+- desplegada satisfactoriamente en Vercel en el estado final de esta rama.
+
+Esas afirmaciones requieren evidencia.
+
+---
+
+## 25. Próximo gate real
+
+La siguiente secuencia técnica es:
+
+```text
+1. Ejecutar GitHub Actions sobre f960481...
+2. Analizar logs de cada fallo restante
+3. Corregir typecheck/lint/tests/security
+4. Ejecutar production:gate
+5. Generar build reproducible
+6. Obtener deployment Vercel READY
+7. Ejecutar smoke/E2E
+8. Verificar DB + RLS
+9. Ejecutar BookPI integrity
+10. Ejecutar NCUA 50/100/250/500
+11. Ejecutar pruebas Stripe/idempotencia
+12. Generar production-evidence
+13. Reauditar el PR
+14. Solo entonces evaluar Production Candidate / Production Certified
+```
+
+---
+
+## 26. Licenciamiento y atribución
+
+La especificación arquitectónica declara Creative Commons Attribution 4.0 International (CC BY 4.0) para el material al que dicha licencia resulte aplicable. Los componentes de terceros conservan sus respectivas licencias.
 
 **Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)**  
 **TAMV ONLINE NETWORK · RDM Digital Hub · Nodo Cero**  
@@ -474,9 +822,9 @@ La atribución técnica y arquitectónica declarada para este proyecto es:
 
 ---
 
-## 20. Regla final
+## 27. Declaración final
 
-Isabella no se considera lista porque una interfaz se vea terminada.
+Isabella no se considera lista porque una interfaz parezca terminada.
 
 Se considera lista cuando:
 
