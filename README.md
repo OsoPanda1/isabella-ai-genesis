@@ -837,17 +837,17 @@ Se considera lista cuando:
 
 ```text
 el código compila
-+ las políticas gobiernan
-+ la identidad se verifica
-+ los tenants permanecen aislados
-+ la persistencia es durable
-+ BookPI conserva integridad
-+ las pruebas reproducen el comportamiento
-+ la carga demuestra estabilidad
-+ CI reproduce el resultado
-+ Vercel despliega el mismo artefacto
-+ runtime confirma el comportamiento
-+ existe evidencia auditable
+las políticas gobiernan
+la identidad se verifica
+los tenants permanecen aislados
+la persistencia es durable
+BookPI conserva integridad
+las pruebas reproducen el comportamiento
+la carga demuestra estabilidad
+CI reproduce el resultado
+Vercel despliega el mismo artefacto
+runtime confirma el comportamiento
+existe evidencia auditable
 ```
 
 **No te pedimos que nos creas. Te pedimos que lo pruebes.**
