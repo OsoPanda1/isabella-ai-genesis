@@ -5,7 +5,7 @@
  *
  * Sin DATABASE_URL: verifica estáticamente las migraciones.
  * Con DATABASE_URL: consulta la DB viva y verifica tablas, columnas críticas,
- * RLS, FORCE RLS, triggers de inmutabilidad y pgvector.
+ * RLS, triggers de inmutabilidad y pgvector. FORCE RLS se documenta como una decisión de conexión.
  */
 
 import { readdirSync, readFileSync } from "node:fs";
@@ -208,7 +208,7 @@ async function liveCheck() {
 
     if (errors.length) throw new Error(errors.join("\n"));
     console.log(
-      `DB viva verificada: ${tables.length} tablas, contratos, RLS/FORCE RLS, triggers y vector OK.`,
+      `DB viva verificada: ${tables.length} tablas, contratos RLS, triggers y vector OK.`,
     );
   } finally {
     await pool.end();
