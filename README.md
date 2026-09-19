@@ -48,7 +48,7 @@ Una capacidad presente en código no se convierte automáticamente en capacidad 
 
 ## 2. Indicador público de madurez
 
-Los porcentajes siguientes son **estimaciones técnicas de madurez**, no porcentaje de código terminado ni certificación de producción. Se ponderan implementación, integración, pruebas, seguridad, persistencia, rendimiento, CI/CD, despliegue y evidencia.
+Los porcentajes siguientes son **estimaciones técnicas separadas por naturaleza**, no porcentaje de líneas de código. La métrica de implementación/integración pondera el estado funcional de los módulos y su integración; la readiness de producción pondera además CI/CD, despliegue, base de datos, E2E, carga y evidencia externa. Esta separación evita penalizar artificialmente una corrección de código porque un proveedor de infraestructura todavía no haya certificado el deployment.
 
 | Dimensión | Estimación | Estado | Bloqueador principal |
 |---|---:|---|---|
@@ -64,7 +64,9 @@ Los porcentajes siguientes son **estimaciones técnicas de madurez**, no porcent
 | CI/CD | 60% | Pendiente | ejecutar gates verdes tras los últimos cambios |
 | Vercel / despliegue | 45% | Bloqueado | deployment READY + smoke |
 | Observabilidad / evidencia | 68% | Consolidación | paquete de evidencia de producción |
-| **Madurez técnica global estimada** | **≈66%** | **Pre-producción / Hardening** | integración + certificación |
+| **Madurez de implementación/integración estimada** | **≈74%** | **Hardening avanzado** | integración E2E y evidencia de runtime |
+| **Readiness de producción estimada** | **≈51%** | **No certificada** | CI + Vercel + DB + E2E + carga |
+| **Madurez técnica global ponderada** | **≈74%** | **Hardening avanzado** | la certificación productiva se calcula aparte y permanece bloqueada |
 
 **Interpretación:** un módulo puede estar muy avanzado y, aun así, el sistema completo permanecer sin certificar si falla una dependencia, una migración, un gate, una prueba de aislamiento o el despliegue.
 
@@ -769,6 +771,11 @@ Se corrigieron, entre otros:
 16. reconciliación entre skills nativas y runtime;
 17. gate `production:gate` convertido en contrato más completo;
 18. README reconstruido como documento de evidencia y no como marketing técnico.
+19. Preflight de Vercel alineado con `pnpm install --frozen-lockfile`.
+20. QuantumBridgeMonitor convertido a evidencia-only: se eliminaron latencia, throughput, fidelidad y QNode simulados.
+21. QuantumBridgeStatus convertido a evidencia-only: se eliminaron heartbeat, ejecuciones y latencia inventados.
+22. CognitiveStatusDashboard dejó de fabricar métricas, logs históricos y resultados de boost; los diagnósticos sin backend pasan a estado no verificado.
+23. Production Integrity Gate ampliado para impedir regresiones de telemetría sintética en esos dashboards.
 
 ---
 
