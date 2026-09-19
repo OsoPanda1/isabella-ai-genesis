@@ -73,7 +73,7 @@ function assertFilePersistenceAllowed(storePath: string): void {
   }
 }
 
-export function createMemoryRepository(storePath: string = STORE_PATH) {
+export function createMemoryRepository(storePath: string = STORE_PATH) {\n  // Production/staging persistence policy is enforced by the centralized runtime guard below.
   assertFilePersistenceAllowed(storePath);
 
   function loadStore(): MemoryStoreFile {
