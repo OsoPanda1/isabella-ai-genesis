@@ -14,7 +14,7 @@ export interface SubscriptionTier {
 
 interface PlanSelectorProps {
   currentPlanId: string | null;
-  onSelectPlan: (planId: string) => void;
+  onSelectPlan: (planId: string, billingCycle: "monthly" | "yearly") => void;
 }
 
 export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps) {
@@ -175,7 +175,7 @@ export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps)
 
               <div className="mt-5 pt-4 border-t border-border/20">
                 <button
-                  onClick={() => onSelectPlan(p.id)}
+                  onClick={() => onSelectPlan(p.id, billingCycle)}
                   disabled={isCurrent}
                   className={`w-full py-2 rounded-xl font-mono text-[10px] uppercase tracking-wider transition-all border ${
                     isCurrent
@@ -183,7 +183,7 @@ export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps)
                       : "bg-secondary/15 border-border/40 text-platinum hover:bg-secondary/35 hover:border-border/60"
                   }`}
                 >
-                  {isCurrent ? "Plan Activo" : "Seleccionar Plan"}
+                  {isCurrent ? "Plan Activo" : p.id === "enterprise" ? "Contactar ventas" : "Seleccionar Plan"}
                 </button>
               </div>
             </div>
