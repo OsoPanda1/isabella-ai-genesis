@@ -293,7 +293,7 @@ export const Route = createFileRoute("/api/billing")({
               if (denied) return denied;
               const parsed = z
                 .object({
-                  planId: z.enum(["pro", "enterprise"]),
+                  planId: z.enum(["personal", "pro", "enterprise"]),
                   idempotencyKey: z
                     .string()
                     .trim()
@@ -397,7 +397,7 @@ export const Route = createFileRoute("/api/billing")({
                               name: `Isabella AI - Suscripción ${planId.toUpperCase()}`,
                               description: `Acceso Premium al orquestador cognitivo de Isabella (${planId}).`,
                             },
-                            unit_amount: planId === "pro" ? 2900 : 9900, // $29 o $99 USD
+                            unit_amount: planId === "personal" ? 999 : 1999, // $29 o $99 USD
                             recurring: { interval: "month" },
                           },
                           quantity: 1,
