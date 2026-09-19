@@ -52,7 +52,8 @@ export function SecurityAuditDashboard() {
         }
       }
     } catch {
-      // Fallback to active state
+      setLogs([]);
+      setAuditSecretVerified(false);
     } finally {
       setLoading(false);
     }
@@ -130,7 +131,7 @@ export function SecurityAuditDashboard() {
               </span>
             </div>
             <p className="font-mono text-xs text-slate-400 mt-0.5">
-              Registro append-only verificado mediante firma criptográfica HMAC-SHA3-512.
+              Registro append-only proveniente exclusivamente del backend; sin datos sintéticos.
             </p>
           </div>
         </div>
@@ -232,9 +233,9 @@ export function SecurityAuditDashboard() {
 
       <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-2 border-t border-slate-900">
         <span>
-          Mostrando {filteredLogs.length} de {logs.length} eventos auditados
+          Mostrando {filteredLogs.length} de {logs.length} eventos auditados por el backend
         </span>
-        <span>Canal HMAC: AEGIS_AUDIT_SECRET • CERO ALTERACIONES</span>
+        <span>Canal de evidencia: backend autenticado • sin datos sintéticos</span>
       </div>
     </div>
   );
