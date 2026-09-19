@@ -293,7 +293,7 @@ export const Route = createFileRoute("/api/billing")({
               if (denied) return denied;
               const parsed = z
                 .object({
-                  planId: z.enum(["personal", "pro", "enterprise"]),
+                  planId: z.enum(["personal", "pro"]),
                   idempotencyKey: z
                     .string()
                     .trim()
