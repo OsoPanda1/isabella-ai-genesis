@@ -307,7 +307,7 @@ export class SecurityScanner {
         const severity = entropy > 4.5 ? "CRITICAL" : entropy > 3.5 ? "HIGH" : "MEDIUM";
 
         findings.push({
-          id: `SEC-${type}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+          id: `SEC-${type}-${fingerprint}-${lineIndex + 1}-${column + 1}`,
           type,
           file: filePath,
           line: lineIndex + 1,
@@ -331,7 +331,7 @@ export class SecurityScanner {
         const fingerprint = createHash("sha3-512").update(value).digest("hex").slice(0, 32);
 
         findings.push({
-          id: `SEC-HIGH_ENTROPY-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+          id: `SEC-HIGH_ENTROPY-${fingerprint}-${lineIndex + 1}-${column + 1}`,
           type: "HIGH_ENTROPY",
           file: filePath,
           line: lineIndex + 1,
@@ -362,7 +362,7 @@ export class SecurityScanner {
         const column = match.index - content.lastIndexOf("\n", match.index);
 
         findings.push({
-          id: `VULN-${type}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+          id: `VULN-${createHash("sha3-512").update(`${filePath}:${type}:${lineIndex + 1}:${column + 1}`).digest("hex").slice(0, 24)}`,
           type,
           file: filePath,
           line: lineIndex + 1,
@@ -404,7 +404,7 @@ export class SecurityScanner {
           const lineIndex = content.substring(0, match.index).split("\n").length - 1;
 
           findings.push({
-            id: `CFG-${type}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+            id: `CFG-${createHash("sha3-512").update(`${filePath}:${type}:${lineIndex + 1}`).digest("hex").slice(0, 24)}`,
             type,
             file: filePath,
             line: lineIndex + 1,

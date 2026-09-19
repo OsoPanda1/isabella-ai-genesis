@@ -66,8 +66,18 @@ export class PrivacyBudget {
   }
 }
 
+function secureUniform(): number {
+  const cryptoApi = globalThis.crypto;
+  if (!cryptoApi?.getRandomValues) {
+    throw new Error("Secure randomness unavailable: crypto.getRandomValues is required");
+  }
+  const values = new Uint32Array(1);
+  cryptoApi.getRandomValues(values);
+  return (values[0] + 1) / 4294967297;
+}
+
 export function laplaceNoise(scale: number): number {
-  const uniform = Math.random();
+  const uniform = secureUniform();
   const adjusted = Math.max(1e-12, Math.min(1 - 1e-12, uniform));
   if (adjusted > 0.5) {
     return -scale * Math.log(2 * (1 - adjusted));
@@ -80,10 +90,8 @@ export function gaussianSigma(sensitivity: number, epsilonPerQuery: number, delt
 }
 
 export function gaussianNoise(sigma: number): number {
-  let u1 = 0;
-  let u2 = 0;
-  while (u1 === 0) u1 = Math.random();
-  u2 = Math.random();
+  const u1 = secureUniform();
+  const u2 = secureUniform();
   return sigma * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
 }
 

@@ -33,7 +33,7 @@ jobs:
           fetch-tags: true
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
         with:
           version: ${{ env.PNPM_VERSION }}
 
@@ -74,7 +74,7 @@ jobs:
 
       - name: Upload Trivy SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@311b4ee155dcdab395044f00946f664bd51ff173
+        uses: github/codeql-action/upload-sarif@3ea06614dafe36dec890db3446326e0d40ce53d4
         with:
           sarif_file: trivy-results.sarif
           category: trivy-security-scan
@@ -91,13 +91,13 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@311b4ee155dcdab395044f00946f664bd51ff173
+        uses: github/codeql-action/init@3ea06614dafe36dec890db3446326e0d40ce53d4
         with:
           languages: javascript-typescript
           config-file: ./.github/codeql-config.yml
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
         with:
           version: ${{ env.PNPM_VERSION }}
 
@@ -114,6 +114,6 @@ jobs:
         run: pnpm build:production
 
       - name: Analyze
-        uses: github/codeql-action/analyze@311b4ee155dcdab395044f00946f664bd51ff173
+        uses: github/codeql-action/analyze@3ea06614dafe36dec890db3446326e0d40ce53d4
         with:
           category: /language:javascript-typescript

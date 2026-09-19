@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ShieldCheck, Sliders } from "lucide-react";
 import { toast } from "sonner";
 
@@ -7,7 +7,7 @@ interface GovModule {
   name: string;
   role: string;
   status: "ACTIVE" | "AUDITING" | "STANDBY";
-  complianceScore: number;
+  complianceScore: number | null;
   mode: "STRICT_ENFORCE" | "MONITOR_ONLY";
   description: string;
   metricLabel: string;
@@ -20,82 +20,51 @@ export function GobernanzaVigia() {
       id: "atlas",
       name: "ATLAS Node",
       role: "Simulador de impacto territorial y ético social",
-      status: "ACTIVE",
-      complianceScore: 98.4,
+      status: "STANDBY",
+      complianceScore: null,
       mode: "STRICT_ENFORCE",
       description:
         "Modula la entrega de información para que se alinee rigurosamente con el bienestar comunitario y el canon histórico.",
       metricLabel: "Índice de Alineación Ética",
-      metricValue: "0.984 / 1.0",
+      metricValue: "No verificado",
     },
     {
       id: "anubis",
       name: "ANUBIS Node",
       role: "Guardián de integridad criptográfica de artefactos",
-      status: "ACTIVE",
-      complianceScore: 100,
+      status: "STANDBY",
+      complianceScore: null,
       mode: "STRICT_ENFORCE",
       description:
         "Verifica y firma digitalmente la procedencia e inmutabilidad de archivos, reportes y hashes contables del sistema.",
       metricLabel: "Integridad de Archivos",
-      metricValue: "100% OK (Checksums)",
+      metricValue: "No verificado",
     },
     {
       id: "themis",
       name: "THEMIS Node",
       role: "Motor de auditabilidad algorítmica e historial",
-      status: "ACTIVE",
-      complianceScore: 99.1,
+      status: "STANDBY",
+      complianceScore: null,
       mode: "MONITOR_ONLY",
       description:
         "Genera expedientes estructurados explicables de cada decisión y los enlaza al ledger de BookPI para auditorías externas.",
       metricLabel: "Expedientes Firmados",
-      metricValue: "1,248 Transacciones",
+      metricValue: "No disponible",
     },
     {
       id: "vigia",
       name: "VIGIA Sentinel",
       role: "Firewall y Gate de políticas en vivo",
-      status: "ACTIVE",
-      complianceScore: 99.8,
+      status: "STANDBY",
+      complianceScore: null,
       mode: "STRICT_ENFORCE",
       description:
         "Evalúa vectores de entrada contra restricciones constitucionales, rechazando solicitudes hostiles o inyecciones.",
       metricLabel: "Veto de Restricción",
-      metricValue: "0 Intentos Bloqueados",
+      metricValue: "No disponible",
     },
   ]);
-
-  // Simulate small real-time metrics oscillations
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setModules((prev) =>
-        prev.map((mod) => {
-          if (mod.id === "atlas") {
-            const scoreOffset = Math.random() * 0.2 - 0.1;
-            return {
-              ...mod,
-              complianceScore: Math.min(100, Math.max(90, mod.complianceScore + scoreOffset)),
-              metricValue: `${Math.min(1.0, 0.98 + Math.random() * 0.015).toFixed(3)} / 1.0`,
-            };
-          }
-          if (mod.id === "themis") {
-            // increment signed transactions randomly
-            if (Math.random() > 0.7) {
-              const currentTx = parseInt(mod.metricValue.split(" ")[0].replace(/,/g, ""));
-              return {
-                ...mod,
-                metricValue: `${(currentTx + 1).toLocaleString()} Transacciones`,
-              };
-            }
-          }
-          return mod;
-        }),
-      );
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleToggleMode = (id: string) => {
     setModules((prev) =>
@@ -106,10 +75,7 @@ export function GobernanzaVigia() {
           return {
             ...mod,
             mode: nextMode,
-            complianceScore:
-              nextMode === "STRICT_ENFORCE"
-                ? Math.min(100, mod.complianceScore + 1.2)
-                : mod.complianceScore - 0.8,
+            complianceScore: mod.complianceScore,
           };
         }
         return mod;
@@ -186,7 +152,7 @@ export function GobernanzaVigia() {
                 <div className="text-right">
                   <span className="text-muted-foreground text-[8.5px] block">PUNTAJE:</span>
                   <strong className="text-emerald-400 font-bold">
-                    {mod.complianceScore.toFixed(1)}%
+                    {mod.complianceScore === null ? "NO VERIFICADO" : `${mod.complianceScore.toFixed(1)}%`}
                   </strong>
                 </div>
               </div>

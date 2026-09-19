@@ -11,6 +11,7 @@
  *     eso requiere un `TsaVerifier` inyectable con la raíz de confianza.
  */
 import { digestHex } from "./digests";
+import { randomBytes } from "node:crypto";
 import type { TimestampToken } from "./types";
 import type { TsaClient, TsaVerifier } from "./tsa";
 import { SHA256_OID } from "./tsa";
@@ -184,9 +185,7 @@ export function buildTimestampRequest(
   const hashedMessage = /^[0-9a-fA-F]{64}$/.test(digestValue)
     ? Buffer.from(digestValue, "hex")
     : Buffer.from(digestHex("sha256", digestValue), "hex");
-  const nonce =
-    options.nonce ??
-    Buffer.from(digestHex("sha256", `${Date.now()}:${Math.random()}`).slice(0, 16), "hex");
+  const nonce = options.nonce ?? randomBytes(16);
   const messageImprint = encodeSequence([
     encodeSequence([encodeOid(SHA256_OID), tlv(0x05, Buffer.alloc(0))]),
     encodeOctetString(hashedMessage),

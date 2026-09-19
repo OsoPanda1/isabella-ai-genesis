@@ -1377,11 +1377,11 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              // REPARTO DE INGRESOS (85% para el owner del skill, 15% para la plataforma de infraestructura)
+              // Ledger económico: el claim de idempotencia se persiste antes del
+              // débito para impedir compras concurrentes con la misma clave.
               const platformFeeCents = Math.round(listing.costCents * 0.15);
               const userNetCents = listing.costCents - platformFeeCents;
 
-              // Descontar saldo al comprador (re-leer: evitar carreras)
               const freshBuyer = await sovereignStateRepository.getTenant(context.tenantId);
               if (!freshBuyer || freshBuyer.quotaBalance < costUSD) {
                 return new Response(
@@ -1393,10 +1393,10 @@ export const Route = createFileRoute("/api/billing")({
                   { status: 400, headers },
                 );
               }
-              freshBuyer.quotaBalance = Math.round((freshBuyer.quotaBalance - costUSD) * 1e9) / 1e9;
+              freshBuyer.quotaBalance =
+                Math.round((freshBuyer.quotaBalance - costUSD) * 1e9) / 1e9;
               await sovereignStateRepository.upsertTenant(freshBuyer);
 
-              // Acreditar saldo madurado al vendedor (owner del skill)
               const ownerAccount = await sovereignStateRepository.getMonetizationAccount(
                 listing.ownerId,
               );
@@ -1405,7 +1405,6 @@ export const Route = createFileRoute("/api/billing")({
                 approvedContributions: ownerAccount.approvedContributions + 1,
               });
 
-              // Registrar transacción en el Ledger (BookPI)
               const block = await sovereignStateRepository.appendLedgerBlock(
                 context.tenantId,
                 context.userId,
@@ -1414,17 +1413,6 @@ export const Route = createFileRoute("/api/billing")({
                 costUSD,
                 0,
               );
-
-              await sovereignStateRepository.appendAuditLog(
-                `trc_market_pur_${block.index}`,
-                context.correlationId,
-                context.ip,
-                "Compra en Marketplace Consumada",
-                "S3",
-                `El usuario ${context.userId} adquirió '${listing.title}'. El vendedor ${listing.ownerId} recibió un crédito de $${(userNetCents / 100).toFixed(2)} USD`,
-                context.tenantId,
-              );
-
               return new Response(
                 JSON.stringify({
                   success: true,

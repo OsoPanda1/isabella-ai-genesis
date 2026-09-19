@@ -1,122 +1,246 @@
-# Isabella Villaseñor AI
+# Isabella Villaseñor AI™
+## Infraestructura cognitiva soberana para un Sur Global que construye su propio futuro
 
-## Infraestructura cognitiva híbrida, contextual y gobernada
+> **No venimos a esperar el futuro. Venimos a construir capacidad real en el presente.**
 
+**Isabella Villaseñor AI** es el núcleo cognitivo del ecosistema **TAMV ONLINE NETWORK / TAMV MD-X5**, concebido desde **Real del Monte, Hidalgo, México**, para organizar conocimiento, identidad, memoria, gobernanza, servicios y ejecución digital bajo una premisa sencilla y exigente:
+
+> **La inteligencia artificial debe aumentar la capacidad humana de decidir, auditar, migrar y construir; nunca sustituir la soberanía de quienes la utilizan.**
+
+**Autoría y arquitectura declarada:** Edwin Oswaldo Castillo Trejo · Anubis Villaseñor  
+**Ecosistema:** TAMV ONLINE NETWORK · RDM DIGITAL HUB · Nodo Cero · Real del Monte, Hidalgo, México  
 **Repositorio:** `OsoPanda1/isabella-ai-genesis`  
-**Arquitectura:** Isabella Villaseñor AI · Ecosistema TAMV ONLINE NETWORK  
-**Autoría técnica y arquitectura declarada:** Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)  
-**Ecosistema:** TAMV ONLINE NETWORK · RDM Digital Hub · Nodo Cero · Real del Monte, Hidalgo, México  
-**Versión del paquete:** `4.3.3`  
-**Node:** `24.11.0` en CI / `>=22 <25` como contrato del paquete  
-**Package manager:** pnpm `10.15.4`  
+**Paquete:** `4.3.3` · **Node:** `24.11.0` · **pnpm:** `10.15.4`  
 **Runtime objetivo:** TanStack Start + Nitro + Vercel  
-**Rama de hardening auditada:** `repair/production-hardening-2026-09-19`  
-**Commit auditado en esta revisión:** `f960481becf939b15ba4453dca7cc062e7c21357`
-
-> **Estado actual: PRE-PRODUCCIÓN / HARDENING.** La rama contiene correcciones reales de integración y seguridad, pero la producción no se considera certificada hasta que CI, build de Vercel, smoke/E2E, base de datos, BookPI, carga y evidencia reproducible resulten verificablemente PASS.
+**Especificación canónica:** Documento Maestro Unificado Isabella Villaseñor AI v5.1-MASTER, emitido el 19 de septiembre de 2026. 
 
 ---
 
-## 1. Resumen ejecutivo
+## 1. Qué estamos construyendo
 
-Isabella Villaseñor AI es una arquitectura cognitiva que separa **percepción, memoria, gobernanza, razonamiento, herramientas, persistencia, identidad y auditoría**. El objetivo técnico no es presentar un modelo de lenguaje como autoridad, sino construir una capa gobernada alrededor de modelos y servicios intercambiables.
+Isabella no se plantea como otro chatbot con una personalidad atractiva.
 
-La implementación actual contiene:
+Es una **arquitectura cognitiva híbrida, contextual y gobernada**: una capa de inteligencia que coordina modelos, memoria, identidad, políticas, herramientas, persistencia, observabilidad y auditoría.
 
-- gateway canónico de Isabella;
-- CROWN como plano de orquestación/gobernanza;
-- ARGUS y Constitutional Gate;
-- memoria por scopes;
-- Sovereign Engine / Sovereign Pipeline;
-- registro de skills nativas y skills evolucionadas;
-- ejecución endurecida mediante `runIsabellaSkill()`;
-- BookPI para trazabilidad económica y de ejecución;
-- persistencia PostgreSQL/Neon/Supabase según el contrato de despliegue;
-- autenticación, autorización, tenant isolation y RLS;
-- NCUA para benchmarks y carga;
-- gates de integridad, preflight, seguridad y evidencia;
-- integración de monetización con checkout e idempotencia;
-- dashboards que deben mostrar datos backend, no métricas inventadas.
+Su propósito es que una organización, comunidad o territorio pueda conservar control sobre:
 
-### Regla de evidencia
+- sus datos;
+- sus memorias;
+- sus identidades;
+- sus políticas;
+- sus modelos;
+- sus proveedores;
+- sus decisiones;
+- sus registros económicos;
+- su infraestructura;
+- y su capacidad de migración.
 
-> **La arquitectura se documenta. La funcionalidad se prueba. La producción se demuestra.**
+La especificación maestra establece explícitamente que Isabella debe separar evidencia, inferencia y acción, registrar decisiones relevantes, solicitar aprobación humana para acciones de alto impacto y conservar portabilidad de datos y modelos. 
 
-Una capacidad presente en código no se convierte automáticamente en capacidad certificada de producción.
+### Una tesis tecnológica latinoamericana
 
----
+Isabella nace en México y se diseña con una ambición que no necesita pedir permiso geográfico:
 
-## 2. Indicador público de madurez
+**Latinoamérica puede producir infraestructura cognitiva seria, auditable e interoperable.**
 
-Los porcentajes siguientes son **estimaciones técnicas separadas por naturaleza**, no porcentaje de líneas de código. La métrica de implementación/integración pondera el estado funcional de los módulos y su integración; la readiness de producción pondera además CI/CD, despliegue, base de datos, E2E, carga y evidencia externa. Esta separación evita penalizar artificialmente una corrección de código porque un proveedor de infraestructura todavía no haya certificado el deployment.
+Eso no significa negar el ecosistema tecnológico mundial. Significa participar en él con capacidad de elección: proveedores sustituibles, datos exportables, contratos explícitos, seguridad verificable y arquitectura preparada para operar incluso cuando una dependencia externa falle.
 
-| Dimensión | Estimación | Estado | Bloqueador principal |
-|---|---:|---|---|
-| Arquitectura e integración | 78% | Consolidación | pruebas cruzadas del sistema completo |
-| Interacción Isabella ↔ usuario | 76% | Avanzada | E2E del flujo autenticado completo |
-| CROWN / gobernanza | 82% | Avanzada | evidencia bajo carga y proveedores |
-| Skills / ejecución | 74% | Integración | validar contratos de todas las skills nativas |
-| BookPI / trazabilidad | 78% | Avanzada | certificación real de cadena e integridad |
-| Seguridad / JWT / RLS | 70% | Hardening | gates y aislamiento con entorno real |
-| Monetización / billing | 75% | Integración | webhook Stripe + pruebas E2E |
-| NCUA / rendimiento | 80% | Avanzada | evidencia reproducible 50–500 concurrentes |
-| Testing | 72% | En expansión | E2E/regresión y pruebas de frontera |
-| CI/CD | 60% | Pendiente | ejecutar gates verdes tras los últimos cambios |
-| Vercel / despliegue | 45% | Bloqueado | deployment READY + smoke |
-| Observabilidad / evidencia | 68% | Consolidación | paquete de evidencia de producción |
-| **Madurez de implementación/integración estimada** | **≈74%** | **Hardening avanzado** | integración E2E y evidencia de runtime |
-| **Readiness de producción estimada** | **≈51%** | **No certificada** | CI + Vercel + DB + E2E + carga |
-| **Madurez técnica global ponderada** | **≈74%** | **Hardening avanzado** | la certificación productiva se calcula aparte y permanece bloqueada |
-
-**Interpretación:** un módulo puede estar muy avanzado y, aun así, el sistema completo permanecer sin certificar si falla una dependencia, una migración, un gate, una prueba de aislamiento o el despliegue.
-
-**Producción certificada ≠ porcentaje de código implementado.**
+La soberanía digital, en este proyecto, no es aislamiento. Es **capacidad efectiva de decidir, auditar, sustituir y responder**. 
 
 ---
 
-## 3. Arquitectura cognitiva
+# 2. Principios no negociables
+
+### Evidencia antes que fluidez
+
+Una respuesta convincente sin respaldo debe tratarse como incierta.
+
+Isabella distingue entre:
+
+- hecho verificado;
+- inferencia;
+- hipótesis;
+- información incompleta;
+- conflicto entre fuentes;
+- recomendación;
+- acción pendiente de autorización.
+
+
+
+### Cero simulación engañosa
+
+El sistema puede simular para investigar y probar.
+
+Lo que no puede hacer es presentar:
+
+- simulación como hardware;
+- estimación como medición;
+- inferencia como hecho;
+- estado operativo como certificación;
+- firma como prueba de verdad semántica.
+
+Cada ruta debe declarar su implementación efectiva: `QUANTUM_SIMULATOR`, `QUANTUM_HARDWARE`, `CLASSICAL_FALLBACK`, `LLM_ONLY`, `RAG_VERIFIED` o una combinación controlada. 
+
+### Gobernanza humana
+
+Isabella puede analizar, clasificar, recuperar, comparar, simular y recomendar.
+
+Las acciones de alto impacto requieren aprobación humana: identidad, finanzas, derechos, cambios históricos, publicaciones sensibles, comandos, políticas y recursos costosos. 
+
+### Degradación transparente
+
+Si falta un proveedor, GPU, base de datos, modelo o dispositivo, Isabella debe detectar la ausencia, registrar la causa, degradar explícitamente, reducir confianza cuando corresponda y evitar inventar resultados. 
+
+---
+
+# 3. Arquitectura maestra
+
+TAMV MD-X5 organiza la plataforma en tres planos:
+
+| Plano | Función |
+|---|---|
+| **Experiencia** | Web, móvil, atlas, paneles, asistentes, mapas, XR y APIs |
+| **Cognitivo** | Isabella, LLMs, GraphRAG, memoria, evaluación, planificación y agentes |
+| **Soberano** | Identidad, políticas, datos, ejecución, seguridad, observabilidad, backups y recuperación |
+
+
+
+## Núcleo cognitivo
 
 | Núcleo | Responsabilidad |
 |---|---|
-| **CROWN** | Orquestación, ruteo, política y control del flujo cognitivo |
+| **CROWN** | Orquestación, gobernanza, ruteo y control del flujo |
 | **ISA** | Presencia, tono y modulación de interacción |
 | **SOPHIA** | Investigación, síntesis, evidencia y razonamiento |
 | **ORION** | Recuperación y reconstrucción de conocimiento |
-| **ARGUS** | Gobernanza, defensa, observabilidad y veto |
-
-La autoridad no reside en el modelo. El modelo opera dentro de un contexto construido y gobernado por el sistema.
+| **ARGUS** | Seguridad, identidad, observabilidad y veto |
 
 ### Pipeline canónico
 
 ```text
-Perceive
-   ↓
-Remember
-   ↓
-Policy Gate
-   ↓
-Decide
-   ↓
-Act
-   ↓
-Audit
+Usuario
+  ↓
+Normalización
+  ↓
+Riesgo + sensibilidad
+  ↓
+Identidad + tenant + permisos
+  ↓
+Fuentes autorizadas
+  ↓
+GraphRAG / memoria
+  ↓
+Hipótesis
+  ↓
+Verificación
+  ↓
+Estado epistémico
+  ↓
+Respuesta / herramienta / aprobación / rechazo
+  ↓
+Auditoría
 ```
-
-Cada transición crítica debe poder asociarse a identidad, tenant, decisión, correlación y evidencia.
 
 ---
 
-## 4. CROWN: corrección de la inconsistencia principal
+# 4. Las siete federaciones
 
-Una inconsistencia importante detectada durante la auditoría era que CROWN podía producir `governance.systemPrompt`, pero determinadas rutas de inferencia no lo incorporaban realmente al contexto enviado al proveedor.
+La arquitectura canónica define siete federaciones con límites y responsabilidades diferenciadas. 
 
-La implementación corregida aplica el contexto gobernado a:
+| Federación | Código | Responsabilidad |
+|---|---|---|
+| Seguridad e Identidad | **ARGUS** | autenticación, autorización, aislamiento, firmas |
+| Gobernanza y Políticas | **POLICY** | cuotas, presupuesto, riesgo, aprobación |
+| Adaptadores y Dispositivos | **MESH** | backends, capacidades y selección |
+| Telemetría | **OBSERVE** | métricas, trazas y auditoría |
+| Resiliencia | **RESILIENCE** | fallback y recuperación |
+| Estado | **LITLE** | datos, memoria, hashes y continuidad |
+| Motor cuántico | **QENGINE** | circuitos, simulación y hardware autorizado |
 
-- AI Gateway;
-- Gemini;
-- proveedores OpenAI-compatible directos, incluyendo Groq/xAI.
+La arquitectura no exige construir todos los componentes internamente desde el primer día. Exige que cada dependencia tenga contrato, jurisdicción, permisos, costos y ruta de sustitución. 
 
-La regla ahora es:
+---
+
+# 5. Interacción Isabella ↔ usuario
+
+La interacción conversacional se gobierna desde servidor.
+
+```text
+mensaje
+  ↓
+gateway
+  ↓
+identidad / tenant
+  ↓
+CROWN
+  ↓
+skill resolver
+  ↓
+runtime autorizado
+  ↓
+validación de salida
+  ↓
+contexto verificado
+  ↓
+provider
+  ↓
+respuesta
+```
+
+El navegador no es autoridad para:
+
+- saldo;
+- BookPI;
+- permisos;
+- identidad;
+- auditoría;
+- consumo facturable;
+- decisiones de seguridad.
+
+Las skills conversacionales explícitas `@skill` pasan por el puente endurecido de ejecución antes de llegar al modelo.
+
+---
+
+# 6. Skills: del catálogo a la ejecución real
+
+La evolución del proyecto separa:
+
+1. catálogo y metadatos;
+2. resolución de invocación;
+3. autorización y scopes;
+4. runtime;
+5. validación de resultado;
+6. auditoría.
+
+Contrato operativo:
+
+```text
+@skill
+ ↓
+resolve
+ ↓
+risk/scope gate
+ ↓
+runtime.canRun()
+ ↓
+runtime.run()
+ ↓
+schema validation
+ ↓
+BookPI / telemetry
+ ↓
+verified context
+```
+
+Las skills nativas no son obligadas artificialmente a existir como keys homónimas de un runtime de skills evolucionadas. El sistema distingue ambos contratos para evitar falsos `SKILL_RUNTIME_NOT_FOUND`.
+
+---
+
+# 7. CROWN y gobernanza efectiva
+
+Una corrección crítica integra el contexto de gobernanza producido por CROWN en las rutas directas de inferencia.
+
+Regla:
 
 ```text
 CROWN governance
@@ -126,387 +250,268 @@ sanitized cognitive context
 provider inference
 ```
 
-Esto evita que un proveedor alternativo pueda recibir únicamente el contexto cognitivo sanitizado y omitir las obligaciones de gobernanza.
+El objetivo es impedir que un proveedor alternativo reciba contexto cognitivo sin las obligaciones de gobernanza correspondientes.
 
-**Pendiente de certificación:** comprobar el comportamiento real de cada proveedor mediante pruebas de integración y evidencia de ejecución.
-
----
-
-## 5. Skills: reconciliación entre catálogo y runtime
-
-El proyecto contiene dos autoridades que cumplen funciones diferentes:
-
-1. `src/lib/skill-registry.ts): catálogo, resolución y metadatos de skills.
-2. `src/lib/skills/registry.ts): runtime ejecutable de skills evolucionadas/nativas de bajo nivel.
-3. `src/lib/skills/run-skill.ts`: pipeline endurecido de ejecución.
-
-### Hallazgo corregido
-
-El primer endurecimiento intentó exigir que cada ID del catálogo existiera literalmente como key del runtime. Esto era incorrecto para las **skills nativas**, porque algunas están respaldadas por límites de API/capacidad y no por una key homónima de `isabellaSkills`.
-
-La regla corregida distingue:
-
-- **skills nativas del catálogo:** resueltas contra sus límites de capacidad;
-- **skills evolucionadas/directamente ejecutables:** deben tener runtime real.
-
-Esto evita falsos `SKILL_RUNTIME_NOT_FOUND` para las skills nativas sin eliminar la comprobación de runtime de las skills que realmente requieren ejecución directa.
-
-### Ejecución endurecida
-
-```text
-skill request
-   ↓
-identity
-   ↓
-schema validation
-   ↓
-authorization / CROWN
-   ↓
-runtime canRun()
-   ↓
-skill.run()
-   ↓
-output validation
-   ↓
-BookPI append
-   ↓
-response
-```
-
-El archivo canónico es:
-
-```text
-src/lib/skills/run-skill.ts
-```
+**Estado:** implementado en código; la certificación definitiva requiere pruebas de integración por proveedor y evidencia de runtime.
 
 ---
 
-## 6. Interacción Isabella ↔ usuario
+# 8. Memoria: recordar no significa declarar verdad
 
-El cliente:
+La memoria de Isabella está conceptualmente separada de la verdad.
 
-1. valida y sanitiza la entrada;
-2. resuelve una skill explícita cuando existe;
-3. construye contexto de conversación;
-4. solicita identidad/sesión;
-5. llama al gateway canónico;
-6. procesa SSE;
-7. conserva trazabilidad local limitada para la experiencia;
-8. presenta errores de forma explícita.
-
-El servidor añade:
-
-- autenticación;
-- tenant context;
-- rate limiting;
-- kill-switch;
-- CROWN/ARGUS;
-- memoria;
-- provider routing;
-- telemetría;
-- evidencia.
-
-### Principio
-
-El navegador **no es fuente de verdad** para:
-
-- saldo;
-- BookPI;
-- uso facturable;
-- permisos;
-- auditoría;
-- identidad;
-- decisiones de seguridad.
-
----
-
-## 7. Memoria
-
-Scopes definidos:
-
-- Immediate
-- Session
-- Project
-- Territorial
-- Historical
-
-La memoria persistente debe conservar, cuando corresponda:
+Los registros pueden conservar:
 
 - procedencia;
+- fuente;
 - confianza;
 - vigencia;
-- fuente;
 - tenant;
 - actor;
-- correlación.
+- territorio;
+- estado de verificación.
 
-No debe convertirse información sensible innecesaria en memoria durable.
+Estados canónicos:
+
+`unverified` · `under_review` · `verified` · `disputed` · `archived` · `retracted`. 
+
+### GraphRAG territorial
+
+La capa de conocimiento puede representar lugares, personas, organizaciones, acontecimientos, fechas, fuentes, relaciones, conflictos, versiones y confianza. Cuando existen fuentes incompatibles, el conflicto debe conservarse y comunicarse, no desaparecer por una decisión estadística silenciosa. 
 
 ---
 
-## 8. Identidad, autorización y multi-tenancy
+# 9. Estados epistémicos
 
-La arquitectura mantiene separados:
+| Estado | Código | Significado |
+|---|---|---|
+| Certeza | **E0** | evidencia suficiente |
+| Hipótesis | **E1** | evidencia parcial |
+| Incertidumbre | **E2** | información insuficiente |
+| Conflicto | **E3** | fuentes incompatibles |
+| Acción requerida | **E4** | requiere herramienta, permiso o humano |
 
-- identidad;
-- autenticación;
-- autorización;
-- tenant context;
-- RBAC/ABAC;
-- RLS;
-- políticas cognitivas;
-- auditoría.
 
-### JWT y RLS
 
-El JWT de aplicación y el JWT utilizado por Supabase/PostgREST no deben confundirse.
+El valor de confianza es una señal compuesta. No debe atribuirse automáticamente a un supuesto valor cuántico.
 
-El principio operativo es:
+---
+
+# 10. Motor híbrido y cuántico: innovación sin propaganda
+
+El motor cuántico es:
+
+- experimental;
+- híbrido;
+- intercambiable;
+- auditable;
+- opcional para la operación básica;
+- sujeto a baseline clásico.
+
+La propia arquitectura establece que una ventaja cuántica no puede afirmarse sin benchmarks comparables, condiciones reproducibles y comparación contra métodos clásicos adecuados. 
+
+## Implementación incorporada en esta evolución
+
+Se añadió:
 
 ```text
-Identity
-  ↓
-Principal Context
-  ↓
-Authorization
-  ↓
-Tenant Context
-  ↓
-RLS / repository boundary
+scripts/quantum/isabella_quantum_bridge_v5.py
+src/lib/quantum-bridge-client.ts
+test/unit/quantum-bridge.test.ts
 ```
 
-La ausencia de secretos críticos debe producir comportamiento fail-closed.
+El bridge:
+
+- valida el esquema;
+- valida números finitos;
+- limita wires, shots y vectores;
+- exige `quantum:execute`;
+- valida nonce y timestamp;
+- genera hash SHA3-512 de la solicitud;
+- tiene clasificación explícita de errores;
+- dispone de fallback clásico determinista;
+- nunca presenta el fallback como hardware cuántico;
+- mantiene diagnósticos fuera de stdout;
+- impone timeout y límite de salida en el cliente TypeScript.
+
+Cuando no existe un backend cuántico autorizado, la respuesta es explícitamente:
+
+`CLASSICAL_FALLBACK` + `degraded` + revisión requerida.
+
+Esto convierte la arquitectura descrita en el documento maestro en un contrato ejecutable de referencia, sin fingir una capacidad cuántica que no esté conectada.
 
 ---
 
-## 9. Persistencia y Sovereign Engine
+# 11. Criptografía y soberanía
 
-La persistencia debe tener una única fuente durable por entorno.
+La arquitectura distingue objetivos diferentes:
 
-Se distinguen:
+| Objetivo | Mecanismo |
+|---|---|
+| Integridad | SHA-256 / SHA3-512 |
+| Autenticación compartida | HMAC-SHA256 |
+| Firma pública | algoritmo aprobado / migración PQC |
+| Intercambio de claves | KEM aprobado |
+| Cifrado | AEAD moderno |
 
-- estado cognitivo;
-- memoria;
-- repositorios;
-- adaptadores;
-- PostgreSQL/Neon;
-- Supabase;
-- JSON local de desarrollo.
-
-**Regla:** un fallback de desarrollo no puede convertirse silenciosamente en fuente de verdad productiva.
-
-### Corrección aplicada
-
-El adaptador Neon ahora ordena los eventos de auditoría por `timestamp`, no por `created_at`, porque el esquema de `audit_events` utiliza `timestamp`.
-
-Esto elimina un fallo real que impedía recuperar auditoría correctamente en ese adaptador.
+HMAC no equivale a firma pública ni constituye por sí solo una solución poscuántica. El documento maestro establece una migración gradual hacia criptografía híbrida y estándares apropiados. 
 
 ---
 
-## 10. BookPI
+# 12. BookPI: economía y trazabilidad
 
-BookPI funciona como capa de:
+BookPI funciona como infraestructura append-only para:
 
 - trazabilidad;
-- ledger append-only;
 - operaciones económicas;
-- coste medido;
-- correlación de ejecución;
-- integridad.
+- costos;
+- correlación;
+- integridad;
+- auditoría.
 
-La ejecución de skills utiliza el repositorio PostgreSQL de BookPI y no genera automáticamente cargos monetarios: solo registra coste cuando el resultado declara explícitamente un `billableCostUsd` válido.
+El repositorio PostgreSQL usa transacciones, advisory locks y `SELECT ... FOR UPDATE` para mantener la cadena por tenant durante los append.
 
-### No confundir
+### Regla de oro
 
 ```text
-BookPI code exists
+Código de BookPI
       ≠
-BookPI production-certified
+BookPI certificado en producción
 ```
 
-Para certificación deben ejecutarse:
+La certificación requiere pruebas reproducibles de:
 
-- integridad de cadena;
-- aislamiento tenant;
+- cadena;
+- inmutabilidad;
+- tenant isolation;
 - idempotencia;
-- doble partida donde corresponda;
+- concurrencia;
 - reconciliación;
-- pruebas de concurrencia;
 - recuperación.
 
----
+### Riesgo aún abierto
 
-## 11. Monetización
-
-La capa de monetización fue revisada para eliminar señales de simulación.
-
-### Correcciones
-
-- checkout conectado al endpoint real `/api/billing?action=checkout`;
-- idempotency key en header y body;
-- Personal y Pro como planes de checkout directo;
-- Enterprise tratado como contratación institucional;
-- ciclos mensual/anual diferenciados;
-- métricas de uso sintéticas eliminadas;
-- panel de uso muestra `No disponible` cuando el backend no entrega un dato;
-- estado financiero se deriva del servidor.
-
-### Corrección de UX
-
-Enterprise ya no aparece como botón muerto: la acción puede abrir el flujo institucional existente.
-
-### Pendiente
-
-- webhook Stripe verificado;
-- reconciliación de suscripción;
-- pruebas E2E;
-- idempotencia bajo reintentos;
-- evidencia de conciliación BookPI ↔ Stripe.
+Las operaciones económicas que cruzan **saldo + ledger + evento económico** todavía requieren una frontera transaccional única para alcanzar el nivel más alto de atomicidad. Ese punto debe resolverse en el repositorio PostgreSQL, no mediante secuencias separadas de endpoint.
 
 ---
 
-## 12. Auditoría de seguridad
+# 13. Monetización real
 
-El dashboard ya no inicia con eventos de seguridad sintéticos.
+La capa de billing contiene:
 
-Los registros deben venir del backend autenticado:
+- checkout Stripe;
+- idempotency keys;
+- ciclos mensual/anual;
+- Personal y Pro;
+- Enterprise como flujo institucional;
+- webhook con firma Stripe;
+- deduplicación de eventos;
+- top-up condicionado a PaymentIntent `succeeded`;
+- capacidades de ejecución de un solo uso.
+
+El checkout no debe interpretarse como suscripción activada hasta recibir y procesar el evento correspondiente.
+
+### Próximo nivel de endurecimiento
+
+La conciliación final debe cerrar en una sola unidad durable:
 
 ```text
-/api/security?action=audit-logs
+Stripe event
+  ↓
+economic event
+  ↓
+account/balance
+  ↓
+BookPI
+  ↓
+audit
 ```
 
-La interfaz falla cerrada cuando:
-
-- no existe sesión;
-- el endpoint devuelve error HTTP;
-- el store de auditoría no está disponible;
-- no existe evidencia positiva del secreto de auditoría.
-
-También se corrigió la semántica para no presentar `severity` como si fuera un nivel AEGIS 0–5.
-
-La UI identifica el dato como **severidad** y el identificador como **evidence ID**.
+La repetición del evento debe ser segura y no duplicar crédito.
 
 ---
 
-## 13. NCUA y rendimiento
+# 14. Seguridad
 
-Scripts principales:
+Controles activos en el proyecto:
 
-```bash
-pnpm ncua:benchmark
-pnpm ncua:load
-```
+- autenticación soberana;
+- tenant context;
+- scopes;
+- rate limiting;
+- input limits;
+- validación Zod;
+- fail-closed;
+- RLS;
+- auditoría;
+- secret management;
+- security headers;
+- dependency audit;
+- secret scanning;
+- Trivy;
+- CodeQL.
 
-La suite está destinada a evaluar:
+El dashboard de seguridad ya no debe inventar eventos iniciales. Los registros proceden del backend autenticado y la interfaz utiliza `evidenceId`, no una falsa afirmación de firma criptográfica.
 
-- latencia;
-- throughput;
-- transferencia;
-- concurrencia;
-- estabilidad del ERI;
-- comportamiento de patching;
-- consistencia de operaciones.
+---
 
-La campaña solicitada de referencia es:
+# 15. NCUA, carga y SRE
+
+La arquitectura canónica define métricas como:
+
+- p50 / p95 / p99;
+- errores por federación;
+- fallback;
+- costo;
+- CPU/GPU;
+- cola;
+- recuperación;
+- cobertura;
+- respuestas con evidencia;
+- correcciones humanas;
+- deriva;
+- incidentes.
+
+Los objetivos iniciales documentados son internos y deben validarse con carga real; no son promesas públicas. 
+
+Campaña objetivo:
 
 ```text
-50 → 100 → 250 → 500 solicitudes concurrentes
+50 → 100 → 250 → 500 concurrentes
 ```
 
-Debe conservar:
-
-- commit;
-- entorno;
-- dataset;
-- configuración;
-- p50/p95/p99;
-- errores;
-- MB/s;
-- ERI;
-- consumo de recursos;
-- estado BookPI.
-
-**No se declara un resultado hasta ejecutar la prueba.**
+Cada corrida debe conservar commit, entorno, dataset, configuración, p50/p95/p99, errores, MB/s, ERI y consumo.
 
 ---
 
-## 14. Contrato de producción
+# 16. CI/CD y seguridad de la cadena de suministro
 
-### Integridad
+El workflow de seguridad utiliza acciones fijadas por SHA inmutable y ejecuta:
 
-```bash
-pnpm production:integrity
-```
+- instalación frozen;
+- typecheck;
+- security scan;
+- dependency audit;
+- TruffleHog;
+- Trivy;
+- CodeQL;
+- build.
 
-### Preflight
-
-```bash
-pnpm production:preflight -- --json
-```
-
-### Gate canónico
-
-```bash
-pnpm production:gate
-```
-
-El gate canónico incluye:
-
-```text
-typecheck
-→ lint
-→ tests
-→ repository audit
-→ security scan
-→ capabilities
-→ route audit
-→ database verification
-→ production integrity
-→ production preflight
-→ build
-→ production evidence
-```
-
-### Evidencia
-
-```bash
-pnpm production:evidence
-```
-
-El generador nunca debe convertir una comprobación no ejecutada en PASS.
-
----
-
-## 15. Desarrollo local
-
-Requisitos:
+Contrato de reproducibilidad:
 
 ```text
 Node 24.11.0
 pnpm 10.15.4
-```
-
-Instalación:
-
-```bash
 pnpm install --frozen-lockfile
 ```
 
-Desarrollo:
+El objetivo no es que una pipeline "parezca verde"; es que el commit evaluado sea reproducible.
 
-```bash
-pnpm dev
-```
+---
 
-El servidor de Vite se expone en el host configurado por el proyecto; normalmente se utiliza:
+# 17. Producción: no se certifica por narrativa
 
-```text
-http://localhost:5173
-```
-
-La aplicación requiere el conjunto de variables definido en `.env.example`. Los secretos de producción no deben copiarse al repositorio.
-
-Validación:
+Gates principales:
 
 ```bash
 pnpm typecheck
@@ -515,339 +520,268 @@ pnpm test
 pnpm build
 pnpm security:scan
 pnpm audit:repository
+pnpm production:integrity
+pnpm production:preflight -- --json
+pnpm production:gate
+pnpm production:evidence
 ```
 
----
-
-## 16. Reproducibilidad
-
-El contrato es:
-
-```json
-{
-  "packageManager": "pnpm@10.15.4",
-  "engines": {
-    "node": ">=22 <25"
-  }
-}
-```
-
-CI utiliza Node `24.11.0` y pnpm `10.15.4`.
-
-Vercel también utiliza:
-
-```bash
-pnpm install --frozen-lockfile
-```
-
-Esto evita que Vercel reconstruya silenciosamente un lockfile diferente del commit evaluado.
-
----
-
-## 17. CI/CD
-
-Workflows relevantes:
-
-- `.github/workflows/ci.yml`
-- `.github/workflows/fgais-gate.yml`
-- `.github/workflows/security.yml`
-- `.github/workflows/release.yml`
-
-### Estado conocido de la auditoría
-
-Las ejecuciones observadas antes de este último lote de correcciones presentaron fallos en:
-
-- **FGAIS Production Gate**
-- **Isabella Genesis — Security Gate**
-
-Además, un deployment de Vercel asociado al commit revisado anteriormente terminó en estado de error.
-
-Por tanto, esas ejecuciones históricas **no se reinterpretan como PASS** después de modificar el código. Deben volver a ejecutarse.
-
----
-
-## 18. Vercel
-
-Contrato:
+### Criterio
 
 ```text
-Framework: TanStack Start
+Código
+  ↓
+Prueba
+  ↓
+CI
+  ↓
+Build
+  ↓
+Deployment
+  ↓
+Runtime smoke
+  ↓
+Evidencia
+  ↓
+Producción
+```
+
+Un porcentaje de implementación nunca sustituye estos pasos.
+
+---
+
+# 18. Vercel
+
+Contrato actual:
+
+```text
+Framework: tanstack-start
 Build: pnpm run build
 Install: pnpm install --frozen-lockfile
 Output: .vercel/output
 ```
 
-Secuencia de liberación:
+La instalación congelada evita que Vercel reconstruya un lockfile distinto al commit evaluado.
 
-```text
-GitHub
-  ↓
-frozen install
-  ↓
-typecheck / lint / tests
-  ↓
-security / integrity / preflight
-  ↓
-build
-  ↓
-Preview
-  ↓
-smoke / E2E
-  ↓
-Production
-  ↓
-runtime verification
-```
-
-Un deployment `READY` es necesario pero no suficiente.
+**Estado de producción:** actualmente bloqueado. Los deployments recientes y el gate de dependencias fallan durante `pnpm install --frozen-lockfile` con `ERR_PNPM_NO_MATCHING_VERSION`. El manifest ya fue alineado con el lockfile; queda identificar el paquete exacto que el entorno Vercel/pnpm 10.15.4 no puede resolver. No se declara READY ni se relaja `--frozen-lockfile` como atajo.
 
 ---
 
-## 19. Evidence-first production
+# 19. Indicadores de madurez
 
-Un paquete de evidencia completo debe responder:
+Los siguientes indicadores son estimaciones técnicas, no certificaciones:
 
-- commit SHA;
-- estado limpio del repositorio;
-- Node/pnpm;
-- lockfile;
-- tests;
-- security;
-- migraciones;
-- build digest;
-- deployment ID;
-- smoke;
-- BookPI;
-- tenant isolation;
-- NCUA;
-- rollback.
+| Dimensión | Estimación | Estado |
+|---|---:|---|
+| Arquitectura e integración | ≈78% | Consolidación |
+| Interacción Isabella ↔ usuario | ≈76% | Avanzada |
+| CROWN / gobernanza | ≈82% | Avanzada |
+| Skills / ejecución | ≈74% | Integración |
+| BookPI / trazabilidad | ≈78% | Avanzada |
+| Seguridad / JWT / RLS | ≈70% | Hardening |
+| Monetización / billing | ≈75% | Integración |
+| NCUA / rendimiento | ≈80% | Avanzada |
+| Testing | ≈72% | En expansión |
+| CI/CD | ≈60% | Pendiente de evidencia fresca |
+| Vercel / despliegue | ≈45% | Pendiente de READY |
+| Observabilidad / evidencia | ≈68% | Consolidación |
+| **Madurez de implementación/integración** | **≈74%** | **Hardening avanzado** |
+| **Readiness de producción** | **≈51%** | **No certificada** |
 
-Los archivos generados por `production:evidence` diferencian:
-
-- `PASS`;
-- `UNVERIFIED`;
-- evidencia faltante.
-
-Eso evita que un JSON decorativo sea confundido con certificación.
+Estos valores no representan líneas de código ni una certificación. La diferencia entre madurez técnica y readiness productiva es deliberada.
 
 ---
 
-## 20. Sesgos y debilidades detectados
+# 20. Roadmap de evolución
 
-La auditoría no se limitó a errores de compilación. También se revisaron riesgos metodológicos.
+## Fase 0 — Contratos
 
-### 20.1 Sesgo de implementación
+- congelar esquemas;
+- inventariar dependencias;
+- matriz de riesgos;
+- separar prototipo y producción;
+- licencias;
+- responsables.
 
-Una función presente en el repositorio puede parecer terminada aunque no esté integrada.
+## Fase 1 — Núcleo soberano
 
-**Corrección:** separar implementación, integración y certificación.
+- ARGUS;
+- tenants aislados;
+- memoria portable;
+- GraphRAG;
+- API Isabella;
+- fallback transparente.
 
-### 20.2 Sesgo de UI
+## Fase 2 — Gobierno y observabilidad
 
-Una interfaz terminada puede sugerir que existe backend funcional.
+- tracing;
+- políticas versionadas;
+- presupuestos;
+- aprobación humana;
+- registro de decisiones;
+- panel operacional.
 
-**Corrección:** dashboards financieros y de seguridad dependen de datos backend reales.
+## Fase 3 — Motor híbrido
 
-### 20.3 Sesgo de proveedor
+- simulador CPU;
+- backend GPU opcional;
+- adaptadores remotos;
+- benchmarks;
+- error metrics;
+- circuit management.
 
-Un proveedor puede recibir una política diferente a otro.
+## Fase 4 — Soberanía federada
 
-**Corrección:** CROWN se incorpora al prompt de inferencia en las rutas revisadas.
+- exportación;
+- segundo proveedor de modelos;
+- segundo proveedor cloud;
+- copia operativa independiente;
+- claves controladas;
+- pruebas de migración.
 
-### 20.4 Sesgo de evidencia
+## Fase 5 — Investigación cuántica
 
-Un valor hardcoded puede aparentar ser resultado de ejecución.
+- QSVM;
+- kernels;
+- VQE;
+- QSP;
+- quanvolution;
+- SSVQE formal;
+- comparación clásica;
+- publicación reproducible.
 
-**Corrección:** el Claim Engine deriva la versión de pnpm del contrato real de `package.json`.
+## Fase 6 — Federación territorial
 
-### 20.5 Sesgo de catálogo
+- identidad federada;
+- contratos entre nodos;
+- políticas interoperables;
+- intercambio de conocimiento;
+- auditoría entre organizaciones;
+- gobernanza multiterritorial.
 
-Un ID declarativo puede confundirse con una implementación runtime.
-
-**Corrección:** separación entre catálogo de skills nativas y runtime de skills evolucionadas.
-
-### 20.6 Sesgo de fallback
-
-Un fallback local puede terminar actuando como persistencia productiva.
-
-**Corrección:** repository factory y preflight deben fallar cerrado ante configuraciones productivas inválidas.
-
----
-
-## 21. Checklist de liberación
-
-### Obligatorio
-
-- [ ] conflictos Git = 0
-- [ ] typecheck = PASS
-- [ ] lint = PASS
-- [ ] tests = PASS
-- [ ] repository audit = PASS
-- [ ] security scan = PASS
-- [ ] capability contract = PASS
-- [ ] route audit = PASS
-- [ ] database verification = PASS
-- [ ] production integrity = PASS
-- [ ] production preflight = PASS
-- [ ] build = PASS
-- [ ] Vercel build = PASS
-
-### Producción
-
-- [ ] deployment = READY
-- [ ] runtime smoke = PASS
-- [ ] E2E = PASS
-- [ ] tenant isolation = PASS
-- [ ] BookPI integrity = PASS
-- [ ] Stripe webhook verification = PASS
-- [ ] NCUA 50–500 concurrency = PASS
-- [ ] rollback verification = PASS
-- [ ] evidence bundle = COMPLETE
-
-### Condición
-
-Si un punto obligatorio no tiene evidencia, el estado debe permanecer **Pre-Producción / Hardening** o **Production Candidate**, nunca **Production Certified**.
+La hoja de ruta maestra define estas fases como evolución progresiva de un núcleo soberano hacia una federación territorial interoperable. 
 
 ---
 
-## 22. Archivos de autoridad técnica
+# 21. Riesgos que Isabella debe enfrentar de frente
 
-```text
-src/server.ts
-src/lib/config.ts
-src/lib/env-schema.ts
-src/lib/principal-context.ts
-src/lib/tenant-guard.ts
-src/lib/tenant-context.ts
-src/lib/authorization.ts
-src/lib/rbac.ts
-src/lib/abac.ts
-src/lib/crown.ts
-src/lib/constitutional-gate.ts
-src/lib/sovereign-engine.ts
-src/lib/sovereign-pipeline.ts
-src/lib/memory-engine.ts
-src/lib/skill-registry.ts
-src/lib/skills/registry.ts
-src/lib/skills/run-skill.ts
-src/lib/bookpi*.ts
-src/lib/repositories/bookpi-repository.ts
-src/lib/repositories/audit-repository.ts
-src/lib/persistence/repository-factory.ts
-src/lib/isabella-chat-gateway.ts
-src/server-routes/api/security.ts
-src/server-routes/api/billing.ts
-supabase/migrations/*
-scripts/production-integrity-gate.mjs
-scripts/production-preflight.mjs
-scripts/production-evidence.mjs
-.github/workflows/*
-vercel.json
-```
+| Riesgo | Impacto | Respuesta |
+|---|---|---|
+| Lock-in cloud | Alto | multi-cloud + exportación |
+| Lock-in de modelo | Alto | adaptadores + proveedores alternativos |
+| Alucinación | Alto | evidencia + RAG + epistemología |
+| Fuga entre tenants | Crítico | RLS + pruebas de aislamiento |
+| Sobrecosto | Alto | cuotas + presupuestos |
+| Hardware cuántico no disponible | Medio | fallback explícito |
+| Claims exagerados | Alto | lenguaje verificable |
+| API externas cambiantes | Medio | contratos y compatibilidad |
+| Concentración tecnológica | Alto | soberanía + portabilidad |
 
-La documentación derivada nunca debe convertirse en una autoridad superior al código ejecutable y sus pruebas.
+
 
 ---
 
-## 23. Cambios realizados en esta auditoría
+# 22. Qué significa "100%"
 
-Se corrigieron, entre otros:
+No significa "hemos escrito todos los archivos".
 
-1. contrato de instalación congelada en Vercel;
-2. duplicidad de permisos en release workflow;
-3. variables duplicadas en `.env.example`;
-4. mensaje inconsistente del endpoint de billing;
-5. acción Enterprise inutilizable en el selector;
-6. estados `undefined` en Usage Dashboard;
-7. afirmación implícita de renovación automática sin evidencia;
-8. estado fail-closed del Security Audit Dashboard;
-9. headers de seguridad en respuestas GET de error;
-10. lectura opcional del estado del secreto AEGIS;
-11. ordenamiento incorrecto de `audit_events`;
-12. semántica incorrecta de `aegisLevel`;
-13. identificación falsa de un ID como firma criptográfica;
-14. CROWN aplicado a proveedores directos;
-15. evidencia hardcoded de pnpm;
-16. reconciliación entre skills nativas y runtime;
-17. gate `production:gate` convertido en contrato más completo;
-18. README reconstruido como documento de evidencia y no como marketing técnico.
-19. Preflight de Vercel alineado con `pnpm install --frozen-lockfile`.
-20. QuantumBridgeMonitor convertido a evidencia-only: se eliminaron latencia, throughput, fidelidad y QNode simulados.
-21. QuantumBridgeStatus convertido a evidencia-only: se eliminaron heartbeat, ejecuciones y latencia inventados.
-22. CognitiveStatusDashboard dejó de fabricar métricas, logs históricos y resultados de boost; los diagnósticos sin backend pasan a estado no verificado.
-23. Production Integrity Gate ampliado para impedir regresiones de telemetría sintética en esos dashboards.
+Significa que existe evidencia reproducible de:
 
----
+- Git limpio;
+- dependencias reproducibles;
+- typecheck PASS;
+- lint PASS;
+- tests PASS;
+- build PASS;
+- security scan PASS;
+- repository audit PASS;
+- production integrity PASS;
+- preflight PASS;
+- route audit PASS;
+- database verification PASS;
+- Vercel build PASS;
+- deployment READY;
+- runtime smoke PASS;
+- BookPI integrity PASS;
+- tenant isolation PASS;
+- load campaign PASS;
+- evidencia archivada.
 
-## 24. Lo que todavía NO debe afirmarse
+Hasta entonces, Isabella puede estar **muy avanzada** y seguir siendo **pre-producción**.
 
-No debe afirmarse todavía que Isabella está:
+Ese estándar no debilita el proyecto.
 
-- 100% terminada;
-- certificada para producción;
-- libre de deuda técnica;
-- validada bajo 500 concurrentes;
-- certificada por BookPI;
-- validada con Stripe en producción;
-- validada con tenant isolation en un entorno real;
-- desplegada satisfactoriamente en Vercel en el estado final de esta rama.
-
-Esas afirmaciones requieren evidencia.
+Lo hace defendible.
 
 ---
 
-## 25. Próximo gate real
+# 23. Identidad latinoamericana
 
-La siguiente secuencia técnica es:
+Isabella nace desde México.
 
-```text
-1. Ejecutar GitHub Actions sobre f960481...
-2. Analizar logs de cada fallo restante
-3. Corregir typecheck/lint/tests/security
-4. Ejecutar production:gate
-5. Generar build reproducible
-6. Obtener deployment Vercel READY
-7. Ejecutar smoke/E2E
-8. Verificar DB + RLS
-9. Ejecutar BookPI integrity
-10. Ejecutar NCUA 50/100/250/500
-11. Ejecutar pruebas Stripe/idempotencia
-12. Generar production-evidence
-13. Reauditar el PR
-14. Solo entonces evaluar Production Candidate / Production Certified
-```
+Su ambición no es construir una burbuja nacional ni competir mediante retórica contra otros países. Es demostrar que el origen latinoamericano puede ser compatible con ingeniería rigurosa, interoperabilidad internacional, investigación avanzada y gobernanza verificable.
+
+**Real del Monte no es solamente una ubicación en este proyecto. Es el punto de partida de una tesis: el conocimiento territorial puede convertirse en infraestructura digital sin perder identidad, memoria ni capacidad de decisión.**
+
+TAMV propone una arquitectura donde patrimonio, identidad, inteligencia artificial, economía digital, educación y territorio puedan conectarse bajo contratos verificables.
+
+No se trata de decir que Latinoamérica "algún día" puede construir.
+
+Se trata de construir.
 
 ---
 
-## 26. Licenciamiento y atribución
+# 24. Declaración de innovación
 
-La especificación arquitectónica declara Creative Commons Attribution 4.0 International (CC BY 4.0) para el material al que dicha licencia resulte aplicable. Los componentes de terceros conservan sus respectivas licencias.
+> **Isabella Villaseñor AI no busca ser la IA que habla más fuerte. Busca ser una infraestructura que pueda explicar por qué actuó, qué evidencia utilizó, bajo qué política operó, qué parte está verificada, qué parte permanece incierta y quién conserva la autoridad para decidir.**
 
-**Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)**  
-**TAMV ONLINE NETWORK · RDM Digital Hub · Nodo Cero**  
-**Real del Monte, Hidalgo, México**
+Su innovación no depende de un único modelo.
+
+Depende de la arquitectura que rodea al modelo.
+
+La computación cuántica no es un argumento de marketing.
+
+La soberanía no es una palabra decorativa.
+
+La gobernanza no es un documento separado del código.
+
+La memoria no es sinónimo de verdad.
+
+La automatización no elimina la responsabilidad humana.
+
+Y la identidad latinoamericana no es un límite técnico.
+
+**Es nuestro punto de partida.**
 
 ---
 
-## 27. Declaración final
+# 25. Licencias y terceros
 
-Isabella no se considera lista porque una interfaz parezca terminada.
+La autoría declarada de la arquitectura conceptual corresponde a Edwin Oswaldo Castillo Trejo / Anubis Villaseñor, mientras que los componentes de terceros permanecen sujetos a sus respectivas licencias y obligaciones. 
 
-Se considera lista cuando:
+Este repositorio debe mantener avisos de terceros, licencias y dependencias conforme a sus contratos.
 
-```text
-el código compila
-las políticas gobiernan
-la identidad se verifica
-los tenants permanecen aislados
-la persistencia es durable
-BookPI conserva integridad
-las pruebas reproducen el comportamiento
-la carga demuestra estabilidad
-CI reproduce el resultado
-Vercel despliega el mismo artefacto
-runtime confirma el comportamiento
-existe evidencia auditable
-```
+---
 
-**No te pedimos que nos creas. Te pedimos que lo pruebes.**
+# 26. Criterio final
+
+> **TAMV MD-X5 no debe construir una dependencia tecnológica disfrazada de autonomía. Debe construir capacidad real de elección.** 
+
+Ese es el estándar de Isabella Villaseñor AI.
+
+**México como origen.  
+Latinoamérica como horizonte.  
+La evidencia como disciplina.  
+La soberanía como capacidad.  
+La tecnología como herramienta.  
+La humanidad como autoridad final.**
+
+---
+
+## Estado de este README
+
+Este README documenta arquitectura, capacidades implementadas y objetivos. Los estados de producción se consideran **no certificados** hasta que exista evidencia reproducible del pipeline completo.
+
+**Última actualización de arquitectura:** 19 de septiembre de 2026  
+**Especificación de referencia:** Isabella Villaseñor AI v5.1-MASTER  
+**Repositorio:** `OsoPanda1/isabella-ai-genesis`

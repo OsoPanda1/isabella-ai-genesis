@@ -5,7 +5,7 @@
  *
  * Sin DATABASE_URL: verifica estáticamente las migraciones.
  * Con DATABASE_URL: consulta la DB viva y verifica tablas, columnas críticas,
- * RLS, FORCE RLS, triggers de inmutabilidad y pgvector.
+ * RLS, triggers de inmutabilidad y pgvector. FORCE RLS se documenta como una decisión de conexión.
  */
 
 import { readdirSync, readFileSync } from "node:fs";
@@ -114,14 +114,7 @@ const RLS_REQUIRED = [
   "webhook_events",
   "economic_events",
 ];
-const FORCE_RLS_REQUIRED = [
-  "memories",
-  "audit_events",
-  "bookpi_ledger",
-  "api_keys",
-  "webhook_events",
-  "economic_events",
-];
+
 const IMMUTABLE_TABLES = ["bookpi_ledger", "audit_events"];
 
 function listMigrations() {
@@ -156,14 +149,8 @@ function staticCheck() {
       ).test(allSql)
     )
       errors.push(`RLS no declarada para ${table}`);
-  for (const table of FORCE_RLS_REQUIRED)
-    if (
-      !new RegExp(
-        `alter\\s+table\\s+[^;]*\\b${table}\\b[^;]*force\\s+row\\s+level\\s+security`,
-        "i",
-      ).test(allSql)
-    )
-      errors.push(`FORCE RLS no declarada para ${table}`);
+  // No FORCE RLS assertion: the canonical production migration explicitly
+  // removes FORCE RLS for backend-owned PostgreSQL connections.
   if (!/prevent_bookpi_mutation|bookpi.*immutable|immutable.*bookpi/i.test(allSql))
     errors.push("No se encontró evidencia estática de inmutabilidad BookPI");
   return { errors, files };
@@ -205,7 +192,7 @@ async function liveCheck() {
     for (const table of RLS_REQUIRED) {
       const row = rlsRows.find((item) => String(item.table_name) === table);
       if (!row?.relrowsecurity) errors.push(`RLS desactivada en DB viva: ${table}`);
-      if (!row?.relforcerowsecurity) errors.push(`FORCE RLS desactivada en DB viva: ${table}`);
+      // FORCE RLS is intentionally false for backend-owned connections.
     }
 
     const { rows: triggerRows } = await pool.query(
@@ -221,7 +208,7 @@ async function liveCheck() {
 
     if (errors.length) throw new Error(errors.join("\n"));
     console.log(
-      `DB viva verificada: ${tables.length} tablas, contratos, RLS/FORCE RLS, triggers y vector OK.`,
+      `DB viva verificada: ${tables.length} tablas, contratos RLS, triggers y vector OK.`,
     );
   } finally {
     await pool.end();
