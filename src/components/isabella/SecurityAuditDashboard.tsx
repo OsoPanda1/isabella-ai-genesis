@@ -21,16 +21,19 @@ export interface SecurityAuditLogItem {
   actor: string;
   source: string;
   securityStatus: "ALLOWED" | "CHALLENGED" | "QUARANTINED" | "BLOCKED";
-  aegisLevel: string;
-  hashSignature: string;
+  severity: string;
+  evidenceId: string;
 }
 
+// Conflict resolution: backend-only evidence is the single source of truth.\nexport const INITIAL_AUDIT_LOGS: SecurityAuditLogItem[] = [];
+
+
 export function SecurityAuditDashboard() {
-  const [logs, setLogs] = useState<SecurityAuditLogItem[]>([]);
+  const [logs, setLogs] = useState<SecurityAuditLogItem[]>(INITIAL_AUDIT_LOGS);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [auditSecretVerified, setAuditSecretVerified] = useState(true);
+  const [auditSecretVerified, setAuditSecretVerified] = useState(false);
 
   const fetchSecurityAuditLogs = useCallback(async () => {
     setLoading(true);
@@ -44,12 +47,13 @@ export function SecurityAuditDashboard() {
           const data = await res.json();
           if (Array.isArray(data.logs)) {
             setLogs(data.logs);
-            setAuditSecretVerified(Boolean(data.auditSecretVerified ?? true));
+            setAuditSecretVerified(data.auditSecretVerified === true);
           }
         }
       }
     } catch {
-      // Fallback to active state
+      setLogs([]);
+      setAuditSecretVerified(false);
     } finally {
       setLoading(false);
     }
@@ -127,7 +131,7 @@ export function SecurityAuditDashboard() {
               </span>
             </div>
             <p className="font-mono text-xs text-slate-400 mt-0.5">
-              Registro append-only verificado mediante firma criptográfica HMAC-SHA3-512.
+              Registro append-only proveniente exclusivamente del backend; sin datos sintéticos.
             </p>
           </div>
         </div>
@@ -186,8 +190,8 @@ export function SecurityAuditDashboard() {
               <th className="px-4 py-3 font-semibold">Acción Auditable</th>
               <th className="px-4 py-3 font-semibold">Actor / Origen</th>
               <th className="px-4 py-3 font-semibold">Estado de Seguridad</th>
-              <th className="px-4 py-3 font-semibold">Nivel Aegis</th>
-              <th className="px-4 py-3 font-semibold text-right">Firma HMAC</th>
+              <th className="px-4 py-3 font-semibold">Severidad</th>
+              <th className="px-4 py-3 font-semibold text-right">ID de evidencia</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60">
@@ -216,9 +220,9 @@ export function SecurityAuditDashboard() {
                     <div className="text-[10px] text-slate-500">{log.source}</div>
                   </td>
                   <td className="px-4 py-3">{getStatusBadge(log.securityStatus)}</td>
-                  <td className="px-4 py-3 text-slate-400 font-semibold">{log.aegisLevel}</td>
+                  <td className="px-4 py-3 text-slate-400 font-semibold">{log.severity}</td>
                   <td className="px-4 py-3 text-right text-slate-500 font-mono text-[10px]">
-                    {log.hashSignature}
+                    {log.evidenceId}
                   </td>
                 </tr>
               ))
@@ -229,9 +233,9 @@ export function SecurityAuditDashboard() {
 
       <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-2 border-t border-slate-900">
         <span>
-          Mostrando {filteredLogs.length} de {logs.length} eventos auditados
+          Mostrando {filteredLogs.length} de {logs.length} eventos auditados por el backend
         </span>
-        <span>Canal HMAC: AEGIS_AUDIT_SECRET • CERO ALTERACIONES</span>
+        <span>Canal de evidencia: backend autenticado • sin datos sintéticos</span>
       </div>
     </div>
   );
