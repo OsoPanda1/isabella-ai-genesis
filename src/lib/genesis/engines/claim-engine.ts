@@ -106,7 +106,7 @@ export class ClaimEngine {
       runnerId: isCiEnvironment() ? getCiRunId() : "local",
       os: process.platform,
       nodeVersion: process.version,
-      pnpmVersion: "10.15.4",
+      pnpmVersion: (() => {\n        try {\n          const packageManager = JSON.parse(\n            readFileSync(join(process.cwd(), "package.json"), "utf8"),\n          ).packageManager;\n          return typeof packageManager === "string" ? packageManager.replace(/^pnpm@/, "") : "unknown";\n        } catch {\n          return "unknown";\n        }\n      })(),
       dependencyLockHash: this.getDependencyLockHash(),
     };
 
