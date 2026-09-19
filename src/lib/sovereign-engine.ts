@@ -261,7 +261,6 @@ public static async hydrate({
 
   public static load(): DatabaseSchema {
     assertJsonPersistenceAllowed();
->>>>>>> Stashed changes
     try {
       return await hydrationInFlight;
     } finally {
