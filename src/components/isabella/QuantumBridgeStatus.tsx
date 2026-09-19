@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Zap, Wifi, WifiOff, RefreshCw, Cpu, Activity, CheckCircle2, Clock } from "lucide-react";
+import React, { useState } from "react";
+import { Zap, Wifi, WifiOff, RefreshCw, Cpu, Activity, Clock, CircleHelp } from "lucide-react";
 
 export interface QuantumBridgeStatusProps {
   connected?: boolean;
@@ -10,42 +10,35 @@ export interface QuantumBridgeStatusProps {
   onRefreshStatus?: () => void;
 }
 
+/**
+ * QuantumBridgeStatus deliberately renders only evidence supplied by its caller.
+ * It does not simulate heartbeats, executions, latency or qubit counts.
+ * A missing value is shown as "No disponible / No verificado".
+ */
 export function QuantumBridgeStatus({
-  connected: initialConnected = true,
-  executionCount: initialExecCount = 42,
-  lastExecutionTime: initialTime,
-  latencyMs: initialLatency = 142,
-  activeQubits = 32,
+  connected,
+  executionCount,
+  lastExecutionTime,
+  latencyMs,
+  activeQubits,
   onRefreshStatus,
 }: QuantumBridgeStatusProps) {
-  const [isConnected, setIsConnected] = useState(initialConnected);
-  const [execCount, setExecCount] = useState(initialExecCount);
-  const [latency, setLatency] = useState(initialLatency);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastSeen, setLastSeen] = useState(
-    initialTime || new Date().toLocaleTimeString([], { hour12: false }),
-  );
 
-  useEffect(() => {
-    // Simulate active heartbeat pulse for quantum bridge
-    const interval = setInterval(() => {
-      setLatency(Math.floor(110 + Math.random() * 85));
-      setLastSeen(new Date().toLocaleTimeString([], { hour12: false }));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
+    if (!onRefreshStatus) return;
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsConnected(true);
-      setExecCount((prev) => prev + 1);
-      setLatency(Math.floor(95 + Math.random() * 40));
-      setLastSeen(new Date().toLocaleTimeString([], { hour12: false }));
+    try {
+      await onRefreshStatus();
+    } finally {
       setIsRefreshing(false);
-      if (onRefreshStatus) onRefreshStatus();
-    }, 600);
+    }
   };
+
+  const connectionLabel =
+    connected === true ? "CONECTADO" : connected === false ? "DESCONECTADO" : "NO VERIFICADO";
+  const ConnectionIcon =
+    connected === true ? Wifi : connected === false ? WifiOff : CircleHelp;
 
   return (
     <div
@@ -54,36 +47,17 @@ export function QuantumBridgeStatus({
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
         <div className="flex items-center gap-3">
-          <div
-            className={`flex h-9 w-9 items-center justify-center rounded-lg border ${
-              isConnected
-                ? "bg-purple-500/10 border-purple-500/30 text-purple-400"
-                : "bg-rose-500/10 border-rose-500/30 text-rose-400"
-            }`}
-          >
-            <Zap className={`size-5 ${isConnected ? "animate-pulse" : ""}`} />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/60 text-purple-400">
+            <Zap className="size-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
                 Puente Cuántico PennyLane QUP-v3
               </span>
-              <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
-                  isConnected
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                    : "bg-rose-500/10 text-rose-400 border-rose-500/30"
-                }`}
-              >
-                {isConnected ? (
-                  <>
-                    <Wifi className="size-3" /> CONECTADO
-                  </>
-                ) : (
-                  <>
-                    <WifiOff className="size-3" /> DESCONECTADO
-                  </>
-                )}
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border bg-slate-800 text-slate-300 border-slate-700">
+                <ConnectionIcon className="size-3" />
+                {connectionLabel}
               </span>
             </div>
             <h4 className="text-sm font-bold text-white tracking-tight">
@@ -92,46 +66,44 @@ export function QuantumBridgeStatus({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="self-start sm:self-auto px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200 flex items-center gap-1.5 transition-all disabled:opacity-50"
-        >
-          <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin text-purple-400" : ""}`} />
-          <span>Sincronizar Estado</span>
-        </button>
+        {onRefreshStatus && (
+          <button
+            type="button"
+            onClick={() => void handleRefresh()}
+            disabled={isRefreshing}
+            className="self-start sm:self-auto px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200 flex items-center gap-1.5 transition-all disabled:opacity-50"
+          >
+            <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin text-purple-400" : ""}`} />
+            <span>Verificar Estado</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 font-mono text-xs">
-        <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 space-y-0.5">
-          <span className="text-[10px] uppercase text-slate-400 flex items-center gap-1">
-            <Activity className="size-3 text-purple-400" /> Ejecuciones Totales
-          </span>
-          <p className="text-sm font-bold text-white">{execCount.toLocaleString()} QNodes</p>
-        </div>
-
-        <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 space-y-0.5">
-          <span className="text-[10px] uppercase text-slate-400 flex items-center gap-1">
-            <Clock className="size-3 text-sky-400" /> Latencia de Enlace
-          </span>
-          <p className="text-sm font-bold text-sky-300">{latency} ms</p>
-        </div>
-
-        <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 space-y-0.5">
-          <span className="text-[10px] uppercase text-slate-400 flex items-center gap-1">
-            <Cpu className="size-3 text-emerald-400" /> Qubits / Wires
-          </span>
-          <p className="text-sm font-bold text-emerald-300">{activeQubits} Asignados</p>
-        </div>
-
-        <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 space-y-0.5">
-          <span className="text-[10px] uppercase text-slate-400 flex items-center gap-1">
-            <CheckCircle2 className="size-3 text-amber-400" /> Último Latido
-          </span>
-          <p className="text-sm font-bold text-amber-300">{lastSeen}</p>
-        </div>
+        <Metric icon={<Activity className="size-3 text-purple-400" />} label="Ejecuciones Totales">
+          {executionCount == null ? "No disponible" : `${executionCount.toLocaleString()} QNodes`}
+        </Metric>
+        <Metric icon={<Clock className="size-3 text-sky-400" />} label="Latencia de Enlace">
+          {latencyMs == null ? "No disponible" : `${latencyMs} ms`}
+        </Metric>
+        <Metric icon={<Cpu className="size-3 text-emerald-400" />} label="Qubits / Wires">
+          {activeQubits == null ? "No disponible" : `${activeQubits} asignados`}
+        </Metric>
+        <Metric icon={<Clock className="size-3 text-amber-400" />} label="Última Evidencia">
+          {lastExecutionTime ?? "No disponible"}
+        </Metric>
       </div>
+    </div>
+  );
+}
+
+function Metric({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
+  return (
+    <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 space-y-0.5">
+      <span className="text-[10px] uppercase text-slate-400 flex items-center gap-1">
+        {icon} {label}
+      </span>
+      <p className="text-sm font-bold text-white">{children}</p>
     </div>
   );
 }
