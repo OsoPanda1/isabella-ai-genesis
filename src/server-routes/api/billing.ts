@@ -293,7 +293,8 @@ export const Route = createFileRoute("/api/billing")({
               if (denied) return denied;
               const parsed = z
                 .object({
-                  planId: z.enum(["pro", "enterprise"]),
+                  planId: z.enum(["personal", "pro"]),
+                  billingCycle: z.enum(["monthly", "yearly"]).default("monthly"),
                   idempotencyKey: z
                     .string()
                     .trim()
@@ -305,14 +306,14 @@ export const Route = createFileRoute("/api/billing")({
                 .safeParse(body);
               if (!parsed.success) {
                 return new Response(
-                  JSON.stringify({ error: "planId debe ser pro o enterprise." }),
+                  JSON.stringify({ error: "planId debe ser personal o pro." }),
                   {
                     status: 400,
                     headers,
                   },
                 );
               }
-              const { planId } = parsed.data;
+              const { planId, billingCycle } = parsed.data;
               const idempotencyKey =
                 request.headers.get("idempotency-key") ?? parsed.data.idempotencyKey;
               if (!idempotencyKey) {
@@ -339,7 +340,7 @@ export const Route = createFileRoute("/api/billing")({
                 completeCheckoutIdempotency,
                 releaseCheckoutIdempotency,
               } = await import("@/lib/repositories/billing-security-repository");
-              const requestHash = billingRequestHash({ planId, operation: "checkout" });
+              const requestHash = billingRequestHash({ planId, billingCycle, operation: "checkout" });
               let reservation;
               try {
                 reservation = await reserveCheckoutIdempotency({
@@ -397,8 +398,8 @@ export const Route = createFileRoute("/api/billing")({
                               name: `Isabella AI - Suscripción ${planId.toUpperCase()}`,
                               description: `Acceso Premium al orquestador cognitivo de Isabella (${planId}).`,
                             },
-                            unit_amount: planId === "pro" ? 2900 : 9900, // $29 o $99 USD
-                            recurring: { interval: "month" },
+                            unit_amount: billingCycle === "yearly" ? (planId === "personal" ? 9588 : 19188) : (planId === "personal" ? 999 : 1999),
+                            recurring: { interval: billingCycle === "yearly" ? "year" : "month" },
                           },
                           quantity: 1,
                         },
