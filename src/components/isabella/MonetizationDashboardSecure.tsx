@@ -299,10 +299,10 @@ export function MonetizationDashboardSecure({ initialTab }: { initialTab?: strin
       {tab === "usage" && (
         <UsageDashboard
           activePlanId={tenant?.tier?.toLowerCase() ?? "free"}
-          messagesUsed={120}
-          messageLimit={tenant?.tier === "Enterprise" ? 10000 : 500}
-          tokensRemaining={tenant?.quotaBalance ?? 100000}
-          tokenLimit={1000000}
+          messagesUsed={undefined}
+          messageLimit={undefined}
+          tokensRemaining={tenant?.quotaBalance ?? undefined}
+          tokenLimit={undefined}
           onRefresh={() => {
             void refresh();
           }}
@@ -311,13 +311,26 @@ export function MonetizationDashboardSecure({ initialTab }: { initialTab?: strin
       )}
       {tab === "plans" && (
         <PlanSelector
-          currentPlanId={currentPlanId}
-          onSelectPlan={(planId) =>
-            toast.info(
-              `Plan ${planId} seleccionado. El cambio de suscripción requiere una operación autorizada en servidor.`,
-            )
-          }
-        />
+            currentPlanId={currentPlanId}
+            onSelectPlan={async (planId, billingCycle) => {
+              if (planId === "enterprise") {
+                toast.info("Enterprise requiere contratación institucional.");
+                return;
+              }
+              try {
+                const idempotencyKey = crypto.randomUUID();
+                const data = await api("checkout", {
+                  method: "POST",
+                  headers: { "idempotency-key": idempotencyKey },
+                  body: JSON.stringify({ planId, billingCycle, idempotencyKey }),
+                });
+                if (!data.checkoutUrl) throw new Error(data.error || "Checkout no disponible.");
+                window.location.assign(data.checkoutUrl);
+              } catch (cause) {
+                toast.error(cause instanceof Error ? cause.message : "No fue posible iniciar el checkout.");
+              }
+            }}
+          />
       )}
     </div>
   );
