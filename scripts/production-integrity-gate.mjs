@@ -13,7 +13,7 @@ const checks = [
       /isValidSkillResult/,
       /SkillInvocationCompleted/,
     ],
-    forbidden: [/Math\\.random\\s*\\(/],
+    forbidden: [/Math\.random\s*\(/],
     label: "Conversational skill bridge must resolve, authorize, execute, validate and audit registered skills",
   },
   {
