@@ -176,7 +176,7 @@ export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps)
               <div className="mt-5 pt-4 border-t border-border/20">
                 <button
                   onClick={() => onSelectPlan(p.id, billingCycle)}
-                  disabled={isCurrent || p.id === "enterprise"}
+                  disabled={isCurrent}
                   className={`w-full py-2 rounded-xl font-mono text-[10px] uppercase tracking-wider transition-all border ${
                     isCurrent
                       ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 cursor-default"
