@@ -79,30 +79,23 @@ function resolvedSignatureAlgorithm(): BookpiSignatureAlgorithm {
   );
 }
 
-function signBlockHash(blockHash: string, key: string, algorithm: BookpiSignatureAlgorithm): string {
-  const signer = algorithm === "ED25519" ? createSign(null) : createSign("SHA256");
-  signer.update(blockHash);
-  return signer.end().sign({ key, padding: undefined }, "base64");
-}
-
-function verifyBlockHash(
-  blockHash: string,
-  signature: string,
-  key: string,
-  algorithm: BookpiSignatureAlgorithm,
-): boolean {
-  const verifier = algorithm === "ED25519" ? createVerify(null) : createVerify("SHA256");
-  verifier.update(blockHash);
-  return verifier.verify({ key, padding: undefined }, signature, "base64");
-}
-
-/**
- * Respaldo de firma: devuelve la clave privada PEM de BOOKPI_SIGNING_KEY cuando
- * el algoritmo declarado lo requiere (fail-closed si falta).
- */
-function signingKeyFor(algorithm: BookpiSignatureAlgorithm): string | null {
-  if (algorithm === "NOT_IMPLEMENTED") return null;
-  return secrets.bookpiSigningKey() || null;
+function mapRow(row: Record<string, unknown>): BlockPIBlock {
+  return {
+    index: Number(row.index),
+    timestamp: typeof row.timestamp === "string" ? row.timestamp : new Date(String(row.timestamp)).toISOString(),
+    tenantId: String(row.tenant_id),
+    userId: String(row.user_id),
+    operation: String(row.operation),
+    category: row.category as LedgerCategory,
+    costDecimal: String(row.cost_decimal),
+    tokensConsumed: Number(row.tokens_consumed),
+    previousHash: String(row.previous_hash),
+    blockHash: String(row.block_hash),
+    pqcSignature: row.pqc_signature ? String(row.pqc_signature) : null,
+    signatureAlgorithm: String(row.signature_algorithm || "ECDSA-P384"),
+    status: row.status as LedgerStatus,
+    nonce: String(row.nonce),
+  };
 }
 
 /**
@@ -118,88 +111,12 @@ export function createBookpiPostgresRepository() {
   /**
    * Listado de bloques por tenant.
    */
-  list(tenantId: string): Promise<BlockPIBlock[]> {
+  async function list(tenantId: string): Promise<BlockPIBlock[]> {
     return pool
       .query("SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index ASC", [
         tenantId,
       ])
       .then((r) => r.rows.map(mapRow));
-  }
-
-  /**
-   * Append atómico de un bloque BookPI (usando Pool/pg).
-   */
-  async function appendOnce(input: {
-    tenantId: string;
-    userId: string;
-    operation: string;
-    category: LedgerCategory;
-    cost: number;
-    tokens: number;
-    status?: LedgerStatus;
-  }) {
-    const previousBlock = await readPrevious(input.tenantId);
-    const index = previousBlock ? previousBlock.index + 1 : 0;
-    const timestamp = new Date().toISOString();
-    const costDecimal = input.cost.toFixed(2);
-    const status: LedgerStatus = input.status ?? "settled";
-    const signatureAlgorithm = resolvedSignatureAlgorithm();
-    const signingKey = signingKeyFor(signatureAlgorithm);
-    const base: Omit<BlockPIBlock, "blockHash"> = {
-      index,
-      timestamp,
-      tenantId: input.tenantId,
-      userId: input.userId,
-      operation: input.operation.slice(0, 200),
-      category: input.category,
-      costDecimal,
-      tokensConsumed: input.tokens,
-      previousHash: previousBlock?.blockHash ?? GENESIS_PREVIOUS_HASH,
-      pqcSignature: null, // se firma sobre el hash, nunca al revés
-      signatureAlgorithm,
-      status,
-      nonce: randomUUID(),
-    };
-
-    const blockHash = hashBlock(base);
-
-    // FASE 5 (§6.5/§6.6): firma REAL obligatoria. En producción/staging con
-    // algoritmo simulado (ML-DSA-87) signBlockHash lanza fail-closed.
-    if (isSimulatedAlgorithm()) {
-      throw new Error(
-        "CRITICAL_SECURITY_ERROR: algoritmo de firma simulado no permitido para el ledger.",
-      );
-    }
-    const pqcSignature = signBlockHash(blockHash);
-    if (!pqcSignature) {
-      throw new Error(
-        "CRITICAL_SECURITY_ERROR: Failed to sign BookPI block. Unverified ledger entries are forbidden.",
-      );
-    }
-
-    const { rows } = await pool.query(
-      `INSERT INTO public.bookpi_ledger
-       (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed,
-       previous_hash, block_hash, status, nonce, signature_algorithm, pqc_signature)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-       RETURNING *`,
-      [
-        base.index,
-        base.tenantId,
-        base.userId,
-        base.operation,
-        base.category,
-        base.costDecimal,
-        base.tokensConsumed,
-        base.previousHash,
-        blockHash,
-        status,
-        base.nonce,
-        base.signatureAlgorithm,
-        pqcSignature,
-      ],
-    );
-    return { success: true as const, block: mapRow(rows[0]!) };
   }
 
   /**
@@ -632,11 +549,11 @@ export function createBookpiPostgresRepository() {
         "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 AND index = $2 LIMIT 1",
         [requestor.tenantId, originalEventId],
       );
-    const original = byIndex[0] ? mapRow(byIndex[0]) : null;
+    const original = byIndex.rows[0] ? mapRow(byIndex.rows[0]) : null;
     if (!original) return { success: false as const, error: "Evento original no encontrado." };
     if (original.status === "refunded")
       return { success: false as const, error: "Evento ya refundido." };
-    return this.append({
+    return append({
       tenantId: requestor.tenantId,
       userId: requestor.userId,
       operation: `refund_of_${original.index}_${reason}`,
@@ -668,8 +585,6 @@ export function createBookpiPostgresRepository() {
     }
     let previousTenant = "";
     let previousHash = GENESIS_PREVIOUS_HASH;
-    const signingAlgorithm = resolvedSignatureAlgorithm();
-    const verifyingKey = signingKeyFor(signingAlgorithm);
     for (const row of rows) {
       const block = mapRow(row);
       if (block.tenantId !== previousTenant) {
@@ -704,6 +619,17 @@ export function createBookpiPostgresRepository() {
     }
     return { success: true as const };
   }
+
+  return {
+    list,
+    append,
+    batchAppend,
+    query,
+    prune,
+    pruneInactive,
+    refund,
+    verifyIntegrity,
+  };
 }
 
 /**

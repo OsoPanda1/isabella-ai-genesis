@@ -17,6 +17,7 @@ import {
   standardError,
   IsabellaChatErrorCode,
 } from "@/lib/api-contracts";
+import { detectSkillInvocation, executeChatSkillBridge } from "@/lib/skills/chat-bridge";
 
 type GatewayContext = {
   ip: string;
@@ -155,6 +156,25 @@ function geminiSseToOpenAi(
       } finally {
         reader.releaseLock();
       }
+    },
+  });
+  return new Response(stream, { status: 200, headers });
+}
+
+function singleTextSseResponse(
+  content: string,
+  headers: Headers,
+  provenance: Record<string, unknown>,
+): Response {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify(provenance)}\n\n`));
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\n`),
+      );
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
     },
   });
   return new Response(stream, { status: 200, headers });
@@ -536,6 +556,49 @@ export async function handleIsabellaChat(
     },
     evidence: { level: "weak", verified: false, sources: ["user_input"] },
   };
+
+  const skillInvocation = detectSkillInvocation(lastUserMessage);
+  if (skillInvocation) {
+    const skillResult = await executeChatSkillBridge(skillInvocation, {
+      correlationId: context.correlationId,
+      traceId: context.traceId,
+      userId: context.userId,
+      tenantId: context.tenantId,
+      role: context.role,
+      ip: context.ip,
+    });
+
+    CentralizedTelemetryService.logEvent(
+      "CROWN_GATEWAY",
+      "ORION_BRIDGE",
+      "SkillInvocationExecuted",
+      {
+        skillId: skillInvocation.canonicalName,
+        success: skillResult.success,
+        decisionId: skillResult.decisionId,
+        governance: governanceMetadata.governance,
+      },
+      skillResult.success ? "info" : "warn",
+      context.traceId,
+      context.correlationId,
+    );
+
+    const headers = sseHeaders(
+      context,
+      rateLimit.remaining,
+      "sovereign-skill-runtime",
+      `skill:${skillInvocation.canonicalName}`,
+    );
+
+    return singleTextSseResponse(skillResult.content, headers, {
+      provider: "sovereign-skill-runtime",
+      model: `skill:${skillInvocation.canonicalName}`,
+      skillId: skillInvocation.canonicalName,
+      decisionId: skillResult.decisionId,
+      ...governanceMetadata,
+    });
+  }
+
   for (const [index, attempt] of attempts.entries()) {
     try {
       const isGemini = attempt.provider === "gemini";

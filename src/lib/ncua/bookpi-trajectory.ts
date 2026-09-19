@@ -8,7 +8,6 @@
  */
 
 import * as crypto from "node:crypto";
-import { config } from "../config";
 import { SovereignAudit } from "../sovereign-audit";
 import type { ContinuousConceptVector } from "./concept-engine";
 import type { QUPQuantumStateSignature } from "./quantum-align";
@@ -55,12 +54,7 @@ export class BookPILedgerAuditor {
   }
 
   private resolveKey(): string | null {
-    if (this.hmacKey) return this.hmacKey;
-    try {
-      return config().AEGIS_AUDIT_SECRET ?? null;
-    } catch {
-      return null;
-    }
+    return this.hmacKey;
   }
 
   private requireKey(): string {

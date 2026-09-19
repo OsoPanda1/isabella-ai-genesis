@@ -28,7 +28,7 @@ export function createRationalTime(
 ): RationalTime {
   return {
     numerator: BigInt(numerator),
-    denominator: BigInt(denominator) || 1n,
+    denominator: BigInt(denominator),
   };
 }
 
@@ -64,30 +64,27 @@ export function calculateNarrativeImpact(
     };
   }
 
-  // Traverse connected nodes
-  const directEdges = graph.edges.filter(
-    (e) => e.from === modifiedNodeId || e.to === modifiedNodeId,
-  );
+  // Traverse connected nodes using BFS
+  const visited = new Set<string>([modifiedNodeId]);
+  const queue = [modifiedNodeId];
 
-  for (const edge of directEdges) {
-    const targetId = edge.from === modifiedNodeId ? edge.to : edge.from;
-    const targetNode = graph.nodes.find((n) => n.id === targetId);
+  while (queue.length > 0) {
+    const currentId = queue.shift()!;
+    const adjacentEdges = graph.edges.filter((e) => e.from === currentId || e.to === currentId);
 
-    if (targetNode) {
-      if (targetNode.type === "Shot") {
-        affectedShotsSet.add(targetNode.id);
-      } else if (targetNode.type === "Asset") {
-        invalidAssetsSet.add(targetNode.id);
-      }
-    }
-
-    // Secondary traversal: find Shots associated with affected Scenes/Events/Characters
-    const secondaryEdges = graph.edges.filter((e) => e.from === targetId || e.to === targetId);
-    for (const secEdge of secondaryEdges) {
-      const secTargetId = secEdge.from === targetId ? secEdge.to : secEdge.from;
-      const secTargetNode = graph.nodes.find((n) => n.id === secTargetId);
-      if (secTargetNode?.type === "Shot") {
-        affectedShotsSet.add(secTargetNode.id);
+    for (const edge of adjacentEdges) {
+      const neighborId = edge.from === currentId ? edge.to : edge.from;
+      if (!visited.has(neighborId)) {
+        visited.add(neighborId);
+        queue.push(neighborId);
+        const neighborNode = graph.nodes.find((n) => n.id === neighborId);
+        if (neighborNode) {
+          if (neighborNode.type === "Shot") {
+            affectedShotsSet.add(neighborNode.id);
+          } else if (neighborNode.type === "Asset") {
+            invalidAssetsSet.add(neighborNode.id);
+          }
+        }
       }
     }
   }
@@ -212,9 +209,9 @@ export const DEFAULT_SHOT_CARDS: ShotCardX[] = [
 
 export function selectShotCard(
   category: ShotCardX["category"],
-  emotionalIntensity: number,
-  format: TargetFormat,
-  maxCostUsd: number,
+  _emotionalIntensity: number,
+  _format: TargetFormat,
+  _maxCostUsd: number,
 ): ShotCardX {
   const matches = DEFAULT_SHOT_CARDS.filter((c) => c.category === category);
   if (matches.length > 0) {

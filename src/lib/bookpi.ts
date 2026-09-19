@@ -1,14 +1,13 @@
 /**
- * BOOKPI — MOTOR DEL LIBRO MAYOR (src/lib/bookpi.ts)
+ * BOOKPI — MOTOR DEL LIBRO MAYOR (src/lib/bookpi.ts) [DEV/TEST ADAPTER]
  * -----------------------------------------------------------------
- * Núcleo operativo del libro mayor inmutable. Real, sin mockdata:
- *  - Desacopla el motor de negocio de la autorización (quiénes pueden
- *    escribir) del repositorio de persistencia.
- *  - Conversión real de costos a centavos y validación de entrada.
- *  - Expone integridad criptográfica y consultas por tenant.
+ * ADAPTADOR DE TEST Y DESARROLLO LOCAL AISLADO.
+ * Para producción y entornos distribuidos, la única fuente autoritativa
+ * y duradera de persistencia es `createBookpiPostgresRepository()`
+ * (src/lib/repositories/bookpi-postgres-repository.ts).
  *
- * Este motor NUNCA decide autorización de identidad; delega persistencia
- * a `BookpiRepository` y deja la autorización a `authorization.ts`.
+ * Este adaptador se mantiene estrictamente para pruebas unitarias, benchmarks
+ * locales y entornos de desarrollo desacoplados de PostgreSQL.
  */
 
 import {

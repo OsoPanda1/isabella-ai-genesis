@@ -138,9 +138,9 @@ export class RedisCacheService {
             token: redisToken,
             retry: {
               retries: 2,
-              backoff: (retryCount) => Math.min(100 * Math.pow(2, retryCount), 500),
+              backoff: (retryCount: number) => Math.min(100 * Math.pow(2, retryCount), 500),
             },
-          });
+          } as unknown as ConstructorParameters<typeof Redis>[0]);
           this.isRedisConfigured = true;
           this.metrics.provider = "redis";
         } else {

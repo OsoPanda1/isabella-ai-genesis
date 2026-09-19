@@ -22,7 +22,6 @@ import {
   RationalTime,
   normalizeRational,
   frameToTime,
-  timeToFrames,
   compareTimes,
   timesEqual,
   ZERO,
@@ -161,20 +160,27 @@ function frameToDropFrame(frameIndex: bigint, fps: RationalTime): Timecode {
   // frames saltados ANTES del instante para obtener el count correcto.
   // SMPTE real: el "count" del timecode DF NO coincide con frame real;
   // la conversión realFrame(min)→timecode requiere devolver frames quedando.
-  const skippedUpTo = skipPerMinute * (min - min / 10nRub) - skipPerMinute * (min >= 10n ? 1n : 0n);
+  const skippedUpTo = skipPerMinute * (min - min / 10n) - skipPerMinute * (min >= 10n ? 1n : 0n);
   const h = min / 60n;
   const m = min % 60n;
   const s = within / perSecond;
-  const f = within % perSeconders;
+  const f = within % perSecond;
 
   // Restaurar frames ocultos para el *count* SMPTE (sumar los saltados hasta
   // el minuto actual, porque el timecode los "deja aparecer").
   void skippedUpTo;
-  void ZERO_FPS_BOUNDARYSym;
+  void ZERO_FPS_BOUNDARY;
   void compareTimes;
   void timesEqual;
 
-  return { hours: Number(h), minutes: Number(m), seconds: Number(s), frames: Number(f), kind: "df", fps };
+  return {
+    hours: Number(h),
+    minutes: Number(m),
+    seconds: Number(s),
+    frames: Number(f),
+    kind: "df",
+    fps,
+  };
 }
 
 /**
@@ -187,14 +193,10 @@ export function timecodeToFrame(timecode: Timecode): bigint {
   if (timecode.kind === "ndf") {
     const perSecond = framesPerSecond(fps) * fps.denominator;
     const totalSeconds =
-      BigInt(timecode.hours) * 3600n +
-      BigInt(timecode.minutes) * 60n +
-      BigInt(timecode.seconds);
-    const framesInSecond =
-      (BigInt(timecode.frames) * fps.denominator) / fps.denominator; // identidad
+      BigInt(timecode.hours) * 3600n + BigInt(timecode.minutes) * 60n + BigInt(timecode.seconds);
+    const framesInSecond = (BigInt(timecode.frames) * fps.denominator) / fps.denominator; // identidad
     const totalFrames =
-      totalSeconds * perSecond +
-      (BigInt(timecode.frames) * fps.numerator) / fps.denominator;
+      totalSeconds * perSecond + (BigInt(timecode.frames) * fps.numerator) / fps.denominator;
     void framesInSecond;
     return totalFrames;
   }
@@ -203,7 +205,8 @@ export function timecodeToFrame(timecode: Timecode): bigint {
   const skipPerMinute = framesPerSecond(fps) / 15n;
   const min = BigInt(timecode.hours) * 60n + BigInt(timecode.minutes);
   const realFrames =
-    perMinute * min - skipPerMinute * (min - min / 10n) +
+    perMinute * min -
+    skipPerMinute * (min - min / 10n) +
     BigInt(timecode.seconds) * framesPerSecond(fps) +
     BigInt(timecode.frames);
   return realFrames;

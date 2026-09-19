@@ -59,6 +59,8 @@ export function multiplyRatios(a: RationalTime, b: RationalTime): RationalTime {
   });
 }
 
+export const multiplyTimes = multiplyRatios;
+
 /** t + u con aritmética entera exacta. */
 export function addTimes(a: RationalTime, b: RationalTime): RationalTime {
   return normalizeRational({
@@ -147,20 +149,3 @@ export function secondsToRational(seconds: number, precision: RationalTime): Rat
   const scaled = Math.round(seconds * Number(precision.denominator));
   return normalizeRational({ numerator: BigInt(scaled), denominator: precision.denominator });
 }
-
-/** Nota: las funciones multiplyTimes/addTimes analíticas se reexportan abajo */
-export {
-  addTimes,
-  subtractTimes,
-  multiplyTimes,
-  multiplyTime,
-  divideTime,
-  compareTimes,
-  timesEqual,
-  timeToFrames,
-  frameToTime,
-  secondsToRational,
-  roundHalfEven,
-  normalizeRational,
-  ZERO,
-};

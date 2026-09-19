@@ -37,14 +37,15 @@ const optionalUrl = () =>
   }, z.string().url().optional());
 const bool = (def: boolean) =>
   z.preprocess(
-    (v) =>
-      typeof v === "boolean"
-        ? v
-        : typeof v === "string"
-          ? v.trim().toLowerCase() === "true"
-          : v.trim().toLowerCase() === "false"
-            ? false
-            : undefined,
+    (v) => {
+      if (typeof v === "boolean") return v;
+      if (typeof v === "string") {
+        const s = v.trim().toLowerCase();
+        if (s === "true" || s === "1") return true;
+        if (s === "false" || s === "0") return false;
+      }
+      return undefined;
+    },
     z.boolean().default(def),
   );
 
@@ -58,6 +59,7 @@ export const envSchema = z
     VERCEL_GIT_COMMIT_SHA: optionalString(),
     DATABASE_URL: optionalString(),
     DATABASE_DIRECT_URL: optionalString(),
+    ISABELLA_STORAGE_PROVIDER: optionalString(),
     TURSO_DATABASE_URL: optionalUrl(),
     TURSO_AUTH_TOKEN: optionalString(),
     INTERNAL_ORIGIN: optionalUrl(),
@@ -120,6 +122,7 @@ export const envSchema = z
     BOOKPI_SIGNING_KEY: optionalMinString(32),
     // --- REDIS ---
     REDIS_URL: optionalString(),
+    REDIS_TOKEN: optionalString(),
     REDIS_PREFIX: z.string().default("isabella"),
     // --- RATE LIMIT ---
     RATE_LIMIT_DEFAULT_PER_MINUTE: coercedInt(120),
@@ -186,6 +189,17 @@ export const envSchema = z
     IGDS_SIGNING_KEY: optionalString(),
     IGDS_KEY_ID: z.string().default("isabella-ed25519-2026-01"),
     IGDS_TSA_URL: optionalUrl(),
+    // --- STRIPE & PAYOUTS ---
+    STRIPE_SECRET_KEY: optionalString(),
+    STRIPE_WEBHOOK_SECRET: optionalString(),
+    ISABELLA_PAYOUT_CIRCUIT_CERTIFIED: bool(false),
+    // --- MEDIA / MUX ---
+    MUX_INTRO_ASSET_ID: optionalString(),
+    MUX_PLAYBACK_ID: optionalString(),
+    MUX_INTRO_FALLBACK_TYPE: enumish(["none", "procedural", "static"] as const, "static"),
+    // --- FEATURE FLAGS & AUDIT ---
+    ISABELLA_FEATURE_FLAGS: optionalString(),
+    GENESIS_MAX_TEST_FILES: coercedInt(8),
   })
   .passthrough();
 
