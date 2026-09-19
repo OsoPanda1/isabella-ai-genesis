@@ -25,7 +25,7 @@ export interface SecurityAuditLogItem {
   evidenceId: string;
 }
 
-export const INITIAL_AUDIT_LOGS: SecurityAuditLogItem[] = [];
+// Conflict resolution: backend-only evidence is the single source of truth.\nexport const INITIAL_AUDIT_LOGS: SecurityAuditLogItem[] = [];
 
 
 export function SecurityAuditDashboard() {
