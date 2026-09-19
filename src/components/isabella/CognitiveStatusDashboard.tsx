@@ -21,9 +21,9 @@ interface CognitiveModule {
   id: string;
   name: string;
   status: "active" | "standby" | "maintenance";
-  latency: number;
-  cpu: number;
-  memory: number;
+  latency: number | null;
+  cpu: number | null;
+  memory: number | null;
   description: string;
   styleClass: string;
 }
@@ -57,50 +57,50 @@ export function CognitiveStatusDashboard() {
     {
       id: "crown",
       name: "CROWN Gateway",
-      status: "active",
-      latency: 4,
-      cpu: 18,
-      memory: 24,
+      status: "standby",
+      latency: null,
+      cpu: null,
+      memory: null,
       description: "Orquestación, ruteo cognitivo de intenciones y arbitraje de estado.",
       styleClass: "crystal-3d-crown",
     },
     {
       id: "isa",
       name: "ISA Core",
-      status: "active",
-      latency: 12,
-      cpu: 34,
-      memory: 45,
+      status: "standby",
+      latency: null,
+      cpu: null,
+      memory: null,
       description: "Interacción empática, tono de voz de México y modulación expresiva.",
       styleClass: "crystal-3d-electric",
     },
     {
       id: "sophia",
       name: "SOPHIA Engine",
-      status: "active",
-      latency: 18,
-      cpu: 28,
-      memory: 52,
+      status: "standby",
+      latency: null,
+      cpu: null,
+      memory: null,
       description: "Análisis lógico-epistemológico, razonamiento profundo y síntesis territorial.",
       styleClass: "crystal-3d-emerald",
     },
     {
       id: "orion",
       name: "ORION Engine",
-      status: "active",
-      latency: 15,
-      cpu: 40,
-      memory: 60,
+      status: "standby",
+      latency: null,
+      cpu: null,
+      memory: null,
       description: "Ejecución técnica, transpilaciones cuánticas y soporte de herramientas.",
       styleClass: "crystal-3d-iris",
     },
     {
       id: "argus",
       name: "ARGUS Sentinel",
-      status: "active",
-      latency: 5,
-      cpu: 12,
-      memory: 18,
+      status: "standby",
+      latency: null,
+      cpu: null,
+      memory: null,
       description:
         "Gobernanza constitucional estricta, filtrado de amenazas y veto en tiempo real.",
       styleClass: "crystal-3d-argus",
@@ -138,165 +138,24 @@ export function CognitiveStatusDashboard() {
     bufferEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [lines]);
 
-  // Simulating live metric oscillations
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setModules((prev) =>
-        prev.map((mod) => {
-          if (mod.status !== "active") return mod;
-          const cpuOffset = Math.floor(Math.random() * 7) - 3;
-          const memOffset = Math.floor(Math.random() * 5) - 2;
-          const latOffset = Math.floor(Math.random() * 5) - 2;
-          return {
-            ...mod,
-            cpu: Math.max(5, Math.min(95, mod.cpu + cpuOffset)),
-            memory: Math.max(10, Math.min(90, mod.memory + memOffset)),
-            latency: Math.max(2, Math.min(80, mod.latency + latOffset)),
-          };
-        }),
-      );
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Simulating core hyper-threading boost animation
-  useEffect(() => {
-    if (!isBoosting) return;
-    const interval = setInterval(() => {
-      setBoostProgress((prev) => {
-        if (prev >= 100) {
-          setIsBoosting(false);
-          toast.success("¡Núcleos optimizados con éxito!");
-          setLines((l) => [
-            ...l,
-            {
-              text: "[SISTEMA]: Boost completado. Rendimiento de CPUs estabilizado al 120%.",
-              type: "success",
-            },
-          ]);
-          return 0;
-        }
-        return prev + 10;
-      });
-    }, 300);
-    return () => clearInterval(interval);
-  }, [isBoosting]);
-
-  const addLine = (text: string, type: TerminalLine["type"]) => {
+  // Runtime metrics are evidence-only. No synthetic oscillation is generated in the UI.\n  const addLine = (text: string, type: TerminalLine["type"]) => {
     setLines((prev) => [...prev, { text, type }]);
   };
 
-  const moduleLogs: Record<string, string[]> = {
-    crown: [
-      "[12:10:01] [CROWN] Inicializando orquestador de intenciones cognitivas...",
-      "[12:10:05] [CROWN] Puerto seguro 9600 BAUD enlazado con éxito.",
-      "[12:10:15] [CROWN] Petición entrante de usuario recibida.",
-      "[12:10:16] [CROWN] Ruteando intención -> 'Consulta Histórica'.",
-      "[12:10:20] [CROWN] Sincronización exitosa con SOPHIA y ARGUS Sentinel.",
-      "[12:10:24] [CROWN] Estado de gobernanza C.R.O.W.N. validado correctamente.",
-    ],
-    isa: [
-      "[12:10:02] [ISA] Cargando modelo de voz territorial (es-MX).",
-      "[12:10:04] [ISA] Calibrando tono expresivo y empatía contextual.",
-      "[12:10:16] [ISA] Analizando afecto y sensibilidad en la entrada de consulta.",
-      "[12:10:25] [ISA] Respuesta generada con modulación suave y cercana.",
-      "[12:10:26] [ISA] Transmisión de voz de salida completada hacia el cliente.",
-    ],
-    sophia: [
-      "[12:10:02] [SOPHIA] Activando motor epistemológico y lógica analítica.",
-      "[12:10:08] [SOPHIA] Recuperando scopes de memoria histórica territorial.",
-      "[12:10:18] [SOPHIA] Realizando síntesis conceptual del patrimonio de Real del Monte.",
-      "[12:10:22] [SOPHIA] Verificando consistencia interna y deducción lógica.",
-      "[12:10:23] [SOPHIA] Lógica epistemológica y coherencia conceptual: VALIDADA.",
-    ],
-    orion: [
-      "[12:10:03] [ORION] Inicializando el motor de ejecución técnica (qup-v3).",
-      "[12:10:09] [ORION] Cargando firmas criptográficas en el ledger BookPI.",
-      "[12:10:19] [ORION] Ejecutando análisis estático (SAST) en herramental PRAXIS.",
-      "[12:10:25] [ORION] Bloque de transpilación cuántica completado sin advertencias.",
-      "[12:10:26] [ORION] Transacción ledger BookPI comprometida con ID 0fa67379.",
-    ],
-    argus: [
-      "[12:10:04] [ARGUS] Vigilante constitucional activado en modo Zero Trust.",
-      "[12:10:10] [ARGUS] Cargando base de firmas de inyección y jailbreak.",
-      "[12:10:17] [ARGUS] Evaluación de riesgos del Prompt Gate: Seguro (Bajo riesgo).",
-      "[12:10:24] [ARGUS] Aplicando regla constitucional de privacidad territorial.",
-      "[12:10:24] [ARGUS] Evaluación de salida completada: ALLOWED.",
-    ],
-  };
+  const moduleLogs: Record<string, string[]> = {};
 
   const runDiagnostic = (modId: string) => {
     if (isDiagnosing[modId]) return;
     setIsDiagnosing((prev) => ({ ...prev, [modId]: true }));
-    setDiagnosticProgress((prev) => ({ ...prev, [modId]: 0 }));
     setDiagnosticStream((prev) => ({
       ...prev,
       [modId]: [
-        `[${new Date().toLocaleTimeString()}] INICIANDO DIAGNÓSTICO EN ${modId.toUpperCase()}...`,
+        ...(prev[modId] || []),
+        `[${new Date().toLocaleTimeString()}] Diagnóstico no ejecutado: no existe endpoint canónico de métricas para este módulo.`,
       ],
     }));
-
-    const diagnosticSteps = [
-      "Estableciendo enlace seguro TLS 1.3...",
-      "Calculando latencia de puente de transporte...",
-      "Analizando fragmentación de memoria en V8...",
-      "Alineando tensores cognitivos locales...",
-      "Resolviendo dependencias de clúster...",
-      "Verificando políticas Zero-Trust (ARGUS)...",
-      "Consolidando métricas de inferencia...",
-      "Finalizando operaciones de I/O...",
-    ];
-
-    let current = 0;
-    const interval = setInterval(() => {
-      current += 10;
-      setDiagnosticProgress((prev) => ({ ...prev, [modId]: current }));
-
-      // Simulate real-time stream logs
-      if (current % 20 === 0 && current < 100) {
-        const stepIndex = current / 20 - 1;
-        const msg = diagnosticSteps[stepIndex] || "Procesando...";
-        setDiagnosticStream((prev) => ({
-          ...prev,
-          [modId]: [...(prev[modId] || []), `[${new Date().toLocaleTimeString()}] > ${msg}`],
-        }));
-      }
-
-      if (current >= 100) {
-        clearInterval(interval);
-        const finalLatency = Math.floor(Math.random() * 25) + 3;
-        const finalTimestamp = new Date().toLocaleTimeString();
-        setDiagnosticLatency((prev) => ({ ...prev, [modId]: finalLatency }));
-        setIsDiagnosing((prev) => ({ ...prev, [modId]: false }));
-        setDiagnosticStream((prev) => ({
-          ...prev,
-          [modId]: [
-            ...(prev[modId] || []),
-            `[${finalTimestamp}] DIAGNÓSTICO COMPLETADO: ${finalLatency}ms`,
-          ],
-        }));
-        setDiagnosticHistory((prev) => {
-          const modHistory = prev[modId] || [];
-          return {
-            ...prev,
-            [modId]: [{ timestamp: finalTimestamp, latency: finalLatency }, ...modHistory].slice(
-              0,
-              5,
-            ),
-          };
-        });
-        toast.success(
-          `Diagnóstico completado para ${modId.toUpperCase()}. Latencia: ${finalLatency}ms`,
-        );
-        setLines((l) => [
-          ...l,
-          {
-            text: `[DIAGNÓSTICO] ${modId.toUpperCase()}: Prueba de latencia completada con éxito. Resultado: ${finalLatency}ms.`,
-            type: "success",
-          },
-        ]);
-      }
-    }, 100);
+    setIsDiagnosing((prev) => ({ ...prev, [modId]: false }));
+    toast.info(`Métricas de ${modId.toUpperCase()} no disponibles desde el backend.`);
   };
 
   const handleCommand = (cmdStr: string) => {
@@ -342,12 +201,9 @@ export function CognitiveStatusDashboard() {
         addLine("Iniciando barrido de salud de módulos...", "system");
         setTimeout(() => {
           modules.forEach((mod) => {
-            addLine(
-              `  [✓] ${mod.name} -> Latencia: ${mod.latency}ms | CPU: ${mod.cpu}% | RAM: ${mod.memory}%`,
-              "output",
-            );
+            addLine(`  [—] ${mod.name} -> métricas runtime: NO DISPONIBLES`, "output");
           });
-          addLine("Diagnóstico del canal: Conexión estable con el territorio.", "success");
+          addLine("Diagnóstico del canal: sin evidencia runtime; estado no verificado.", "system");
         }, 400);
         break;
 
@@ -357,35 +213,11 @@ export function CognitiveStatusDashboard() {
         break;
 
       case "logs":
-        addLine("Recuperando registro auditado de ARGUS Sentinel:", "system");
-        setTimeout(() => {
-          addLine(
-            `[2026-09-04 12:10:24] [CROWN] Orquestando petición -> Intención: "cultural"`,
-            "output",
-          );
-          addLine(
-            `[2026-09-04 12:10:24] [ARGUS] Filtro constitucional aplicado: ALLOWED`,
-            "output",
-          );
-          addLine(
-            `[2026-09-04 12:10:25] [ISA] Respuesta de voz generada con éxito (es-MX)`,
-            "output",
-          );
-          addLine(
-            `[2026-09-04 12:10:26] [ORION] Firma criptográfica inyectada en BookPI ledger`,
-            "success",
-          );
-        }, 300);
+        addLine("No se muestran logs sintéticos. Usa el visor de auditoría respaldado por backend.", "system");
         break;
 
       case "boost":
-        if (isBoosting) {
-          addLine("Aviso: El proceso de aceleración ya se encuentra activo.", "error");
-        } else {
-          setIsBoosting(true);
-          setBoostProgress(0);
-          addLine("Iniciando hyper-threading en núcleos de inferencia...", "system");
-        }
+        addLine("Boost no está conectado a un backend de capacidad. No se simula aceleración.", "system");
         break;
 
       default:
@@ -443,9 +275,7 @@ export function CognitiveStatusDashboard() {
       )
     : [];
 
-  const systemIntegrity = Math.round(
-    (modules.filter((m) => m.status === "active").length / modules.length) * 100,
-  );
+  const systemIntegrity = "NO VERIFICADA";
 
   return (
     <div
@@ -465,7 +295,7 @@ export function CognitiveStatusDashboard() {
               definidos en <span className="font-mono text-electric text-xs">metadata.json</span>.
             </span>
             <span className="text-[10px] font-mono font-bold tracking-wider uppercase px-2 py-1 rounded bg-electric/10 border border-electric/20 text-electric">
-              Integridad: {systemIntegrity}%
+              Integridad: {systemIntegrity}
             </span>
           </div>
         </div>
@@ -529,11 +359,11 @@ export function CognitiveStatusDashboard() {
                       e.stopPropagation();
                       setSelectedLogModule(selectedLogModule === mod.id ? null : mod.id);
                     }}
-                    className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/15 cursor-pointer hover:bg-emerald-500/20 hover:border-emerald-500/40 transition-all select-none"
+                    className={`flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border cursor-pointer transition-all select-none ${mod.status === "active" ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/15 hover:bg-emerald-500/20 hover:border-emerald-500/40" : "text-amber-300 bg-amber-500/10 border-amber-500/15 hover:bg-amber-500/20 hover:border-amber-500/40"}`}
                     title="Click para ver registros de operación"
                   >
-                    <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    {mod.status}
+                    <span className={`size-1.5 rounded-full ${mod.status === "active" ? "bg-emerald-400 animate-pulse" : "bg-amber-300"}`} />
+                    {mod.status === "standby" ? "NO VERIFICADO" : mod.status}
                   </span>
                 </div>
 
@@ -548,19 +378,19 @@ export function CognitiveStatusDashboard() {
                   {/* Latency */}
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">LATENCIA:</span>
-                    <span className="text-pearl font-bold">{mod.latency} ms</span>
+                    <span className="text-pearl font-bold">{mod.latency === null ? "No disponible" : `${mod.latency} ms`}</span>
                   </div>
 
                   {/* CPU usage bar */}
                   <div>
                     <div className="flex justify-between text-muted-foreground mb-1">
                       <span>CPU:</span>
-                      <span className="text-pearl font-bold">{mod.cpu}%</span>
+                      <span className="text-pearl font-bold">{mod.cpu === null ? "No disponible" : `${mod.cpu}%`}</span>
                     </div>
                     <div className="w-full bg-background/50 h-1.5 rounded-full overflow-hidden border border-border/10">
                       <div
                         className="bg-electric h-full transition-all duration-1000"
-                        style={{ width: `${mod.cpu}%` }}
+                        style={{ width: `${mod.cpu ?? 0}%` }}
                       />
                     </div>
                   </div>
@@ -569,12 +399,12 @@ export function CognitiveStatusDashboard() {
                   <div>
                     <div className="flex justify-between text-muted-foreground mb-1">
                       <span>MEMORIA:</span>
-                      <span className="text-pearl font-bold">{mod.memory}%</span>
+                      <span className="text-pearl font-bold">{mod.memory === null ? "No disponible" : `${mod.memory}%`}</span>
                     </div>
                     <div className="w-full bg-background/50 h-1.5 rounded-full overflow-hidden border border-border/10">
                       <div
                         className="bg-iris h-full transition-all duration-1000"
-                        style={{ width: `${mod.memory}%` }}
+                        style={{ width: `${mod.memory ?? 0}%` }}
                       />
                     </div>
                   </div>
