@@ -4,6 +4,19 @@ import { resolve, join, relative } from "node:path";
 const root = process.cwd();
 const checks = [
   {
+    file: "src/lib/isabella-skill-executor.ts",
+    required: [
+      /resolveSkillInvocation/,
+      /getIsabellaSkill/,
+      /requiredScopes/,
+      /runtime\.run/,
+      /isValidSkillResult/,
+      /SkillInvocationCompleted/,
+    ],
+    forbidden: [/Math\\.random\\s*\\(/],
+    label: "Conversational skill bridge must resolve, authorize, execute, validate and audit registered skills",
+  },
+  {
     file: "src/components/isabella/SystemMonitor.tsx",
     forbidden: [/Math\.random\s*\(/, /Simulated node/i, /Escalar K8s/i, /tamv-worker-[0-9]+/i],
     label: "SystemMonitor must not fabricate infrastructure telemetry",
