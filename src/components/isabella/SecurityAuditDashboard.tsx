@@ -21,7 +21,7 @@ export interface SecurityAuditLogItem {
   actor: string;
   source: string;
   securityStatus: "ALLOWED" | "CHALLENGED" | "QUARANTINED" | "BLOCKED";
-  aegisLevel: string;
+  severity: string;
   hashSignature: string;
 }
 
@@ -47,7 +47,7 @@ export function SecurityAuditDashboard() {
           const data = await res.json();
           if (Array.isArray(data.logs)) {
             setLogs(data.logs);
-            setAuditSecretVerified(Boolean(data.auditSecretVerified ?? true));
+            setAuditSecretVerified(data.auditSecretVerified === true);
           }
         }
       }
@@ -190,7 +190,7 @@ export function SecurityAuditDashboard() {
               <th className="px-4 py-3 font-semibold">Acción Auditable</th>
               <th className="px-4 py-3 font-semibold">Actor / Origen</th>
               <th className="px-4 py-3 font-semibold">Estado de Seguridad</th>
-              <th className="px-4 py-3 font-semibold">Nivel Aegis</th>
+              <th className="px-4 py-3 font-semibold">Severidad</th>
               <th className="px-4 py-3 font-semibold text-right">ID de evidencia</th>
             </tr>
           </thead>
@@ -220,7 +220,7 @@ export function SecurityAuditDashboard() {
                     <div className="text-[10px] text-slate-500">{log.source}</div>
                   </td>
                   <td className="px-4 py-3">{getStatusBadge(log.securityStatus)}</td>
-                  <td className="px-4 py-3 text-slate-400 font-semibold">{log.aegisLevel}</td>
+                  <td className="px-4 py-3 text-slate-400 font-semibold">{log.severity}</td>
                   <td className="px-4 py-3 text-right text-slate-500 font-mono text-[10px]">
                     {log.hashSignature}
                   </td>
