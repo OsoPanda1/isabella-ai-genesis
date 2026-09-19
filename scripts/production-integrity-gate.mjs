@@ -29,6 +29,21 @@ const checks = [
     label: "Genesis claim evidence must not use a placeholder dependency lock hash",
   },
   {
+    file: "src/components/isabella/QuantumBridgeMonitor.tsx",
+    forbidden: [/Math\\.random\\s*\\(/, /simulat(?:e|ed|ion)/i, /fake telemetry/i, /QNodes Activos.*[0-9]/i],
+    label: "QuantumBridgeMonitor must not fabricate runtime quantum telemetry",
+  },
+  {
+    file: "src/components/isabella/QuantumBridgeStatus.tsx",
+    forbidden: [/Math\\.random\\s*\\(/, /simulate/i, /setInterval\\s*\\(/, /QNodes.*42/i],
+    label: "QuantumBridgeStatus must not fabricate bridge status",
+  },
+  {
+    file: "src/components/isabella/CognitiveStatusDashboard.tsx",
+    forbidden: [/Math\\.random\\s*\\(/, /Simulating live metric/i, /hyper-threading.*completado/i, /2026-09-04.*CROWN/i],
+    label: "CognitiveStatusDashboard must not fabricate operational evidence",
+  },
+  {
     file: "src/server.ts",
     required: [
       /production\s*=\s*process\.env\.NODE_ENV\s*===\s*[\"']production[\"']/,
