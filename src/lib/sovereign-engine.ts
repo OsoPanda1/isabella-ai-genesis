@@ -4,7 +4,6 @@ import * as crypto from "node:crypto";
 import { Pool } from "pg";
 import { config } from "./config";
 import { SecuritySystem } from "./security";
-import { config } from "./config";
 import type { ApiKeyRecord } from "./credential-types";
 
 // ============================================================================
@@ -262,7 +261,6 @@ public static async hydrate({
 
   public static load(): DatabaseSchema {
     assertJsonPersistenceAllowed();
->>>>>>> Stashed changes
     try {
       return await hydrationInFlight;
     } finally {
@@ -351,7 +349,6 @@ public static async hydrate({
   }
 
   private static save(db: DatabaseSchema) {
-<<<<<<< Updated upstream
     memoryDb = db;
     lastHydratedAt = Date.now();
     const production = isProductionRuntime();
@@ -365,13 +362,6 @@ public static async hydrate({
         fs.writeFileSync(PERSISTENCE_FILE_PATH, JSON.stringify(db, null, 2), "utf8");
       } catch (e) {
         console.error("Fallo crítico al escribir en la base de datos persistente:", e);
-=======
-    assertJsonPersistenceAllowed();
-    try {
-      const dir = path.dirname(PERSISTENCE_FILE_PATH);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
->>>>>>> Stashed changes
       }
       return;
     }

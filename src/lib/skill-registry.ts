@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { capabilityRegistry, type CapabilityState } from "./capability-registry";
+import { getIsabellaSkill } from "./skills/registry";
 
 export const SkillId = z
   .string()
@@ -538,6 +539,8 @@ export function resolveSkillInvocation(
       error: `Skill no registrado: @${parsed.requestedId}`,
       code: "SKILL_NOT_FOUND",
     };
+  const runtimeSkill = getIsabellaSkill(skill.id as import("./skills/registry").IsabellaSkillId);
+  if (!runtimeSkill) return { error: `Skill sin runtime: @${skill.id}`, code: "SKILL_RUNTIME_NOT_FOUND" };
   if (!capabilityRegistry.isOperational(skill.capability) && skill.status !== "experimental") {
     return {
       error: `Skill no operativo: @${skill.id}`,

@@ -161,6 +161,30 @@ function calculateTsAegisResponse(event: z.infer<typeof securityEventSchema>) {
 export const Route = createFileRoute("/api/security")({
   server: {
     handlers: {
+      GET: withSovereignAuth("system", "read", async (context, request) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get("action") !== "audit-logs") {
+          return new Response(JSON.stringify({ error: "Acción GET desconocida." }), { status: 400 });
+        }
+        try {
+          const result = await repositoryFactory.getAuditRepository().list(context.tenantId, {}, 100, 0);
+          const logs = result.items.map((entry) => ({
+            id: entry.id,
+            timestamp: entry.timestamp,
+            action: entry.action,
+            actor: entry.actor,
+            source: "backend",
+            securityStatus: entry.result === "denied" ? "BLOCKED" : entry.result === "failure" ? "CHALLENGED" : "ALLOWED",
+            aegisLevel: entry.severity,
+            hashSignature: entry.id,
+          }));
+          return new Response(JSON.stringify({ logs, auditSecretVerified: Boolean(secrets.aegisAuditSecret()) }), {
+            headers: SecuritySystem.injectSecureHeaders(new Headers({ "content-type": "application/json" })),
+          });
+        } catch {
+          return new Response(JSON.stringify({ error: "AUDIT_STORE_UNAVAILABLE" }), { status: 503 });
+        }
+      }),
       POST: withSovereignAuth("system", "execute", async (context, request) => {
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json" }),

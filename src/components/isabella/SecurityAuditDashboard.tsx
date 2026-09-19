@@ -25,75 +25,15 @@ export interface SecurityAuditLogItem {
   hashSignature: string;
 }
 
-const INITIAL_AUDIT_LOGS: SecurityAuditLogItem[] = [
-  {
-    id: "sec_log_101",
-    timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
-    action: "CROWNGateway.evaluatePolicy",
-    actor: "system_sovereign",
-    source: "192.168.1.1",
-    securityStatus: "ALLOWED",
-    aegisLevel: "OPEN (Level 0)",
-    hashSignature: "0x8f32a...c4b1",
-  },
-  {
-    id: "sec_log_102",
-    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-    action: "QuantumBridge.executeQNode",
-    actor: "operator_dev",
-    source: "client_web",
-    securityStatus: "ALLOWED",
-    aegisLevel: "WATCH (Level 1)",
-    hashSignature: "0x1d9e7...a90f",
-  },
-  {
-    id: "sec_log_103",
-    timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-    action: "AegisFirewall.scanPromptInjection",
-    actor: "untrusted_external",
-    source: "10.0.4.88",
-    securityStatus: "BLOCKED",
-    aegisLevel: "CONTAIN (Level 2)",
-    hashSignature: "0x77ab4...f1e2",
-  },
-  {
-    id: "sec_log_104",
-    timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
-    action: "OIDCAuth.issueSessionToken",
-    actor: "sovereign_user_01",
-    source: "https://isabella.ai",
-    securityStatus: "ALLOWED",
-    aegisLevel: "OPEN (Level 0)",
-    hashSignature: "0x44c8d...3e7a",
-  },
-  {
-    id: "sec_log_105",
-    timestamp: new Date(Date.now() - 1000 * 60 * 40).toISOString(),
-    action: "BookPI.commitLedgerBlock",
-    actor: "bookpi_engine",
-    source: "nodo_cero_hgo",
-    securityStatus: "ALLOWED",
-    aegisLevel: "OPEN (Level 0)",
-    hashSignature: "0x992fa...11c6",
-  },
-  {
-    id: "sec_log_106",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-    action: "AegisSentinel.detectContextualAttack",
-    actor: "anon_scanner",
-    source: "185.220.101.4",
-    securityStatus: "QUARANTINED",
-    aegisLevel: "ISOLATE (Level 3)",
-    hashSignature: "0xef310...b2a8",
-  },
-];
+export const INITIAL_AUDIT_LOGS: SecurityAuditLogItem[] = [];
+
 
 export function SecurityAuditDashboard() {
   const [logs, setLogs] = useState<SecurityAuditLogItem[]>(INITIAL_AUDIT_LOGS);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [auditSecretVerified, setAuditSecretVerified] = useState(true);
+  const [auditSecretVerified, setAuditSecretVerified] = useState(false);
 
   const fetchSecurityAuditLogs = useCallback(async () => {
     setLoading(true);
@@ -112,7 +52,8 @@ export function SecurityAuditDashboard() {
         }
       }
     } catch {
-      // Fallback to active state
+      setLogs([]);
+      setAuditSecretVerified(false);
     } finally {
       setLoading(false);
     }
@@ -190,7 +131,7 @@ export function SecurityAuditDashboard() {
               </span>
             </div>
             <p className="font-mono text-xs text-slate-400 mt-0.5">
-              Registro append-only verificado mediante firma criptográfica HMAC-SHA3-512.
+              Registro append-only proveniente exclusivamente del backend; sin datos sintéticos.
             </p>
           </div>
         </div>
@@ -250,7 +191,7 @@ export function SecurityAuditDashboard() {
               <th className="px-4 py-3 font-semibold">Actor / Origen</th>
               <th className="px-4 py-3 font-semibold">Estado de Seguridad</th>
               <th className="px-4 py-3 font-semibold">Nivel Aegis</th>
-              <th className="px-4 py-3 font-semibold text-right">Firma HMAC</th>
+              <th className="px-4 py-3 font-semibold text-right">ID de evidencia</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60">
@@ -292,9 +233,9 @@ export function SecurityAuditDashboard() {
 
       <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-2 border-t border-slate-900">
         <span>
-          Mostrando {filteredLogs.length} de {logs.length} eventos auditados
+          Mostrando {filteredLogs.length} de {logs.length} eventos auditados por el backend
         </span>
-        <span>Canal HMAC: AEGIS_AUDIT_SECRET • CERO ALTERACIONES</span>
+        <span>Canal de evidencia: backend autenticado • sin datos sintéticos</span>
       </div>
     </div>
   );

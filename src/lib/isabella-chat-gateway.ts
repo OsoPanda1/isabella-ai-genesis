@@ -551,7 +551,7 @@ export async function handleIsabellaChat(
         try {
           return await aiGatewaySse(
             messages,
-            sanitizedCognitiveSystem.clean,
+            governance.systemPrompt + "\n\n" + sanitizedCognitiveSystem.clean,
             temperature,
             attempt.model,
             headers,
@@ -571,7 +571,7 @@ export async function handleIsabellaChat(
       const body = isGemini
         ? {
             systemInstruction: {
-              parts: [{ text: sanitizedCognitiveSystem.clean }],
+              parts: [{ text: governance.systemPrompt + "\n\n" + sanitizedCognitiveSystem.clean }],
             },
             contents,
             generationConfig: { maxOutputTokens: 8192 },

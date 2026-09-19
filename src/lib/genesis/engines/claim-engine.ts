@@ -106,7 +106,7 @@ export class ClaimEngine {
       runnerId: isCiEnvironment() ? getCiRunId() : "local",
       os: process.platform,
       nodeVersion: process.version,
-      pnpmVersion: "10.15.0",
+      pnpmVersion: "10.15.4",
       dependencyLockHash: this.getDependencyLockHash(),
     };
 
@@ -336,7 +336,7 @@ export class ClaimEngine {
       runnerId: isCiEnvironment() ? getCiRunId() : "local",
       os: process.platform,
       nodeVersion: process.version,
-      pnpmVersion: "10.15.0",
+      pnpmVersion: "10.15.4",
       dependencyLockHash: this.getDependencyLockHash(),
     };
 
