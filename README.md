@@ -563,7 +563,7 @@ Output: .vercel/output
 
 La instalación congelada evita que Vercel reconstruya un lockfile distinto al commit evaluado.
 
-**Estado de producción:** no debe declararse READY hasta observar un deployment exitoso y completar smoke/runtime.
+**Estado de producción:** actualmente bloqueado. Los deployments recientes y el gate de dependencias fallan durante `pnpm install --frozen-lockfile` con `ERR_PNPM_NO_MATCHING_VERSION`. El manifest ya fue alineado con el lockfile; queda identificar el paquete exacto que el entorno Vercel/pnpm 10.15.4 no puede resolver. No se declara READY ni se relaja `--frozen-lockfile` como atajo.
 
 ---
 
