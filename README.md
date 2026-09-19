@@ -12,7 +12,7 @@
 **Repositorio:** `OsoPanda1/isabella-ai-genesis`  
 **Paquete:** `4.3.3` · **Node:** `24.11.0` · **pnpm:** `10.15.4`  
 **Runtime objetivo:** TanStack Start + Nitro + Vercel  
-**Especificación canónica:** Documento Maestro Unificado Isabella Villaseñor AI v5.1-MASTER, emitido el 19 de septiembre de 2026. fileciteturn908file0L5-L10
+**Especificación canónica:** Documento Maestro Unificado Isabella Villaseñor AI v5.1-MASTER, emitido el 19 de septiembre de 2026. 
 
 ---
 
@@ -35,7 +35,7 @@ Su propósito es que una organización, comunidad o territorio pueda conservar c
 - su infraestructura;
 - y su capacidad de migración.
 
-La especificación maestra establece explícitamente que Isabella debe separar evidencia, inferencia y acción, registrar decisiones relevantes, solicitar aprobación humana para acciones de alto impacto y conservar portabilidad de datos y modelos. fileciteturn908file0L30-L56
+La especificación maestra establece explícitamente que Isabella debe separar evidencia, inferencia y acción, registrar decisiones relevantes, solicitar aprobación humana para acciones de alto impacto y conservar portabilidad de datos y modelos. 
 
 ### Una tesis tecnológica latinoamericana
 
@@ -45,7 +45,7 @@ Isabella nace en México y se diseña con una ambición que no necesita pedir pe
 
 Eso no significa negar el ecosistema tecnológico mundial. Significa participar en él con capacidad de elección: proveedores sustituibles, datos exportables, contratos explícitos, seguridad verificable y arquitectura preparada para operar incluso cuando una dependencia externa falle.
 
-La soberanía digital, en este proyecto, no es aislamiento. Es **capacidad efectiva de decidir, auditar, sustituir y responder**. fileciteturn908file0L60-L76
+La soberanía digital, en este proyecto, no es aislamiento. Es **capacidad efectiva de decidir, auditar, sustituir y responder**. 
 
 ---
 
@@ -65,7 +65,7 @@ Isabella distingue entre:
 - recomendación;
 - acción pendiente de autorización.
 
-fileciteturn908file0L76-L98
+
 
 ### Cero simulación engañosa
 
@@ -79,17 +79,17 @@ Lo que no puede hacer es presentar:
 - estado operativo como certificación;
 - firma como prueba de verdad semántica.
 
-Cada ruta debe declarar su implementación efectiva: `QUANTUM_SIMULATOR`, `QUANTUM_HARDWARE`, `CLASSICAL_FALLBACK`, `LLM_ONLY`, `RAG_VERIFIED` o una combinación controlada. fileciteturn908file0L88-L100
+Cada ruta debe declarar su implementación efectiva: `QUANTUM_SIMULATOR`, `QUANTUM_HARDWARE`, `CLASSICAL_FALLBACK`, `LLM_ONLY`, `RAG_VERIFIED` o una combinación controlada. 
 
 ### Gobernanza humana
 
 Isabella puede analizar, clasificar, recuperar, comparar, simular y recomendar.
 
-Las acciones de alto impacto requieren aprobación humana: identidad, finanzas, derechos, cambios históricos, publicaciones sensibles, comandos, políticas y recursos costosos. fileciteturn908file0L112-L125
+Las acciones de alto impacto requieren aprobación humana: identidad, finanzas, derechos, cambios históricos, publicaciones sensibles, comandos, políticas y recursos costosos. 
 
 ### Degradación transparente
 
-Si falta un proveedor, GPU, base de datos, modelo o dispositivo, Isabella debe detectar la ausencia, registrar la causa, degradar explícitamente, reducir confianza cuando corresponda y evitar inventar resultados. fileciteturn908file0L100-L110
+Si falta un proveedor, GPU, base de datos, modelo o dispositivo, Isabella debe detectar la ausencia, registrar la causa, degradar explícitamente, reducir confianza cuando corresponda y evitar inventar resultados. 
 
 ---
 
@@ -103,7 +103,7 @@ TAMV MD-X5 organiza la plataforma en tres planos:
 | **Cognitivo** | Isabella, LLMs, GraphRAG, memoria, evaluación, planificación y agentes |
 | **Soberano** | Identidad, políticas, datos, ejecución, seguridad, observabilidad, backups y recuperación |
 
-fileciteturn908file0L145-L203
+
 
 ## Núcleo cognitivo
 
@@ -145,7 +145,7 @@ Auditoría
 
 # 4. Las siete federaciones
 
-La arquitectura canónica define siete federaciones con límites y responsabilidades diferenciadas. fileciteturn908file0L209-L221
+La arquitectura canónica define siete federaciones con límites y responsabilidades diferenciadas. 
 
 | Federación | Código | Responsabilidad |
 |---|---|---|
@@ -157,7 +157,7 @@ La arquitectura canónica define siete federaciones con límites y responsabilid
 | Estado | **LITLE** | datos, memoria, hashes y continuidad |
 | Motor cuántico | **QENGINE** | circuitos, simulación y hardware autorizado |
 
-La arquitectura no exige construir todos los componentes internamente desde el primer día. Exige que cada dependencia tenga contrato, jurisdicción, permisos, costos y ruta de sustitución. fileciteturn908file0L725-L767
+La arquitectura no exige construir todos los componentes internamente desde el primer día. Exige que cada dependencia tenga contrato, jurisdicción, permisos, costos y ruta de sustitución. 
 
 ---
 
@@ -273,11 +273,11 @@ Los registros pueden conservar:
 
 Estados canónicos:
 
-`unverified` · `under_review` · `verified` · `disputed` · `archived` · `retracted`. fileciteturn908file0L414-L431
+`unverified` · `under_review` · `verified` · `disputed` · `archived` · `retracted`. 
 
 ### GraphRAG territorial
 
-La capa de conocimiento puede representar lugares, personas, organizaciones, acontecimientos, fechas, fuentes, relaciones, conflictos, versiones y confianza. Cuando existen fuentes incompatibles, el conflicto debe conservarse y comunicarse, no desaparecer por una decisión estadística silenciosa. fileciteturn908file0L433-L456
+La capa de conocimiento puede representar lugares, personas, organizaciones, acontecimientos, fechas, fuentes, relaciones, conflictos, versiones y confianza. Cuando existen fuentes incompatibles, el conflicto debe conservarse y comunicarse, no desaparecer por una decisión estadística silenciosa. 
 
 ---
 
@@ -291,7 +291,7 @@ La capa de conocimiento puede representar lugares, personas, organizaciones, aco
 | Conflicto | **E3** | fuentes incompatibles |
 | Acción requerida | **E4** | requiere herramienta, permiso o humano |
 
-fileciteturn908file0L460-L470
+
 
 El valor de confianza es una señal compuesta. No debe atribuirse automáticamente a un supuesto valor cuántico.
 
@@ -308,7 +308,7 @@ El motor cuántico es:
 - opcional para la operación básica;
 - sujeto a baseline clásico.
 
-La propia arquitectura establece que una ventaja cuántica no puede afirmarse sin benchmarks comparables, condiciones reproducibles y comparación contra métodos clásicos adecuados. fileciteturn908file0L497-L520
+La propia arquitectura establece que una ventaja cuántica no puede afirmarse sin benchmarks comparables, condiciones reproducibles y comparación contra métodos clásicos adecuados. 
 
 ## Implementación incorporada en esta evolución
 
@@ -354,7 +354,7 @@ La arquitectura distingue objetivos diferentes:
 | Intercambio de claves | KEM aprobado |
 | Cifrado | AEAD moderno |
 
-HMAC no equivale a firma pública ni constituye por sí solo una solución poscuántica. El documento maestro establece una migración gradual hacia criptografía híbrida y estándares apropiados. fileciteturn908file0L698-L721
+HMAC no equivale a firma pública ni constituye por sí solo una solución poscuántica. El documento maestro establece una migración gradual hacia criptografía híbrida y estándares apropiados. 
 
 ---
 
@@ -472,7 +472,7 @@ La arquitectura canónica define métricas como:
 - deriva;
 - incidentes.
 
-Los objetivos iniciales documentados son internos y deben validarse con carga real; no son promesas públicas. fileciteturn908file0L835-L866
+Los objetivos iniciales documentados son internos y deben validarse con carga real; no son promesas públicas. 
 
 Campaña objetivo:
 
@@ -659,7 +659,7 @@ Estos valores no representan líneas de código ni una certificación. La difere
 - auditoría entre organizaciones;
 - gobernanza multiterritorial.
 
-La hoja de ruta maestra define estas fases como evolución progresiva de un núcleo soberano hacia una federación territorial interoperable. fileciteturn908file0L1013-L1085
+La hoja de ruta maestra define estas fases como evolución progresiva de un núcleo soberano hacia una federación territorial interoperable. 
 
 ---
 
@@ -677,7 +677,7 @@ La hoja de ruta maestra define estas fases como evolución progresiva de un núc
 | API externas cambiantes | Medio | contratos y compatibilidad |
 | Concentración tecnológica | Alto | soberanía + portabilidad |
 
-fileciteturn908file0L1089-L1104
+
 
 ---
 
@@ -757,7 +757,7 @@ Y la identidad latinoamericana no es un límite técnico.
 
 # 25. Licencias y terceros
 
-La autoría declarada de la arquitectura conceptual corresponde a Edwin Oswaldo Castillo Trejo / Anubis Villaseñor, mientras que los componentes de terceros permanecen sujetos a sus respectivas licencias y obligaciones. fileciteturn908file0L1130-L1149
+La autoría declarada de la arquitectura conceptual corresponde a Edwin Oswaldo Castillo Trejo / Anubis Villaseñor, mientras que los componentes de terceros permanecen sujetos a sus respectivas licencias y obligaciones. 
 
 Este repositorio debe mantener avisos de terceros, licencias y dependencias conforme a sus contratos.
 
@@ -765,7 +765,7 @@ Este repositorio debe mantener avisos de terceros, licencias y dependencias conf
 
 # 26. Criterio final
 
-> **TAMV MD-X5 no debe construir una dependencia tecnológica disfrazada de autonomía. Debe construir capacidad real de elección.** fileciteturn908file0L1143-L1149
+> **TAMV MD-X5 no debe construir una dependencia tecnológica disfrazada de autonomía. Debe construir capacidad real de elección.** 
 
 Ese es el estándar de Isabella Villaseñor AI.
 
