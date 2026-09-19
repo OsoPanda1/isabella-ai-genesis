@@ -294,6 +294,7 @@ export const Route = createFileRoute("/api/billing")({
               const parsed = z
                 .object({
                   planId: z.enum(["personal", "pro"]),
+                  billingCycle: z.enum(["monthly", "yearly"]).default("monthly"),
                   idempotencyKey: z
                     .string()
                     .trim()
@@ -312,7 +313,7 @@ export const Route = createFileRoute("/api/billing")({
                   },
                 );
               }
-              const { planId } = parsed.data;
+              const { planId, billingCycle } = parsed.data;
               const idempotencyKey =
                 request.headers.get("idempotency-key") ?? parsed.data.idempotencyKey;
               if (!idempotencyKey) {
@@ -339,7 +340,7 @@ export const Route = createFileRoute("/api/billing")({
                 completeCheckoutIdempotency,
                 releaseCheckoutIdempotency,
               } = await import("@/lib/repositories/billing-security-repository");
-              const requestHash = billingRequestHash({ planId, operation: "checkout" });
+              const requestHash = billingRequestHash({ planId, billingCycle, operation: "checkout" });
               let reservation;
               try {
                 reservation = await reserveCheckoutIdempotency({
@@ -397,8 +398,8 @@ export const Route = createFileRoute("/api/billing")({
                               name: `Isabella AI - Suscripción ${planId.toUpperCase()}`,
                               description: `Acceso Premium al orquestador cognitivo de Isabella (${planId}).`,
                             },
-                            unit_amount: planId === "personal" ? 999 : 1999, // $29 o $99 USD
-                            recurring: { interval: "month" },
+                            unit_amount: billingCycle === "yearly" ? (planId === "personal" ? 9588 : 19188) : (planId === "personal" ? 999 : 1999),
+                            recurring: { interval: billingCycle === "yearly" ? "year" : "month" },
                           },
                           quantity: 1,
                         },
