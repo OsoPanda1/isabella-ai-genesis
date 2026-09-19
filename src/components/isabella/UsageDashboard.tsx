@@ -2,10 +2,10 @@ import { Activity, RefreshCw } from "lucide-react";
 
 interface UsageDashboardProps {
   activePlanId: string | null;
-  messagesUsed: number;
-  messageLimit: number;
-  tokensRemaining: number;
-  tokenLimit: number;
+  messagesUsed: number | null;
+  messageLimit: number | null;
+  tokensRemaining: number | null;
+  tokenLimit: number | null;
   currentRequestsPerMin?: number;
   rateLimitThreshold?: number;
   onRefresh: () => void;
@@ -18,8 +18,8 @@ export function UsageDashboard({
   messageLimit,
   tokensRemaining,
   tokenLimit,
-  currentRequestsPerMin = 28,
-  rateLimitThreshold = Number(import.meta.env.VITE_RATE_LIMIT_DEFAULT_PER_MINUTE || 120),
+  currentRequestsPerMin,
+  rateLimitThreshold,
   onRefresh,
   isRefreshing = false,
 }: UsageDashboardProps) {
@@ -38,9 +38,9 @@ export function UsageDashboard({
     }
   };
 
-  const messagePercentage = Math.min((messagesUsed / messageLimit) * 100, 100);
-  const tokenPercentage = Math.min((tokensRemaining / tokenLimit) * 100, 100);
-  const rateLimitPercentage = Math.min((currentRequestsPerMin / rateLimitThreshold) * 100, 100);
+  const messagePercentage = messagesUsed !== null && messageLimit ? Math.min((messagesUsed / messageLimit) * 100, 100) : 0;
+  const tokenPercentage = tokensRemaining !== null && tokenLimit ? Math.min((tokensRemaining / tokenLimit) * 100, 100) : 0;
+  const rateLimitPercentage = currentRequestsPerMin !== undefined && rateLimitThreshold ? Math.min((currentRequestsPerMin / rateLimitThreshold) * 100, 100) : 0;
 
   const getRateLimitColor = (pct: number) => {
     if (pct >= 90) return "bg-rose-500 text-rose-400 border-rose-500/30";
@@ -105,7 +105,7 @@ export function UsageDashboard({
               Mensajes Utilizados
             </span>
             <span className="font-mono text-[11px] text-platinum font-semibold">
-              {messagesUsed} / {messageLimit}
+              {messagesUsed === null ? "No disponible" : `${messagesUsed} / ${messageLimit ?? "—"}`}
             </span>
           </div>
           <div className="mt-3">
@@ -118,7 +118,7 @@ export function UsageDashboard({
           </div>
           <div className="mt-3 pt-2.5 border-t border-border/15 text-[10px] text-muted-foreground font-mono flex justify-between">
             <span>Restablece en</span>
-            <span>22 días</span>
+            <span>No disponible</span>
           </div>
         </div>
 
@@ -129,7 +129,7 @@ export function UsageDashboard({
               Tokens de Memoria
             </span>
             <span className="font-mono text-[11px] text-platinum font-semibold">
-              {tokensRemaining.toLocaleString()}
+              {tokensRemaining === null ? "No disponible" : tokensRemaining.toLocaleString()}
             </span>
           </div>
           <div className="mt-3">
@@ -142,7 +142,7 @@ export function UsageDashboard({
           </div>
           <div className="mt-3 pt-2.5 border-t border-border/15 text-[10px] text-muted-foreground font-mono flex justify-between">
             <span>Cuota máxima</span>
-            <span>{tokenLimit.toLocaleString()} tokens</span>
+            <span>{tokenLimit === null ? "No disponible" : `${tokenLimit.toLocaleString()} tokens`}</span>
           </div>
         </div>
 
@@ -153,7 +153,7 @@ export function UsageDashboard({
               Tasa Solicitudes API
             </span>
             <span className="font-mono text-[11px] text-platinum font-semibold">
-              {currentRequestsPerMin} / {rateLimitThreshold} req/min
+              {currentRequestsPerMin === undefined ? "No disponible" : `${currentRequestsPerMin} / ${rateLimitThreshold ?? "—"} req/min`}
             </span>
           </div>
           <div className="mt-3 space-y-1">
