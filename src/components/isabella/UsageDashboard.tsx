@@ -92,7 +92,7 @@ export function UsageDashboard({
             <span className="font-mono text-[10px] text-muted-foreground">
               Renovación automática
             </span>
-            <span className="text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded">
+            <span className="text-[9px] font-mono bg-secondary/20 text-muted-foreground border border-border/20 px-1.5 py-0.5 rounded">
               SI
             </span>
           </div>
