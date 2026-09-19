@@ -67,7 +67,7 @@ for (const file of required) if (!existsSync(resolve(root, file))) errors.push(`
 if (existsSync(resolve(root, "src/server-routes/api/isabella.ts")))
   errors.push("legacy duplicate src/server-routes/api/isabella.ts must not exist");
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
-if (pkg.packageManager !== "pnpm@10.15.0") errors.push("packageManager must be pnpm@10.15.0");
+if (pkg.packageManager !== "pnpm@10.15.4") errors.push("packageManager must be pnpm@10.15.4");
 if (pkg.engines?.node !== ">=22 <25")
   errors.push("engines.node must be >=22 <25 for deterministic production runtime");
 for (const script of [
