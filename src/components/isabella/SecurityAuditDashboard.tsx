@@ -191,7 +191,7 @@ export function SecurityAuditDashboard() {
               <th className="px-4 py-3 font-semibold">Actor / Origen</th>
               <th className="px-4 py-3 font-semibold">Estado de Seguridad</th>
               <th className="px-4 py-3 font-semibold">Nivel Aegis</th>
-              <th className="px-4 py-3 font-semibold text-right">Firma HMAC</th>
+              <th className="px-4 py-3 font-semibold text-right">ID de evidencia</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60">
