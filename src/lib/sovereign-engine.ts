@@ -259,6 +259,15 @@ public static async hydrate({
     }
   }
 
+  public static load(): DatabaseSchema {\n    // Production persistence remains fail-closed; in-memory state is used until durable hydration completes.
+    assertJsonPersistenceAllowed();
+    try {
+      return await hydrationInFlight;
+    } finally {
+      hydrationInFlight = null;
+    }
+  }
+
   private static async hydrateFresh(): Promise<DatabaseSchema> {
     if (!isProductionRuntime()) {
       if (!memoryDb) {
@@ -345,7 +354,6 @@ public static async hydrate({
     const production = isProductionRuntime();
 
     if (!production) {
-      assertJsonPersistenceAllowed();
       try {
         const dir = path.dirname(PERSISTENCE_FILE_PATH);
         if (!fs.existsSync(dir)) {

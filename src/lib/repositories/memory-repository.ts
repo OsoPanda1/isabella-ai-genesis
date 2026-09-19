@@ -11,8 +11,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as crypto from "node:crypto";
-import { config } from "../config";
-import { isProductionLike, resolveRuntimeMode } from "../runtime-mode";
+import { config } from "@/lib/config";
+import { isProductionLike, resolveRuntimeMode } from "@/lib/runtime-mode";
 
 export type MemoryScope = "turn" | "session" | "project" | "territorial" | "historical";
 export type MemorySource = "user" | "system" | "tool" | "document";
@@ -73,7 +73,7 @@ function assertFilePersistenceAllowed(storePath: string): void {
   }
 }
 
-export function createMemoryRepository(storePath: string = STORE_PATH) {
+export function createMemoryRepository(storePath: string = STORE_PATH) {\n  // Production/staging persistence policy is enforced by the centralized runtime guard below.
   assertFilePersistenceAllowed(storePath);
 
   function loadStore(): MemoryStoreFile {

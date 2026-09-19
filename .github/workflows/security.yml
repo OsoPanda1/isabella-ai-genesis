@@ -19,7 +19,7 @@ concurrency:
 
 env:
   NODE_VERSION: "24.11.0"
-  PNPM_VERSION: "10.15.0"
+  PNPM_VERSION: "10.15.4"
 
 jobs:
   security:
@@ -29,13 +29,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-<<<<<<< Updated upstream
           fetch-depth: 0
           fetch-tags: true
-=======
-          version: 9
-          run_install: false
->>>>>>> Stashed changes
 
       - name: Setup pnpm
         uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
@@ -57,22 +52,11 @@ jobs:
       - name: Security scan
         run: pnpm security:scan
 
-<<<<<<< Updated upstream
       - name: Dependency audit
         run: pnpm audit --audit-level=high
 
       - name: TruffleHog — verified secrets only
         uses: trufflesecurity/trufflehog@4b7d1d3a6827691637eff750b6482042e06462d0
-=======
-      - name: Security Linter Scan
-        run: pnpm run security:scan
-
-      - name: Audit Dependencies (blocking)
-        run: pnpm audit --audit-level=high
-
-      - name: Scan for Secret Leaks (Trufflehog)
-        uses: trufflesecurity/trufflehog@main
->>>>>>> Stashed changes
         with:
           path: ./
           extra_args: --only-verified
@@ -115,12 +99,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
         with:
-<<<<<<< Updated upstream
           version: ${{ env.PNPM_VERSION }}
-=======
-          version: 9
-          run_install: false
->>>>>>> Stashed changes
 
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020

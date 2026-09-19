@@ -1,13 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Route as ServerRoute } from "../../server-routes/api/security";
 
-// Canonical handler lives in server-routes/api/security.ts. Keep the public
+// Canonical handler lives in server-routes/api/security.ts. This route remains a thin typed boundary. Keep the public
 // route as a typed delegation boundary so future edits cannot silently widen
 // the endpoint to an untyped/unauthenticated handler.
 type ServerRequestContext = { request: Request };
 type ServerHandlers = {
   POST: (context: ServerRequestContext) => Promise<Response>;
-  GET?: (context: ServerRequestContext) => Promise<Response>;
 };
 
 const server = ServerRoute.options.server;
@@ -18,7 +17,6 @@ export const Route = createFileRoute("/api/security")({
   server: {
     handlers: {
       POST: ({ request }) => handlers.POST({ request }),
-      GET: ({ request }) => (handlers.GET ? handlers.GET({ request }) : new Response("Not found", { status: 404 })),
     },
   },
 });

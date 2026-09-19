@@ -15,14 +15,10 @@ concurrency:
 
 env:
   NODE_VERSION: "24.x"
-  PNPM_VERSION: "10.15.0"
+  PNPM_VERSION: "10.15.4"
   RELEASE_TAG: ${{ github.ref_name }}
 
-permissions:
-  contents: write
-
 jobs:
-<<<<<<< Updated upstream
   env-check:
     name: Validate production contract
     runs-on: ubuntu-22.04
@@ -132,84 +128,3 @@ jobs:
           make_latest: ${{ !contains(env.RELEASE_TAG, '-rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-=======
-  release_build:
-    name: Build, Sign & Package Production Release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      attestations: write
-      id-token: write
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Enable pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Compile and Bundle Production Build
-        run: pnpm run build:production
-
-      - name: Generate CycloneDX SBOM
-        run: pnpm dlx @cyclonedx/cyclonedx-npm --output-file sbom.cyclonedx.json
-
-      - name: Create Production Release Bundle
-        run: |
-          if [ -d ".output" ]; then
-            tar -czf isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz .output/ dist/ package.json sbom.cyclonedx.json
-          else
-            tar -czf isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz dist/ package.json sbom.cyclonedx.json
-          fi
-
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v3
-
-      - name: Sign artifact (cosign) and generate verification bundle
-        if: secrets.COSIGN_PRIVATE_KEY != '' && secrets.COSIGN_PASSWORD != ''
-        env:
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
-        run: |
-          cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz > isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz.sig
-
-      - name: Verify signature (cosign)
-        if: secrets.COSIGN_PRIVATE_KEY != '' && secrets.COSIGN_PASSWORD != '' && secrets.COSIGN_PUBLIC_KEY != ''
-        env:
-          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
-        run: |
-          cosign verify-blob \
-            --key <(echo "$COSIGN_PUBLIC_KEY") \
-            --signature isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz.sig \
-            isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz
-
-      - name: Verify SLSA provenance (attest-build-provenance)
-        if: github.event_name == 'push'
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-path: isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz
-
-      - name: Publish GitHub Release Artifacts
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz
-            isabella-cognitive-gateway-${{ github.ref_name }}.tar.gz.sig
-            sbom.cyclonedx.json
-          draft: false
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
->>>>>>> Stashed changes
