@@ -138,7 +138,7 @@ export function CognitiveStatusDashboard() {
     bufferEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [lines]);
 
-  // Runtime metrics are evidence-only. No synthetic oscillation is generated in the UI.\n\n  const addLine = (text: string, type: TerminalLine["type"]) => {
+  // Runtime metrics are evidence-only. No synthetic oscillation is generated in the UI.\n  const addLine = (text: string, type: TerminalLine["type"]) => {
     setLines((prev) => [...prev, { text, type }]);
   };
 
@@ -213,35 +213,11 @@ export function CognitiveStatusDashboard() {
         break;
 
       case "logs":
-        addLine("Recuperando registro auditado de ARGUS Sentinel:", "system");
-        setTimeout(() => {
-          addLine(
-            `[2026-09-04 12:10:24] [CROWN] Orquestando petición -> Intención: "cultural"`,
-            "output",
-          );
-          addLine(
-            `[2026-09-04 12:10:24] [ARGUS] Filtro constitucional aplicado: ALLOWED`,
-            "output",
-          );
-          addLine(
-            `[2026-09-04 12:10:25] [ISA] Respuesta de voz generada con éxito (es-MX)`,
-            "output",
-          );
-          addLine(
-            `[2026-09-04 12:10:26] [ORION] Firma criptográfica inyectada en BookPI ledger`,
-            "success",
-          );
-        }, 300);
+        addLine("No se muestran logs sintéticos. Usa el visor de auditoría respaldado por backend.", "system");
         break;
 
       case "boost":
-        if (isBoosting) {
-          addLine("Aviso: El proceso de aceleración ya se encuentra activo.", "error");
-        } else {
-          setIsBoosting(true);
-          setBoostProgress(0);
-          addLine("Iniciando hyper-threading en núcleos de inferencia...", "system");
-        }
+        addLine("Boost no está conectado a un backend de capacidad. No se simula aceleración.", "system");
         break;
 
       default:
