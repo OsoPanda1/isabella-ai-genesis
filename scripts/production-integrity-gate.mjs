@@ -4,6 +4,19 @@ import { resolve, join, relative } from "node:path";
 const root = process.cwd();
 const checks = [
   {
+    file: "src/lib/isabella-skill-executor.ts",
+    required: [
+      /resolveSkillInvocation/,
+      /getIsabellaSkill/,
+      /requiredScopes/,
+      /runtime\.run/,
+      /isValidSkillResult/,
+      /SkillInvocationCompleted/,
+    ],
+    forbidden: [/Math\.random\s*\(/],
+    label: "Conversational skill bridge must resolve, authorize, execute, validate and audit registered skills",
+  },
+  {
     file: "src/components/isabella/SystemMonitor.tsx",
     forbidden: [/Math\.random\s*\(/, /Simulated node/i, /Escalar K8s/i, /tamv-worker-[0-9]+/i],
     label: "SystemMonitor must not fabricate infrastructure telemetry",
@@ -27,6 +40,21 @@ const checks = [
     file: "src/lib/genesis/engines/claim-engine.ts",
     forbidden: [/dependencyLockHash\s*:\s*[\"']0[\"']\.repeat\(128\)/],
     label: "Genesis claim evidence must not use a placeholder dependency lock hash",
+  },
+  {
+    file: "src/components/isabella/QuantumBridgeMonitor.tsx",
+    forbidden: [/Math\.random\s*\(/, /simulat(?:e|ed|ion)/i, /fake telemetry/i, /QNodes Activos.*[0-9]/i],
+    label: "QuantumBridgeMonitor must not fabricate runtime quantum telemetry",
+  },
+  {
+    file: "src/components/isabella/QuantumBridgeStatus.tsx",
+    forbidden: [/Math\.random\s*\(/, /setInterval\s*\(/, /QNodes.*42/i],
+    label: "QuantumBridgeStatus must not fabricate bridge status",
+  },
+  {
+    file: "src/components/isabella/CognitiveStatusDashboard.tsx",
+    forbidden: [/Math\.random\s*\(/, /Simulating live metric/i, /hyper-threading.*completado/i, /2026-09-04.*CROWN/i],
+    label: "CognitiveStatusDashboard must not fabricate operational evidence",
   },
   {
     file: "src/server.ts",
