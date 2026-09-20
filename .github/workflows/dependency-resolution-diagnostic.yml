@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 env:
   NODE_VERSION: "24.11.0"
@@ -49,6 +50,22 @@ jobs:
           name: dependency-resolution-${{ github.run_id }}
           path: dependency-resolution.log
           retention-days: 7
+      - name: Publish diagnostic failure
+        if: steps.resolve.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## Dependency resolution diagnostic"
+            echo
+            echo "- Commit: ${{ github.sha }}"
+            echo "- Run: ${{ github.run_id }}"
+            echo
+            echo '~~~text'
+            tail -n 220 dependency-resolution.log
+            echo '~~~'
+          } > diagnostic-issue.md
+          gh issue create --title "CI diagnostic: dependency resolution failure (${{ github.run_id }})" --body-file diagnostic-issue.md || true
       - name: Enforce diagnostic
         if: steps.resolve.outcome != 'success'
         run: exit 1
