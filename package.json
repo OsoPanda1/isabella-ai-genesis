@@ -2,7 +2,7 @@
   "name": "tanamv-isabella-ai-genesis",
   "version": "4.3.3",
   "description": "Isabella AI Genesis — sistema federado de inteligencia artificial gobernada.",
-  "packageManager": "pnpm@10.15.4",
+  "packageManager": "pnpm@10.34.5",
   "private": true,
   "sideEffects": false,
   "type": "module",
