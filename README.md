@@ -22,6 +22,24 @@ No es un chatbot comercial ni un simple wrapper de LLMs. Es una arquitectura dis
 
 ---
 
+## 0.1 Estado de Producción y Despliegue — Auditoría 2026-09-21
+
+> Los porcentajes son índices de madurez técnica, no certificaciones externas. **100% solo se declara cuando existe evidencia reproducible en el mismo commit de release.**
+
+| Indicador | Estado actual auditado | Objetivo |
+|---|---:|---:|
+| Implementación funcional | ~78% | 100% |
+| Preparación para producción | ~50% | 100% |
+| Preparación para despliegue | ~29% | 100% |
+| Producción certificada | NO | SÍ |
+| Despliegue certificado | NO | SÍ |
+
+La ruta canónica de cierre es:
+
+`package → lockfile → frozen install → typecheck → lint → tests → security → DB → BookPI → NCUA 50/100/250/500 → Vercel prebuilt → production smoke → evidence → rollback`
+
+Los archivos `docs/release/PRODUCTION-100-GATE.md`, `scripts/verify-lock-contract.mjs`, `scripts/production-smoke.mjs` y `scripts/production-certification.mjs` formalizan este proceso.
+
 ## 1. Principios Fundamentales
 
 Toda interacción, endpoint y componente en Isabella opera bajo cuatro pilares irrenunciables:
