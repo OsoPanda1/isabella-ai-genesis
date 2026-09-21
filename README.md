@@ -675,3 +675,92 @@ Es una medida de capacidad demostrada.**
 **Isabella Villaseñor AI™ · TAMV ONLINE NETWORK · RDM DIGITAL HUB**  
 **Real del Monte, Hidalgo, México**  
 **Edwin Oswaldo Castillo Trejo · Anubis Villaseñor**
+
+# 21. Registro de corrección de dependencias y certificación — 20 septiembre 2026
+
+### Corrección P0 — ERR_PNPM_NO_MATCHING_VERSION
+
+La causa identificada en el manifiesto era la especificación de @vercel/connect en la rama ^2.2.0. La dependencia se actualizó a ^2.3.0, una rama publicada y verificable. El paquete publica actualmente la línea 2.3.x y documenta startAuthorization, getTokenResponse y los tipos usados por src/lib/connectors/registry.ts.
+
+Importante: cambiar package.json no se considera suficiente. La certificación exige regenerar el lockfile con exactamente Node 24.11.0 + pnpm 10.15.4 y después ejecutar pnpm install --frozen-lockfile sobre el mismo commit.
+
+### Procedimiento canónico
+
+package.json → Node 24.11.0 → pnpm 10.15.4 → pnpm install --lockfile-only --no-frozen-lockfile → pnpm install --frozen-lockfile → typecheck → lint → test → security → build → Vercel READY
+
+Se añadió scripts/repair-lockfile.mjs, que falla cerradamente si la versión de Node/pnpm no coincide y ejecuta ambos pasos de instalación. No acepta un lockfile editado manualmente como evidencia de certificación.
+
+### Estado documental de la corrección
+
+| Gate | Estado |
+|---|---|
+| Dependencia @vercel/connect corregida | CORREGIDO |
+| Script reproducible de reparación | IMPLEMENTADO |
+| pnpm install --lockfile-only ejecutado en entorno certificado | PENDIENTE DE EJECUCIÓN |
+| pnpm install --frozen-lockfile verde | PENDIENTE DE EVIDENCIA |
+| CI completo | PENDIENTE DE EVIDENCIA |
+| Vercel READY | PENDIENTE |
+
+No se declara una falsa certificación: el entorno de esta sesión no puede ejecutar el registry npm ni iniciar un runner GitHub Actions; por ello el lockfile generado no se inventa ni se modifica a mano.
+
+---
+
+# 22. Inventario de métodos y funciones considerados operativos
+
+| Subsistema | Código / método | Estado |
+|---|---|---|
+| Toolchain | pnpm@10.15.4 / Node 24.11.0 | contrato fijado |
+| Lockfile | scripts/repair-lockfile.mjs | implementado |
+| CROWN | governance context / policy gate | implementado; runtime pendiente |
+| Skills | resolver → scope → runtime → validation → audit | implementado |
+| Connectors | beginAuthorization() | implementado; proveedor requiere configuración |
+| Connectors | providerToken() | implementado; proveedor requiere configuración |
+| Connectors | providerRequest() | implementado; proveedor requiere configuración |
+| Connectors | isAuthorizationRequired() | implementado |
+| Connectors | isConnectorProvider() | implementado |
+| BookPI | debit / credit / economic events | implementado; integración viva pendiente |
+| Marketplace | compra transaccional + idempotencia | implementado en rama de reparación |
+| Stripe | firma + idempotencia + reconciliación | implementado; webhook vivo pendiente |
+| NCUA | benchmark / live load | implementado; evidencia viva pendiente |
+| Observabilidad | eventos persistentes / traces / duración | implementado; dashboard vivo pendiente |
+| Seguridad | JWT / scopes / RLS / rate limiting | implementado; validación adversarial pendiente |
+| Producción | preflight / integrity / evidence | implementado |
+| CI | FGAIS + release gates | corregido para runner actual; ejecución pendiente |
+
+### Regla de clasificación
+
+Operativo en producción solo significa que existe implementación, configuración válida, prueba automatizada y evidencia de runtime sobre infraestructura real. Un archivo presente en GitHub no recibe automáticamente esa clasificación.
+
+---
+
+# 23. Porcentaje actualizado
+
+La corrección de dependencias mejora la madurez de implementación, pero no convierte automáticamente el proyecto en producción certificada.
+
+| Dimensión | Avance estimado |
+|---|---:|
+| Arquitectura / implementación | 84% |
+| Seguridad de aplicación | 72% |
+| Skills / interacción | 78% |
+| CROWN / gobernanza | 83% |
+| BookPI / economía | 79% |
+| Persistencia / RLS | 68% |
+| Testing | 71% |
+| CI/CD | 58% |
+| Observabilidad / SRE | 62% |
+| NCUA / carga real | 55% |
+| Vercel / deployment | 35% |
+| Evidencia de producción | 38% |
+
+Madurez técnica implementada: ≈79%
+Readiness de producción: ≈57%
+Readiness de despliegue oficial: ≈39%
+Madurez combinada producción + despliegue: ≈48%
+
+Estos porcentajes son estimaciones ponderadas del estado del código y de la evidencia disponible; no son una certificación externa.
+
+### Próximo umbral objetivo
+
+El siguiente salto significativo se produce cuando el mismo commit obtiene: LOCKFILE PASS + CI PASS + TYPECHECK PASS + LINT PASS + TEST PASS + SECURITY PASS + BUILD PASS + VERCEL READY + RUNTIME SMOKE PASS + NCUA EVIDENCE + BOOKPI/STRIPE RECONCILIATION EVIDENCE.
+
+En ese punto debe actualizarse esta tabla con resultados fechados y enlaces a artefactos, no con una estimación.
