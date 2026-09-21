@@ -334,7 +334,7 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
   {
     name: "XAI_API_KEY",
     visibility: "secret",
-    required: ["staging", "production"],
+    required: [],
     forbidden: [],
     provider: "self",
     criticality: "CRITICAL",
