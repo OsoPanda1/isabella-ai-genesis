@@ -130,3 +130,43 @@ export function graphRAGWithProvenance(
     }),
   };
 }
+
+// --- Drift, Fairness y Velocidad (v3.1) ---
+export type DriftReport = { drift: number; threshold: number; triggered: boolean; recommendation: string };
+export function detectDrift(baseline: number[], current: number[], threshold = 0.15): DriftReport {
+  if (baseline.length === 0 || current.length === 0) return { drift: 0, threshold, triggered: false, recommendation: "Sin datos suficientes" };
+  const bAvg = baseline.reduce((a, b) => a + b, 0) / baseline.length;
+  const cAvg = current.reduce((a, b) => a + b, 0) / current.length;
+  const drift = Math.abs(cAvg - bAvg) / (Math.abs(bAvg) || 1);
+  return {
+    drift: Number(drift.toFixed(4)),
+    threshold,
+    triggered: drift > threshold,
+    recommendation: drift > threshold ? `Drift ${drift.toFixed(3)} > ${threshold} — reentrenar con dataset versionado y auditar fairness` : "Drift dentro de umbral",
+  };
+}
+
+export type FairnessReport = { disparateImpact: number; passed: boolean; groups: string[] };
+export function auditFairness(scores: Array<{ group: string; score: number }>): FairnessReport {
+  if (scores.length < 2) return { disparateImpact: 1, passed: true, groups: [] };
+  const byGroup = new Map<string, number[]>();
+  for (const s of scores) {
+    const arr = byGroup.get(s.group) ?? [];
+    arr.push(s.score);
+    byGroup.set(s.group, arr);
+  }
+  const avgs = [...byGroup.entries()].map(([g, v]) => ({ g, avg: v.reduce((a, b) => a + b, 0) / v.length }));
+  const max = Math.max(...avgs.map((x) => x.avg));
+  const min = Math.min(...avgs.map((x) => x.avg));
+  const disparateImpact = min / (max || 1);
+  return { disparateImpact: Number(disparateImpact.toFixed(3)), passed: disparateImpact >= 0.8, groups: avgs.map((x) => x.g) };
+}
+
+export type VelocityMetrics = { p50: number; p95: number; p99: number; throughput: number };
+export function measureVelocity(latencies: number[]): VelocityMetrics {
+  if (latencies.length === 0) return { p50: 0, p95: 0, p99: 0, throughput: 0 };
+  const s = [...latencies].sort((a, b) => a - b);
+  const pct = (p: number) => s[Math.floor(s.length * p)] ?? 0;
+  const totalSec = s.reduce((a, b) => a + b, 0) / 1000;
+  return { p50: pct(0.5), p95: pct(0.95), p99: pct(0.99), throughput: totalSec ? Math.round((s.length / totalSec) * 100) / 100 : 0 };
+}

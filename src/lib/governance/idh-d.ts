@@ -95,3 +95,38 @@ export function idhdAppealRoute(tenantId: string, score: number) {
     slaHours: 72,
   };
 }
+
+// --- Mitigación de sesgos (v3.1) ---
+export type BiasAudit = { metric: string; disparateImpact: number; passed: boolean; recommendation: string };
+export function auditIDHDBias(scores: Array<{ tenantId: string; score: number; components: IDHDComponent }>): BiasAudit[] {
+  if (scores.length < 2) return [];
+  const avg = scores.reduce((s, x) => s + x.score, 0) / scores.length;
+  const min = Math.min(...scores.map((s) => s.score));
+  const disparateImpact = min / (avg || 1); // 0-1, <0.8 indica impacto dispar (regla 80%)
+  const audits: BiasAudit[] = [];
+  audits.push({
+    metric: "disparateImpact",
+    disparateImpact: Number(disparateImpact.toFixed(3)),
+    passed: disparateImpact >= 0.8,
+    recommendation:
+      disparateImpact < 0.8
+        ? "Revisar pesos w1-w4 y delta_e: posible penalización desproporcionada a un tenant. Ajustar con comité y re-evaluar fairness."
+        : "Sin disparate impact significativo (≥0.8).",
+  });
+  // Auditoría por componente: si un componente sistemáticamente bajo para un grupo, flag
+  for (const comp of ["autonomy", "privacy", "valueRetention", "cohesion"] as const) {
+    const vals = scores.map((s) => s.components[comp]);
+    const compAvg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const compMin = Math.min(...vals);
+    const ratio = compMin / (compAvg || 1);
+    if (ratio < 0.75) {
+      audits.push({
+        metric: `bias:${comp}`,
+        disparateImpact: Number(ratio.toFixed(3)),
+        passed: false,
+        recommendation: `Componente ${comp} muestra sesgo: min/avg=${ratio.toFixed(2)} <0.75. Revisar fuente de datos y ponderación.`,
+      });
+    }
+  }
+  return audits;
+}

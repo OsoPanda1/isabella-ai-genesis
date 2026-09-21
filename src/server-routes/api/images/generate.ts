@@ -18,7 +18,6 @@ function svgPlaceholder(prompt: string, style: string, traceId: string): string 
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }
 
-// @ts-expect-error - TanStack route type augmented at build time
 export const Route = createFileRoute("/api/v1/images/generate")({
   server: {
     handlers: {
