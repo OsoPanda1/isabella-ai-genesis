@@ -5,6 +5,7 @@ import {
   createPublicKey,
   generateKeyPairSync,
   randomUUID,
+  randomInt,
   sign,
   verify,
 } from "node:crypto";
@@ -148,7 +149,7 @@ export function addDifferentialPrivacy(
   delta: number[],
   epsilon: number,
   clipNorm = 1,
-  random = () => crypto.randomUUID().length / 36,
+  random = () => randomInt(0, 1_000_000) / 1_000_000,
 ): number[] {
   if (!(epsilon > 0)) throw new Error("epsilon must be positive");
   const norm = Math.sqrt(delta.reduce((s, x) => s + x * x, 0)) || 1;
