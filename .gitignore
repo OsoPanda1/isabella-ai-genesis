@@ -7,16 +7,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-.output
-.vinxi
+# Dependencias, Caché y Salidas de Compilación
+node_modules/
+dist/
+dist-ssr/
+.output/
+.vinxi/
 .tanstack/**
-.nitro
+.nitro/
+.vite/
+.vercel/
 *.local
 
-# Wrangler / Cloudflare
+# Cloudflare / Wrangler
 .wrangler/
 .dev.vars
 
@@ -76,21 +79,14 @@ __pycache__/
 .pytest_cache/
 
 # ---------------------------------------------------------------------------
-# Editor directories and files
+# Editores e IDEs
 # ---------------------------------------------------------------------------
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
--e 
-.vercel
-.output
-.nitro
-
-.vite/
-dist/
