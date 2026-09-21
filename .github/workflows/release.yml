@@ -21,7 +21,7 @@ env:
 jobs:
   env-check:
     name: Validate production contract
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Validate required production variables
         env:
@@ -75,7 +75,7 @@ jobs:
   release:
     name: Build and publish release
     needs: [env-check, verify]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
