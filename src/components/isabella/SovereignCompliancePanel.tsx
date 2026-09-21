@@ -32,7 +32,7 @@ export function SovereignCompliancePanel() {
   }, []);
 
   const handleExportPdf = () => {
-    const runId = `GOV-RUN-${Math.floor(100000 + Math.random() * 900000)}`;
+    const runId = `GOV-RUN-${crypto.randomUUID()}`;
     void exportSecurityCompliancePdf(logs, runId);
   };
 

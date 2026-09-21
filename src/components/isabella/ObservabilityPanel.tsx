@@ -106,7 +106,7 @@ export function ObservabilityPanel() {
 
   const exportCompliancePdf = () => {
     const logs = CentralizedTelemetryService.getLogs();
-    const runId = `RUN-${Math.floor(100000 + Math.random() * 900000)}`;
+    const runId = `RUN-${crypto.randomUUID()}`;
     void exportSecurityCompliancePdf(logs, runId);
   };
 
