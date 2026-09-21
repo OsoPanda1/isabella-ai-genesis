@@ -64,13 +64,23 @@ function assertProductionProvider(mode: RuntimeMode, parsed: Env): void {
     );
 }
 function assertProductionCrypto(mode: RuntimeMode, parsed: Env): void {
-  if (
-    (mode === "production" || mode === "staging") &&
-    parsed.BOOKPI_SIGNATURE_ALGORITHM === "ML-DSA-87"
-  )
+  if (mode !== "production" && mode !== "staging") return;
+  const algorithm = String(parsed.BOOKPI_SIGNATURE_ALGORITHM ?? "").trim();
+  if (!["ECDSA-P384", "RSA-SHA256"].includes(algorithm)) {
     throw new Error(
-      "CRITICAL_SECURITY_ERROR: ML-DSA-87 no es un proveedor criptográfico productivo en este runtime. Producción y staging requieren ECDSA-P384 o RSA-SHA256 hasta integrar un proveedor ML-DSA real.",
+      "CRITICAL_SECURITY_ERROR: BOOKPI_SIGNATURE_ALGORITHM must be explicitly ECDSA-P384 or RSA-SHA256 in staging/production.",
     );
+  }
+  if (!parsed.BOOKPI_SIGNING_KEY || parsed.BOOKPI_SIGNING_KEY.trim().length < 32) {
+    throw new Error(
+      "CRITICAL_SECURITY_ERROR: BOOKPI_SIGNING_KEY is required (>=32 characters) in staging/production.",
+    );
+  }
+  if (!parsed.CROWN_POLICY_SIGNING_KEY || parsed.CROWN_POLICY_SIGNING_KEY.trim().length < 32) {
+    throw new Error(
+      "CRITICAL_SECURITY_ERROR: CROWN_POLICY_SIGNING_KEY is required (>=32 characters) in staging/production.",
+    );
+  }
 }
 function isSameDatabaseInstance(url1Str: string, url2Str: string): boolean {
   const u1Trim = url1Str.trim();
