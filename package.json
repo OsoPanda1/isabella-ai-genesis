@@ -86,7 +86,6 @@
     "@types/three": "^0.185.4",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.3",
-    "@vercel/connect": "^2.2.0",
     "@vercel/speed-insights": "^2.0.0",
     "ai": "^7.0.105",
     "class-variance-authority": "^0.7.1",
