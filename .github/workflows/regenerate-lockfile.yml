@@ -1,6 +1,8 @@
 name: Regenerate pnpm lockfile
 
 on:
+  push:
+    branches: [fix/dependency-contract-invalid-package-2026-09-19]
   workflow_dispatch:
 
 permissions:
