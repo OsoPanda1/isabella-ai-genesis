@@ -1,0 +1,22 @@
+name: Isabella Genesis — Runner Diagnostic
+
+on:
+  push:
+    branches:
+      - repair/production-certification-2026-09-21
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runner:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Runner identity
+        run: |
+          set -eux
+          echo "runner=${RUNNER_NAME}"
+          echo "os=${RUNNER_OS}"
+          uname -a
+          node --version

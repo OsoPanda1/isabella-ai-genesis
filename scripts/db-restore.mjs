@@ -146,6 +146,16 @@ const TABLE_COLUMNS = {
     "metadata",
     "created_at",
   ],
+  observability_events: [
+    "id",
+    "trace_id",
+    "event_type",
+    "source",
+    "duration_ms",
+    "severity",
+    "payload",
+    "created_at",
+  ],
   sovereign_state: ["id", "payload", "version", "updated_at"],
 };
 

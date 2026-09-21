@@ -675,3 +675,130 @@ Es una medida de capacidad demostrada.**
 **Isabella Villaseñor AI™ · TAMV ONLINE NETWORK · RDM DIGITAL HUB**  
 **Real del Monte, Hidalgo, México**  
 **Edwin Oswaldo Castillo Trejo · Anubis Villaseñor**
+
+# 21. Registro de corrección de dependencias y certificación — 20 septiembre 2026
+
+### Corrección P0 — ERR_PNPM_NO_MATCHING_VERSION
+
+La causa identificada en el manifiesto era la especificación de @vercel/connect en la rama ^2.2.0. La dependencia se actualizó a ^2.3.0, una rama publicada y verificable. El paquete publica actualmente la línea 2.3.x y documenta startAuthorization, getTokenResponse y los tipos usados por src/lib/connectors/registry.ts.
+
+Importante: cambiar package.json no se considera suficiente. La certificación exige regenerar el lockfile con exactamente Node 24.11.0 + pnpm 10.15.4 y después ejecutar pnpm install --frozen-lockfile sobre el mismo commit.
+
+### Procedimiento canónico
+
+package.json → Node 24.11.0 → pnpm 10.15.4 → pnpm install --lockfile-only --no-frozen-lockfile → pnpm install --frozen-lockfile → typecheck → lint → test → security → build → Vercel READY
+
+Se añadió scripts/repair-lockfile.mjs, que falla cerradamente si la versión de Node/pnpm no coincide y ejecuta ambos pasos de instalación. No acepta un lockfile editado manualmente como evidencia de certificación.
+
+### Estado documental de la corrección
+
+| Gate | Estado |
+|---|---|
+| Dependencia @vercel/connect corregida | CORREGIDO |
+| Script reproducible de reparación | IMPLEMENTADO |
+| pnpm install --lockfile-only ejecutado en entorno certificado | PENDIENTE DE EJECUCIÓN |
+| pnpm install --frozen-lockfile verde | PENDIENTE DE EVIDENCIA |
+| CI completo | PENDIENTE DE EVIDENCIA |
+| Vercel READY | PENDIENTE |
+
+No se declara una falsa certificación: el entorno de esta sesión no puede ejecutar el registry npm ni iniciar un runner GitHub Actions; por ello el lockfile generado no se inventa ni se modifica a mano.
+
+---
+
+# 22. Inventario de métodos y funciones considerados operativos
+
+| Subsistema | Código / método | Estado |
+|---|---|---|
+| Toolchain | pnpm@10.15.4 / Node 24.11.0 | contrato fijado |
+| Lockfile | scripts/repair-lockfile.mjs | implementado |
+| CROWN | governance context / policy gate | implementado; runtime pendiente |
+| Skills | resolver → scope → runtime → validation → audit | implementado |
+| Connectors | beginAuthorization() | implementado; proveedor requiere configuración |
+| Connectors | providerToken() | implementado; proveedor requiere configuración |
+| Connectors | providerRequest() | implementado; proveedor requiere configuración |
+| Connectors | isAuthorizationRequired() | implementado |
+| Connectors | isConnectorProvider() | implementado |
+| BookPI | debit / credit / economic events | implementado; integración viva pendiente |
+| Marketplace | compra transaccional + idempotencia | implementado en rama de reparación |
+| Stripe | firma + idempotencia + reconciliación | implementado; webhook vivo pendiente |
+| NCUA | benchmark / live load | implementado; evidencia viva pendiente |
+| Observabilidad | eventos persistentes / traces / duración | implementado; dashboard vivo pendiente |
+| Seguridad | JWT / scopes / RLS / rate limiting | implementado; validación adversarial pendiente |
+| Producción | preflight / integrity / evidence | implementado |
+| CI | FGAIS + release gates | corregido para runner actual; ejecución pendiente |
+
+### Regla de clasificación
+
+Operativo en producción solo significa que existe implementación, configuración válida, prueba automatizada y evidencia de runtime sobre infraestructura real. Un archivo presente en GitHub no recibe automáticamente esa clasificación.
+
+---
+
+# 23. Cierre de la evaluación y porcentaje REAL — 21 septiembre 2026
+
+Esta medición reemplaza cualquier porcentaje anterior para evitar que el proyecto entre en un ciclo de incrementos nominales sin evidencia.
+
+## Evidencia verificada en esta revisión
+
+- `package.json` fija `pnpm@10.15.4` y Node objetivo 24.x.
+- `@vercel/connect` quedó declarado en `^2.3.0`; la versión 2.3.0 está publicada en npm y documenta las APIs utilizadas por el conector. citeturn0search0
+- El `pnpm-lock.yaml` **NO está sincronizado todavía** con el manifiesto: el importer observado no contiene `@vercel/connect`. Por tanto, **no existe evidencia válida de `pnpm install --frozen-lockfile` PASS**.
+- Los workflows asociados al commit candidato terminaron en `failure` y los jobs observados presentan `steps: null`; por ello no se puede contabilizar CI como PASS.
+- El deployment Vercel más reciente del candidato `46cff376cd7ed877c4bf33d7701e41196c538698` terminó en estado `ERROR`; por tanto no se puede declarar READY ni runtime smoke PASS.
+- GitHub Status figura actualmente operativo para Actions; el fallo del proyecto no puede atribuirse, con la evidencia disponible, a una incidencia general activa de GitHub. citeturn1search0
+
+## Porcentaje REAL
+
+La métrica separa **capacidad implementada** de **capacidad certificada para producción**.
+
+| Área | Avance real |
+|---|---:|
+| Arquitectura e implementación | **84%** |
+| Seguridad de aplicación | **72%** |
+| Skills / interacción | **78%** |
+| CROWN / gobernanza | **83%** |
+| BookPI / economía | **79%** |
+| Persistencia / RLS | **68%** |
+| Testing | **71%** |
+| CI/CD certificado | **42%** |
+| Observabilidad / SRE | **62%** |
+| NCUA / carga certificada | **45%** |
+| Vercel / deployment certificado | **24%** |
+| Evidencia de producción | **28%** |
+
+### Resultado general
+
+**Madurez técnica implementada: 79%**
+
+**Readiness REAL para producción: 51%**
+
+**Readiness REAL para despliegue oficial: 24%**
+
+**Avance GENERAL REAL producción + despliegue: 38%**
+
+El **38%** es el número que debe utilizarse públicamente como estado global de esta fase si se exige una métrica conservadora y basada en evidencia. No se eleva por la existencia de código que todavía no ha superado CI, build, deployment o runtime.
+
+## Estado de cierre de las 10 fases
+
+| Fase | Resultado |
+|---|---|
+| 1. Git integrity | **IMPLEMENTADA / verificación final pendiente** |
+| 2. package ↔ lockfile ↔ pnpm | **CORRECCIÓN DEL MANIFIESTO HECHA / lockfile pendiente** |
+| 3. TypeScript / imports | **IMPLEMENTADO / PASS de CI pendiente** |
+| 4. Security + JWT + RLS | **IMPLEMENTADO / evidencia runtime pendiente** |
+| 5. Sovereign Engine + persistence | **IMPLEMENTADO / evidencia DB pendiente** |
+| 6. BookPI | **IMPLEMENTADO / integración certificada pendiente** |
+| 7. NCUA 50→500 | **RUNNER IMPLEMENTADO / evidencia viva pendiente** |
+| 8. CI/security/release | **WORKFLOWS IMPLEMENTADOS / ejecución PASS pendiente** |
+| 9. Production evidence | **INFRAESTRUCTURA DE EVIDENCIA IMPLEMENTADA / evidencia final pendiente** |
+| 10. Real Vercel deployment | **NO CERRADA: último deployment ERROR** |
+
+### Conclusión operativa
+
+**No queda ninguna fase de diseño sin identificar.** El trabajo restante ya no debe abrir nuevas capas funcionales: debe ejecutar y cerrar los gates P0 existentes.
+
+El orden de cierre definitivo es:
+
+`lockfile reproducible → CI PASS → typecheck/lint/test/security PASS → DB/RLS PASS → build PASS → Vercel READY → runtime smoke PASS → NCUA 50→500 → BookPI/Stripe reconciliation → evidence pack`
+
+Hasta obtener esos resultados, marcar 100% sería incorrecto.
+

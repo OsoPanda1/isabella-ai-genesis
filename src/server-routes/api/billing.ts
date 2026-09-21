@@ -540,16 +540,51 @@ export const Route = createFileRoute("/api/billing")({
               });
             }
 
-            // Procesar el evento
-            if (
-              eventType === "checkout.session.completed" ||
-              eventType === "invoice.payment_succeeded"
-            ) {
+            // Claim atómico antes de cualquier efecto durable. El registro solo se
+            // marca como processed después de completar todas las operaciones.
+            const {
+              claimWebhookEvent,
+              markWebhookProcessed,
+              markWebhookFailed,
+            } = await import("@/lib/economic-events");
+            const claim = await claimWebhookEvent({
+              provider: "stripe",
+              providerEventId: eventId,
+              eventType,
+              payloadHash: nodeCrypto.createHash("sha256").update(bodyText).digest("hex"),
+            });
+            if (claim.status === "duplicate") {
+              return new Response(
+                JSON.stringify({ success: true, processed: true, duplicate: true }),
+                { headers },
+              );
+            }
+            if (claim.status === "in_progress") {
+              return new Response(
+                JSON.stringify({ success: true, processed: false, inProgress: true }),
+                { status: 202, headers },
+              );
+            }
+            if (claim.status === "error") {
+              console.error("[billing:webhook] claimWebhookEvent failed:", claim.message);
+              return new Response(
+                JSON.stringify({ error: "Idempotencia de webhook no disponible." }),
+                { status: 503, headers },
+              );
+            }
+
+            try {
+              // Procesar el evento
+              if (
+                eventType === "checkout.session.completed" ||
+                eventType === "invoice.payment_succeeded"
+              ) {
               const planId = metadata?.planId;
               const targetTenantId = metadata?.tenantId;
               const targetUserId = clientReferenceId;
 
               if (!planId || !targetTenantId || !targetUserId) {
+                await markWebhookFailed(claim.id, "Webhook metadata incompleta.");
                 return new Response(JSON.stringify({ error: "Webhook metadata incompleta." }), {
                   status: 422,
                   headers,
@@ -559,37 +594,29 @@ export const Route = createFileRoute("/api/billing")({
               // IDEMPOTENCIA ATÓMICA (§5): UNIQUE(provider, provider_event_id)
               // en `webhook_events`. Dos entregas simultáneas → 1 procesado.
               if (eventId) {
-                const { claimWebhookEvent } = await import("@/lib/economic-events");
-                const claim = await claimWebhookEvent({
-                  provider: "stripe",
-                  providerEventId: eventId,
-                  eventType,
-                });
-                if (claim.status === "duplicate") {
-                  return new Response(
-                    JSON.stringify({
-                      success: true,
-                      processed: true,
-                      duplicate: true,
-                    }),
-                    { headers },
-                  );
-                }
-                if (claim.status === "error") {
-                  console.error("[billing:webhook] claimWebhookEvent failed:", claim.message);
-                  if (config().NODE_ENV === "production") {
-                    return new Response(
-                      JSON.stringify({
-                        error: "Idempotencia de webhook no disponible.",
-                      }),
-                      { status: 500, headers },
-                    );
-                  }
-                }
                 metadata.marker = `STRIPE_EVENT:${eventId}`;
               }
 
               if (targetTenantId) {
+                const { recordEconomicEvent } = await import("@/lib/economic-events");
+                const economicCredit = await recordEconomicEvent({
+                  tenantId: targetTenantId,
+                  actorId: targetUserId,
+                  eventType: "SUBSCRIPTION_CREDIT",
+                  amountMinor: 10_000,
+                  direction: "CREDIT",
+                  source: "stripe",
+                  provider: "stripe",
+                  providerEventId: eventId,
+                  idempotencyKey: `subscription-credit:${eventId}`,
+                  metadata: { planId, eventType, source: "stripe_webhook" },
+                });
+                if (!economicCredit.ok && !economicCredit.duplicate) {
+                  throw new Error(
+                    `Economic subscription credit failed: ${economicCredit.error ?? "unknown"}`,
+                  );
+                }
+
                 const tenant = await sovereignStateRepository.getTenant(targetTenantId);
                 if (tenant) {
                   tenant.tier = planId === "enterprise" ? "Enterprise" : "Sovereign";
@@ -632,8 +659,7 @@ export const Route = createFileRoute("/api/billing")({
               const disputeUser = clientReferenceId || "system";
               const amountMinor = disputeAmountMinor;
 
-              const { claimWebhookEvent, recordEconomicEvent } =
-                await import("@/lib/economic-events");
+              const { recordEconomicEvent } = await import("@/lib/economic-events");
 
               // 1) Hold económico durable (idempotente por idempotency_key).
               //    Error de DB → 503 en producción para que Stripe reintente.
@@ -663,23 +689,6 @@ export const Route = createFileRoute("/api/billing")({
                 }
               }
 
-              // 2) Claim del webhook: deduplica el manejo completo.
-              const claim = await claimWebhookEvent({
-                provider: "stripe",
-                providerEventId: eventId,
-                eventType,
-              });
-              if (claim.status === "duplicate") {
-                return new Response(
-                  JSON.stringify({
-                    success: true,
-                    processed: true,
-                    duplicate: true,
-                  }),
-                  { headers },
-                );
-              }
-
               await sovereignStateRepository.appendAuditLog(
                 `trc_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
                 `corr_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
@@ -690,6 +699,7 @@ export const Route = createFileRoute("/api/billing")({
                 disputeTenant,
               );
 
+              await markWebhookProcessed(claim.id);
               return new Response(
                 JSON.stringify({
                   success: true,
@@ -711,6 +721,7 @@ export const Route = createFileRoute("/api/billing")({
                 `Disputa ${eventId} cerrada (tenant: ${metadata?.tenantId || "unresolved-dispute"}). Revisar estado won/lost en Stripe Dashboard.`,
                 metadata?.tenantId || "unresolved-dispute",
               );
+              await markWebhookProcessed(claim.id);
               return new Response(
                 JSON.stringify({
                   success: true,
@@ -721,7 +732,20 @@ export const Route = createFileRoute("/api/billing")({
               );
             }
 
-            return new Response(JSON.stringify({ success: true, processed: true }), { headers });
+              await markWebhookProcessed(claim.id);
+              return new Response(JSON.stringify({ success: true, processed: true }), { headers });
+            } catch (webhookError: unknown) {
+              const message =
+                webhookError instanceof Error ? webhookError.message : String(webhookError);
+              await markWebhookFailed(claim.id, message).catch((markError) => {
+                console.error("[billing:webhook] unable to persist failure state:", markError);
+              });
+              console.error("[billing:webhook] durable processing failed:", message);
+              return new Response(
+                JSON.stringify({ error: "Webhook processing failed; Stripe may retry." }),
+                { status: 503, headers },
+              );
+            }
           }
 
           // 3. REGISTRAR CONSUMO REAL POR QUANTUM JOB / INFERENCIA (SERVER-TO-SERVER)

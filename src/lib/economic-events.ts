@@ -28,15 +28,23 @@ function getPool(): Pool {
 }
 
 export type WebhookClaimResult =
-  | { status: "processed"; id: string }
+  | { status: "claimed"; id: string }
   | { status: "duplicate"; id: string }
+  | { status: "in_progress"; id: string }
   | { status: "error"; id: string; message: string };
 
+/**
+ * Atomically claims a webhook for processing without marking it processed.
+ * A Stripe retry may safely reclaim a stale received/failed record; a concurrent
+ * delivery is reported as in_progress. Processing must call markWebhookProcessed
+ * only after every durable side effect has succeeded.
+ */
 export async function claimWebhookEvent(input: {
   provider: string;
   providerEventId: string;
   eventType: string;
   payloadHash?: string;
+  staleAfterMs?: number;
 }): Promise<WebhookClaimResult> {
   let client;
   try {
@@ -56,21 +64,51 @@ export async function claimWebhookEvent(input: {
         .update(JSON.stringify({ provider: input.provider, eventId: input.providerEventId }))
         .digest("hex");
     const { rows } = await client.query(
-      `INSERT INTO webhook_events (provider, provider_event_id, event_type, payload_hash, status, processed_at, error)
-       VALUES ($1,$2,$3,$4,'processed',NOW(),NULL)
-       ON CONFLICT (provider, provider_event_id) DO NOTHING RETURNING id`,
+      `INSERT INTO webhook_events
+         (provider, provider_event_id, event_type, payload_hash, status, processed_at, error)
+       VALUES ($1,$2,$3,$4,'received',NULL,NULL)
+       ON CONFLICT (provider, provider_event_id) DO NOTHING
+       RETURNING id`,
       [input.provider, input.providerEventId, input.eventType, payloadHash],
     );
     if (rows[0]) {
       await client.query("COMMIT");
-      return { status: "processed", id: String(rows[0].id) };
+      return { status: "claimed", id: String(rows[0].id) };
     }
+
+    const staleAfterMs = input.staleAfterMs ?? 5 * 60 * 1000;
     const existing = await client.query(
-      "SELECT id FROM webhook_events WHERE provider=$1 AND provider_event_id=$2 LIMIT 1",
+      `SELECT id, status, received_at, processed_at
+         FROM webhook_events
+        WHERE provider=$1 AND provider_event_id=$2
+        FOR UPDATE`,
       [input.provider, input.providerEventId],
     );
+    const row = existing.rows[0];
+    if (!row) {
+      await client.query("ROLLBACK");
+      return { status: "error", id: randomUUID(), message: "Webhook claim disappeared." };
+    }
+
+    if (row.status === "processed") {
+      await client.query("COMMIT");
+      return { status: "duplicate", id: String(row.id) };
+    }
+
+    const ageMs = Date.now() - new Date(row.received_at).getTime();
+    if (ageMs >= staleAfterMs || row.status === "failed") {
+      await client.query(
+        `UPDATE webhook_events
+            SET status='received', received_at=NOW(), processed_at=NULL, error=NULL
+          WHERE id=$1`,
+        [row.id],
+      );
+      await client.query("COMMIT");
+      return { status: "claimed", id: String(row.id) };
+    }
+
     await client.query("COMMIT");
-    return { status: "duplicate", id: String(existing.rows[0]?.id ?? "unknown") };
+    return { status: "in_progress", id: String(row.id) };
   } catch (err) {
     await client.query("ROLLBACK").catch(() => undefined);
     return {
@@ -81,6 +119,24 @@ export async function claimWebhookEvent(input: {
   } finally {
     client.release();
   }
+}
+
+export async function markWebhookProcessed(id: string): Promise<void> {
+  await getPool().query(
+    `UPDATE webhook_events
+        SET status='processed', processed_at=NOW(), error=NULL
+      WHERE id=$1 AND status <> 'processed'`,
+    [id],
+  );
+}
+
+export async function markWebhookFailed(id: string, error: string): Promise<void> {
+  await getPool().query(
+    `UPDATE webhook_events
+        SET status='failed', processed_at=NULL, error=$2
+      WHERE id=$1 AND status <> 'processed'`,
+    [id, error.slice(0, 2000)],
+  );
 }
 
 export type EconomicEventInput = {

@@ -19,6 +19,7 @@ export const SNAPSHOT_TABLES = [
   "webhook_events",
   "economic_events",
   "sovereign_state",
+  "observability_events",
 ];
 
 /** JSON canónico: claves ordenadas recursivamente. */

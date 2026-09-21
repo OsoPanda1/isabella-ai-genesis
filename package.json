@@ -45,7 +45,8 @@
     "clean:install": "bash scripts/clean-install.sh",
     "production:gate": "pnpm typecheck && pnpm lint && pnpm test && pnpm audit:repository && pnpm security:scan && pnpm capabilities && pnpm audit:routes && pnpm db:verify && pnpm production:integrity && pnpm production:preflight -- --json && pnpm build && pnpm production:evidence",
     "postinstall": "prisma generate",
-    "quantum:bridge:test": "vitest run test/unit/quantum-bridge.test.ts"
+    "quantum:bridge:test": "vitest run test/unit/quantum-bridge.test.ts",
+    "ncua:live": "node scripts/ncua-live-load.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -85,7 +86,6 @@
     "@types/three": "^0.185.4",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.3",
-    "@vercel/connect": "^2.2.0",
     "@vercel/speed-insights": "^2.0.0",
     "ai": "^7.0.105",
     "class-variance-authority": "^0.7.1",
@@ -115,7 +115,8 @@
     "tw-animate-css": "^1.3.4",
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^6.0.2",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "@vercel/connect": "^2.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
