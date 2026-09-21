@@ -584,6 +584,7 @@ export const Route = createFileRoute("/api/billing")({
               const targetUserId = clientReferenceId;
 
               if (!planId || !targetTenantId || !targetUserId) {
+                await markWebhookFailed(claim.id, "Webhook metadata incompleta.");
                 return new Response(JSON.stringify({ error: "Webhook metadata incompleta." }), {
                   status: 422,
                   headers,
@@ -597,6 +598,25 @@ export const Route = createFileRoute("/api/billing")({
               }
 
               if (targetTenantId) {
+                const { recordEconomicEvent } = await import("@/lib/economic-events");
+                const economicCredit = await recordEconomicEvent({
+                  tenantId: targetTenantId,
+                  actorId: targetUserId,
+                  eventType: "SUBSCRIPTION_CREDIT",
+                  amountMinor: 10_000,
+                  direction: "CREDIT",
+                  source: "stripe",
+                  provider: "stripe",
+                  providerEventId: eventId,
+                  idempotencyKey: `subscription-credit:${eventId}`,
+                  metadata: { planId, eventType, source: "stripe_webhook" },
+                });
+                if (!economicCredit.ok && !economicCredit.duplicate) {
+                  throw new Error(
+                    `Economic subscription credit failed: ${economicCredit.error ?? "unknown"}`,
+                  );
+                }
+
                 const tenant = await sovereignStateRepository.getTenant(targetTenantId);
                 if (tenant) {
                   tenant.tier = planId === "enterprise" ? "Enterprise" : "Sovereign";
@@ -679,6 +699,7 @@ export const Route = createFileRoute("/api/billing")({
                 disputeTenant,
               );
 
+              await markWebhookProcessed(claim.id);
               return new Response(
                 JSON.stringify({
                   success: true,
@@ -700,6 +721,7 @@ export const Route = createFileRoute("/api/billing")({
                 `Disputa ${eventId} cerrada (tenant: ${metadata?.tenantId || "unresolved-dispute"}). Revisar estado won/lost en Stripe Dashboard.`,
                 metadata?.tenantId || "unresolved-dispute",
               );
+              await markWebhookProcessed(claim.id);
               return new Response(
                 JSON.stringify({
                   success: true,
