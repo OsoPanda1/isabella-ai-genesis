@@ -308,7 +308,7 @@ preservar la cadena de autoridad y añadir una prueba (unit, integration o secur
 - `src/lib/crown.ts` + `src/lib/constitutional-gate.ts` — autoridad de gobernanza; una heurística nunca es autorización por sí sola.
 - `src/lib/sovereign-engine.ts` · `sovereign-pipeline.ts` — orquestación cognitiva.
 - `src/lib/memory-engine.ts` + `src/lib/repositories/memory-repository.ts` — memoria real.
-- `src/lib/bookpi*.ts` + `src/lib/repositories/bookpi-repository.ts` — ledger inmutable.
+- `src/lib/repositories/bookpi-postgres-repository.ts` — ledger inmutable de producción (`src/lib/bookpi.test-adapter.ts` y `src/lib/repositories/bookpi-repository.test-adapter.ts` son exclusivamente adaptadores aislados de test/dev).
 - `src/lib/repositories/audit-repository.ts` — auditoría append-only.
 - `src/lib/tool-registry.ts` + `src/lib/orion-engine.ts` + `src/lib/sovereign-sandbox.ts` — ejecución de herramientas.
 - `supabase/migrations/*` — esquema y RLS; única autoridad de datos.

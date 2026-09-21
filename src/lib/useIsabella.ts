@@ -8,7 +8,7 @@ import {
   type RoutingDecision,
 } from "./crown-ui";
 import { audioFormatFromMime, type Attachment } from "./attachments";
-import { resolveSkillInvocation } from "./skill-registry";
+import { detectSkillInvocation, isSkillTrigger } from "@/lib/skills/skill-bridge-core";
 import {
   exportTelemetryCsv,
   exportTelemetryPdf,
@@ -153,15 +153,12 @@ export function useIsabella() {
         return;
       }
       logLifecycleEvent("SANITIZATION", { validatedPayload });
-      const skillResolution = resolveSkillInvocation(validatedPayload.text || "");
-      const skillWarning =
-        skillResolution && "error" in skillResolution ? skillResolution.error : null;
-      const skillContext =
-        skillResolution && "skill" in skillResolution
-          ? `\n\n[SKILL RESUELTO: ${skillResolution.skill.id}]\n${skillResolution.skill.description}`
-          : "";
-      const effectiveText =
-        skillResolution && "skill" in skillResolution ? skillResolution.prompt : text;
+      // Detección de invocación de habilidades (@skill trigger)
+      // Se canaliza de forma transparente hacia el puente canónico processSkillInvocation,
+      // preservando el comando completo y capturando la evidencia en el ledger BookPI.
+      const skillInvocation = detectSkillInvocation(validatedPayload.text || "");
+      const hasSkillTrigger = Boolean(skillInvocation || isSkillTrigger(validatedPayload.text || ""));
+      const effectiveText = validatedPayload.text || text;
       const routing = route(effectiveText || "material adjunto", preset);
       setDecision(routing);
       setTelemetry((prev) => [...prev, toTelemetryRecord(routing, preset.id)]);
@@ -219,17 +216,6 @@ export function useIsabella() {
         }));
       setMessages((prev) => [
         ...prev,
-        ...(skillWarning
-          ? [
-              {
-                id: uid(),
-                role: "system" as const,
-                content: `ARGUS :: ${skillWarning} La conversación continúa sin ejecutar esa capacidad.`,
-                timestamp: now(),
-                error: true,
-              },
-            ]
-          : []),
         userMsg,
         {
           id: replyId,
@@ -253,7 +239,7 @@ export function useIsabella() {
           },
           signal: controller.signal,
           body: JSON.stringify({
-            system: (buildSystemPrompt(routing, preset) + skillContext).slice(0, 8000),
+            system: buildSystemPrompt(routing, preset).slice(0, 8000),
             temperature: preset.temperature,
             messages: history,
             context: {
@@ -262,7 +248,10 @@ export function useIsabella() {
               runId,
               executionMode: config.mode ?? "fast",
               webSearch: config.webSearch ?? false,
-              toolsEnabled: config.toolsEnabled ?? false,
+              toolsEnabled: hasSkillTrigger || (config.toolsEnabled ?? false),
+              hasSkillTrigger,
+              skillBridge: hasSkillTrigger ? "processSkillInvocation" : undefined,
+              skillId: skillInvocation?.canonicalName,
             },
           }),
         });

@@ -1,7 +1,7 @@
 /**
- * REPOSITORIO BOOKPI [TEST/DEV ADAPTER] (src/lib/repositories/bookpi-repository.ts)
+ * REPOSITORIO BOOKPI [TEST/DEV ADAPTER] (src/lib/repositories/bookpi-repository.test-adapter.ts)
  * -----------------------------------------------------------------
- * @deprecated Este módulo ha sido refactorizado a `src/lib/repositories/bookpi-dev-repository.ts`.
+ * @deprecated Este módulo ha sido renombrado a `src/lib/repositories/bookpi-repository.test-adapter.ts`.
  * ES ESTRICTAMENTE UN ADAPTADOR DE TEST Y DESARROLLO LOCAL AISLADO.
  *
  * REMOVIDO DEL FLUJO FINANCIERO DE PRODUCCIÓN:

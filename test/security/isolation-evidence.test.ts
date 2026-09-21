@@ -178,7 +178,9 @@ describe("crossover de tenant", () => {
   });
 
   it("tenant B no lista bloques BookPI de tenant A", async () => {
-    const { createBookpiRepository } = await import("@/lib/repositories/bookpi-repository");
+    const { createBookpiRepository } = await import(
+      "@/lib/repositories/bookpi-repository.test-adapter"
+    );
     const paths = isolated(["bookpi"]);
     const { writeFileSync: write } = await import("node:fs");
     write(paths.bookpi, JSON.stringify({ blocks: [], genesisPreviousHash: "0".repeat(64) }));

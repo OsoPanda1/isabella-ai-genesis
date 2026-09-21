@@ -11,15 +11,14 @@
  *  5. Capacidad de streaming SSE compatible con OpenAI/Gemini para el chat stream.
  */
 
-import { isabellaSkills, type IsabellaSkillId } from "./registry";
-import { runIsabellaSkill } from "./run-skill";
+import {
+  detectSkillInvocation,
+  processSkillInvocation,
+  type SkillInvocation,
+  type ProcessSkillResult,
+} from "./skill-bridge";
 
-export interface SkillInvocation {
-  skillId: IsabellaSkillId;
-  canonicalName: string;
-  rawInput: string;
-  parsedInput: Record<string, unknown>;
-}
+export { detectSkillInvocation, type SkillInvocation };
 
 export interface BridgeContext {
   correlationId: string;
@@ -45,161 +44,37 @@ export interface ChatSkillExecutionResult {
   rawResult?: unknown;
 }
 
-// Mapa de búsqueda normalizado (minúsculas y sin prefijos) para resolución rápida
-const skillLookupMap = new Map<string, IsabellaSkillId>();
-
-for (const key of Object.keys(isabellaSkills) as IsabellaSkillId[]) {
-  const normKey = key.toLowerCase();
-  skillLookupMap.set(normKey, key);
-  skillLookupMap.set(normKey.replace(/-/g, "_"), key);
-  skillLookupMap.set(normKey.replace(/_/g, "-"), key);
-  const skillObj = isabellaSkills[key];
-  if (skillObj && typeof skillObj === "object" && "name" in skillObj) {
-    const nameLower = (skillObj.name as string).toLowerCase();
-    skillLookupMap.set(nameLower, key);
-  }
-}
-
-/**
- * Detecta si un mensaje del usuario contiene una invocación a un skill.
- * Formatos soportados:
- *  - `@skill:<nombre> [json|texto]`
- *  - `@skill <nombre> [json|texto]`
- *  - `@<nombre> [json|texto]`
- */
-export function detectSkillInvocation(text: string): SkillInvocation | null {
-  if (!text || typeof text !== "string") return null;
-  const trimmed = text.trim();
-
-  // Patrón 1: @skill:nombre o @skill nombre
-  const skillPrefixMatch = trimmed.match(/^@skill[:\s]+([a-zA-Z0-9_\-:]+)([\s\S]*)$/i);
-  let targetSkillName = "";
-  let remainder = "";
-
-  if (skillPrefixMatch) {
-    targetSkillName = skillPrefixMatch[1].trim();
-    remainder = skillPrefixMatch[2]?.trim() ?? "";
-  } else {
-    // Patrón 2: @nombre (e.g. @hepta, @gaia, @sophia)
-    const directMatch = trimmed.match(/^@([a-zA-Z0-9_\-:]+)([\s\S]*)$/);
-    if (directMatch) {
-      const candidate = directMatch[1].trim();
-      const norm = candidate.toLowerCase();
-      if (skillLookupMap.has(norm)) {
-        targetSkillName = candidate;
-        remainder = directMatch[2]?.trim() ?? "";
-      }
-    }
-  }
-
-  if (!targetSkillName) return null;
-
-  const matchedSkillId =
-    skillLookupMap.get(targetSkillName.toLowerCase()) ||
-    skillLookupMap.get(targetSkillName.toLowerCase().replace(/-/g, "_")) ||
-    skillLookupMap.get(targetSkillName.toLowerCase().replace(/_/g, "-"));
-
-  if (!matchedSkillId) return null;
-
-  // Extraer input: intentar JSON primero, o fallback a prompt de consulta
-  let parsedInput: Record<string, unknown> = {};
-  if (remainder) {
-    const jsonMatch = remainder.match(/^\{[\s\S]*\}$/);
-    if (jsonMatch) {
-      try {
-        parsedInput = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
-      } catch {
-        parsedInput = { query: remainder, prompt: remainder, intent: remainder };
-      }
-    } else {
-      parsedInput = { query: remainder, prompt: remainder, intent: remainder };
-    }
-  } else {
-    parsedInput = { query: "Ejecución invocada desde chat", intent: "chat_skill_invocation" };
-  }
-
-  return {
-    skillId: matchedSkillId,
-    canonicalName: String(matchedSkillId),
-    rawInput: remainder,
-    parsedInput,
-  };
-}
-
 /**
  * Ejecuta una invocación de skill dentro del contexto del chat gateway,
- * canalizando toda la operación a través del runtime canónico `runIsabellaSkill()`.
+ * canalizando toda la operación a través del runtime canónico `processSkillInvocation()`.
  */
 export async function executeChatSkillBridge(
   invocation: SkillInvocation,
   context: BridgeContext,
 ): Promise<ChatSkillExecutionResult> {
-  const actorId = context.userId || "anonymous";
-  const tenantId = context.tenantId || "nodo-cero";
-  const role = context.role || "User";
-  const authenticated = context.authenticated ?? (role !== "Guest");
-  const requestId = context.correlationId || `req_${Date.now()}`;
-  const ipAddress = context.ip || "127.0.0.1";
+  const result: ProcessSkillResult = await processSkillInvocation({
+    text: `@skill:${invocation.canonicalName} ${invocation.rawInput}`,
+    actorId: context.userId,
+    tenantId: context.tenantId,
+    role: context.role,
+    authenticated: context.authenticated ?? (context.role !== "Guest"),
+    ipAddress: context.ip,
+    userAgent: context.userAgent,
+    requestId: context.correlationId,
+    traceId: context.traceId,
+  });
 
-  try {
-    const response = await runIsabellaSkill(invocation.skillId, invocation.parsedInput, {
-      requestId,
-      actorId,
-      tenantId,
-      role,
-      authenticated,
-      ipAddress,
-      userAgent: context.userAgent,
-      intent: invocation.rawInput || `Chat invocation of skill ${invocation.canonicalName}`,
-    });
-
-    const dataFormatted =
-      typeof response.data === "string" ? response.data : JSON.stringify(response.data, null, 2);
-
-    const formattedContent = [
-      `⚡ **Habilidad Soberana Ejecutada: \`${invocation.canonicalName}\`**`,
-      `> **Gobernanza CROWN:** \`${response.meta.decision_id || "ALLOW"}\` | **Trace:** \`${response.meta.trace_id}\` | **Evidencia BookPI:** \`Asentada\``,
-      "",
-      "```json",
-      dataFormatted,
-      "```",
-    ].join("\n");
-
-    return {
-      success: true,
-      content: formattedContent,
-      skillId: invocation.canonicalName,
-      decisionId: response.meta.decision_id,
-      traceId: response.meta.trace_id,
-      bookpiLogged: true,
-      rawResult: response.data,
-    };
-  } catch (error) {
-    const errorMsg =
-      error instanceof Error ? error.message : "Error desconocido en ejecución de skill.";
-    const code =
-      error && typeof error === "object" && "code" in error
-        ? String(error.code)
-        : errorMsg.includes("denegado") || errorMsg.includes("CROWN")
-          ? "CROWN_POLICY_DENY"
-          : "SKILL_EXECUTION_ERROR";
-
-    const formattedContent = [
-      `⚠️ **Ejecución Bloqueada / Error en Habilidad Soberana: \`${invocation.canonicalName}\`**`,
-      `> **Código:** \`${code}\``,
-      `> **Motivo:** ${errorMsg}`,
-      `> **Trazabilidad:** \`${context.traceId || requestId}\``,
-    ].join("\n");
-
-    return {
-      success: false,
-      content: formattedContent,
-      skillId: invocation.canonicalName,
-      code,
-      error: errorMsg,
-      bookpiLogged: false,
-    };
-  }
+  return {
+    success: result.success,
+    content: result.content,
+    skillId: result.skillId || invocation.canonicalName,
+    decisionId: result.decisionId,
+    traceId: result.traceId,
+    code: result.code,
+    error: result.error,
+    bookpiLogged: result.bookpiLogged,
+    rawResult: result.rawResult,
+  };
 }
 
 /**

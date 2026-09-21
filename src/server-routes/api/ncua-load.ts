@@ -24,7 +24,7 @@ function makeInput(index: number, label: string) {
 export const Route = createFileRoute("/api/ncua-load")({
   server: {
     handlers: {
-      POST: withSovereignAuth("system", "write", async ({ request }) => {
+      POST: withSovereignAuth("system", "write", async (_context, request) => {
         const started = performance.now();
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({

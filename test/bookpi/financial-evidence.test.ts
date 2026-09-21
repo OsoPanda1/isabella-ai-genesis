@@ -64,7 +64,7 @@ describe.skipIf(!HAS_DB)("idempotencia concurrente (PostgreSQL real)", () => {
         }),
       ),
     );
-    const processed = results.filter((result) => result.status === "processed");
+    const processed = results.filter((result) => result.status === "claimed");
     const duplicates = results.filter((result) => result.status === "duplicate");
     expect(processed).toHaveLength(1);
     expect(duplicates).toHaveLength(9);
