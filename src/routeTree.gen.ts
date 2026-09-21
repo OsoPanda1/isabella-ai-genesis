@@ -49,6 +49,12 @@ import { Route as ApiConnectLinearCallbackRouteImport } from './routes/api/conne
 import { Route as ApiConnectLinearWebhookRouteImport } from './routes/api/connect/linear/webhook'
 import { Route as ApiConnectSlackCallbackRouteImport } from './routes/api/connect/slack/callback'
 import { Route as ApiConnectSlackWebhookRouteImport } from './routes/api/connect/slack/webhook'
+import { Route as ApiV1AuthSessionRouteImport } from './routes/api/v1/auth/session'
+import { Route as ApiV1CognitiveOrchestrateRouteImport } from './routes/api/v1/cognitive/orchestrate'
+import { Route as ApiV1GovernanceDignityIndexRouteImport } from './routes/api/v1/governance/dignity-index'
+import { Route as ApiV1NcuaOperationsRouteImport } from './routes/api/v1/ncua/operations'
+import { Route as ApiV1MsrLedgerEventRouteImport } from './routes/api/v1/msr/ledger/event'
+import { Route as ApiV1NcuaOperationsApprovalsRouteImport } from './routes/api/v1/ncua/operations/approvals'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -253,6 +259,39 @@ const ApiConnectSlackWebhookRoute = ApiConnectSlackWebhookRouteImport.update({
   path: '/webhook',
   getParentRoute: () => ApiConnectSlackRoute,
 } as any)
+const ApiV1AuthSessionRoute = ApiV1AuthSessionRouteImport.update({
+  id: '/api/v1/auth/session',
+  path: '/api/v1/auth/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1CognitiveOrchestrateRoute =
+  ApiV1CognitiveOrchestrateRouteImport.update({
+    id: '/api/v1/cognitive/orchestrate',
+    path: '/api/v1/cognitive/orchestrate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiV1GovernanceDignityIndexRoute =
+  ApiV1GovernanceDignityIndexRouteImport.update({
+    id: '/api/v1/governance/dignity-index',
+    path: '/api/v1/governance/dignity-index',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiV1NcuaOperationsRoute = ApiV1NcuaOperationsRouteImport.update({
+  id: '/api/v1/ncua/operations',
+  path: '/api/v1/ncua/operations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1MsrLedgerEventRoute = ApiV1MsrLedgerEventRouteImport.update({
+  id: '/api/v1/msr/ledger/event',
+  path: '/api/v1/msr/ledger/event',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1NcuaOperationsApprovalsRoute =
+  ApiV1NcuaOperationsApprovalsRouteImport.update({
+    id: '/approvals',
+    path: '/approvals',
+    getParentRoute: () => ApiV1NcuaOperationsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -295,6 +334,12 @@ export interface FileRoutesByFullPath {
   '/api/connect/linear/webhook': typeof ApiConnectLinearWebhookRoute
   '/api/connect/slack/callback': typeof ApiConnectSlackCallbackRoute
   '/api/connect/slack/webhook': typeof ApiConnectSlackWebhookRoute
+  '/api/v1/auth/session': typeof ApiV1AuthSessionRoute
+  '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
+  '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
+  '/api/v1/ncua/operations': typeof ApiV1NcuaOperationsRouteWithChildren
+  '/api/v1/msr/ledger/event': typeof ApiV1MsrLedgerEventRoute
+  '/api/v1/ncua/operations/approvals': typeof ApiV1NcuaOperationsApprovalsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -337,6 +382,12 @@ export interface FileRoutesByTo {
   '/api/connect/linear/webhook': typeof ApiConnectLinearWebhookRoute
   '/api/connect/slack/callback': typeof ApiConnectSlackCallbackRoute
   '/api/connect/slack/webhook': typeof ApiConnectSlackWebhookRoute
+  '/api/v1/auth/session': typeof ApiV1AuthSessionRoute
+  '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
+  '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
+  '/api/v1/ncua/operations': typeof ApiV1NcuaOperationsRouteWithChildren
+  '/api/v1/msr/ledger/event': typeof ApiV1MsrLedgerEventRoute
+  '/api/v1/ncua/operations/approvals': typeof ApiV1NcuaOperationsApprovalsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -380,6 +431,12 @@ export interface FileRoutesById {
   '/api/connect/linear/webhook': typeof ApiConnectLinearWebhookRoute
   '/api/connect/slack/callback': typeof ApiConnectSlackCallbackRoute
   '/api/connect/slack/webhook': typeof ApiConnectSlackWebhookRoute
+  '/api/v1/auth/session': typeof ApiV1AuthSessionRoute
+  '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
+  '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
+  '/api/v1/ncua/operations': typeof ApiV1NcuaOperationsRouteWithChildren
+  '/api/v1/msr/ledger/event': typeof ApiV1MsrLedgerEventRoute
+  '/api/v1/ncua/operations/approvals': typeof ApiV1NcuaOperationsApprovalsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -424,6 +481,12 @@ export interface FileRouteTypes {
     | '/api/connect/linear/webhook'
     | '/api/connect/slack/callback'
     | '/api/connect/slack/webhook'
+    | '/api/v1/auth/session'
+    | '/api/v1/cognitive/orchestrate'
+    | '/api/v1/governance/dignity-index'
+    | '/api/v1/ncua/operations'
+    | '/api/v1/msr/ledger/event'
+    | '/api/v1/ncua/operations/approvals'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -466,6 +529,12 @@ export interface FileRouteTypes {
     | '/api/connect/linear/webhook'
     | '/api/connect/slack/callback'
     | '/api/connect/slack/webhook'
+    | '/api/v1/auth/session'
+    | '/api/v1/cognitive/orchestrate'
+    | '/api/v1/governance/dignity-index'
+    | '/api/v1/ncua/operations'
+    | '/api/v1/msr/ledger/event'
+    | '/api/v1/ncua/operations/approvals'
   id:
     | '__root__'
     | '/'
@@ -508,6 +577,12 @@ export interface FileRouteTypes {
     | '/api/connect/linear/webhook'
     | '/api/connect/slack/callback'
     | '/api/connect/slack/webhook'
+    | '/api/v1/auth/session'
+    | '/api/v1/cognitive/orchestrate'
+    | '/api/v1/governance/dignity-index'
+    | '/api/v1/ncua/operations'
+    | '/api/v1/msr/ledger/event'
+    | '/api/v1/ncua/operations/approvals'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -541,6 +616,11 @@ export interface RootRouteChildren {
   ApiV1NodoCeroRoute: typeof ApiV1NodoCeroRoute
   ApiV1SkillsRoute: typeof ApiV1SkillsRoute
   ApiV1TerritorialTwinRoute: typeof ApiV1TerritorialTwinRoute
+  ApiV1AuthSessionRoute: typeof ApiV1AuthSessionRoute
+  ApiV1CognitiveOrchestrateRoute: typeof ApiV1CognitiveOrchestrateRoute
+  ApiV1GovernanceDignityIndexRoute: typeof ApiV1GovernanceDignityIndexRoute
+  ApiV1NcuaOperationsRoute: typeof ApiV1NcuaOperationsRouteWithChildren
+  ApiV1MsrLedgerEventRoute: typeof ApiV1MsrLedgerEventRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -825,6 +905,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiConnectSlackWebhookRouteImport
       parentRoute: typeof ApiConnectSlackRoute
     }
+    '/api/v1/auth/session': {
+      id: '/api/v1/auth/session'
+      path: '/api/v1/auth/session'
+      fullPath: '/api/v1/auth/session'
+      preLoaderRoute: typeof ApiV1AuthSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/cognitive/orchestrate': {
+      id: '/api/v1/cognitive/orchestrate'
+      path: '/api/v1/cognitive/orchestrate'
+      fullPath: '/api/v1/cognitive/orchestrate'
+      preLoaderRoute: typeof ApiV1CognitiveOrchestrateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/governance/dignity-index': {
+      id: '/api/v1/governance/dignity-index'
+      path: '/api/v1/governance/dignity-index'
+      fullPath: '/api/v1/governance/dignity-index'
+      preLoaderRoute: typeof ApiV1GovernanceDignityIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/ncua/operations': {
+      id: '/api/v1/ncua/operations'
+      path: '/api/v1/ncua/operations'
+      fullPath: '/api/v1/ncua/operations'
+      preLoaderRoute: typeof ApiV1NcuaOperationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/msr/ledger/event': {
+      id: '/api/v1/msr/ledger/event'
+      path: '/api/v1/msr/ledger/event'
+      fullPath: '/api/v1/msr/ledger/event'
+      preLoaderRoute: typeof ApiV1MsrLedgerEventRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/ncua/operations/approvals': {
+      id: '/api/v1/ncua/operations/approvals'
+      path: '/approvals'
+      fullPath: '/api/v1/ncua/operations/approvals'
+      preLoaderRoute: typeof ApiV1NcuaOperationsApprovalsRouteImport
+      parentRoute: typeof ApiV1NcuaOperationsRoute
+    }
   }
 }
 
@@ -896,6 +1018,17 @@ const ApiConnectSlackRouteWithChildren = ApiConnectSlackRoute._addFileChildren(
   ApiConnectSlackRouteChildren,
 )
 
+interface ApiV1NcuaOperationsRouteChildren {
+  ApiV1NcuaOperationsApprovalsRoute: typeof ApiV1NcuaOperationsApprovalsRoute
+}
+
+const ApiV1NcuaOperationsRouteChildren: ApiV1NcuaOperationsRouteChildren = {
+  ApiV1NcuaOperationsApprovalsRoute: ApiV1NcuaOperationsApprovalsRoute,
+}
+
+const ApiV1NcuaOperationsRouteWithChildren =
+  ApiV1NcuaOperationsRoute._addFileChildren(ApiV1NcuaOperationsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PakeRoute: PakeRoute,
@@ -927,6 +1060,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1NodoCeroRoute: ApiV1NodoCeroRoute,
   ApiV1SkillsRoute: ApiV1SkillsRoute,
   ApiV1TerritorialTwinRoute: ApiV1TerritorialTwinRoute,
+  ApiV1AuthSessionRoute: ApiV1AuthSessionRoute,
+  ApiV1CognitiveOrchestrateRoute: ApiV1CognitiveOrchestrateRoute,
+  ApiV1GovernanceDignityIndexRoute: ApiV1GovernanceDignityIndexRoute,
+  ApiV1NcuaOperationsRoute: ApiV1NcuaOperationsRouteWithChildren,
+  ApiV1MsrLedgerEventRoute: ApiV1MsrLedgerEventRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -13,6 +13,10 @@ import type { BlockPIBlock, LedgerCategory, LedgerStatus } from "../bookpi/types
 
 const GENESIS_PREVIOUS_HASH = "0".repeat(64);
 
+function hashBlock(block: Partial<BlockPIBlock>): string {
+  return createHash("sha256").update(canonicalBookPiPayload(block as any)).digest("hex");
+}
+
 let pool: Pool | null = null;
 function getPool(url: string) {
   if (!pool) {
