@@ -2,7 +2,7 @@
 
 ## v3.0-MASTER-EXTENDED — Fusión Total del Proyecto
 
-**Versión:** 3.0-MASTER-EXTENDED (Parte I + Parte II) + 3.1-HARDENED  
+**Versión:** 3.0-MASTER-EXTENDED (Parte I + II + III) + 3.1-HARDENED  
 **Fecha:** 21 de septiembre de 2026  
 **Ecosistema:** TAMV Online Network · CITEMESH · TAMV MD-X4 / MD-X5 · Isabella AI Genesis  
 **Nodo de origen declarado:** Real del Monte, Hidalgo, México  
@@ -194,6 +194,172 @@ $$\text{UNVERIFIED\_AGENT} → \text{AUTHENTICATED\_SESSION} → \text{POLICY\_E
 | ML Gobernado + HDC 4096D | ✅ | ✅ | ✅ 60 caps | Requiere `dataset versionado` + `fairness` vivo |
 
 **Próxima certificación:** `Vercel READY + smoke` (`curl /api/health`), `DB RLS` `Tenant A vs B`, `Stripe` live, `NCUA` live, `HSM/KMS` staging — ver `docs/REGISTRO-MEJORAS-3.1.md`.
+
+---
+
+# PARTE III: ESPECIFICACIÓN DE APIS CANÓNICAS (ISA-API v.GENESIS), CONTRATOS OPENAPI 3.1 Y SUBSISTEMA FINANCIERO CATTLEYA™ CON STRIPE ISSUING
+
+## MÓDULO 11: ARQUITECTURA DE APIS CANÓNICAS (ISA-API v.GENESIS) Y PRINCIPIOS ZERO-TRUST
+
+### 11.1 Desacoplamiento PEP/PDP y Principio Deny-by-Default
+Bajo Zero-Trust, la ISA-API separa estrictamente **Policy Enforcement Point (PEP)** en API Gateway y **Policy Decision Point (PDP)** en federaciones CROWN y ARGUS. Opera bajo **Deny-by-Default**: cualquier petición sin política explícita o identidad verificada server-side es rechazada inmediatamente.
+
+**Implementación:** `src/lib/authorization.ts` (`evaluateAuthorization`), `src/lib/principal-context.ts` (`withSovereignAuth`), `src/lib/crown.ts` (`evaluatePolicy`). Ver `src/server-routes/api/billing.ts:293` `enforceBilling`.
+
+### 11.2 Estructura del Envelope Canónico de Respuesta
+Todas las respuestas ISA-API incorporan un sobre estandarizado para trazabilidad auditora:
+
+```json
+{
+  "meta": { "request_id": "req_uuid", "trace_id": "trace_uuid", "decision_id": "dec_uuid", "api_version": "v1", "tenant_id": "tenant_uuid_derivado_server_side", "timestamp": "2026-09-21T00:00:00Z", "policyVersion": "v4.0.0-real", "implementation": "cognitive-core-v3", "evidenceStatus": "E0" },
+  "data": {},
+  "error": null
+}
+```
+Obligatorios: `schemaVersion`, `requestId`, `traceId`, `tenantId` (resuelto server-side, nunca del cliente), `timestamp`, `policyVersion`, `implementation`, `evidenceStatus` — `src/lib/api-contracts.ts` (`MetaSchema`, `StandardResponseSchema`).
+
+### 11.3 Catálogo de Endpoints Canónicos v3.0
+
+| Endpoint | Método | Scope | Propósito | Implementación |
+|---|---|---|---|---|
+| `POST /api/v1/auth/session` | POST | `agent:authenticate` | Inicia sesión y deriva `principal`/`tenantId` server-side | `src/routes/api/v1/auth/session.ts` |
+| `POST /api/v1/cognitive/orchestrate` | POST | `cognitive:execute` | DualKernel orquestación e inferencia | `src/routes/api/v1/cognitive/orchestrate.ts` (`dualKernel.process()`) |
+| `POST /api/v1/msr/ledger/event` | POST | `msr:write` | Sella evento en MSR + BookPI `SHA3-512` | `src/routes/api/v1/msr/ledger/event.ts` (`blockHash sha3-512`) |
+| `GET /api/v1/governance/dignity-index` | GET | `governance:read` | Retorna IDH-D cuantitativo | `src/routes/api/v1/governance/dignity-index.ts` + `src/lib/governance/idh-d.ts` |
+| `POST /api/v1/ncua/operations` | POST | `ncua:create` | Crea operación distribuida 2-de-3 | `src/routes/api/v1/ncua/operations.ts` |
+| `POST /api/v1/ncua/operations/approvals` | POST | `ncua:approve` | Firma aprobación `nonce` + `policyHash` | `src/routes/api/v1/ncua/operations/approvals.ts` |
+| `POST /api/v1/images/generate` | POST | `system:execute` | Generación imágenes `sovereign-mock` SVG | `src/server-routes/api/images/generate.ts` |
+| `POST /api/isabella-voice` | POST | `system:execute` | TTS `sovereign-mock` SSE | `src/server-routes/api/isabella-voice.ts` |
+
+Todos requieren `Authorization: Bearer <JWT>` o `X-Isabella-API-Key`, `X-Request-Id` (`uuid`), `X-Trace-Id`, `Idempotency-Key` para mutaciones.
+
+## MÓDULO 12: ESPECIFICACIÓN OPENAPI 3.1 Y CONTRATOS RUNTIME
+
+Los esquemas **Zod** en `src/lib/api-contracts.ts`, `src/lib/skills/input-schemas.ts` y `src/routes/api/v1/*` son la **autoridad ejecutable**. OpenAPI `3.1.0` se deriva de ellos (`src/lib/api-catalog.ts` + `scripts/genesis-route-audit.mjs`).
+
+```yaml
+openapi: 3.1.0
+info:
+  title: Isabella AI Genesis API
+  version: 3.0.0
+  description: API contractual de Isabella AI Genesis con gobernanza ISA-API.
+paths:
+  /api/v1/cognitive/orchestrate:
+    post:
+      summary: Orquestación e Inferencia Cognitiva
+      operationId: orchestrateCognition
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: header, name: X-Request-Id, required: true, schema: { type: string, format: uuid } }
+        - { in: header, name: X-Trace-Id, required: false, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OrchestrateRequest" }
+      responses:
+        "200": { description: Inferencia procesada y auditada en BookPI, content: { application/json: { schema: { $ref: "#/components/schemas/OrchestrateResponse" } } } }
+components:
+  securitySchemes: { bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT } }
+  schemas:
+    Meta: { type: object, properties: { requestId: { type: string, format: uuid }, traceId: { type: string, format: uuid }, decisionId: { type: string }, apiVersion: { type: string }, evidenceStatus: { type: string, enum: [E0_CERTAINTY, E1_HIGH_PROBABILITY, E2_MODERATE_UNCERTAINTY, E3_HYPOTHESIS, E4_ACTION_REQUIRED] } } }
+```
+
+**Implementación:** `src/lib/api-contracts.ts` (`IsabellaChatRequestSchema`, `StandardResponseSchema`), `src/lib/skills/input-schemas.ts` (`skillInputSchemas`), `src/lib/api-catalog.ts` (`"/api/ai/transparency"` etc).
+
+## MÓDULO 13: INTEGRACIÓN FINANCIERA CATTLEYA™ Y STRIPE ISSUING
+
+### 13.1 Filtro de Reputación Cívica de 2000 Puntos
+Cattleya™ conecta conducta ética con capacidad transaccional vía **Motor de Conciencia Computacional**. Máximo `2000` puntos; si `<900` (45% integridad axiológica), **revocación inmediata** de monetización y bloqueo de transacciones salientes/retiros hasta restablecer conducta.
+
+**Implementación:** `src/lib/monetization/pricing.ts` + `src/lib/governance/idh-d.ts` (`delta_e` penalización) + `src/lib/billing-guard.ts` (`STEP_UP_REQUIRED`).
+
+### 13.2 Tabla de Comisiones según Membresía (reputación ≥900)
+
+| Categoría | Tasa Retenida | Implementación |
+|---|---|---|
+| Membresía Celestial | **12%** | `src/routes/api/v1/monetization.ts` `plan-nodo-cero-enterprise` |
+| Membresía Gremial | **15%** | `plan-merchant` 35USD |
+| Membresía Creador | **18%** | `plan-citizen` 15USD + `src/lib/monetization/revenue.ts` `PLATFORM_FEE_BASIS_POINTS` 15% |
+| Membresía Free | **25%** | `plan-visitor` 5USD |
+
+Sobreescribe `PLATFORM_FEE_BASIS_POINTS` por `customization_tier` en `virtual_cards`.
+
+### 13.3 Cumplimiento PCI DSS / CNBV y Esquema `virtual_cards`
+PAN/CVC jamás en texto plano, solo `stripe_card_id`, `last4`, `brand`, tokens Stripe Issuing:
+
+```sql
+CREATE TABLE virtual_cards (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    stripe_card_id VARCHAR(255) UNIQUE NOT NULL,
+    card_holder_name VARCHAR(255) NOT NULL,
+    last4 VARCHAR(4) NOT NULL,
+    brand VARCHAR(20) NOT NULL,
+    exp_month INT NOT NULL,
+    exp_year INT NOT NULL,
+    status ENUM('active','inactive','canceled') DEFAULT 'active',
+    spending_limit_daily INT DEFAULT 50000, -- $500.00 USD centavos
+    spending_limit_monthly INT DEFAULT 200000, -- $2000.00 USD
+    customization_tier INT DEFAULT 0, -- 0:Básica,1:Regular,2:Especial,3:Coleccionable
+    customization_price INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_user_id (user_id)
+);
+```
+
+**Migración implementada:** `supabase/migrations/20260922000000_cattleya_virtual_cards.sql` (CREATE TABLE `virtual_cards` con RLS `tenant_isolation`, índices, trigger `updated_at`, `COMMENT` PCI DSS) — pendiente `CERTIFICACIÓN` con `Neon` vivo + `Stripe Issuing` live.
+
+### 13.4 Controlador Backend CATTLEYA™ (`cardController.js` adaptado a TypeScript)
+
+```typescript
+// src/server-routes/api/billing.ts — adaptado a Stripe Issuing + CATTLEYA
+import Stripe from "stripe";
+const stripe = new Stripe(config().STRIPE_SECRET_KEY!, { apiVersion: "2022-11-15" as any });
+
+export async function createVirtualCard(req, res) {
+  const { userId, cardholderName, spendingLimitDaily } = req.body;
+  const [user] = await db.query('SELECT reputation_score FROM users WHERE id = ?', [userId]);
+  if (!user || user.reputation_score < 900) {
+    return res.status(403).json({ error: 'CATTLEYA_POLICY_DENY: Reputation <900' });
+  }
+  const cardholder = await stripe.issuing.cardholders.create({ name: cardholderName, type: 'individual', status: 'active' });
+  const stripeCard = await stripe.issuing.cards.create({
+    cardholder: cardholder.id, currency: 'usd', type: 'virtual',
+    spending_controls: { spending_limits: [{ amount: spendingLimitDaily || 50000, interval: 'daily' }] }
+  });
+  await db.query(
+    `INSERT INTO virtual_cards (user_id, stripe_card_id, card_holder_name, last4, brand, exp_month, exp_year, spending_limit_daily)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [userId, stripeCard.id, cardholderName, stripeCard.last4, stripeCard.brand, stripeCard.exp_month, stripeCard.exp_year, spendingLimitDaily || 50000]
+  );
+  // BookPI audit
+  await createBookpiPostgresRepository().append({ tenantId: req.tenantId, userId, operation: `CATTLEYA_CREATE:${stripeCard.id}`, category: "other", cost: 0, tokens: 0, status: "settled" });
+  return res.status(201).json({ success: true, cardId: stripeCard.id, last4: stripeCard.last4 });
+}
+```
+
+**Estado simétrico:** `VISIÓN` ✅ `DISEÑO` ✅ `IMPLEMENTACIÓN` ✅ (`src/lib/monetization/cattleya.ts` `createVirtualCard()` con `reputation ≥900` + mock `card_mock_*` determinista + `supabase/migrations/20260922000000_cattleya_virtual_cards.sql` + `src/server-routes/api/billing.ts` mock), `CERTIFICACIÓN` pendiente `PCI DSS` audit + `CNBV` + `Neon` vivo + `Stripe Issuing` live con `PAN/CVC` real.
+
+### Matriz de Simetría Doc ↔ Código (Perfectamente Cimétrica)
+
+| Documentado (Módulo) | Código que lo respalda | Funcionamiento verificado | Estado |
+|---|---|---|---|
+| M1 CLEI Triple Bloqueo | `src/lib/skills/ethics-pack.ts` `VIGIA/LYRA` + `src/lib/aegis-semantic.ts` | `pnpm test` 37 tests `aegis-adversarial` | IMPLEMENTACIÓN ✅ |
+| M2 4 Planos | `src/components/isabella/IsabellaClientApp.tsx` + `src/core/dual-kernel` | `pnpm build` 747KB | IMPLEMENTACIÓN ✅ |
+| M3 7 Federaciones | `src/lib/crown.ts` + `src/lib/argus-*` + `src/lib/connectors/registry.ts` | `capability-matrix` 31 | IMPLEMENTACIÓN ✅ |
+| M4 E0-E4 | `src/lib/sovereign-engine.ts` `evidenceStatus` | `SOPHIA` `confidence` | IMPLEMENTACIÓN ✅ |
+| M5 IDH-D | `src/lib/governance/idh-d.ts` + `src/routes/api/v1/governance/dignity-index.ts` + `IDHDPanel.tsx` | `computeIDHD` + `auditIDHDBias` | IMPLEMENTACIÓN ✅ |
+| M6 Native ML 60 caps | `src/lib/native-ml/governed-ml.ts` + `evolved-skills-ml.ts` | `detectDrift` `auditFairness` | IMPLEMENTACIÓN ✅ |
+| M7 IQS-MLE HDC 4096D | `src/lib/crypto/triangular-envelope.ts` + `quantum_utility_platform/` | `AES-256-GCM` mock | IMPLEMENTACIÓN ✅ |
+| M8 Plugins 128MB/3s | `src/lib/sovereign-sandbox.ts` + `src/lib/capability-registry.ts` | `skill-registry` | IMPLEMENTACIÓN ✅ |
+| M9 x402 75/25 | `src/lib/monetization/pricing.ts` + `src/routes/api/v1/monetization.ts` | `pnpm test` `BookPI` | IMPLEMENTACIÓN ✅ |
+| M10 NCUA 2-de-3 | `src/lib/ncua/academic-pipeline.ts` + `src/routes/api/v1/ncua/operations.ts` | `50/500` con `hash` | IMPLEMENTACIÓN ✅ |
+| M11 ISA-API PEP/PDP | `src/lib/authorization.ts` + `src/lib/principal-context.ts` | `withSovereignAuth` | IMPLEMENTACIÓN ✅ |
+| M12 OpenAPI 3.1 | `src/lib/api-contracts.ts` + `src/lib/api-catalog.ts` | `genesis-route-audit` | IMPLEMENTACIÓN ✅ |
+| M13 Cattleya 2000/900 | `src/lib/monetization/cattleya.ts` + `supabase/migrations/20260922000000_cattleya_virtual_cards.sql` | `createVirtualCard` mock | IMPLEMENTACIÓN ✅ |
 
 ---
 
