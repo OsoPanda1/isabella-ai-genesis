@@ -1322,104 +1322,43 @@ export const Route = createFileRoute("/api/billing")({
                 );
               }
 
-              const tenant = await sovereignStateRepository.getTenant(context.tenantId);
               const costUSD = listing.costCents / 100;
-
-              // P0: IDEMPOTENCIA ATÓMICA — UNIQUE(tenant_id, idempotency_key)
-              // en economic_events. Re-compra concurrente → 409 por constraint,
-              // no por escaneo O(n) del ledger con carreras.
-              const { recordEconomicEvent: recordPurchaseEvent } =
-                await import("@/lib/economic-events");
-              const purchaseClaim = await recordPurchaseEvent({
-                tenantId: context.tenantId,
-                actorId: context.userId,
-                eventType: `MARKETPLACE_PURCHASE:${parsed.data.skillId}`,
-                amountMinor: listing.costCents,
-                direction: "DEBIT",
-                source: "marketplace",
-                idempotencyKey: `purchase:${parsed.data.skillId}:${listing.costCents}`,
-                correlationId: context.correlationId,
-                metadata: {
-                  skillId: parsed.data.skillId,
-                  costCents: listing.costCents,
-                },
-              }).catch((error: unknown) => ({
-                ok: false as const,
-                duplicate: false as const,
-                error: error instanceof Error ? error.message : String(error),
-              }));
-              if (!purchaseClaim.ok) {
-                if (purchaseClaim.duplicate) {
-                  return new Response(
-                    JSON.stringify({
-                      error: "Este skill ya fue adquirido por el tenant.",
-                    }),
-                    { status: 409, headers },
-                  );
-                }
-                return new Response(
-                  JSON.stringify({
-                    error: "Idempotencia de compra no disponible.",
-                  }),
-                  { status: 500, headers },
-                );
-              }
-              const purchaseMarker = `MARKETPLACE_PURCHASE:${parsed.data.skillId}:${listing.costCents}`;
-
-              if (!tenant || tenant.quotaBalance < costUSD) {
-                return new Response(
-                  JSON.stringify({
-                    error: "Saldo insuficiente.",
-                    quotaBalance: tenant?.quotaBalance ?? 0,
-                    required: costUSD,
-                  }),
-                  { status: 400, headers },
-                );
-              }
-
-              // Ledger económico: el claim de idempotencia se persiste antes del
-              // débito para impedir compras concurrentes con la misma clave.
               const platformFeeCents = Math.round(listing.costCents * 0.15);
-              const userNetCents = listing.costCents - platformFeeCents;
-
-              const freshBuyer = await sovereignStateRepository.getTenant(context.tenantId);
-              if (!freshBuyer || freshBuyer.quotaBalance < costUSD) {
-                return new Response(
-                  JSON.stringify({
-                    error: "Saldo insuficiente.",
-                    quotaBalance: freshBuyer?.quotaBalance ?? 0,
-                    required: costUSD,
-                  }),
-                  { status: 400, headers },
-                );
-              }
-              freshBuyer.quotaBalance =
-                Math.round((freshBuyer.quotaBalance - costUSD) * 1e9) / 1e9;
-              await sovereignStateRepository.upsertTenant(freshBuyer);
-
-              const ownerAccount = await sovereignStateRepository.getMonetizationAccount(
-                listing.ownerId,
-              );
-              await sovereignStateRepository.updateMonetizationAccount(listing.ownerId, {
-                earnedBalanceCents: ownerAccount.earnedBalanceCents + userNetCents,
-                approvedContributions: ownerAccount.approvedContributions + 1,
+              const { createBookpiPostgresRepository } = await import("@/lib/repositories/bookpi-postgres-repository");
+              const bookpiRepo = createBookpiPostgresRepository();
+              const purchase = await bookpiRepo.executeMarketplacePurchase({
+                tenantId: context.tenantId,
+                buyerUserId: context.userId,
+                sellerUserId: listing.ownerId,
+                skillId: listing.skillId,
+                title: listing.title,
+                costCents: listing.costCents,
+                platformFeeCents,
+                correlationId: context.correlationId,
               });
+              if (!purchase.success) {
+                if ("duplicate" in purchase && purchase.duplicate) {
+                  return new Response(JSON.stringify({ error: "Este skill ya fue adquirido por el tenant." }), { status: 409, headers });
+                }
+                if (purchase.error === "INSUFFICIENT_BALANCE") {
+                  const currentTenant = await sovereignStateRepository.getTenant(context.tenantId);
+                  return new Response(JSON.stringify({
+                    error: "Saldo insuficiente.",
+                    quotaBalance: currentTenant?.quotaBalance ?? 0,
+                    required: costUSD,
+                  }), { status: 400, headers });
+                }
+                return new Response(JSON.stringify({ error: "No fue posible completar la compra de forma transaccional." }), { status: 500, headers });
+              }
 
-              const block = await sovereignStateRepository.appendLedgerBlock(
-                context.tenantId,
-                context.userId,
-                `MARKETPLACE_PURCHASE: Compra del skill '${listing.title}' por $${costUSD.toFixed(2)} USD (Reparto: Vendedor +$${(userNetCents / 100).toFixed(2)}, Plataforma +$${(platformFeeCents / 100).toFixed(2)}) ${purchaseMarker}`,
-                "skills",
-                costUSD,
-                0,
-              );
               return new Response(
                 JSON.stringify({
                   success: true,
-                  blockIndex: block.index,
+                  blockIndex: purchase.block.index,
                   costUSD,
-                  sellerEarnedBalanceCents: userNetCents,
-                  buyerRemainingCredits: freshBuyer.quotaBalance,
+                  sellerEarnedBalanceCents: purchase.sellerEarnedBalanceCents,
+                  buyerRemainingCredits: purchase.buyerRemainingCredits,
+                  economicEventId: purchase.economicEventId,
                 }),
                 { headers },
               );

@@ -620,10 +620,48 @@ export function createBookpiPostgresRepository() {
     return { success: true as const };
   }
 
+  async function executeMarketplacePurchase(input: {
+    tenantId: string; buyerUserId: string; sellerUserId: string; skillId: string;
+    title: string; costCents: number; platformFeeCents: number; correlationId: string;
+  }) {
+    if (!Number.isInteger(input.costCents) || input.costCents <= 0) return { success: false as const, error: "INVALID_COST" };
+    if (!Number.isInteger(input.platformFeeCents) || input.platformFeeCents < 0 || input.platformFeeCents > input.costCents) return { success: false as const, error: "INVALID_PLATFORM_FEE" };
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const tenantHash = createHash("sha256").update(input.tenantId).digest();
+      await client.query("SELECT pg_advisory_xact_lock($1)", [tenantHash.readInt32BE(0)]);
+      const purchaseKey = "marketplace:" + input.skillId + ":" + input.costCents;
+      const existing = await client.query("SELECT id FROM public.economic_events WHERE tenant_id=$1 AND idempotency_key=$2 LIMIT 1", [input.tenantId, purchaseKey]);
+      if (existing.rows[0]) { await client.query("ROLLBACK"); return { success: false as const, duplicate: true as const, error: "PURCHASE_ALREADY_PROCESSED" }; }
+      const costDecimal = (input.costCents / 100).toFixed(2);
+      const debited = await client.query("UPDATE public.tenants SET quota_balance = quota_balance - $2, updated_at = NOW() WHERE id = $1 AND quota_balance >= $2 RETURNING quota_balance", [input.tenantId, costDecimal]);
+      if (!debited.rows[0]) { await client.query("ROLLBACK"); return { success: false as const, error: "INSUFFICIENT_BALANCE" }; }
+      const sellerNetCents = input.costCents - input.platformFeeCents;
+      const sellerRows = await client.query("INSERT INTO public.monetization_accounts (user_id, earned_balance_cents, approved_contributions) VALUES ($1,$2,1) ON CONFLICT (user_id) DO UPDATE SET earned_balance_cents = monetization_accounts.earned_balance_cents + EXCLUDED.earned_balance_cents, approved_contributions = monetization_accounts.approved_contributions + 1, updated_at = NOW() RETURNING earned_balance_cents", [input.sellerUserId, sellerNetCents]);
+      const debit = await client.query("INSERT INTO public.economic_events (tenant_id,actor_id,event_type,currency,amount_minor,direction,source,idempotency_key,correlation_id,metadata) VALUES ($1,$2,$3,'USD',$4,'DEBIT','marketplace',$5,$6,$7) RETURNING id", [input.tenantId, input.buyerUserId, "MARKETPLACE_PURCHASE:" + input.skillId, input.costCents, purchaseKey, input.correlationId, JSON.stringify({ skillId: input.skillId, costCents: input.costCents, platformFeeCents: input.platformFeeCents, sellerUserId: input.sellerUserId })]);
+      await client.query("INSERT INTO public.economic_events (tenant_id,actor_id,event_type,currency,amount_minor,direction,source,idempotency_key,correlation_id,metadata) VALUES ($1,$2,$3,'USD',$4,'CREDIT','marketplace',$5,$6,$7)", [input.tenantId, input.sellerUserId, "MARKETPLACE_EARNING:" + input.skillId, sellerNetCents, "earning:" + input.tenantId + ":" + input.skillId + ":" + input.costCents, input.correlationId, JSON.stringify({ skillId: input.skillId, costCents: input.costCents, platformFeeCents: input.platformFeeCents, buyerUserId: input.buyerUserId })]);
+      const previous = await client.query("SELECT * FROM public.bookpi_ledger WHERE tenant_id=$1 ORDER BY index DESC LIMIT 1 FOR UPDATE", [input.tenantId]);
+      const previousBlock = previous.rows[0] ? mapRow(previous.rows[0]) : null;
+      const base: Omit<BlockPIBlock, "blockHash"> = { index: previousBlock ? previousBlock.index + 1 : 0, timestamp: new Date().toISOString(), tenantId: input.tenantId, userId: input.buyerUserId, operation: ("MARKETPLACE_PURCHASE: " + input.skillId).slice(0, 200), category: "skills", costDecimal, tokensConsumed: 0, previousHash: previousBlock?.blockHash ?? GENESIS_PREVIOUS_HASH, pqcSignature: null, signatureAlgorithm: getSigningAlgorithm(), status: "settled", nonce: randomUUID() };
+      const blockHash = hashBlock(base);
+      if (isSimulatedAlgorithm()) throw new Error("CRITICAL_SECURITY_ERROR: simulated BookPI signing algorithm");
+      const signature = signBlockHash(blockHash);
+      if (!signature) throw new Error("CRITICAL_SECURITY_ERROR: BookPI signing failed");
+      const blocks = await client.query("INSERT INTO public.bookpi_ledger (index,tenant_id,user_id,operation,category,cost_decimal,tokens_consumed,previous_hash,block_hash,status,nonce,signature_algorithm,pqc_signature) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *", [base.index, base.tenantId, base.userId, base.operation, base.category, base.costDecimal, base.tokensConsumed, base.previousHash, blockHash, base.status, base.nonce, base.signatureAlgorithm, signature]);
+      await client.query("COMMIT");
+      return { success: true as const, block: mapRow(blocks.rows[0]!), buyerRemainingCredits: Number(debited.rows[0].quota_balance), sellerEarnedBalanceCents: Number(sellerRows.rows[0].earned_balance_cents), economicEventId: String(debit.rows[0].id) };
+    } catch (error) {
+      await client.query("ROLLBACK").catch(() => undefined);
+      return { success: false as const, error: error instanceof Error ? error.message : "TRANSACTION_FAILED" };
+    } finally { client.release(); }
+  }
+
   return {
     list,
     append,
     batchAppend,
+    executeMarketplacePurchase,
     query,
     prune,
     pruneInactive,
