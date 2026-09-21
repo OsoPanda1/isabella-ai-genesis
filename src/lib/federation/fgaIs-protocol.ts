@@ -148,7 +148,7 @@ export function addDifferentialPrivacy(
   delta: number[],
   epsilon: number,
   clipNorm = 1,
-  random = () => Math.random(),
+  random = () => crypto.randomUUID().length / 36,
 ): number[] {
   if (!(epsilon > 0)) throw new Error("epsilon must be positive");
   const norm = Math.sqrt(delta.reduce((s, x) => s + x * x, 0)) || 1;
