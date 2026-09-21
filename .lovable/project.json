@@ -1,84 +1,297 @@
 {
-  "$schema": "https://json.schemastore.org/project-config.json",
-  "schemaVersion": 2,
+  "$schema": "https://json-schema.tamv.online/v3/project-config.schema.json",
+  "schemaVersion": "3.0.0-genesis",
   "identity": {
     "name": "isabella-ai-genesis",
     "codename": "Isabella Villaseñor AI Core",
-    "description": "Núcleo de inteligencia artificial consciente y orquestador federativo de las 7 Federaciones TAMV sobre TanStack Start y Supabase",
-    "version": "2.0.0-genesis",
+    "description": "Núcleo de inteligencia artificial consciente, orquestador federativo de las 7 Federaciones TAMV sobre TanStack Start, Bun execution layer y Supabase Ecosystem.",
+    "version": "3.0.0-genesis",
     "owner": "OsoPanda1",
-    "organization": "TAMV ONLINE ENTERPRISE"
+    "organization": "TAMV ONLINE ENTERPRISE",
+    "environment": "production"
   },
   "template": {
     "name": "tanstack_start_ts_current",
     "revision": "tanstack_start_ts_current-c5239f3e3f32",
-    "preset": "fullstack-enterprise-ai"
+    "preset": "fullstack-enterprise-ai-mesh",
+    "strictMode": true
   },
   "engine": {
-    "runtime": "bun",
-    "framework": "tanstack_start",
-    "language": "typescript",
+    "runtime": {
+      "name": "bun",
+      "version": ">=1.1.0",
+      "strictEngineCheck": true
+    },
+    "framework": {
+      "name": "tanstack_start",
+      "mode": "ssr_streaming",
+      "serverFunctions": true
+    },
+    "language": {
+      "name": "typescript",
+      "compilerVersion": "5.5+",
+      "strictNullChecks": true
+    },
     "ui": {
       "framework": "react_19",
       "styling": "tailwindcss_v4",
-      "designSystem": "shadcn_ui"
+      "designSystem": "shadcn_ui",
+      "primitives": "radix_ui",
+      "icons": "lucide_react"
     },
     "database": {
       "provider": "supabase",
-      "vectorSearch": "pgvector",
-      "realtime": true
+      "engine": "postgresql_16",
+      "vectorSearch": {
+        "extension": "pgvector",
+        "indexType": "hnsw",
+        "distanceMetric": "cosine",
+        "dimensions": 1536
+      },
+      "realtime": {
+        "enabled": true,
+        "channels": ["cognition_stream", "swarm_events", "telemetry_mesh"]
+      },
+      "connectionPooling": {
+        "mode": "transaction",
+        "poolSize": 20
+      }
     }
   },
   "federations": {
-    "architecture": "TAMV 7-Federations Model",
+    "architecture": "TAMV 7-Federations Enterprise Mesh",
+    "totalNodes": 7,
     "nodes": [
       {
         "id": "fed_01_cognition",
+        "code": "FED_COG",
         "name": "Federación de Cognición y Razonamiento",
+        "layer": "cognitive_core",
+        "enabled": true,
         "agent": "Isabella-Cognition-Core",
-        "enabled": true
+        "capabilities": [
+          "contextual_reasoning",
+          "intent_parsing",
+          "prompt_guardrails",
+          "fallback_orchestration"
+        ],
+        "security": {
+          "piiRedaction": true,
+          "promptInjectionProtection": true,
+          "contentCredentials": "synthid_c2pa"
+        },
+        "healthCheck": {
+          "endpoint": "/api/v3/federations/cognition/health",
+          "intervalMs": 5000,
+          "timeoutMs": 1500
+        },
+        "runtimeConfig": {
+          "primaryModel": "gemini-2.5-pro",
+          "fallbackModel": "gemini-2.5-flash",
+          "maxContextWindow": 1000000,
+          "temperature": 0.2
+        }
       },
       {
         "id": "fed_02_memory",
+        "code": "FED_MEM",
         "name": "Federación de Datos y Memoria Vectorial",
-        "store": "supabase_vector_store",
-        "enabled": true
+        "layer": "persistence",
+        "enabled": true,
+        "capabilities": [
+          "hybrid_rag_search",
+          "episodic_memory",
+          "semantic_embedding",
+          "vector_partitioning"
+        ],
+        "security": {
+          "dataEncryptionAtRest": "AES-256-GCM",
+          "rowLevelSecurity": true,
+          "tenantIsolation": true
+        },
+        "healthCheck": {
+          "endpoint": "/api/v3/federations/memory/health",
+          "intervalMs": 10000,
+          "timeoutMs": 2000
+        },
+        "runtimeConfig": {
+          "store": "supabase_vector_store",
+          "chunkSize": 512,
+          "chunkOverlap": 64,
+          "similarityThreshold": 0.82
+        }
       },
       {
         "id": "fed_03_interface",
+        "code": "FED_INT",
         "name": "Federación de Interfaz e Interacción Cognitiva",
-        "routing": "tanstack_router",
-        "enabled": true
+        "layer": "presentation",
+        "enabled": true,
+        "capabilities": [
+          "streamed_ssr",
+          "type_safe_routing",
+          "adaptive_ui_components",
+          "accessibility_a11y"
+        ],
+        "security": {
+          "csrfProtection": true,
+          "contentSecurityPolicy": "strict-dynamic",
+          "xssFilter": true
+        },
+        "healthCheck": {
+          "endpoint": "/api/v3/federations/interface/health",
+          "intervalMs": 5000,
+          "timeoutMs": 1000
+        },
+        "runtimeConfig": {
+          "router": "tanstack_router",
+          "hydratingStrategy": "selective_stream",
+          "theme": "enterprise_dark"
+        }
       },
       {
         "id": "fed_04_governance",
+        "code": "FED_GOV",
         "name": "Federación de Seguridad, Identidad y Gobernanza",
-        "auth": "supabase_rls_auth",
-        "enabled": true
+        "layer": "security_and_auth",
+        "enabled": true,
+        "capabilities": [
+          "zero_trust_auth",
+          "jwt_rotation",
+          "audit_logging",
+          "rls_policy_enforcement"
+        ],
+        "security": {
+          "mfaRequired": true,
+          "rbacEnabled": true,
+          "sessionDurationSec": 3600
+        },
+        "healthCheck": {
+          "endpoint": "/api/v3/federations/governance/health",
+          "intervalMs": 3000,
+          "timeoutMs": 1000
+        },
+        "runtimeConfig": {
+          "authProvider": "supabase_auth",
+          "policyEngine": "postgresql_rls",
+          "vault": "supabase_secrets"
+        }
       },
       {
         "id": "fed_05_swarm",
+        "code": "FED_SWM",
         "name": "Federación de Agentes y Micro-servicios",
-        "manifest": "AGENTS.md",
-        "enabled": true
+        "layer": "multi_agent_execution",
+        "enabled": true,
+        "capabilities": [
+          "agent_dispatch",
+          "task_decomposition",
+          "tool_calling_execution",
+          "consensus_resolution"
+        ],
+        "security": {
+          "sandboxedExecution": true,
+          "maxToolCallDepth": 5,
+          "tokenBudgetLimit": 50000
+        },
+        "healthCheck": {
+          "endpoint": "/api/v3/federations/swarm/health",
+          "intervalMs": 5000,
+          "timeoutMs": 2000
+        },
+        "runtimeConfig": {
+          "manifest": "AGENTS.md",
+          "orchestrationType": "hierarchical_consensus",
+          "maxConcurrentAgents": 12
+        }
       },
       {
         "id": "fed_06_mesh",
+        "code": "FED_MSH",
         "name": "Federación de Integración y API Mesh",
-        "protocol": "fullstack_type_safe_rpc",
-        "enabled": true
+        "layer": "integration",
+        "enabled": true,
+        "capabilities": [
+          "type_safe_rpc",
+          "realtime_websockets",
+          "openapi_v3_generation",
+          "grpc_bridge"
+        ],
+        "security": {
+          "rateLimiting": {
+            "requestsPerMinute": 120,
+            "burst": 30
+          },
+          "corsOrigins": ["https://tamv.online", "https://*.tamv.online"]
+        },
+        "healthCheck": {
+          "endpoint": "/api/v3/federations/mesh/health",
+          "intervalMs": 5000,
+          "timeoutMs": 1000
+        },
+        "runtimeConfig": {
+          "protocol": "tanstack_server_functions_rpc",
+          "serialization": "devalue_json",
+          "compression": "brotli"
+        }
       },
       {
         "id": "fed_07_infrastructure",
+        "code": "FED_INF",
         "name": "Federación de Infraestructura y Despliegue",
-        "bundler": "vite_bun",
-        "enabled": true
+        "layer": "compute_and_delivery",
+        "enabled": true,
+        "capabilities": [
+          "edge_deployment",
+          "atomic_builds",
+          "zero_downtime_migration",
+          "auto_scaling"
+        ],
+        "security": {
+          "ddosMitigation": true,
+          "edgeWaf": true,
+          "tlsMinVersion": "1.3"
+        },
+        "healthCheck": {
+          "endpoint": "/api/v3/federations/infrastructure/health",
+          "intervalMs": 10000,
+          "timeoutMs": 2000
+        },
+        "runtimeConfig": {
+          "bundler": "vite_bun",
+          "deploymentTarget": "edge_runtime",
+          "ciCdEngine": "github_actions"
+        }
       }
     ]
   },
+  "resilience": {
+    "circuitBreaker": {
+      "failureThresholdPercent": 50,
+      "resetTimeoutMs": 30000
+    },
+    "retryPolicy": {
+      "maxRetries": 3,
+      "backoffStrategy": "exponential",
+      "initialDelayMs": 200,
+      "maxDelayMs": 2000
+    }
+  },
   "telemetry": {
-    "logging": "verbose",
-    "healthCheck": "/api/health",
-    "metrics": true
+    "provider": "opentelemetry",
+    "logging": {
+      "level": "info",
+      "format": "json_structured",
+      "auditEvents": true
+    },
+    "metrics": {
+      "enabled": true,
+      "exportIntervalMs": 15000,
+      "trackLatencyP99": true
+    },
+    "tracing": {
+      "enabled": true,
+      "samplingRatio": 1.0
+    }
   }
 }
