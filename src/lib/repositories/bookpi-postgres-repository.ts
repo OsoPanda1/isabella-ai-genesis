@@ -661,6 +661,7 @@ export function createBookpiPostgresRepository() {
     list,
     append,
     batchAppend,
+    executeMarketplacePurchase,
     query,
     prune,
     pruneInactive,
