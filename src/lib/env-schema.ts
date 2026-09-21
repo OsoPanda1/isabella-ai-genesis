@@ -318,7 +318,7 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
   {
     name: "GEMINI_API_KEY",
     visibility: "secret",
-    required: ["staging", "production"],
+    required: [],
     forbidden: [],
     provider: "gemini",
     criticality: "CRITICAL",
@@ -326,7 +326,7 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
   {
     name: "GROQ_API_KEY",
     visibility: "secret",
-    required: ["staging", "production"],
+    required: [],
     forbidden: [],
     provider: "self",
     criticality: "CRITICAL",
