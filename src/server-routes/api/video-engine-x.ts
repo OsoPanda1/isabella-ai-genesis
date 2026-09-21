@@ -33,7 +33,6 @@ const exportC2PASchema = z.object({
   projectId: z.string(),
 });
 
-// @ts-expect-error - TanStack route type augmented at build time
 export const Route = createFileRoute("/api/video-engine-x")({
   server: {
     handlers: {

@@ -52,6 +52,7 @@ import { Route as ApiConnectSlackWebhookRouteImport } from './routes/api/connect
 import { Route as ApiV1AuthSessionRouteImport } from './routes/api/v1/auth/session'
 import { Route as ApiV1CognitiveOrchestrateRouteImport } from './routes/api/v1/cognitive/orchestrate'
 import { Route as ApiV1GovernanceDignityIndexRouteImport } from './routes/api/v1/governance/dignity-index'
+import { Route as ApiV1ImagesGenerateRouteImport } from './routes/api/v1/images/generate'
 import { Route as ApiV1NcuaOperationsRouteImport } from './routes/api/v1/ncua/operations'
 import { Route as ApiV1MsrLedgerEventRouteImport } from './routes/api/v1/msr/ledger/event'
 import { Route as ApiV1NcuaOperationsApprovalsRouteImport } from './routes/api/v1/ncua/operations/approvals'
@@ -276,6 +277,11 @@ const ApiV1GovernanceDignityIndexRoute =
     path: '/api/v1/governance/dignity-index',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiV1ImagesGenerateRoute = ApiV1ImagesGenerateRouteImport.update({
+  id: '/api/v1/images/generate',
+  path: '/api/v1/images/generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1NcuaOperationsRoute = ApiV1NcuaOperationsRouteImport.update({
   id: '/api/v1/ncua/operations',
   path: '/api/v1/ncua/operations',
@@ -337,6 +343,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/auth/session': typeof ApiV1AuthSessionRoute
   '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
   '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
+  '/api/v1/images/generate': typeof ApiV1ImagesGenerateRoute
   '/api/v1/ncua/operations': typeof ApiV1NcuaOperationsRouteWithChildren
   '/api/v1/msr/ledger/event': typeof ApiV1MsrLedgerEventRoute
   '/api/v1/ncua/operations/approvals': typeof ApiV1NcuaOperationsApprovalsRoute
@@ -385,6 +392,7 @@ export interface FileRoutesByTo {
   '/api/v1/auth/session': typeof ApiV1AuthSessionRoute
   '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
   '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
+  '/api/v1/images/generate': typeof ApiV1ImagesGenerateRoute
   '/api/v1/ncua/operations': typeof ApiV1NcuaOperationsRouteWithChildren
   '/api/v1/msr/ledger/event': typeof ApiV1MsrLedgerEventRoute
   '/api/v1/ncua/operations/approvals': typeof ApiV1NcuaOperationsApprovalsRoute
@@ -434,6 +442,7 @@ export interface FileRoutesById {
   '/api/v1/auth/session': typeof ApiV1AuthSessionRoute
   '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
   '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
+  '/api/v1/images/generate': typeof ApiV1ImagesGenerateRoute
   '/api/v1/ncua/operations': typeof ApiV1NcuaOperationsRouteWithChildren
   '/api/v1/msr/ledger/event': typeof ApiV1MsrLedgerEventRoute
   '/api/v1/ncua/operations/approvals': typeof ApiV1NcuaOperationsApprovalsRoute
@@ -484,6 +493,7 @@ export interface FileRouteTypes {
     | '/api/v1/auth/session'
     | '/api/v1/cognitive/orchestrate'
     | '/api/v1/governance/dignity-index'
+    | '/api/v1/images/generate'
     | '/api/v1/ncua/operations'
     | '/api/v1/msr/ledger/event'
     | '/api/v1/ncua/operations/approvals'
@@ -532,6 +542,7 @@ export interface FileRouteTypes {
     | '/api/v1/auth/session'
     | '/api/v1/cognitive/orchestrate'
     | '/api/v1/governance/dignity-index'
+    | '/api/v1/images/generate'
     | '/api/v1/ncua/operations'
     | '/api/v1/msr/ledger/event'
     | '/api/v1/ncua/operations/approvals'
@@ -580,6 +591,7 @@ export interface FileRouteTypes {
     | '/api/v1/auth/session'
     | '/api/v1/cognitive/orchestrate'
     | '/api/v1/governance/dignity-index'
+    | '/api/v1/images/generate'
     | '/api/v1/ncua/operations'
     | '/api/v1/msr/ledger/event'
     | '/api/v1/ncua/operations/approvals'
@@ -619,6 +631,7 @@ export interface RootRouteChildren {
   ApiV1AuthSessionRoute: typeof ApiV1AuthSessionRoute
   ApiV1CognitiveOrchestrateRoute: typeof ApiV1CognitiveOrchestrateRoute
   ApiV1GovernanceDignityIndexRoute: typeof ApiV1GovernanceDignityIndexRoute
+  ApiV1ImagesGenerateRoute: typeof ApiV1ImagesGenerateRoute
   ApiV1NcuaOperationsRoute: typeof ApiV1NcuaOperationsRouteWithChildren
   ApiV1MsrLedgerEventRoute: typeof ApiV1MsrLedgerEventRoute
 }
@@ -926,6 +939,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1GovernanceDignityIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/images/generate': {
+      id: '/api/v1/images/generate'
+      path: '/api/v1/images/generate'
+      fullPath: '/api/v1/images/generate'
+      preLoaderRoute: typeof ApiV1ImagesGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/ncua/operations': {
       id: '/api/v1/ncua/operations'
       path: '/api/v1/ncua/operations'
@@ -1063,6 +1083,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1AuthSessionRoute: ApiV1AuthSessionRoute,
   ApiV1CognitiveOrchestrateRoute: ApiV1CognitiveOrchestrateRoute,
   ApiV1GovernanceDignityIndexRoute: ApiV1GovernanceDignityIndexRoute,
+  ApiV1ImagesGenerateRoute: ApiV1ImagesGenerateRoute,
   ApiV1NcuaOperationsRoute: ApiV1NcuaOperationsRouteWithChildren,
   ApiV1MsrLedgerEventRoute: ApiV1MsrLedgerEventRoute,
 }

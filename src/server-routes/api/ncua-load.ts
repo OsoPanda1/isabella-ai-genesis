@@ -21,7 +21,6 @@ function makeInput(index: number, label: string) {
   return `${BASE_TEXT} ${label} ejecución concurrente #${index}.`;
 }
 
-// @ts-expect-error - TanStack route type augmented at build time
 export const Route = createFileRoute("/api/ncua-load")({
   server: {
     handlers: {

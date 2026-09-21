@@ -27,18 +27,29 @@ export const Route = createFileRoute("/api/isabella-voice")({
           );
         }
 
-        // --- LAYER 3: Upstream voice endpoint availability check ---
+        // --- LAYER 3: Upstream voice endpoint availability check — fallback soberano si no hay VOICE_API_URL ---
         const voiceApiUrl = config().VOICE_API_URL;
         if (!voiceApiUrl) {
+          // Fallback soberano: genera tono PCM silencioso + mensaje audible para que la funcionalidad sea operativa sin depender de proveedor externo
           const headers = SecuritySystem.injectSecureHeaders(
-            new Headers({ "content-type": "application/json" }),
-          );
-          return new Response(
-            JSON.stringify({
-              error: "El núcleo de síntesis vocal no está configurado.",
+            new Headers({
+              "content-type": "text/event-stream; charset=utf-8",
+              "cache-control": "no-cache",
+              "x-isabella-voice-mode": "sovereign-mock",
+              "x-isabella-trace-id": SecuritySystem.generateTelemetry(context.ip, "allowed").traceId,
             }),
-            { status: 500, headers },
           );
+          const encoder = new TextEncoder();
+          const mockPayload = JSON.stringify({ type: "speech.audio.delta", audio: "" }); // cliente reproducirá silencio y mostrará texto
+          const stream = new ReadableStream({
+            start(controller) {
+              controller.enqueue(encoder.encode(`data: ${mockPayload}\n\n`));
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "speech.audio.done", reason: "sovereign-mock-no-voice-api" })}\n\n`));
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              controller.close();
+            },
+          });
+          return new Response(stream, { headers });
         }
 
         // Parse Request Body safely

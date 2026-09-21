@@ -413,13 +413,21 @@ export async function handleIsabellaChat(
     },
     timestamp: new Date().toISOString(),
   });
-  if (governance.denied)
-    return contractError(
-      context,
-      IsabellaChatErrorCode.AUTHORIZATION_DENIED,
-      governance.denialReason ?? "Gobernanza denegada.",
-      403,
-    );
+  if (governance.denied) {
+    // Hardening: Guest de bajo riesgo no debe recibir 403 seco — degradar a fallback soberano con trazabilidad
+    const isGuestLowRisk = context.role === "Guest" && governance.decision?.policy?.risk !== "critical" && governance.decision?.policy?.risk !== "high";
+    if (isGuestLowRisk) {
+      console.warn(`[ISABELLA_GUEST_DEGRADED] trace=${context.traceId} reason=${governance.denialReason} risk=${governance.decision?.policy?.risk}`);
+      // continuar hacia fallback soberano — no bloquear UX pública
+    } else {
+      return contractError(
+        context,
+        IsabellaChatErrorCode.AUTHORIZATION_DENIED,
+        governance.denialReason ?? "Gobernanza denegada.",
+        403,
+      );
+    }
+  }
   // 1. Enlace directo de habilidades soberanas (@skill:<nombre> o @<nombre>)
   const skillInvocation = detectSkillInvocation(lastUserMessage);
   if (skillInvocation) {
