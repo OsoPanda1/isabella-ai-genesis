@@ -124,7 +124,19 @@ jobs:
       - name: Emit deployment evidence
         env:
           PRODUCTION_URL: ${{ needs.deploy.outputs.url }}
-        run: node --input-type=module -e 'import { mkdirSync, writeFileSync } from "node:fs"; mkdirSync("release", { recursive: true }); writeFileSync("release/deployment.json", JSON.stringify({ schema: "isabella.production-release.v1", status: "PASS", commit: process.env.GITHUB_SHA, productionUrl: process.env.PRODUCTION_URL, smoke: "PASS", completedAt: new Date().toISOString() }, null, 2) + "\\n")'
+        run: |
+          node --input-type=module <<'NODE'
+          import { mkdirSync, writeFileSync } from "node:fs";
+          mkdirSync("release", { recursive: true });
+          writeFileSync("release/deployment.json", JSON.stringify({
+            schema: "isabella.production-release.v1",
+            status: "PASS",
+            commit: process.env.GITHUB_SHA,
+            productionUrl: process.env.PRODUCTION_URL,
+            smoke: "PASS",
+            completedAt: new Date().toISOString()
+          }, null, 2) + "\n");
+          NODE
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: isabella-production-release-${{ github.sha }}
