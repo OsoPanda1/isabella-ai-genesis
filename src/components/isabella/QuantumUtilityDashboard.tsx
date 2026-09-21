@@ -273,7 +273,7 @@ export function QuantumUtilityDashboard() {
       const sampleFeatures = Array.from({ length: recordCount }, (_, i) => ({
         id: `rec_${i}`,
         x: [0.45, 0.4, 0.275],
-        y: Math.random() > 0.4 ? 1 : 0,
+        y: i % 3 === 0 ? 1 : 0,
         author: i === 2 ? "Edwin Castillo (Sovereign Developer)" : "Isabella AI Generator", // Will trigger scrubbing!
         hostIp: "192.168.1.15", // Will trigger IP scrubbing!
       }));
