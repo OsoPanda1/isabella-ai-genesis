@@ -45,7 +45,8 @@
     "clean:install": "bash scripts/clean-install.sh",
     "production:gate": "pnpm typecheck && pnpm lint && pnpm test && pnpm audit:repository && pnpm security:scan && pnpm capabilities && pnpm audit:routes && pnpm db:verify && pnpm production:integrity && pnpm production:preflight -- --json && pnpm build && pnpm production:evidence",
     "postinstall": "prisma generate",
-    "quantum:bridge:test": "vitest run test/unit/quantum-bridge.test.ts"
+    "quantum:bridge:test": "vitest run test/unit/quantum-bridge.test.ts",
+    "ncua:live": "node scripts/ncua-live-load.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
