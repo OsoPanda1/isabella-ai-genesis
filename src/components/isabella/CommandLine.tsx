@@ -15,7 +15,7 @@ import {
 import { Waveform } from "./Waveform";
 import { fileToDataUrl, humanSize, MAX_ATTACHMENT_BYTES, type Attachment } from "@/lib/attachments";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
-const uid = () => crypto.randomUUID?.() ?? Math.random().toString(36).slice(2, 11);
+const uid = () => crypto.randomUUID();
 const THEME_KEY = "isabella.cognitive-theme.v1";
 const themes = {
   abyss: { label: "Abyss", accent: "electric" },
