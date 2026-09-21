@@ -733,34 +733,72 @@ Operativo en producción solo significa que existe implementación, configuraci�
 
 ---
 
-# 23. Porcentaje actualizado
+# 23. Cierre de la evaluación y porcentaje REAL — 21 septiembre 2026
 
-La corrección de dependencias mejora la madurez de implementación, pero no convierte automáticamente el proyecto en producción certificada.
+Esta medición reemplaza cualquier porcentaje anterior para evitar que el proyecto entre en un ciclo de incrementos nominales sin evidencia.
 
-| Dimensión | Avance estimado |
+## Evidencia verificada en esta revisión
+
+- `package.json` fija `pnpm@10.15.4` y Node objetivo 24.x.
+- `@vercel/connect` quedó declarado en `^2.3.0`; la versión 2.3.0 está publicada en npm y documenta las APIs utilizadas por el conector. citeturn0search0
+- El `pnpm-lock.yaml` **NO está sincronizado todavía** con el manifiesto: el importer observado no contiene `@vercel/connect`. Por tanto, **no existe evidencia válida de `pnpm install --frozen-lockfile` PASS**.
+- Los workflows asociados al commit candidato terminaron en `failure` y los jobs observados presentan `steps: null`; por ello no se puede contabilizar CI como PASS.
+- El deployment Vercel más reciente del candidato `46cff376cd7ed877c4bf33d7701e41196c538698` terminó en estado `ERROR`; por tanto no se puede declarar READY ni runtime smoke PASS.
+- GitHub Status figura actualmente operativo para Actions; el fallo del proyecto no puede atribuirse, con la evidencia disponible, a una incidencia general activa de GitHub. citeturn1search0
+
+## Porcentaje REAL
+
+La métrica separa **capacidad implementada** de **capacidad certificada para producción**.
+
+| Área | Avance real |
 |---|---:|
-| Arquitectura / implementación | 84% |
-| Seguridad de aplicación | 72% |
-| Skills / interacción | 78% |
-| CROWN / gobernanza | 83% |
-| BookPI / economía | 79% |
-| Persistencia / RLS | 68% |
-| Testing | 71% |
-| CI/CD | 58% |
-| Observabilidad / SRE | 62% |
-| NCUA / carga real | 55% |
-| Vercel / deployment | 35% |
-| Evidencia de producción | 38% |
+| Arquitectura e implementación | **84%** |
+| Seguridad de aplicación | **72%** |
+| Skills / interacción | **78%** |
+| CROWN / gobernanza | **83%** |
+| BookPI / economía | **79%** |
+| Persistencia / RLS | **68%** |
+| Testing | **71%** |
+| CI/CD certificado | **42%** |
+| Observabilidad / SRE | **62%** |
+| NCUA / carga certificada | **45%** |
+| Vercel / deployment certificado | **24%** |
+| Evidencia de producción | **28%** |
 
-Madurez técnica implementada: ≈79%
-Readiness de producción: ≈57%
-Readiness de despliegue oficial: ≈39%
-Madurez combinada producción + despliegue: ≈48%
+### Resultado general
 
-Estos porcentajes son estimaciones ponderadas del estado del código y de la evidencia disponible; no son una certificación externa.
+**Madurez técnica implementada: 79%**
 
-### Próximo umbral objetivo
+**Readiness REAL para producción: 51%**
 
-El siguiente salto significativo se produce cuando el mismo commit obtiene: LOCKFILE PASS + CI PASS + TYPECHECK PASS + LINT PASS + TEST PASS + SECURITY PASS + BUILD PASS + VERCEL READY + RUNTIME SMOKE PASS + NCUA EVIDENCE + BOOKPI/STRIPE RECONCILIATION EVIDENCE.
+**Readiness REAL para despliegue oficial: 24%**
 
-En ese punto debe actualizarse esta tabla con resultados fechados y enlaces a artefactos, no con una estimación.
+**Avance GENERAL REAL producción + despliegue: 38%**
+
+El **38%** es el número que debe utilizarse públicamente como estado global de esta fase si se exige una métrica conservadora y basada en evidencia. No se eleva por la existencia de código que todavía no ha superado CI, build, deployment o runtime.
+
+## Estado de cierre de las 10 fases
+
+| Fase | Resultado |
+|---|---|
+| 1. Git integrity | **IMPLEMENTADA / verificación final pendiente** |
+| 2. package ↔ lockfile ↔ pnpm | **CORRECCIÓN DEL MANIFIESTO HECHA / lockfile pendiente** |
+| 3. TypeScript / imports | **IMPLEMENTADO / PASS de CI pendiente** |
+| 4. Security + JWT + RLS | **IMPLEMENTADO / evidencia runtime pendiente** |
+| 5. Sovereign Engine + persistence | **IMPLEMENTADO / evidencia DB pendiente** |
+| 6. BookPI | **IMPLEMENTADO / integración certificada pendiente** |
+| 7. NCUA 50→500 | **RUNNER IMPLEMENTADO / evidencia viva pendiente** |
+| 8. CI/security/release | **WORKFLOWS IMPLEMENTADOS / ejecución PASS pendiente** |
+| 9. Production evidence | **INFRAESTRUCTURA DE EVIDENCIA IMPLEMENTADA / evidencia final pendiente** |
+| 10. Real Vercel deployment | **NO CERRADA: último deployment ERROR** |
+
+### Conclusión operativa
+
+**No queda ninguna fase de diseño sin identificar.** El trabajo restante ya no debe abrir nuevas capas funcionales: debe ejecutar y cerrar los gates P0 existentes.
+
+El orden de cierre definitivo es:
+
+`lockfile reproducible → CI PASS → typecheck/lint/test/security PASS → DB/RLS PASS → build PASS → Vercel READY → runtime smoke PASS → NCUA 50→500 → BookPI/Stripe reconciliation → evidence pack`
+
+Hasta obtener esos resultados, marcar 100% sería incorrecto.
+
