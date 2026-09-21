@@ -21,7 +21,7 @@ function makeInput(index: number, label: string) {
   return `${BASE_TEXT} ${label} ejecución concurrente #${index}.`;
 }
 
-// @ts-ignore
+// @ts-expect-error - TanStack route type augmented at build time
 export const Route = createFileRoute("/api/ncua-load")({
   server: {
     handlers: {
@@ -59,7 +59,10 @@ export const Route = createFileRoute("/api/ncua-load")({
 
         const results = await Promise.all(
           Array.from({ length: parsed.data.count }, (_, index) =>
-            pipeline.execute(makeInput(index, parsed.data.label), `live-${parsed.data.label}-${index}`),
+            pipeline.execute(
+              makeInput(index, parsed.data.label),
+              `live-${parsed.data.label}-${index}`,
+            ),
           ),
         );
 
@@ -72,7 +75,9 @@ export const Route = createFileRoute("/api/ncua-load")({
           .map(() => elapsedMs / Math.max(1, results.length))
           .sort((a, b) => a - b);
         const percentile = (p: number) =>
-          sortedLatency[Math.min(sortedLatency.length - 1, Math.ceil(sortedLatency.length * p) - 1)] ?? 0;
+          sortedLatency[
+            Math.min(sortedLatency.length - 1, Math.ceil(sortedLatency.length * p) - 1)
+          ] ?? 0;
 
         const evidence = {
           schema: "isabella.ncua.live-load.v1",

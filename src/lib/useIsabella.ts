@@ -157,7 +157,9 @@ export function useIsabella() {
       // Se canaliza de forma transparente hacia el puente canónico processSkillInvocation,
       // preservando el comando completo y capturando la evidencia en el ledger BookPI.
       const skillInvocation = detectSkillInvocation(validatedPayload.text || "");
-      const hasSkillTrigger = Boolean(skillInvocation || isSkillTrigger(validatedPayload.text || ""));
+      const hasSkillTrigger = Boolean(
+        skillInvocation || isSkillTrigger(validatedPayload.text || ""),
+      );
       const effectiveText = validatedPayload.text || text;
       const routing = route(effectiveText || "material adjunto", preset);
       setDecision(routing);

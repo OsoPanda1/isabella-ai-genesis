@@ -24,11 +24,7 @@ export interface IdentityContext {
 }
 
 export class IdentityResolver {
-  resolve(input: {
-    actorId: string;
-    tenantId: string;
-    sessionId?: string;
-  }): IdentityContext {
+  resolve(input: { actorId: string; tenantId: string; sessionId?: string }): IdentityContext {
     return {
       actorId: input.actorId || "anonymous",
       tenantId: input.tenantId || "default-tenant",

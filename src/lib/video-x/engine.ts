@@ -459,7 +459,7 @@ class VideoEngineXManager {
 
     const shot = timeline.shots.find((s) => s.id === shotId);
     if (shot) {
-      shot.generation.seed = crypto.getRandomValues(new Uint32Array(1))[0]! % 900000 + 100000;
+      shot.generation.seed = (crypto.getRandomValues(new Uint32Array(1))[0]! % 900000) + 100000;
       project.budget.spentGpuSeconds += 45;
       project.budget.spentCostUsd = Math.round((project.budget.spentCostUsd + 0.36) * 100) / 100;
       project.updatedAt = new Date().toISOString();

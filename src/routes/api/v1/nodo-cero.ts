@@ -19,11 +19,25 @@ const merchantSchema = z.object({
   action: z.enum(["register-merchant", "telemetry"]),
   merchantName: z.string().min(2).max(100).optional(),
   category: z
-    .enum(["PASTES_TRADICIONALES", "PLATERIA_ARTESANAL", "GUIA_COMUNITARIO", "HOSPEDAJE_TIPICO", "CAFE_GASTRONOMIA"])
+    .enum([
+      "PASTES_TRADICIONALES",
+      "PLATERIA_ARTESANAL",
+      "GUIA_COMUNITARIO",
+      "HOSPEDAJE_TIPICO",
+      "CAFE_GASTRONOMIA",
+    ])
     .optional(),
   localIngredientsVerified: z.boolean().optional(),
   fairLaborVerified: z.boolean().optional(),
-  zone: z.enum(["CENTRO_HISTORICO", "MINA_ACOSTA", "MINA_DIFICULTAD", "PANTEON_INGLES", "PENAS_CARGADERO"]).optional(),
+  zone: z
+    .enum([
+      "CENTRO_HISTORICO",
+      "MINA_ACOSTA",
+      "MINA_DIFICULTAD",
+      "PANTEON_INGLES",
+      "PENAS_CARGADERO",
+    ])
+    .optional(),
 });
 
 export const Route = createFileRoute("/api/v1/nodo-cero")({
@@ -31,7 +45,13 @@ export const Route = createFileRoute("/api/v1/nodo-cero")({
     handlers: {
       GET: withSovereignAuth("system", "read", async (context, request) => {
         const url = new URL(request.url);
-        const zoneParam = url.searchParams.get("zone") as "CENTRO_HISTORICO" | "MINA_ACOSTA" | "MINA_DIFICULTAD" | "PANTEON_INGLES" | "PENAS_CARGADERO" | null;
+        const zoneParam = url.searchParams.get("zone") as
+          | "CENTRO_HISTORICO"
+          | "MINA_ACOSTA"
+          | "MINA_DIFICULTAD"
+          | "PANTEON_INGLES"
+          | "PENAS_CARGADERO"
+          | null;
 
         const result = await NODO_CERO_TWIN.run(
           { zone: zoneParam ?? undefined, includeSensors: true, includeHeritageStatus: true },

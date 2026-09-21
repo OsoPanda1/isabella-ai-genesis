@@ -36,18 +36,15 @@ const optionalUrl = () =>
     }
   }, z.string().url().optional());
 const bool = (def: boolean) =>
-  z.preprocess(
-    (v) => {
-      if (typeof v === "boolean") return v;
-      if (typeof v === "string") {
-        const s = v.trim().toLowerCase();
-        if (s === "true" || s === "1") return true;
-        if (s === "false" || s === "0") return false;
-      }
-      return undefined;
-    },
-    z.boolean().default(def),
-  );
+  z.preprocess((v) => {
+    if (typeof v === "boolean") return v;
+    if (typeof v === "string") {
+      const s = v.trim().toLowerCase();
+      if (s === "true" || s === "1") return true;
+      if (s === "false" || s === "0") return false;
+    }
+    return undefined;
+  }, z.boolean().default(def));
 
 export const envSchema = z
   .object({

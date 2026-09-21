@@ -51,7 +51,10 @@ export const Route = createFileRoute("/api/v1/skills")({
 
         const parsed = executeSkillSchema.safeParse(body);
         if (!parsed.success) {
-          return json({ error: "Datos de ejecución no válidos.", details: parsed.error.issues }, 400);
+          return json(
+            { error: "Datos de ejecución no válidos.", details: parsed.error.issues },
+            400,
+          );
         }
 
         const { skillId, input, intent } = parsed.data;
@@ -60,7 +63,10 @@ export const Route = createFileRoute("/api/v1/skills")({
         try {
           skill = getRuntimeSkill(skillId as IsabellaSkillId);
         } catch {
-          return json({ error: `La habilidad '${skillId}' no está registrada en el ecosistema.` }, 404);
+          return json(
+            { error: `La habilidad '${skillId}' no está registrada en el ecosistema.` },
+            404,
+          );
         }
 
         if (!skill) {
@@ -70,7 +76,13 @@ export const Route = createFileRoute("/api/v1/skills")({
         // Schema validation
         const inputCheck = parseSkillInput(skillId as IsabellaSkillId, input);
         if (!inputCheck.success) {
-          return json({ error: "Esquema de entrada de habilidad no válido.", details: inputCheck.error.issues }, 400);
+          return json(
+            {
+              error: "Esquema de entrada de habilidad no válido.",
+              details: inputCheck.error.issues,
+            },
+            400,
+          );
         }
 
         const skillContext = {
@@ -82,9 +94,12 @@ export const Route = createFileRoute("/api/v1/skills")({
         };
 
         if (typeof skill.canRun === "function" && !skill.canRun(input, skillContext)) {
-          return json({
-            error: `La habilidad '${skillId}' rechazó la ejecución debido a precondiciones no cumplidas.`,
-          }, 422);
+          return json(
+            {
+              error: `La habilidad '${skillId}' rechazó la ejecución debido a precondiciones no cumplidas.`,
+            },
+            422,
+          );
         }
 
         try {
@@ -96,11 +111,14 @@ export const Route = createFileRoute("/api/v1/skills")({
           });
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
-          return json({
-            success: false,
-            traceId: context.traceId,
-            error: `Fallo durante la ejecución de la habilidad: ${message}`,
-          }, 500);
+          return json(
+            {
+              success: false,
+              traceId: context.traceId,
+              error: `Fallo durante la ejecución de la habilidad: ${message}`,
+            },
+            500,
+          );
         }
       }),
     },

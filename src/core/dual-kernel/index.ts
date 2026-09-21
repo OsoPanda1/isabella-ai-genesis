@@ -251,7 +251,9 @@ export class DualKernel {
           policyDenyTotal: governance.result === "deny" ? 1 : 0,
           reviewRequiredTotal: governance.result === "review" ? 1 : 0,
           scopeDenialTotal: governance.scopeDenials.length,
-          verificationFailureTotal: verification.checks.filter((c: { passed: boolean }) => !c.passed).length,
+          verificationFailureTotal: verification.checks.filter(
+            (c: { passed: boolean }) => !c.passed,
+          ).length,
           fallbackTotal: 0,
         },
         runtime: {
@@ -334,10 +336,12 @@ export class DualKernel {
   }
 
   private generateAnswer(proposal: Proposal, intent: string): string {
-    return `Based on analysis, here is a structured response regarding: ${proposal.problem}\n\n` +
+    return (
+      `Based on analysis, here is a structured response regarding: ${proposal.problem}\n\n` +
       `Value: ${proposal.valueProposition}\n\n` +
       `First deliverable: ${proposal.firstDeliverable}\n\n` +
-      `Alternatives available: ${proposal.alternatives.length}`;
+      `Alternatives available: ${proposal.alternatives.length}`
+    );
   }
 
   private hashString(input: string): string {

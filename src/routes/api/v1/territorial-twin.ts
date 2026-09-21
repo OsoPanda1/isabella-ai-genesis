@@ -23,7 +23,7 @@ const simulationSchema = z.object({
 export const Route = createFileRoute("/api/v1/territorial-twin")({
   server: {
     handlers: {
-      GET: withSovereignAuth("system", "read", async (_context) => {
+      GET: withSovereignAuth("system", "read", async (_ctx) => {
         return json({
           success: true,
           territory: {
@@ -50,22 +50,39 @@ export const Route = createFileRoute("/api/v1/territorial-twin")({
 
         const parsed = simulationSchema.safeParse(body);
         if (!parsed.success) {
-          return json({ error: "Parámetros de simulación inválidos.", details: parsed.error.issues }, 400);
+          return json(
+            { error: "Parámetros de simulación inválidos.", details: parsed.error.issues },
+            400,
+          );
         }
 
-        const { visitorInfluxDaily, activeMerchantsCount, preservationFundingCredits } = parsed.data;
+        const { visitorInfluxDaily, activeMerchantsCount, preservationFundingCredits } =
+          parsed.data;
 
         // Mathematical modeling for territorial twin simulation
         const carryingCapacityRatio = visitorInfluxDaily / 4500;
         const economicVibrancy = Math.min(1.0, (activeMerchantsCount * 12) / 2000);
-        const preservationScore = Math.max(0.6, Math.min(1.0, 0.95 - (carryingCapacityRatio > 1 ? (carryingCapacityRatio - 1) * 0.2 : 0) + (preservationFundingCredits / 100000) * 0.1));
+        const preservationScore = Math.max(
+          0.6,
+          Math.min(
+            1.0,
+            0.95 -
+              (carryingCapacityRatio > 1 ? (carryingCapacityRatio - 1) * 0.2 : 0) +
+              (preservationFundingCredits / 100000) * 0.1,
+          ),
+        );
         const estimatedLocalImpactUsd = visitorInfluxDaily * 42.5;
 
         return json({
           success: true,
           traceId: context.traceId,
           simulation: {
-            carryingCapacityStatus: carryingCapacityRatio > 1.1 ? "OVER_CAPACITY_ALERT" : carryingCapacityRatio > 0.85 ? "OPTIMAL_HIGH" : "NORMAL",
+            carryingCapacityStatus:
+              carryingCapacityRatio > 1.1
+                ? "OVER_CAPACITY_ALERT"
+                : carryingCapacityRatio > 0.85
+                  ? "OPTIMAL_HIGH"
+                  : "NORMAL",
             preservationIntegrityScore: Number(preservationScore.toFixed(3)),
             economicVibrancyScore: Number(economicVibrancy.toFixed(3)),
             estimatedDailyLocalRetentionUsd: Number(estimatedLocalImpactUsd.toFixed(2)),

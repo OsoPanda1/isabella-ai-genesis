@@ -214,11 +214,17 @@ export function CognitiveStatusDashboard() {
         break;
 
       case "logs":
-        addLine("No se muestran logs sintéticos. Usa el visor de auditoría respaldado por backend.", "system");
+        addLine(
+          "No se muestran logs sintéticos. Usa el visor de auditoría respaldado por backend.",
+          "system",
+        );
         break;
 
       case "boost":
-        addLine("Boost no está conectado a un backend de capacidad. No se simula aceleración.", "system");
+        addLine(
+          "Boost no está conectado a un backend de capacidad. No se simula aceleración.",
+          "system",
+        );
         break;
 
       default:
@@ -363,7 +369,9 @@ export function CognitiveStatusDashboard() {
                     className={`flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border cursor-pointer transition-all select-none ${mod.status === "active" ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/15 hover:bg-emerald-500/20 hover:border-emerald-500/40" : "text-amber-300 bg-amber-500/10 border-amber-500/15 hover:bg-amber-500/20 hover:border-amber-500/40"}`}
                     title="Click para ver registros de operación"
                   >
-                    <span className={`size-1.5 rounded-full ${mod.status === "active" ? "bg-emerald-400 animate-pulse" : "bg-amber-300"}`} />
+                    <span
+                      className={`size-1.5 rounded-full ${mod.status === "active" ? "bg-emerald-400 animate-pulse" : "bg-amber-300"}`}
+                    />
                     {mod.status === "standby" ? "NO VERIFICADO" : mod.status}
                   </span>
                 </div>
@@ -379,14 +387,18 @@ export function CognitiveStatusDashboard() {
                   {/* Latency */}
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">LATENCIA:</span>
-                    <span className="text-pearl font-bold">{mod.latency === null ? "No disponible" : `${mod.latency} ms`}</span>
+                    <span className="text-pearl font-bold">
+                      {mod.latency === null ? "No disponible" : `${mod.latency} ms`}
+                    </span>
                   </div>
 
                   {/* CPU usage bar */}
                   <div>
                     <div className="flex justify-between text-muted-foreground mb-1">
                       <span>CPU:</span>
-                      <span className="text-pearl font-bold">{mod.cpu === null ? "No disponible" : `${mod.cpu}%`}</span>
+                      <span className="text-pearl font-bold">
+                        {mod.cpu === null ? "No disponible" : `${mod.cpu}%`}
+                      </span>
                     </div>
                     <div className="w-full bg-background/50 h-1.5 rounded-full overflow-hidden border border-border/10">
                       <div
@@ -400,7 +412,9 @@ export function CognitiveStatusDashboard() {
                   <div>
                     <div className="flex justify-between text-muted-foreground mb-1">
                       <span>MEMORIA:</span>
-                      <span className="text-pearl font-bold">{mod.memory === null ? "No disponible" : `${mod.memory}%`}</span>
+                      <span className="text-pearl font-bold">
+                        {mod.memory === null ? "No disponible" : `${mod.memory}%`}
+                      </span>
                     </div>
                     <div className="w-full bg-background/50 h-1.5 rounded-full overflow-hidden border border-border/10">
                       <div

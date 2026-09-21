@@ -54,8 +54,14 @@ for (const count of stages) {
   }
 }
 
-console.log(JSON.stringify({
-  schema: "isabella.ncua.live-load-suite.v1",
-  completedAt: new Date().toISOString(),
-  stages: results,
-}, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      schema: "isabella.ncua.live-load-suite.v1",
+      completedAt: new Date().toISOString(),
+      stages: results,
+    },
+    null,
+    2,
+  ),
+);

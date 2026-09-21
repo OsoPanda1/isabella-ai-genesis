@@ -236,7 +236,7 @@ export class SovereignDB {
    * share one refresh. Mutating paths must request a fresh read (`maxAgeMs: 0`)
    * before a read-modify-write sequence.
    */
-public static async hydrate({
+  public static async hydrate({
     maxAgeMs = 0,
   }: { maxAgeMs?: number } = {}): Promise<DatabaseSchema> {
     // Fail-closed: si la persistencia anterior falló, no servir estado obsoleto.

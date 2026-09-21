@@ -307,13 +307,10 @@ export const Route = createFileRoute("/api/billing")({
                 })
                 .safeParse(body);
               if (!parsed.success) {
-                return new Response(
-                  JSON.stringify({ error: "planId debe ser personal o pro." }),
-                  {
-                    status: 400,
-                    headers,
-                  },
-                );
+                return new Response(JSON.stringify({ error: "planId debe ser personal o pro." }), {
+                  status: 400,
+                  headers,
+                });
               }
               const { planId, billingCycle } = parsed.data;
               const idempotencyKey =
@@ -342,7 +339,11 @@ export const Route = createFileRoute("/api/billing")({
                 completeCheckoutIdempotency,
                 releaseCheckoutIdempotency,
               } = await import("@/lib/repositories/billing-security-repository");
-              const requestHash = billingRequestHash({ planId, billingCycle, operation: "checkout" });
+              const requestHash = billingRequestHash({
+                planId,
+                billingCycle,
+                operation: "checkout",
+              });
               let reservation;
               try {
                 reservation = await reserveCheckoutIdempotency({
@@ -400,7 +401,14 @@ export const Route = createFileRoute("/api/billing")({
                               name: `Isabella AI - Suscripción ${planId.toUpperCase()}`,
                               description: `Acceso Premium al orquestador cognitivo de Isabella (${planId}).`,
                             },
-                            unit_amount: billingCycle === "yearly" ? (planId === "personal" ? 9588 : 19188) : (planId === "personal" ? 999 : 1999),
+                            unit_amount:
+                              billingCycle === "yearly"
+                                ? planId === "personal"
+                                  ? 9588
+                                  : 19188
+                                : planId === "personal"
+                                  ? 999
+                                  : 1999,
                             recurring: { interval: billingCycle === "yearly" ? "year" : "month" },
                           },
                           quantity: 1,
@@ -542,11 +550,8 @@ export const Route = createFileRoute("/api/billing")({
 
             // Claim atómico antes de cualquier efecto durable. El registro solo se
             // marca como processed después de completar todas las operaciones.
-            const {
-              claimWebhookEvent,
-              markWebhookProcessed,
-              markWebhookFailed,
-            } = await import("@/lib/economic-events");
+            const { claimWebhookEvent, markWebhookProcessed, markWebhookFailed } =
+              await import("@/lib/economic-events");
             const claim = await claimWebhookEvent({
               provider: "stripe",
               providerEventId: eventId,
@@ -579,158 +584,158 @@ export const Route = createFileRoute("/api/billing")({
                 eventType === "checkout.session.completed" ||
                 eventType === "invoice.payment_succeeded"
               ) {
-              const planId = metadata?.planId;
-              const targetTenantId = metadata?.tenantId;
-              const targetUserId = clientReferenceId;
+                const planId = metadata?.planId;
+                const targetTenantId = metadata?.tenantId;
+                const targetUserId = clientReferenceId;
 
-              if (!planId || !targetTenantId || !targetUserId) {
-                await markWebhookFailed(claim.id, "Webhook metadata incompleta.");
-                return new Response(JSON.stringify({ error: "Webhook metadata incompleta." }), {
-                  status: 422,
-                  headers,
-                });
-              }
-
-              // IDEMPOTENCIA ATÓMICA (§5): UNIQUE(provider, provider_event_id)
-              // en `webhook_events`. Dos entregas simultáneas → 1 procesado.
-              if (eventId) {
-                metadata.marker = `STRIPE_EVENT:${eventId}`;
-              }
-
-              if (targetTenantId) {
-                const { recordEconomicEvent } = await import("@/lib/economic-events");
-                const economicCredit = await recordEconomicEvent({
-                  tenantId: targetTenantId,
-                  actorId: targetUserId,
-                  eventType: "SUBSCRIPTION_CREDIT",
-                  amountMinor: 10_000,
-                  direction: "CREDIT",
-                  source: "stripe",
-                  provider: "stripe",
-                  providerEventId: eventId,
-                  idempotencyKey: `subscription-credit:${eventId}`,
-                  metadata: { planId, eventType, source: "stripe_webhook" },
-                });
-                if (!economicCredit.ok && !economicCredit.duplicate) {
-                  throw new Error(
-                    `Economic subscription credit failed: ${economicCredit.error ?? "unknown"}`,
-                  );
+                if (!planId || !targetTenantId || !targetUserId) {
+                  await markWebhookFailed(claim.id, "Webhook metadata incompleta.");
+                  return new Response(JSON.stringify({ error: "Webhook metadata incompleta." }), {
+                    status: 422,
+                    headers,
+                  });
                 }
 
-                const tenant = await sovereignStateRepository.getTenant(targetTenantId);
-                if (tenant) {
-                  tenant.tier = planId === "enterprise" ? "Enterprise" : "Sovereign";
-                  tenant.quotaBalance += 100.0;
-                  await sovereignStateRepository.upsertTenant(tenant);
-
-                  // La activación de suscripción se registra en el ledger (abajo),
-                  // no como columna inexistente en MonetizationAccount.
-                  const block = await sovereignStateRepository.appendLedgerBlock(
-                    targetTenantId,
-                    targetUserId || "system",
-                    `ACTIVATE_SUBSCRIPTION: Plan ${planId.toUpperCase()} activado exitosamente (Créditos de bono: +$100.00 USD) ${metadata?.marker || ""}`,
-                    "other",
-                    0,
-                    0,
-                  );
-
-                  await sovereignStateRepository.appendAuditLog(
-                    `trc_webhook_${block.index}`,
-                    `corr_web_${nodeCrypto.randomUUID().slice(0, 8)}`,
-                    "127.0.0.1",
-                    "Webhook de Suscripción Confirmado",
-                    "S3",
-                    `Suscripción de plan ${planId} aplicada a tenant ${targetTenantId}.`,
-                    targetTenantId,
-                  );
+                // IDEMPOTENCIA ATÓMICA (§5): UNIQUE(provider, provider_event_id)
+                // en `webhook_events`. Dos entregas simultáneas → 1 procesado.
+                if (eventId) {
+                  metadata.marker = `STRIPE_EVENT:${eventId}`;
                 }
-              }
-            }
 
-            // Disputas/chargebacks: NUNCA se descartan. Idempotencia por
-            // claimWebhookEvent + evento económico CHARGEBACK_HOLD + auditoría.
-            // P0: el hold se persiste ANTES del claim (durable, no fire-and-forget)
-            // para que un fallo de DB haga reintentar Stripe y nunca se pierda.
-            if (
-              eventType === "charge.dispute.created" ||
-              eventType === "charge.dispute.funds_withdrawn"
-            ) {
-              const disputeTenant = metadata?.tenantId || "unresolved-dispute";
-              const disputeUser = clientReferenceId || "system";
-              const amountMinor = disputeAmountMinor;
+                if (targetTenantId) {
+                  const { recordEconomicEvent } = await import("@/lib/economic-events");
+                  const economicCredit = await recordEconomicEvent({
+                    tenantId: targetTenantId,
+                    actorId: targetUserId,
+                    eventType: "SUBSCRIPTION_CREDIT",
+                    amountMinor: 10_000,
+                    direction: "CREDIT",
+                    source: "stripe",
+                    provider: "stripe",
+                    providerEventId: eventId,
+                    idempotencyKey: `subscription-credit:${eventId}`,
+                    metadata: { planId, eventType, source: "stripe_webhook" },
+                  });
+                  if (!economicCredit.ok && !economicCredit.duplicate) {
+                    throw new Error(
+                      `Economic subscription credit failed: ${economicCredit.error ?? "unknown"}`,
+                    );
+                  }
 
-              const { recordEconomicEvent } = await import("@/lib/economic-events");
+                  const tenant = await sovereignStateRepository.getTenant(targetTenantId);
+                  if (tenant) {
+                    tenant.tier = planId === "enterprise" ? "Enterprise" : "Sovereign";
+                    tenant.quotaBalance += 100.0;
+                    await sovereignStateRepository.upsertTenant(tenant);
 
-              // 1) Hold económico durable (idempotente por idempotency_key).
-              //    Error de DB → 503 en producción para que Stripe reintente.
-              if (disputeTenant !== "unresolved-dispute") {
-                const hold = await recordEconomicEvent({
-                  tenantId: disputeTenant,
-                  actorId: disputeUser,
-                  eventType: "CHARGEBACK_HOLD",
-                  amountMinor,
-                  direction: "DEBIT",
-                  source: "stripe",
-                  provider: "stripe",
-                  providerEventId: eventId,
-                  idempotencyKey: `chargeback:${eventId}`,
-                  metadata: { dispute: true },
-                });
-                if (!hold.ok && !hold.duplicate) {
-                  console.error("[billing:dispute] recordEconomicEvent failed:", hold.error);
-                  if (config().NODE_ENV === "production") {
-                    return new Response(
-                      JSON.stringify({
-                        error: "Hold de disputa no registrado.",
-                      }),
-                      { status: 503, headers },
+                    // La activación de suscripción se registra en el ledger (abajo),
+                    // no como columna inexistente en MonetizationAccount.
+                    const block = await sovereignStateRepository.appendLedgerBlock(
+                      targetTenantId,
+                      targetUserId || "system",
+                      `ACTIVATE_SUBSCRIPTION: Plan ${planId.toUpperCase()} activado exitosamente (Créditos de bono: +$100.00 USD) ${metadata?.marker || ""}`,
+                      "other",
+                      0,
+                      0,
+                    );
+
+                    await sovereignStateRepository.appendAuditLog(
+                      `trc_webhook_${block.index}`,
+                      `corr_web_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                      "127.0.0.1",
+                      "Webhook de Suscripción Confirmado",
+                      "S3",
+                      `Suscripción de plan ${planId} aplicada a tenant ${targetTenantId}.`,
+                      targetTenantId,
                     );
                   }
                 }
               }
 
-              await sovereignStateRepository.appendAuditLog(
-                `trc_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
-                `corr_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
-                "127.0.0.1",
-                "Disputa de Pago Recibida",
-                "S1",
-                `Disputa ${eventId} por $${(amountMinor / 100).toFixed(2)} (tenant: ${disputeTenant}). Payouts congelados hasta revisión humana.`,
-                disputeTenant,
-              );
+              // Disputas/chargebacks: NUNCA se descartan. Idempotencia por
+              // claimWebhookEvent + evento económico CHARGEBACK_HOLD + auditoría.
+              // P0: el hold se persiste ANTES del claim (durable, no fire-and-forget)
+              // para que un fallo de DB haga reintentar Stripe y nunca se pierda.
+              if (
+                eventType === "charge.dispute.created" ||
+                eventType === "charge.dispute.funds_withdrawn"
+              ) {
+                const disputeTenant = metadata?.tenantId || "unresolved-dispute";
+                const disputeUser = clientReferenceId || "system";
+                const amountMinor = disputeAmountMinor;
 
-              await markWebhookProcessed(claim.id);
-              return new Response(
-                JSON.stringify({
-                  success: true,
-                  processed: true,
-                  dispute: true,
-                  tenantResolved: disputeTenant !== "unresolved-dispute",
-                }),
-                { headers },
-              );
-            }
+                const { recordEconomicEvent } = await import("@/lib/economic-events");
 
-            if (eventType === "charge.dispute.closed") {
-              await sovereignStateRepository.appendAuditLog(
-                `trc_dispute_closed_${nodeCrypto.randomUUID().slice(0, 8)}`,
-                `corr_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
-                "127.0.0.1",
-                "Disputa de Pago Cerrada",
-                "S3",
-                `Disputa ${eventId} cerrada (tenant: ${metadata?.tenantId || "unresolved-dispute"}). Revisar estado won/lost en Stripe Dashboard.`,
-                metadata?.tenantId || "unresolved-dispute",
-              );
-              await markWebhookProcessed(claim.id);
-              return new Response(
-                JSON.stringify({
-                  success: true,
-                  processed: true,
-                  disputeClosed: true,
-                }),
-                { headers },
-              );
-            }
+                // 1) Hold económico durable (idempotente por idempotency_key).
+                //    Error de DB → 503 en producción para que Stripe reintente.
+                if (disputeTenant !== "unresolved-dispute") {
+                  const hold = await recordEconomicEvent({
+                    tenantId: disputeTenant,
+                    actorId: disputeUser,
+                    eventType: "CHARGEBACK_HOLD",
+                    amountMinor,
+                    direction: "DEBIT",
+                    source: "stripe",
+                    provider: "stripe",
+                    providerEventId: eventId,
+                    idempotencyKey: `chargeback:${eventId}`,
+                    metadata: { dispute: true },
+                  });
+                  if (!hold.ok && !hold.duplicate) {
+                    console.error("[billing:dispute] recordEconomicEvent failed:", hold.error);
+                    if (config().NODE_ENV === "production") {
+                      return new Response(
+                        JSON.stringify({
+                          error: "Hold de disputa no registrado.",
+                        }),
+                        { status: 503, headers },
+                      );
+                    }
+                  }
+                }
+
+                await sovereignStateRepository.appendAuditLog(
+                  `trc_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                  `corr_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                  "127.0.0.1",
+                  "Disputa de Pago Recibida",
+                  "S1",
+                  `Disputa ${eventId} por $${(amountMinor / 100).toFixed(2)} (tenant: ${disputeTenant}). Payouts congelados hasta revisión humana.`,
+                  disputeTenant,
+                );
+
+                await markWebhookProcessed(claim.id);
+                return new Response(
+                  JSON.stringify({
+                    success: true,
+                    processed: true,
+                    dispute: true,
+                    tenantResolved: disputeTenant !== "unresolved-dispute",
+                  }),
+                  { headers },
+                );
+              }
+
+              if (eventType === "charge.dispute.closed") {
+                await sovereignStateRepository.appendAuditLog(
+                  `trc_dispute_closed_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                  `corr_dispute_${nodeCrypto.randomUUID().slice(0, 8)}`,
+                  "127.0.0.1",
+                  "Disputa de Pago Cerrada",
+                  "S3",
+                  `Disputa ${eventId} cerrada (tenant: ${metadata?.tenantId || "unresolved-dispute"}). Revisar estado won/lost en Stripe Dashboard.`,
+                  metadata?.tenantId || "unresolved-dispute",
+                );
+                await markWebhookProcessed(claim.id);
+                return new Response(
+                  JSON.stringify({
+                    success: true,
+                    processed: true,
+                    disputeClosed: true,
+                  }),
+                  { headers },
+                );
+              }
 
               await markWebhookProcessed(claim.id);
               return new Response(JSON.stringify({ success: true, processed: true }), { headers });
@@ -1350,7 +1355,8 @@ export const Route = createFileRoute("/api/billing")({
 
               const costUSD = listing.costCents / 100;
               const platformFeeCents = Math.round(listing.costCents * 0.15);
-              const { createBookpiPostgresRepository } = await import("@/lib/repositories/bookpi-postgres-repository");
+              const { createBookpiPostgresRepository } =
+                await import("@/lib/repositories/bookpi-postgres-repository");
               const bookpiRepo = createBookpiPostgresRepository();
               const purchase = await bookpiRepo.executeMarketplacePurchase({
                 tenantId: context.tenantId,
@@ -1364,17 +1370,28 @@ export const Route = createFileRoute("/api/billing")({
               });
               if (!purchase.success) {
                 if ("duplicate" in purchase && purchase.duplicate) {
-                  return new Response(JSON.stringify({ error: "Este skill ya fue adquirido por el tenant." }), { status: 409, headers });
+                  return new Response(
+                    JSON.stringify({ error: "Este skill ya fue adquirido por el tenant." }),
+                    { status: 409, headers },
+                  );
                 }
                 if (purchase.error === "INSUFFICIENT_BALANCE") {
                   const currentTenant = await sovereignStateRepository.getTenant(context.tenantId);
-                  return new Response(JSON.stringify({
-                    error: "Saldo insuficiente.",
-                    quotaBalance: currentTenant?.quotaBalance ?? 0,
-                    required: costUSD,
-                  }), { status: 400, headers });
+                  return new Response(
+                    JSON.stringify({
+                      error: "Saldo insuficiente.",
+                      quotaBalance: currentTenant?.quotaBalance ?? 0,
+                      required: costUSD,
+                    }),
+                    { status: 400, headers },
+                  );
                 }
-                return new Response(JSON.stringify({ error: "No fue posible completar la compra de forma transaccional." }), { status: 500, headers });
+                return new Response(
+                  JSON.stringify({
+                    error: "No fue posible completar la compra de forma transaccional.",
+                  }),
+                  { status: 500, headers },
+                );
               }
 
               return new Response(

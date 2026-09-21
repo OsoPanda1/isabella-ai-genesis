@@ -124,7 +124,10 @@ export function detectSkillInvocation(text: string): SkillInvocation | null {
       parsedInput = { query: remainder, prompt: remainder, intent: remainder };
     }
   } else {
-    parsedInput = { query: "Ejecución invocada desde chat stream", intent: "chat_skill_invocation" };
+    parsedInput = {
+      query: "Ejecución invocada desde chat stream",
+      intent: "chat_skill_invocation",
+    };
   }
 
   return {

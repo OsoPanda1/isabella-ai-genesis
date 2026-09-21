@@ -442,7 +442,11 @@ export async function handleIsabellaChat(
           bridgeResult.error || "Gobernanza CROWN denegó la ejecución del skill.",
           403,
           false,
-          { skillId: skillInvocation.canonicalName, code: bridgeResult.code, traceId: context.traceId },
+          {
+            skillId: skillInvocation.canonicalName,
+            code: bridgeResult.code,
+            traceId: context.traceId,
+          },
         );
       }
     }
@@ -471,8 +475,7 @@ export async function handleIsabellaChat(
       locale: "es-MX",
       history: messages.map((message) => ({
         role: message.role,
-        content:
-          typeof message.content === "string" ? message.content : "[contenido multimodal]",
+        content: typeof message.content === "string" ? message.content : "[contenido multimodal]",
       })),
     });
     if (conversationalSkill.blocked) {
@@ -633,11 +636,18 @@ export async function handleIsabellaChat(
   };
   for (const [index, attempt] of attempts.entries()) {
     try {
-      if (attempt.provider === "ai-gateway" && !providerKeys.gemini && !providerKeys.groq && !providerKeys.xai) {
+      if (
+        attempt.provider === "ai-gateway" &&
+        !providerKeys.gemini &&
+        !providerKeys.groq &&
+        !providerKeys.xai
+      ) {
         // Skip gateway when no direct provider keys — go directly to sovereign fallback
         // (AI_GATEWAY is optional; check via secrets/config not process.env per security policy)
         try {
-          const gwKey = (config() as unknown as Record<string, unknown>).AI_GATEWAY_API_KEY as string | undefined ?? secrets.optionalProviderKey("ai-gateway" as any);
+          const gwKey =
+            ((config() as unknown as Record<string, unknown>).AI_GATEWAY_API_KEY as
+              string | undefined) ?? secrets.optionalProviderKey("ai-gateway" as any);
           if (!gwKey) continue;
         } catch {
           continue;
@@ -762,7 +772,8 @@ export async function handleIsabellaChat(
   }
   // === SOBERANÍA FUNCIONAL: fallback local determinista (siempre responde) ===
   try {
-    const { generateSovereignLocalResponse, sseFromText } = await import("@/lib/isabella/local-responder");
+    const { generateSovereignLocalResponse, sseFromText } =
+      await import("@/lib/isabella/local-responder");
     const fallback = await generateSovereignLocalResponse({
       message: lastUserMessage,
       traceId: context.traceId,
@@ -773,15 +784,27 @@ export async function handleIsabellaChat(
       "CROWN_GATEWAY",
       "CROWN_CONSTITUTION",
       "LocalResponderActivated",
-      { degraded: fallback.degraded, provenance: fallback.provenance, reason: "all_upstreams_failed" },
+      {
+        degraded: fallback.degraded,
+        provenance: fallback.provenance,
+        reason: "all_upstreams_failed",
+      },
       "info",
       context.traceId,
       context.correlationId,
     );
-    const headers = sseHeaders(context, rateLimit.remaining, "isabella-sovereign-local", "sovereign-local-v1", true);
+    const headers = sseHeaders(
+      context,
+      rateLimit.remaining,
+      "isabella-sovereign-local",
+      "sovereign-local-v1",
+      true,
+    );
     return sseFromText(fallback.answer, headers);
   } catch (fallbackError) {
-    console.error(`[ISABELLA_SOVEREIGN_FALLBACK] trace=${context.traceId} error=${fallbackError instanceof Error ? fallbackError.message : "unknown"}`);
+    console.error(
+      `[ISABELLA_SOVEREIGN_FALLBACK] trace=${context.traceId} error=${fallbackError instanceof Error ? fallbackError.message : "unknown"}`,
+    );
   }
   return contractError(
     context,

@@ -11,7 +11,8 @@ import {
 // Repositorio de origen: OsoPanda1/nodo-cero
 // ============================================================================
 export interface NodoCeroTwinInput {
-  zone?: "CENTRO_HISTORICO" | "MINA_ACOSTA" | "MINA_DIFICULTAD" | "PANTEON_INGLES" | "PENAS_CARGADERO";
+  zone?:
+    "CENTRO_HISTORICO" | "MINA_ACOSTA" | "MINA_DIFICULTAD" | "PANTEON_INGLES" | "PENAS_CARGADERO";
   includeSensors?: boolean;
   includeHeritageStatus?: boolean;
 }
@@ -121,7 +122,12 @@ export const NODO_CERO_TWIN: IsabellaSkill<NodoCeroTwinInput, NodoCeroTwinOutput
       warnings: [],
       auditEvents: [
         createAuditEvent("SKILL_INVOKED", "nodo-cero-twin", { zone: input.zone }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "nodo-cero-twin", { status: "SYNCED" }, context.actorId),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "nodo-cero-twin",
+          { status: "SYNCED" },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -133,7 +139,12 @@ export const NODO_CERO_TWIN: IsabellaSkill<NodoCeroTwinInput, NodoCeroTwinOutput
 // ============================================================================
 export interface RdmSovereignCommerceInput {
   merchantName: string;
-  category: "PASTES_TRADICIONALES" | "PLATERIA_ARTESANAL" | "GUIA_COMUNITARIO" | "HOSPEDAJE_TIPICO" | "CAFE_GASTRONOMIA";
+  category:
+    | "PASTES_TRADICIONALES"
+    | "PLATERIA_ARTESANAL"
+    | "GUIA_COMUNITARIO"
+    | "HOSPEDAJE_TIPICO"
+    | "CAFE_GASTRONOMIA";
   localIngredientsVerified?: boolean;
   fairLaborVerified?: boolean;
 }
@@ -153,7 +164,10 @@ export interface RdmSovereignCommerceOutput {
   benefits: string[];
 }
 
-export const RDM_SOVEREIGN_COMMERCE: IsabellaSkill<RdmSovereignCommerceInput, RdmSovereignCommerceOutput> = {
+export const RDM_SOVEREIGN_COMMERCE: IsabellaSkill<
+  RdmSovereignCommerceInput,
+  RdmSovereignCommerceOutput
+> = {
   id: "rdm-sovereign-commerce",
   name: "RDM Sovereign Commerce & Origin Certification",
   version: "4.3.0",
@@ -164,7 +178,11 @@ export const RDM_SOVEREIGN_COMMERCE: IsabellaSkill<RdmSovereignCommerceInput, Rd
   canRun: (input) => Boolean(input.merchantName?.trim() && input.category),
   async run(input, context): Promise<SkillResult<RdmSovereignCommerceOutput>> {
     const verified = Boolean(input.localIngredientsVerified && input.fairLaborVerified);
-    const fairScore = verified ? 0.98 : input.localIngredientsVerified || input.fairLaborVerified ? 0.75 : 0.45;
+    const fairScore = verified
+      ? 0.98
+      : input.localIngredientsVerified || input.fairLaborVerified
+        ? 0.75
+        : 0.45;
     const certStatus = fairScore >= 0.7 ? "CERTIFICADO_SOBERANO" : "EN_REVISION";
     const timestamp = new Date().toISOString();
     const hash = `0x${Buffer.from(`${input.merchantName}-${timestamp}`).toString("hex").slice(0, 32)}`;
@@ -194,11 +212,24 @@ export const RDM_SOVEREIGN_COMMERCE: IsabellaSkill<RdmSovereignCommerceInput, Rd
       summary: `Comercio '${input.merchantName}' evaluado bajo protocolo de Soberanía Comercial RDM. Estado: ${certStatus}.`,
       data,
       evidence: [],
-      warnings: certStatus === "EN_REVISION" ? ["Falta verificar origen de insumos locales o empleo digno comunitario."] : [],
+      warnings:
+        certStatus === "EN_REVISION"
+          ? ["Falta verificar origen de insumos locales o empleo digno comunitario."]
+          : [],
       requiresHumanReview: certStatus === "EN_REVISION",
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "rdm-sovereign-commerce", { merchant: input.merchantName }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "rdm-sovereign-commerce", { certStatus, fairScore }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "rdm-sovereign-commerce",
+          { merchant: input.merchantName },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "rdm-sovereign-commerce",
+          { certStatus, fairScore },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -224,7 +255,10 @@ export interface RdmCommunityAssemblyOutput {
   deliberationMandate: string;
 }
 
-export const RDM_COMMUNITY_ASSEMBLY: IsabellaSkill<RdmCommunityAssemblyInput, RdmCommunityAssemblyOutput> = {
+export const RDM_COMMUNITY_ASSEMBLY: IsabellaSkill<
+  RdmCommunityAssemblyInput,
+  RdmCommunityAssemblyOutput
+> = {
   id: "rdm-community-assembly",
   name: "RDM Community Digital Assembly",
   version: "4.3.0",
@@ -260,10 +294,17 @@ export const RDM_COMMUNITY_ASSEMBLY: IsabellaSkill<RdmCommunityAssemblyInput, Rd
       summary: `Propuesta cívica '${input.proposalTitle}' procesada por la Asamblea Comunitaria. Estado: ${status}.`,
       data,
       evidence: [],
-      warnings: !sovereigntyPassed ? ["Propuesta rechazada por violentar la doctrina territorial de Nodo Cero."] : [],
+      warnings: !sovereigntyPassed
+        ? ["Propuesta rechazada por violentar la doctrina territorial de Nodo Cero."]
+        : [],
       requiresHumanReview: status !== "ADMITTED_FOR_DELIBERATION",
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "rdm-community-assembly", { title: input.proposalTitle }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "rdm-community-assembly",
+          { title: input.proposalTitle },
+          context.actorId,
+        ),
         createAuditEvent("SKILL_COMPLETED", "rdm-community-assembly", { status }, context.actorId),
       ],
     };
@@ -276,7 +317,8 @@ export const RDM_COMMUNITY_ASSEMBLY: IsabellaSkill<RdmCommunityAssemblyInput, Rd
 // ============================================================================
 export interface FastParallelIngestInput {
   targetDataset: string;
-  sourceType: "TERRITORIAL_SURVEY" | "HISTORICAL_ARCHIVE" | "AUDIOVISUAL_ORAL_HISTORY" | "3D_PHOTOGRAMMETRY";
+  sourceType:
+    "TERRITORIAL_SURVEY" | "HISTORICAL_ARCHIVE" | "AUDIOVISUAL_ORAL_HISTORY" | "3D_PHOTOGRAMMETRY";
   totalBytesEstimate?: number;
   parallelChunks?: number;
 }
@@ -291,7 +333,10 @@ export interface FastParallelIngestOutput {
   persistedLocation: string;
 }
 
-export const FAST_PARALLEL_INGEST: IsabellaSkill<FastParallelIngestInput, FastParallelIngestOutput> = {
+export const FAST_PARALLEL_INGEST: IsabellaSkill<
+  FastParallelIngestInput,
+  FastParallelIngestOutput
+> = {
   id: "fast-parallel-ingest",
   name: "Fast Parallel Ingest & Stream Engine",
   version: "4.3.0",
@@ -322,7 +367,12 @@ export const FAST_PARALLEL_INGEST: IsabellaSkill<FastParallelIngestInput, FastPa
       evidence: [],
       warnings: [],
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "fast-parallel-ingest", { target: input.targetDataset, chunks }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "fast-parallel-ingest",
+          { target: input.targetDataset, chunks },
+          context.actorId,
+        ),
         createAuditEvent("SKILL_COMPLETED", "fast-parallel-ingest", { checksum }, context.actorId),
       ],
     };
@@ -349,7 +399,10 @@ export interface QstashEventDispatcherOutput {
   idempotencyKey: string;
 }
 
-export const QSTASH_EVENT_DISPATCHER: IsabellaSkill<QstashEventDispatcherInput, QstashEventDispatcherOutput> = {
+export const QSTASH_EVENT_DISPATCHER: IsabellaSkill<
+  QstashEventDispatcherInput,
+  QstashEventDispatcherOutput
+> = {
   id: "qstash-event-dispatcher",
   name: "QStash Stateless Event Dispatcher",
   version: "4.3.0",
@@ -379,8 +432,18 @@ export const QSTASH_EVENT_DISPATCHER: IsabellaSkill<QstashEventDispatcherInput, 
       evidence: [],
       warnings: [],
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "qstash-event-dispatcher", { topic: input.topic, dest }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "qstash-event-dispatcher", { idempotencyKey: idempotency }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "qstash-event-dispatcher",
+          { topic: input.topic, dest },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "qstash-event-dispatcher",
+          { idempotencyKey: idempotency },
+          context.actorId,
+        ),
       ],
     };
   },
@@ -423,28 +486,32 @@ export const DOCS_INSTANT_SEARCH: IsabellaSkill<DocsInstantSearchInput, DocsInst
       {
         title: "Constitución Canónica de Isabella v4.2.0",
         section: "0. Propósito y Soberanía Humana",
-        snippet: "Isabella no es un chatbot comercial. Las inteligencias sugieren, calculan y evalúan; el humano decide, aprueba y ejecuta.",
+        snippet:
+          "Isabella no es un chatbot comercial. Las inteligencias sugieren, calculan y evalúan; el humano decide, aprueba y ejecuta.",
         url: "/docs/agents-md#0-proposito",
         keywords: ["soberania", "proposito", "gobernanza", "humano", "constitucion"],
       },
       {
         title: "Historia Minera y Patrimonio de Real del Monte",
         section: "Patrimonio Industrial — Mina de Acosta y La Dificultad",
-        snippet: "Real del Monte albergó las mayores proezas mineras y la introducción de la máquina de vapor en el siglo XIX, cuna del paste tradicional.",
+        snippet:
+          "Real del Monte albergó las mayores proezas mineras y la introducción de la máquina de vapor en el siglo XIX, cuna del paste tradicional.",
         url: "/docs/patrimonio#minas-rdm",
         keywords: ["mina", "acosta", "dificultad", "paste", "patrimonio", "historia", "turismo"],
       },
       {
         title: "C.R.O.W.N. Gateway y Gobernanza Zero Trust",
         section: "3. Arquitectura Cognitiva — Cinco Nodos",
-        snippet: "CROWN arbitra, ISA da tono empático, SOPHIA razona, ORION ejecuta y ARGUS aplica veto y política estricta.",
+        snippet:
+          "CROWN arbitra, ISA da tono empático, SOPHIA razona, ORION ejecuta y ARGUS aplica veto y política estricta.",
         url: "/docs/architecture#crown-gateway",
         keywords: ["crown", "argus", "sophia", "orion", "isa", "nodos", "gateway"],
       },
       {
         title: "Tokenomía y Ledger Inmutable BookPI",
         section: "Economía Soberana y Micro-recompensas",
-        snippet: "BookPI registra transacciones atómicas con hashes encadenados y cero intermediación financiera extractiva.",
+        snippet:
+          "BookPI registra transacciones atómicas con hashes encadenados y cero intermediación financiera extractiva.",
         url: "/docs/economy#bookpi-ledger",
         keywords: ["bookpi", "creditos", "monetizacion", "ledger", "comercio", "artesanal"],
       },
@@ -452,7 +519,9 @@ export const DOCS_INSTANT_SEARCH: IsabellaSkill<DocsInstantSearchInput, DocsInst
 
     const matched = mockKnowledgeBase
       .map((item) => {
-        const score = item.keywords.filter((kw) => q.includes(kw)).length * 25 + (q.includes(normalizeText(item.title)) ? 50 : 0);
+        const score =
+          item.keywords.filter((kw) => q.includes(kw)).length * 25 +
+          (q.includes(normalizeText(item.title)) ? 50 : 0);
         return { item, score: Math.min(score, 100) };
       })
       .filter((res) => res.score > 0)
@@ -470,15 +539,18 @@ export const DOCS_INSTANT_SEARCH: IsabellaSkill<DocsInstantSearchInput, DocsInst
       query: input.query,
       totalHits: matched.length,
       executionTimeMs: 4,
-      hits: matched.length > 0 ? matched : [
-        {
-          title: "Índice General de Isabella y Nodo Cero",
-          section: "Catálogo de Referencia",
-          snippet: `No se encontraron coincidencias exactas para '${input.query}'. Consulta el catálogo general de habilidades y gobernanza.`,
-          url: "/docs",
-          score: 10,
-        },
-      ],
+      hits:
+        matched.length > 0
+          ? matched
+          : [
+              {
+                title: "Índice General de Isabella y Nodo Cero",
+                section: "Catálogo de Referencia",
+                snippet: `No se encontraron coincidencias exactas para '${input.query}'. Consulta el catálogo general de habilidades y gobernanza.`,
+                url: "/docs",
+                score: 10,
+              },
+            ],
     };
 
     return {
@@ -489,8 +561,18 @@ export const DOCS_INSTANT_SEARCH: IsabellaSkill<DocsInstantSearchInput, DocsInst
       evidence: [],
       warnings: [],
       auditEvents: [
-        createAuditEvent("SKILL_INVOKED", "docs-instant-search", { query: input.query }, context.actorId),
-        createAuditEvent("SKILL_COMPLETED", "docs-instant-search", { hits: data.totalHits }, context.actorId),
+        createAuditEvent(
+          "SKILL_INVOKED",
+          "docs-instant-search",
+          { query: input.query },
+          context.actorId,
+        ),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "docs-instant-search",
+          { hits: data.totalHits },
+          context.actorId,
+        ),
       ],
     };
   },

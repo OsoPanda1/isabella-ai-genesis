@@ -73,9 +73,7 @@ export async function processSkillInvocation(
   let role = params.role;
   let authenticated = params.authenticated;
 
-  const rawToken = params.token
-    ? params.token.replace(/^Bearer\s+/i, "").trim()
-    : undefined;
+  const rawToken = params.token ? params.token.replace(/^Bearer\s+/i, "").trim() : undefined;
 
   if (rawToken) {
     const verification = await SecuritySystem.verifyToken(rawToken, {
@@ -143,7 +141,7 @@ export async function processSkillInvocation(
     action: "skill.execute",
     resource: `skill:${invocation.skillId.toLowerCase()}`,
     role,
-    authenticated: authenticated ?? (role !== "Guest"),
+    authenticated: authenticated ?? role !== "Guest",
     context: {
       ip_address: ipAddress,
       user_agent: userAgent,
@@ -183,7 +181,7 @@ export async function processSkillInvocation(
       actorId,
       tenantId,
       role,
-      authenticated: authenticated ?? (role !== "Guest"),
+      authenticated: authenticated ?? role !== "Guest",
       ipAddress,
       userAgent,
       intent: invocation.rawInput || `Skill bridge invocation of ${invocation.canonicalName}`,

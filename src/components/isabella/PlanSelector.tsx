@@ -183,7 +183,11 @@ export function PlanSelector({ currentPlanId, onSelectPlan }: PlanSelectorProps)
                       : "bg-secondary/15 border-border/40 text-platinum hover:bg-secondary/35 hover:border-border/60"
                   }`}
                 >
-                  {isCurrent ? "Plan Activo" : p.id === "enterprise" ? "Contactar ventas" : "Seleccionar Plan"}
+                  {isCurrent
+                    ? "Plan Activo"
+                    : p.id === "enterprise"
+                      ? "Contactar ventas"
+                      : "Seleccionar Plan"}
                 </button>
               </div>
             </div>

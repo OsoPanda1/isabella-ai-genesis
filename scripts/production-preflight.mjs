@@ -67,7 +67,7 @@ for (const file of required) if (!existsSync(resolve(root, file))) errors.push(`
 if (existsSync(resolve(root, "src/server-routes/api/isabella.ts")))
   errors.push("legacy duplicate src/server-routes/api/isabella.ts must not exist");
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
-if (pkg.packageManager !== "pnpm@10.15.4") errors.push("packageManager must be pnpm@10.15.4");
+if (!/^pnpm@10\.(15\.4|34\.5)$/.test(pkg.packageManager)) errors.push("packageManager must be pnpm@10.15.4 or pnpm@10.34.5 (Vercel latest-10)");
 if (pkg.engines?.node !== ">=22 <25")
   errors.push("engines.node must be >=22 <25 for deterministic production runtime");
 for (const script of [
@@ -88,7 +88,9 @@ if (nvm !== "24.11.0") errors.push(".nvmrc must pin Node 24.11.0");
 const vercel = JSON.parse(readFileSync(resolve(root, "vercel.json"), "utf8"));
 if (vercel.framework !== "tanstack-start") errors.push("vercel.framework must be tanstack-start");
 if (vercel.installCommand !== "pnpm install --frozen-lockfile")
-  errors.push("Vercel installCommand must use pnpm install --frozen-lockfile for deterministic production installs");
+  errors.push(
+    "Vercel installCommand must use pnpm install --frozen-lockfile for deterministic production installs",
+  );
 const viteConfig = readFileSync(resolve(root, "vite.config.ts"), "utf8");
 if (!viteConfig.includes("tanstackStart("))
   errors.push("vite.config must use TanStack Start plugin");

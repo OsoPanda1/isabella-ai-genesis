@@ -57,7 +57,7 @@ export async function executeChatSkillBridge(
     actorId: context.userId,
     tenantId: context.tenantId,
     role: context.role,
-    authenticated: context.authenticated ?? (context.role !== "Guest"),
+    authenticated: context.authenticated ?? context.role !== "Guest",
     ipAddress: context.ip,
     userAgent: context.userAgent,
     requestId: context.correlationId,
@@ -81,10 +81,7 @@ export async function executeChatSkillBridge(
  * Transforma un resultado de skill ejecutado en una respuesta de streaming SSE compatible
  * con el formato estándar de OpenAI / Gemini usado por el frontend de chat.
  */
-export function streamChatSkillAsSse(
-  result: ChatSkillExecutionResult,
-  headers: Headers,
-): Response {
+export function streamChatSkillAsSse(result: ChatSkillExecutionResult, headers: Headers): Response {
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
@@ -132,7 +129,11 @@ export async function bindChatSkillStream(
   message: string,
   context: BridgeContext,
   sseHeadersFactory: (provider: string, model: string) => Headers,
-): Promise<{ handled: boolean; response?: Response; error?: { code: string; message: string; status: number } }> {
+): Promise<{
+  handled: boolean;
+  response?: Response;
+  error?: { code: string; message: string; status: number };
+}> {
   const invocation = detectSkillInvocation(message);
   if (!invocation) {
     return { handled: false };

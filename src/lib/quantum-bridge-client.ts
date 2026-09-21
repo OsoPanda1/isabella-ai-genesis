@@ -43,12 +43,14 @@ const DEFAULT_MAX_STDOUT = 4_194_304;
 export class QuantumBridgeClient {
   constructor(
     private readonly pythonPath = process.env.PYTHON_PATH ?? "python3",
-    private readonly scriptPath =
-      process.env.QUANTUM_BRIDGE_PATH ??
+    private readonly scriptPath = process.env.QUANTUM_BRIDGE_PATH ??
       path.resolve(process.cwd(), "scripts", "quantum", "isabella_quantum_bridge_v5.py"),
   ) {}
 
-  dispatch(payload: QuantumBridgePayload, options: QuantumDispatchOptions = {}): Promise<QuantumBridgeResponse> {
+  dispatch(
+    payload: QuantumBridgePayload,
+    options: QuantumDispatchOptions = {},
+  ): Promise<QuantumBridgeResponse> {
     const timeoutMs = options.timeoutMs ?? 30_000;
     const maxStdout = Number(process.env.QUANTUM_BRIDGE_MAX_STDOUT_BYTES ?? DEFAULT_MAX_STDOUT);
 

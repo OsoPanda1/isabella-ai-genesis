@@ -14,7 +14,8 @@ const checks = [
       /SkillInvocationCompleted/,
     ],
     forbidden: [/Math\.random\s*\(/],
-    label: "Conversational skill bridge must resolve, authorize, execute, validate and audit registered skills",
+    label:
+      "Conversational skill bridge must resolve, authorize, execute, validate and audit registered skills",
   },
   {
     file: "src/components/isabella/SystemMonitor.tsx",
@@ -43,7 +44,12 @@ const checks = [
   },
   {
     file: "src/components/isabella/QuantumBridgeMonitor.tsx",
-    forbidden: [/Math\.random\s*\(/, /simulat(?:e|ed|ion)/i, /fake telemetry/i, /QNodes Activos.*[0-9]/i],
+    forbidden: [
+      /Math\.random\s*\(/,
+      /simulat(?:e|ed|ion)/i,
+      /fake telemetry/i,
+      /QNodes Activos.*[0-9]/i,
+    ],
     label: "QuantumBridgeMonitor must not fabricate runtime quantum telemetry",
   },
   {
@@ -53,7 +59,12 @@ const checks = [
   },
   {
     file: "src/components/isabella/CognitiveStatusDashboard.tsx",
-    forbidden: [/Math\.random\s*\(/, /Simulating live metric/i, /hyper-threading.*completado/i, /2026-09-04.*CROWN/i],
+    forbidden: [
+      /Math\.random\s*\(/,
+      /Simulating live metric/i,
+      /hyper-threading.*completado/i,
+      /2026-09-04.*CROWN/i,
+    ],
     label: "CognitiveStatusDashboard must not fabricate operational evidence",
   },
   {

@@ -13,14 +13,14 @@ export interface ClassificationResult {
 }
 
 export class ClassificationEngine {
-  classify(
-    intent: string,
-    options?: { intentCategory?: string },
-  ): ClassificationResult {
+  classify(intent: string, options?: { intentCategory?: string }): ClassificationResult {
     const text = intent.toLowerCase();
     let classification: DataClassification = "internal";
 
-    if (options?.intentCategory === "monetization" || /payout|tarjeta|pago|stripe|secret|token/i.test(text)) {
+    if (
+      options?.intentCategory === "monetization" ||
+      /payout|tarjeta|pago|stripe|secret|token/i.test(text)
+    ) {
       classification = "critical";
     } else if (/privad|confidencial|identidad|personal/i.test(text)) {
       classification = "restricted";

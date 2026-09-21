@@ -17,12 +17,7 @@ import * as path from "node:path";
 import * as crypto from "node:crypto";
 import { config, isStorageProviderExplicitlyDeclared } from "../config";
 import { canonicalBookPiPayload } from "../bookpi/canonical-payload";
-import type {
-  BlockPIBlock,
-  BookPIStoreFile,
-  LedgerCategory,
-  LedgerStatus,
-} from "../bookpi/types";
+import type { BlockPIBlock, BookPIStoreFile, LedgerCategory, LedgerStatus } from "../bookpi/types";
 import {
   getSigningAlgorithm,
   isSimulatedAlgorithm,

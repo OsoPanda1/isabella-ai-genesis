@@ -28,7 +28,6 @@ export interface SecurityAuditLogItem {
 // Conflict resolution: backend-only evidence is the single source of truth.
 export const INITIAL_AUDIT_LOGS: SecurityAuditLogItem[] = [];
 
-
 export function SecurityAuditDashboard() {
   const [logs, setLogs] = useState<SecurityAuditLogItem[]>(INITIAL_AUDIT_LOGS);
   const [loading, setLoading] = useState(false);

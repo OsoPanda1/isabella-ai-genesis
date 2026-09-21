@@ -37,8 +37,7 @@ export function QuantumBridgeStatus({
 
   const connectionLabel =
     connected === true ? "CONECTADO" : connected === false ? "DESCONECTADO" : "NO VERIFICADO";
-  const ConnectionIcon =
-    connected === true ? Wifi : connected === false ? WifiOff : CircleHelp;
+  const ConnectionIcon = connected === true ? Wifi : connected === false ? WifiOff : CircleHelp;
 
   return (
     <div
@@ -73,7 +72,9 @@ export function QuantumBridgeStatus({
             disabled={isRefreshing}
             className="self-start sm:self-auto px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200 flex items-center gap-1.5 transition-all disabled:opacity-50"
           >
-            <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin text-purple-400" : ""}`} />
+            <RefreshCw
+              className={`size-3.5 ${isRefreshing ? "animate-spin text-purple-400" : ""}`}
+            />
             <span>Verificar Estado</span>
           </button>
         )}
@@ -97,7 +98,15 @@ export function QuantumBridgeStatus({
   );
 }
 
-function Metric({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
+function Metric({
+  icon,
+  label,
+  children,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 space-y-0.5">
       <span className="text-[10px] uppercase text-slate-400 flex items-center gap-1">

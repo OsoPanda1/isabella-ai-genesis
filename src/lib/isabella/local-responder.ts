@@ -22,14 +22,20 @@ const TERRITORIAL_KNOWLEDGE: Record<string, string> = {
 function detectTerritorialIntent(text: string): string | null {
   const t = text.toLowerCase();
   for (const [k, v] of Object.entries(TERRITORIAL_KNOWLEDGE)) if (t.includes(k)) return v;
-  if (/hola|quien eres|quién eres|presentate|preséntate/.test(t)) return ISABELLA_IDENTITY + " " + TERRITORIAL_KNOWLEDGE.isabella;
-  if (/ayuda|help|que puedes hacer|qué puedes hacer|capacidades/.test(t)) return TERRITORIAL_KNOWLEDGE.skills + " " + TERRITORIAL_KNOWLEDGE.gobernanza;
+  if (/hola|quien eres|quién eres|presentate|preséntate/.test(t))
+    return ISABELLA_IDENTITY + " " + TERRITORIAL_KNOWLEDGE.isabella;
+  if (/ayuda|help|que puedes hacer|qué puedes hacer|capacidades/.test(t))
+    return TERRITORIAL_KNOWLEDGE.skills + " " + TERRITORIAL_KNOWLEDGE.gobernanza;
   return null;
 }
 
 function buildSovereignAnswer(userText: string, proposal: string, evidenceCount: number): string {
   const territorial = detectTerritorialIntent(userText);
-  if (territorial) return territorial + `\n\nContexto de tu solicitud: "${userText.slice(0, 200)}"\n\nPropuesta estructurada: ${proposal.slice(0, 400)}\n\nEvidencia disponible: ${evidenceCount} registros verificables. ¿Quieres que ejecute un skill específico? Prueba @sophia, @orion, @atlas o @pharos.`;
+  if (territorial)
+    return (
+      territorial +
+      `\n\nContexto de tu solicitud: "${userText.slice(0, 200)}"\n\nPropuesta estructurada: ${proposal.slice(0, 400)}\n\nEvidencia disponible: ${evidenceCount} registros verificables. ¿Quieres que ejecute un skill específico? Prueba @sophia, @orion, @atlas o @pharos.`
+    );
 
   return `Recibí tu mensaje: "${userText.slice(0, 300)}"\n\n${proposal}\n\nSoy Isabella en modo soberano local (sin depender de proveedor externo). Puedo:\n• Investigar con SOPHIA/ORION (síntesis con evidencia)\n• Simular impacto territorial con ATLAS/GAIA\n• Orientar en Real del Monte con AURORA/PHAROS\n• Verificar integridad con ANUBIS\n• Gobernar éticamente con GEMET/VIGIA\n\nIndica qué necesitas o invoca @skill:<nombre>. Ej: @sophia analiza este tema con evidencia, @aurora recomiéndame lugares en RDM.`;
 }
@@ -53,7 +59,11 @@ export async function generateSovereignLocalResponse(opts: {
     };
     const result = await dualKernel.process(req);
     const answer = buildSovereignAnswer(opts.message, result.answer, result.evidence.length);
-    return { answer, degraded: result.status !== "completed", provenance: `dual-kernel:${result.state}:${opts.traceId.slice(0, 8)}` };
+    return {
+      answer,
+      degraded: result.status !== "completed",
+      provenance: `dual-kernel:${result.state}:${opts.traceId.slice(0, 8)}`,
+    };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return {
@@ -70,7 +80,9 @@ export function sseFromText(text: string, headers: Headers): Response {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       for (const c of chunks) {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: c } }] })}\n\n`));
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: c } }] })}\n\n`),
+        );
         await new Promise((r) => setTimeout(r, 18));
       }
       controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -83,7 +95,9 @@ export function sseFromText(text: string, headers: Headers): Response {
 export function getIsabellaCapabilities() {
   return {
     identity: ISABELLA_IDENTITY,
-    skills: listIsabellaSkills().slice(0, 25).map((s) => ({ id: s.id, name: s.name, federation: s.federation, risk: s.risk })),
+    skills: listIsabellaSkills()
+      .slice(0, 25)
+      .map((s) => ({ id: s.id, name: s.name, federation: s.federation, risk: s.risk })),
     totalSkills: listIsabellaSkills().length,
     territory: "Real del Monte, Hidalgo, México — Nodo Cero TAMV",
     governance: "CROWN Zero Trust — Perceive→Remember→Policy→Decide→Act→Audit",

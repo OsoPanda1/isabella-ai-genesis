@@ -312,26 +312,28 @@ export function MonetizationDashboardSecure({ initialTab }: { initialTab?: strin
       )}
       {tab === "plans" && (
         <PlanSelector
-            currentPlanId={currentPlanId}
-            onSelectPlan={async (planId, billingCycle) => {
-              if (planId === "enterprise") {
-                toast.info("Enterprise requiere contratación institucional.");
-                return;
-              }
-              try {
-                const idempotencyKey = crypto.randomUUID();
-                const data = await api("checkout", {
-                  method: "POST",
-                  headers: { "idempotency-key": idempotencyKey },
-                  body: JSON.stringify({ planId, billingCycle, idempotencyKey }),
-                });
-                if (!data.checkoutUrl) throw new Error(data.error || "Checkout no disponible.");
-                window.location.assign(data.checkoutUrl);
-              } catch (cause) {
-                toast.error(cause instanceof Error ? cause.message : "No fue posible iniciar el checkout.");
-              }
-            }}
-          />
+          currentPlanId={currentPlanId}
+          onSelectPlan={async (planId, billingCycle) => {
+            if (planId === "enterprise") {
+              toast.info("Enterprise requiere contratación institucional.");
+              return;
+            }
+            try {
+              const idempotencyKey = crypto.randomUUID();
+              const data = await api("checkout", {
+                method: "POST",
+                headers: { "idempotency-key": idempotencyKey },
+                body: JSON.stringify({ planId, billingCycle, idempotencyKey }),
+              });
+              if (!data.checkoutUrl) throw new Error(data.error || "Checkout no disponible.");
+              window.location.assign(data.checkoutUrl);
+            } catch (cause) {
+              toast.error(
+                cause instanceof Error ? cause.message : "No fue posible iniciar el checkout.",
+              );
+            }
+          }}
+        />
       )}
     </div>
   );

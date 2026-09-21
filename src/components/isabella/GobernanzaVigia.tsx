@@ -152,7 +152,9 @@ export function GobernanzaVigia() {
                 <div className="text-right">
                   <span className="text-muted-foreground text-[8.5px] block">PUNTAJE:</span>
                   <strong className="text-emerald-400 font-bold">
-                    {mod.complianceScore === null ? "NO VERIFICADO" : `${mod.complianceScore.toFixed(1)}%`}
+                    {mod.complianceScore === null
+                      ? "NO VERIFICADO"
+                      : `${mod.complianceScore.toFixed(1)}%`}
                   </strong>
                 </div>
               </div>

@@ -61,12 +61,7 @@ if (importerStart < 0 || packagesStart < 0 || packagesStart <= importerStart) {
         errors.push("Dependencia directa ausente del lockfile: " + name);
       } else if (specs.get(name) !== range) {
         errors.push(
-          "Specifier desalineado: " +
-            name +
-            ": package.json=" +
-            range +
-            " lock=" +
-            specs.get(name),
+          "Specifier desalineado: " + name + ": package.json=" + range + " lock=" + specs.get(name),
         );
       }
     }

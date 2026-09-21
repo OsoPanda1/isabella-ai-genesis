@@ -20,7 +20,8 @@ const MONETIZATION_TIERS = [
     name: "Turista Responsable (Nodo Cero Pass)",
     priceUsd: 5.0,
     credits: 50,
-    description: "Acceso a rutas turísticas inteligentes, audioguías históricas y estado en tiempo real del clima en Real del Monte.",
+    description:
+      "Acceso a rutas turísticas inteligentes, audioguías históricas y estado en tiempo real del clima en Real del Monte.",
     features: [
       "Gemelo Digital: Consulta en vivo de monumentos y museos",
       "Mapa guiado de pasteerías tradicionales con sello de origen",
@@ -32,7 +33,8 @@ const MONETIZATION_TIERS = [
     name: "Ciudadano Digital Soberano",
     priceUsd: 15.0,
     credits: 200,
-    description: "Participación en la Asamblea Digital Comunitaria, votación de presupuestos y catálogo completo de habilidades cognitivas.",
+    description:
+      "Participación en la Asamblea Digital Comunitaria, votación de presupuestos y catálogo completo de habilidades cognitivas.",
     features: [
       "Voz y voto en la Asamblea Comunitaria de Real del Monte",
       "Acceso ilimitado a consultas con Isabella AI",
@@ -45,7 +47,8 @@ const MONETIZATION_TIERS = [
     name: "Comercio Soberano RDM",
     priceUsd: 35.0,
     credits: 600,
-    description: "Para artesanos, pasteerías, guías y hospedajes locales. Incluye Sello de Autenticidad Territorial y cobros sin intermediarios.",
+    description:
+      "Para artesanos, pasteerías, guías y hospedajes locales. Incluye Sello de Autenticidad Territorial y cobros sin intermediarios.",
     features: [
       "Emisión y verificación de Sello Criptográfico de Origen",
       "Cobros directos con cero comisiones financieras extractivas",
@@ -58,7 +61,8 @@ const MONETIZATION_TIERS = [
     name: "Nodo Cero Institucional / Red TAMV",
     priceUsd: 120.0,
     credits: 2500,
-    description: "Infraestructura completa para gobiernos locales, universidades y centros de investigación territorial.",
+    description:
+      "Infraestructura completa para gobiernos locales, universidades y centros de investigación territorial.",
     features: [
       "Telemetría ambiental IoT completa de montaña (sensores 2,700m)",
       "Simulación de impacto turístico y sostenibilidad regenerativa",
@@ -149,7 +153,10 @@ export const Route = createFileRoute("/api/v1/monetization")({
 
         const parsed = purchaseSchema.safeParse(body);
         if (!parsed.success) {
-          return json({ error: "Datos de transacción inválidos.", details: parsed.error.issues }, 400);
+          return json(
+            { error: "Datos de transacción inválidos.", details: parsed.error.issues },
+            400,
+          );
         }
 
         const timestamp = new Date().toISOString();

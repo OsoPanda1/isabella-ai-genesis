@@ -111,7 +111,9 @@ export class ClaimEngine {
           const packageManager = JSON.parse(
             readFileSync(join(process.cwd(), "package.json"), "utf8"),
           ).packageManager;
-          return typeof packageManager === "string" ? packageManager.replace(/^pnpm@/, "") : "unknown";
+          return typeof packageManager === "string"
+            ? packageManager.replace(/^pnpm@/, "")
+            : "unknown";
         } catch {
           return "unknown";
         }

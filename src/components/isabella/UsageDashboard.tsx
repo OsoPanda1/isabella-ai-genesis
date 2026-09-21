@@ -38,9 +38,16 @@ export function UsageDashboard({
     }
   };
 
-  const messagePercentage = messagesUsed !== null && messageLimit ? Math.min((messagesUsed / messageLimit) * 100, 100) : 0;
-  const tokenPercentage = tokensRemaining !== null && tokenLimit ? Math.min((tokensRemaining / tokenLimit) * 100, 100) : 0;
-  const rateLimitPercentage = currentRequestsPerMin !== undefined && rateLimitThreshold ? Math.min((currentRequestsPerMin / rateLimitThreshold) * 100, 100) : 0;
+  const messagePercentage =
+    messagesUsed !== null && messageLimit ? Math.min((messagesUsed / messageLimit) * 100, 100) : 0;
+  const tokenPercentage =
+    tokensRemaining !== null && tokenLimit
+      ? Math.min((tokensRemaining / tokenLimit) * 100, 100)
+      : 0;
+  const rateLimitPercentage =
+    currentRequestsPerMin !== undefined && rateLimitThreshold
+      ? Math.min((currentRequestsPerMin / rateLimitThreshold) * 100, 100)
+      : 0;
 
   const getRateLimitColor = (pct: number) => {
     if (pct >= 90) return "bg-rose-500 text-rose-400 border-rose-500/30";
@@ -142,7 +149,9 @@ export function UsageDashboard({
           </div>
           <div className="mt-3 pt-2.5 border-t border-border/15 text-[10px] text-muted-foreground font-mono flex justify-between">
             <span>Cuota máxima</span>
-            <span>{tokenLimit == null ? "No disponible" : `${tokenLimit.toLocaleString()} tokens`}</span>
+            <span>
+              {tokenLimit == null ? "No disponible" : `${tokenLimit.toLocaleString()} tokens`}
+            </span>
           </div>
         </div>
 
@@ -153,7 +162,9 @@ export function UsageDashboard({
               Tasa Solicitudes API
             </span>
             <span className="font-mono text-[11px] text-platinum font-semibold">
-              {currentRequestsPerMin == null ? "No disponible" : `${currentRequestsPerMin} / ${rateLimitThreshold ?? "—"} req/min`}
+              {currentRequestsPerMin == null
+                ? "No disponible"
+                : `${currentRequestsPerMin} / ${rateLimitThreshold ?? "—"} req/min`}
             </span>
           </div>
           <div className="mt-3 space-y-1">

@@ -39,7 +39,8 @@ export const Route = createFileRoute("/api/v1/ecosystem")({
               territory: "Real del Monte (Mineral del Monte), Hidalgo, México",
             },
             license: "Creative Commons Attribution 4.0 International (CC BY 4.0)",
-            classification: "Especificación Arquitectónica Soberana de Dominio Público / Open Science",
+            classification:
+              "Especificación Arquitectónica Soberana de Dominio Público / Open Science",
             foundationalDoctrine: [
               "Soberanía humana: el humano decide, aprueba y ejecuta.",
               "Gobernanza Zero Trust: nada sensible se ejecuta sin política explícita.",
@@ -47,11 +48,31 @@ export const Route = createFileRoute("/api/v1/ecosystem")({
               "Trazabilidad auditable: toda decisión relevante debe poder auditarse en BookPI.",
             ],
             cognitiveNodes: [
-              { id: "CROWN", name: "CROWN Gateway", role: "Orquestación, ruteo y arbitraje de estado" },
-              { id: "ISA", name: "ISA Core", role: "Presencia, tono humano, empatía y modulación expresiva" },
-              { id: "SOPHIA", name: "SOPHIA Engine", role: "Epistemología, razonamiento, síntesis y análisis" },
-              { id: "ORION", name: "ORION Engine", role: "Ejecución técnica, transpilaciones y soporte de herramientas" },
-              { id: "ARGUS", name: "ARGUS Sentinel", role: "Gobernanza constitucional, defensa, verificación y veto" },
+              {
+                id: "CROWN",
+                name: "CROWN Gateway",
+                role: "Orquestación, ruteo y arbitraje de estado",
+              },
+              {
+                id: "ISA",
+                name: "ISA Core",
+                role: "Presencia, tono humano, empatía y modulación expresiva",
+              },
+              {
+                id: "SOPHIA",
+                name: "SOPHIA Engine",
+                role: "Epistemología, razonamiento, síntesis y análisis",
+              },
+              {
+                id: "ORION",
+                name: "ORION Engine",
+                role: "Ejecución técnica, transpilaciones y soporte de herramientas",
+              },
+              {
+                id: "ARGUS",
+                name: "ARGUS Sentinel",
+                role: "Gobernanza constitucional, defensa, verificación y veto",
+              },
             ],
             federatedRepositories: [
               {

@@ -82,18 +82,16 @@ export function QuantumBridgeMonitor() {
         <div className="flex items-start gap-3">
           <CircleHelp className="mt-0.5 size-5 shrink-0 text-amber-300" />
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-white">
-              No se muestran métricas simuladas.
-            </p>
+            <p className="text-sm font-semibold text-white">No se muestran métricas simuladas.</p>
             <p className="text-xs leading-relaxed text-slate-400">
-              El frontend no dispone actualmente de un endpoint canónico que entregue
-              latencia, throughput, fidelidad, ejecuciones o QNodes reales del bridge.
-              Por diseño, el panel permanece en estado <strong>NO VERIFICADO</strong>
+              El frontend no dispone actualmente de un endpoint canónico que entregue latencia,
+              throughput, fidelidad, ejecuciones o QNodes reales del bridge. Por diseño, el panel
+              permanece en estado <strong>NO VERIFICADO</strong>
               hasta que exista esa frontera backend y su evidencia de ejecución.
             </p>
             <p className="text-xs leading-relaxed text-slate-500">
-              El contrato de configuración puede visualizarse; los resultados de hardware
-              o simulador deben provenir del runtime cuántico real.
+              El contrato de configuración puede visualizarse; los resultados de hardware o
+              simulador deben provenir del runtime cuántico real.
             </p>
           </div>
         </div>
@@ -122,10 +120,21 @@ export function QuantumBridgeMonitor() {
   );
 }
 
-function Metric({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
+function Metric({
+  icon,
+  label,
+  children,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-3 space-y-1">
-      <span className="flex items-center gap-1 text-[10px] uppercase text-slate-400">{icon}{label}</span>
+      <span className="flex items-center gap-1 text-[10px] uppercase text-slate-400">
+        {icon}
+        {label}
+      </span>
       <p className="text-base font-bold text-white">{children}</p>
     </div>
   );
