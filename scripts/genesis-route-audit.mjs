@@ -46,7 +46,7 @@ const duplicates = [...grouped.entries()].filter(([, files]) => files.length > 1
 const delegated = [...active.keys()].filter((route) => internal.has(route));
 const report = {
   generatedAt: new Date().toISOString(),
-  canonicalDeployment: "https://isabella-ai.visitarealdelmonte.onine",
+  canonicalDeployment: "https://isabella-ai.visitarealdelmonte.online",
   routes: [...grouped.entries()].map(([key, files]) => ({
     layer: key.startsWith("active:") ? "active" : "internal",
     route: key.slice(key.indexOf(":") + 1),
