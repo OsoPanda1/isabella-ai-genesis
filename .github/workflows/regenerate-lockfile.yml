@@ -2,7 +2,7 @@ name: Regenerate pnpm lockfile
 
 on:
   push:
-    branches: [fix/dependency-contract-invalid-package-2026-09-19]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   regenerate:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
