@@ -130,6 +130,8 @@ export const envSchema = z
     RATE_LIMIT_VOICE_PER_MINUTE: coercedInt(20),
     // --- AI GATEWAY ---
     GEMINI_API_KEY: optionalString(),
+    GROQ_API_KEY: optionalString(),
+    XAI_API_KEY: optionalString(),
     LLM_DEFAULT_MODEL: z.string().default("google/gemini-3.6-flash"),
     LLM_VOICE_MODEL: z.string().default("openai/gpt-4o-mini-tts"),
     VOICE_API_URL: optionalUrl(),
@@ -319,6 +321,22 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
     required: ["staging", "production"],
     forbidden: [],
     provider: "gemini",
+    criticality: "CRITICAL",
+  },
+  {
+    name: "GROQ_API_KEY",
+    visibility: "secret",
+    required: ["staging", "production"],
+    forbidden: [],
+    provider: "self",
+    criticality: "CRITICAL",
+  },
+  {
+    name: "XAI_API_KEY",
+    visibility: "secret",
+    required: ["staging", "production"],
+    forbidden: [],
+    provider: "self",
     criticality: "CRITICAL",
   },
   {
