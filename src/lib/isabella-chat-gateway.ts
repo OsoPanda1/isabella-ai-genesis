@@ -13,6 +13,8 @@ import { parseSafeJsonBody } from "@/lib/input-limits";
 import { prepareIsabellaCognitiveRuntime } from "@/lib/isabella-cognitive-runtime";
 import { executeConversationalSkill } from "@/lib/isabella-skill-executor";
 import { classifyTextRisk } from "@/lib/native-ml";
+import { ObservabilityService } from "@/lib/telemetry/observability";
+import { recordObservabilityEvent } from "@/lib/telemetry/observability-repository";
 import {
   IsabellaChatRequestSchema,
   standardError,
@@ -633,6 +635,7 @@ export async function handleIsabellaChat(
             temperature,
             attempt.model,
           );
+      const upstreamStarted = performance.now();
       const upstream = await SecuritySystem.fetchSafeUpstream(url, {
         method: "POST",
         headers: {
@@ -642,6 +645,24 @@ export async function handleIsabellaChat(
             : { authorization: `Bearer ${attempt.key ?? ""}` }),
         },
         body: JSON.stringify(body),
+      });
+      const upstreamLatencyMs = performance.now() - upstreamStarted;
+      ObservabilityService.recordEvent(upstreamLatencyMs, upstream.ok ? 0 : 1);
+      void recordObservabilityEvent({
+        traceId: context.traceId,
+        eventType: "inference.upstream",
+        source: attempt.provider,
+        durationMs: upstreamLatencyMs,
+        severity: upstream.ok ? "info" : "error",
+        payload: {
+          model: attempt.model,
+          provider: attempt.provider,
+          httpStatus: upstream.status,
+          fallbackIndex: index,
+          degraded: index > 0,
+        },
+      }).catch((error) => {
+        console.error("[observability] durable inference event failed:", error);
       });
       if (!upstream.ok || !upstream.body) {
         const detail = await upstream.text().catch(() => "");
