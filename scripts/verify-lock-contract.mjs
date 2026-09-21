@@ -19,10 +19,10 @@ if (!/^lockfileVersion:\s*['\"]?9(?:\\.0)?['\"]?\s*$/m.test(lock)) errors.push("
 
 const importerMatch = lock.match(/\nimporters:\n(?<block>[\s\S]*?)\npackages:\n/);
 if (!importerMatch?.groups?.block) {
-  errors.push("No se pudo localizar importer "." en pnpm-lock.yaml.");
+  errors.push("No se pudo localizar importer \". \" en pnpm-lock.yaml.");
 } else {
   const rootImporterMatch = importerMatch.groups.block.match(/\n  \\.:\\n(?<root>[\\s\\S]*)/);
-  if (!rootImporterMatch?.groups?.root) errors.push("No se pudo localizar importador raíz "." en pnpm-lock.yaml.");
+  if (!rootImporterMatch?.groups?.root) errors.push("No se pudo localizar importador raíz \".\" en pnpm-lock.yaml.");
   else {
     const specs = new Map();
     const lines = rootImporterMatch.groups.root.split("\n");
