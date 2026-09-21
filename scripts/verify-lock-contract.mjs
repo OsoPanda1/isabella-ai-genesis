@@ -15,8 +15,8 @@ const pkg = JSON.parse(readFileSync(packagePath, "utf8"));
 const lock = readFileSync(lockPath, "utf8");
 const errors = [];
 
-if (pkg.packageManager !== "pnpm@10.15.4") {
-  errors.push("packageManager=" + (pkg.packageManager ?? "<missing>") + "; esperado pnpm@10.15.4");
+if (pkg.packageManager !== "pnpm@10.34.5") {
+  errors.push("packageManager=" + (pkg.packageManager ?? "<missing>") + "; esperado pnpm@10.34.5");
 }
 if (!/^lockfileVersion:\s*['"]?9(?:\.0)?['"]?\s*$/m.test(lock)) {
   errors.push("pnpm-lock.yaml debe ser lockfileVersion 9.x para pnpm 10.");

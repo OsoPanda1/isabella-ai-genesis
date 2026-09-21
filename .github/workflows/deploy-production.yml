@@ -14,7 +14,7 @@ concurrency:
 
 env:
   NODE_VERSION: "24.11.0"
-  PNPM_VERSION: "10.15.4"
+  PNPM_VERSION: "10.34.5"
   VERCEL_CLI_VERSION: "59.20.0"
 
 jobs:

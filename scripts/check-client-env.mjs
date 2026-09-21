@@ -13,9 +13,9 @@ const SECRET_LIKE = /(SECRET|PRIVATE|PASSWORD|PASSWD|SIGNING|MASTER[_-]?KEY)/i;
 const KEY_LIKE = /(_KEY|KEY_)/i;
 
 // Vars VITE_* explícitamente seguras para el navegador (públicas por diseño).
-// Vacía por defecto: el repo no usa ninguna; agregar solo con justificación.
 const BROWSER_SAFE_ALLOWLIST = new Set([
-  // "VITE_PUBLIC_APP_URL", // pública por diseño, hoy sin uso en código
+  "VITE_PUBLIC_APP_URL",
+  "VITE_STATSIG_CLIENT_KEY", // clave pública client-side Statsig, segura por diseño
 ]);
 
 // Prefijos del sistema (los inyecta la plataforma, no el operador;

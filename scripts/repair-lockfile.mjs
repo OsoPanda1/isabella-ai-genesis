@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 
 const expectedNode = "24.11.0";
-const expectedPnpm = "10.15.4";
+const expectedPnpm = "10.34.5";
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
 
 if (pkg.packageManager !== `pnpm@${expectedPnpm}`) {

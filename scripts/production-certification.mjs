@@ -31,8 +31,8 @@ for (const file of [
   requireFile(file);
 const pkg = readJson("package.json");
 const vercel = readJson("vercel.json");
-if (pkg?.packageManager !== "pnpm@10.15.4")
-  errors.push("packageManager no está fijado a pnpm@10.15.4");
+if (pkg?.packageManager !== "pnpm@10.34.5")
+  errors.push("packageManager no está fijado a pnpm@10.34.5");
 if (pkg?.engines?.node !== ">=22 <25") errors.push("engines.node no es >=22 <25");
 if (vercel?.framework !== "tanstack-start") errors.push("Vercel framework incorrecto");
 if (vercel?.installCommand !== "pnpm install --frozen-lockfile")

@@ -1,15 +1,15 @@
 import { PLATFORM_FEE_BASIS_POINTS, type RevenueSplit } from "./types";
 
 /**
- * ZERO-LOSS SOVEREIGN MONETIZATION MODEL
+ * COST-FIRST SOVEREIGN MONETIZATION MODEL (antes "Zero-Loss")
  * -----------------------------------------------------------------
- * To guarantee the platform NEVER suffers economic loss or funds payouts from
- * its own capital:
- * 1. Platform Infrastructure Costs (compute, token, egress) are deducted FIRST.
- * 2. Revenue split applies ONLY to the Net Margin.
- * 3. 100% of the Net Margin is split: Platform takes its fee (e.g. 15%), user/node takes the rest.
- * 4. A strict Fraud/Refund Reserve (e.g. 10%) is held from the User's share for 90 days.
- * 5. Payouts are exclusively funded from cleared, settled escrow.
+ * Modelo prioriza costos: deduce infraestructura primero, luego reparte margen neto.
+ * NO garantiza cero pérdida si infra > gross (ver rama netMargin <0) — nombre corregido para evitar claim engañoso (audit G).
+ * 1. Costos de infraestructura se deducen primero (cost-first, no zero-loss guarantee).
+ * 2. Split solo sobre margen neto.
+ * 3. Plataforma toma fee (e.g. 15%) del margen.
+ * 4. Reserva fraude/reembolso 10% del profit usuario por 90 días.
+ * 5. Payouts solo desde escrow liquidado.
  */
 
 export interface ZeroLossRevenueInput {

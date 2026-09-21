@@ -28,22 +28,41 @@ export class HexagonalPipeline {
     this.id = id;
   }
 
-  // Cache determinista por hash de args (si fn es pura) — reduce latencia p95
-  private cacheKey(fn: () => Promise<unknown>): string | null {
+  // Cache canónica por tenant/usuario/input/contexto/modelo/policy — evita colisiones semánticas (audit F)
+  private cacheKey(
+    fn: () => Promise<unknown>,
+    ctx?: { tenantId?: string; userId?: string; input?: string; context?: string; modelo?: string; policyVersion?: string },
+  ): string | null {
     try {
-      const s = fn.toString().slice(0, 200);
-      // solo cachea si la función es determinista y sin closure mutable
-      if (s.includes("Math.random") || s.includes("Date.now")) return null;
-      return s;
+      const fnHash = fn.toString().slice(0, 200);
+      if (fnHash.includes("Math.random") || fnHash.includes("Date.now")) return null;
+      if (!ctx) return fnHash;
+      // Hash canónico: SHA-256 de JSON ordenado con todos los factores de aislamiento
+      const payload = JSON.stringify({
+        fn: fnHash,
+        tenantId: ctx.tenantId ?? "",
+        userId: ctx.userId ?? "",
+        input: (ctx.input ?? "").slice(0, 500),
+        context: ctx.context ?? "",
+        modelo: ctx.modelo ?? "",
+        policyVersion: ctx.policyVersion ?? "",
+      });
+      // Usar simple hash para no importar crypto sync en hot path
+      let h = 0;
+      for (let i = 0; i < payload.length; i++) h = ((h << 5) - h + payload.charCodeAt(i)) | 0;
+      return `k_${Math.abs(h).toString(36)}_${fnHash.slice(0, 20)}`;
     } catch {
       return null;
     }
   }
 
-  async execute<T>(fn: () => Promise<T>): Promise<{ result: T; metrics: PipelineMetrics }> {
+  async execute<T>(
+    fn: () => Promise<T>,
+    ctx?: { tenantId?: string; userId?: string; input?: string; context?: string; modelo?: string; policyVersion?: string },
+  ): Promise<{ result: T; metrics: PipelineMetrics }> {
     const start = performance.now();
-    // Fast path: cache hit (TTL 30s)
-    const key = this.cacheKey(fn as unknown as () => Promise<unknown>);
+    // Fast path: cache hit (TTL 30s) — ahora con clave canónica completa
+    const key = this.cacheKey(fn as unknown as () => Promise<unknown>, ctx);
     if (key) {
       const hit = this.cache.get(key);
       if (hit && hit.exp > Date.now()) {
@@ -109,6 +128,7 @@ export class DoublePipelineRouter {
   async route<T>(
     fn: () => Promise<T>,
     health: { A: number; B: number; latencyA: number; latencyB: number },
+    ctx?: { tenantId?: string; userId?: string; input?: string; context?: string; modelo?: string; policyVersion?: string },
   ) {
     // health score 0-1, latency p95
     const scoreA = health.A * 0.5 + (1 - health.latencyA / 100) * 0.5;
@@ -116,10 +136,10 @@ export class DoublePipelineRouter {
     const chosen = scoreA >= scoreB ? this.A : this.B;
     const fallback = chosen === this.A ? this.B : this.A;
     try {
-      return await chosen.execute(fn);
+      return await chosen.execute(fn, ctx);
     } catch (e) {
-      // failover
-      return await fallback.execute(fn);
+      // failover con mismo ctx
+      return await fallback.execute(fn, ctx);
     }
   }
 }

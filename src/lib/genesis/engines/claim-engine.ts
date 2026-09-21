@@ -347,7 +347,7 @@ export class ClaimEngine {
       runnerId: isCiEnvironment() ? getCiRunId() : "local",
       os: process.platform,
       nodeVersion: process.version,
-      pnpmVersion: "10.15.4",
+      pnpmVersion: "10.34.5",
       dependencyLockHash: this.getDependencyLockHash(),
     };
 
