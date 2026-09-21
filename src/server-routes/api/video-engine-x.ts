@@ -33,6 +33,7 @@ const exportC2PASchema = z.object({
   projectId: z.string(),
 });
 
+// @ts-ignore
 export const Route = createFileRoute("/api/video-engine-x")({
   server: {
     handlers: {

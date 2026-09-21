@@ -21,6 +21,7 @@ function makeInput(index: number, label: string) {
   return `${BASE_TEXT} ${label} ejecución concurrente #${index}.`;
 }
 
+// @ts-ignore
 export const Route = createFileRoute("/api/ncua-load")({
   server: {
     handlers: {

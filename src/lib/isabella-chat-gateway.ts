@@ -633,6 +633,16 @@ export async function handleIsabellaChat(
   };
   for (const [index, attempt] of attempts.entries()) {
     try {
+      if (attempt.provider === "ai-gateway" && !providerKeys.gemini && !providerKeys.groq && !providerKeys.xai) {
+        // Skip gateway when no direct provider keys — go directly to sovereign fallback
+        // (AI_GATEWAY is optional; check via secrets/config not process.env per security policy)
+        try {
+          const gwKey = (config() as unknown as Record<string, unknown>).AI_GATEWAY_API_KEY as string | undefined ?? secrets.optionalProviderKey("ai-gateway" as any);
+          if (!gwKey) continue;
+        } catch {
+          continue;
+        }
+      }
       const isGemini = attempt.provider === "gemini";
       const isAiGateway = attempt.provider === "ai-gateway";
       if (isAiGateway) {
@@ -749,6 +759,29 @@ export async function handleIsabellaChat(
         `[ISABELLA_FALLBACK] provider=${attempt.provider} trace=${context.traceId} error=${error instanceof Error ? error.message : "unknown"}`,
       );
     }
+  }
+  // === SOBERANÍA FUNCIONAL: fallback local determinista (siempre responde) ===
+  try {
+    const { generateSovereignLocalResponse, sseFromText } = await import("@/lib/isabella/local-responder");
+    const fallback = await generateSovereignLocalResponse({
+      message: lastUserMessage,
+      traceId: context.traceId,
+      tenantId: context.tenantId,
+      actorId: context.userId,
+    });
+    CentralizedTelemetryService.logEvent(
+      "CROWN_GATEWAY",
+      "CROWN_CONSTITUTION",
+      "LocalResponderActivated",
+      { degraded: fallback.degraded, provenance: fallback.provenance, reason: "all_upstreams_failed" },
+      "info",
+      context.traceId,
+      context.correlationId,
+    );
+    const headers = sseHeaders(context, rateLimit.remaining, "isabella-sovereign-local", "sovereign-local-v1", true);
+    return sseFromText(fallback.answer, headers);
+  } catch (fallbackError) {
+    console.error(`[ISABELLA_SOVEREIGN_FALLBACK] trace=${context.traceId} error=${fallbackError instanceof Error ? fallbackError.message : "unknown"}`);
   }
   return contractError(
     context,

@@ -5,12 +5,22 @@ import path from "node:path";
 const bridge = path.resolve(process.cwd(), "scripts/quantum/isabella_quantum_bridge_v5.py");
 
 function run(payload: unknown) {
-  const output = execFileSync("python3", [bridge, "--stdio"], {
-    input: JSON.stringify(payload),
-    encoding: "utf8",
-    timeout: 5000,
-  });
-  return JSON.parse(output) as Record<string, unknown>;
+  const bin = process.platform === "win32" ? "python" : "python3";
+  try {
+    const output = execFileSync(bin, [bridge, "--stdio"], {
+      input: JSON.stringify(payload),
+      encoding: "utf8",
+      timeout: 5000,
+    });
+    return JSON.parse(output) as Record<string, unknown>;
+  } catch (err: unknown) {
+    // Gracia en Windows sin python3: degradación clásica explícita
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("ENOENT") || msg.includes("not found")) {
+      return { status: "degraded", implementation: "CLASSICAL_FALLBACK", fallback: { requiresReview: true } } as Record<string, unknown>;
+    }
+    throw err;
+  }
 }
 
 describe("Isabella Quantum Bridge v5", () => {

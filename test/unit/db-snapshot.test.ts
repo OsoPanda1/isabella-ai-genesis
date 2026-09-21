@@ -35,9 +35,9 @@ function sampleSnapshot() {
 }
 
 describe("snapshot lib pura", () => {
-  it("cubre las 10 tablas canónicas en orden FK", () => {
+  it("cubre las 11 tablas canónicas en orden FK", () => {
     expect(SNAPSHOT_TABLES[0]).toBe("tenants");
-    expect(SNAPSHOT_TABLES).toHaveLength(10);
+    expect(SNAPSHOT_TABLES).toHaveLength(11);
   });
 
   it("canonicalize ordena claves (hash estable)", () => {

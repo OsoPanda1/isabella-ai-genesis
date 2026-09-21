@@ -25,8 +25,10 @@ import { Route as ApiIsabellaLearningRouteImport } from './routes/api/isabella-l
 import { Route as ApiIsabellaSkillsRouteImport } from './routes/api/isabella-skills'
 import { Route as ApiIsabellaVoiceRouteImport } from './routes/api/isabella-voice'
 import { Route as ApiMuxIntroRouteImport } from './routes/api/mux-intro'
+import { Route as ApiNcuaLoadRouteImport } from './routes/api/ncua-load'
 import { Route as ApiObservabilityRouteImport } from './routes/api/observability'
 import { Route as ApiSecurityRouteImport } from './routes/api/security'
+import { Route as ApiVideoEngineXRouteImport } from './routes/api/video-engine-x'
 import { Route as ApiAiTransparencyRouteImport } from './routes/api/ai/transparency'
 import { Route as ApiConnectGithubRouteImport } from './routes/api/connect/github'
 import { Route as ApiConnectLinearRouteImport } from './routes/api/connect/linear'
@@ -35,7 +37,12 @@ import { Route as ApiHealthDeepRouteImport } from './routes/api/health/deep'
 import { Route as ApiHealthLiveRouteImport } from './routes/api/health/live'
 import { Route as ApiHealthReadyRouteImport } from './routes/api/health/ready'
 import { Route as ApiIsabellaNativeRouteImport } from './routes/api/isabella.native'
+import { Route as ApiV1EcosystemRouteImport } from './routes/api/v1/ecosystem'
 import { Route as ApiV1IsabellaRouteImport } from './routes/api/v1/isabella'
+import { Route as ApiV1MonetizationRouteImport } from './routes/api/v1/monetization'
+import { Route as ApiV1NodoCeroRouteImport } from './routes/api/v1/nodo-cero'
+import { Route as ApiV1SkillsRouteImport } from './routes/api/v1/skills'
+import { Route as ApiV1TerritorialTwinRouteImport } from './routes/api/v1/territorial-twin'
 import { Route as ApiConnectGithubCallbackRouteImport } from './routes/api/connect/github/callback'
 import { Route as ApiConnectGithubWebhookRouteImport } from './routes/api/connect/github/webhook'
 import { Route as ApiConnectLinearCallbackRouteImport } from './routes/api/connect/linear/callback'
@@ -124,6 +131,11 @@ const ApiMuxIntroRoute = ApiMuxIntroRouteImport.update({
   path: '/api/mux-intro',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiNcuaLoadRoute = ApiNcuaLoadRouteImport.update({
+  id: '/api/ncua-load',
+  path: '/api/ncua-load',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiObservabilityRoute = ApiObservabilityRouteImport.update({
   id: '/api/observability',
   path: '/api/observability',
@@ -132,6 +144,11 @@ const ApiObservabilityRoute = ApiObservabilityRouteImport.update({
 const ApiSecurityRoute = ApiSecurityRouteImport.update({
   id: '/api/security',
   path: '/api/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVideoEngineXRoute = ApiVideoEngineXRouteImport.update({
+  id: '/api/video-engine-x',
+  path: '/api/video-engine-x',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAiTransparencyRoute = ApiAiTransparencyRouteImport.update({
@@ -174,9 +191,34 @@ const ApiIsabellaNativeRoute = ApiIsabellaNativeRouteImport.update({
   path: '/native',
   getParentRoute: () => ApiIsabellaRoute,
 } as any)
+const ApiV1EcosystemRoute = ApiV1EcosystemRouteImport.update({
+  id: '/api/v1/ecosystem',
+  path: '/api/v1/ecosystem',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1IsabellaRoute = ApiV1IsabellaRouteImport.update({
   id: '/api/v1/isabella',
   path: '/api/v1/isabella',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1MonetizationRoute = ApiV1MonetizationRouteImport.update({
+  id: '/api/v1/monetization',
+  path: '/api/v1/monetization',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1NodoCeroRoute = ApiV1NodoCeroRouteImport.update({
+  id: '/api/v1/nodo-cero',
+  path: '/api/v1/nodo-cero',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1SkillsRoute = ApiV1SkillsRouteImport.update({
+  id: '/api/v1/skills',
+  path: '/api/v1/skills',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1TerritorialTwinRoute = ApiV1TerritorialTwinRouteImport.update({
+  id: '/api/v1/territorial-twin',
+  path: '/api/v1/territorial-twin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiConnectGithubCallbackRoute =
@@ -229,8 +271,10 @@ export interface FileRoutesByFullPath {
   '/api/isabella-skills': typeof ApiIsabellaSkillsRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/mux-intro': typeof ApiMuxIntroRoute
+  '/api/ncua-load': typeof ApiNcuaLoadRoute
   '/api/observability': typeof ApiObservabilityRoute
   '/api/security': typeof ApiSecurityRoute
+  '/api/video-engine-x': typeof ApiVideoEngineXRoute
   '/api/ai/transparency': typeof ApiAiTransparencyRoute
   '/api/connect/github': typeof ApiConnectGithubRouteWithChildren
   '/api/connect/linear': typeof ApiConnectLinearRouteWithChildren
@@ -239,7 +283,12 @@ export interface FileRoutesByFullPath {
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
   '/api/isabella/native': typeof ApiIsabellaNativeRoute
+  '/api/v1/ecosystem': typeof ApiV1EcosystemRoute
   '/api/v1/isabella': typeof ApiV1IsabellaRoute
+  '/api/v1/monetization': typeof ApiV1MonetizationRoute
+  '/api/v1/nodo-cero': typeof ApiV1NodoCeroRoute
+  '/api/v1/skills': typeof ApiV1SkillsRoute
+  '/api/v1/territorial-twin': typeof ApiV1TerritorialTwinRoute
   '/api/connect/github/callback': typeof ApiConnectGithubCallbackRoute
   '/api/connect/github/webhook': typeof ApiConnectGithubWebhookRoute
   '/api/connect/linear/callback': typeof ApiConnectLinearCallbackRoute
@@ -264,8 +313,10 @@ export interface FileRoutesByTo {
   '/api/isabella-skills': typeof ApiIsabellaSkillsRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/mux-intro': typeof ApiMuxIntroRoute
+  '/api/ncua-load': typeof ApiNcuaLoadRoute
   '/api/observability': typeof ApiObservabilityRoute
   '/api/security': typeof ApiSecurityRoute
+  '/api/video-engine-x': typeof ApiVideoEngineXRoute
   '/api/ai/transparency': typeof ApiAiTransparencyRoute
   '/api/connect/github': typeof ApiConnectGithubRouteWithChildren
   '/api/connect/linear': typeof ApiConnectLinearRouteWithChildren
@@ -274,7 +325,12 @@ export interface FileRoutesByTo {
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
   '/api/isabella/native': typeof ApiIsabellaNativeRoute
+  '/api/v1/ecosystem': typeof ApiV1EcosystemRoute
   '/api/v1/isabella': typeof ApiV1IsabellaRoute
+  '/api/v1/monetization': typeof ApiV1MonetizationRoute
+  '/api/v1/nodo-cero': typeof ApiV1NodoCeroRoute
+  '/api/v1/skills': typeof ApiV1SkillsRoute
+  '/api/v1/territorial-twin': typeof ApiV1TerritorialTwinRoute
   '/api/connect/github/callback': typeof ApiConnectGithubCallbackRoute
   '/api/connect/github/webhook': typeof ApiConnectGithubWebhookRoute
   '/api/connect/linear/callback': typeof ApiConnectLinearCallbackRoute
@@ -300,8 +356,10 @@ export interface FileRoutesById {
   '/api/isabella-skills': typeof ApiIsabellaSkillsRoute
   '/api/isabella-voice': typeof ApiIsabellaVoiceRoute
   '/api/mux-intro': typeof ApiMuxIntroRoute
+  '/api/ncua-load': typeof ApiNcuaLoadRoute
   '/api/observability': typeof ApiObservabilityRoute
   '/api/security': typeof ApiSecurityRoute
+  '/api/video-engine-x': typeof ApiVideoEngineXRoute
   '/api/ai/transparency': typeof ApiAiTransparencyRoute
   '/api/connect/github': typeof ApiConnectGithubRouteWithChildren
   '/api/connect/linear': typeof ApiConnectLinearRouteWithChildren
@@ -310,7 +368,12 @@ export interface FileRoutesById {
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
   '/api/isabella/native': typeof ApiIsabellaNativeRoute
+  '/api/v1/ecosystem': typeof ApiV1EcosystemRoute
   '/api/v1/isabella': typeof ApiV1IsabellaRoute
+  '/api/v1/monetization': typeof ApiV1MonetizationRoute
+  '/api/v1/nodo-cero': typeof ApiV1NodoCeroRoute
+  '/api/v1/skills': typeof ApiV1SkillsRoute
+  '/api/v1/territorial-twin': typeof ApiV1TerritorialTwinRoute
   '/api/connect/github/callback': typeof ApiConnectGithubCallbackRoute
   '/api/connect/github/webhook': typeof ApiConnectGithubWebhookRoute
   '/api/connect/linear/callback': typeof ApiConnectLinearCallbackRoute
@@ -337,8 +400,10 @@ export interface FileRouteTypes {
     | '/api/isabella-skills'
     | '/api/isabella-voice'
     | '/api/mux-intro'
+    | '/api/ncua-load'
     | '/api/observability'
     | '/api/security'
+    | '/api/video-engine-x'
     | '/api/ai/transparency'
     | '/api/connect/github'
     | '/api/connect/linear'
@@ -347,7 +412,12 @@ export interface FileRouteTypes {
     | '/api/health/live'
     | '/api/health/ready'
     | '/api/isabella/native'
+    | '/api/v1/ecosystem'
     | '/api/v1/isabella'
+    | '/api/v1/monetization'
+    | '/api/v1/nodo-cero'
+    | '/api/v1/skills'
+    | '/api/v1/territorial-twin'
     | '/api/connect/github/callback'
     | '/api/connect/github/webhook'
     | '/api/connect/linear/callback'
@@ -372,8 +442,10 @@ export interface FileRouteTypes {
     | '/api/isabella-skills'
     | '/api/isabella-voice'
     | '/api/mux-intro'
+    | '/api/ncua-load'
     | '/api/observability'
     | '/api/security'
+    | '/api/video-engine-x'
     | '/api/ai/transparency'
     | '/api/connect/github'
     | '/api/connect/linear'
@@ -382,7 +454,12 @@ export interface FileRouteTypes {
     | '/api/health/live'
     | '/api/health/ready'
     | '/api/isabella/native'
+    | '/api/v1/ecosystem'
     | '/api/v1/isabella'
+    | '/api/v1/monetization'
+    | '/api/v1/nodo-cero'
+    | '/api/v1/skills'
+    | '/api/v1/territorial-twin'
     | '/api/connect/github/callback'
     | '/api/connect/github/webhook'
     | '/api/connect/linear/callback'
@@ -407,8 +484,10 @@ export interface FileRouteTypes {
     | '/api/isabella-skills'
     | '/api/isabella-voice'
     | '/api/mux-intro'
+    | '/api/ncua-load'
     | '/api/observability'
     | '/api/security'
+    | '/api/video-engine-x'
     | '/api/ai/transparency'
     | '/api/connect/github'
     | '/api/connect/linear'
@@ -417,7 +496,12 @@ export interface FileRouteTypes {
     | '/api/health/live'
     | '/api/health/ready'
     | '/api/isabella/native'
+    | '/api/v1/ecosystem'
     | '/api/v1/isabella'
+    | '/api/v1/monetization'
+    | '/api/v1/nodo-cero'
+    | '/api/v1/skills'
+    | '/api/v1/territorial-twin'
     | '/api/connect/github/callback'
     | '/api/connect/github/webhook'
     | '/api/connect/linear/callback'
@@ -443,13 +527,20 @@ export interface RootRouteChildren {
   ApiIsabellaSkillsRoute: typeof ApiIsabellaSkillsRoute
   ApiIsabellaVoiceRoute: typeof ApiIsabellaVoiceRoute
   ApiMuxIntroRoute: typeof ApiMuxIntroRoute
+  ApiNcuaLoadRoute: typeof ApiNcuaLoadRoute
   ApiObservabilityRoute: typeof ApiObservabilityRoute
   ApiSecurityRoute: typeof ApiSecurityRoute
+  ApiVideoEngineXRoute: typeof ApiVideoEngineXRoute
   ApiAiTransparencyRoute: typeof ApiAiTransparencyRoute
   ApiConnectGithubRoute: typeof ApiConnectGithubRouteWithChildren
   ApiConnectLinearRoute: typeof ApiConnectLinearRouteWithChildren
   ApiConnectSlackRoute: typeof ApiConnectSlackRouteWithChildren
+  ApiV1EcosystemRoute: typeof ApiV1EcosystemRoute
   ApiV1IsabellaRoute: typeof ApiV1IsabellaRoute
+  ApiV1MonetizationRoute: typeof ApiV1MonetizationRoute
+  ApiV1NodoCeroRoute: typeof ApiV1NodoCeroRoute
+  ApiV1SkillsRoute: typeof ApiV1SkillsRoute
+  ApiV1TerritorialTwinRoute: typeof ApiV1TerritorialTwinRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -566,6 +657,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMuxIntroRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ncua-load': {
+      id: '/api/ncua-load'
+      path: '/api/ncua-load'
+      fullPath: '/api/ncua-load'
+      preLoaderRoute: typeof ApiNcuaLoadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/observability': {
       id: '/api/observability'
       path: '/api/observability'
@@ -578,6 +676,13 @@ declare module '@tanstack/react-router' {
       path: '/api/security'
       fullPath: '/api/security'
       preLoaderRoute: typeof ApiSecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/video-engine-x': {
+      id: '/api/video-engine-x'
+      path: '/api/video-engine-x'
+      fullPath: '/api/video-engine-x'
+      preLoaderRoute: typeof ApiVideoEngineXRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ai/transparency': {
@@ -636,11 +741,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiIsabellaNativeRouteImport
       parentRoute: typeof ApiIsabellaRoute
     }
+    '/api/v1/ecosystem': {
+      id: '/api/v1/ecosystem'
+      path: '/api/v1/ecosystem'
+      fullPath: '/api/v1/ecosystem'
+      preLoaderRoute: typeof ApiV1EcosystemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/isabella': {
       id: '/api/v1/isabella'
       path: '/api/v1/isabella'
       fullPath: '/api/v1/isabella'
       preLoaderRoute: typeof ApiV1IsabellaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/monetization': {
+      id: '/api/v1/monetization'
+      path: '/api/v1/monetization'
+      fullPath: '/api/v1/monetization'
+      preLoaderRoute: typeof ApiV1MonetizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/nodo-cero': {
+      id: '/api/v1/nodo-cero'
+      path: '/api/v1/nodo-cero'
+      fullPath: '/api/v1/nodo-cero'
+      preLoaderRoute: typeof ApiV1NodoCeroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/skills': {
+      id: '/api/v1/skills'
+      path: '/api/v1/skills'
+      fullPath: '/api/v1/skills'
+      preLoaderRoute: typeof ApiV1SkillsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/territorial-twin': {
+      id: '/api/v1/territorial-twin'
+      path: '/api/v1/territorial-twin'
+      fullPath: '/api/v1/territorial-twin'
+      preLoaderRoute: typeof ApiV1TerritorialTwinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/connect/github/callback': {
@@ -773,13 +913,20 @@ const rootRouteChildren: RootRouteChildren = {
   ApiIsabellaSkillsRoute: ApiIsabellaSkillsRoute,
   ApiIsabellaVoiceRoute: ApiIsabellaVoiceRoute,
   ApiMuxIntroRoute: ApiMuxIntroRoute,
+  ApiNcuaLoadRoute: ApiNcuaLoadRoute,
   ApiObservabilityRoute: ApiObservabilityRoute,
   ApiSecurityRoute: ApiSecurityRoute,
+  ApiVideoEngineXRoute: ApiVideoEngineXRoute,
   ApiAiTransparencyRoute: ApiAiTransparencyRoute,
   ApiConnectGithubRoute: ApiConnectGithubRouteWithChildren,
   ApiConnectLinearRoute: ApiConnectLinearRouteWithChildren,
   ApiConnectSlackRoute: ApiConnectSlackRouteWithChildren,
+  ApiV1EcosystemRoute: ApiV1EcosystemRoute,
   ApiV1IsabellaRoute: ApiV1IsabellaRoute,
+  ApiV1MonetizationRoute: ApiV1MonetizationRoute,
+  ApiV1NodoCeroRoute: ApiV1NodoCeroRoute,
+  ApiV1SkillsRoute: ApiV1SkillsRoute,
+  ApiV1TerritorialTwinRoute: ApiV1TerritorialTwinRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

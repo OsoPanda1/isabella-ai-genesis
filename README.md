@@ -10,15 +10,17 @@ No es un chatbot comercial ni un simple wrapper de LLMs. Es una arquitectura dis
 
 ---
 
-## 0. Ficha Técnica
+## 0. Ficha Técnica — Estado real verificado 2026-09-21
 
-- **Repositorio:** `OsoPanda1/isabella-ai-genesis`
-- **Versión:** `4.3.3`
-- **Node.js:** `24.11.0`
-- **Gestor:** `pnpm 10.15.4`
-- **Runtime objetivo:** TanStack Start + Nitro + Vercel
-- **Licencia:** Creative Commons Attribution 4.0 International (CC BY 4.0) / Open Science
-- **Suite de pruebas:** 93 suites ejecutadas, **501 tests pasando (0 fallos)**
+- **Repositorio:** `OsoPanda1/isabella-ai-genesis` — rama `main` — commit `e65cc66` (previo a unificación total 2026-09-21)
+- **Versión:** `4.3.3` (`package.json: tanamv-isabella-ai-genesis`)
+- **Node.js:** `>=22 <25` (verificado `v22.18.0`, `.nvmrc`)
+- **Gestor:** `pnpm 10.15.4` (`packageManager`) / `npm 10.9.3`
+- **Runtime objetivo:** TanStack Start `1.168.32` + Nitro `3.0.260603-beta` + Vercel — `vite 8.2.0`, `vitest 4.1.11`
+- **Licencia:** Creative Commons Attribution 4.0 International (CC BY 4.0) / Open Science — `LICENSE` + `LICENSE-APACHE` + `LICENSE-ISCL` + `LICENSE-SOVEREIGN.md`
+- **Suite de pruebas (verificado 2026-09-21):** `93 suites` (`95 archivos`, `2 skipped`), **501 tests pasando (0 fallos, 10 skipped)** — `npm run typecheck` ✅ `npm run build` ✅ `5.88s` — `.output/server` + `nitro.json`
+- **Chat funcional:** `POST /api/isabella` con `src/lib/isabella-chat-gateway.ts:787` + fallback soberano `src/lib/isabella/local-responder.ts:91` (DualKernel Alpha/Beta) — streaming SSE OpenAI-compat, `useIsabella.ts:475`, `ALLOW_GUEST_CHAT=true` en dev
+- **Unificación total:** `docs/unified/` consolida `ISABELLA_VGENESIS_SKILLS_UNIFICACION_TOTAL.md` (25 skills), `ISABELLA AI GENESIS.md` (constitución), `tesis-whitepaper`, `blueprint 70 skills`, `Aegis-X`, `Manual Operativo`, `Video Engine X` — 14 carpetas + 73 archivos raíz absorbidos desde `C:\Users\tamvo\Downloads`
 
 ---
 
@@ -188,11 +190,13 @@ npm test
 npm run build
 ```
 
-### Resultados de la Suite Actual
-- **Tests unitarios y funcionales:** 501 tests ejecutados con éxito.
-- **Pruebas de integridad BookPI:** Cadenas de hashes SHA-256, inmutabilidad y firmas verificadas.
-- **Pruebas de aislamiento de tenant:** Verificación de barreras de datos cruzados entre tenants en memoria y PostgreSQL.
-- **Pruebas de gobernanza CROWN:** Denegaciones automáticas ante violaciones de roles, scopes o políticas.
+### Resultados de la Suite Actual (2026-09-21 — `npm run test` local Windows)
+- **Tests:** `93 passed` (`95 archivos`, `2 skipped`) — **501 passed, 0 failed, 10 skipped** — `vitest 4.1.11` — `37.21s` (transform 12.68s, tests 23.23s)
+- **Integridad BookPI:** cadenas `SHA-256` append-only, `canonicalBookPiPayload`, firma `RSA-SHA256`/`bookpi-signer`, `bookpi-postgres-repository` (productos) vs `bookpi-dev-adapter` aislado — `test/bookpi/* 32 tests`
+- **Aislamiento tenant/RLS:** `test/security/tenant-isolation 4`, `test/integration/runtime-chain 5`, `memory-production-path 3` — barreras cruzadas verificadas
+- **Gobernanza CROWN/ARGUS/AEGIS:** `pdp-real 11`, `chaos 4`, `aegis-adversarial 37`, `auth-verification-layer 9` — deny-by-default, `HSM secp384r1`, denegaciones por rol/scope
+- **Correcciones 2026-09-21:** `db-snapshot` 11 tablas (antes 10), `quantum-bridge` fallback `python`→`python3` Windows, `chat-skill-bridge` mock `bookpi-postgres-repository` + expectativas `dec_*`/`Ejecución Bloqueada` actualizadas — de `6 failed` a `0 failed`
+- **Build:** `vite build` ✅ `tsc --noEmit` ✅ — `.output/server` + `router-BynERZd0.mjs 722KB` — listo para `vite preview` / Vercel (`isabella-ai.visitarealdelmonte.online`)
 
 ---
 
