@@ -1354,10 +1354,11 @@ export const Route = createFileRoute("/api/billing")({
               return new Response(
                 JSON.stringify({
                   success: true,
-                  blockIndex: block.index,
+                  blockIndex: purchase.block.index,
                   costUSD,
-                  sellerEarnedBalanceCents: userNetCents,
-                  buyerRemainingCredits: freshBuyer.quotaBalance,
+                  sellerEarnedBalanceCents: purchase.sellerEarnedBalanceCents,
+                  buyerRemainingCredits: purchase.buyerRemainingCredits,
+                  economicEventId: purchase.economicEventId,
                 }),
                 { headers },
               );
