@@ -37,48 +37,6 @@ function getPool(url: string) {
   return pool;
 }
 
-/** Cierre ordenado del pool BookPI (shutdown limpio; idempotente). */
-export function disposeBookpiPool(): Promise<void> {
-  if (!pool) return Promise.resolve();
-  const toClose = pool;
-  pool = null;
-  return toClose.end();
-}
-
-/**
- * Hash CANÓNICO del bloque (§6.1-§6.3): usa `canonicalBookPiPayload`, que
- * excluye firmas/campos derivados y serializa el MISMO timestamp persistido.
- * Nunca debe repetirse inline en append()/verifyIntegrity(): estas dos fases
- * deben producir el mismo hash (por eso existe canonical-payload.ts).
- */
-function hashBlock(block: Omit<BlockPIBlock, "blockHash">): string {
-  return createHash("sha256").update(canonicalBookPiPayload(block)).digest("hex");
-}
-
-/**
- * Algoritmos soportados por la columna `signature_algorithm` / `pqc_signature`.
- * - NOT_IMPLEMENTED: sin firma criptográfica (default del esquema).
- * - ECDSA_P256_SHA256 / ED25519: firma real sobre el hash del bloque.
- * El entorno debe declarar BOOKPI_SIGNATURE_ALGORITHM y BOOKPI_SIGNING_KEY
- * (clave privada PEM) para activar las firmas.
- */
-export const BOOKPI_SIGNATURE_ALGORITHMS = [
-  "NOT_IMPLEMENTED",
-  "ECDSA_P256_SHA256",
-  "ED25519",
-] as const;
-export type BookpiSignatureAlgorithm = (typeof BOOKPI_SIGNATURE_ALGORITHMS)[number];
-
-function resolvedSignatureAlgorithm(): BookpiSignatureAlgorithm {
-  const raw = config().BOOKPI_SIGNATURE_ALGORITHM?.trim() || "NOT_IMPLEMENTED";
-  if ((BOOKPI_SIGNATURE_ALGORITHMS as readonly string[]).includes(raw)) {
-    return raw as BookpiSignatureAlgorithm;
-  }
-  throw new Error(
-    `BOOKPI_SIGNATURE_ALGORITHM inválido: "${raw}". Valores soportados: ${BOOKPI_SIGNATURE_ALGORITHMS.join(", ")} (fail-closed).`,
-  );
-}
-
 function mapRow(row: Record<string, unknown>): BlockPIBlock {
   return {
     index: Number(row.index),

@@ -17,12 +17,18 @@
 import { createSign, createVerify, createHash } from "node:crypto";
 import { config } from "../config";
 
-export type BookPiSignatureAlgorithm = "ML-DSA-87" | "ECDSA-P384" | "RSA-SHA256";
+export const BOOKPI_SIGNATURE_ALGORITHMS = ["ML-DSA-87", "ECDSA-P384", "RSA-SHA256"] as const;
+export type BookPiSignatureAlgorithm = (typeof BOOKPI_SIGNATURE_ALGORITHMS)[number];
 
 /** Algoritmo canónico declarado en la configuración. */
 export function getSigningAlgorithm(): BookPiSignatureAlgorithm {
-  const cfg = config();
-  return cfg.BOOKPI_SIGNATURE_ALGORITHM as BookPiSignatureAlgorithm;
+  const raw = String(config().BOOKPI_SIGNATURE_ALGORITHM ?? "").trim();
+  if ((BOOKPI_SIGNATURE_ALGORITHMS as readonly string[]).includes(raw)) {
+    return raw as BookPiSignatureAlgorithm;
+  }
+  throw new Error(
+    "CRITICAL_SECURITY_ERROR: BOOKPI_SIGNATURE_ALGORITHM inválido. Usa ML-DSA-87 (solo tests/telemetría), ECDSA-P384 o RSA-SHA256.",
+  );
 }
 
 /** ML-DSA-87 es simulación (telemetría/test). Nunca autoridad en producción. */

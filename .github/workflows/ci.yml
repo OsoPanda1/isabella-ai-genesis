@@ -1,7 +1,14 @@
 name: CI
 
 on:
-  workflow_call:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "chore/**"
+      - "repair/**"
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read

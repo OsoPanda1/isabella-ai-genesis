@@ -45,6 +45,9 @@ jobs:
           pnpm --version
           node -e "const p=require('./package.json'); console.log(JSON.stringify({packageManager:p.packageManager,engines:p.engines},null,2))"
 
+      - name: Verify package-lock contract
+        run: pnpm verify:lock
+
       - name: Frozen install
         id: frozen-install
         continue-on-error: true

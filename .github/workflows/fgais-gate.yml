@@ -2,10 +2,6 @@ name: FGAIS Production Gate
 
 on:
   workflow_call:
-  pull_request:
-  push:
-    branches: [main, "feat/**", "chore/**"]
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -48,6 +44,9 @@ jobs:
           test "$(pnpm --version)" = "10.15.4"
           test "$(cat .nvmrc | tr -d '\\r\\n')" = "24.11.0"
           node -e 'const p=require("./package.json"); if(p.packageManager!=="pnpm@10.15.4") process.exit(1); if(p.engines?.node!==">=22 <25") process.exit(1)'
+
+      - name: Verify package-lock contract
+        run: pnpm verify:lock
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
