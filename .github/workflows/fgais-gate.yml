@@ -2,10 +2,6 @@ name: FGAIS Production Gate
 
 on:
   workflow_call:
-  pull_request:
-  push:
-    branches: [main, "feat/**", "chore/**"]
-  workflow_dispatch:
 
 permissions:
   contents: read
