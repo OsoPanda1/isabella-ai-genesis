@@ -12,6 +12,11 @@ import { createSovereignPipeline } from "@/lib/sovereign-pipeline";
 import { parseSafeJsonBody } from "@/lib/input-limits";
 import { prepareIsabellaCognitiveRuntime } from "@/lib/isabella-cognitive-runtime";
 import { executeConversationalSkill } from "@/lib/isabella-skill-executor";
+import {
+  detectSkillInvocation,
+  executeChatSkillBridge,
+  streamChatSkillAsSse,
+} from "@/lib/skills/chat-bridge";
 import { classifyTextRisk } from "@/lib/native-ml";
 import { ObservabilityService } from "@/lib/telemetry/observability";
 import { recordObservabilityEvent } from "@/lib/telemetry/observability-repository";
@@ -415,6 +420,43 @@ export async function handleIsabellaChat(
       governance.denialReason ?? "Gobernanza denegada.",
       403,
     );
+  // 1. Enlace directo de habilidades soberanas (@skill:<nombre> o @<nombre>)
+  const skillInvocation = detectSkillInvocation(lastUserMessage);
+  if (skillInvocation) {
+    const bridgeResult = await executeChatSkillBridge(skillInvocation, {
+      correlationId: context.correlationId,
+      traceId: context.traceId,
+      userId: context.userId,
+      tenantId: context.tenantId,
+      role: context.role,
+      scope: context.scope,
+      ip: context.ip,
+      userAgent: request.headers.get("user-agent") || undefined,
+    });
+
+    if (!bridgeResult.success) {
+      if (bridgeResult.code === "CROWN_POLICY_DENY" || bridgeResult.code === "IDENTITY_REQUIRED") {
+        return contractError(
+          context,
+          IsabellaChatErrorCode.AUTHORIZATION_DENIED,
+          bridgeResult.error || "Gobernanza CROWN denegó la ejecución del skill.",
+          403,
+          false,
+          { skillId: skillInvocation.canonicalName, code: bridgeResult.code, traceId: context.traceId },
+        );
+      }
+    }
+
+    const headers = sseHeaders(
+      context,
+      rateLimit.remaining,
+      "isabella-skill-runtime",
+      skillInvocation.canonicalName,
+      false,
+    );
+    return streamChatSkillAsSse(bridgeResult, headers);
+  }
+
   let conversationalSkill: Awaited<ReturnType<typeof executeConversationalSkill>> = {
     matched: false,
     result: null,
@@ -551,7 +593,7 @@ export async function handleIsabellaChat(
       503,
       true,
     );
-  if (conversationalSkill.matched && conversationalSkill.result) {
+  if (conversationalSkill.matched && !conversationalSkill.blocked && conversationalSkill.result) {
     const skillEvidence = JSON.stringify({
       skillId: conversationalSkill.result.skillId,
       status: conversationalSkill.result.status,

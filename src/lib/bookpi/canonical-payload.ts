@@ -11,7 +11,7 @@
  *    calcula SOBRE el hash (flujo: payload → SHA-256 → blockHash → firma).
  *  - El `timestamp` incluido es EXACTAMENTE el que se persiste en la fila.
  */
-import type { BlockPIBlock } from "../repositories/bookpi-repository";
+import type { BlockPIBlock } from "./types";
 
 const canonicalFieldOrder = [
   "index",

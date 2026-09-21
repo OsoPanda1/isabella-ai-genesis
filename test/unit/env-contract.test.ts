@@ -34,6 +34,7 @@ function exampleKeys(): Set<string> {
 const PROCESS_ENV_ALLOWLIST = new Set([
   "src/lib/config.ts", // única vía de carga
   "src/lib/build-manifest.ts", // computeEnvFingerprint(env = process.env)
+  "src/lib/quantum-bridge-client.ts", // client binario opcional python
 ]);
 
 // Variables de SISTEMA OPERATIVO (no secreto de app): PATH/HOME/SHELL/NODE_ENV/etc.

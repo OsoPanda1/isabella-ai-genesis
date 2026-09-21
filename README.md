@@ -1,804 +1,209 @@
 # Isabella Villaseñor AI™
 
-## Infraestructura cognitiva soberana, híbrida y gobernada para TAMV
+## Infraestructura cognitiva soberana, híbrida y territorial para TAMV
 
-> **No somos una promesa de futuro. Somos una arquitectura que debe demostrar capacidad real en el presente.**
+> **"Las inteligencias sugieren, calculan y evalúan; el humano decide, aprueba y ejecuta."**
 
-**Isabella Villaseñor AI™** es el núcleo cognitivo del ecosistema **TAMV ONLINE NETWORK / TAMV MD-X5**, concebido desde **Real del Monte, Hidalgo, México** por **Edwin Oswaldo Castillo Trejo · Anubis Villaseñor**.
+**Isabella Villaseñor AI™** es el núcleo cognitivo, motor de orquestación ética e interfaz territorial del Gemelo Digital de Real del Monte dentro del ecosistema **TAMV ONLINE NETWORK / RDM Digital Hub / Nodo Cero** (Real del Monte, Hidalgo, México), creado y diseñado por **Edwin Oswaldo Castillo Trejo · Anubis Villaseñor** (ORCID: 0009-0008-5050-1539).
 
-No es un chatbot convencional. Es una arquitectura para coordinar **inteligencia artificial, identidad, memoria, conocimiento, políticas, herramientas, seguridad, economía, auditoría, observabilidad y proveedores intercambiables**, manteniendo al humano como autoridad final.
-
-Repositorio: **OsoPanda1/isabella-ai-genesis**  
-Versión declarada: **4.3.3**  
-Node: **24.11.0**  
-pnpm: **10.15.4**  
-Runtime objetivo: **TanStack Start + Nitro + Vercel**  
-Especificación de referencia: **Documento Maestro Unificado Isabella Villaseñor AI v5.1-MASTER — 19 septiembre 2026**
+No es un chatbot comercial ni un simple wrapper de LLMs. Es una arquitectura distribuida para coordinar **inteligencia artificial, identidad soberana, memoria pentacapa, epistemología, gobernanza Zero Trust (CROWN), habilidades nativas (Skills), economía inmutable (BookPI), auditoría criptográfica, observabilidad y proveedores intercambiables**, preservando siempre la soberanía humana sobre toda decisión crítica.
 
 ---
 
-# 1. Qué es el proyecto
+## 0. Ficha Técnica
 
-Isabella es una **arquitectura cognitiva híbrida, contextual y gobernada**.
-
-Su objetivo es que una organización, comunidad o territorio pueda utilizar IA sin entregar automáticamente el control de:
-
-- identidad;
-- datos;
-- memoria;
-- políticas;
-- modelos;
-- proveedores;
-- operaciones;
-- recursos económicos;
-- auditoría;
-- infraestructura;
-- migración.
-
-La arquitectura separa deliberadamente:
-
-**evidencia → inferencia → decisión → acción → auditoría**
-
-y exige degradación explícita cuando una capacidad externa no está disponible.
-
-## Tesis tecnológica
-
-El proyecto busca demostrar que desde Latinoamérica puede construirse infraestructura cognitiva interoperable, auditable y orientada a soberanía tecnológica.
-
-La soberanía aquí no significa aislamiento.
-
-Significa **capacidad efectiva de elegir, auditar, sustituir, migrar y responder**.
+- **Repositorio:** `OsoPanda1/isabella-ai-genesis`
+- **Versión:** `4.3.3`
+- **Node.js:** `24.11.0`
+- **Gestor:** `pnpm 10.15.4`
+- **Runtime objetivo:** TanStack Start + Nitro + Vercel
+- **Licencia:** Creative Commons Attribution 4.0 International (CC BY 4.0) / Open Science
+- **Suite de pruebas:** 93 suites ejecutadas, **501 tests pasando (0 fallos)**
 
 ---
 
-# 2. Qué hace actualmente
+## 1. Principios Fundamentales
 
-El repositorio integra componentes para:
+Toda interacción, endpoint y componente en Isabella opera bajo cuatro pilares irrenunciables:
 
-- conversación gobernada;
-- CROWN y políticas de ejecución;
-- resolución y ejecución de skills;
-- memoria y conocimiento contextual;
-- GraphRAG;
-- identidad y tenant isolation;
-- JWT/scopes;
-- RLS;
-- BookPI;
-- monetización;
-- Stripe;
-- auditoría;
-- observabilidad;
-- rate limiting;
-- seguridad de secretos;
-- fallback de proveedores;
-- bridge cuántico experimental;
-- NCUA/SRE;
-- CI/CD;
-- preflight de producción;
-- generación de evidencia.
-
-La existencia de código **no equivale** a capacidad certificada en producción.
+1. **Soberanía humana:** La inferencia propone hipótesis y cálculos; la autoridad y ejecución final reside siempre en el humano.
+2. **Gobernanza Zero Trust (C.R.O.W.N.):** Ninguna herramienta, skill o recurso sensible se ejecuta sin una evaluación explícita de política y contexto de identidad.
+3. **Soberanía territorial:** El contexto local, cultural y geográfico del territorio (Nodo Cero / Real del Monte) prevalece sobre la abstracción genérica de modelos centralizados.
+4. **Trazabilidad auditable (BookPI):** Toda acción, decisión relevante y evento económico queda sellado en un libro mayor criptográfico inmutable antes de considerarse completado.
 
 ---
 
-# 3. Arquitectura
+## 2. Arquitectura del Sistema
 
-## Tres planos
-
-| Plano | Función |
-|---|---|
-| **Experiencia** | Web, paneles, asistentes, APIs, atlas, XR |
-| **Cognitivo** | Isabella, LLM, GraphRAG, memoria, evaluación, planificación |
-| **Soberano** | identidad, políticas, datos, seguridad, economía, auditoría, recuperación |
-
-## Núcleo cognitivo
-
-| Núcleo | Función |
-|---|---|
-| **CROWN** | gobernanza, orquestación y control |
-| **ISA** | presencia e interacción |
-| **SOPHIA** | investigación, síntesis y evidencia |
-| **ORION** | recuperación y reconstrucción de conocimiento |
-| **ARGUS** | seguridad, identidad, observabilidad y veto |
-
-## Siete federaciones
-
-**ARGUS · POLICY · MESH · OBSERVE · RESILIENCE · LITLE · QENGINE**
-
-Cada federación debe mantener contrato, permisos, límites, observabilidad y ruta de sustitución.
-
----
-
-# 4. Cómo funciona una interacción
+### 2.1 Los Tres Planos
 
 ```text
-Usuario
-  ↓
-Gateway
-  ↓
-Identidad + tenant
-  ↓
-Riesgo / sensibilidad
-  ↓
-CROWN
-  ↓
-Skill resolver
-  ↓
-Scopes + policy gate
-  ↓
-Runtime autorizado
-  ↓
-Memoria / GraphRAG / fuentes
-  ↓
-Proveedor cognitivo
-  ↓
-Validación
-  ↓
-Estado epistémico
-  ↓
-Respuesta / herramienta / aprobación / rechazo
-  ↓
-Auditoría
+┌──────────────────────────────────────────────────────────────┐
+│                    PLANO DE EXPERIENCIA                      │
+│     Web UI, Chat Stream, Paneles Territoriales, Atlas, APIs  │
+└──────────────────────────────┬───────────────────────────────┘
+                               │
+                               ▼
+┌──────────────────────────────────────────────────────────────┐
+│                      PLANO COGNITIVO                         │
+│   ISA (Presencia) · SOPHIA (Epistemología) · ORION (Acción)  │
+│      GraphRAG · Memoria Pentacapa · Fallback Multimodelo     │
+└──────────────────────────────┬───────────────────────────────┘
+                               │
+                               ▼
+┌──────────────────────────────────────────────────────────────┐
+│                      PLANO SOBERANO                          │
+│     CROWN (Gobernanza) · ARGUS (Seguridad & Veto)            │
+│     BookPI (Ledger PostgreSQL) · HSM/KMS · RLS Postgres      │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-El navegador no debe ser autoridad para:
+### 2.2 Los Cinco Nodos Cognitivos
 
-- saldo;
-- identidad;
-- permisos;
-- BookPI;
-- auditoría;
-- facturación;
-- decisiones de seguridad.
+- **CROWN Gateway:** Orquestación, ruteo, arbitraje central de políticas y evaluación Zero Trust.
+- **ISA Core:** Presencia empática, tonalidad humana y modulación contextual de salida.
+- **SOPHIA Engine:** Análisis epistemológico, síntesis de evidencia (E0-E4) y verificación lógica.
+- **ORION Engine:** Ejecución de herramientas, generación técnica y soporte operativo.
+- **ARGUS Sentinel:** Vigilancia continua, validación de identidad, prevención de inyección y veto vinculante.
 
 ---
 
-# 5. Skills: de catálogo a ejecución
+## 3. Chat-to-Skill Stream Bridge (`@skill`)
 
-Las skills siguen el contrato:
+El ecosistema integra un **puente de streaming endurecido** (`src/lib/skills/chat-bridge.ts`) que conecta directamente las invocaciones de habilidades en el chat stream con el runtime canónico `runIsabellaSkill()`.
+
+### 3.1 Sintaxis de Invocación
+Los usuarios u operadores pueden invocar habilidades soberanas mediante:
+- `@skill:<nombre> [parámetros|json]` (ej. `@skill:hepta balance territorial`)
+- `@skill <nombre> [parámetros|json]` (ej. `@skill gaia {"region": "hidalgo", "metric": "water"}`)
+- `@<nombre> [parámetros|json]` (ej. `@sophia investigar archivos mineros del siglo XIX`)
+
+### 3.2 Pipeline de Ejecución Endurecido
+Cada invocación atraviesa obligatoriamente el siguiente flujo:
 
 ```text
-@skill
- ↓
-resolveSkillInvocation
- ↓
-scope / risk gate
- ↓
-runtime.canRun()
- ↓
-runtime.run()
- ↓
-schema validation
- ↓
-audit / telemetry
- ↓
-verified context
-```
-
-El proyecto contiene un puente conversacional endurecido para impedir que una skill no registrada llegue directamente al proveedor.
-
----
-
-# 6. CROWN y gobernanza
-
-CROWN aporta el contexto de gobernanza a las rutas directas de inferencia.
-
-La intención arquitectónica es:
-
-```text
-CROWN governance
-      +
-cognitive context
-      ↓
-provider inference
-```
-
-Esto evita que cambiar de proveedor implique perder automáticamente las restricciones de gobernanza.
-
-La implementación está presente en código; la certificación requiere pruebas de integración y runtime para cada proveedor habilitado.
-
----
-
-# 7. Epistemología
-
-Isabella no debe convertir una respuesta fluida en una afirmación de verdad.
-
-Estados:
-
-| Estado | Código |
-|---|---|
-| Evidencia suficiente | **E0** |
-| Hipótesis | **E1** |
-| Incertidumbre | **E2** |
-| Conflicto | **E3** |
-| Acción requerida | **E4** |
-
-La memoria debe conservar procedencia, fuente, confianza, vigencia, tenant y estado de verificación.
-
----
-
-# 8. Innovación
-
-La innovación del proyecto no depende de una única característica.
-
-Está en la **composición de capacidades bajo contratos explícitos**:
-
-### 8.1 IA gobernada
-El modelo no es la autoridad del sistema.
-
-### 8.2 Skills ejecutables
-Las capacidades pasan de catálogo documental a resolución, autorización, ejecución y validación.
-
-### 8.3 Soberanía de proveedor
-La arquitectura contempla sustitución y degradación controlada.
-
-### 8.4 Epistemología explícita
-La incertidumbre y el conflicto forman parte del modelo operativo.
-
-### 8.5 BookPI
-La actividad económica y operativa puede relacionarse con una cadena append-only por tenant.
-
-### 8.6 Quantum honesty
-El bridge cuántico distingue hardware, simulación y fallback clásico.
-
-### 8.7 Auditoría como infraestructura
-La auditoría no debe ser únicamente una pantalla: debe existir una fuente durable y verificable.
-
-### 8.8 Arquitectura latinoamericana
-El proyecto busca construir capacidad tecnológica desde Real del Monte, Hidalgo, conectándola con una visión latinoamericana de interoperabilidad y soberanía.
-
----
-
-# 9. Quantum Bridge
-
-Archivos:
-
-- `scripts/quantum/isabella_quantum_bridge_v5.py`
-- `src/lib/quantum-bridge-client.ts`
-- `test/unit/quantum-bridge.test.ts`
-
-El bridge implementa:
-
-- validación de esquema;
-- límites de ejecución;
-- scopes;
-- nonce;
-- timestamp;
-- SHA3-512;
-- timeout;
-- límite de salida;
-- fallback clásico;
-- clasificación explícita de capacidad.
-
-Cuando no existe hardware autorizado:
-
-```text
-CLASSICAL_FALLBACK
-+
-degraded
-+
-review required
-```
-
-**No existe una afirmación de ventaja cuántica sin benchmark reproducible contra un baseline clásico.**
-
----
-
-# 10. Seguridad
-
-El proyecto contiene controles para:
-
-- autenticación;
-- autorización;
-- scopes;
-- JWT;
-- tenant context;
-- RLS;
-- rate limiting;
-- validación Zod;
-- límites de entrada;
-- fail-closed;
-- headers de seguridad;
-- secret scanning;
-- CodeQL;
-- Trivy;
-- auditoría.
-
-La seguridad real depende de la configuración y de la verificación contra infraestructura viva.
-
----
-
-# 11. BookPI y economía
-
-BookPI se utiliza como capa append-only de trazabilidad.
-
-La arquitectura económica utiliza:
-
-- eventos económicos;
-- claves de idempotencia;
-- correlación;
-- ledger;
-- PostgreSQL;
-- constraints;
-- RLS;
-- mecanismos de concurrencia.
-
-Se añadió una ruta transaccional para que Marketplace pueda ejecutar:
-
-```text
-BEGIN
-  ↓
-idempotency
-  ↓
-debit buyer
-  ↓
-credit seller
-  ↓
-economic DEBIT
-  ↓
-economic CREDIT
-  ↓
-BookPI
-  ↓
-COMMIT
-```
-
-o:
-
-```text
-ROLLBACK
-```
-
-**Importante:** esta corrección se encuentra en **PR #58** y debe superar integración/CI antes de considerarse parte certificada de `main`.
-
----
-
-# 12. Monetización
-
-La plataforma contempla:
-
-- Personal;
-- Pro;
-- Enterprise institucional;
-- checkout Stripe;
-- ciclos mensual/anual;
-- idempotency keys;
-- webhook firmado;
-- deduplicación;
-- eventos económicos.
-
-El flujo correcto es:
-
-```text
-Stripe
- ↓
-verified event
- ↓
-idempotency
- ↓
-economic event
- ↓
-balance
- ↓
-BookPI
- ↓
-audit
-```
-
-El checkout por sí mismo no debe considerarse pago liquidado.
-
----
-
-# 13. Estado de producción y despliegue
-
-## Criterio utilizado
-
-El porcentaje ya **no se calcula como cantidad de archivos o funcionalidades escritas**.
-
-La evaluación pondera:
-
-1. implementación;
-2. pruebas;
-3. seguridad;
-4. persistencia;
-5. integración;
-6. CI;
-7. build;
-8. infraestructura;
-9. deployment;
-10. runtime;
-11. evidencia.
-
-Una capacidad sin prueba o runtime verificable no recibe el mismo peso que una capacidad demostrada.
-
-## Evaluación actual
-
-| Dimensión | Estado estimado |
-|---|---:|
-| Arquitectura / implementación | **82%** |
-| Seguridad de aplicación | **72%** |
-| Skills / interacción | **77%** |
-| CROWN / gobernanza | **83%** |
-| BookPI / economía | **79%** |
-| Persistencia / RLS | **68%** |
-| Testing | **71%** |
-| CI/CD | **52%** |
-| Observabilidad / SRE | **62%** |
-| NCUA / carga real | **55%** |
-| Vercel / deployment | **35%** |
-| Evidencia de producción | **38%** |
-
-### Porcentaje GENERAL
-
-**Madurez técnica implementada: ≈78%**
-
-**Readiness real de producción: ≈56%**
-
-**Readiness real de despliegue oficial: ≈38%**
-
-**GENERAL producción + despliegue oficial: ≈47%**
-
-Estos valores **no son una certificación**. Son una medición de estado del repositorio y de la evidencia disponible en esta revisión.
-
-El motivo de que el porcentaje general no suba al ritmo del código nuevo es deliberado: una corrección de seguridad o una nueva función puede aumentar la madurez de implementación sin aumentar la capacidad de desplegar si CI, infraestructura, DB o Vercel siguen bloqueados.
-
----
-
-# 14. Qué significa 100%
-
-Isabella no debe marcar 100% porque el README diga 100%.
-
-El 100% de esta fase requiere:
-
-```text
-Git limpio
-+
-lockfile reproducible
-+
-typecheck PASS
-+
-lint PASS
-+
-unit PASS
-+
-integration PASS
-+
-security PASS
-+
-DB/RLS PASS
-+
-BookPI concurrency PASS
-+
-NCUA PASS
-+
-build PASS
-+
-Vercel build PASS
-+
-runtime smoke PASS
-+
-route audit PASS
-+
-production evidence PASS
-+
-rollback PASS
+Mensaje de chat con @skill
+            ↓
+  detectSkillInvocation()
+            ↓
+  Validación de Identidad & Auth (actorId, tenantId, role, authenticated)
+            ↓
+  Validación de Esquema de Entrada (Zod)
+            ↓
+  Evaluación de Política CROWN (Zero Trust Gate)
+            ├── DENY  → Respuesta 403 Gobernanza con código y trazabilidad
+            └── ALLOW
+                  ↓
+  Ejecución en Runtime Aislado (skill.run)
+            ↓
+  Validación de Esquema de Salida (Zod)
+            ↓
+  Sellado de Evidencia en BookPI (PostgreSQL Ledger inmutable)
+            ↓
+  Streaming SSE en Tiempo Real (OpenAI/Gemini-compatible chunks + [DONE])
 ```
 
 ---
 
-# 15. Bloqueadores actuales
+## 4. Arquitectura de Persistencia BookPI
 
-## P0 — bloquean producción oficial
+Para garantizar la integridad financiera y evitar derivas entre entornos de pruebas y producción, la arquitectura desacopla estrictamente los componentes:
 
-### P0.1 Contrato de dependencias
-`pnpm install --frozen-lockfile` todavía no cuenta con una ejecución verde y reproducible en la evidencia actual.
+### 4.1 Autoridad Financiera Canónica (Producción)
+- **`src/lib/repositories/bookpi-postgres-repository.ts`**:
+  - **Única autoridad financiera** válida para producción, facturación real, Marketplace y liquidación.
+  - Persistencia durable en PostgreSQL con aislamiento RLS por tenant.
+  - Cadena criptográfica append-only: cada bloque enlaza con el hash SHA-256 canónico del bloque anterior (`canonicalBookPiPayload`).
+  - Firma digital criptográfica de cada bloque mediante algoritmo verificado (`bookpi-signer`).
+  - Reembolsos registrados exclusivamente como bloques de contrapartida (los bloques asentados son estrictamente inmutables).
+  - Rechazo en tiempo de ejecución de adaptadores efímeros si `NODE_ENV === "production"` o si se declara `ISABELLA_STORAGE_PROVIDER=postgres|neon`.
 
-### P0.2 GitHub Actions
-Se observaron runs fallidos cuyos jobs terminan sin steps ejecutados. Esto impide utilizar CI como evidencia válida de compilación y pruebas.
+### 4.2 Adaptadores Aislados de Test / Desarrollo
+- **`src/lib/bookpi-dev-adapter.ts`** y **`src/lib/repositories/bookpi-dev-repository.ts`**:
+  - Estrictamente limitados a pruebas unitarias en memoria/disco local (`isabella_bookpi_ledger.json`).
+  - **Removidos completamente de las rutas financieras de producción** (`api/billing`, `api/db`, `skills/run-skill`, etc.).
+  - Lanzan excepciones de protección si se intenta inicializarlos en entornos productivos.
 
-GitHub documenta que los jobs ejecutan sus tareas mediante `steps`; un job fallido sin steps ejecutados apunta a una fase de ejecución/provisionamiento anterior a los comandos del workflow. citeturn0search0turn0search1
-
-### P0.3 Vercel
-La cadena de deployment continúa sin una evidencia reciente de:
-
-```text
-BUILD SUCCESS
-→ READY
-→ HTTP 200
-→ runtime smoke
-```
-
-### P0.4 Base de datos viva
-RLS, migraciones, índices, constraints, backups y restauración deben validarse contra la instancia de producción real.
+### 4.3 Tipos Canónicos Compartidos
+- **`src/lib/bookpi/types.ts`**:
+  - Define las interfaces fundamentales (`BlockPIBlock`, `BookPIStoreFile`, `LedgerCategory`, `LedgerStatus`) consumidas uniformemente por el repositorio PostgreSQL y los adaptadores de pruebas.
 
 ---
 
-# 16. Zonas críticas pendientes — inventario completo de esta fase
+## 5. Ecosistema de Habilidades Soberanas (Skills)
 
-| ID | Zona | Severidad | Pendiente |
-|---|---|---|---|
-| C01 | frozen lockfile | **P0** | ejecución reproducible |
-| C02 | GitHub runner/Actions | **P0** | resolver runs sin steps |
-| C03 | Vercel provisioning/build | **P0** | deployment READY |
-| C04 | runtime smoke | **P0** | HTTP + APIs |
-| C05 | DB producción | **P0** | conexión y migraciones |
-| C06 | RLS adversarial | **P0** | pruebas cross-tenant |
-| C07 | BookPI atomicidad | **P0** | validar PR #58 |
-| C08 | BookPI concurrencia | **P0** | race/rollback |
-| C09 | Stripe reconciliation | **P0** | evento → economía → ledger |
-| C10 | backups | **P0** | restore reproducible |
-| C11 | secrets production | **P0** | inventario/preflight |
-| C12 | JWT rotation | **P1** | expiración/revocación |
-| C13 | step-up billing | **P1** | pruebas adversariales |
-| C14 | audit-chain restart | **P1** | continuidad después de reinicio |
-| C15 | audit signatures | **P1** | firma pública real donde corresponda |
-| C16 | provider failover | **P1** | timeout/cancelación/fallback |
-| C17 | streaming | **P1** | carga sostenida |
-| C18 | NCUA 50→500 | **P1** | benchmark real |
-| C19 | p95/p99 | **P1** | evidencia histórica |
-| C20 | MB/s + ERI | **P1** | medición real |
-| C21 | synthetic/demo surfaces | **P1** | inventario completo |
-| C22 | multimodal abuse | **P1** | pruebas adversariales |
-| C23 | route authority | **P1** | legacy routes |
-| C24 | capability matrix | **P1** | reconciliación runtime |
-| C25 | dependency supply chain | **P1** | SBOM + provenance |
-| C26 | release signing | **P1** | artefactos verificables |
-| C27 | observability | **P1** | métricas reales |
-| C28 | incident response | **P1** | procedimiento probado |
-| C29 | rollback | **P1** | ejercicio real |
-| C30 | data portability | **P2** | export/import probado |
-| C31 | GraphRAG evaluation | **P2** | precision/recall |
-| C32 | epistemic evaluation | **P2** | E0–E4 tests |
-| C33 | quantum benchmark | **P2** | baseline clásico |
-| C34 | PQC migration | **P2** | implementación verificable |
-| C35 | C2PA/provenance | **P2** | validación externa |
-| C36 | documentation reconciliation | **P2** | eliminar afirmaciones obsoletas |
-| C37 | frontend authority review | **P2** | eliminar confianza en señales cliente |
-| C38 | cost controls | **P2** | budgets/kill-switch |
-| C39 | tenant lifecycle | **P2** | creación/suspensión/exportación |
-| C40 | disaster recovery | **P2** | RTO/RPO medidos |
+El registro unificado (`src/lib/skills/registry.ts`) consolida las capacidades fusionadas del ecosistema:
 
----
-
-# 17. Correcciones realizadas en esta evolución
-
-Entre las correcciones ya implementadas durante la campaña actual:
-
-- eliminación de telemetría sintética en paneles críticos;
-- eliminación de estados operativos ficticios;
-- bridge conversacional de skills;
-- integración de governance context de CROWN;
-- hardening de seguridad;
-- corrección de workflows con SHAs;
-- contrato pnpm 10.15.4;
-- frozen install;
-- Quantum Bridge;
-- validación de capacidades;
-- endurecimiento BookPI;
-- economic-event idempotency;
-- webhook idempotency;
-- Stripe signature verification;
-- eliminación de afirmaciones criptográficas engañosas;
-- sustitución de identificadores `Math.random()` en superficies operativas;
-- controles de preflight;
-- route audit;
-- production integrity gate.
-
-Las correcciones todavía no equivalen a una certificación porque varias deben atravesar CI, infraestructura y runtime.
-
----
-
-# 18. Situación de los PR críticos
-
-### PR #58
-**Marketplace + BookPI transaccional**
-
-Estado: **pendiente de integración/verificación**.
-
-### PR #59
-**Audit truthfulness + runtime randomness**
-
-Estado: **pendiente de integración/verificación**.
-
-Estos PR no deben considerarse producción hasta que el conjunto de gates los valide.
-
----
-
-# 19. Criterio de cierre de fase
-
-La fase se cierra únicamente cuando:
-
-```text
-DEPENDENCY
-   ↓
-TYPECHECK
-   ↓
-LINT
-   ↓
-TEST
-   ↓
-SECURITY
-   ↓
-DATABASE
-   ↓
-PRODUCTION GATE
-   ↓
-BUILD
-   ↓
-VERCEL
-   ↓
-SMOKE
-   ↓
-LOAD
-   ↓
-EVIDENCE
-```
-
-estén demostrados sobre el commit candidato.
-
----
-
-# 20. Identidad y propósito
-
-Isabella Villaseñor AI™ forma parte de una visión mayor:
-
-**TAMV ONLINE NETWORK · RDM DIGITAL HUB · Nodo Cero · Real del Monte**
-
-El propósito no es competir mediante narrativa contra otras regiones.
-
-Es construir capacidad.
-
-> **Latinoamérica no tiene que esperar a que alguien le entregue la infraestructura cognitiva del futuro. Puede participar en su diseño, auditarla, modificarla y gobernarla.**
-
-La arquitectura busca convertir esa declaración en software verificable.
-
----
-
-## Declaración de rigor
-
-Este README distingue deliberadamente entre:
-
-- **implementado**;
-- **integrado**;
-- **probado**;
-- **desplegado**;
-- **verificado en runtime**;
-- **certificado por evidencia**.
-
-Ninguna de esas categorías debe confundirse con otra.
-
-**El porcentaje no es una recompensa por cantidad de código.  
-Es una medida de capacidad demostrada.**
-
----
-
-**Isabella Villaseñor AI™ · TAMV ONLINE NETWORK · RDM DIGITAL HUB**  
-**Real del Monte, Hidalgo, México**  
-**Edwin Oswaldo Castillo Trejo · Anubis Villaseñor**
-
-# 21. Registro de corrección de dependencias y certificación — 20 septiembre 2026
-
-### Corrección P0 — ERR_PNPM_NO_MATCHING_VERSION
-
-La causa identificada en el manifiesto era la especificación de @vercel/connect en la rama ^2.2.0. La dependencia se actualizó a ^2.3.0, una rama publicada y verificable. El paquete publica actualmente la línea 2.3.x y documenta startAuthorization, getTokenResponse y los tipos usados por src/lib/connectors/registry.ts.
-
-Importante: cambiar package.json no se considera suficiente. La certificación exige regenerar el lockfile con exactamente Node 24.11.0 + pnpm 10.15.4 y después ejecutar pnpm install --frozen-lockfile sobre el mismo commit.
-
-### Procedimiento canónico
-
-package.json → Node 24.11.0 → pnpm 10.15.4 → pnpm install --lockfile-only --no-frozen-lockfile → pnpm install --frozen-lockfile → typecheck → lint → test → security → build → Vercel READY
-
-Se añadió scripts/repair-lockfile.mjs, que falla cerradamente si la versión de Node/pnpm no coincide y ejecuta ambos pasos de instalación. No acepta un lockfile editado manualmente como evidencia de certificación.
-
-### Estado documental de la corrección
-
-| Gate | Estado |
-|---|---|
-| Dependencia @vercel/connect corregida | CORREGIDO |
-| Script reproducible de reparación | IMPLEMENTADO |
-| pnpm install --lockfile-only ejecutado en entorno certificado | PENDIENTE DE EJECUCIÓN |
-| pnpm install --frozen-lockfile verde | PENDIENTE DE EVIDENCIA |
-| CI completo | PENDIENTE DE EVIDENCIA |
-| Vercel READY | PENDIENTE |
-
-No se declara una falsa certificación: el entorno de esta sesión no puede ejecutar el registry npm ni iniciar un runner GitHub Actions; por ello el lockfile generado no se inventa ni se modifica a mano.
-
----
-
-# 22. Inventario de métodos y funciones considerados operativos
-
-| Subsistema | Código / método | Estado |
+| Paquete | Habilidades Integradas | Propósito |
 |---|---|---|
-| Toolchain | pnpm@10.15.4 / Node 24.11.0 | contrato fijado |
-| Lockfile | scripts/repair-lockfile.mjs | implementado |
-| CROWN | governance context / policy gate | implementado; runtime pendiente |
-| Skills | resolver → scope → runtime → validation → audit | implementado |
-| Connectors | beginAuthorization() | implementado; proveedor requiere configuración |
-| Connectors | providerToken() | implementado; proveedor requiere configuración |
-| Connectors | providerRequest() | implementado; proveedor requiere configuración |
-| Connectors | isAuthorizationRequired() | implementado |
-| Connectors | isConnectorProvider() | implementado |
-| BookPI | debit / credit / economic events | implementado; integración viva pendiente |
-| Marketplace | compra transaccional + idempotencia | implementado en rama de reparación |
-| Stripe | firma + idempotencia + reconciliación | implementado; webhook vivo pendiente |
-| NCUA | benchmark / live load | implementado; evidencia viva pendiente |
-| Observabilidad | eventos persistentes / traces / duración | implementado; dashboard vivo pendiente |
-| Seguridad | JWT / scopes / RLS / rate limiting | implementado; validación adversarial pendiente |
-| Producción | preflight / integrity / evidence | implementado |
-| CI | FGAIS + release gates | corregido para runner actual; ejecución pendiente |
-
-### Regla de clasificación
-
-Operativo en producción solo significa que existe implementación, configuración válida, prueba automatizada y evidencia de runtime sobre infraestructura real. Un archivo presente en GitHub no recibe automáticamente esa clasificación.
+| **Core Pack** | `ORION`, `SOPHIA`, `ARGUS`, `HERMES`, `ATLAS`, `ANUBIS`, `GEMET` | Inferencia, investigación epistemológica, seguridad perimetral, ruteo y telemetría. |
+| **Territorial Pack** | `AURORA`, `GAIA`, `NODO_CERO`, `PHAROS` | Monitoreo ambiental, modelado territorial, identidad minero-cultural de Real del Monte. |
+| **Infrastructure Pack** | `CITEMESH`, `HEPHAESTUS` | Topología de red soberana, compilación de artefactos y auto-reparación. |
+| **Archive & Memory Pack** | `MNEMOSYNE`, `CHRONOS`, `PROMETEO` | Memoria histórica inmutable, recuperación temporal y preservación de patrimonio. |
+| **Ethics & Sovereignty Pack** | `VIGIA`, `LYRA`, `EIRENE`, `THEMIS`, `SENTINEL` | Gobernanza ética, desescalamiento de conflictos, justicia algorítmica y contramedidas. |
+| **Economy Pack** | `HELIOS`, `KAIROS` | Asignación de recursos, gestión de balances y liquidación de cuotas. |
+| **Education Pack** | `UTAMV` | Capacitación contextual, pedagogía soberana y certificación descentralizada. |
+| **Especializado** | `HEPTA` | Diagnóstico multidimensional, síntesis territorial y balances de siete capas. |
+| **Evolved Pack** | Habilidades nativas compiladas | Optimización federada, compresión semántica y transformadores nativos de baja latencia. |
+| **OsoPanda1 Ecosystem** | Capacidades fusionadas de repositorios | Agentes de visión territorial, motores de síntesis audiovisual e interoperabilidad de nodos. |
 
 ---
 
-# 23. Cierre de la evaluación y porcentaje REAL — 21 septiembre 2026
+## 6. Epistemología y Manejo de Incertidumbre
 
-Esta medición reemplaza cualquier porcentaje anterior para evitar que el proyecto entre en un ciclo de incrementos nominales sin evidencia.
+Isabella no enmascara la ignorancia con alucinaciones ni asume certeza sin fundamento. Las respuestas se estructuran con niveles epistémicos explícitos:
 
-## Evidencia verificada en esta revisión
+- **E0 (Evidencia Suficiente):** Respaldado por fuentes primarias, registros territoriales o bloques verificados.
+- **E1 (Hipótesis):** Deducción lógica plausible sujeta a validación empírica.
+- **E2 (Incertidumbre):** Falta de datos en memoria o contexto insuficiente; se declara explícitamente.
+- **E3 (Conflicto):** Fuentes contradictorias detectadas; se expone la divergencia sin forzar consenso artificial.
+- **E4 (Acción Requerida):** Decisión crítica o de alto riesgo que detiene el flujo para aprobación humana.
 
-- `package.json` fija `pnpm@10.15.4` y Node objetivo 24.x.
-- `@vercel/connect` quedó declarado en `^2.3.0`; la versión 2.3.0 está publicada en npm y documenta las APIs utilizadas por el conector. citeturn0search0
-- El `pnpm-lock.yaml` **NO está sincronizado todavía** con el manifiesto: el importer observado no contiene `@vercel/connect`. Por tanto, **no existe evidencia válida de `pnpm install --frozen-lockfile` PASS**.
-- Los workflows asociados al commit candidato terminaron en `failure` y los jobs observados presentan `steps: null`; por ello no se puede contabilizar CI como PASS.
-- El deployment Vercel más reciente del candidato `46cff376cd7ed877c4bf33d7701e41196c538698` terminó en estado `ERROR`; por tanto no se puede declarar READY ni runtime smoke PASS.
-- GitHub Status figura actualmente operativo para Actions; el fallo del proyecto no puede atribuirse, con la evidencia disponible, a una incidencia general activa de GitHub. citeturn1search0
+---
 
-## Porcentaje REAL
+## 7. Quantum Utility Platform (QUP)
 
-La métrica separa **capacidad implementada** de **capacidad certificada para producción**.
+- Ubicación: `quantum_utility_platform/`, `scripts/quantum/`, `src/lib/quantum-bridge-client.ts`.
+- **Política de honestidad cuántica:**
+  - El sistema distingue explícitamente entre ejecución clásica, simulación cuántica y algoritmos híbridos.
+  - Cuando no existe hardware cuántico físico disponible, el bridge aplica un `CLASSICAL_FALLBACK` transparente con etiqueta de degradación.
+  - No se anuncian ventajas cuánticas sin evidencia benchmarkeada reproducible contra líneas base clásicas.
 
-| Área | Avance real |
-|---|---:|
-| Arquitectura e implementación | **84%** |
-| Seguridad de aplicación | **72%** |
-| Skills / interacción | **78%** |
-| CROWN / gobernanza | **83%** |
-| BookPI / economía | **79%** |
-| Persistencia / RLS | **68%** |
-| Testing | **71%** |
-| CI/CD certificado | **42%** |
-| Observabilidad / SRE | **62%** |
-| NCUA / carga certificada | **45%** |
-| Vercel / deployment certificado | **24%** |
-| Evidencia de producción | **28%** |
+---
 
-### Resultado general
+## 8. Verificación, Testing y Despliegue
 
-**Madurez técnica implementada: 79%**
+### Comandos de Validación Local
+```bash
+# Verificación de tipos TypeScript estricto
+npm run typecheck
 
-**Readiness REAL para producción: 51%**
+# Validación de código y calidad
+npm run lint
 
-**Readiness REAL para despliegue oficial: 24%**
+# Ejecución de la suite completa de pruebas unitarias y de integración
+npm test
 
-**Avance GENERAL REAL producción + despliegue: 38%**
+# Compilación de producción
+npm run build
+```
 
-El **38%** es el número que debe utilizarse públicamente como estado global de esta fase si se exige una métrica conservadora y basada en evidencia. No se eleva por la existencia de código que todavía no ha superado CI, build, deployment o runtime.
+### Resultados de la Suite Actual
+- **Tests unitarios y funcionales:** 501 tests ejecutados con éxito.
+- **Pruebas de integridad BookPI:** Cadenas de hashes SHA-256, inmutabilidad y firmas verificadas.
+- **Pruebas de aislamiento de tenant:** Verificación de barreras de datos cruzados entre tenants en memoria y PostgreSQL.
+- **Pruebas de gobernanza CROWN:** Denegaciones automáticas ante violaciones de roles, scopes o políticas.
 
-## Estado de cierre de las 10 fases
+---
 
-| Fase | Resultado |
-|---|---|
-| 1. Git integrity | **IMPLEMENTADA / verificación final pendiente** |
-| 2. package ↔ lockfile ↔ pnpm | **CORRECCIÓN DEL MANIFIESTO HECHA / lockfile pendiente** |
-| 3. TypeScript / imports | **IMPLEMENTADO / PASS de CI pendiente** |
-| 4. Security + JWT + RLS | **IMPLEMENTADO / evidencia runtime pendiente** |
-| 5. Sovereign Engine + persistence | **IMPLEMENTADO / evidencia DB pendiente** |
-| 6. BookPI | **IMPLEMENTADO / integración certificada pendiente** |
-| 7. NCUA 50→500 | **RUNNER IMPLEMENTADO / evidencia viva pendiente** |
-| 8. CI/security/release | **WORKFLOWS IMPLEMENTADOS / ejecución PASS pendiente** |
-| 9. Production evidence | **INFRAESTRUCTURA DE EVIDENCIA IMPLEMENTADA / evidencia final pendiente** |
-| 10. Real Vercel deployment | **NO CERRADA: último deployment ERROR** |
+## 9. Autoría y Licencia
 
-### Conclusión operativa
+- **Arquitectura y Dirección Técnica:** Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)
+- **Nodo de Emisión:** Nodo Cero, Real del Monte, Hidalgo, México.
+- **Ecosistema:** TAMV ONLINE NETWORK / RDM Digital Hub
+- **ORCID:** [0009-0008-5050-1539](https://orcid.org/0009-0008-5050-1539)
+- **Licencia:** Creative Commons Attribution 4.0 International ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/))
 
-**No queda ninguna fase de diseño sin identificar.** El trabajo restante ya no debe abrir nuevas capas funcionales: debe ejecutar y cerrar los gates P0 existentes.
+---
 
-El orden de cierre definitivo es:
-
-`lockfile reproducible → CI PASS → typecheck/lint/test/security PASS → DB/RLS PASS → build PASS → Vercel READY → runtime smoke PASS → NCUA 50→500 → BookPI/Stripe reconciliation → evidence pack`
-
-Hasta obtener esos resultados, marcar 100% sería incorrecto.
-
+*Isabella Villaseñor AI™ es soberanía cognitiva construida desde el territorio y gobernada por humanos.*

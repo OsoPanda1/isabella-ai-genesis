@@ -106,7 +106,16 @@ export class ClaimEngine {
       runnerId: isCiEnvironment() ? getCiRunId() : "local",
       os: process.platform,
       nodeVersion: process.version,
-      pnpmVersion: (() => {\n        try {\n          const packageManager = JSON.parse(\n            readFileSync(join(process.cwd(), "package.json"), "utf8"),\n          ).packageManager;\n          return typeof packageManager === "string" ? packageManager.replace(/^pnpm@/, "") : "unknown";\n        } catch {\n          return "unknown";\n        }\n      })(),
+      pnpmVersion: (() => {
+        try {
+          const packageManager = JSON.parse(
+            readFileSync(join(process.cwd(), "package.json"), "utf8"),
+          ).packageManager;
+          return typeof packageManager === "string" ? packageManager.replace(/^pnpm@/, "") : "unknown";
+        } catch {
+          return "unknown";
+        }
+      })(),
       dependencyLockHash: this.getDependencyLockHash(),
     };
 

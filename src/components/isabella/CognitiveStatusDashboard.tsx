@@ -138,7 +138,8 @@ export function CognitiveStatusDashboard() {
     bufferEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [lines]);
 
-  // Runtime metrics are evidence-only. No synthetic oscillation is generated in the UI.\n  const addLine = (text: string, type: TerminalLine["type"]) => {
+  // Runtime metrics are evidence-only. No synthetic oscillation is generated in the UI.
+  const addLine = (text: string, type: TerminalLine["type"]) => {
     setLines((prev) => [...prev, { text, type }]);
   };
 

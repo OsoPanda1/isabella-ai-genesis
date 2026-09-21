@@ -3,7 +3,7 @@ import { generateKeyPairSync } from "node:crypto";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { createBookpiRepository } from "../../src/lib/repositories/bookpi-repository";
+import { createBookpiDevRepository as createBookpiRepository } from "../../src/lib/repositories/bookpi-dev-repository";
 import { canonicalBookPiPayload } from "../../src/lib/bookpi/canonical-payload";
 import { resetConfigCache } from "../../src/lib/config";
 
@@ -180,7 +180,7 @@ describe("canonicalBookPiPayload (§6.1 determinismo)", () => {
       cost: 1,
       tokens: 1,
     });
-    if (!res.success) throw new Error(res.error);
+    if (!res.success || !res.block) throw new Error(res.error || "No block");
     const block = res.block;
     const { blockHash, pqcSignature, signatureAlgorithm, ...forAppend } = block;
     void blockHash;
@@ -197,7 +197,7 @@ describe("canonicalBookPiPayload (§6.1 determinismo)", () => {
       cost: 1,
       tokens: 1,
     });
-    if (!res.success) throw new Error(res.error);
+    if (!res.success || !res.block) throw new Error(res.error || "No block");
     const base = {
       ...res.block,
       pqcSignature: null,

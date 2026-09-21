@@ -5,7 +5,7 @@ import { COGNITIVE_HEADS } from "@/lib/sovereign-engine";
 import { sovereignStateRepository } from "@/lib/sovereign-state-repository";
 import { prisma } from "@/lib/db";
 import { createBookpiPostgresRepository } from "@/lib/repositories/bookpi-postgres-repository";
-import type { LedgerCategory } from "@/lib/repositories/bookpi-repository";
+import type { LedgerCategory } from "@/lib/bookpi/types";
 import { repositoryFactory } from "@/lib/persistence/repository-factory";
 import { SecuritySystem } from "@/lib/security";
 import { withSovereignAuth } from "@/lib/principal-context";

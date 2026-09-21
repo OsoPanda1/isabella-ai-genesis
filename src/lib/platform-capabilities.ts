@@ -38,7 +38,10 @@ export const PLATFORM_CAPABILITIES: readonly PlatformCapability[] = [
     owner: "BookPI",
     status: "implemented",
     productionSafe: false,
-    evidence: ["src/lib/bookpi.ts", "src/lib/repositories/bookpi-repository.ts"],
+    evidence: [
+      "src/lib/repositories/bookpi-postgres-repository.ts",
+      "src/lib/bookpi-dev-adapter.ts",
+    ],
     notes:
       "Durable evidence path exists; production database and operational evidence are still required before this registry can mark it production-safe.",
   },
@@ -82,7 +85,11 @@ export const PLATFORM_CAPABILITIES: readonly PlatformCapability[] = [
     owner: "BookPI",
     status: "implemented",
     productionSafe: false,
-    evidence: ["src/lib/monetization/", "src/lib/bookpi.ts"],
+    evidence: [
+      "src/lib/monetization/",
+      "src/lib/repositories/bookpi-postgres-repository.ts",
+      "src/lib/bookpi-dev-adapter.ts",
+    ],
     notes:
       "Requires production reconciliation, payout provider verification, and operational controls before live funds.",
   },

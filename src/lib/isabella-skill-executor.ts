@@ -1,5 +1,5 @@
 import { resolveSkillInvocation } from "@/lib/skill-registry";
-import { getIsabellaSkill } from "@/lib/skills/registry";
+import { getRuntimeSkill, type IsabellaSkillId } from "@/lib/skills/registry";
 import type { SkillContext, SkillResult } from "@/lib/skills/contracts";
 import { CentralizedTelemetryService } from "@/lib/latam-aegis-x";
 
@@ -16,10 +16,12 @@ export type SkillExecutionContext = {
 export type SkillExecutionOutcome =
   | {
       matched: false;
+      blocked?: false;
       result: null;
     }
   | {
       matched: true;
+      blocked?: false;
       result: SkillResult<unknown>;
       invocation: string;
     }
@@ -29,6 +31,7 @@ export type SkillExecutionOutcome =
       code: string;
       message: string;
       invocation: string;
+      result?: null;
     };
 
 function isValidSkillResult(value: unknown): value is SkillResult<unknown> {
@@ -96,7 +99,7 @@ export async function executeConversationalSkill(
     return { matched: true, blocked: true, code: "SKILL_SCOPE_DENIED", message, invocation };
   }
 
-  const runtime = getIsabellaSkill(skill.id as Parameters<typeof getIsabellaSkill>[0]);
+  const runtime = getRuntimeSkill(skill.id as IsabellaSkillId);
   if (!runtime) {
     return {
       matched: true,

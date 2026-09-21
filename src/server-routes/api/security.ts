@@ -161,7 +161,8 @@ function calculateTsAegisResponse(event: z.infer<typeof securityEventSchema>) {
 export const Route = createFileRoute("/api/security")({
   server: {
     handlers: {
-      // Audit-log reads are tenant-scoped and fail closed when the durable store is unavailable.\n      GET: withSovereignAuth("system", "read", async (context, request) => {
+      // Audit-log reads are tenant-scoped and fail closed when the durable store is unavailable.
+      GET: withSovereignAuth("system", "read", async (context, request) => {
         const url = new URL(request.url);
         if (url.searchParams.get("action") !== "audit-logs") {
           return new Response(JSON.stringify({ error: "Acción GET desconocida." }), { status: 400, headers: SecuritySystem.injectSecureHeaders(new Headers({ "content-type": "application/json" })) });

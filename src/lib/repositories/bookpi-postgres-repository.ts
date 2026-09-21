@@ -9,7 +9,7 @@ import {
   verifyBlockSignature,
   type BookPiSignatureAlgorithm,
 } from "../crypto/bookpi-signer";
-import type { BlockPIBlock, LedgerCategory, LedgerStatus } from "./bookpi-repository";
+import type { BlockPIBlock, LedgerCategory, LedgerStatus } from "../bookpi/types";
 
 const GENESIS_PREVIOUS_HASH = "0".repeat(64);
 

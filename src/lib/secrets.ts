@@ -88,7 +88,12 @@ export class SecretsManager {
     return typeof value === "string" && value.trim() ? value : undefined;
   }
 
-  aegisAuditSecretConfigured(): boolean {\n    const value = this.cachedConfig.AEGIS_AUDIT_SECRET;\n    return typeof value === "string" && value.trim().length > 0;\n  }\n\n  aegisAuditSecret(): string {
+  aegisAuditSecretConfigured(): boolean {
+    const value = this.cachedConfig.AEGIS_AUDIT_SECRET;
+    return typeof value === "string" && value.trim().length > 0;
+  }
+
+  aegisAuditSecret(): string {
     return this.getActiveSecretSync("policy-signing", "AEGIS_AUDIT_SECRET", "AEGIS_AUDIT_SECRET");
   }
 

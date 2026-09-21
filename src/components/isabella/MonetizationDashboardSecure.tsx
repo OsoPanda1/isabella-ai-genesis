@@ -45,6 +45,7 @@ interface ApiEnvelope {
   account?: MonetizationAccount;
   message?: string;
   error?: string;
+  checkoutUrl?: string;
 }
 
 export function MonetizationDashboardSecure({ initialTab }: { initialTab?: string | null }) {
@@ -299,10 +300,10 @@ export function MonetizationDashboardSecure({ initialTab }: { initialTab?: strin
       {tab === "usage" && (
         <UsageDashboard
           activePlanId={tenant?.tier?.toLowerCase() ?? "free"}
-          messagesUsed={undefined}
-          messageLimit={undefined}
-          tokensRemaining={tenant?.quotaBalance ?? undefined}
-          tokenLimit={undefined}
+          messagesUsed={null}
+          messageLimit={null}
+          tokensRemaining={tenant?.quotaBalance ?? null}
+          tokenLimit={null}
           onRefresh={() => {
             void refresh();
           }}

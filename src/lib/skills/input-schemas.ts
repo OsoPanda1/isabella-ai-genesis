@@ -88,8 +88,15 @@ export const skillInputSchemas: Record<IsabellaSkillId, typeof BOUNDED_SKILL_INP
   "firecrawl-lead-research": BOUNDED_SKILL_INPUT,
   "flutter-add-integration-test": BOUNDED_SKILL_INPUT,
   "firecrawl-competitive-intel": BOUNDED_SKILL_INPUT,
+  "nodo-cero-twin": BOUNDED_SKILL_INPUT,
+  "rdm-sovereign-commerce": BOUNDED_SKILL_INPUT,
+  "rdm-community-assembly": BOUNDED_SKILL_INPUT,
+  "fast-parallel-ingest": BOUNDED_SKILL_INPUT,
+  "qstash-event-dispatcher": BOUNDED_SKILL_INPUT,
+  "docs-instant-search": BOUNDED_SKILL_INPUT,
 };
 
 export function parseSkillInput(skillId: IsabellaSkillId, value: unknown) {
-  return skillInputSchemas[skillId].safeParse(value);
+  const schema = skillInputSchemas[skillId] ?? BOUNDED_SKILL_INPUT;
+  return schema.safeParse(value);
 }
