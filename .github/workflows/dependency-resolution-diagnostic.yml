@@ -1,0 +1,69 @@
+name: Isabella Genesis — Dependency Resolution Diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  NODE_VERSION: "24.11.0"
+  PNPM_VERSION: "10.15.4"
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Install pnpm without third-party action
+        run: npm install --global pnpm@${{ env.PNPM_VERSION }}
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Resolve without mutating lockfile
+        id: resolve
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            echo "node=$(node --version)"
+            echo "pnpm=$(pnpm --version)"
+            echo "registry=$(pnpm config get registry)"
+            echo "--- package contract ---"
+            node -e "const p=require('./package.json'); console.log(JSON.stringify({dependencies:p.dependencies,devDependencies:p.devDependencies},null,2))"
+            echo "--- lockfile resolution ---"
+            pnpm install --lockfile-only --no-frozen-lockfile --reporter=append-only
+          } 2>&1 | tee dependency-resolution.log
+          exit ${PIPESTATUS[0]}
+      - name: Upload diagnostic
+        if: always()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
+        with:
+          name: dependency-resolution-${{ github.run_id }}
+          path: dependency-resolution.log
+          retention-days: 7
+      - name: Publish diagnostic failure
+        if: steps.resolve.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## Dependency resolution diagnostic"
+            echo
+            echo "- Commit: ${{ github.sha }}"
+            echo "- Run: ${{ github.run_id }}"
+            echo
+            echo '~~~text'
+            tail -n 220 dependency-resolution.log
+            echo '~~~'
+          } > diagnostic-issue.md
+          gh issue create --title "CI diagnostic: dependency resolution failure (${{ github.run_id }})" --body-file diagnostic-issue.md || true
+      - name: Enforce diagnostic
+        if: steps.resolve.outcome != 'success'
+        run: exit 1
