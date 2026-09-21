@@ -91,3 +91,6 @@ __pycache__/
 .vercel
 .output
 .nitro
+
+.vite/
+dist/
