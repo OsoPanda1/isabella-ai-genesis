@@ -39,3 +39,4 @@ A missing external secret is a configuration gap, not a code feature to simulate
 quality -> database migration -> staging load -> Vercel prebuilt deploy -> production smoke -> evidence.
 
 The repository deliberately fails closed instead of reporting a synthetic 100%.
+<!-- lockfile regeneration bootstrap trigger -->
