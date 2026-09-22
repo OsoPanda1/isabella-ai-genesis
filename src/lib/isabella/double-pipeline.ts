@@ -31,7 +31,14 @@ export class HexagonalPipeline {
   // Cache canónica por tenant/usuario/input/contexto/modelo/policy — evita colisiones semánticas (audit F)
   private cacheKey(
     fn: () => Promise<unknown>,
-    ctx?: { tenantId?: string; userId?: string; input?: string; context?: string; modelo?: string; policyVersion?: string },
+    ctx?: {
+      tenantId?: string;
+      userId?: string;
+      input?: string;
+      context?: string;
+      modelo?: string;
+      policyVersion?: string;
+    },
   ): string | null {
     try {
       const fnHash = fn.toString().slice(0, 200);
@@ -58,7 +65,14 @@ export class HexagonalPipeline {
 
   async execute<T>(
     fn: () => Promise<T>,
-    ctx?: { tenantId?: string; userId?: string; input?: string; context?: string; modelo?: string; policyVersion?: string },
+    ctx?: {
+      tenantId?: string;
+      userId?: string;
+      input?: string;
+      context?: string;
+      modelo?: string;
+      policyVersion?: string;
+    },
   ): Promise<{ result: T; metrics: PipelineMetrics }> {
     const start = performance.now();
     // Fast path: cache hit (TTL 30s) — ahora con clave canónica completa
@@ -128,7 +142,14 @@ export class DoublePipelineRouter {
   async route<T>(
     fn: () => Promise<T>,
     health: { A: number; B: number; latencyA: number; latencyB: number },
-    ctx?: { tenantId?: string; userId?: string; input?: string; context?: string; modelo?: string; policyVersion?: string },
+    ctx?: {
+      tenantId?: string;
+      userId?: string;
+      input?: string;
+      context?: string;
+      modelo?: string;
+      policyVersion?: string;
+    },
   ) {
     // health score 0-1, latency p95
     const scoreA = health.A * 0.5 + (1 - health.latencyA / 100) * 0.5;

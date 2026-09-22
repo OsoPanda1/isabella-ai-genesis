@@ -36,7 +36,11 @@ export async function createVirtualCard(input: {
   reputationScore: number;
 }) {
   if (input.reputationScore < CATTLEYA_REPUTATION_THRESHOLD) {
-    return { ok: false as const, code: "CATTLEYA_POLICY_DENY", reason: `Reputation ${input.reputationScore} < 900` };
+    return {
+      ok: false as const,
+      code: "CATTLEYA_POLICY_DENY",
+      reason: `Reputation ${input.reputationScore} < 900`,
+    };
   }
   const stripe = getStripe();
   const spendingLimitDaily = input.spendingLimitDaily ?? 50000;
@@ -50,7 +54,9 @@ export async function createVirtualCard(input: {
       name: input.cardholderName,
       type: "individual",
       status: "active",
-      billing: { address: { line1: "N/A", city: "Real del Monte", country: "MX", postal_code: "42130" } },
+      billing: {
+        address: { line1: "N/A", city: "Real del Monte", country: "MX", postal_code: "42130" },
+      },
     });
     const card = await stripe.issuing.cards.create({
       cardholder: cardholder.id,
@@ -97,7 +103,10 @@ export async function createVirtualCard(input: {
   };
 }
 
-export function commissionForPlan(planId: string, reputationScore: number): { rate: number; allowed: boolean } {
+export function commissionForPlan(
+  planId: string,
+  reputationScore: number,
+): { rate: number; allowed: boolean } {
   if (reputationScore < CATTLEYA_REPUTATION_THRESHOLD) return { rate: 0, allowed: false };
   const rate = COMMISSION_BY_TIER[planId] ?? 0.25;
   return { rate, allowed: true };

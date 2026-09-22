@@ -295,7 +295,14 @@ export const Route = createFileRoute("/api/billing")({
               if (denied) return denied;
               const parsed = z
                 .object({
-                  planId: z.enum(["personal", "pro", "plan-visitor", "plan-citizen", "plan-merchant", "plan-nodo-cero-enterprise"]),
+                  planId: z.enum([
+                    "personal",
+                    "pro",
+                    "plan-visitor",
+                    "plan-citizen",
+                    "plan-merchant",
+                    "plan-nodo-cero-enterprise",
+                  ]),
                   billingCycle: z.enum(["monthly", "yearly"]).default("monthly"),
                   idempotencyKey: z
                     .string()

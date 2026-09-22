@@ -39,7 +39,6 @@ export const Route = createFileRoute("/api/isabella-voice")({
           });
         }
 
-
         // Parse Request Body safely
         let rawBody;
         try {
