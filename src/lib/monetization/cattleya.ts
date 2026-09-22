@@ -1,9 +1,8 @@
 /**
  * CATTLEYA™ — Stripe Issuing + Reputación Cívica 2000 — Parte III M13
- * Estado: IMPLEMENTACIÓN (mock soberano si STRIPE_SECRET_KEY ausente), pendiente CERTIFICACIÓN con Stripe Issuing vivo + Neon RLS
+ * Estado: implementación operativa contra Stripe Issuing + Neon RLS; sin fallback simulado
  * Simetría doc↔código: este archivo respalda M13.3 y M13.4 del doc canónico
  */
-import { createHash } from "node:crypto";
 import Stripe from "stripe";
 import { config } from "../config";
 import { createBookpiPostgresRepository } from "../repositories/bookpi-postgres-repository";
@@ -37,22 +36,28 @@ export async function createVirtualCard(input: {
   reputationScore: number;
 }) {
   if (input.reputationScore < CATTLEYA_REPUTATION_THRESHOLD) {
-    return { ok: false as const, code: "CATTLEYA_POLICY_DENY", reason: `Reputation ${input.reputationScore} < 900` };
+    return {
+      ok: false as const,
+      code: "CATTLEYA_POLICY_DENY",
+      reason: `Reputation ${input.reputationScore} < 900`,
+    };
   }
   const stripe = getStripe();
   const spendingLimitDaily = input.spendingLimitDaily ?? 50000;
   let stripeCardId: string, last4: string, brand: string, expMonth: number, expYear: number;
 
   if (!stripe) {
-    // Sovereign-mock determinista para demo sin Stripe — auditable, no guarda PAN/CVC
-    const hash = createHash("sha256").update(input.userId + input.cardholderName + Date.now().toString()).digest("hex");
-    stripeCardId = `card_mock_${hash.slice(0, 12)}`;
-    last4 = hash.slice(0, 4);
-    brand = "visa";
-    expMonth = 12;
-    expYear = 2028;
-  } else {
-    const cardholder = await stripe.issuing.cardholders.create({ name: input.cardholderName, type: "individual", status: "active" });
+    throw new Error("stripe_issuing_unconfigured");
+  }
+  {
+    const cardholder = await stripe.issuing.cardholders.create({
+      name: input.cardholderName,
+      type: "individual",
+      status: "active",
+      billing: {
+        address: { line1: "N/A", city: "Real del Monte", country: "MX", postal_code: "42130" },
+      },
+    });
     const card = await stripe.issuing.cards.create({
       cardholder: cardholder.id,
       currency: "usd",
@@ -98,7 +103,10 @@ export async function createVirtualCard(input: {
   };
 }
 
-export function commissionForPlan(planId: string, reputationScore: number): { rate: number; allowed: boolean } {
+export function commissionForPlan(
+  planId: string,
+  reputationScore: number,
+): { rate: number; allowed: boolean } {
   if (reputationScore < CATTLEYA_REPUTATION_THRESHOLD) return { rate: 0, allowed: false };
   const rate = COMMISSION_BY_TIER[planId] ?? 0.25;
   return { rate, allowed: true };

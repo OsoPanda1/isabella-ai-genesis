@@ -172,9 +172,13 @@ export function useIsabella() {
         await import("@/lib/auth-client");
       let token = getSessionToken();
       try {
-        // Refresh the preview session on every send. Preview/serverless workers can
-        // rotate their in-memory session state while the browser keeps an old JWT.
-        // Production rejects this endpoint and continues with the real token.
+        // Solo intenta la sesión efímera cuando el preview la anuncia explícitamente.
+        // En producción no se toca el endpoint de desarrollo.
+        const devSessionEnabled =
+          typeof import.meta !== "undefined" &&
+          import.meta.env?.DEV === true &&
+          import.meta.env?.VITE_DEV_SESSION_ENABLED === "true";
+        if (!devSessionEnabled) throw new Error("dev_session_disabled");
         const devRes = await fetch("/api/db?action=dev-session", {
           method: "POST",
           headers: { "content-type": "application/json" },

@@ -83,6 +83,7 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
   });
   const completedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const clockRef = useRef(0);
   const onCompleteRef = useRef(onComplete);
   const telemetryRef = useRef(onTelemetryUpdate);
@@ -115,6 +116,8 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
     if (completedRef.current) return;
     completedRef.current = true;
     videoRef.current?.pause();
+    audioRef.current?.pause();
+    if (audioRef.current) audioRef.current.currentTime = 0;
     onCompleteRef.current();
   }, []);
 
@@ -125,6 +128,11 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
     clockRef.current = performance.now();
 
     const video = videoRef.current;
+    const audio = audioRef.current;
+    if (audio) {
+      audio.muted = muted;
+      void audio.play().catch(() => undefined);
+    }
     if (!video || mediaFailed) return;
     video.muted = muted;
     void video
@@ -196,6 +204,7 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.muted = muted;
+    if (audioRef.current) audioRef.current.muted = muted;
   }, [muted]);
 
   const scene = useMemo(
@@ -228,6 +237,12 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
         background: "#020a0d",
       }}
     >
+      <audio
+        ref={audioRef}
+        src="/assets/isabella-intro-mashup.mp3"
+        preload="auto"
+        aria-label="Banda sonora de la introducción cinematográfica"
+      />
       {playbackUrl ? (
         <video
           ref={videoRef}

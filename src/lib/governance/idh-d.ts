@@ -97,8 +97,15 @@ export function idhdAppealRoute(tenantId: string, score: number) {
 }
 
 // --- Mitigación de sesgos (v3.1) ---
-export type BiasAudit = { metric: string; disparateImpact: number; passed: boolean; recommendation: string };
-export function auditIDHDBias(scores: Array<{ tenantId: string; score: number; components: IDHDComponent }>): BiasAudit[] {
+export type BiasAudit = {
+  metric: string;
+  disparateImpact: number;
+  passed: boolean;
+  recommendation: string;
+};
+export function auditIDHDBias(
+  scores: Array<{ tenantId: string; score: number; components: IDHDComponent }>,
+): BiasAudit[] {
   if (scores.length < 2) return [];
   const avg = scores.reduce((s, x) => s + x.score, 0) / scores.length;
   const min = Math.min(...scores.map((s) => s.score));

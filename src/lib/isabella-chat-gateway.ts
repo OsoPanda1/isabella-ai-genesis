@@ -415,9 +415,14 @@ export async function handleIsabellaChat(
   });
   if (governance.denied) {
     // Hardening: Guest de bajo riesgo no debe recibir 403 seco — degradar a fallback soberano con trazabilidad
-    const isGuestLowRisk = context.role === "Guest" && governance.decision?.policy?.risk !== "critical" && governance.decision?.policy?.risk !== "high";
+    const isGuestLowRisk =
+      context.role === "Guest" &&
+      governance.decision?.policy?.risk !== "critical" &&
+      governance.decision?.policy?.risk !== "high";
     if (isGuestLowRisk) {
-      console.warn(`[ISABELLA_GUEST_DEGRADED] trace=${context.traceId} reason=${governance.denialReason} risk=${governance.decision?.policy?.risk}`);
+      console.warn(
+        `[ISABELLA_GUEST_DEGRADED] trace=${context.traceId} reason=${governance.denialReason} risk=${governance.decision?.policy?.risk}`,
+      );
       // continuar hacia fallback soberano — no bloquear UX pública
     } else {
       return contractError(

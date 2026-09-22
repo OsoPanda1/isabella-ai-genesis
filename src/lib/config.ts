@@ -164,8 +164,10 @@ export function loadConfig(source: RawEnv = process.env): Env {
   try {
     assertRequired(mode, effectiveSource);
     assertProductionProvider(mode, parsed);
-    assertProductionCrypto(mode, parsed);
+    // La autoridad durable debe fallar primero para evitar diagnósticos engañosos
+    // cuando hay aliases de base de datos contradictorios.
     assertProductionStorageProvider(mode, effectiveSource, parsed);
+    assertProductionCrypto(mode, parsed);
     if (mode === "production" || mode === "staging") {
       if (parsed.NODE_ENV !== "production")
         throw new Error(

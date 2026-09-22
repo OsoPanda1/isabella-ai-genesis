@@ -28,11 +28,13 @@ export function canUseGuestChat(cfg: {
   NODE_ENV?: string;
   ISABELLA_RUNTIME_MODE?: string;
 }): boolean {
-  // Hardening: en producción solo si explícitamente habilitado + rate limit estricto
-  // Antes: solo development. Ahora: permite producción con ALLOW_GUEST_CHAT=true para chat público soberano
-  if (cfg.ALLOW_GUEST_CHAT !== true) return false;
-  // En producción requiere que el caller sea guest con scope limitado isabella:chat y rate limit L1
-  return true;
+  // El chat invitado solo existe en desarrollo explícito. En producción exige
+  // una identidad firmada o API key; nunca se habilita por una bandera pública.
+  return (
+    cfg.ALLOW_GUEST_CHAT === true &&
+    cfg.NODE_ENV === "development" &&
+    cfg.ISABELLA_RUNTIME_MODE === "development"
+  );
 }
 
 function assertDevelopmentOnly(): void {

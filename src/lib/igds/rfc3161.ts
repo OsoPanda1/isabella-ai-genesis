@@ -168,10 +168,20 @@ function hexOf(bytes: Buffer): string {
 }
 
 function generalizedTimeToIso(text: string): string {
-  const match = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(?:\.(\d+))?Z$/.exec(text.trim());
-  if (!match) throw new Error(`IGDS TSA: genTime no reconocido "${text}".`);
-  const fraction = match[7] ? `.${match[7].slice(0, 3).padEnd(3, "0")}` : "";
-  const iso = `${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}${fraction}Z`;
+  const normalized = text.trim();
+  const withoutZone = normalized.endsWith("Z") ? normalized.slice(0, -1) : "";
+  const [whole, fractionPart] = withoutZone.split(".");
+  const isDigits = (value: string) =>
+    value.length > 0 && [...value].every((char) => char >= "0" && char <= "9");
+  if (
+    whole.length !== 14 ||
+    !isDigits(whole) ||
+    (fractionPart !== undefined && !isDigits(fractionPart))
+  ) {
+    throw new Error(`IGDS TSA: genTime no reconocido "${text}".`);
+  }
+  const fraction = fractionPart ? `.${fractionPart.slice(0, 3).padEnd(3, "0")}` : "";
+  const iso = `${whole.slice(0, 4)}-${whole.slice(4, 6)}-${whole.slice(6, 8)}T${whole.slice(8, 10)}:${whole.slice(10, 12)}:${whole.slice(12, 14)}${fraction}Z`;
   const parsed = new Date(iso);
   if (Number.isNaN(parsed.getTime())) throw new Error(`IGDS TSA: genTime inválido "${text}".`);
   return parsed.toISOString();
