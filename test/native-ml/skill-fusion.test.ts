@@ -11,7 +11,9 @@ describe("native skill fusion", () => {
   it("registers every requested external skill family as native capability metadata", () => {
     expect(NATIVE_SKILL_SOURCES.length).toBeGreaterThanOrEqual(19);
     expect(NATIVE_SKILL_SOURCES.every((source) => source.native)).toBe(true);
-    expect(NATIVE_SKILL_SOURCES.every((source) => source.externalSideEffectsRequireAdapter)).toBe(true);
+    expect(NATIVE_SKILL_SOURCES.every((source) => source.externalSideEffectsRequireAdapter)).toBe(
+      true,
+    );
   });
 
   it("routes ordinary reasoning through the local NCUA substrate", () => {
@@ -41,7 +43,10 @@ describe("native skill fusion", () => {
   });
 
   it("produces deterministic semantic similarity", () => {
-    const first = nativeSkillSimilarity("financial earnings analysis", "analysis of financial earnings");
+    const first = nativeSkillSimilarity(
+      "financial earnings analysis",
+      "analysis of financial earnings",
+    );
     const second = nativeSkillSimilarity("financial earnings analysis", "flutter widget testing");
     expect(first).toBeGreaterThan(second);
     expect(first).toBeLessThanOrEqual(1);

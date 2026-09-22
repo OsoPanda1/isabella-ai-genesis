@@ -16,3 +16,5 @@ export * from "./revenue";
 export * from "./eligibility";
 export * from "./guides";
 export * from "./withdrawal";
+export * from "./cattleya";
+export * from "./tamv-monetization";

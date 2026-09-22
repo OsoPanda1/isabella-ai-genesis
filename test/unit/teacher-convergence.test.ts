@@ -4,10 +4,26 @@ import { convergeTeacherObservations } from "@/lib/native-ml";
 describe("teacher convergence", () => {
   it("selects the most supported high-confidence observation and preserves provenance", () => {
     const result = convergeTeacherObservations([
-      { teacherId: "gemini", response: "La respuesta requiere verificar la fuente.", confidence: 0.9 },
-      { teacherId: "claude", response: "La respuesta requiere verificar la fuente.", confidence: 0.8 },
-      { teacherId: "copilot", response: "La respuesta requiere verificar la fuente.", confidence: 0.85 },
-      { teacherId: "chatgpt", response: "La respuesta es inmediata y definitiva.", confidence: 0.95 },
+      {
+        teacherId: "gemini",
+        response: "La respuesta requiere verificar la fuente.",
+        confidence: 0.9,
+      },
+      {
+        teacherId: "claude",
+        response: "La respuesta requiere verificar la fuente.",
+        confidence: 0.8,
+      },
+      {
+        teacherId: "copilot",
+        response: "La respuesta requiere verificar la fuente.",
+        confidence: 0.85,
+      },
+      {
+        teacherId: "chatgpt",
+        response: "La respuesta es inmediata y definitiva.",
+        confidence: 0.95,
+      },
     ]);
     expect(result.consensusText).toContain("verificar la fuente");
     expect(result.teacherIds).toHaveLength(4);
@@ -26,9 +42,7 @@ describe("teacher convergence", () => {
 
   it("rejects a single teacher because convergence requires independent observations", () => {
     expect(() =>
-      convergeTeacherObservations([
-        { teacherId: "chatgpt", response: "solo", confidence: 1 },
-      ]),
+      convergeTeacherObservations([{ teacherId: "chatgpt", response: "solo", confidence: 1 }]),
     ).toThrow("teacher_convergence_requires_multiple_observations");
   });
 });

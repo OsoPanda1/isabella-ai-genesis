@@ -17,13 +17,13 @@ class ProductionRepositoryFactory implements RepositoryFactory {
   private isProduction(): boolean {
     try {
       const cfg = config();
-      return (
-        cfg.NODE_ENV === "production" ||
-        cfg.ISABELLA_RUNTIME_MODE === "production" ||
-        cfg.ISABELLA_RUNTIME_MODE === "staging"
-      );
+      const mode = (cfg.ISABELLA_RUNTIME_MODE || "").toLowerCase();
+      if (mode === "development" || mode === "test" || mode === "local") {
+        return false;
+      }
+      return cfg.NODE_ENV === "production" || mode === "production" || mode === "staging";
     } catch {
-      return true;
+      return false;
     }
   }
 

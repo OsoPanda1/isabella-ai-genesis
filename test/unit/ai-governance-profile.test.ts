@@ -25,15 +25,9 @@ describe("AI governance profile", () => {
     expect(profile.standardsAlignment).toContain(
       "EU AI Act transparency and human-oversight principles",
     );
-    expect(profile.standardsAlignment).toContain(
-      "NIST AI RMF Govern-Map-Measure-Manage",
-    );
-    expect(profile.standardsAlignment).toContain(
-      "ISO/IEC 42001 AI management-system principles",
-    );
-    expect(profile.standardsAlignment).toContain(
-      "OWASP Top 10 for LLM Applications 2025",
-    );
+    expect(profile.standardsAlignment).toContain("NIST AI RMF Govern-Map-Measure-Manage");
+    expect(profile.standardsAlignment).toContain("ISO/IEC 42001 AI management-system principles");
+    expect(profile.standardsAlignment).toContain("OWASP Top 10 for LLM Applications 2025");
     expect(profile.legalNotice).toMatch(/not a legal certification/i);
   });
 

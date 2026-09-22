@@ -45,16 +45,16 @@ function syntheticResponse(input: {
     der.encodeOid(SIGNED_DATA_OID),
     der.encodeExplicit(0, signedData),
   ]);
-  const statusInfo = der.encodeSequence([
-    der.encodeIntegerNumber(input.status ?? 0),
-  ]);
+  const statusInfo = der.encodeSequence([der.encodeIntegerNumber(input.status ?? 0)]);
   return der.encodeSequence([statusInfo, contentInfo]);
 }
 
 describe("IGDS RFC 3161 — DER", () => {
   it("construye un TimeStampReq sha256 con nonce y certReq", () => {
     const digest = digestHex("sha256", "sello");
-    const request = buildTimestampRequest(digest, { nonce: Buffer.from("0011223344556677", "hex") });
+    const request = buildTimestampRequest(digest, {
+      nonce: Buffer.from("0011223344556677", "hex"),
+    });
     const root = readDer(request).node;
     expect(root.tag).toBe(0x30);
     expect(root.children).toHaveLength(4);
@@ -117,7 +117,8 @@ describe("IGDS RFC 3161 — cliente y verificador", () => {
   });
 
   it("falla cerrado ante HTTP no exitoso", async () => {
-    const fetchImpl = (async () => new Response("nope", { status: 503 })) as unknown as typeof fetch;
+    const fetchImpl = (async () =>
+      new Response("nope", { status: 503 })) as unknown as typeof fetch;
     const client = createRfc3161TsaClient({ url: "https://tsa.example/rfc3161", fetchImpl });
     await expect(client.timestamp(digestHex("sha256", "x"))).rejects.toThrow(/HTTP 503/);
   });

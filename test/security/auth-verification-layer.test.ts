@@ -62,7 +62,10 @@ describe("AuthVerificationLayer — Rigorous JWKS/OIDC Verification and Audit Tr
     const headerB64 = Buffer.from(JSON.stringify(header)).toString("base64url");
     const payloadB64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
     const signingInput = `${headerB64}.${payloadB64}`;
-    const signature = crypto.createSign("RSA-SHA256").update(signingInput).sign(rsaPrivateKey, "base64url");
+    const signature = crypto
+      .createSign("RSA-SHA256")
+      .update(signingInput)
+      .sign(rsaPrivateKey, "base64url");
     return `${signingInput}.${signature}`;
   }
 

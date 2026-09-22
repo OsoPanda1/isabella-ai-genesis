@@ -69,10 +69,7 @@ describe("federated ML aggregation", () => {
       aggregateFederatedUpdates(
         model,
         base,
-        [
-          update("node-a", 1, [1, 0]),
-          { ...update("node-b", 1, [0, 1]), signature: "forged" },
-        ],
+        [update("node-a", 1, [1, 0]), { ...update("node-b", 1, [0, 1]), signature: "forged" }],
         verifySignature,
       ),
     ).toThrow("insufficient_valid_federated_updates");

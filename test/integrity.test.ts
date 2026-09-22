@@ -32,7 +32,10 @@ describe("Environment Integrity & .env.example Validation", () => {
         const [k, ...vParts] = trimmed.split("=");
         const key = k.trim();
         let val = vParts.join("=").trim();
-        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        if (
+          (val.startsWith('"') && val.endsWith('"')) ||
+          (val.startsWith("'") && val.endsWith("'"))
+        ) {
           val = val.slice(1, -1);
         }
         if (key && process.env[key] === undefined) {

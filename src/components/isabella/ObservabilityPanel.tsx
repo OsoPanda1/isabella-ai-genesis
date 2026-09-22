@@ -30,6 +30,8 @@ import { HealthMonitorService, HealthEvent } from "@/lib/telemetry/health";
 import { EntropyService, EntropyReport } from "@/lib/security/entropy";
 import { CentralizedTelemetryService, IsabellaCoreId } from "@/lib/latam-aegis-x";
 import { exportSecurityCompliancePdf } from "@/lib/audit-export";
+import { DoublePipelineMetricsPanel } from "./DoublePipelineMetricsPanel";
+import { MetricsDashboard } from "./MetricsDashboard";
 
 interface ChartPoint {
   time: string;
@@ -241,6 +243,12 @@ export function ObservabilityPanel() {
           </div>
         </div>
       </div>
+
+      {/* SECTION: PANEL DE OBSERVABILIDAD SUPER TURBO (p50, p95, p99 LINE CHARTS) */}
+      <MetricsDashboard />
+
+      {/* SECTION: DOBLE PIPELINE HEXAGONAL LATENCY METRICS */}
+      <DoublePipelineMetricsPanel />
 
       {/* SECTION 2: RECHARTS REAL-TIME STREAM PLOT */}
       <div className="p-5 rounded-2xl bg-secondary/10 border border-border/15 space-y-4">

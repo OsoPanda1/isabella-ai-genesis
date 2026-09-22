@@ -64,8 +64,7 @@ describe("step-up firmado", () => {
   });
 
   it("acepta step-up válido ligado a la misma operación", async () => {
-    const { authorizeBillingOperation, issueBillingStepUp } =
-      await import("@/lib/billing-guard");
+    const { authorizeBillingOperation, issueBillingStepUp } = await import("@/lib/billing-guard");
     const token = issueBillingStepUp({ tenantId: "t1", userId: "u1", operation: "refund" });
     const result = authorizeBillingOperation({
       operation: "refund",

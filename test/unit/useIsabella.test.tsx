@@ -64,7 +64,7 @@ describe("useIsabella Hook", () => {
 
     window.sessionStorage.setItem(
       "isabella.session.v1",
-      JSON.stringify({ messages: mockMessages })
+      JSON.stringify({ messages: mockMessages }),
     );
 
     const { result } = renderHook(() => useIsabella());

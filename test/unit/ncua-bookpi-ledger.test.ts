@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  BookPILedgerAuditor,
-  BOOKPI_NCUA_GENESIS,
-} from "@/lib/ncua/bookpi-trajectory";
+import { BookPILedgerAuditor, BOOKPI_NCUA_GENESIS } from "@/lib/ncua/bookpi-trajectory";
 import { QUPQuantumBridgeIntegrator } from "@/lib/ncua/quantum-align";
 import type { ContinuousConceptVector } from "@/lib/ncua/concept-engine";
 

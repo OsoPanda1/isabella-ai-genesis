@@ -4,7 +4,15 @@ import { ArgusAionBehaviorSentinel } from "@/lib/argus-aion-behavior";
 
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
 
-function sample(sequence: number, overrides: Partial<{ latencyMs: number; riskScore: number; vetoRate: number; policyVersion: string }> = {}) {
+function sample(
+  sequence: number,
+  overrides: Partial<{
+    latencyMs: number;
+    riskScore: number;
+    vetoRate: number;
+    policyVersion: string;
+  }> = {},
+) {
   return {
     sequence,
     capturedAt: new Date(1_700_000_000_000 + sequence).toISOString(),
@@ -31,7 +39,14 @@ describe("ARGUS AION behavioral sentinel", () => {
   it("escalates a severe behavioral deviation", () => {
     const sentinel = new ArgusAionBehaviorSentinel({ minimumSamples: 4, baselineWindow: 16 });
     for (let i = 1; i <= 5; i++) sentinel.observe(sample(i));
-    const assessment = sentinel.observe(sample(6, { latencyMs: 20_000, riskScore: 0.99, vetoRate: 0.99, policyVersion: "unexpected" }));
+    const assessment = sentinel.observe(
+      sample(6, {
+        latencyMs: 20_000,
+        riskScore: 0.99,
+        vetoRate: 0.99,
+        policyVersion: "unexpected",
+      }),
+    );
     expect(["SUSPICIOUS", "CRITICAL"]).toContain(assessment.status);
     expect(assessment.anomalyScore).toBeGreaterThan(0.55);
   });
@@ -40,6 +55,8 @@ describe("ARGUS AION behavioral sentinel", () => {
     const sentinel = new ArgusAionBehaviorSentinel();
     sentinel.observe(sample(1));
     expect(() => sentinel.observe(sample(1))).toThrow("aion_behavior_invalid_sequence");
-    expect(() => sentinel.observe({ ...sample(2), decisionDigest: "bad" })).toThrow("aion_behavior_invalid_integrity");
+    expect(() => sentinel.observe({ ...sample(2), decisionDigest: "bad" })).toThrow(
+      "aion_behavior_invalid_integrity",
+    );
   });
 });

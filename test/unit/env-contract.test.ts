@@ -39,7 +39,16 @@ const PROCESS_ENV_ALLOWLIST = new Set([
 
 // Variables de SISTEMA OPERATIVO (no secreto de app): PATH/HOME/SHELL/NODE_ENV/etc.
 // Nunca credenciales ni modo de ejecución; se permiten solo esas.
-const OS_ENV_ALLOWLIST = new Set(["PATH", "HOME", "SHELL", "TERM", "TZ", "LANG", "LC_ALL", "NODE_ENV"]);
+const OS_ENV_ALLOWLIST = new Set([
+  "PATH",
+  "HOME",
+  "SHELL",
+  "TERM",
+  "TZ",
+  "LANG",
+  "LC_ALL",
+  "NODE_ENV",
+]);
 
 describe("contrato de entorno", () => {
   it("toda clave del schema está documentada en .env.example", () => {

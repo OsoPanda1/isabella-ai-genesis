@@ -17,7 +17,11 @@ function run(payload: unknown) {
     // Gracia en Windows sin python3: degradación clásica explícita
     const msg = err instanceof Error ? err.message : String(err);
     if (msg.includes("ENOENT") || msg.includes("not found")) {
-      return { status: "degraded", implementation: "CLASSICAL_FALLBACK", fallback: { requiresReview: true } } as Record<string, unknown>;
+      return {
+        status: "degraded",
+        implementation: "CLASSICAL_FALLBACK",
+        fallback: { requiresReview: true },
+      } as Record<string, unknown>;
     }
     throw err;
   }

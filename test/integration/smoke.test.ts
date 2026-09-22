@@ -65,7 +65,9 @@ describe("smoke de despliegue", () => {
     const viteConfig = readFileSync(resolve(root, "vite.config.ts"), "utf8");
     expect(viteConfig.includes("nitro/vite"), "falta plugin nitro en vite.config").toBe(true);
     expect(viteConfig.includes("nitro()"), "falta nitro() canónico en vite.config").toBe(true);
-    expect(viteConfig.includes("vercel: { functions"), "no debe haber override de functions").toBe(false);
+    expect(viteConfig.includes("vercel: { functions"), "no debe haber override de functions").toBe(
+      false,
+    );
 
     const vercel = JSON.parse(readFileSync(resolve(root, "vercel.json"), "utf8")) as {
       installCommand?: string;
@@ -99,9 +101,8 @@ describe("smoke de despliegue", () => {
     ]) {
       expect(sql.includes(fragment), `migración IGDS sin: ${fragment}`).toBe(true);
     }
-    const { createPostgresGenesisRegistry } = await import(
-      "@/lib/repositories/igds-genesis-repository"
-    );
+    const { createPostgresGenesisRegistry } =
+      await import("@/lib/repositories/igds-genesis-repository");
     const registry = createPostgresGenesisRegistry();
     expect(typeof registry.appendSeal).toBe("function");
     expect(typeof registry.appendRevocation).toBe("function");

@@ -8,14 +8,11 @@ describe("platform capability production claims", () => {
   });
 
   it("fails closed for implemented capabilities without production evidence", () => {
-    for (const id of [
-      "security.aegis-x",
-      "evidence.bookpi",
-      "memory.pentacapa",
-      "tools.sandbox",
-    ]) {
+    for (const id of ["security.aegis-x", "evidence.bookpi", "memory.pentacapa", "tools.sandbox"]) {
       expect(getCapability(id)?.productionSafe).toBe(false);
-      expect(() => assertProductionCapability(id)).toThrow(/not approved for production execution/i);
+      expect(() => assertProductionCapability(id)).toThrow(
+        /not approved for production execution/i,
+      );
     }
   });
 

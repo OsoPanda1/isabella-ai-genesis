@@ -49,7 +49,8 @@ describe("Chat-to-Skill Stream Bridge Utility", () => {
   describe("executeChatSkillBridge", () => {
     beforeEach(() => {
       vi.restoreAllMocks();
-      if (!process.env.DATABASE_URL) process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test?sslmode=disable";
+      if (!process.env.DATABASE_URL)
+        process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test?sslmode=disable";
     });
 
     it("ejecuta a través de runIsabellaSkill con auth, CROWN y BookPI evidence logging", async () => {

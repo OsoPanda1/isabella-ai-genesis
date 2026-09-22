@@ -307,13 +307,9 @@ describe("IGDS sellado y verificación offline", () => {
       algorithm: "ML-DSA-65",
       keyId: "test-mldsa65-1",
       publicKey: pqcKeys.publicKeyPem,
-      sign: (data) => createEd25519Signer({ privateKeyPem: pqcKeys.privateKeyPem, keyId: "x" }).sign(data),
-      verify: (data, signature) =>
-        verifyEd25519(
-          pqcKeys.publicKeyPem,
-          data,
-          signature,
-        ),
+      sign: (data) =>
+        createEd25519Signer({ privateKeyPem: pqcKeys.privateKeyPem, keyId: "x" }).sign(data),
+      verify: (data, signature) => verifyEd25519(pqcKeys.publicKeyPem, data, signature),
     };
     registerPqcProvider(fakeProvider);
     try {

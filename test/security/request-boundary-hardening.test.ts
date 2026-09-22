@@ -17,7 +17,9 @@ describe("request boundary hardening", () => {
   });
 
   it("rejects oversized object key sets", () => {
-    const value = Object.fromEntries(Array.from({ length: 129 }, (_, index) => [`k${index}`, true]));
+    const value = Object.fromEntries(
+      Array.from({ length: 129 }, (_, index) => [`k${index}`, true]),
+    );
     expect(() => assertBoundedJsonValue(value)).toThrow(/REQUEST_OBJECT_TOO_LARGE/);
   });
 

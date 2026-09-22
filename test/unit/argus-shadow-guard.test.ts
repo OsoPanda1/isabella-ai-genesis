@@ -37,7 +37,10 @@ describe("ARGUS shadow guard", () => {
   it("rejects a decision replayed against a different request", () => {
     const decision = evaluateArgusShadow({ ...base, riskScore: 0.1 });
     expect(
-      verifyArgusShadowBinding({ ...base, requestId: "different-request", riskScore: 0.1 }, decision),
+      verifyArgusShadowBinding(
+        { ...base, requestId: "different-request", riskScore: 0.1 },
+        decision,
+      ),
     ).toBe(false);
   });
 

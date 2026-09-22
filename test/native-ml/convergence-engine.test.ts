@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { convergeKnowledge, type KnowledgeObservation } from "../../src/lib/native-ml/convergence-engine";
+import {
+  convergeKnowledge,
+  type KnowledgeObservation,
+} from "../../src/lib/native-ml/convergence-engine";
 
 const observation = (teacherId: string, claim: string): KnowledgeObservation => ({
   teacherId,

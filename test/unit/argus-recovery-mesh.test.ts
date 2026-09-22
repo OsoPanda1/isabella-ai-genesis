@@ -40,9 +40,21 @@ describe("ARGUS recovery mesh", () => {
   it("requires a quorum and consumes the accepted plan", () => {
     const mesh = new ArgusRecoveryMesh({ quorum: 2 });
     const now = Date.now();
-    const first = mesh.verifyAndAuthorize(plan, [attest("node-a", now), attest("node-b", now)], secrets, epoch, now);
+    const first = mesh.verifyAndAuthorize(
+      plan,
+      [attest("node-a", now), attest("node-b", now)],
+      secrets,
+      epoch,
+      now,
+    );
     expect(first).toMatchObject({ accepted: true, reason: "QUORUM_REACHED" });
-    const replay = mesh.verifyAndAuthorize(plan, [attest("node-a", now), attest("node-b", now)], secrets, epoch, now);
+    const replay = mesh.verifyAndAuthorize(
+      plan,
+      [attest("node-a", now), attest("node-b", now)],
+      secrets,
+      epoch,
+      now,
+    );
     expect(replay).toMatchObject({ accepted: false, reason: "REPLAYED_PLAN" });
   });
 
@@ -58,7 +70,13 @@ describe("ARGUS recovery mesh", () => {
   it("rejects the wrong epoch", () => {
     const mesh = new ArgusRecoveryMesh({ quorum: 2 });
     const now = Date.now();
-    const result = mesh.verifyAndAuthorize(plan, [attest("node-a", now), attest("node-b", now)], secrets, "wrong", now);
+    const result = mesh.verifyAndAuthorize(
+      plan,
+      [attest("node-a", now), attest("node-b", now)],
+      secrets,
+      "wrong",
+      now,
+    );
     expect(result).toMatchObject({ accepted: false, reason: "EPOCH_MISMATCH" });
   });
 });

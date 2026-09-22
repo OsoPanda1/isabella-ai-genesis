@@ -13,9 +13,20 @@ describe("billing security invariants", () => {
     expect(validateQuotaTopupMetadata(base, "tenant-a", "user-a", 2500)).toEqual({ ok: true });
     expect(validateQuotaTopupMetadata(base, "tenant-b", "user-a", 2500).ok).toBe(false);
     expect(validateQuotaTopupMetadata(base, "tenant-a", "user-b", 2500).ok).toBe(false);
-    expect(validateQuotaTopupMetadata({ ...base, currency: "mxn" }, "tenant-a", "user-a", 2500).ok).toBe(false);
-    expect(validateQuotaTopupMetadata({ ...base, amount: 2501 }, "tenant-a", "user-a", 2500).ok).toBe(false);
-    expect(validateQuotaTopupMetadata({ ...base, metadata: { ...base.metadata, purpose: "subscription" } }, "tenant-a", "user-a", 2500).ok).toBe(false);
+    expect(
+      validateQuotaTopupMetadata({ ...base, currency: "mxn" }, "tenant-a", "user-a", 2500).ok,
+    ).toBe(false);
+    expect(
+      validateQuotaTopupMetadata({ ...base, amount: 2501 }, "tenant-a", "user-a", 2500).ok,
+    ).toBe(false);
+    expect(
+      validateQuotaTopupMetadata(
+        { ...base, metadata: { ...base.metadata, purpose: "subscription" } },
+        "tenant-a",
+        "user-a",
+        2500,
+      ).ok,
+    ).toBe(false);
   });
 
   it("redacts all configured provider secret keys", () => {

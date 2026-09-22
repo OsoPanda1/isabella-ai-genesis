@@ -2,49 +2,45 @@ import { createFileRoute } from "@tanstack/react-router";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { SecuritySystem } from "@/lib/security";
 import { config } from "@/lib/config";
-import { randomUUID, createHash } from "node:crypto";
-
-type Op = {
-  id: string;
-  tenantId: string;
-  operation: string;
-  status: "pending" | "approved" | "rejected" | "executed";
-  approvals: string[];
-  nonce: string;
-  timestamp: string;
-  policyHash: string;
-  payloadHash: string;
-};
-const store = new Map<string, Op>();
+import { CreateNcuaOperationSchema, NcuaProtocolEngine } from "@/lib/ncua/ncua-protocol";
 
 export const Route = createFileRoute("/api/v1/ncua/operations")({
   server: {
     handlers: {
       POST: withSovereignAuth("system", "execute", async (ctx, req) => {
-        const body = (await req.json().catch(() => ({}))) as {
-          operation?: string;
-          payload?: unknown;
-        };
-        const id = `op_${randomUUID().slice(0, 8)}`;
-        const nonce = randomUUID().slice(0, 16);
-        const payloadHash = createHash("sha256")
-          .update(JSON.stringify(body.payload ?? body.operation ?? ""))
-          .digest("hex");
-        const policyHash = createHash("sha256")
-          .update(config().CROWN_CONSTITUTION_VERSION)
-          .digest("hex");
-        const op: Op = {
-          id,
+        const rawBody = (await req.json().catch(() => ({}))) as unknown;
+        const parseResult = CreateNcuaOperationSchema.safeParse(rawBody);
+        if (!parseResult.success) {
+          const headers = SecuritySystem.injectSecureHeaders(
+            new Headers({ "content-type": "application/json; charset=utf-8" }),
+          );
+          return new Response(
+            JSON.stringify({
+              schemaVersion: "v1",
+              requestId: ctx.correlationId,
+              traceId: ctx.traceId,
+              tenantId: ctx.tenantId,
+              timestamp: new Date().toISOString(),
+              error: {
+                code: "INVALID_REQUEST_PAYLOAD",
+                message: "Esquema de operación NCUA inválido.",
+                details: parseResult.error.flatten(),
+              },
+            }),
+            { status: 400, headers },
+          );
+        }
+
+        const data = parseResult.data;
+        const op = NcuaProtocolEngine.createOperation({
           tenantId: ctx.tenantId,
-          operation: body.operation ?? "protected_action",
-          status: "pending",
-          approvals: [],
-          nonce,
-          timestamp: new Date().toISOString(),
-          policyHash,
-          payloadHash,
-        };
-        store.set(id, op);
+          userId: ctx.userId,
+          operation: data.operation,
+          category: data.category,
+          payload: data.payload as Record<string, unknown>,
+          ttlMinutes: data.ttlMinutes,
+        });
+
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json; charset=utf-8" }),
         );
@@ -54,15 +50,20 @@ export const Route = createFileRoute("/api/v1/ncua/operations")({
             requestId: ctx.correlationId,
             traceId: ctx.traceId,
             tenantId: ctx.tenantId,
-            timestamp: op.timestamp,
+            timestamp: op.createdAt,
             policyVersion: config().CROWN_CONSTITUTION_VERSION,
             implementation: "ncua-2de3-v3",
             evidenceStatus: "E1",
             data: {
               ...op,
               quorum: "2-de-3",
-              nodes: ["A", "B", "C"],
-              note: "ML-KEM/ML-DSA no threshold por Shamir directo — requiere DKG/MPC (Cap. XII). Aprobaciones expiran, sin reconstrucción de clave privada.",
+              nodes: [
+                { id: "node_a_crown", short: "A", name: "CROWN Gateway" },
+                { id: "node_b_sophia", short: "B", name: "SOPHIA Engine" },
+                { id: "node_c_argus", short: "C", name: "ARGUS Sentinel" },
+              ],
+              governanceNote:
+                "Protocolo 2-de-3 activo. Se requieren al menos dos firmas soberanas válidas antes de la expiración para que la evidencia pase a estado E2/E3.",
             },
             error: null,
           }),
@@ -70,7 +71,7 @@ export const Route = createFileRoute("/api/v1/ncua/operations")({
         );
       }),
       GET: withSovereignAuth("system", "read", async (ctx) => {
-        const ops = [...store.values()].filter((o) => o.tenantId === ctx.tenantId);
+        const ops = NcuaProtocolEngine.listOperations(ctx.tenantId);
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json; charset=utf-8" }),
         );
