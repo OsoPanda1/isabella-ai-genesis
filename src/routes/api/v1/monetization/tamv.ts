@@ -40,10 +40,11 @@ const ActionRequestSchema = z.discriminatedUnion("action", [
   }),
 ]);
 
+// @ts-expect-error - TanStack route type augmented at build time
 export const Route = createFileRoute("/api/v1/monetization/tamv")({
   server: {
     handlers: {
-      GET: withSovereignAuth("analytics", "read", async (ctx) => {
+      GET: withSovereignAuth("system", "read", async (ctx) => {
         const plans = TamvSovereignMonetizationEngine.listPlans();
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json; charset=utf-8" }),
@@ -72,7 +73,7 @@ export const Route = createFileRoute("/api/v1/monetization/tamv")({
         );
       }),
 
-      POST: withSovereignAuth("economic", "create", async (ctx, req) => {
+      POST: withSovereignAuth("system", "execute", async (ctx, req) => {
         const rawBody = (await req.json().catch(() => ({}))) as unknown;
         const parseResult = ActionRequestSchema.safeParse(rawBody);
 

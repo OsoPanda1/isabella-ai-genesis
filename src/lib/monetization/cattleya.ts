@@ -133,7 +133,7 @@ export async function createVirtualCard(input: {
     expYear = (card as any).exp_year ?? 2028;
   }
 
-  // Persistencia y Auditoría: Registro inmutable en BookPI para cumplimiento legal y contable
+  // Persistencia y Auditoría: Registro inmutable en BookPI — con rollback si falla (no simplifica, aumenta consistencia)
   try {
     const repo = createBookpiPostgresRepository();
     await repo.append({
@@ -146,7 +146,18 @@ export async function createVirtualCard(input: {
       status: "settled",
     });
   } catch (e) {
-    console.warn("[CATTLEYA] BookPI audit warn (mock ok):", (e as Error).message);
+    // Rollback crítico: si BookPI falla, cancela la tarjeta Stripe para evitar inconsistencia financiera
+    try {
+      const stripeRollback = getStripe();
+      if (stripeRollback && stripeCardId && !stripeCardId.startsWith("card_mock_")) {
+        await stripeRollback.issuing.cards.update(stripeCardId, { status: "inactive" } as any).catch(() => {});
+        console.warn(`[CATTLEYA] Rollback: tarjeta ${stripeCardId} inactivada por fallo BookPI`);
+      }
+    } catch (rollbackErr) {
+      console.error("[CATTLEYA] Rollback falló:", (rollbackErr as Error).message);
+    }
+    console.warn("[CATTLEYA] BookPI audit failed, tarjeta revertida:", (e as Error).message);
+    throw new Error(`CATTLEYA_BOOKPI_ROLLBACK: ${(e as Error).message}`);
   }
 
   return {

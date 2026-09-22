@@ -198,19 +198,20 @@ export class TamvSovereignMonetizationEngine {
       tenantId: validated.tenantId,
       userId: validated.userId,
       operation: `INFERENCE_CONSUMPTION:${validated.model}:${validated.requestId.slice(0, 8)}`,
-      category: "tokens",
+      category: "other",
       cost: validated.costCredits,
       tokens: validated.tokensUsed,
       status: "settled",
     });
+    if (!entry.success || !entry.block) throw new Error(entry.error ?? "BookPI append failed");
 
     return {
       ok: true,
-      entryId: entry.id,
-      merkleRoot: entry.merkleRoot,
+      entryId: String(entry.block.index),
+      merkleRoot: entry.block.blockHash,
       tokensUsed: validated.tokensUsed,
       costCredits: validated.costCredits,
-      settledAt: entry.createdAt,
+      settledAt: entry.block.timestamp,
     };
   }
 
@@ -231,16 +232,17 @@ export class TamvSovereignMonetizationEngine {
       tokens: 0,
       status: "settled",
     });
+    if (!entry.success || !entry.block) throw new Error(entry.error ?? "BookPI append failed");
 
     return {
       ok: true,
-      entryId: entry.id,
-      merkleRoot: entry.merkleRoot,
+      entryId: String(entry.block.index),
+      merkleRoot: entry.block.blockHash,
       contributorId: validated.contributorId,
       creditsAwarded: validated.estimatedValueCredits,
       contributionType: validated.contributionType,
       itemTitle: validated.itemTitle,
-      settledAt: entry.createdAt,
+      settledAt: entry.block.timestamp,
     };
   }
 

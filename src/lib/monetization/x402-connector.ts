@@ -171,7 +171,7 @@ export class BookPILedgerService {
         tenantId: context.tenantId,
         userId: context.actorId,
         operation: `X402_SETTLEMENT_75_25:${idempotencyKey}`,
-        category: "revenue_event",
+        category: "other",
         cost: platformFeeCents / 100,
         tokens: grossAmountCents,
         status: "settled",

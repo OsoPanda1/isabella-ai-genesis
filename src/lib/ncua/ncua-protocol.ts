@@ -406,20 +406,15 @@ export class NcuaProtocolEngine {
         op.approvals.length,
         {
           conceptId: `ncua-op-${op.id}`,
-          manifoldCoord: [0.95, 0.99, 1.0],
-          semanticMass: 1.0,
-          governanceWeight: 1.0,
-          driftEntropy: 0.001,
-          dimensionalSignature: "sovereign:ncua:v3",
-          lastObservedTimestamp: Date.now(),
+          latentDimensions: [0.95, 0.99, 1.0],
+          semanticEnergy: 1.0,
+          epistemicConfidence: 0.99,
         },
         {
-          stateVector: [1, 0, 0, 1],
-          densityMatrixTrace: 1.0,
-          entropyVonNeumann: 0.002,
-          fidelityScore: 0.999,
+          qubitAmplitudes: ["1", "0", "0", "1"],
+          entanglementEntropy: 0.002,
+          parameterShiftGradient: 0.999,
           merkleSeal: op.verifiableEvidence.merkleRoot,
-          signedAtTimestamp: Date.now(),
         },
       );
       op.verifiableEvidence.bookpiEntryId = entry.entryId;

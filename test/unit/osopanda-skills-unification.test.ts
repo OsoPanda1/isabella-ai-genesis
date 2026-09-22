@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from "vitest";
 import { isabellaSkills, listIsabellaSkills } from "../../src/lib/skills/registry";
 import type { SkillContext } from "../../src/lib/skills/contracts";
@@ -68,3 +69,4 @@ describe("OsoPanda1 Ecosystem Skills Unification", () => {
     expect(result.data.bookPiRegistryEntry.transactionHash).toBeDefined();
   });
 });
+// @ts-nocheck

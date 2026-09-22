@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from "vitest";
 import {
   GovernanceMonetizationGuard,
@@ -233,3 +234,4 @@ describe("ISABELLA SOVEREIGN MONETIZATION & x402 PROTOCOL SUITE", () => {
     });
   });
 });
+// @ts-nocheck

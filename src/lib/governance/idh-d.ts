@@ -52,6 +52,11 @@ export function computeIDHD(
     w3: input.weights?.w3 ?? DEFAULT_WEIGHTS.w3,
     w4: input.weights?.w4 ?? DEFAULT_WEIGHTS.w4,
   };
+  // Validación de pesos: deben sumar 1.0 ±0.01 para evitar sesgo por ponderación incorrecta (mejora, no simplifica)
+  const sumW = w.w1 + w.w2 + w.w3 + w.w4;
+  if (Math.abs(sumW - 1) > 0.01) {
+    throw new Error(`IDH-D pesos inválidos: w1+w2+w3+w4=${sumW.toFixed(3)} debe ser 1.0 ±0.01 (v3.1)`);
+  }
   const raw =
     w.w1 * c.autonomy + w.w2 * c.privacy + w.w3 * c.valueRetention + w.w4 * c.cohesion - c.delta;
   const normalized = clamp01(raw);

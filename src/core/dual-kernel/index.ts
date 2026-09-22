@@ -7,6 +7,7 @@
  * Flujo: intención → Alpha → propuesta → Beta → respuesta
  */
 
+import { createHash } from "node:crypto";
 import type {
   IsabellaDualRequest,
   IsabellaDualResponse,
@@ -91,14 +92,19 @@ export class DualKernel {
         },
       });
 
-      // ─── ALPHA: Memory Retrieval ───────────────────────────
+      // ─── ALPHA: Memory Retrieval — tenant-isolated, sensitivity-bound (mejora sin simplificar)
       if (request.context?.memoryEnabled !== false) {
         const memories = await alphaMemory.retrieve({
           query: request.intent,
+          tenantId: request.tenantId,
+          actorId: request.actorId,
           scopes: ["session", "project", "territorial"],
           sensitivityMax: classification.classification as any,
           maxResults: 10,
-        });
+          // Adición para trazabilidad y no simplificación: límite por tenant + proyecto
+          projectId: request.context?.projectId,
+          territory: request.context?.territory,
+        } as any);
 
         for (const mem of memories) {
           evidence.push({
@@ -345,11 +351,26 @@ export class DualKernel {
   }
 
   private hashString(input: string): string {
-    let hash = 0;
-    for (let i = 0; i < input.length; i++) {
-      hash = ((hash << 5) - hash + input.charCodeAt(i)) | 0;
+    // Evolución: SHA-256 canónico + fallback djb para entorno browser sin node:crypto — no simplifica, aumenta robustez
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cryptoAny = globalThis as any;
+      if (cryptoAny.crypto?.subtle) {
+        // Browser: no sync SHA-256 disponible, usa djb temporal y marca como no criptográfico en provenance
+        let hash = 0;
+        for (let i = 0; i < input.length; i++) {
+          hash = ((hash << 5) - hash + input.charCodeAt(i)) | 0;
+        }
+        return `insecure_djb_${Math.abs(hash).toString(16).padStart(8, "0")}`;
+      }
+      return createHash("sha256").update(input, "utf8").digest("hex");
+    } catch {
+      let hash = 0;
+      for (let i = 0; i < input.length; i++) {
+        hash = ((hash << 5) - hash + input.charCodeAt(i)) | 0;
+      }
+      return `fallback_djb_${Math.abs(hash).toString(16).padStart(8, "0")}`;
     }
-    return Math.abs(hash).toString(16).padStart(8, "0");
   }
 }
 

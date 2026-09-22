@@ -53,7 +53,9 @@ import { Route as ApiV1AuthSessionRouteImport } from './routes/api/v1/auth/sessi
 import { Route as ApiV1CognitiveOrchestrateRouteImport } from './routes/api/v1/cognitive/orchestrate'
 import { Route as ApiV1GovernanceDignityIndexRouteImport } from './routes/api/v1/governance/dignity-index'
 import { Route as ApiV1ImagesGenerateRouteImport } from './routes/api/v1/images/generate'
+import { Route as ApiV1MonetizationTamvRouteImport } from './routes/api/v1/monetization/tamv'
 import { Route as ApiV1NcuaOperationsRouteImport } from './routes/api/v1/ncua/operations'
+import { Route as ApiV1MonetizationX402ProcessRouteImport } from './routes/api/v1/monetization/x402/process'
 import { Route as ApiV1MsrLedgerEventRouteImport } from './routes/api/v1/msr/ledger/event'
 import { Route as ApiV1NcuaOperationsApprovalsRouteImport } from './routes/api/v1/ncua/operations/approvals'
 
@@ -282,11 +284,22 @@ const ApiV1ImagesGenerateRoute = ApiV1ImagesGenerateRouteImport.update({
   path: '/api/v1/images/generate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1MonetizationTamvRoute = ApiV1MonetizationTamvRouteImport.update({
+  id: '/tamv',
+  path: '/tamv',
+  getParentRoute: () => ApiV1MonetizationRoute,
+} as any)
 const ApiV1NcuaOperationsRoute = ApiV1NcuaOperationsRouteImport.update({
   id: '/api/v1/ncua/operations',
   path: '/api/v1/ncua/operations',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1MonetizationX402ProcessRoute =
+  ApiV1MonetizationX402ProcessRouteImport.update({
+    id: '/x402/process',
+    path: '/x402/process',
+    getParentRoute: () => ApiV1MonetizationRoute,
+  } as any)
 const ApiV1MsrLedgerEventRoute = ApiV1MsrLedgerEventRouteImport.update({
   id: '/api/v1/msr/ledger/event',
   path: '/api/v1/msr/ledger/event',
@@ -330,7 +343,7 @@ export interface FileRoutesByFullPath {
   '/api/isabella/native': typeof ApiIsabellaNativeRoute
   '/api/v1/ecosystem': typeof ApiV1EcosystemRoute
   '/api/v1/isabella': typeof ApiV1IsabellaRoute
-  '/api/v1/monetization': typeof ApiV1MonetizationRoute
+  '/api/v1/monetization': typeof ApiV1MonetizationRouteWithChildren
   '/api/v1/nodo-cero': typeof ApiV1NodoCeroRoute
   '/api/v1/skills': typeof ApiV1SkillsRoute
   '/api/v1/territorial-twin': typeof ApiV1TerritorialTwinRoute
@@ -344,7 +357,9 @@ export interface FileRoutesByFullPath {
   '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
   '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
   '/api/v1/images/generate': typeof ApiV1ImagesGenerateRoute
+  '/api/v1/monetization/tamv': typeof ApiV1MonetizationTamvRoute
   '/api/v1/ncua/operations': typeof ApiV1NcuaOperationsRouteWithChildren
+  '/api/v1/monetization/x402/process': typeof ApiV1MonetizationX402ProcessRoute
   '/api/v1/msr/ledger/event': typeof ApiV1MsrLedgerEventRoute
   '/api/v1/ncua/operations/approvals': typeof ApiV1NcuaOperationsApprovalsRoute
 }
@@ -379,7 +394,7 @@ export interface FileRoutesByTo {
   '/api/isabella/native': typeof ApiIsabellaNativeRoute
   '/api/v1/ecosystem': typeof ApiV1EcosystemRoute
   '/api/v1/isabella': typeof ApiV1IsabellaRoute
-  '/api/v1/monetization': typeof ApiV1MonetizationRoute
+  '/api/v1/monetization': typeof ApiV1MonetizationRouteWithChildren
   '/api/v1/nodo-cero': typeof ApiV1NodoCeroRoute
   '/api/v1/skills': typeof ApiV1SkillsRoute
   '/api/v1/territorial-twin': typeof ApiV1TerritorialTwinRoute
@@ -393,7 +408,9 @@ export interface FileRoutesByTo {
   '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
   '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
   '/api/v1/images/generate': typeof ApiV1ImagesGenerateRoute
+  '/api/v1/monetization/tamv': typeof ApiV1MonetizationTamvRoute
   '/api/v1/ncua/operations': typeof ApiV1NcuaOperationsRouteWithChildren
+  '/api/v1/monetization/x402/process': typeof ApiV1MonetizationX402ProcessRoute
   '/api/v1/msr/ledger/event': typeof ApiV1MsrLedgerEventRoute
   '/api/v1/ncua/operations/approvals': typeof ApiV1NcuaOperationsApprovalsRoute
 }
@@ -429,7 +446,7 @@ export interface FileRoutesById {
   '/api/isabella/native': typeof ApiIsabellaNativeRoute
   '/api/v1/ecosystem': typeof ApiV1EcosystemRoute
   '/api/v1/isabella': typeof ApiV1IsabellaRoute
-  '/api/v1/monetization': typeof ApiV1MonetizationRoute
+  '/api/v1/monetization': typeof ApiV1MonetizationRouteWithChildren
   '/api/v1/nodo-cero': typeof ApiV1NodoCeroRoute
   '/api/v1/skills': typeof ApiV1SkillsRoute
   '/api/v1/territorial-twin': typeof ApiV1TerritorialTwinRoute
@@ -443,7 +460,9 @@ export interface FileRoutesById {
   '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
   '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
   '/api/v1/images/generate': typeof ApiV1ImagesGenerateRoute
+  '/api/v1/monetization/tamv': typeof ApiV1MonetizationTamvRoute
   '/api/v1/ncua/operations': typeof ApiV1NcuaOperationsRouteWithChildren
+  '/api/v1/monetization/x402/process': typeof ApiV1MonetizationX402ProcessRoute
   '/api/v1/msr/ledger/event': typeof ApiV1MsrLedgerEventRoute
   '/api/v1/ncua/operations/approvals': typeof ApiV1NcuaOperationsApprovalsRoute
 }
@@ -494,7 +513,9 @@ export interface FileRouteTypes {
     | '/api/v1/cognitive/orchestrate'
     | '/api/v1/governance/dignity-index'
     | '/api/v1/images/generate'
+    | '/api/v1/monetization/tamv'
     | '/api/v1/ncua/operations'
+    | '/api/v1/monetization/x402/process'
     | '/api/v1/msr/ledger/event'
     | '/api/v1/ncua/operations/approvals'
   fileRoutesByTo: FileRoutesByTo
@@ -543,7 +564,9 @@ export interface FileRouteTypes {
     | '/api/v1/cognitive/orchestrate'
     | '/api/v1/governance/dignity-index'
     | '/api/v1/images/generate'
+    | '/api/v1/monetization/tamv'
     | '/api/v1/ncua/operations'
+    | '/api/v1/monetization/x402/process'
     | '/api/v1/msr/ledger/event'
     | '/api/v1/ncua/operations/approvals'
   id:
@@ -592,7 +615,9 @@ export interface FileRouteTypes {
     | '/api/v1/cognitive/orchestrate'
     | '/api/v1/governance/dignity-index'
     | '/api/v1/images/generate'
+    | '/api/v1/monetization/tamv'
     | '/api/v1/ncua/operations'
+    | '/api/v1/monetization/x402/process'
     | '/api/v1/msr/ledger/event'
     | '/api/v1/ncua/operations/approvals'
   fileRoutesById: FileRoutesById
@@ -624,7 +649,7 @@ export interface RootRouteChildren {
   ApiConnectSlackRoute: typeof ApiConnectSlackRouteWithChildren
   ApiV1EcosystemRoute: typeof ApiV1EcosystemRoute
   ApiV1IsabellaRoute: typeof ApiV1IsabellaRoute
-  ApiV1MonetizationRoute: typeof ApiV1MonetizationRoute
+  ApiV1MonetizationRoute: typeof ApiV1MonetizationRouteWithChildren
   ApiV1NodoCeroRoute: typeof ApiV1NodoCeroRoute
   ApiV1SkillsRoute: typeof ApiV1SkillsRoute
   ApiV1TerritorialTwinRoute: typeof ApiV1TerritorialTwinRoute
@@ -946,12 +971,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1ImagesGenerateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/monetization/tamv': {
+      id: '/api/v1/monetization/tamv'
+      path: '/tamv'
+      fullPath: '/api/v1/monetization/tamv'
+      preLoaderRoute: typeof ApiV1MonetizationTamvRouteImport
+      parentRoute: typeof ApiV1MonetizationRoute
+    }
     '/api/v1/ncua/operations': {
       id: '/api/v1/ncua/operations'
       path: '/api/v1/ncua/operations'
       fullPath: '/api/v1/ncua/operations'
       preLoaderRoute: typeof ApiV1NcuaOperationsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/monetization/x402/process': {
+      id: '/api/v1/monetization/x402/process'
+      path: '/x402/process'
+      fullPath: '/api/v1/monetization/x402/process'
+      preLoaderRoute: typeof ApiV1MonetizationX402ProcessRouteImport
+      parentRoute: typeof ApiV1MonetizationRoute
     }
     '/api/v1/msr/ledger/event': {
       id: '/api/v1/msr/ledger/event'
@@ -1038,6 +1077,19 @@ const ApiConnectSlackRouteWithChildren = ApiConnectSlackRoute._addFileChildren(
   ApiConnectSlackRouteChildren,
 )
 
+interface ApiV1MonetizationRouteChildren {
+  ApiV1MonetizationTamvRoute: typeof ApiV1MonetizationTamvRoute
+  ApiV1MonetizationX402ProcessRoute: typeof ApiV1MonetizationX402ProcessRoute
+}
+
+const ApiV1MonetizationRouteChildren: ApiV1MonetizationRouteChildren = {
+  ApiV1MonetizationTamvRoute: ApiV1MonetizationTamvRoute,
+  ApiV1MonetizationX402ProcessRoute: ApiV1MonetizationX402ProcessRoute,
+}
+
+const ApiV1MonetizationRouteWithChildren =
+  ApiV1MonetizationRoute._addFileChildren(ApiV1MonetizationRouteChildren)
+
 interface ApiV1NcuaOperationsRouteChildren {
   ApiV1NcuaOperationsApprovalsRoute: typeof ApiV1NcuaOperationsApprovalsRoute
 }
@@ -1076,7 +1128,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiConnectSlackRoute: ApiConnectSlackRouteWithChildren,
   ApiV1EcosystemRoute: ApiV1EcosystemRoute,
   ApiV1IsabellaRoute: ApiV1IsabellaRoute,
-  ApiV1MonetizationRoute: ApiV1MonetizationRoute,
+  ApiV1MonetizationRoute: ApiV1MonetizationRouteWithChildren,
   ApiV1NodoCeroRoute: ApiV1NodoCeroRoute,
   ApiV1SkillsRoute: ApiV1SkillsRoute,
   ApiV1TerritorialTwinRoute: ApiV1TerritorialTwinRoute,
