@@ -10,13 +10,13 @@ import { describe, it, expect } from "vitest";
 import { auditClientEnv } from "../../scripts/check-client-env.mjs";
 
 describe("client env guard", () => {
-  it("falla ante claves con prefijo VITE_*", () => {
-    const { errors } = auditClientEnv({
-      VITE_STATSIG_CLIENT_KEY: "sk-test",
+  it("permite la clave pública oficial de Statsig", () => {
+    const { errors, warnings } = auditClientEnv({
+      VITE_STATSIG_CLIENT_KEY: "client-key",
       PATH: "/usr/bin",
     } as NodeJS.ProcessEnv);
-    expect(errors.length).toBeGreaterThan(0);
-    expect(errors.join(" ")).toMatch(/VITE_STATSIG_CLIENT_KEY/);
+    expect(errors).toHaveLength(0);
+    expect(warnings).toHaveLength(0);
   });
 
   it("falla ante patrones de secreto (SECRET/PRIVATE/SIGNING)", () => {
@@ -27,12 +27,13 @@ describe("client env guard", () => {
     expect(errors).toHaveLength(2);
   });
 
-  it("advierte (sin fallar) ante VITE_* públicas no declaradas", () => {
+  it("permite las variables públicas oficiales", () => {
     const { errors, warnings } = auditClientEnv({
       VITE_PUBLIC_APP_URL: "https://x.example",
+      VITE_STATSIG_CLIENT_KEY: "client-key",
     } as NodeJS.ProcessEnv);
     expect(errors).toHaveLength(0);
-    expect(warnings.join(" ")).toMatch(/VITE_PUBLIC_APP_URL/);
+    expect(warnings).toHaveLength(0);
   });
 
   it("entorno limpio pasa sin errores ni warnings", () => {

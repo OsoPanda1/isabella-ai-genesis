@@ -1,8 +1,10 @@
 import { defineConfig } from "vitest/config";
-import tsConfigPaths from "vite-tsconfig-paths";
-
 export default defineConfig({
-  plugins: [tsConfigPaths()],
+  resolve: {
+    alias: {
+      "@": new URL("./src", import.meta.url).pathname,
+    },
+  },
   test: {
     globals: true,
     environment: "node",
@@ -13,7 +15,7 @@ export default defineConfig({
     },
     projects: [
       {
-        plugins: [tsConfigPaths()],
+        resolve: { alias: { "@": new URL("./src", import.meta.url).pathname } },
         test: {
           name: "unit",
           environment: "node",
@@ -27,7 +29,7 @@ export default defineConfig({
         },
       },
       {
-        plugins: [tsConfigPaths()],
+        resolve: { alias: { "@": new URL("./src", import.meta.url).pathname } },
         test: {
           name: "security",
           environment: "node",
@@ -36,7 +38,7 @@ export default defineConfig({
         },
       },
       {
-        plugins: [tsConfigPaths()],
+        resolve: { alias: { "@": new URL("./src", import.meta.url).pathname } },
         test: {
           name: "bookpi",
           environment: "node",
@@ -45,7 +47,7 @@ export default defineConfig({
         },
       },
       {
-        plugins: [tsConfigPaths()],
+        resolve: { alias: { "@": new URL("./src", import.meta.url).pathname } },
         test: {
           name: "integration",
           environment: "node",
