@@ -62,8 +62,17 @@ const oauthCodes = new Map<string, OAuthCodeEntry>();
  * Si falta cualquiera de las dos, la puerta queda cerrada.
  */
 function isDevSessionEnabled(): boolean {
-  const runtime = config();
-  return runtime.NODE_ENV === "development" && runtime.ISABELLA_RUNTIME_MODE === "development";
+  try {
+    const runtime = config();
+    return (
+      runtime.NODE_ENV === "development" &&
+      runtime.ISABELLA_RUNTIME_MODE === "development" &&
+      runtime.AUTH_DEV_SESSION_ENABLED === true
+    );
+  } catch {
+    // Un entorno incompleto debe producir 403, nunca un 500 de infraestructura.
+    return false;
+  }
 }
 
 function timingSafeEqualStrings(a: string, b: string): boolean {
