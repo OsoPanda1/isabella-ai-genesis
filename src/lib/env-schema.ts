@@ -127,13 +127,16 @@ export const envSchema = z
     RATE_LIMIT_VOICE_PER_MINUTE: coercedInt(20),
     // --- AI GATEWAY ---
     GEMINI_API_KEY: optionalString(),
+    LLM_DEFAULT_MODEL: z.string().default("google/gemini-3.1-flash"),
+    VOICE_API_URL: optionalUrl(),
     GROQ_API_KEY: optionalString(),
     XAI_API_KEY: optionalString(),
-    LLM_DEFAULT_MODEL: z.string().default("google/gemini-3.6-flash"),
     LLM_VOICE_MODEL: z.string().default("openai/gpt-4o-mini-tts"),
-    VOICE_API_URL: optionalUrl(),
     LLM_UPSTREAM_TIMEOUT_MS: coercedInt(8500),
     // --- TELEMETRY ---
+    STATSIG_SERVER_API_KEY: optionalString(),
+    VITE_PUBLIC_APP_URL: optionalUrl(),
+    VITE_STATSIG_CLIENT_KEY: optionalString(),
     OTEL_EXPORTER_OTLP_ENDPOINT: optionalUrl(),
     OTEL_SERVICE_NAME: z.string().default("isabella-ai"),
     // --- REDACTION ---
