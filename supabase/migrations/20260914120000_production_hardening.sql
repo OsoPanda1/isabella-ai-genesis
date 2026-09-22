@@ -1,5 +1,6 @@
 -- ISABELLA AI GENESIS — production hardening contract (2026-09-14)
-BEGIN;
+-- Nota: sin BEGIN/COMMIT — el runner db-migrate.mjs envuelve todo el batch en una sola transacción
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 DO $$
 BEGIN
@@ -126,5 +127,3 @@ BEGIN
   IF to_regclass('public.bookpi_ledger') IS NULL THEN RAISE EXCEPTION 'CRITICAL_SCHEMA_ERROR: bookpi_ledger table is missing'; END IF;
   IF to_regclass('public.api_keys') IS NULL THEN RAISE EXCEPTION 'CRITICAL_SCHEMA_ERROR: api_keys table is missing'; END IF;
 END $$;
-
-COMMIT;

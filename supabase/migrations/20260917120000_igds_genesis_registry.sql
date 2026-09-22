@@ -13,8 +13,7 @@
 --     backend productivo conecta como owner y aplica autorización server-side.
 --   * Sin datos ni credenciales.
 -- ============================================================================
-
-BEGIN;
+-- Nota: sin BEGIN/COMMIT — el runner envuelve todo en una sola transacción
 
 CREATE TABLE IF NOT EXISTS public.igds_entries (
     sequence            BIGINT PRIMARY KEY,
@@ -102,5 +101,3 @@ CREATE TRIGGER trg_prevent_igds_revocations_delete
 ALTER TABLE public.igds_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.igds_checkpoints ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.igds_revocations ENABLE ROW LEVEL SECURITY;
-
-COMMIT;

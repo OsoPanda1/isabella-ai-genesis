@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS virtual_cards (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(64) NOT NULL,
     stripe_card_id VARCHAR(255) UNIQUE NOT NULL,
     card_holder_name VARCHAR(255) NOT NULL,
     last4 VARCHAR(4) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS virtual_cards (
     customization_price INT NOT NULL DEFAULT 0 CHECK (customization_price >= 0),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT fk_virtual_cards_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    CONSTRAINT fk_virtual_cards_user FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_virtual_cards_user_id ON virtual_cards(user_id);
@@ -31,11 +31,11 @@ BEGIN NEW.updated_at = NOW(); RETURN NEW; END; $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS trg_virtual_cards_updated_at ON virtual_cards;
 CREATE TRIGGER trg_virtual_cards_updated_at BEFORE UPDATE ON virtual_cards FOR EACH ROW EXECUTE FUNCTION update_virtual_cards_updated_at();
 
--- RLS: aislamiento por tenant (user_id → tenant via users.tenant_id)
+-- RLS: aislamiento por tenant (user_id → tenant via profiles.tenant_id) — varchar, no uuid
 ALTER TABLE virtual_cards ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "virtual_cards_tenant_isolation" ON virtual_cards;
 CREATE POLICY "virtual_cards_tenant_isolation" ON virtual_cards
-  FOR ALL USING (user_id IN (SELECT id FROM users WHERE tenant_id = current_setting('app.tenant_id', true)::uuid))
-  WITH CHECK (user_id IN (SELECT id FROM users WHERE tenant_id = current_setting('app.tenant_id', true)::uuid));
+  FOR ALL USING (user_id IN (SELECT id FROM profiles WHERE tenant_id = current_setting('app.tenant_id', true)))
+  WITH CHECK (user_id IN (SELECT id FROM profiles WHERE tenant_id = current_setting('app.tenant_id', true)));
 
 COMMENT ON TABLE virtual_cards IS 'CATTLEYA™ — Stripe Issuing virtual cards con reputación ≥900, PCI DSS/CNBV: solo stripe_card_id/last4/brand, nunca PAN/CVC';

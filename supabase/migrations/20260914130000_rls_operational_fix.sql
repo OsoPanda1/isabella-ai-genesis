@@ -14,8 +14,7 @@
 --   * Las políticas permanecen explícitas para futuras conexiones con JWT.
 --
 -- No contiene datos ni credenciales.
-
-BEGIN;
+-- Nota: sin BEGIN/COMMIT — el runner envuelve todo en una sola transacción
 
 ALTER TABLE public.memories NO FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.api_keys NO FORCE ROW LEVEL SECURITY;
@@ -66,5 +65,3 @@ CREATE POLICY economic_events_select ON public.economic_events FOR SELECT
   USING (tenant_id = public.current_request_tenant_id());
 CREATE POLICY economic_events_insert ON public.economic_events FOR INSERT
   WITH CHECK (tenant_id = public.current_request_tenant_id());
-
-COMMIT;

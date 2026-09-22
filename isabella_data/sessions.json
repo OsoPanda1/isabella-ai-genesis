@@ -1,0 +1,32 @@
+[
+  {
+    "id": "dev_user_local:fa765404-eb6a-4311-95ac-fb3f50873fb5",
+    "tenantId": "dev_user_local:fa765404-eb6a-4311-95ac-fb3f50873fb5",
+    "userId": "dev_user_local",
+    "principalType": "user",
+    "tokenJti": "fa765404-eb6a-4311-95ac-fb3f50873fb5",
+    "expiresAt": "2026-09-22T05:03:53.683Z",
+    "createdAt": "2026-09-22T04:03:53.683Z",
+    "tenant_id": "dev_user_local:fa765404-eb6a-4311-95ac-fb3f50873fb5"
+  },
+  {
+    "id": "dev_user_local:8d88331a-a6d8-46cd-a54a-5c79ddf14a77",
+    "tenantId": "dev_user_local:8d88331a-a6d8-46cd-a54a-5c79ddf14a77",
+    "userId": "dev_user_local",
+    "principalType": "user",
+    "tokenJti": "8d88331a-a6d8-46cd-a54a-5c79ddf14a77",
+    "expiresAt": "2026-09-22T05:04:19.390Z",
+    "createdAt": "2026-09-22T04:04:19.390Z",
+    "tenant_id": "dev_user_local:8d88331a-a6d8-46cd-a54a-5c79ddf14a77"
+  },
+  {
+    "id": "dev_user_local:931c62e1-aea0-46d8-bbe5-9be752c51f76",
+    "tenantId": "dev_user_local:931c62e1-aea0-46d8-bbe5-9be752c51f76",
+    "userId": "dev_user_local",
+    "principalType": "user",
+    "tokenJti": "931c62e1-aea0-46d8-bbe5-9be752c51f76",
+    "expiresAt": "2026-09-22T05:04:51.718Z",
+    "createdAt": "2026-09-22T04:04:51.718Z",
+    "tenant_id": "dev_user_local:931c62e1-aea0-46d8-bbe5-9be752c51f76"
+  }
+]

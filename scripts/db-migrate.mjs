@@ -128,7 +128,7 @@ const forbidden = [
   /\bdrop\s+(table|schema|database|view|materialized\s+view)\b/i,
   /\btruncate\b/i,
   /\bdelete\s+from\b/i,
-  /\balter\s+table\b[\s\S]*?\bdrop\s+(column|constraint)\b/i,
+  /\balter\s+table\b[\s\S]*?\bdrop\s+(column|constraint)\b(?!\s+if\s+exists)/i,
   /\bcreate\s+index\b[\s\S]*?\bconcurrently\b/i,
   /\bcommit\s*;/i,
   /\brollback\s*;/i,

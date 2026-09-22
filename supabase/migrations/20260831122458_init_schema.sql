@@ -5,6 +5,7 @@
 
 create schema if not exists extensions;
 create extension if not exists "uuid-ossp";
+create extension if not exists "pgcrypto";
 
 -- Immutable baseline: never reference a table before creating it. Re-runs are
 -- governed by Supabase migration history rather than destructive DROP calls.
