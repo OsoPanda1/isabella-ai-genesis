@@ -29,12 +29,15 @@ function getPgPool(): Pool {
   if (!pgPool) {
     const url = config().DATABASE_URL;
     if (!url) throw toRepositoryError("DATABASE_URL not configured", 500);
+    // SSL obligatorio para Supabase/Neon/Vercel Postgres — sin esto SELECT 1 falla con repository_unhealthy
+    const needsSsl = /supabase\.co|neon\.tech|\.pooler\.supabase\.com|sslmode=require/i.test(url);
     pgPool = new Pool({
       connectionString: url,
       max: 10,
       connectionTimeoutMillis: 10_000,
       idleTimeoutMillis: 30_000,
       statement_timeout: 15_000,
+      ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
     });
     pgPool.on("error", (err) => console.error("Unexpected error on idle Postgres pool", err));
   }
@@ -232,13 +235,15 @@ export class NeonRepository<T extends object> implements IRepository<T> {
     }
   }
 
-  async health(): Promise<{ ok: boolean; latencyMs: number }> {
+  async health(): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
     const start = performance.now();
     try {
       await getPgPool().query("SELECT 1");
       return { ok: true, latencyMs: performance.now() - start };
-    } catch {
-      return { ok: false, latencyMs: performance.now() - start };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message.slice(0, 200) : String(err).slice(0, 200);
+      console.error(`[NeonRepository:${this.type}] health check failed:`, msg);
+      return { ok: false, latencyMs: performance.now() - start, error: msg };
     }
   }
 

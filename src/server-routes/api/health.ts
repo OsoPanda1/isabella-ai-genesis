@@ -97,20 +97,25 @@ async function checkRepositoryHealth(kind: "repository" | "audit"): Promise<Heal
       kind === "repository"
         ? repositoryFactory.getTenantRepository()
         : repositoryFactory.getAuditRepository();
-    const result = await withTimeout(repository.health(), DEPENDENCY_TIMEOUT_MS);
+    const result = await withTimeout(
+      repository.health() as Promise<{ ok: boolean; latencyMs: number; error?: string }>,
+      DEPENDENCY_TIMEOUT_MS,
+    );
     return {
       ok: result.ok,
       latencyMs: Number((performance.now() - started).toFixed(2)),
-      ...(result.ok ? {} : { error: "repository_unhealthy" }),
+      ...(result.ok ? {} : { error: (result as { error?: string }).error ?? "repository_unhealthy" }),
     };
   } catch (error) {
+    const msg = error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200);
+    console.error(`[health:${kind}] check failed:`, msg);
     return {
       ok: false,
       latencyMs: Number((performance.now() - started).toFixed(2)),
       error:
         error instanceof Error && error.message === "dependency_timeout"
           ? "dependency_timeout"
-          : `${kind}_unavailable`,
+          : `${kind}_unavailable: ${msg}`,
     };
   }
 }
@@ -135,10 +140,16 @@ async function readiness(): Promise<Response> {
     checks.config = { ok: hasDurableAuthority };
     if (!hasDurableAuthority && productionLike) overallOk = false;
 
-    const genesisConfigured = Boolean(cfg.GEMINI_API_KEY && cfg.CROWN_POLICY_SIGNING_KEY);
+    // Corrección total: génesis no exige solo GEMINI — acepta GROQ/XAI como alternativa soberana (paridad con config.ts:61)
+    const hasInferenceProvider = Boolean(cfg.GEMINI_API_KEY || cfg.GROQ_API_KEY || cfg.XAI_API_KEY);
+    const genesisConfigured = Boolean(hasInferenceProvider && cfg.CROWN_POLICY_SIGNING_KEY);
     checks.isabella_genesis = {
       ok: genesisConfigured,
-      ...(genesisConfigured ? {} : { error: "genesis_service_unconfigured" }),
+      ...(genesisConfigured
+        ? {}
+        : {
+            error: hasInferenceProvider ? "crown_policy_signing_key_unconfigured" : "genesis_service_unconfigured",
+          }),
     };
     if (!genesisConfigured && productionLike) overallOk = false;
   } catch {
