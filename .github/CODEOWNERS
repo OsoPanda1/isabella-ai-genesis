@@ -1,0 +1,8 @@
+# CODEOWNERS — Isabella Genesis (P1)
+* @OsoPanda1
+/src/lib/crown.ts @OsoPanda1
+/src/lib/security.ts @OsoPanda1
+/src/lib/persistence/ @OsoPanda1
+/supabase/migrations/ @OsoPanda1
+/src/server-routes/api/billing.ts @OsoPanda1
+/src/lib/monetization/ @OsoPanda1
