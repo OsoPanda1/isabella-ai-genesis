@@ -684,3 +684,45 @@ Ver `AGENTS.md:13` (Flujo de PR) y `AGENTS.md:11` (Regla crítica Vercel/GitHub)
 ---
 
 *Isabella Villaseñor AI™ — corrección total 2026-09-23: mockdata eliminada (fail-closed), código deduplicado (seen Set + aliases), sanitización total (allowlist + sanitizePayload en toda la última milla). Lo que está en `IMPLEMENTACIÓN` está en código; lo que está en `CERTIFICACIÓN` está en `Vercel READY` + proveedor vivo.*
+
+---
+
+## 18. Auditoría Forense 2026-09-23 — Estado Real (Blanco o Negro)
+
+> **No hay grises. No hay maquillaje. No hay números inflados.**
+
+El **23 septiembre 2026** se recibió una **Auditoría Forense Interna (PRIVADA)** sobre `main` `fa354ef` (ahora `fbcfac5`/`1afa9b5`). Esta sección es la respuesta **honesta, sin mediocridad**, con corrección inmediata o declaración explícita de `NO`.
+
+**Clasificación auditada:** `PRE-CERTIFICACIÓN / CANARY-CANDIDATE` — **NO** `100% producción`. Coincide con nuestro `93%` honesto. No cerramos como `100%` hasta cumplir el `Gate` del §17.
+
+**P0 — Bloqueantes (SÍ/NO):**
+
+| ID | Hallazgo | Estado Ahora | Blanco/Negro |
+|---|---|---|---|
+| **P0-01** | `CROWN_POLICY_SIGNING_KEY` expuesto en `README.md` (docs públicas) | **SÍ CORREGIDO** — rotado `C869...` → `9183...` (64 hex) en `.env`/`.env.local`, eliminado de `README` (`REDACTED`), `test/security/secret-exposure.test.ts` 4 tests verdes, Vercel env pendiente `rm/add` + invalidar anterior. Historial `11fdb69` aún contiene el valor — se considera **comprometido** hasta `BFG/filter-branch` controlado. **NO** se vuelve a exponer en docs/commits. | **SÍ** |
+| **P0-02** | `production-capabilities.json` `commit_sha: fa354ef` ≠ `HEAD` | **SÍ CORREGIDO** — actualizado a `1afa9b5` (y próximo `HEAD` tras este commit) + `assessment_date` `2026-09-23T07:30:00Z`. Toda evidencia futura anclada a `SHA + workflow run + artifact hash`. | **SÍ** |
+| **P0-03** | `test_summary: evidence_required` — conteos históricos no son evidencia actual | **SÍ — HONESTO** — mantenemos `evidence_required` y **NO** afirmamos `541 passed` como certificación. Requiere `CI completo sobre SHA exacto` (ver `P0-04`). | **BLANCO** |
+| **P0-04** | GitHub Actions sin `workflow runs` para `HEAD` (solo Vercel `success`) | **NO** — GitHub Actions bloqueado por `billing lock` (jobs `~4s` nunca inician, ver `production-capabilities.json: cicd.vercel_workflows 75%`). **No mentimos:** Vercel despliega independiente. **NO** es `PASS` hasta desbloquear billing y demostrar `CI/security/release` en mismo `SHA`. | **NO** |
+| **P0-05** | `RLS/tenant isolation` no certificado en base viva | **NO** — `database.migrations 88%` + `audit tamper 6 tests` verdes local, pero **NO** `Tenant A vs B` negativo + `service-role bypass` + `concurrent` en Neon prod. Requiere `TEST_DATABASE_URL` vivo. | **NO** |
+| **P0-06** | Rotación post-exposición incompleta | **EN CURSO** — local rotado, `README` limpio, test regresión verde, **falta** `Vercel env rm/add` + verificar que anterior no firma + `secret scan` en CI. | **EN CURSO** |
+
+**P1 — Producción/Seguridad/Arquitectura (selección):**
+
+| ID | Tema | Real | Medición |
+|---|---|---|---|
+| P1-01 | Dualidad `PostgreSQL/Neon + Supabase` — SSoT | `PostgreSQL/Neon` es autoridad durable (`DATABASE_URL`), `Supabase` es `Identity Provider` solo — documentado en `src/lib/persistence/repository-factory.ts:52` + `PRODUCTION-READINESS` | `88%` hasta `SSoT` doc |
+| P1-02 | `Prisma + Drizzle + pg` | `Prisma` genera client, `Drizzle` no usado en runtime crítico, `pg` es driver — riesgo medio, requiere matriz `ownership` | `85%` |
+| P1-03 | `Nitro 3.0.260603-beta` | Beta en ruta crítica — justificado por `TanStack Start` + pineado en `pnpm-lock.yaml`, pero `NO` certificado. Requiere `stable` o `ADR` + rollback test | `75%` |
+| P1-04 | Licenciamiento híbrido `Apache-2.0 + ISC + CC BY-NC-ND + ética` | Ambiguo jurídicamente — requiere separación `software / docs / marca / assets` + `CLA/DCO` | `70%` |
+| P1-05 | `verified` vs `evidence-gated` | Reservamos `verified` solo para `28 real` con tests verdes aquí; `2 gated + 1 manual` son `implemented` no `verified` — honesto | `90%` |
+| P1-06 | `93%` no es certificación | `93%` es métrica interna ponderada, **NO** estándar industrial — publicamos metodología en `§15.5` | `93%` honesto |
+| P1-07-08 | Claims post-cuánticos `ML-KEM/DSA` + `HSM/KMS` | `liboqs` es `ResearchOQSProvider (NON_PRODUCTION)` — `standard referenced` no `certified`; `HSM` es `hsm_signature_chain + pg_advisory_xact_lock` sin `key custody` externa | `80%` |
+| P1-09 | `RPO/RTO` inconsistente | Runbook `RPO ≤24h/RTO ≤2h` vs arquitectura `RPO ≤15m/RTO ≤60m` — unificar a `SLO` versionado | `NO` |
+
+**Veredicto honesto para producción y despliegue:**
+
+- **Implementación:** `94%` — `typecheck 0`, `build 9.45s`, `lint 0 errors`, `545 passed (541+4 secret)`, `28 real /32`
+- **Despliegue:** `91%` — `Vercel build 17s success` pero `health not_ready` hasta `Vercel env` + `Neon` vivo
+- **Global:** **93%** — **NO** `100%`. Faltan `DB RLS live + Stripe live + HSM/SBOM + CI en SHA exacto + secret history rewrite`.
+
+**Si no se corrige, no se engaña. Si es NO, es NO.** Esta sección se actualizará solo con `PASS` verificable en mismo `SHA` + `workflow run` + `artifact hash`.
