@@ -97,3 +97,7 @@ __pycache__/
 *.sw?
 
 .vercel
+
+# JDR generator build artifacts
+contrib/jdr-generator/api/target/
+
