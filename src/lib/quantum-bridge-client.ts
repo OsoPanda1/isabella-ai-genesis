@@ -44,8 +44,7 @@ const DEFAULT_MAX_STDOUT = 4_194_304;
 export class QuantumBridgeClient {
   constructor(
     private readonly pythonPath = config().PYTHON_PATH ?? "python3",
-    private readonly scriptPath =
-      config().QUANTUM_BRIDGE_PATH ??
+    private readonly scriptPath = config().QUANTUM_BRIDGE_PATH ??
       path.resolve(process.cwd(), "scripts", "quantum", "isabella_quantum_bridge_v5.py"),
   ) {}
 

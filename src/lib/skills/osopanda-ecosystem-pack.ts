@@ -385,7 +385,12 @@ export const FAST_PARALLEL_INGEST: IsabellaSkill<
           { target: input.targetDataset, chunks },
           context.actorId,
         ),
-        createAuditEvent("SKILL_COMPLETED", "fast-parallel-ingest", { checksum, simulated: true }, context.actorId),
+        createAuditEvent(
+          "SKILL_COMPLETED",
+          "fast-parallel-ingest",
+          { checksum, simulated: true },
+          context.actorId,
+        ),
       ],
     };
   },

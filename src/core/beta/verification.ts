@@ -30,7 +30,8 @@ export class VerificationEngine {
   classifyEpistemic(evidence: any[], governance: any): EpistemicClassification {
     const verified = evidence.filter((e) => e.confidence >= 0.7 && !e.isExpired);
     const conflicts = evidence.filter((e) => e.confidence < 0.3 || e.isExpired);
-    const hasHighRisk = governance?.riskLevel === "R3_high" || governance?.riskLevel === "R4_critical";
+    const hasHighRisk =
+      governance?.riskLevel === "R3_high" || governance?.riskLevel === "R4_critical";
     const requiresReview = governance?.reviewRequired === true || hasHighRisk;
     let tag: EpistemicTag = "E2";
     let reason = "";
@@ -55,7 +56,14 @@ export class VerificationEngine {
       reason = "Acción alto impacto — requiere firma humana";
     }
     const confidence = evidence.length ? verified.length / evidence.length : 0;
-    return { tag, confidence, sources: verified.length, conflicts: conflicts.length, requiresHumanReview: tag === "E4" || requiresReview, reason };
+    return {
+      tag,
+      confidence,
+      sources: verified.length,
+      conflicts: conflicts.length,
+      requiresHumanReview: tag === "E4" || requiresReview,
+      reason,
+    };
   }
 
   verify(input: {
