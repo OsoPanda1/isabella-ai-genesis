@@ -25,10 +25,21 @@ function toRepositoryError(message: string, statusCode = 500, tenantId?: string)
 }
 
 let pgPool: Pool | null = null;
+function sanitizeDatabaseUrl(raw: string): string {
+  // Neon agrega channel_binding=require que node-postgres no entiende y hace fallar el Pool en 3ms con repository_unhealthy
+  try {
+    const u = new URL(raw);
+    if (u.searchParams.has("channel_binding")) u.searchParams.delete("channel_binding");
+    return u.toString();
+  } catch {
+    return raw.replace(/[?&]channel_binding=[^&]*/g, "");
+  }
+}
 function getPgPool(): Pool {
   if (!pgPool) {
-    const url = config().DATABASE_URL;
-    if (!url) throw toRepositoryError("DATABASE_URL not configured", 500);
+    const rawUrl = config().DATABASE_URL;
+    if (!rawUrl) throw toRepositoryError("DATABASE_URL not configured", 500);
+    const url = sanitizeDatabaseUrl(rawUrl);
     // SSL obligatorio para Supabase/Neon/Vercel Postgres — sin esto SELECT 1 falla con repository_unhealthy
     const needsSsl = /supabase\.co|neon\.tech|\.pooler\.supabase\.com|sslmode=require/i.test(url);
     pgPool = new Pool({
