@@ -36,7 +36,7 @@
 | **Typecheck** | `tsc --noEmit` ✅ `0` |
 | **Tests** | `101 suites` — **541 passed · 10 skipped · 0 failed** — `~60s` — smoke `7/7` verde |
 | **Lint** | `0 errors · 44 warnings` (`no-explicit-any: warn`, `no-unused-vars: ^_`) — `audit-repository.ts` prettier fix |
-| **CROWN** | `CROWN_POLICY_SIGNING_KEY=C869C1B14A8938785A9438060AD878711124F416` (37 chars, ≥32, fail-fast prod) — actualizado en `.env` + `.env.local` |
+| **CROWN** | `CROWN_POLICY_SIGNING_KEY` **rotado 2026-09-23** — 64 hex chars, ≥32, fail-fast prod — valor en `Vercel Secret Manager` / `.env.local` (no en docs) |
 | **Chat** | `POST /api/isabella` + `POST /api/v1/cognitive/orchestrate` → `isabella-chat-gateway.ts:787` + fallback soberano `local-responder.ts:43` sanitizado DualKernel — `ALLOW_GUEST_CHAT` con `rateLimit` |
 | **Voz / Imagen** | `POST /api/isabella-voice` → `503 voice_provider_unconfigured` sin `VOICE_API_URL` (fail-closed) + `POST /api/v1/images/generate` → `ai/gateway` real `google/gemini-3.1-flash-image` (sin mock SVG) |
 | **APIs** | `auth/session` · `cognitive/orchestrate` · `msr/ledger/event` · `governance/dignity-index` · `ncua/operations`+`approvals` · `health` · `ready` · `monetization` · `x402` · `cattleya` · `connect` sanitizado |
@@ -652,7 +652,7 @@ pnpm production:gate
 
 **Qué falta para 100% (roadmap cerrable en 1 sprint):**
 
-1. **Vercel env:** `CROWN_POLICY_SIGNING_KEY=C869C1B14A8938785A9438060AD878711124F416` + `GEMINI_API_KEY` + `STRIPE_SECRET_KEY` + `DATABASE_URL` con `sslmode=require` — ya local, falta `vercel env add` producción (5 min).
+1. **Vercel env (ROTADO 2026-09-23 por exposición):** `CROWN_POLICY_SIGNING_KEY` **nuevo 64 hex** (ver secret manager) + `GEMINI_API_KEY` + `STRIPE_SECRET_KEY` + `DATABASE_URL` con `sslmode=require` — `vercel env rm` + `vercel env add` producción (5 min) + invalidar anterior.
 2. **DB live:** `pnpm db:verify` + `SELECT 1` SSL + `Tenant A vs B` RLS adversarial (30 migraciones ya aplicadas local, falta Neon prod).
 3. **Stripe live:** `checkout.session.completed` → `BookPI` + `Cattleya` concurrente (ya `fraud-review` y `financial-evidence` `real`).
 4. **HSM/KMS staging + SBOM/SLSA** — `NITRO` `3.0.260603-beta` ya pineado en `pnpm-lock.yaml`.
