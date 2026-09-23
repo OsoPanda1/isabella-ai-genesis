@@ -183,7 +183,7 @@ Env `Production`: `DATABASE_URL` `AUTH_JWT_SECRET` `CROWN_POLICY_SIGNING_KEY` (`
 | `P0-04` CI billing lock | NO — Vercel despliega independiente, GitHub `75%` |
 | `P0-05` RLS no certificado | NO — requiere `TEST_DATABASE_URL` vivo |
 
-Ver `README §18` previo para tabla P1 completa (90% arquitectura, 74% seguridad, 69% RLS...).
+Ver `docs/01..06` para 6 canónicos unificados (94 docs sanitizados y reducidos).
 
 ---
 
