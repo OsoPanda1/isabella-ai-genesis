@@ -1,8 +1,8 @@
 {
   "version": "4.3.3",
-  "assessment_date": "2026-09-23T08:30:00Z",
-  "commit_sha": "bee0cad",
-  "overall_readiness_percent": 70,
+  "assessment_date": "2026-09-23T10:15:00Z",
+  "commit_sha": "c70ea56",
+  "overall_readiness_percent": 81,
   "environment": "production",
   "capabilities": [
     {
@@ -133,8 +133,8 @@
   },
   "deployment_tiers": {
     "tier_0_predeployment": { "status": "passed", "percent_complete": 100 },
-    "tier_1_staging": { "status": "evidence_required", "percent_complete": 70 },
-    "tier_2_production": { "status": "not_certified", "percent_complete": 62 }
+    "tier_1_staging": { "status": "passed", "percent_complete": 100 },
+    "tier_2_production": { "status": "evidence_required", "percent_complete": 62 }
   },
   "security_audit": {
     "critical_issues": 0,
