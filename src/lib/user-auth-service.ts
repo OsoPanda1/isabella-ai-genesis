@@ -91,7 +91,9 @@ export class UserAuthService {
       const { resolveRuntimeMode } = await import("./runtime-mode");
       const mode = resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE);
       if (mode === "production" || mode === "staging") {
-        throw new Error("signup nativo deshabilitado en producción — usar Supabase Auth/OIDC canónico");
+        throw new Error(
+          "signup nativo deshabilitado en producción — usar Supabase Auth/OIDC canónico",
+        );
       }
     } catch (e) {
       if ((e as Error).message.includes("deshabilitado en producción")) throw e;

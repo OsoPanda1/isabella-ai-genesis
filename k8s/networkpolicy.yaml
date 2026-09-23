@@ -1,0 +1,66 @@
+# k8s/networkpolicy.yaml — P1 hardening NetworkPolicy (default-deny + least privilege)
+# Complementa deployment.yaml securityContext.seccompProfile=RuntimeDefault, runAsNonRoot, readOnlyRootFilesystem.
+# Aplicar junto a deployment: kubectl apply -f k8s/deployment.yaml -f k8s/networkpolicy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: isabella-ai-genesis
+  labels:
+    app: isabella-ai-genesis
+spec:
+  podSelector:
+    matchLabels:
+      app: isabella-ai-genesis
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Ingress: solo tráfico al puerto de la app (3000). Ajusta si usas Ingress Controller / Service Mesh.
+    - ports:
+        - protocol: TCP
+          port: 3000
+      # from: []  # vacío = se permite desde cualquier origen autenticado por ingress; restringe aquí si tienes CIDR/namespace del ingress.
+    # Liveness/Readiness desde kubelet (sin selector) ya está permitido implícitamente por política de probes;
+    # si tu CNI bloquea probes, añade regla con namespace kube-system o deja ingress abierto a probes.
+  egress:
+    # DNS (CoreDNS / kube-dns) — imprescindible para resolver Supabase/Neon/Stripe/Vercel
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Fallback DNS cuando kube-system no está etiquetado (algunos clusters)
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Egress HTTPS a dependencias externas (Supabase, Neon, Upstash Redis, Stripe, Vercel, OTel collector)
+    - ports:
+        - protocol: TCP
+          port: 443
+    # Postgres directo (Neon/Supabase pooler) si no va por 443
+    - ports:
+        - protocol: TCP
+          port: 5432
+        - protocol: TCP
+          port: 6543
+    # OTel / observabilidad (opcional): 4317 gRPC, 4318 HTTP
+    - ports:
+        - protocol: TCP
+          port: 4317
+        - protocol: TCP
+          port: 4318
+---
+# Policy auxiliar: default deny all para el namespace (opcional, descomenta si quieres default-deny global)
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: default-deny-all
+# spec:
+#   podSelector: {}
+#   policyTypes: ["Ingress","Egress"]

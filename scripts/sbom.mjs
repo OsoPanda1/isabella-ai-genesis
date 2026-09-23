@@ -2,7 +2,10 @@
 /**
  * sbom — Genera SBOM CycloneDX para isabella-ai-genesis.
  * ---------------------------------------------------------------------------
- * Uso: pnpm sbom  →  pnpm dlx @cyclonedx/cyclonedx-npm --output-file sbom.json
+ * Uso: pnpm sbom  →  pnpm dlx @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-file sbom.json
+ * Requiere pnpm (usa pnpm-lock.yaml) pero invoca cyclonedx-npm vía pnpm dlx.
+ * En Windows/pnpm la detección de npm puede reportar ELSPROBLEMS (symlinks pnpm);
+ * --ignore-npm-errors es necesario para pnpm projects (ver docs/operations/SBOM.md).
  *
  * Fail-closed: si la generación falla, exit 1 y no deja artefacto corrupto.
  * El artefacto sbom.json está en .gitignore (no se versiona por defecto).
@@ -13,7 +16,15 @@ import { resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname ?? ".", "..");
 const OUTPUT = resolve(ROOT, "sbom.json");
-const args = ["dlx", "@cyclonedx/cyclonedx-npm", "--output-file", OUTPUT];
+// --ignore-npm-errors es requerido para pnpm repos (npm ls reporta ELSPROBLEMS por symlinks)
+// Ver https://github.com/CycloneDX/cyclonedx-node-module/issues/xxx y docs/operations/SBOM.md
+const args = [
+  "dlx",
+  "@cyclonedx/cyclonedx-npm",
+  "--ignore-npm-errors",
+  "--output-file",
+  OUTPUT,
+];
 
 console.log(`[sbom] Generando SBOM CycloneDX → ${OUTPUT}`);
 console.log(`[sbom] Ejecutando: pnpm ${args.join(" ")}`);

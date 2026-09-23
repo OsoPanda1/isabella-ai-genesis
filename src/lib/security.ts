@@ -21,7 +21,11 @@ function securitySecret(): string {
 }
 
 const RATE_LIMIT_WINDOW_MS = 60000;
+const TENANT_RATE_LIMIT_WINDOW_MS = 60000;
+const TENANT_QUOTA_WINDOW_MS = 24 * 60 * 60 * 1000;
 const rateLimitCache = new Map<string, { count: number; windowStart: number }>();
+const tenantRateLimitCache = new Map<string, { count: number; windowStart: number }>();
+const tenantQuotaCache = new Map<string, { consumed: number; windowStart: number }>();
 
 function isProductionLikeRuntime(): boolean {
   try {
@@ -193,6 +197,174 @@ export const SecuritySystem = {
       }
       return this.checkRateLimit(ip, limit);
     }
+  },
+
+  // --- LAYER 2b: Tenant-scoped Rate Limiting (P0-13) ---
+  // Aísla por tenant además de IP para evitar que un tenant abuse
+  // consumiendo cuota ajena o burlando límites vía IP rotativa.
+  // Fail-closed: tenantId vacío/inválido se deniega.
+  checkRateLimitByTenant(
+    tenantId: string,
+    limit: number = 60,
+  ): { allowed: boolean; remaining: number; reason?: string } {
+    const tid = typeof tenantId === "string" ? tenantId.trim() : "";
+    if (!tid || tid.length === 0 || tid.length > 128) {
+      return { allowed: false, remaining: 0, reason: "tenant-required" };
+    }
+    if (!/^[a-zA-Z0-9_\-:]+$/.test(tid)) {
+      return { allowed: false, remaining: 0, reason: "tenant-invalid-format" };
+    }
+    const now = Date.now();
+    const entry = tenantRateLimitCache.get(tid);
+    if (!entry || now - entry.windowStart > TENANT_RATE_LIMIT_WINDOW_MS) {
+      tenantRateLimitCache.set(tid, { count: 1, windowStart: now });
+      return { allowed: true, remaining: limit - 1 };
+    }
+    if (entry.count >= limit)
+      return { allowed: false, remaining: 0, reason: "tenant-rate-limit-exceeded" };
+    entry.count += 1;
+    return { allowed: true, remaining: limit - entry.count };
+  },
+
+  async checkRateLimitByTenantDistributed(
+    tenantId: string,
+    limit: number = 60,
+  ): Promise<{
+    allowed: boolean;
+    remaining: number;
+    degraded?: boolean;
+    reason?: string;
+  }> {
+    const tid = typeof tenantId === "string" ? tenantId.trim() : "";
+    if (!tid || tid.length === 0 || tid.length > 128) {
+      return { allowed: false, remaining: 0, reason: "tenant-required" };
+    }
+    if (!/^[a-zA-Z0-9_\-:]+$/.test(tid)) {
+      return { allowed: false, remaining: 0, reason: "tenant-invalid-format" };
+    }
+    const redis = await getRedis();
+    if (!redis) {
+      if (isProductionLikeRuntime()) {
+        return {
+          allowed: false,
+          remaining: 0,
+          degraded: true,
+          reason: "rate-limit-infrastructure-unavailable",
+        };
+      }
+      return this.checkRateLimitByTenant(tid, limit);
+    }
+    try {
+      const key = `ratelimit:tenant:${tid}:${Math.floor(Date.now() / TENANT_RATE_LIMIT_WINDOW_MS)}`;
+      const count = await redis.incr(key);
+      if (count === 1) await redis.expire(key, 60);
+      const remaining = Math.max(0, limit - count);
+      if (count > limit)
+        return { allowed: false, remaining: 0, reason: "tenant-rate-limit-exceeded" };
+      return { allowed: true, remaining };
+    } catch {
+      if (isProductionLikeRuntime()) {
+        return {
+          allowed: false,
+          remaining: 0,
+          degraded: true,
+          reason: "rate-limit-infrastructure-unavailable",
+        };
+      }
+      return this.checkRateLimitByTenant(tid, limit);
+    }
+  },
+
+  // --- LAYER 2c: Tenant Quotas (P0-13) ---
+  // Cuota diaria por tenant para inferencia/recursos. Ventana deslizante de 24h.
+  // Fail-closed: tenant vacío denegado. No consume si excede.
+  checkTenantQuota(
+    tenantId: string,
+    quotaLimit: number = 50_000,
+  ): { allowed: boolean; remaining: number; consumed: number; resetAt: number } {
+    const tid = typeof tenantId === "string" ? tenantId.trim() : "";
+    if (!tid || tid.length === 0) {
+      return {
+        allowed: false,
+        remaining: 0,
+        consumed: 0,
+        resetAt: Date.now() + TENANT_QUOTA_WINDOW_MS,
+      };
+    }
+    const now = Date.now();
+    const entry = tenantQuotaCache.get(tid);
+    if (!entry || now - entry.windowStart > TENANT_QUOTA_WINDOW_MS) {
+      return {
+        allowed: true,
+        remaining: quotaLimit,
+        consumed: 0,
+        resetAt: now + TENANT_QUOTA_WINDOW_MS,
+      };
+    }
+    const remaining = Math.max(0, quotaLimit - entry.consumed);
+    return {
+      allowed: entry.consumed < quotaLimit,
+      remaining,
+      consumed: entry.consumed,
+      resetAt: entry.windowStart + TENANT_QUOTA_WINDOW_MS,
+    };
+  },
+
+  consumeTenantQuota(
+    tenantId: string,
+    cost: number,
+    quotaLimit: number = 50_000,
+  ): { allowed: boolean; remaining: number; consumed: number; reason?: string } {
+    const tid = typeof tenantId === "string" ? tenantId.trim() : "";
+    if (!tid || tid.length === 0) {
+      return { allowed: false, remaining: 0, consumed: 0, reason: "tenant-required" };
+    }
+    if (!Number.isFinite(cost) || cost <= 0) {
+      return { allowed: false, remaining: 0, consumed: 0, reason: "invalid-cost" };
+    }
+    const now = Date.now();
+    let entry = tenantQuotaCache.get(tid);
+    if (!entry || now - entry.windowStart > TENANT_QUOTA_WINDOW_MS) {
+      entry = { consumed: 0, windowStart: now };
+      tenantQuotaCache.set(tid, entry);
+    }
+    if (entry.consumed + cost > quotaLimit) {
+      return {
+        allowed: false,
+        remaining: Math.max(0, quotaLimit - entry.consumed),
+        consumed: entry.consumed,
+        reason: "quota-exceeded",
+      };
+    }
+    entry.consumed += cost;
+    return { allowed: true, remaining: quotaLimit - entry.consumed, consumed: entry.consumed };
+  },
+
+  getTenantQuotaStatus(
+    tenantId: string,
+  ): { consumed: number; windowStart: number; resetAt: number } | null {
+    const tid = typeof tenantId === "string" ? tenantId.trim() : "";
+    if (!tid) return null;
+    const entry = tenantQuotaCache.get(tid);
+    if (!entry) return null;
+    if (Date.now() - entry.windowStart > TENANT_QUOTA_WINDOW_MS) return null;
+    return {
+      consumed: entry.consumed,
+      windowStart: entry.windowStart,
+      resetAt: entry.windowStart + TENANT_QUOTA_WINDOW_MS,
+    };
+  },
+
+  resetTenantQuota(tenantId: string): void {
+    const tid = typeof tenantId === "string" ? tenantId.trim() : "";
+    if (!tid) return;
+    tenantQuotaCache.delete(tid);
+  },
+
+  // Utilidad solo para tests: limpia caches de tenant sin exponer mapas internos.
+  _clearTenantCachesForTests(): void {
+    tenantRateLimitCache.clear();
+    tenantQuotaCache.clear();
   },
 
   /**
