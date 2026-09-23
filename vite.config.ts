@@ -21,11 +21,18 @@ export default defineConfig({
     react(),
     nitro(),
     tailwindcss(),
+    {
+      name: "fix-jsxDEV-production",
+      enforce: "post",
+      generateBundle(_options, bundle) {
+        for (const file of Object.values(bundle)) {
+          if (file.type === "chunk" && typeof file.code === "string" && file.code.includes("jsxDEV")) {
+            file.code = file.code.replace(/\.jsxDEV/g, ".jsx").replace(/\.jsxsDEV/g, ".jsxs");
+          }
+        }
+      },
+    },
   ],
-  esbuild: {
-    jsx: "automatic",
-    jsxDev: false,
-  },
   resolve: {
     tsconfigPaths: true,
     alias: {
