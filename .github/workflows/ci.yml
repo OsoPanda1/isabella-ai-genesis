@@ -13,9 +13,42 @@ on:
 permissions:
   contents: read
 
+env:
+  NODE_VERSION: "24.11.0"
+  PNPM_VERSION: "10.34.5"
+
 jobs:
+  lockfile:
+    name: Lockfile verification (pnpm --frozen-lockfile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Verify lockfile contract
+        run: pnpm verify:lock
+
+      - name: Install with frozen lockfile (fails if outdated)
+        run: pnpm install --frozen-lockfile
+
   production-gate:
     name: Canonical FGAIS gate
+    needs: lockfile
     uses: ./.github/workflows/fgais-gate.yml
     permissions:
       contents: read

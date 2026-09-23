@@ -1,0 +1,2346 @@
+[
+  {
+    "number": 8,
+    "title": "Exposición de variables en Vercel logs",
+    "body": "Exposición de variables en Vercel logs - env vars visibles en builds.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 9,
+    "title": "Falta escaneo SAST en PRs",
+    "body": "Falta escaneo SAST en PRs - código inseguro llega a main sin revisión automática.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 10,
+    "title": "DAST ausente en staging",
+    "body": "DAST ausente en staging - pruebas dinámicas de seguridad no ejecutadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 11,
+    "title": "Dependencias desactualizadas con CVE",
+    "body": "Dependencias desactualizadas con CVE - paquetes vulnerables sin parche.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 12,
+    "title": "Lockfile no verificado en CI",
+    "body": "Lockfile no verificado en CI - builds no reproducibles por dependencias cambiantes.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 13,
+    "title": "No hay firma de releases",
+    "body": "No hay firma de releases - artefactos no firmados ni verificables.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 14,
+    "title": "No hay política de rotación de secretos",
+    "body": "No hay política de rotación de secretos - sin calendario ni automatización.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 15,
+    "title": "Exposición de CROWN_POLICY_SIGNING_KEY en README histórico",
+    "body": "Exposición de CROWN_POLICY_SIGNING_KEY en README histórico - evidencia de fuga.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 16,
+    "title": "No hay pruebas de concurrencia para billing",
+    "body": "No hay pruebas de concurrencia para billing - race conditions posibles en cobros.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 17,
+    "title": "Idempotencia de pagos no garantizada",
+    "body": "Idempotencia de pagos no garantizada - reintentos pueden duplicar cargos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 18,
+    "title": "Webhooks sin verificación de firma",
+    "body": "Webhooks sin verificación de firma - endpoints vulnerables a spoofing.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 19,
+    "title": "No hay pruebas de rollback de BookPI/Cattleya",
+    "body": "No hay pruebas de rollback de BookPI/Cattleya - fallos en transacciones no manejados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 20,
+    "title": "Falta pruebas de integridad de migraciones",
+    "body": "Falta pruebas de integridad de migraciones - migraciones no idempotentes.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 21,
+    "title": "No hay plan de recuperación ante compromisos de claves",
+    "body": "No hay plan de recuperación ante compromisos de claves - playbook ausente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 22,
+    "title": "Logs con secretos sin redacción completa",
+    "body": "Logs con secretos sin redacción completa - información sensible en observabilidad.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 23,
+    "title": "No hay pruebas adversariales de DB",
+    "body": "No hay pruebas adversariales de DB - inyección y bypass de RLS no testeados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 24,
+    "title": "No hay SBOM por imagen de contenedor",
+    "body": "No hay SBOM por imagen de contenedor - falta trazabilidad por imagen.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 25,
+    "title": "Imágenes de contenedor no firmadas",
+    "body": "Imágenes de contenedor no firmadas - riesgo de supply-chain.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 26,
+    "title": "No hay escaneo de imágenes en registry",
+    "body": "No hay escaneo de imágenes en registry - vulnerabilidades en runtime.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 27,
+    "title": "Contenedores corren como root",
+    "body": "Contenedores corren como root - elevación de privilegios posible.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 28,
+    "title": "No hay políticas de recursos en k8s",
+    "body": "No hay políticas de recursos en k8s - pods sin límites CPU/mem.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 29,
+    "title": "Falta readiness/liveness en servicios",
+    "body": "Falta readiness/liveness en servicios - despliegues no detectan fallos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 30,
+    "title": "No hay pruebas de failover de DB",
+    "body": "No hay pruebas de failover de DB - RTO/RPO no validados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 31,
+    "title": "Backups no verificados",
+    "body": "Backups no verificados - restauraciones no probadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 32,
+    "title": "No hay cifrado de backups",
+    "body": "No hay cifrado de backups - datos sensibles en reposo sin protección.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 33,
+    "title": "No hay pruebas de DR cross-region",
+    "body": "No hay pruebas de DR cross-region - replicación no validada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 34,
+    "title": "No hay SLO/SLI definidos",
+    "body": "No hay SLO/SLI definidos - sin objetivos de disponibilidad.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 35,
+    "title": "Alertas ausentes o mal configuradas",
+    "body": "Alertas ausentes o mal configuradas - no se notifica degradación crítica.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 36,
+    "title": "No hay runbooks para incidentes",
+    "body": "No hay runbooks para incidentes - equipo sin pasos operativos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 37,
+    "title": "No hay on-call definido",
+    "body": "No hay on-call definido - sin responsable 24/7.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 38,
+    "title": "No hay pruebas de carga",
+    "body": "No hay pruebas de carga - performance desconocida bajo tráfico.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 39,
+    "title": "No hay pruebas de estrés para ML",
+    "body": "No hay pruebas de estrés para ML - modelos no validados en carga.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 40,
+    "title": "No hay detección de drift de modelos",
+    "body": "No hay detección de drift de modelos - degradación no monitorizada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 41,
+    "title": "Modelos sin explainability",
+    "body": "Modelos sin explainability - decisiones no auditables.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 42,
+    "title": "Dataset sin versionado",
+    "body": "Dataset sin versionado - imposibilidad de reproducir entrenamientos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 43,
+    "title": "No hay control de acceso a datasets",
+    "body": "No hay control de acceso a datasets - datos sensibles accesibles.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 44,
+    "title": "No hay consentimiento para datos de entrenamiento",
+    "body": "No hay consentimiento para datos de entrenamiento - riesgo legal.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 45,
+    "title": "No hay anonimización de PII en datasets",
+    "body": "No hay anonimización de PII en datasets - exposición de datos personales.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 46,
+    "title": "No hay pruebas de poisoning adversarial",
+    "body": "No hay pruebas de poisoning adversarial - modelos vulnerables a manipulación.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 47,
+    "title": "No hay gobernanza de retraining",
+    "body": "No hay gobernanza de retraining - retrainings automáticos sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 48,
+    "title": "No hay canary para modelos",
+    "body": "No hay canary para modelos - despliegues de modelos no graduales.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 49,
+    "title": "No hay métricas SLIs para modelos",
+    "body": "No hay métricas SLIs para modelos - sin umbrales de degradación.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 50,
+    "title": "No hay auditoría de decisiones ML",
+    "body": "No hay auditoría de decisiones ML - trazabilidad incompleta.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 51,
+    "title": "No hay control de acceso RBAC granular",
+    "body": "No hay control de acceso RBAC granular - permisos demasiado amplios.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 52,
+    "title": "Service accounts sobreprivilegiadas",
+    "body": "Service accounts sobreprivilegiadas - principio de menor privilegio incumplido.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 53,
+    "title": "No hay revisión periódica de accesos",
+    "body": "No hay revisión periódica de accesos - cuentas con permisos obsoletos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 54,
+    "title": "No hay MFA obligatorio para org",
+    "body": "No hay MFA obligatorio para org - cuentas vulnerables.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 55,
+    "title": "No hay SSO obligatorio",
+    "body": "No hay SSO obligatorio - gestión de identidades inconsistente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 56,
+    "title": "No hay política de contraseñas fuerte",
+    "body": "No hay política de contraseñas fuerte - credenciales débiles permitidas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 57,
+    "title": "No hay bloqueo por intentos fallidos",
+    "body": "No hay bloqueo por intentos fallidos - brute-force sin mitigación.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 58,
+    "title": "Tokens JWT sin expiración corta",
+    "body": "Tokens JWT sin expiración corta - riesgo de uso prolongado.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 59,
+    "title": "Refresh tokens sin rotación",
+    "body": "Refresh tokens sin rotación - tokens persistentes inseguros.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 60,
+    "title": "No hay endpoint de revocación de tokens",
+    "body": "No hay endpoint de revocación de tokens - tokens comprometidos no invalidables.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 61,
+    "title": "Cookies sin HttpOnly/Secure/SameSite",
+    "body": "Cookies sin HttpOnly/Secure/SameSite - riesgo XSS/CSRF.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 62,
+    "title": "No hay protección CSRF en formularios",
+    "body": "No hay protección CSRF en formularios - endpoints vulnerables.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 63,
+    "title": "CSP ausente o laxo",
+    "body": "CSP ausente o laxo - riesgo de XSS en frontend.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 64,
+    "title": "Exposición de source maps en producción",
+    "body": "Exposición de source maps en producción - facilita ingeniería inversa.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 65,
+    "title": "Stack traces expuestos en errores",
+    "body": "Stack traces expuestos en errores - fuga de información interna.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 66,
+    "title": "No hay sanitización completa de inputs",
+    "body": "No hay sanitización completa de inputs - riesgo de inyección.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 67,
+    "title": "No hay validación de tamaño de payload",
+    "body": "No hay validación de tamaño de payload - DoS por payloads grandes.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 68,
+    "title": "No hay límites de subida de archivos",
+    "body": "No hay límites de subida de archivos - almacenamiento abusado.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 69,
+    "title": "No hay escaneo antivirus para uploads",
+    "body": "No hay escaneo antivirus para uploads - malware puede entrar.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 70,
+    "title": "No hay validación de content-type",
+    "body": "No hay validación de content-type - archivos maliciosos aceptados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 71,
+    "title": "No hay expiración en signed URLs",
+    "body": "No hay expiración en signed URLs - acceso prolongado a objetos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 72,
+    "title": "No hay cifrado en tránsito forzado",
+    "body": "No hay cifrado en tránsito forzado - TLS no obligatorio en todos endpoints.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 73,
+    "title": "TLS versiones antiguas permitidas",
+    "body": "TLS versiones antiguas permitidas - riesgo por protocolos inseguros.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 74,
+    "title": "Certificados sin rotación automatizada",
+    "body": "Certificados sin rotación automatizada - expiración posible.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 75,
+    "title": "No hay monitor de certificados",
+    "body": "No hay monitor de certificados - caducidad no detectada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 76,
+    "title": "No hay HSTS configurado",
+    "body": "No hay HSTS configurado - downgrade attacks posibles.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 77,
+    "title": "No hay mutual TLS para servicios internos",
+    "body": "No hay mutual TLS para servicios internos - autenticación interna débil.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 78,
+    "title": "No hay segmentación de red",
+    "body": "No hay segmentación de red - lateral movement posible.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 79,
+    "title": "No hay egress filtering",
+    "body": "No hay egress filtering - datos pueden salir sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 80,
+    "title": "No hay WAF configurado",
+    "body": "No hay WAF configurado - ataques web sin mitigación.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 81,
+    "title": "No hay reglas anti-bot",
+    "body": "No hay reglas anti-bot - scraping y abuso sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 82,
+    "title": "No hay rate limiting por IP/tenant",
+    "body": "No hay rate limiting por IP/tenant - abuso y DoS posible.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 83,
+    "title": "No hay quotas por tenant",
+    "body": "No hay quotas por tenant - un tenant puede agotar recursos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 84,
+    "title": "No hay protección contra subdomain takeover",
+    "body": "No hay protección contra subdomain takeover - dominios huérfanos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 85,
+    "title": "DNS sin DNSSEC",
+    "body": "DNS sin DNSSEC - riesgo de spoofing.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 86,
+    "title": "No hay monitoreo de TTL y failover DNS",
+    "body": "No hay monitoreo de TTL y failover DNS - failover no probado.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 87,
+    "title": "No hay gestión de certificados wildcard",
+    "body": "No hay gestión de certificados wildcard - riesgo de caducidad masiva.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 88,
+    "title": "No hay control de acceso a registros de auditoría",
+    "body": "No hay control de acceso a registros de auditoría - logs manipulables.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 89,
+    "title": "Logs no inmutables",
+    "body": "Logs no inmutables - posibilidad de alteración forense.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 90,
+    "title": "No hay tamper-evident logs",
+    "body": "No hay tamper-evident logs - evidencia no confiable.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 91,
+    "title": "No hay sincronización de tiempo forzada",
+    "body": "No hay sincronización de tiempo forzada - timestamps inconsistentes.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 92,
+    "title": "No hay NTP monitoring",
+    "body": "No hay NTP monitoring - drift de tiempo no detectado.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 93,
+    "title": "No hay DLP para datos sensibles",
+    "body": "No hay DLP para datos sensibles - exfiltración no detectada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 94,
+    "title": "No hay clasificación de datos",
+    "body": "No hay clasificación de datos - PII no identificada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 95,
+    "title": "No hay políticas de retención de logs",
+    "body": "No hay políticas de retención de logs - cumplimiento incierto.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 96,
+    "title": "No hay cifrado en reposo para DB",
+    "body": "No hay cifrado en reposo para DB - datos sensibles sin protección.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 97,
+    "title": "No hay key rotation para KMS",
+    "body": "No hay key rotation para KMS - llaves estáticas indefinidamente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 98,
+    "title": "No hay auditoría de uso de KMS",
+    "body": "No hay auditoría de uso de KMS - uso de claves no rastreado.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 99,
+    "title": "No hay emergency key rotation playbook",
+    "body": "No hay emergency key rotation playbook - respuesta lenta ante compromiso.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 100,
+    "title": "No hay pruebas de compromise detection",
+    "body": "No hay pruebas de compromise detection - intrusiones no detectadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 101,
+    "title": "No hay EDR en hosts críticos",
+    "body": "No hay EDR en hosts críticos - detección de amenazas limitada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 102,
+    "title": "No hay escaneo de vulnerabilidades programado",
+    "body": "No hay escaneo de vulnerabilidades programado - CVEs sin seguimiento.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 103,
+    "title": "No hay CVE triage process",
+    "body": "No hay CVE triage process - vulnerabilidades sin priorizar.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 104,
+    "title": "No hay dependencia de terceros evaluada",
+    "body": "No hay dependencia de terceros evaluada - riesgo de proveedores desconocido.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 105,
+    "title": "No hay vendor security questionnaires",
+    "body": "No hay vendor security questionnaires - falta due diligence.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 106,
+    "title": "No hay contrato con cláusulas de seguridad",
+    "body": "No hay contrato con cláusulas de seguridad - responsabilidades legales difusas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 107,
+    "title": "No hay bug bounty ni contacto público",
+    "body": "No hay bug bounty ni contacto público - vulnerabilidades externas no reportadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 108,
+    "title": "No hay política de divulgación responsable",
+    "body": "No hay política de divulgación responsable - manejo de reportes inseguro.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 109,
+    "title": "No hay SLSA/provenance en builds",
+    "body": "No hay SLSA/provenance en builds - cadena de suministro no verificable.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 110,
+    "title": "No hay reproducible builds",
+    "body": "No hay reproducible builds - artefactos no verificables.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 111,
+    "title": "CI permite PRs de forks sin aislamiento",
+    "body": "CI permite PRs de forks sin aislamiento - código no confiable ejecutado.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 112,
+    "title": "No hay secret scanning en PRs",
+    "body": "No hay secret scanning en PRs - secretos pueden llegar por PR.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 113,
+    "title": "No hay pre-commit hooks obligatorios",
+    "body": "No hay pre-commit hooks obligatorios - formato y lint no garantizados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 114,
+    "title": "No hay commit signing obligatorio",
+    "body": "No hay commit signing obligatorio - autoría no verificable.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 115,
+    "title": "No hay branch protection estricta",
+    "body": "No hay branch protection estricta - merges directos a main posibles.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 116,
+    "title": "No hay required reviewers",
+    "body": "No hay required reviewers - falta revisión de pares.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 117,
+    "title": "No hay PR size limits",
+    "body": "No hay PR size limits - cambios gigantes sin revisión adecuada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 118,
+    "title": "No hay codeowners para áreas críticas",
+    "body": "No hay codeowners para áreas críticas - responsabilidad difusa.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 119,
+    "title": "No hay CI caching reproducible",
+    "body": "No hay CI caching reproducible - tiempos de build inconsistentes.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 120,
+    "title": "No hay artifact retention policy",
+    "body": "No hay artifact retention policy - builds antiguos eliminados sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 121,
+    "title": "No hay release notes automatizadas",
+    "body": "No hay release notes automatizadas - trazabilidad de cambios pobre.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 122,
+    "title": "No hay semantic versioning enforcement",
+    "body": "No hay semantic versioning enforcement - releases inconsistentes.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 123,
+    "title": "No hay signed package publishing",
+    "body": "No hay signed package publishing - paquetes no verificables.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 124,
+    "title": "No hay package registry access controls",
+    "body": "No hay package registry access controls - publicación no autorizada posible.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 125,
+    "title": "No hay dependency pinning en Dockerfiles",
+    "body": "No hay dependency pinning en Dockerfiles - builds no reproducibles.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 126,
+    "title": "No hay minimal base images",
+    "body": "No hay minimal base images - superficie de ataque ampliada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 127,
+    "title": "No hay non-root user en Dockerfiles",
+    "body": "No hay non-root user en Dockerfiles - contenedores inseguros.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 128,
+    "title": "No hay seccomp/AppArmor profiles",
+    "body": "No hay seccomp/AppArmor profiles - runtime sin restricciones.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 129,
+    "title": "No hay OS patch automation",
+    "body": "No hay OS patch automation - hosts sin parches.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 130,
+    "title": "No hay kernel hardening",
+    "body": "No hay kernel hardening - vectores de ataque en host.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 131,
+    "title": "No hay container runtime security",
+    "body": "No hay container runtime security - detección de anomalías ausente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 132,
+    "title": "No hay registry immutability para prod",
+    "body": "No hay registry immutability para prod - imágenes sobreescribibles.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 133,
+    "title": "No hay image promotion pipeline",
+    "body": "No hay image promotion pipeline - imágenes no promovidas de staging a prod.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 134,
+    "title": "No hay SBOM por release",
+    "body": "No hay SBOM por release - falta inventario por versión.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 135,
+    "title": "No hay image signing",
+    "body": "No hay image signing - imágenes no verificables.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 136,
+    "title": "No hay runtime policy enforcement",
+    "body": "No hay runtime policy enforcement - ejecución de binarios no controlada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 137,
+    "title": "No hay OPA/Gatekeeper policies",
+    "body": "No hay OPA/Gatekeeper policies - IaC sin guardrails.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 138,
+    "title": "No hay IaC scanning en PRs",
+    "body": "No hay IaC scanning en PRs - infra insegura mergeada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 139,
+    "title": "Terraform state no bloqueado",
+    "body": "Terraform state no bloqueado - race conditions en infra.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 140,
+    "title": "No hay plan review para infra changes",
+    "body": "No hay plan review para infra changes - cambios no auditados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 141,
+    "title": "No hay infra drift detection",
+    "body": "No hay infra drift detection - deriva entre declarativo y real.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 142,
+    "title": "No hay cloud resource tagging",
+    "body": "No hay cloud resource tagging - coste y responsabilidad no atribuible.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 143,
+    "title": "No hay budget alerts",
+    "body": "No hay budget alerts - sobrecostes no detectados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 144,
+    "title": "No hay ephemeral credentials",
+    "body": "No hay ephemeral credentials - credenciales de larga duración usadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 145,
+    "title": "No hay short-lived tokens para CI",
+    "body": "No hay short-lived tokens para CI - riesgo de exposición prolongada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 146,
+    "title": "No hay service account inventory",
+    "body": "No hay service account inventory - cuentas no gestionadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 147,
+    "title": "No hay periodic access recertification",
+    "body": "No hay periodic access recertification - permisos obsoletos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 148,
+    "title": "No hay privileged identity management",
+    "body": "No hay privileged identity management - acceso privilegiado sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 149,
+    "title": "No hay just-in-time access",
+    "body": "No hay just-in-time access - elevaciones permanentes.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 150,
+    "title": "No hay approval workflows para elevación",
+    "body": "No hay approval workflows para elevación - cambios críticos sin autorización.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 151,
+    "title": "No hay offboarding automation",
+    "body": "No hay offboarding automation - ex-empleados con acceso activo.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 152,
+    "title": "No hay secrets vaulting obligatorio",
+    "body": "No hay secrets vaulting obligatorio - secretos en repositorios o envs.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 153,
+    "title": "No hay secrets lifecycle management",
+    "body": "No hay secrets lifecycle management - sin expiración ni rotación.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 154,
+    "title": "No hay secrets compromise alerts",
+    "body": "No hay secrets compromise alerts - exposición no detectada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 155,
+    "title": "No hay secrets backup/recovery",
+    "body": "No hay secrets backup/recovery - pérdida de secretos sin recuperación.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 156,
+    "title": "No hay secrets access logging",
+    "body": "No hay secrets access logging - uso de secretos no auditado.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 157,
+    "title": "No hay secrets least privilege",
+    "body": "No hay secrets least privilege - acceso amplio a secretos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 158,
+    "title": "No hay secrets scanning for third-party services",
+    "body": "No hay secrets scanning for third-party services - claves en servicios externos sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 159,
+    "title": "No hay third-party risk monitoring",
+    "body": "No hay third-party risk monitoring - proveedores sin seguimiento.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 160,
+    "title": "No hay SOC2 readiness artifacts",
+    "body": "No hay SOC2 readiness artifacts - evidencia de controles ausente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 161,
+    "title": "No hay ISO27001 mapping",
+    "body": "No hay ISO27001 mapping - controles no mapeados a estándar.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 162,
+    "title": "No hay compliance automation",
+    "body": "No hay compliance automation - evidencia manual y frágil.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 163,
+    "title": "No hay policy-as-code",
+    "body": "No hay policy-as-code - políticas no aplicadas automáticamente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 164,
+    "title": "No hay admission controllers para k8s",
+    "body": "No hay admission controllers para k8s - cambios no validados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 165,
+    "title": "No hay pod security contexts",
+    "body": "No hay pod security contexts - pods con privilegios excesivos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 166,
+    "title": "No hay k8s secret encryption at rest",
+    "body": "No hay k8s secret encryption at rest - secretos en etcd sin cifrar.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 167,
+    "title": "No hay etcd backups",
+    "body": "No hay etcd backups - pérdida de cluster posible.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 168,
+    "title": "No hay cluster certificate rotation",
+    "body": "No hay cluster certificate rotation - certificados expirables.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 169,
+    "title": "No hay cluster admin access reviews",
+    "body": "No hay cluster admin access reviews - acceso de alto nivel sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 170,
+    "title": "No hay mutating/validating webhooks para seguridad",
+    "body": "No hay mutating/validating webhooks para seguridad - políticas no aplicadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 171,
+    "title": "No hay image pull secret management",
+    "body": "No hay image pull secret management - credenciales de registry expuestas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 172,
+    "title": "No hay registry vulnerability scanning",
+    "body": "No hay registry vulnerability scanning - imágenes con CVEs desplegadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 173,
+    "title": "No hay immutable tags para prod",
+    "body": "No hay immutable tags para prod - despliegues no reproducibles.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 174,
+    "title": "No hay image provenance tracking",
+    "body": "No hay image provenance tracking - origen de imágenes desconocido.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 175,
+    "title": "No hay sidecar resource limits",
+    "body": "No hay sidecar resource limits - sidecars consumen recursos sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 176,
+    "title": "No hay service mesh mTLS enforcement",
+    "body": "No hay service mesh mTLS enforcement - tráfico interno no cifrado.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 177,
+    "title": "No hay network policies egress rules",
+    "body": "No hay network policies egress rules - pods pueden comunicarse libremente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 178,
+    "title": "No hay internal API gateway",
+    "body": "No hay internal API gateway - servicios internos sin control central.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 179,
+    "title": "No hay API gateway rate limiting",
+    "body": "No hay API gateway rate limiting - endpoints expuestos a abuso.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 180,
+    "title": "No hay API gateway request validation",
+    "body": "No hay API gateway request validation - inputs no validados en borde.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 181,
+    "title": "No hay API gateway JWT validation",
+    "body": "No hay API gateway JWT validation - tokens no verificados en gateway.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 182,
+    "title": "No hay API gateway tracing",
+    "body": "No hay API gateway tracing - falta correlación de requests.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 183,
+    "title": "No hay API gateway circuit breakers",
+    "body": "No hay API gateway circuit breakers - fallos externos afectan todo el sistema.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 184,
+    "title": "No hay API gateway canary routing",
+    "body": "No hay API gateway canary routing - despliegues graduales no soportados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 185,
+    "title": "No hay API gateway WAF integration",
+    "body": "No hay API gateway WAF integration - protección web ausente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 186,
+    "title": "No hay API gateway secret masking",
+    "body": "No hay API gateway secret masking - secretos en headers no redacted.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 187,
+    "title": "No hay API gateway PII redaction",
+    "body": "No hay API gateway PII redaction - datos sensibles pasan sin filtrado.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 188,
+    "title": "No hay API gateway billing metering",
+    "body": "No hay API gateway billing metering - uso no medido por tenant.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 189,
+    "title": "No hay API gateway anomaly detection",
+    "body": "No hay API gateway anomaly detection - abuso no detectado.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 190,
+    "title": "No hay API versioning",
+    "body": "No hay API versioning - breaking changes sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 191,
+    "title": "No hay deprecation policy",
+    "body": "No hay deprecation policy - clientes rotos por cambios.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 192,
+    "title": "No hay backward compatibility tests",
+    "body": "No hay backward compatibility tests - regresiones no detectadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 193,
+    "title": "No hay migration compatibility tests",
+    "body": "No hay migration compatibility tests - schema changes rompen clientes.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 194,
+    "title": "No hay transactional outbox pattern",
+    "body": "No hay transactional outbox pattern - mensajes perdidos en fallos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 195,
+    "title": "No hay dead-letter queues para jobs",
+    "body": "No hay dead-letter queues para jobs - fallos no gestionados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 196,
+    "title": "No hay job deduplication",
+    "body": "No hay job deduplication - trabajos procesados múltiples veces.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 197,
+    "title": "No hay idempotency en job processing",
+    "body": "No hay idempotency en job processing - efectos duplicados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 198,
+    "title": "No hay monitoring para background workers",
+    "body": "No hay monitoring para background workers - fallos silenciosos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 199,
+    "title": "No hay retry/backoff con jitter",
+    "body": "No hay retry/backoff con jitter - retries causan thundering herd.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 200,
+    "title": "No hay circuit breaker para APIs externas",
+    "body": "No hay circuit breaker para APIs externas - dependencia externa derriba servicio.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 201,
+    "title": "No hay graceful shutdown handling",
+    "body": "No hay graceful shutdown handling - pérdida de trabajo en SIGTERM.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 202,
+    "title": "No hay connection draining en despliegues",
+    "body": "No hay connection draining en despliegues - requests cortados en deploy.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 203,
+    "title": "No hay session stickiness handling",
+    "body": "No hay session stickiness handling - sesiones perdidas en scaling.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 204,
+    "title": "No hay session revocation en cambio de contraseña",
+    "body": "No hay session revocation en cambio de contraseña - sesiones antiguas siguen activas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 205,
+    "title": "No hay device session listing UI",
+    "body": "No hay device session listing UI - usuarios no pueden ver sesiones activas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 206,
+    "title": "No hay session termination endpoint",
+    "body": "No hay session termination endpoint - usuarios no pueden cerrar sesiones remotas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 207,
+    "title": "No hay SSO logout propagation",
+    "body": "No hay SSO logout propagation - logout no propaga a servicios.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 208,
+    "title": "No hay token binding",
+    "body": "No hay token binding - tokens reutilizables en otros dispositivos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 209,
+    "title": "No hay secure key derivation para contraseñas",
+    "body": "No hay secure key derivation para contraseñas - hashing débil.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 210,
+    "title": "No hay Argon2/PBKDF2 configurado",
+    "body": "No hay Argon2/PBKDF2 configurado - contraseñas vulnerables.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 211,
+    "title": "No hay salt adecuado en hashing",
+    "body": "No hay salt adecuado en hashing - hashes predecibles.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 212,
+    "title": "No hay legacy password migration plan",
+    "body": "No hay legacy password migration plan - usuarios con hashes antiguos inseguros.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 213,
+    "title": "No hay password reset token expiry corto",
+    "body": "No hay password reset token expiry corto - tokens válidos por mucho tiempo.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 214,
+    "title": "No hay email verification obligatorio",
+    "body": "No hay email verification obligatorio - cuentas sin verificar.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 215,
+    "title": "No hay CAPTCHA en signup",
+    "body": "No hay CAPTCHA en signup - bots crean cuentas masivas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 216,
+    "title": "No hay rate limiting en auth endpoints",
+    "body": "No hay rate limiting en auth endpoints - ataques de fuerza bruta posibles.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 217,
+    "title": "No hay account lockout policy",
+    "body": "No hay account lockout policy - cuentas atacables indefinidamente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 218,
+    "title": "No hay admin impersonation audit",
+    "body": "No hay admin impersonation audit - acciones de admins no rastreadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 219,
+    "title": "No hay admin action audit trail",
+    "body": "No hay admin action audit trail - cambios críticos sin registro.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 220,
+    "title": "No hay admin UI access control",
+    "body": "No hay admin UI access control - paneles administrativos accesibles sin restricción.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 221,
+    "title": "No hay feature flag kill switches",
+    "body": "No hay feature flag kill switches - no se puede desactivar features peligrosas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 222,
+    "title": "No hay runtime config validation",
+    "body": "No hay runtime config validation - configs inválidos rompen servicios.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 223,
+    "title": "No hay config drift detection",
+    "body": "No hay config drift detection - diferencias entre entornos no detectadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 224,
+    "title": "No hay staging parity con prod",
+    "body": "No hay staging parity con prod - bugs no reproducibles en staging.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 225,
+    "title": "No hay data masking en staging",
+    "body": "No hay data masking en staging - PII en entornos no productivos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 226,
+    "title": "No hay test data generation",
+    "body": "No hay test data generation - pruebas no cubren casos reales.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 227,
+    "title": "No hay e2e tests para critical flows",
+    "body": "No hay e2e tests para critical flows - regresiones en flujos clave pasan desapercibidas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 228,
+    "title": "No hay smoke tests en deploy pipeline",
+    "body": "No hay smoke tests en deploy pipeline - deploys no validados mínimamente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 229,
+    "title": "No hay canary metrics y dashboards",
+    "body": "No hay canary metrics y dashboards - canary deployments sin observabilidad.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 230,
+    "title": "No hay canary rollback automation",
+    "body": "No hay canary rollback automation - rollback manual y lento.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 231,
+    "title": "No hay chaos engineering",
+    "body": "No hay chaos engineering - resiliencia no probada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 232,
+    "title": "No hay performance regression tests",
+    "body": "No hay performance regression tests - degradaciones no detectadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 233,
+    "title": "No hay memory/CPU profiling en CI",
+    "body": "No hay memory/CPU profiling en CI - fugas no detectadas temprano.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 234,
+    "title": "No hay bundle size monitoring",
+    "body": "No hay bundle size monitoring - frontend crece sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 235,
+    "title": "No hay code splitting ni lazy loading",
+    "body": "No hay code splitting ni lazy loading - carga inicial pesada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 236,
+    "title": "No hay SSR caching",
+    "body": "No hay SSR caching - server-side rendering lento bajo carga.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 237,
+    "title": "No hay hydration mismatch handling",
+    "body": "No hay hydration mismatch handling - errores UX en cliente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 238,
+    "title": "No hay accessibility tests",
+    "body": "No hay accessibility tests - incumplimiento WCAG.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 239,
+    "title": "No hay i18n tests",
+    "body": "No hay i18n tests - errores en locales y pluralización.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 240,
+    "title": "No hay RTL support tests",
+    "body": "No hay RTL support tests - idiomas RTL rotos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 241,
+    "title": "No hay currency/locale formatting tests",
+    "body": "No hay currency/locale formatting tests - errores financieros por formato.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 242,
+    "title": "No hay content moderation pipeline",
+    "body": "No hay content moderation pipeline - UGC sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 243,
+    "title": "No hay profanity/image moderation",
+    "body": "No hay profanity/image moderation - contenido ofensivo visible.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 244,
+    "title": "No hay user reporting and moderation tools",
+    "body": "No hay user reporting and moderation tools - abuso sin gestión.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 245,
+    "title": "No hay moderator escalation paths",
+    "body": "No hay moderator escalation paths - casos críticos sin ruta.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 246,
+    "title": "No hay DMCA/takedown workflow",
+    "body": "No hay DMCA/takedown workflow - incumplimiento legal posible.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 247,
+    "title": "No hay message rate limiting",
+    "body": "No hay message rate limiting - spam en mensajería.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 248,
+    "title": "No hay message encryption at rest",
+    "body": "No hay message encryption at rest - mensajes sensibles sin cifrar.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 249,
+    "title": "No hay E2E encryption option",
+    "body": "No hay E2E encryption option - comunicaciones no privadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 250,
+    "title": "No hay message deletion propagation",
+    "body": "No hay message deletion propagation - borrados no consistentes.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 251,
+    "title": "No hay message export controls",
+    "body": "No hay message export controls - exportaciones sin restricciones.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 252,
+    "title": "No hay search privacy filters",
+    "body": "No hay search privacy filters - resultados exponen PII.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 253,
+    "title": "No hay personalization opt-out",
+    "body": "No hay personalization opt-out - usuarios no pueden desactivar personalización.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 254,
+    "title": "No hay recommendation explainability",
+    "body": "No hay recommendation explainability - recomendaciones opacas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 255,
+    "title": "No hay bias audits para modelos",
+    "body": "No hay bias audits para modelos - sesgos no detectados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 256,
+    "title": "No hay fairness testing",
+    "body": "No hay fairness testing - impacto desigual no medido.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 257,
+    "title": "No hay adversarial robustness tests",
+    "body": "No hay adversarial robustness tests - modelos frágiles a inputs maliciosos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 258,
+    "title": "No hay model rollback capability",
+    "body": "No hay model rollback capability - volver a versión anterior no automatizado.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 259,
+    "title": "No hay model canarying",
+    "body": "No hay model canarying - despliegues de modelos sin control gradual.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 260,
+    "title": "No hay GPU resource limits",
+    "body": "No hay GPU resource limits - costos y contención sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 261,
+    "title": "No hay model autoscaling policies",
+    "body": "No hay model autoscaling policies - latencia variable bajo carga.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 262,
+    "title": "No hay model warmup/cold-start mitigation",
+    "body": "No hay model warmup/cold-start mitigation - latencias altas en primeras invocaciones.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 263,
+    "title": "No hay model output sanitization",
+    "body": "No hay model output sanitization - respuestas con PII o datos sensibles.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 264,
+    "title": "No hay model provenance metadata",
+    "body": "No hay model provenance metadata - origen de modelos no registrado.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 265,
+    "title": "No hay dataset immutability",
+    "body": "No hay dataset immutability - datasets modificables sin historial.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 266,
+    "title": "No hay dataset checksum verification",
+    "body": "No hay dataset checksum verification - corrupción no detectada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 267,
+    "title": "No hay synthetic data for tests",
+    "body": "No hay synthetic data for tests - pruebas con datos reales PII.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 268,
+    "title": "No hay privacy-preserving synthetic data pipeline",
+    "body": "No hay privacy-preserving synthetic data pipeline - tests exponen datos reales.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 269,
+    "title": "No hay data minimization in logs",
+    "body": "No hay data minimization in logs - logs contienen PII innecesaria.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 270,
+    "title": "No hay correlation IDs en logs",
+    "body": "No hay correlation IDs en logs - difícil trazar requests distribuidos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 271,
+    "title": "No hay distributed tracing for background jobs",
+    "body": "No hay distributed tracing for background jobs - trazabilidad incompleta.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 272,
+    "title": "No hay dead-letter monitoring",
+    "body": "No hay dead-letter monitoring - jobs fallidos no revisados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 273,
+    "title": "No hay reconciliation jobs",
+    "body": "No hay reconciliation jobs - inconsistencias no corregidas automáticamente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 274,
+    "title": "No hay checksum/integrity monitoring for files",
+    "body": "No hay checksum/integrity monitoring for files - archivos corruptos no detectados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 275,
+    "title": "No hay file lifecycle policies",
+    "body": "No hay file lifecycle policies - almacenamiento crece sin control.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 276,
+    "title": "No hay signed commits for releases",
+    "body": "No hay signed commits for releases - autoría de releases no verificable.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 277,
+    "title": "No hay contributor onboarding docs",
+    "body": "No hay contributor onboarding docs - nuevos contribuyentes sin guía.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 278,
+    "title": "No hay contributor license agreement enforcement",
+    "body": "No hay contributor license agreement enforcement - riesgos legales por contribuciones.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 279,
+    "title": "No hay code of conduct or moderation policies",
+    "body": "No hay code of conduct or moderation policies - comunidad sin reglas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 280,
+    "title": "No hay security training para devs",
+    "body": "No hay security training para devs - errores de seguridad recurrentes.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 281,
+    "title": "No hay security champions program",
+    "body": "No hay security champions program - seguridad no integrada en equipos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 282,
+    "title": "No hay prioritized security backlog",
+    "body": "No hay prioritized security backlog - vulnerabilidades sin priorizar.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 283,
+    "title": "No hay vulnerability triage SLAs",
+    "body": "No hay vulnerability triage SLAs - tiempos de respuesta indefinidos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 284,
+    "title": "No hay automated dependency updates",
+    "body": "No hay automated dependency updates - parches manuales lentos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 285,
+    "title": "No hay emergency patching process",
+    "body": "No hay emergency patching process - parches críticos tardíos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 286,
+    "title": "No hay postmortem templates ni seguimiento",
+    "body": "No hay postmortem templates ni seguimiento - lecciones no institucionalizadas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 287,
+    "title": "No hay blameless postmortem culture",
+    "body": "No hay blameless postmortem culture - errores no analizados constructivamente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 288,
+    "title": "No hay executive security reporting",
+    "body": "No hay executive security reporting - dirección sin visibilidad de riesgo.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 289,
+    "title": "No hay security OKRs ni presupuesto",
+    "body": "No hay security OKRs ni presupuesto - seguridad sin recursos.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 290,
+    "title": "No hay cyber insurance evidence",
+    "body": "No hay cyber insurance evidence - cobertura no documentada.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 291,
+    "title": "No hay forensic readiness",
+    "body": "No hay forensic readiness - evidencia no preservada para investigaciones.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 292,
+    "title": "No hay chain of custody para incidentes",
+    "body": "No hay chain of custody para incidentes - pruebas no admisibles.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 293,
+    "title": "No hay legal hold procedures",
+    "body": "No hay legal hold procedures - datos no preservados para litigio.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 294,
+    "title": "No hay breach notification templates",
+    "body": "No hay breach notification templates - comunicaciones tardías en incidentes.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 295,
+    "title": "No hay customer notification playbooks",
+    "body": "No hay customer notification playbooks - clientes informados de forma inconsistente.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 296,
+    "title": "No hay privacy policy versioning",
+    "body": "No hay privacy policy versioning - cambios legales no rastreados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 297,
+    "title": "No hay DSR automation",
+    "body": "No hay DSR automation - solicitudes de datos manuales y lentas.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 298,
+    "title": "No hay data export encryption",
+    "body": "No hay data export encryption - exportaciones sin protección.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 299,
+    "title": "No hay data deletion verification",
+    "body": "No hay data deletion verification - borrados no confirmados.",
+    "labels": [
+      "P1"
+    ]
+  },
+  {
+    "number": 300,
+    "title": "No hay continuous improvement loop para seguridad",
+    "body": "No hay continuous improvement loop para seguridad - remediaciones no cerradas ni medidas.",
+    "labels": [
+      "P1"
+    ]
+  }
+]

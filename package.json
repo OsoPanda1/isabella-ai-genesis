@@ -48,7 +48,8 @@
     "quantum:bridge:test": "vitest run test/unit/quantum-bridge.test.ts",
     "ncua:live": "node scripts/ncua-live-load.mjs",
     "verify:lock": "node scripts/verify-lock-contract.mjs",
-    "production:certify": "node scripts/production-certification.mjs"
+    "production:certify": "node scripts/production-certification.mjs",
+    "sbom": "node scripts/sbom.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
