@@ -18,10 +18,19 @@ export default defineConfig({
       },
     },
     tanstackStart(),
-    react(),
+    react({
+      jsxImportSource: "react",
+      babel: {
+        plugins: [],
+      },
+    }),
     nitro(),
     tailwindcss(),
   ],
+  esbuild: {
+    jsx: "automatic",
+    jsxDev: false,
+  },
   resolve: {
     tsconfigPaths: true,
     alias: {
