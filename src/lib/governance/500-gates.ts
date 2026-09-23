@@ -56,8 +56,8 @@ export const CONTROLS = [
   "marcar_experimental",
 ] as const;
 
-export type Domain = typeof DOMAINS[number];
-export type Control = typeof CONTROLS[number];
+export type Domain = (typeof DOMAINS)[number];
+export type Control = (typeof CONTROLS)[number];
 export type GateId = `${Domain}:${Control}`;
 
 export interface GateEvidence {
@@ -72,19 +72,24 @@ export interface GateEvidence {
 }
 
 const EVIDENCE_MAP: Record<string, string> = {
-  "Git/evidencia:ssot_verificable": "production-capabilities.json + docs/evidence/ + git rev-parse HEAD",
-  "Arquitectura:ssot_verificable": "docs/architecture/SSOT.md + docs/01-ISABELLA-CANONICA-UNIFICADA.md",
+  "Git/evidencia:ssot_verificable":
+    "production-capabilities.json + docs/evidence/ + git rev-parse HEAD",
+  "Arquitectura:ssot_verificable":
+    "docs/architecture/SSOT.md + docs/01-ISABELLA-CANONICA-UNIFICADA.md",
   "Identidad:ssot_verificable": "src/lib/user-auth-service.ts dev-only + Supabase Auth canónica",
   "Autorización:ssot_verificable": "src/lib/authorization.ts + src/lib/rbac.ts + policy-engine",
   "CROWN:ssot_verificable": "src/lib/crown-v6.ts 12 nodos",
   "Memoria:ssot_verificable": "src/lib/repositories/memory-repository.ts + pg_advisory_xact_lock",
   "ML/IA:ssot_verificable": "src/lib/native-ml/governed-ml.ts + language-core.ts",
-  "HDC/NCUA:ssot_verificable": "src/lib/ncua/academic-pipeline.ts + quantum-bridge-client.ts allowlist",
+  "HDC/NCUA:ssot_verificable":
+    "src/lib/ncua/academic-pipeline.ts + quantum-bridge-client.ts allowlist",
   "BookPI:ssot_verificable": "src/lib/repositories/bookpi-postgres-repository.ts WORM",
-  "Postgres/RLS:ssot_verificable": "supabase/migrations + neon-adapter.ts ssl + channel_binding sanitizado",
+  "Postgres/RLS:ssot_verificable":
+    "supabase/migrations + neon-adapter.ts ssl + channel_binding sanitizado",
   "API:ssot_verificable": "src/lib/api-contracts.ts + src/server-routes/api/v1/language/profile.ts",
   "AppSec:ssot_verificable": "src/lib/security.ts + vercel.json CSP/HSTS + secret-exposure.test.ts",
-  "Vercel/runtime:ssot_verificable": "vercel.json .vercel/output + vite.config.ts nitro() + V.jsxDEV 0",
+  "Vercel/runtime:ssot_verificable":
+    "vercel.json .vercel/output + vite.config.ts nitro() + V.jsxDEV 0",
   "SRE:ssot_verificable": "docs/operations/SLO.md + docs/runbooks/incident.md + otel",
   "QA:ssot_verificable": "545 passed, 10 skipped, test/security/secret-exposure.test.ts",
   "CI/CD:ssot_verificable": ".github/workflows/ci.yml pnpm --frozen-lockfile + sbom.mjs",
@@ -97,7 +102,9 @@ const EVIDENCE_MAP: Record<string, string> = {
 export function getGateEvidence(domain: Domain, control: Control, commit: string): GateEvidence {
   const gate = `${domain}:${control}` as GateId;
   const isExperimental = control === "marcar_experimental";
-  const isEvidenceGated = ["prueba_recuperacion", "prueba_adversarial", "prueba_aislamiento"].includes(control) && ["Postgres/RLS", "BookPI", "NCUA"].includes(domain);
+  const isEvidenceGated =
+    ["prueba_recuperacion", "prueba_adversarial", "prueba_aislamiento"].includes(control) &&
+    ["Postgres/RLS", "BookPI", "NCUA"].includes(domain);
   return {
     gate,
     status: isExperimental ? "PASS" : isEvidenceGated ? "EVIDENCE_GATED" : "PASS",
@@ -118,7 +125,7 @@ export function getAllGates(commit: string): GateEvidence[] {
 }
 
 export function verifySameCommit(gates: GateEvidence[], expectedCommit: string): boolean {
-  return gates.every(g => g.commit === expectedCommit);
+  return gates.every((g) => g.commit === expectedCommit);
 }
 
 export const GATE_COUNT = DOMAINS.length * CONTROLS.length; // 500

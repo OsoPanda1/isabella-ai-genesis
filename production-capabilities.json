@@ -1,8 +1,8 @@
 {
   "version": "4.3.3",
   "assessment_date": "2026-09-23T11:00:00Z",
-  "commit_sha": "2ab7a0b",
-  "overall_readiness_percent": 100,
+  "commit_sha": "8376c31",
+  "overall_readiness_percent": 81,
   "environment": "production",
   "capabilities": [
     {
@@ -134,7 +134,7 @@
   "deployment_tiers": {
     "tier_0_predeployment": { "status": "passed", "percent_complete": 100 },
     "tier_1_staging": { "status": "passed", "percent_complete": 100 },
-    "tier_2_production": { "status": "passed", "percent_complete": 100 }
+    "tier_2_production": { "status": "evidence_required", "percent_complete": 62 }
   },
   "security_audit": {
     "critical_issues": 0,

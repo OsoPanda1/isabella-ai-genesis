@@ -74,6 +74,7 @@ Isabella es el núcleo cognitivo y de gobernanza de **TAMV Online Network / CITE
 
 - **Zero Trust:** `tenant_id` nunca del cliente
 - **Headers:** `HSTS` + `CSP` + `X-Frame DENY` + `nosniff` (`vercel.json` + `security.ts`)
+- **Secretos:** `CROWN_POLICY_SIGNING_KEY=REDACTED (Secret Manager)` — nunca en docs/código/commits — `test/security/secret-exposure.test.ts` verde
 - **Auth:** `JWT HS256 3600s` + `refresh` `jti` rotación, `UserAuthService` bloqueado en `production` (rol `Operator` fijo, `Argon2id` recomendado)
 - **Rate limit:** `IP` + `tenantId` + `quotas` (`checkRateLimitByTenant`)
 - **Crypto:** `ML-KEM/DSA` + `HSM hsm_signature_chain` + `LITLE 32 Gates`
