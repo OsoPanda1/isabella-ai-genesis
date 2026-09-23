@@ -61,14 +61,18 @@ export class UserAuthService {
   }
 
   /**
-   * Registro de nuevo usuario (Signup) con validación de entropía y creación de tenant.
+   * Registro de nuevo usuario (Signup) — SOLO DESARROLLO / MIGRACIÓN
+   * P0-06: En producción la autoridad canónica es Supabase Auth/OIDC → PrincipalContext → RBAC/CROWN.
+   * Este servicio es adapter de migración y queda DESACTIVADO en production/staging (fail-closed).
+   * El rol JAMÁS proviene del cliente: se deriva server-side como Operator (mínimo privilegio).
+   * PBKDF2-HMAC-SHA512 100k es LEGACY — para nueva identidad usar Argon2id (ver ADR).
    */
   public static async signup(params: {
     email: string;
     username: string;
     password: string;
     tenantSlug?: string;
-    role?: Role;
+    // role?: Role — ELIMINADO: el cliente no puede elegir rol privilegiado (SovereignOwner, governance_admin, etc.)
     ip?: string;
   }): Promise<{
     success: true;
@@ -81,9 +85,20 @@ export class UserAuthService {
       role: Role;
     };
   }> {
+    // P0-06: bloquear signup nativo en producción — solo dev/test/migración
+    try {
+      const { config } = await import("./config");
+      const { resolveRuntimeMode } = await import("./runtime-mode");
+      const mode = resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE);
+      if (mode === "production" || mode === "staging") {
+        throw new Error("signup nativo deshabilitado en producción — usar Supabase Auth/OIDC canónico");
+      }
+    } catch (e) {
+      if ((e as Error).message.includes("deshabilitado en producción")) throw e;
+    }
     const email = params.email.trim().toLowerCase();
     const username = params.username.trim();
-    const role: Role = params.role || "Operator";
+    const role: Role = "Operator"; // P0-06: rol derivado server-side, nunca del cliente
     const ip = params.ip || "127.0.0.1";
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

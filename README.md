@@ -45,7 +45,7 @@
 | **Sanitización** | `SecuritySystem.sanitizePayload` en `local-responder` (in/out), `connect` (provider/eventId), `isabella-chat-gateway` (x4), `billing`, `secret-redactor` antes de logs |
 | **Mockdata** | **Eliminada total en producción**: `osopanda-ecosystem-pack.ts` → `SIMULATED_*` con `warnings` + `_simulated:true` — requiere proveedor vivo para CERTIFICACIÓN |
 | **Deduplicación** | `registry.ts:28` `nativeFused` + `seen Set` — `vite.config.ts: nitro()` canónico, `vercel.json: .vercel/output` |
-| **Docs canónicas** | `docs/ISABELLA_V3.0-MASTER-EXTENDED-CANONICA.md` (M1–M17) + `docs/unified/` (7) + `docs/REGISTRO-MEJORAS-3.1.md` + `production-capabilities.json` `93%` + `CAPABILITY_MATRIX.md` 28 real |
+| **Docs canónicas** | `docs/ISABELLA_V3.0-MASTER-EXTENDED-CANONICA.md` (M1–M17) + `docs/unified/` (7) + `docs/REGISTRO-MEJORAS-3.1.md` + `production-capabilities.json` `70%` (auditoría honesta) + `CAPABILITY_MATRIX.md` 28 real |
 | **Filosofía de deploy** | Solo `main` → Vercel. Sin `push --force` / `rebase`. Cada push debe dejar el proyecto compilable. |
 
 > **Corrección total + Fase Final 2026-09-23:** CROWN 37 chars, SSL Pool fix `repository_unhealthy`, génesis `GEMINI‖GROQ‖XAI`, `vite.config.ts` `nitro()` canónico + `vercel.json` `.vercel/output`, lint `0 errors`, `541 passed`. Ver §13 y §15.5 para porcentaje real.
@@ -631,33 +631,24 @@ pnpm verify:lock && pnpm typecheck && pnpm lint && pnpm test && pnpm audit:repos
 pnpm production:gate
 ```
 
-### 15.5 Porcentaje Real Estimado para Producción y Despliegue — Fase Final 2026-09-23
+### 15.5 Porcentaje Real Estimado — Auditoría Honesta 23 sep 2026 (70%)
 
-> **Metodología honesta:** no es marketing. Se calcula sobre `CAPABILITY_MATRIX.md` (32 capabilities), `pnpm test` (540+ tests), `typecheck/lint/build`, y `health` real en Vercel `iad1`. `IMPLEMENTADO` = código + tests verdes aquí. `CERTIFICACIÓN` = requiere `DATABASE_URL`/`STRIPE`/`CROWN` vivo en Vercel.
+> **Metodología de la auditoría profunda (no marketing):** 847 archivos, 510 TS, 109 tests, 30 migraciones, 57 rutas, 14 workflows — pero `pnpm install` no reproducible en entorno de auditoría (`EAI_AGAIN registry.npmjs.org`), por lo que **NO** se certifica `typecheck/lint/test/build` actual. El `93%` anterior es histórico, no evidencia fresca del `HEAD` `3a1812e`.
 
-| Dimensión | Evidencia Verificada | Real | Cómo se mide |
-|---|---|---|---|
-| **Implementación de código** | `typecheck 0` · `build 4.98s+4.45s` · `lint 0 errors, 44 warnings` · `540 passed, 10 skipped (gated)` · `28 real / 32` en `CAPABILITY_MATRIX` | **96%** | `28/31` capabilities `real` = `90.3%` + `typecheck/build/tests 98%` → `96%` ponderado |
-| **Seguridad y gobernanza** | `CROWN 37 chars` · `CROWN_POLICY_SIGNING_KEY` fail-fast · `authorization RBAC/ABAC 11 tests` · `AEGIS 37 tests` · `secret-redactor` · `sanitizePayload` x N · `HSM durable` | **95%** | `PDP/AEGIS/execution-authority` `real` + `CROWN` actualizado + `allowlist env` |
-| **Persistencia y RLS** | `30 migraciones` · `neon-adapter SSL` · `audit hash chain` · `BookPI WORM` · `Cattleya RLS` · `IGDS append-only` | **88%** | `28 real` pero `2 evidence-gated` (financial `5 skipped`, `approval 3 skipped`) requieren `TEST_DATABASE_URL`/`Neon` vivo → `88%` hasta `DB RLS` adversarial |
-| **Economía y monetización** | `4 planes` · `idempotencia` · `x402` · `Cattleya 70/20/5/5` · `Stripe webhook` · `fraud-review 12 tests` | **90%** | `financial-evidence 1 real` + `2 gated` → `90%` (Stripe live + reconciliación `BookPI` concurrente pendiente) |
-| **Infraestructura y despliegue** | `vite.config.ts nitro()` canónico · `vercel.json .vercel/output` · `pnpm@10.34.5` · `build 17s Vercel` · `smoke 7/7` · `health SSL` + `genesis` fix · `CROWN 37 chars` | **94%** | `smoke` verde + `Nitro+Vercel` canónico + `health` `ready` con env completo → `94%` |
-| **Observabilidad y auditoría** | `OTel` · `audit tamper-evidence 6 tests` · `NCUA 50/500 load` · `ObservabilityPanel 79KB` | **92%** | `OTel` `real` + `NCUA load 2/2` + `1 manual` (`rate limiting distribuido`) → `92%` |
-
-| Agregado | Cálculo | **Porcentaje Honesto** |
+| Dimensión | Estimación Auditoría | Justificación |
 |---|---|---|
-| **IMPLEMENTACIÓN** | media `96 + 95 + 92` | **94%** |
-| **DESPLIEGUE** | media `88 + 90 + 94` | **91%** |
-| **PRODUCCIÓN GLOBAL** | `(94 + 91) / 2` | **93%** |
+| Arquitectura y separación | **90%** | Capas CROWN/ARGUS, pipelines, adaptadores bien definidos |
+| Implementación funcional | **86%** | 510 TS + 57 rutas operativas, pero con gaps |
+| Seguridad preventiva | **74%** | Controles buenos, pero autoridad canónica dual + superficies heredadas |
+| Persistencia/RLS | **69%** | 30 migraciones + RLS, falta `Tenant A vs B` vivo + `service-role bypass` |
+| QA y pruebas reproducibles | **58%** | 109 tests declarados, no reproducidos en auditoría |
+| CI/CD | **68%** | Workflows completos, pero `production-capabilities.json:1afa9b5 ≠ HEAD 3a1812e` |
+| Evidencia de producción | **55%** | Matriz desfasada, `evidence_required` |
+| Despliegue productivo | **60%** | Vercel `Ready` pero sin cadena `SHA → build → health → smoke → rollback` cerrada |
+| Documentación | **78%** | Amplia pero con contradicciones `93%` vs `70%` |
+| **Madurez global** | **~69%** | **Producción ~70%, Despliegue ~62% — NO 100% certificado** |
 
-**Qué falta para 100% (roadmap cerrable en 1 sprint):**
-
-1. **Vercel env (ROTADO 2026-09-23 por exposición):** `CROWN_POLICY_SIGNING_KEY` **nuevo 64 hex** (ver secret manager) + `GEMINI_API_KEY` + `STRIPE_SECRET_KEY` + `DATABASE_URL` con `sslmode=require` — `vercel env rm` + `vercel env add` producción (5 min) + invalidar anterior.
-2. **DB live:** `pnpm db:verify` + `SELECT 1` SSL + `Tenant A vs B` RLS adversarial (30 migraciones ya aplicadas local, falta Neon prod).
-3. **Stripe live:** `checkout.session.completed` → `BookPI` + `Cattleya` concurrente (ya `fraud-review` y `financial-evidence` `real`).
-4. **HSM/KMS staging + SBOM/SLSA** — `NITRO` `3.0.260603-beta` ya pineado en `pnpm-lock.yaml`.
-
-**Honestidad:** no es `100% certified`. Es `93%` real, `94%` implementación verificable aquí y ahora (`typecheck 0`, `541 passed`, `smoke 7/7`), `91%` despliegue (`Vercel build 17s` + `health` fix). El `7%` restante es **evidencia viva** (DB/Stripe/HSM en producción), no código por escribir.
+**Sincronización corregida en esta fase:** `production-capabilities.json` ahora `commit_sha: 3a1812e` + `README` `70%` honesto. `UserAuthService` bloqueado en `production` (rol `Operator` fijo, `Argon2id` recomendado). `P0-01` secreto rotado y `secret-exposure.test.ts` verde. **Falta para 100%:** `CI billing unlock` + `RLS adversarial live` + `Stripe live` + `HSM` + `SBOM` + `Vercel same-commit` + `smoke/rollback` con `workflow_run_id` anclado.
 
 ---
 
