@@ -13,6 +13,16 @@
 
 ---
 
+## Declaración de Orgullo Latinoamericano
+
+> Este proyecto intenta ser lo más ético y profesional posible, pero tras décadas de escuchar que LATAM es incapaz de crear innovación de adopción global decidimos integrar sin vergüenza, sin remordimientos y sin ninguna vergüenza la siguiente frase:
+>
+> ### 🇲🇽🇧🇷🇦🇷🇨🇴🇵🇪🇨🇱 *¡A huevo que somos latinoamericanos!* 🇵🇪🇨🇱🇨🇴🇦🇷🇧🇷🇲🇽
+>
+> *Construido en Real del Monte, Hidalgo, México — Nodo Cero — para Latinoamérica y el mundo. Sin pedir permiso, sin pedir disculpas por soñar en grande. Si esperabas que nos escondiéramos: no. Si esperabas innovación global con sabor a paste, niebla de montaña y soberanía territorial: llegaste al lugar correcto.*
+
+---
+
 ## 0. Ficha Técnica Verificada — 2026-09-23
 
 | Campo | Valor |
