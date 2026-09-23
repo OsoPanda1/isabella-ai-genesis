@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
+import { config } from "./config";
 
 export interface QuantumBridgePayload {
   schema: "pennylane-request-v5";
@@ -42,8 +43,9 @@ const DEFAULT_MAX_STDOUT = 4_194_304;
 
 export class QuantumBridgeClient {
   constructor(
-    private readonly pythonPath = process.env.PYTHON_PATH ?? "python3",
-    private readonly scriptPath = process.env.QUANTUM_BRIDGE_PATH ??
+    private readonly pythonPath = config().PYTHON_PATH ?? "python3",
+    private readonly scriptPath =
+      config().QUANTUM_BRIDGE_PATH ??
       path.resolve(process.cwd(), "scripts", "quantum", "isabella_quantum_bridge_v5.py"),
   ) {}
 
@@ -52,11 +54,21 @@ export class QuantumBridgeClient {
     options: QuantumDispatchOptions = {},
   ): Promise<QuantumBridgeResponse> {
     const timeoutMs = options.timeoutMs ?? 30_000;
-    const maxStdout = Number(process.env.QUANTUM_BRIDGE_MAX_STDOUT_BYTES ?? DEFAULT_MAX_STDOUT);
+    const maxStdout = Number(config().QUANTUM_BRIDGE_MAX_STDOUT_BYTES ?? DEFAULT_MAX_STDOUT);
 
     return new Promise((resolve, reject) => {
+      // Zero-Trust: allowlist mínima — nunca propagar DATABASE_URL / AUTH_JWT_SECRET al hijo Python
+      const allowEnv: NodeJS.ProcessEnv = {
+        PATH: process.env.PATH,
+        PYTHONPATH: process.env.PYTHONPATH,
+        PYTHON_PATH: config().PYTHON_PATH,
+        QUANTUM_BRIDGE_PATH: config().QUANTUM_BRIDGE_PATH,
+        NODE_ENV: process.env.NODE_ENV,
+        HOME: process.env.HOME,
+        LANG: process.env.LANG,
+      };
       const child = spawn(this.pythonPath, [this.scriptPath, "--stdio"], {
-        env: { ...process.env },
+        env: allowEnv,
         stdio: ["pipe", "pipe", "pipe"],
       });
 

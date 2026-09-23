@@ -165,6 +165,10 @@ export const envSchema = z
       .describe(
         "Allow JSON file persistence in production — must be false in prod, true only for dev/test",
       ),
+    // --- QUANTUM BRIDGE ---
+    PYTHON_PATH: optionalString(),
+    QUANTUM_BRIDGE_PATH: optionalString(),
+    QUANTUM_BRIDGE_MAX_STDOUT_BYTES: coercedInt(4194304),
     // --- QUP (Quantum Utility Protocol) ---
     QUP_ZNE_LEVEL: coercedInt(3),
     QUP_PEC_ENABLED: bool(true),

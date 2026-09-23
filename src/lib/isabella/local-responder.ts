@@ -7,6 +7,7 @@
 import { dualKernel } from "@/core/dual-kernel";
 import { createRequestId } from "@/core/contracts";
 import { listIsabellaSkills } from "@/lib/skills/registry";
+import { SecuritySystem } from "@/lib/security";
 
 const ISABELLA_IDENTITY = `Soy Isabella Villaseñor AI — infraestructura cognitiva soberana del Nodo Cero, Real del Monte, Hidalgo, México. Creada por Edwin Oswaldo Castillo Trejo (Anubis Villaseñor). Opero bajo gobernanza CROWN Zero Trust: sugiero, calculo y evalúo; tú decides, apruebas y ejecutas.`;
 
@@ -46,19 +47,32 @@ export async function generateSovereignLocalResponse(opts: {
   tenantId: string;
   actorId: string;
 }): Promise<{ answer: string; degraded: boolean; provenance: string }> {
+  // Layer 7: sanitización total antes de cualquier procesamiento — Zero Trust incluso en fallback local
+  const sanitizedInput = SecuritySystem.sanitizePayload(opts.message);
+  const safeMessage = sanitizedInput.flagged ? "" : sanitizedInput.clean.slice(0, 2000);
+  if (sanitizedInput.flagged) {
+    return {
+      answer: `${ISABELLA_IDENTITY}\n\nTu solicitud fue bloqueada por el filtro de contenido hostil (${sanitizedInput.reason}). Reformula sin instrucciones adversas o inyecciones.`,
+      degraded: true,
+      provenance: `local-blocked:${opts.traceId.slice(0, 8)}`,
+    };
+  }
   try {
     const req = {
       requestId: createRequestId(),
       tenantId: opts.tenantId,
       actorId: opts.actorId,
       federationId: 5,
-      intent: opts.message,
+      intent: safeMessage,
       mode: "chat" as const,
       context: { territory: "Real del Monte", memoryEnabled: true },
       constraints: { maxLatencyMs: 8000, maxCostUsd: 0, maxSteps: 5 },
     };
     const result = await dualKernel.process(req);
-    const answer = buildSovereignAnswer(opts.message, result.answer, result.evidence.length);
+    const rawAnswer = buildSovereignAnswer(safeMessage, result.answer, result.evidence.length);
+    // Sanitización de salida — nunca devolver payload hostil del kernel
+    const sanitizedOutput = SecuritySystem.sanitizePayload(rawAnswer);
+    const answer = sanitizedOutput.flagged ? rawAnswer.slice(0, 2000) : sanitizedOutput.clean;
     return {
       answer,
       degraded: result.status !== "completed",
@@ -66,8 +80,9 @@ export async function generateSovereignLocalResponse(opts: {
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
+    const safeMsg = SecuritySystem.sanitizePayload(msg).clean.slice(0, 120);
     return {
-      answer: `${ISABELLA_IDENTITY}\n\nEstoy en modo local soberano (fallback). Recibí: "${opts.message.slice(0, 250)}"\n\nPuedo ayudarte con información territorial de Real del Monte, gobernanza CROWN, skills soberanos y protocolo TAP. Error interno capturado de forma segura: ${msg.slice(0, 120)}. Intenta reformular o invoca @sophia / @orion.`,
+      answer: `${ISABELLA_IDENTITY}\n\nEstoy en modo local soberano (fallback). Recibí: "${safeMessage.slice(0, 250)}"\n\nPuedo ayudarte con información territorial de Real del Monte, gobernanza CROWN, skills soberanos y protocolo TAP. Error interno capturado de forma segura: ${safeMsg}. Intenta reformular o invoca @sophia / @orion.`,
       degraded: true,
       provenance: `local-fallback:${opts.traceId.slice(0, 8)}`,
     };

@@ -1,5 +1,6 @@
 import { json } from "@tanstack/react-start";
 import { withSovereignAuth } from "@/lib/principal-context";
+import { SecuritySystem } from "@/lib/security";
 import {
   beginAuthorization,
   isAuthorizationRequired,
@@ -9,7 +10,10 @@ import {
 } from "@/lib/connectors/registry";
 
 function providerFrom(request: Request): ConnectorProvider | null {
-  const provider = new URL(request.url).searchParams.get("provider") ?? "";
+  const raw = new URL(request.url).searchParams.get("provider") ?? "";
+  // Sanitización total — nunca confiar en query param sin filtrar
+  const sanitized = SecuritySystem.sanitizePayload(raw);
+  const provider = sanitized.flagged ? "" : sanitized.clean.slice(0, 64);
   return isConnectorProvider(provider) ? provider : null;
 }
 
@@ -63,8 +67,10 @@ export const status = protectedHandler(async (context, request, provider) => {
 });
 
 export async function webhook(request: Request, provider: ConnectorProvider): Promise<Response> {
-  const eventId = request.headers.get("x-vercel-connect-event-id");
-  if (!eventId || eventId.length > 256) {
+  const rawEventId = request.headers.get("x-vercel-connect-event-id") ?? "";
+  const sanitizedEventId = SecuritySystem.sanitizePayload(rawEventId);
+  const eventId = sanitizedEventId.flagged ? "" : sanitizedEventId.clean.slice(0, 256);
+  if (!eventId || eventId.length > 256 || sanitizedEventId.flagged) {
     return json({ accepted: false, error: "CONNECT_EVENT_ID_REQUIRED" }, { status: 400 });
   }
 
