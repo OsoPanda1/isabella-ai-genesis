@@ -13,7 +13,6 @@ const connector = new x402MonetizationConnector();
  * Endpoint Canónico REST para Monetización x402 con Reparto 75/25
  * POST /api/v1/monetization/x402/process
  */
-// @ts-expect-error - TanStack route type augmented at build time
 export const Route = createFileRoute("/api/v1/monetization/x402/process")({
   server: {
     handlers: {

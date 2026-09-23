@@ -40,7 +40,6 @@ const ActionRequestSchema = z.discriminatedUnion("action", [
   }),
 ]);
 
-// @ts-expect-error - TanStack route type augmented at build time
 export const Route = createFileRoute("/api/v1/monetization/tamv")({
   server: {
     handlers: {
