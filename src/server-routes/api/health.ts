@@ -104,7 +104,9 @@ async function checkRepositoryHealth(kind: "repository" | "audit"): Promise<Heal
     return {
       ok: result.ok,
       latencyMs: Number((performance.now() - started).toFixed(2)),
-      ...(result.ok ? {} : { error: (result as { error?: string }).error ?? "repository_unhealthy" }),
+      ...(result.ok
+        ? {}
+        : { error: (result as { error?: string }).error ?? "repository_unhealthy" }),
     };
   } catch (error) {
     const msg = error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200);
@@ -148,7 +150,9 @@ async function readiness(): Promise<Response> {
       ...(genesisConfigured
         ? {}
         : {
-            error: hasInferenceProvider ? "crown_policy_signing_key_unconfigured" : "genesis_service_unconfigured",
+            error: hasInferenceProvider
+              ? "crown_policy_signing_key_unconfigured"
+              : "genesis_service_unconfigured",
           }),
     };
     if (!genesisConfigured && productionLike) overallOk = false;

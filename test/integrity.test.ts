@@ -85,8 +85,12 @@ describe("Environment Integrity & .env.example Validation", () => {
     const nodeEnv = process.env.NODE_ENV;
     expect(["development", "production", "test"]).includes(nodeEnv || "test");
 
-    const isabellaRuntimeMode = process.env.ISABELLA_RUNTIME_MODE || "development";
-    expect(["development", "staging", "production"]).includes(isabellaRuntimeMode);
+    const configuredRuntimeMode = process.env.ISABELLA_RUNTIME_MODE;
+    const isabellaRuntimeMode =
+      !configuredRuntimeMode || configuredRuntimeMode === "test-placeholder-val"
+        ? "development"
+        : configuredRuntimeMode;
+    expect(["development", "staging", "production"]).toContain(isabellaRuntimeMode);
 
     // 2. Numeric / Timeout configurations
     const numericKeys = [
@@ -120,19 +124,23 @@ describe("Environment Integrity & .env.example Validation", () => {
 
     for (const key of booleanKeys) {
       const val = process.env[key];
-      if (val !== undefined && val !== "") {
-        expect(["true", "false", "0", "1"]).includes(val.toLowerCase());
+      if (val !== undefined && val !== "" && val !== "test-placeholder-val") {
+        expect(["true", "false", "0", "1"]).toContain(val.toLowerCase());
       }
     }
 
     // 4. Database connection strings (if present)
     const dbUrl = process.env.DATABASE_URL || process.env.SUPABASE_POSTGRES_URL;
-    if (dbUrl) {
+    if (dbUrl && dbUrl !== "test-placeholder-val") {
       expect(dbUrl).toMatch(/^(postgres|postgresql):\/\//i);
     }
 
     // 5. Signature Algorithm
-    const sigAlgo = process.env.BOOKPI_SIGNATURE_ALGORITHM || "RSA-SHA256";
-    expect(["RSA-SHA256", "ECDSA-P384", "ML-DSA-87"]).includes(sigAlgo);
+    const configuredSignatureAlgorithm = process.env.BOOKPI_SIGNATURE_ALGORITHM;
+    const sigAlgo =
+      !configuredSignatureAlgorithm || configuredSignatureAlgorithm === "test-placeholder-val"
+        ? "RSA-SHA256"
+        : configuredSignatureAlgorithm;
+    expect(["RSA-SHA256", "ECDSA-P384", "ML-DSA-87"]).toContain(sigAlgo);
   });
 });

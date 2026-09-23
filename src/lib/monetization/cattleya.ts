@@ -150,7 +150,9 @@ export async function createVirtualCard(input: {
     try {
       const stripeRollback = getStripe();
       if (stripeRollback && stripeCardId && !stripeCardId.startsWith("card_mock_")) {
-        await stripeRollback.issuing.cards.update(stripeCardId, { status: "inactive" } as any).catch(() => {});
+        await stripeRollback.issuing.cards
+          .update(stripeCardId, { status: "inactive" } as any)
+          .catch(() => {});
         console.warn(`[CATTLEYA] Rollback: tarjeta ${stripeCardId} inactivada por fallo BookPI`);
       }
     } catch (rollbackErr) {
