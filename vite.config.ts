@@ -19,14 +19,7 @@ export default defineConfig({
     },
     tanstackStart(),
     react(),
-    nitro({
-      preset: "vercel",
-      vercel: {
-        functions: {
-          runtime: "nodejs24.x",
-        },
-      },
-    }),
+    nitro(),
     tailwindcss(),
   ],
   resolve: {

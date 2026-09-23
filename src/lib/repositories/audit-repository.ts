@@ -40,9 +40,7 @@ const GENESIS_HASH = "0000000000000000000000000000000000000000000000000000000000
 
 function resolveDefaultStorePath(): string {
   const cwd =
-    typeof process !== "undefined" && typeof process.cwd === "function"
-      ? process.cwd()
-      : ".";
+    typeof process !== "undefined" && typeof process.cwd === "function" ? process.cwd() : ".";
   return path.join(cwd, "isabella_audit_store.json");
 }
 

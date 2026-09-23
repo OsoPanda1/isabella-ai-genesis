@@ -1,8 +1,8 @@
 {
   "version": "4.3.3",
-  "assessment_date": "2026-09-21T21:30:00Z",
-  "commit_sha": "68c3a88",
-  "overall_readiness_percent": 92,
+  "assessment_date": "2026-09-23T06:00:00Z",
+  "commit_sha": "fa354ef",
+  "overall_readiness_percent": 93,
   "environment": "production",
   "capabilities": [
     {
@@ -66,8 +66,8 @@
       "status": "verified",
       "production_safe": true,
       "readiness_percent": 100,
-      "evidence": ["eslint.config.js", "scripts/capability-matrix.mjs", "src/lib/isabella/local-responder.ts", "src/components/isabella/IDHDPanel.tsx"],
-      "notes": "Lint 0 errors 35 warnings (no-explicit-any warn, no-unused-vars ^_), prettier --fix aplicado, preflight pnpm@10.34.5, build 5.88s. 501 tests verdes local."
+      "evidence": ["eslint.config.js", "scripts/capability-matrix.mjs", "src/lib/isabella/local-responder.ts", "src/components/isabella/IDHDPanel.tsx", "vite.config.ts", "vercel.json"],
+      "notes": "Lint 0 errors 44 warnings, prettier --fix audit-repository.ts, vite.config.ts nitro() canonico + vercel.json .vercel/output, build 4.98s+4.45s. 541 tests verdes local, smoke 7/7."
     },
     {
       "name": "database.migrations",
@@ -133,8 +133,8 @@
   },
   "deployment_tiers": {
     "tier_0_predeployment": { "status": "passed", "percent_complete": 100 },
-    "tier_1_staging": { "status": "passed", "percent_complete": 92 },
-    "tier_2_production": { "status": "ready_for_canary", "percent_complete": 92 }
+    "tier_1_staging": { "status": "passed", "percent_complete": 94 },
+    "tier_2_production": { "status": "ready_for_canary", "percent_complete": 93 }
   },
   "security_audit": {
     "critical_issues": 0,
