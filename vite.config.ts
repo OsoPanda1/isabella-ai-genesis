@@ -18,12 +18,7 @@ export default defineConfig({
       },
     },
     tanstackStart(),
-    react({
-      jsxImportSource: "react",
-      babel: {
-        plugins: [],
-      },
-    }),
+    react(),
     nitro(),
     tailwindcss(),
   ],
@@ -44,7 +39,7 @@ export default defineConfig({
   },
   build: {
     target: "esnext",
-    minify: "oxc",
+    minify: "esbuild",
     cssCodeSplit: true,
     rollupOptions: {
       output: {
