@@ -872,7 +872,6 @@ export const Route = createFileRoute("/api/db")({
                 username: val.data.username,
                 password: val.data.password,
                 tenantSlug: val.data.tenantSlug,
-                role: val.data.role,
                 ip,
               });
               return new Response(JSON.stringify(res), { headers });

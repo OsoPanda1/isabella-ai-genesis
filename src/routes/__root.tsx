@@ -8,7 +8,6 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { Analytics } from "@vercel/analytics/react";
 import { useEffect, useMemo, type ReactNode } from "react";
 import { IsabellaErrorBoundary } from "@/components/isabella/ErrorBoundary";
 import { EmergencyModeView } from "@/components/isabella/EmergencyModeView";
@@ -95,7 +94,6 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
-        <Analytics />
         <SpeedInsights />
         <Scripts />
       </body>
