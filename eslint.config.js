@@ -26,6 +26,8 @@ export default tseslint.config(
       "latam-aegis-x/**/*",
       "quantum_utility_platform",
       "quantum_utility_platform/**/*",
+      "contrib",
+      "contrib/**/*",
     ],
   },
   firebaseRulesPlugin.configs["flat/recommended"],

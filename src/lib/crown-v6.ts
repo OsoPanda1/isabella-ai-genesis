@@ -9,7 +9,8 @@ import { NODES as NODES_MEXA, type NodeId as NodeIdMexa } from "./isabella/crown
 
 export const CROWN_VERSION = "6.0.0-fusion";
 
-export type ModuleId = ModuleIdV2 | "MNEMOSYNE" | "TELLUS" | "CHRONOS" | "HERMES" | "AXIOMA" | "PRAXIS" | "HARMONIA";
+export type ModuleId =
+  ModuleIdV2 | "MNEMOSYNE" | "TELLUS" | "CHRONOS" | "HERMES" | "AXIOMA" | "PRAXIS" | "HARMONIA";
 export type NodeId = NodeIdMexa; // 12
 
 // Mapeo 5 -> 12 para cardinalización

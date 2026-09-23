@@ -43,7 +43,8 @@ export type IsabellaIntent =
   | "capability_query"
   | "general";
 
-export type PresetRecommendation = "prime" | "empathic" | "strategic" | "sentinel" | "executor" | "synergistic";
+export type PresetRecommendation =
+  "prime" | "empathic" | "strategic" | "sentinel" | "executor" | "synergistic";
 
 export interface LanguageProfile {
   readonly intent: IsabellaIntent;
@@ -66,140 +67,200 @@ interface IntentSpec {
 /* Intent catalogue ordered by specificity: first strong match wins. */
 const INTENT_SPECS: readonly IntentSpec[] = [
   {
-    intent: "security", weight: 1.0, preset: "sentinel", register: "technical",
+    intent: "security",
+    weight: 1.0,
+    preset: "sentinel",
+    register: "technical",
     patterns: [
       /\b(hacke|vulnerab|inyecci[oó]n|exploit|breach|backdoor|malware|phishing|firewall|zero.?trust|cifr|encript|csrf|xss|sql.?injection|amenaza|seguridad|auditor[ií]a)\b/i,
       /\b(hack|vulnerab|injection|exploit|breach|backdoor|malware|phishing|firewall|zero.?trust|encrypt|threat|security|pen.?test)\b/i,
     ],
   },
   {
-    intent: "image_request", weight: 1.0, preset: "executor", register: "lyrical",
+    intent: "image_request",
+    weight: 1.0,
+    preset: "executor",
+    register: "lyrical",
     patterns: [
       /\b(genera(r)? una (imagen|obra|ilustraci[oó]n)|dibuj(a|o)|pinta|ilustra|visualiza|renderiza|hazme (una )?imagen|p[oó]ster)\b/i,
       /\b(generate (an )?(image|artwork|illustration)|draw|paint|illustrate|render|poster|visualize this)\b/i,
     ],
   },
   {
-    intent: "code_task", weight: 0.95, preset: "strategic", register: "technical",
+    intent: "code_task",
+    weight: 0.95,
+    preset: "strategic",
+    register: "technical",
     patterns: [
       /\b(funci[oó]n|componente|endpoint|refactor|debug|compil|typescript|react|python|sql|programa|c[oó]digo|implementa|bug|optimiza|tests? unitarios)\b/i,
       /\b(function|component|endpoint|refactor|debug|compil|typescript|react|python|sql|code|implement this|bug|optimize|unit test)\b/i,
     ],
   },
   {
-    intent: "billing", weight: 0.95, preset: "strategic", register: "formal",
+    intent: "billing",
+    weight: 0.95,
+    preset: "strategic",
+    register: "formal",
     patterns: [
       /\b(suscripci[oó]n|facturaci[oó]n|factura|pago|precio|cobra|cuota|saldo|checkout|plan (plus|premium|vip|enterprise)|api.?key|renovar|cancelar mi plan)\b/i,
       /\b(subscription|invoice|billing|payment|price|charge|quota|balance|checkout|api key|renew|cancel my plan)\b/i,
     ],
   },
   {
-    intent: "territory", weight: 0.9, preset: "prime", register: "formal",
+    intent: "territory",
+    weight: 0.9,
+    preset: "prime",
+    register: "formal",
     patterns: [
       /\b(real del monte|pachuca|hidalgo|territorio|rdm|nodo cero|soberan[ií]a|miner[ií]a|comunidad|pueblo|patrimonio|gemelo digital|latinoam[eé]rica)\b/i,
       /\b(real del monte|pachuca|hidalgo|territory|sovereignty|mining|heritage|digital twin|latin america)\b/i,
     ],
   },
   {
-    intent: "identity", weight: 0.95, preset: "empathic", register: "warm",
+    intent: "identity",
+    weight: 0.95,
+    preset: "empathic",
+    register: "warm",
     patterns: [
       /\b(qui[eé]n eres|qu[eé] eres|pres[eé]ntate|cu[eé]ntame de ti|tu identidad|qui[eé]n te cre[oó]|qu[eé] es isabella)\b/i,
       /\b(who are you|what are you|introduce yourself|tell me about yourself|your identity|who made you|what is isabella)\b/i,
     ],
   },
   {
-    intent: "capability_query", weight: 0.9, preset: "prime", register: "formal",
+    intent: "capability_query",
+    weight: 0.9,
+    preset: "prime",
+    register: "formal",
     patterns: [
       /\b(qu[eé] puedes hacer|para qu[eé] sirves|capacidades|qu[eé] sabes hacer|funciones disponibles|c[oó]mo te uso)\b/i,
       /\b(what can you do|what are you for|capabilities|what do you know how to do|available functions|how do i use you)\b/i,
     ],
   },
   {
-    intent: "status_check", weight: 0.9, preset: "strategic", register: "technical",
+    intent: "status_check",
+    weight: 0.9,
+    preset: "strategic",
+    register: "technical",
     patterns: [
       /\b(estado del sistema|health|diagn[oó]stico|latencia|servidor|uptime|disponibilidad|error)\b/i,
       /\b(system status|health check|diagnostics|server status|uptime|availability|error 405)\b/i,
     ],
   },
   {
-    intent: "wellness", weight: 0.9, preset: "empathic", register: "warm",
+    intent: "wellness",
+    weight: 0.9,
+    preset: "empathic",
+    register: "warm",
     patterns: [
       /\b([aá]nimo|triste|ansiedad|estr[eé]s|deprim|soporte emocional|salud mental|duelo|cansad|agotad)\b/i,
       /\b(sad|anxiety|stress|depress|emotional support|mental health|grief|exhausted|feeling down)\b/i,
     ],
   },
   {
-    intent: "language_learning", weight: 0.9, preset: "empathic", register: "warm",
+    intent: "language_learning",
+    weight: 0.9,
+    preset: "empathic",
+    register: "warm",
     patterns: [
       /\b(aprender (ingl[eé]s|espa[nñ]ol|idiomas)|idioma|pronunciaci[oó]n|gram[aá]tica|conjugaci[oó]n|vocabulario|fluidez)\b/i,
       /\b(learn (english|spanish)|language|pronunciation|grammar|conjugation|vocabulary|fluency)\b/i,
     ],
   },
   {
-    intent: "translation", weight: 0.9, preset: "strategic", register: "formal",
+    intent: "translation",
+    weight: 0.9,
+    preset: "strategic",
+    register: "formal",
     patterns: [
       /\b(traduc(e|ir|e esto)|traduce|c[oó]mo se dice|en ingl[eé]s ser[ií]a|en espa[nñ]ol ser[ií]a)\b/i,
       /\b(translate|how do you say|in english it would be|in spanish it would be)\b/i,
     ],
   },
   {
-    intent: "creative_writing", weight: 0.85, preset: "executor", register: "lyrical",
+    intent: "creative_writing",
+    weight: 0.85,
+    preset: "executor",
+    register: "lyrical",
     patterns: [
       /\b(escribe (un )?(poema|cuento|historia|ensayo)|poes[ií]a|narrativa|personaje|gui[oó]n|redacta|verso)\b/i,
       /\b(write (a )?(poem|story|essay)|poetry|narrative|character|screenplay|draft this|verse)\b/i,
     ],
   },
   {
-    intent: "architecture", weight: 0.85, preset: "strategic", register: "technical",
+    intent: "architecture",
+    weight: 0.85,
+    preset: "strategic",
+    register: "technical",
     patterns: [
       /\b(arquitectura|m[oó]dulos|crown|c[oó]mo funciona|estructura del sistema|componentes internos)\b/i,
       /\b(architecture|modules|crown|how does it work|system structure|internal components)\b/i,
     ],
   },
   {
-    intent: "explanation", weight: 0.8, preset: "strategic", register: "formal",
+    intent: "explanation",
+    weight: 0.8,
+    preset: "strategic",
+    register: "formal",
     patterns: [
       /\b(explica|expl[ií]came|qu[eé] significa|por qu[eé]|c[oó]mo es que|describe|define)\b/i,
       /\b(explain|what does it mean|why does|how is it that|describe|define)\b/i,
     ],
   },
   {
-    intent: "recommendation", weight: 0.8, preset: "empathic", register: "warm",
+    intent: "recommendation",
+    weight: 0.8,
+    preset: "empathic",
+    register: "warm",
     patterns: [
       /\b(recomienda|sugerencia|qu[eé] me conviene|mejor opci[oó]n|asesor[ií]a|consejo)\b/i,
       /\b(recommend|suggestion|what suits me|best option|advice|guidance)\b/i,
     ],
   },
   {
-    intent: "opinion", weight: 0.75, preset: "prime", register: "formal",
+    intent: "opinion",
+    weight: 0.75,
+    preset: "prime",
+    register: "formal",
     patterns: [
       /\b(qu[eé] piensas|tu opini[oó]n|consideras|dilema|argumento|debate)\b/i,
       /\b(what do you think|your opinion|do you consider|dilemma|argument|debate)\b/i,
     ],
   },
   {
-    intent: "data_query", weight: 0.75, preset: "strategic", register: "technical",
+    intent: "data_query",
+    weight: 0.75,
+    preset: "strategic",
+    register: "technical",
     patterns: [
       /\b(cu[aá]ntos?|lista|enumeraci[oó]n|consulta|b[uú]squeda|recupera|estad[ií]stica)\b/i,
       /\b(how many|list|enumeration|query|search|retrieve|statistics)\b/i,
     ],
   },
   {
-    intent: "farewell", weight: 1.0, preset: "empathic", register: "warm",
+    intent: "farewell",
+    weight: 1.0,
+    preset: "empathic",
+    register: "warm",
     patterns: [
       /\b(adi[oó]s|hasta luego|nos vemos|cu[ií]date|chao)\b/i,
       /\b(goodbye|see you later|see you|take care|good night|bye)\b/i,
     ],
   },
   {
-    intent: "gratitude", weight: 1.0, preset: "empathic", register: "warm",
+    intent: "gratitude",
+    weight: 1.0,
+    preset: "empathic",
+    register: "warm",
     patterns: [
       /\b(gracias|agradecid|te agradezco|excelente trabajo|muy [uú]til)\b/i,
       /\b(thank(s| you)|appreciated|thank you|great work|very helpful)\b/i,
     ],
   },
   {
-    intent: "greeting", weight: 1.0, preset: "empathic", register: "warm",
+    intent: "greeting",
+    weight: 1.0,
+    preset: "empathic",
+    register: "warm",
     patterns: [
       /\b(hola|buenas|buenos d[ií]as|buenas tardes|buenas noches|saludos|qu[eé] onda|hey)\b/i,
       /\b(hi|hello|hey|howdy|good (morning|evening|afternoon))\b/i,
@@ -229,7 +290,8 @@ function entitiesOf(text: string): string[] {
 
 /** Language guess by characteristic tokens; ambiguous → Spanish (platform identity). */
 function detectLanguage(normalized: string): "es" | "en" {
-  const spanishHints = /[áéíóúñ]|\b(qu[eé]|qui[eé]n|c[oó]mo|hola|gracias|por qu[eé]|est[aá]|adi[oó]s)\b/i;
+  const spanishHints =
+    /[áéíóúñ]|\b(qu[eé]|qui[eé]n|c[oó]mo|hola|gracias|por qu[eé]|est[aá]|adi[oó]s)\b/i;
   return spanishHints.test(normalized) ? "es" : "en";
 }
 
@@ -278,10 +340,13 @@ export function classifyIntent(rawText: string): LanguageProfile {
  */
 export function buildLanguageDirectives(profile: LanguageProfile): string {
   const registerBlock = {
-    formal: "Registro formal y culto; precisión terminológica; estructura con encabezados cortos cuando el tema lo amerite.",
+    formal:
+      "Registro formal y culto; precisión terminológica; estructura con encabezados cortos cuando el tema lo amerite.",
     warm: "Registro cálido y cercano; escucha activa; compañía digna; nunca empatía vacía de fórmulas.",
-    technical: "Registro técnico disciplinado; nombres exactos de endpoints, módulos y comandos; sin relleno.",
-    lyrical: "Registro poético moderado; imágenes sobrias; elegancia sin declamación; nada de adjetivos inflados.",
+    technical:
+      "Registro técnico disciplinado; nombres exactos de endpoints, módulos y comandos; sin relleno.",
+    lyrical:
+      "Registro poético moderado; imágenes sobrias; elegancia sin declamación; nada de adjetivos inflados.",
   }[profile.register];
 
   const langLabel = profile.language === "es" ? "español mexicano culto" : "English (formal)";
@@ -330,7 +395,9 @@ export function sophisticateReply(reply: string, profile: LanguageProfile): stri
   const parts = reply.split(/(```[\s\S]*?```)/g);
   const lexicon = profile.language === "es" ? LEXICON_ES : [];
   const refined = parts
-    .map((part) => (part.startsWith("```") ? part : lexicon.reduce((acc, [re, to]) => acc.replace(re, to), part)))
+    .map((part) =>
+      part.startsWith("```") ? part : lexicon.reduce((acc, [re, to]) => acc.replace(re, to), part),
+    )
     .join("");
 
   const proseLength = refined.replace(/```[\s\S]*?```/g, "").trim().length;

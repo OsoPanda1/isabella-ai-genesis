@@ -29,6 +29,7 @@ import { Route as ApiNcuaLoadRouteImport } from './routes/api/ncua-load'
 import { Route as ApiObservabilityRouteImport } from './routes/api/observability'
 import { Route as ApiSecurityRouteImport } from './routes/api/security'
 import { Route as ApiVideoEngineXRouteImport } from './routes/api/video-engine-x'
+import { Route as OpsCockpitRouteImport } from './routes/ops/cockpit'
 import { Route as ApiAiTransparencyRouteImport } from './routes/api/ai/transparency'
 import { Route as ApiConnectGithubRouteImport } from './routes/api/connect/github'
 import { Route as ApiConnectLinearRouteImport } from './routes/api/connect/linear'
@@ -158,6 +159,11 @@ const ApiSecurityRoute = ApiSecurityRouteImport.update({
 const ApiVideoEngineXRoute = ApiVideoEngineXRouteImport.update({
   id: '/api/video-engine-x',
   path: '/api/video-engine-x',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpsCockpitRoute = OpsCockpitRouteImport.update({
+  id: '/ops/cockpit',
+  path: '/ops/cockpit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAiTransparencyRoute = ApiAiTransparencyRouteImport.update({
@@ -333,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/api/observability': typeof ApiObservabilityRoute
   '/api/security': typeof ApiSecurityRoute
   '/api/video-engine-x': typeof ApiVideoEngineXRoute
+  '/ops/cockpit': typeof OpsCockpitRoute
   '/api/ai/transparency': typeof ApiAiTransparencyRoute
   '/api/connect/github': typeof ApiConnectGithubRouteWithChildren
   '/api/connect/linear': typeof ApiConnectLinearRouteWithChildren
@@ -384,6 +391,7 @@ export interface FileRoutesByTo {
   '/api/observability': typeof ApiObservabilityRoute
   '/api/security': typeof ApiSecurityRoute
   '/api/video-engine-x': typeof ApiVideoEngineXRoute
+  '/ops/cockpit': typeof OpsCockpitRoute
   '/api/ai/transparency': typeof ApiAiTransparencyRoute
   '/api/connect/github': typeof ApiConnectGithubRouteWithChildren
   '/api/connect/linear': typeof ApiConnectLinearRouteWithChildren
@@ -436,6 +444,7 @@ export interface FileRoutesById {
   '/api/observability': typeof ApiObservabilityRoute
   '/api/security': typeof ApiSecurityRoute
   '/api/video-engine-x': typeof ApiVideoEngineXRoute
+  '/ops/cockpit': typeof OpsCockpitRoute
   '/api/ai/transparency': typeof ApiAiTransparencyRoute
   '/api/connect/github': typeof ApiConnectGithubRouteWithChildren
   '/api/connect/linear': typeof ApiConnectLinearRouteWithChildren
@@ -489,6 +498,7 @@ export interface FileRouteTypes {
     | '/api/observability'
     | '/api/security'
     | '/api/video-engine-x'
+    | '/ops/cockpit'
     | '/api/ai/transparency'
     | '/api/connect/github'
     | '/api/connect/linear'
@@ -540,6 +550,7 @@ export interface FileRouteTypes {
     | '/api/observability'
     | '/api/security'
     | '/api/video-engine-x'
+    | '/ops/cockpit'
     | '/api/ai/transparency'
     | '/api/connect/github'
     | '/api/connect/linear'
@@ -591,6 +602,7 @@ export interface FileRouteTypes {
     | '/api/observability'
     | '/api/security'
     | '/api/video-engine-x'
+    | '/ops/cockpit'
     | '/api/ai/transparency'
     | '/api/connect/github'
     | '/api/connect/linear'
@@ -643,6 +655,7 @@ export interface RootRouteChildren {
   ApiObservabilityRoute: typeof ApiObservabilityRoute
   ApiSecurityRoute: typeof ApiSecurityRoute
   ApiVideoEngineXRoute: typeof ApiVideoEngineXRoute
+  OpsCockpitRoute: typeof OpsCockpitRoute
   ApiAiTransparencyRoute: typeof ApiAiTransparencyRoute
   ApiConnectGithubRoute: typeof ApiConnectGithubRouteWithChildren
   ApiConnectLinearRoute: typeof ApiConnectLinearRouteWithChildren
@@ -801,6 +814,13 @@ declare module '@tanstack/react-router' {
       path: '/api/video-engine-x'
       fullPath: '/api/video-engine-x'
       preLoaderRoute: typeof ApiVideoEngineXRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ops/cockpit': {
+      id: '/ops/cockpit'
+      path: '/ops/cockpit'
+      fullPath: '/ops/cockpit'
+      preLoaderRoute: typeof OpsCockpitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ai/transparency': {
@@ -1122,6 +1142,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiObservabilityRoute: ApiObservabilityRoute,
   ApiSecurityRoute: ApiSecurityRoute,
   ApiVideoEngineXRoute: ApiVideoEngineXRoute,
+  OpsCockpitRoute: OpsCockpitRoute,
   ApiAiTransparencyRoute: ApiAiTransparencyRoute,
   ApiConnectGithubRoute: ApiConnectGithubRouteWithChildren,
   ApiConnectLinearRoute: ApiConnectLinearRouteWithChildren,

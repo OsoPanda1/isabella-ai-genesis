@@ -14,7 +14,9 @@ function CockpitOps() {
     let poll: ReturnType<typeof setInterval> | null = null;
     const connect = () => {
       try {
-        ws = new WebSocket(`${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/api/v1/quantum/telemetry`);
+        ws = new WebSocket(
+          `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/api/v1/quantum/telemetry`,
+        );
         ws.onmessage = (e) => {
           const data = JSON.parse(e.data);
           setSnapshot(data);
@@ -46,10 +48,13 @@ function CockpitOps() {
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-bold">Cockpit Atlas — Nodo Cero</h1>
       <p className="text-sm text-muted-foreground">
-        Telemetría cardinal en tiempo real — federaciones ARGUS/CROWN/MESH/OBSERVE/RESILIENCE/LITLE/QENGINE — latencia {latency ?? "—"} ms
+        Telemetría cardinal en tiempo real — federaciones
+        ARGUS/CROWN/MESH/OBSERVE/RESILIENCE/LITLE/QENGINE — latencia {latency ?? "—"} ms
       </p>
       <pre className="bg-slate-950 text-slate-100 p-4 rounded-xl text-xs overflow-auto">
-        {snapshot ? JSON.stringify(snapshot, null, 2) : "Conectando vía WebSocket... fallback poll 3s"}
+        {snapshot
+          ? JSON.stringify(snapshot, null, 2)
+          : "Conectando vía WebSocket... fallback poll 3s"}
       </pre>
     </div>
   );

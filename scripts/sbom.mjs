@@ -18,13 +18,7 @@ const ROOT = resolve(import.meta.dirname ?? ".", "..");
 const OUTPUT = resolve(ROOT, "sbom.json");
 // --ignore-npm-errors es requerido para pnpm repos (npm ls reporta ELSPROBLEMS por symlinks)
 // Ver https://github.com/CycloneDX/cyclonedx-node-module/issues/xxx y docs/operations/SBOM.md
-const args = [
-  "dlx",
-  "@cyclonedx/cyclonedx-npm",
-  "--ignore-npm-errors",
-  "--output-file",
-  OUTPUT,
-];
+const args = ["dlx", "@cyclonedx/cyclonedx-npm", "--ignore-npm-errors", "--output-file", OUTPUT];
 
 console.log(`[sbom] Generando SBOM CycloneDX → ${OUTPUT}`);
 console.log(`[sbom] Ejecutando: pnpm ${args.join(" ")}`);

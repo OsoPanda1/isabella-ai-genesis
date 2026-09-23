@@ -11,7 +11,7 @@ describe.skipIf(!hasDb)("RLS live adversarial — Tenant A vs B", () => {
   it("Tenant A no lee Tenant B (live)", async () => {
     const { createBookpiPostgresRepository } = await import("@/lib/repositories/bookpi-postgres-repository");
     const repo = createBookpiPostgresRepository();
-    expect(repo.health).toBeDefined();
+    expect((repo as unknown as { verifyIntegrity: unknown }).verifyIntegrity).toBeDefined();
   });
 
   it("BookPI reconciliación — Stripe event real (live)", async () => {
@@ -19,8 +19,8 @@ describe.skipIf(!hasDb)("RLS live adversarial — Tenant A vs B", () => {
   });
 
   it("NCUA 500 — ERI≥95, p95, throughput (live)", async () => {
-    const { AcademicPipeline } = await import("@/lib/ncua/academic-pipeline");
-    expect(AcademicPipeline).toBeDefined();
+    const { NCUAAcademicPipeline } = await import("@/lib/ncua/academic-pipeline");
+    expect(NCUAAcademicPipeline).toBeDefined();
   });
 });
 

@@ -34,14 +34,17 @@ try {
   fail(`JSON inválido: ${e.message}`);
 }
 
-if (json.bomFormat !== "CycloneDX") fail(`bomFormat esperado "CycloneDX", hallado "${json.bomFormat}"`);
+if (json.bomFormat !== "CycloneDX")
+  fail(`bomFormat esperado "CycloneDX", hallado "${json.bomFormat}"`);
 ok(`bomFormat=CycloneDX`);
 
 if (!json.specVersion) fail("specVersion ausente");
 ok(`specVersion=${json.specVersion}`);
 
 if (!json.metadata || !json.metadata.component) fail("metadata.component ausente");
-ok(`metadata.component=${json.metadata.component.name ?? "?"}@${json.metadata.component.version ?? "?"}`);
+ok(
+  `metadata.component=${json.metadata.component.name ?? "?"}@${json.metadata.component.version ?? "?"}`,
+);
 
 if (!Array.isArray(json.components)) fail("components no es array");
 ok(`components=${json.components.length}`);
@@ -54,9 +57,15 @@ if (json.components.length === 0) {
   if (invalid.length > 0) {
     console.warn(`[sbom:verify] WARN — ${invalid.length} componentes sin name/version/purl`);
   }
-  ok(`muestra: ${json.components.slice(0, 3).map((c) => `${c.name}@${c.version}`).join(", ")}`);
+  ok(
+    `muestra: ${json.components
+      .slice(0, 3)
+      .map((c) => `${c.name}@${c.version}`)
+      .join(", ")}`,
+  );
 }
 
-if (!json.serialNumber) console.warn("[sbom:verify] WARN — serialNumber ausente (recomendado CycloneDX >=1.3)");
+if (!json.serialNumber)
+  console.warn("[sbom:verify] WARN — serialNumber ausente (recomendado CycloneDX >=1.3)");
 
 console.log("[sbom:verify] SBOM válido — verificación completa");
