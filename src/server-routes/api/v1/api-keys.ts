@@ -6,6 +6,7 @@ import { withSovereignAuth } from "@/lib/principal-context";
 
 const MANAGE_SCOPE = "isabella:api-keys:manage";
 const ROLE_VALUES = ["SovereignOwner", "Operator", "Auditor", "Guest", "System", "governance_admin"] as const;
+type ApiKeyRole = (typeof ROLE_VALUES)[number];
 
 const createSchema = z.object({
   name: z.string().trim().min(1).max(150),
@@ -31,6 +32,14 @@ function requireManagementScope(context: { scope: string }): Response | null {
   return scopes.has(MANAGE_SCOPE)
     ? null
     : json({ error: "API_KEY_MANAGEMENT_SCOPE_REQUIRED", requiredScope: MANAGE_SCOPE }, 403);
+}
+
+function canIssueRole(callerRole: string, requestedRole: ApiKeyRole): boolean {
+  if (callerRole === "SovereignOwner") return true;
+  if (callerRole === "governance_admin") {
+    return requestedRole !== "SovereignOwner";
+  }
+  return false;
 }
 
 export const Route = createFileRoute("/api/v1/api-keys")({
@@ -69,6 +78,10 @@ export const Route = createFileRoute("/api/v1/api-keys")({
           );
         }
 
+        if (!canIssueRole(context.role, parsed.data.role)) {
+          return json({ error: "API_KEY_ROLE_ESCALATION_DENIED" }, 403);
+        }
+
         // Nunca aceptar tenantId/ownerId desde el cliente: ambos derivan de PrincipalContext.
         try {
           const result = await ApiKeyService.createApiKey(
@@ -81,11 +94,14 @@ export const Route = createFileRoute("/api/v1/api-keys")({
             context.userId,
           );
 
-          return json({
-            success: true,
-            apiKey: result,
-            warning: "Esta es la única respuesta que contiene el secreto completo. Guárdalo en un gestor de secretos.",
-          }, 201);
+          return json(
+            {
+              success: true,
+              apiKey: result,
+              warning: "Esta es la única respuesta que contiene el secreto completo. Guárdalo en un gestor de secretos.",
+            },
+            201,
+          );
         } catch (error) {
           const code = error instanceof Error ? error.message : "api_key_creation_failed";
           const status = code === "invalid_api_key_ttl" || code === "invalid_api_key_scopes" ? 400 : 500;
