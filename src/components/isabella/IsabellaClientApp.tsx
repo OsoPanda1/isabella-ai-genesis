@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, FolderOpen } from "lucide-react";
 import { useIsabella } from "@/lib/useIsabella";
-import type { NavTabId } from "@/components/isabella/CrystalNavigation";
+import { CrystalNavigation, NAV_GROUPS, type NavTabId } from "@/components/isabella/CrystalNavigation";
 
 const CinematicIntro = lazy(() => import("@/components/isabella/CinematicIntro"));
 const CommandLine = lazy(() =>
@@ -22,11 +22,6 @@ const RightRails = lazy(() =>
 const Starfield = lazy(() =>
   import("@/components/isabella/Starfield").then((m) => ({
     default: m.Starfield,
-  })),
-);
-const CrystalNavigation = lazy(() =>
-  import("@/components/isabella/CrystalNavigation").then((m) => ({
-    default: m.CrystalNavigation,
   })),
 );
 const ApiCatalogExplorer = lazy(() =>
@@ -77,8 +72,6 @@ const VideoEngineXDashboard = lazy(() =>
 
 const INTRO_SEEN_KEY = "isabella.entry.intro.v1";
 
-type NavModule = typeof import("@/components/isabella/CrystalNavigation");
-
 function ClientFallback({ label = "Cargando módulo Isabella…" }: { label?: string }) {
   return (
     <div className="flex min-h-[320px] items-center justify-center rounded-3xl border border-border/20 bg-background/40">
@@ -93,13 +86,18 @@ function ClientFallback({ label = "Cargando módulo Isabella…" }: { label?: st
 }
 
 function IndexClient() {
-  const [introDone, setIntroDone] = useState(false);
+  // La interfaz es el estado operativo por defecto. La experiencia cinematográfica
+  // queda disponible explícitamente con ?intro=1 y nunca puede bloquear el cockpit.
+  const [introDone, setIntroDone] = useState(true);
 
   useEffect(() => {
     try {
-      setIntroDone(window.sessionStorage.getItem(INTRO_SEEN_KEY) === "1");
+      const params = new URLSearchParams(window.location.search);
+      const introRequested = params.get("intro") === "1";
+      const introSeen = window.sessionStorage.getItem(INTRO_SEEN_KEY) === "1";
+      if (introRequested && !introSeen) setIntroDone(false);
     } catch {
-      setIntroDone(false);
+      setIntroDone(true);
     }
   }, []);
 
@@ -131,23 +129,12 @@ function IsabellaInterface() {
   const [upperOpen, setUpperOpen] = useState(false);
   const [middleOpen, setMiddleOpen] = useState(false);
   const [lowerOpen, setLowerOpen] = useState(false);
-  const [navModule, setNavModule] = useState<NavModule | null>(null);
   const lastInput = useRef<{
     text: string;
     attachments: Parameters<typeof isabella.send>[1];
     config?: Parameters<typeof isabella.send>[2];
   }>({ text: "", attachments: [] });
   const fileRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    void import("@/components/isabella/CrystalNavigation").then((module) => {
-      if (active) setNavModule(module);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const handleMonetizationNavigate = useCallback((subTab: string) => {
     setActiveTab("monetization");
@@ -171,9 +158,7 @@ function IsabellaInterface() {
     [isabella],
   );
 
-  if (!navModule) return <ClientFallback label="Cargando navegación soberana…" />;
-
-  const navGroups = navModule.NAV_GROUPS(
+  const navGroups = NAV_GROUPS(
     { cognition: upperOpen, catalog: middleOpen, sovereignty: lowerOpen },
     (id) => {
       if (id === "cognition") setUpperOpen((open) => !open);
