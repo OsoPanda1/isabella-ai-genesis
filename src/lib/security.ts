@@ -1,6 +1,5 @@
 import { z } from "zod";
 import * as crypto from "node:crypto";
-import { isIP } from "node:net";
 import { config } from "./config";
 import { isProductionLike, resolveRuntimeMode } from "./runtime-mode";
 import { JWT_VERIFIER } from "./jwt-verifier";
@@ -26,6 +25,27 @@ const TENANT_QUOTA_WINDOW_MS = 24 * 60 * 60 * 1000;
 const rateLimitCache = new Map<string, { count: number; windowStart: number }>();
 const tenantRateLimitCache = new Map<string, { count: number; windowStart: number }>();
 const tenantQuotaCache = new Map<string, { consumed: number; windowStart: number }>();
+
+function isValidIpAddress(value: string): boolean {
+  const candidate = value.trim();
+  if (!candidate) return false;
+
+  if (candidate.includes(":")) {
+    const hextets = candidate.split("::");
+    if (hextets.length > 2) return false;
+    const left = hextets[0] ? hextets[0].split(":") : [];
+    const right = hextets.length === 2 && hextets[1] ? hextets[1].split(":") : [];
+    const groups = [...left, ...right];
+    if (groups.some((group) => !/^[0-9a-f]{1,4}$/i.test(group))) return false;
+    return hextets.length === 2 ? groups.length < 8 : groups.length === 8;
+  }
+
+  const octets = candidate.split(".");
+  return (
+    octets.length === 4 &&
+    octets.every((octet) => /^(0|[1-9]\\d{0,2})$/.test(octet) && Number(octet) <= 255)
+  );
+}
 
 function isProductionLikeRuntime(): boolean {
   try {
@@ -129,7 +149,7 @@ export const SecuritySystem = {
             ? request.headers.get("x-real-ip")?.trim()
             : undefined;
 
-    return candidate && isIP(candidate) !== 0 ? candidate : "unknown";
+    return candidate && isValidIpAddress(candidate) ? candidate : "unknown";
   },
 
   validateInput<T>(
