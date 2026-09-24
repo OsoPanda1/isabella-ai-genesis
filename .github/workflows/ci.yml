@@ -8,7 +8,13 @@ on:
       - "chore/**"
       - "repair/**"
   pull_request:
+    branches:
+      - main
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -16,17 +22,18 @@ permissions:
 env:
   NODE_VERSION: "24.11.0"
   PNPM_VERSION: "10.34.5"
+  DOTNET_VERSION: "8.0.x"
 
 jobs:
   lockfile:
-    name: Lockfile verification (pnpm --frozen-lockfile)
+    name: Lockfile verification & Build setup
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -40,11 +47,28 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: true
+
       - name: Verify lockfile contract
         run: pnpm verify:lock
 
-      - name: Install with frozen lockfile (fails if outdated)
-        run: pnpm install --frozen-lockfile
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-build-artifacts
+          path: |
+            dist/
+            build/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 6
 
   production-gate:
     name: Canonical FGAIS gate
