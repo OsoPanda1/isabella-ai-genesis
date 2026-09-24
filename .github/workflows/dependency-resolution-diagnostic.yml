@@ -12,20 +12,37 @@ permissions:
   contents: write
   issues: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   NODE_VERSION: "24.11.0"
   PNPM_VERSION: "10.34.5"
 
 jobs:
   resolve:
+    name: Dependency resolution diagnostic
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - name: Checkout repository
+        uses: actions/checkout@v4 # 11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4 # 49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
       - name: Resolve without mutating lockfile
         id: resolve
         continue-on-error: true
@@ -42,13 +59,16 @@ jobs:
             pnpm install --lockfile-only --no-frozen-lockfile --reporter=append-only
           } 2>&1 | tee dependency-resolution.log
           exit ${PIPESTATUS[0]}
-      - name: Upload diagnostic
+
+      - name: Upload diagnostic artifact
         if: always()
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
+        uses: actions/upload-artifact@v4 # 65462800fd760344b1a7b4382951275a0abb4808
         with:
           name: dependency-resolution-${{ github.run_id }}
           path: dependency-resolution.log
           retention-days: 7
+          if-no-files-found: ignore
+
       - name: Publish diagnostic failure
         if: steps.resolve.outcome != 'success'
         env:
@@ -60,11 +80,12 @@ jobs:
             echo "- Commit: ${{ github.sha }}"
             echo "- Run: ${{ github.run_id }}"
             echo
-            echo '~~~text'
+            echo '```text'
             tail -n 220 dependency-resolution.log
-            echo '~~~'
+            echo '```'
           } > diagnostic-issue.md
           gh issue create --title "CI diagnostic: dependency resolution failure (${{ github.run_id }})" --body-file diagnostic-issue.md || true
+
       - name: Repair lockfile on dedicated repair branch
         if: github.event_name == 'push' && github.ref_name == 'repair/production-100' && steps.resolve.outcome == 'success'
         run: |
