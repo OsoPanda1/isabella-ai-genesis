@@ -125,6 +125,23 @@ function isProductionLikeRuntime(): boolean {
   }
 }
 
+/**
+ * Returns the real x402 settlement recipient.
+ * Production/staging fail closed when the operator has not configured a valid
+ * EVM address. Development gets a deterministic sink address only so local
+ * protocol tests cannot accidentally imply a live treasury.
+ */
+export function getX402PaymentVaultAddress(): string {
+  const configured = config().X402_PAYMENT_VAULT_ADDRESS?.trim();
+  if (configured && /^0x[a-fA-F0-9]{40}$/.test(configured)) return configured;
+  if (isProductionLikeRuntime()) {
+    throw new Error(
+      "CRITICAL_SECURITY_ERROR: X402_PAYMENT_VAULT_ADDRESS is required and must be a valid EVM address in staging/production.",
+    );
+  }
+  return "0x0000000000000000000000000000000000000001";
+}
+
 function loadX402Keys(): X402Keys {
   if (cachedKeys) return cachedKeys;
   const pem = configuredSigningPem();
@@ -514,7 +531,7 @@ export class x402MonetizationConnector {
         resourceId,
         priceCentsUSD: grossAmountCents,
         currency: "USDC",
-        recipientAddress: `0x_isabella_vault_${context.tenantId}`,
+        recipientAddress: getX402PaymentVaultAddress(),
         idempotencyKey,
         expiresAt: new Date(Date.now() + X402_SIGNATURE_WINDOW_MS).toISOString(),
       };
