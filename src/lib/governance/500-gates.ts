@@ -101,13 +101,11 @@ const EVIDENCE_MAP: Record<string, string> = {
 
 export function getGateEvidence(domain: Domain, control: Control, commit: string): GateEvidence {
   const gate = `${domain}:${control}` as GateId;
-  const isExperimental = control === "marcar_experimental";
-  const isEvidenceGated =
-    ["prueba_recuperacion", "prueba_adversarial", "prueba_aislamiento"].includes(control) &&
-    ["Postgres/RLS", "BookPI", "HDC/NCUA"].includes(domain);
+  // Un path o una descripción no constituyen evidencia ejecutable. El gate
+  // permanece bloqueado hasta que un runner registre una ejecución verificable.
   return {
     gate,
-    status: isExperimental ? "PASS" : isEvidenceGated ? "EVIDENCE_GATED" : "PASS",
+    status: "EVIDENCE_GATED",
     commit,
     timestamp: new Date().toISOString(),
     evidence: EVIDENCE_MAP[gate] || `src/lib/governance/500-gates.ts ${gate}`,
