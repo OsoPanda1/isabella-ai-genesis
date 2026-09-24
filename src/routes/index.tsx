@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { EmergencyModeView } from "@/components/isabella/EmergencyModeView";
-
-const IsabellaClientApp = lazy(() => import("@/components/isabella/IsabellaClientApp"));
+import IsabellaClientApp from "@/components/isabella/IsabellaClientApp";
 
 const TITLE = "Isabella Villaseñor AI — FGAIS";
 const DESC =
@@ -21,18 +20,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Index,
 });
-
-/**
- * The terminal is deliberately client-mounted. Its dependency graph contains
- * WebGL, audio, browser storage and other browser-only capabilities. Keeping
- * that graph out of SSR prevents a browser-only exception from converting the
- * whole document request into HTTP 500.
- */
-function ClientOnly({ children, fallback }: { children: ReactNode; fallback: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  return mounted ? children : fallback;
-}
 
 function LandingFallback() {
   return (
@@ -130,10 +117,8 @@ function Index() {
   }
 
   return (
-    <ClientOnly fallback={<LandingFallback />}>
-      <Suspense fallback={<LandingFallback />}>
-        <IsabellaClientApp />
-      </Suspense>
-    </ClientOnly>
+    <Suspense fallback={<LandingFallback />}>
+      <IsabellaClientApp />
+    </Suspense>
   );
 }
