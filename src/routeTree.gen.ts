@@ -38,6 +38,7 @@ import { Route as ApiHealthDeepRouteImport } from './routes/api/health/deep'
 import { Route as ApiHealthLiveRouteImport } from './routes/api/health/live'
 import { Route as ApiHealthReadyRouteImport } from './routes/api/health/ready'
 import { Route as ApiIsabellaNativeRouteImport } from './routes/api/isabella.native'
+import { Route as ApiV1ApiKeysRouteImport } from './routes/api/v1/api-keys'
 import { Route as ApiV1EcosystemRouteImport } from './routes/api/v1/ecosystem'
 import { Route as ApiV1IsabellaRouteImport } from './routes/api/v1/isabella'
 import { Route as ApiV1MonetizationRouteImport } from './routes/api/v1/monetization'
@@ -50,6 +51,7 @@ import { Route as ApiConnectLinearCallbackRouteImport } from './routes/api/conne
 import { Route as ApiConnectLinearWebhookRouteImport } from './routes/api/connect/linear/webhook'
 import { Route as ApiConnectSlackCallbackRouteImport } from './routes/api/connect/slack/callback'
 import { Route as ApiConnectSlackWebhookRouteImport } from './routes/api/connect/slack/webhook'
+import { Route as ApiV1ApiKeysRotateRouteImport } from './routes/api/v1/api-keys/rotate'
 import { Route as ApiV1AuthSessionRouteImport } from './routes/api/v1/auth/session'
 import { Route as ApiV1CognitiveOrchestrateRouteImport } from './routes/api/v1/cognitive/orchestrate'
 import { Route as ApiV1GovernanceDignityIndexRouteImport } from './routes/api/v1/governance/dignity-index'
@@ -206,6 +208,11 @@ const ApiIsabellaNativeRoute = ApiIsabellaNativeRouteImport.update({
   path: '/native',
   getParentRoute: () => ApiIsabellaRoute,
 } as any)
+const ApiV1ApiKeysRoute = ApiV1ApiKeysRouteImport.update({
+  id: '/api/v1/api-keys',
+  path: '/api/v1/api-keys',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1EcosystemRoute = ApiV1EcosystemRouteImport.update({
   id: '/api/v1/ecosystem',
   path: '/api/v1/ecosystem',
@@ -267,6 +274,11 @@ const ApiConnectSlackWebhookRoute = ApiConnectSlackWebhookRouteImport.update({
   id: '/webhook',
   path: '/webhook',
   getParentRoute: () => ApiConnectSlackRoute,
+} as any)
+const ApiV1ApiKeysRotateRoute = ApiV1ApiKeysRotateRouteImport.update({
+  id: '/rotate',
+  path: '/rotate',
+  getParentRoute: () => ApiV1ApiKeysRoute,
 } as any)
 const ApiV1AuthSessionRoute = ApiV1AuthSessionRouteImport.update({
   id: '/api/v1/auth/session',
@@ -348,6 +360,7 @@ export interface FileRoutesByFullPath {
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
   '/api/isabella/native': typeof ApiIsabellaNativeRoute
+  '/api/v1/api-keys': typeof ApiV1ApiKeysRouteWithChildren
   '/api/v1/ecosystem': typeof ApiV1EcosystemRoute
   '/api/v1/isabella': typeof ApiV1IsabellaRoute
   '/api/v1/monetization': typeof ApiV1MonetizationRouteWithChildren
@@ -360,6 +373,7 @@ export interface FileRoutesByFullPath {
   '/api/connect/linear/webhook': typeof ApiConnectLinearWebhookRoute
   '/api/connect/slack/callback': typeof ApiConnectSlackCallbackRoute
   '/api/connect/slack/webhook': typeof ApiConnectSlackWebhookRoute
+  '/api/v1/api-keys/rotate': typeof ApiV1ApiKeysRotateRoute
   '/api/v1/auth/session': typeof ApiV1AuthSessionRoute
   '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
   '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
@@ -400,6 +414,7 @@ export interface FileRoutesByTo {
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
   '/api/isabella/native': typeof ApiIsabellaNativeRoute
+  '/api/v1/api-keys': typeof ApiV1ApiKeysRouteWithChildren
   '/api/v1/ecosystem': typeof ApiV1EcosystemRoute
   '/api/v1/isabella': typeof ApiV1IsabellaRoute
   '/api/v1/monetization': typeof ApiV1MonetizationRouteWithChildren
@@ -412,6 +427,7 @@ export interface FileRoutesByTo {
   '/api/connect/linear/webhook': typeof ApiConnectLinearWebhookRoute
   '/api/connect/slack/callback': typeof ApiConnectSlackCallbackRoute
   '/api/connect/slack/webhook': typeof ApiConnectSlackWebhookRoute
+  '/api/v1/api-keys/rotate': typeof ApiV1ApiKeysRotateRoute
   '/api/v1/auth/session': typeof ApiV1AuthSessionRoute
   '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
   '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
@@ -453,6 +469,7 @@ export interface FileRoutesById {
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
   '/api/isabella/native': typeof ApiIsabellaNativeRoute
+  '/api/v1/api-keys': typeof ApiV1ApiKeysRouteWithChildren
   '/api/v1/ecosystem': typeof ApiV1EcosystemRoute
   '/api/v1/isabella': typeof ApiV1IsabellaRoute
   '/api/v1/monetization': typeof ApiV1MonetizationRouteWithChildren
@@ -465,6 +482,7 @@ export interface FileRoutesById {
   '/api/connect/linear/webhook': typeof ApiConnectLinearWebhookRoute
   '/api/connect/slack/callback': typeof ApiConnectSlackCallbackRoute
   '/api/connect/slack/webhook': typeof ApiConnectSlackWebhookRoute
+  '/api/v1/api-keys/rotate': typeof ApiV1ApiKeysRotateRoute
   '/api/v1/auth/session': typeof ApiV1AuthSessionRoute
   '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
   '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
@@ -507,6 +525,7 @@ export interface FileRouteTypes {
     | '/api/health/live'
     | '/api/health/ready'
     | '/api/isabella/native'
+    | '/api/v1/api-keys'
     | '/api/v1/ecosystem'
     | '/api/v1/isabella'
     | '/api/v1/monetization'
@@ -519,6 +538,7 @@ export interface FileRouteTypes {
     | '/api/connect/linear/webhook'
     | '/api/connect/slack/callback'
     | '/api/connect/slack/webhook'
+    | '/api/v1/api-keys/rotate'
     | '/api/v1/auth/session'
     | '/api/v1/cognitive/orchestrate'
     | '/api/v1/governance/dignity-index'
@@ -559,6 +579,7 @@ export interface FileRouteTypes {
     | '/api/health/live'
     | '/api/health/ready'
     | '/api/isabella/native'
+    | '/api/v1/api-keys'
     | '/api/v1/ecosystem'
     | '/api/v1/isabella'
     | '/api/v1/monetization'
@@ -571,6 +592,7 @@ export interface FileRouteTypes {
     | '/api/connect/linear/webhook'
     | '/api/connect/slack/callback'
     | '/api/connect/slack/webhook'
+    | '/api/v1/api-keys/rotate'
     | '/api/v1/auth/session'
     | '/api/v1/cognitive/orchestrate'
     | '/api/v1/governance/dignity-index'
@@ -611,6 +633,7 @@ export interface FileRouteTypes {
     | '/api/health/live'
     | '/api/health/ready'
     | '/api/isabella/native'
+    | '/api/v1/api-keys'
     | '/api/v1/ecosystem'
     | '/api/v1/isabella'
     | '/api/v1/monetization'
@@ -623,6 +646,7 @@ export interface FileRouteTypes {
     | '/api/connect/linear/webhook'
     | '/api/connect/slack/callback'
     | '/api/connect/slack/webhook'
+    | '/api/v1/api-keys/rotate'
     | '/api/v1/auth/session'
     | '/api/v1/cognitive/orchestrate'
     | '/api/v1/governance/dignity-index'
@@ -660,6 +684,7 @@ export interface RootRouteChildren {
   ApiConnectGithubRoute: typeof ApiConnectGithubRouteWithChildren
   ApiConnectLinearRoute: typeof ApiConnectLinearRouteWithChildren
   ApiConnectSlackRoute: typeof ApiConnectSlackRouteWithChildren
+  ApiV1ApiKeysRoute: typeof ApiV1ApiKeysRouteWithChildren
   ApiV1EcosystemRoute: typeof ApiV1EcosystemRoute
   ApiV1IsabellaRoute: typeof ApiV1IsabellaRoute
   ApiV1MonetizationRoute: typeof ApiV1MonetizationRouteWithChildren
@@ -879,6 +904,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiIsabellaNativeRouteImport
       parentRoute: typeof ApiIsabellaRoute
     }
+    '/api/v1/api-keys': {
+      id: '/api/v1/api-keys'
+      path: '/api/v1/api-keys'
+      fullPath: '/api/v1/api-keys'
+      preLoaderRoute: typeof ApiV1ApiKeysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/ecosystem': {
       id: '/api/v1/ecosystem'
       path: '/api/v1/ecosystem'
@@ -962,6 +994,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/connect/slack/webhook'
       preLoaderRoute: typeof ApiConnectSlackWebhookRouteImport
       parentRoute: typeof ApiConnectSlackRoute
+    }
+    '/api/v1/api-keys/rotate': {
+      id: '/api/v1/api-keys/rotate'
+      path: '/rotate'
+      fullPath: '/api/v1/api-keys/rotate'
+      preLoaderRoute: typeof ApiV1ApiKeysRotateRouteImport
+      parentRoute: typeof ApiV1ApiKeysRoute
     }
     '/api/v1/auth/session': {
       id: '/api/v1/auth/session'
@@ -1097,6 +1136,18 @@ const ApiConnectSlackRouteWithChildren = ApiConnectSlackRoute._addFileChildren(
   ApiConnectSlackRouteChildren,
 )
 
+interface ApiV1ApiKeysRouteChildren {
+  ApiV1ApiKeysRotateRoute: typeof ApiV1ApiKeysRotateRoute
+}
+
+const ApiV1ApiKeysRouteChildren: ApiV1ApiKeysRouteChildren = {
+  ApiV1ApiKeysRotateRoute: ApiV1ApiKeysRotateRoute,
+}
+
+const ApiV1ApiKeysRouteWithChildren = ApiV1ApiKeysRoute._addFileChildren(
+  ApiV1ApiKeysRouteChildren,
+)
+
 interface ApiV1MonetizationRouteChildren {
   ApiV1MonetizationTamvRoute: typeof ApiV1MonetizationTamvRoute
   ApiV1MonetizationX402ProcessRoute: typeof ApiV1MonetizationX402ProcessRoute
@@ -1147,6 +1198,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiConnectGithubRoute: ApiConnectGithubRouteWithChildren,
   ApiConnectLinearRoute: ApiConnectLinearRouteWithChildren,
   ApiConnectSlackRoute: ApiConnectSlackRouteWithChildren,
+  ApiV1ApiKeysRoute: ApiV1ApiKeysRouteWithChildren,
   ApiV1EcosystemRoute: ApiV1EcosystemRoute,
   ApiV1IsabellaRoute: ApiV1IsabellaRoute,
   ApiV1MonetizationRoute: ApiV1MonetizationRouteWithChildren,

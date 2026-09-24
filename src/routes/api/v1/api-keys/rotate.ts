@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Route as ServerRoute } from "../../../../../server-routes/api/v1/api-keys/rotate";
+import { Route as ServerRoute } from "../../../../server-routes/api/v1/api-keys/rotate";
 
 type Handlers = { POST: (ctx: unknown) => Promise<Response> };
 const server = ServerRoute.options.server;

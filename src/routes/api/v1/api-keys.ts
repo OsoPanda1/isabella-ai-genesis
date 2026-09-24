@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Route as ServerRoute } from "../../../../server-routes/api/v1/api-keys";
+import { Route as ServerRoute } from "../../../server-routes/api/v1/api-keys";
 
 type Handlers = {
   GET: (ctx: unknown) => Promise<Response>;
