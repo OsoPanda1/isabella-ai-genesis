@@ -1,6 +1,6 @@
 # Final Evolución Funcional — Isabella Villaseñor AI™ — 2026-09-23
 
-**SHA:** `8a12ab9` → `main` — **Cierre de ciclos y evolución funcional completada**
+**SHA:** documento histórico; validar contra `git rev-parse HEAD` antes de certificar — **Evidencia de evolución funcional**
 
 ## Gates Cerrados — 100% Implementación + 100% Despliegue (con degradación honesta)
 

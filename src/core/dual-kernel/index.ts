@@ -353,7 +353,6 @@ export class DualKernel {
   private hashString(input: string): string {
     // Evolución: SHA-256 canónico + fallback djb para entorno browser sin node:crypto — no simplifica, aumenta robustez
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const cryptoAny = globalThis as any;
       if (cryptoAny.crypto?.subtle) {
         // Browser: no sync SHA-256 disponible, usa djb temporal y marca como no criptográfico en provenance

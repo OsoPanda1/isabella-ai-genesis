@@ -42,7 +42,6 @@ export const Route = createFileRoute("/api/v1/governance/dignity-index")({
       }),
       POST: withSovereignAuth("system", "execute", async (ctx, req) => {
         const body = (await req.json().catch(() => ({}))) as Record<string, number>;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = computeIDHD(body as any);
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json; charset=utf-8" }),

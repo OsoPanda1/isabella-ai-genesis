@@ -58,6 +58,10 @@
     // Código fuente principal
     "src/**/*.ts",
     "src/**/*.tsx",
+
+    // Contribución Isabella Mexa mantenida y auditada como código TypeScript
+    "contrib/isabella-mexa/**/*.ts",
+    "contrib/isabella-mexa/**/*.tsx",
     
     // Configs críticos (type checking)
     "vite.config.ts",
@@ -276,7 +280,7 @@
     //   - Strict bind/call/apply
     //   - Strict function types
     //   - Strict property initialization
-    // ════════════════════════════════════════════════════════════════════════
+    // ════════════════════════���═══════════════════════════════════════════════
     
     "strict": true,
     // "strictNullChecks": true,  // Incluido en strict
@@ -524,7 +528,7 @@
     // CHECK JS: false (default)
     //   - false: No checkea archivos .js
     //   - true: Checkea archivos .js (con inferencia)
-    // ════════════════════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════���═══════════
     
     // "allowJs": false,  // Default
     // "checkJs": false,  // Default

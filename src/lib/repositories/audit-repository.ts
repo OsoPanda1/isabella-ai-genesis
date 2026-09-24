@@ -41,7 +41,8 @@ const GENESIS_HASH = "0000000000000000000000000000000000000000000000000000000000
 function resolveDefaultStorePath(): string {
   const cwd =
     typeof process !== "undefined" && typeof process.cwd === "function" ? process.cwd() : ".";
-  return path.join(cwd, "isabella_audit_store.json");
+  const join = typeof path.join === "function" ? path.join : (...parts: string[]) => parts.join("/");
+  return join(cwd, "isabella_audit_store.json");
 }
 
 const STORE_PATH = resolveDefaultStorePath();
@@ -83,7 +84,12 @@ export function createAuditRepository(storePath: string = STORE_PATH) {
   }
 
   function saveStore(store: AuditStoreFile): void {
-    fs.mkdirSync(path.dirname(storePath), { recursive: true });
+    if (typeof fs.mkdirSync !== "function" || typeof fs.writeFileSync !== "function") {
+      throw new Error("Audit persistence requires a server runtime");
+    }
+    const dirname =
+      typeof path.dirname === "function" ? path.dirname(storePath) : ".";
+    fs.mkdirSync(dirname, { recursive: true });
     fs.writeFileSync(storePath, JSON.stringify(store, null, 2), "utf-8");
   }
 

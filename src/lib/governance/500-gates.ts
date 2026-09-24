@@ -104,7 +104,7 @@ export function getGateEvidence(domain: Domain, control: Control, commit: string
   const isExperimental = control === "marcar_experimental";
   const isEvidenceGated =
     ["prueba_recuperacion", "prueba_adversarial", "prueba_aislamiento"].includes(control) &&
-    ["Postgres/RLS", "BookPI", "NCUA"].includes(domain);
+    ["Postgres/RLS", "BookPI", "HDC/NCUA"].includes(domain);
   return {
     gate,
     status: isExperimental ? "PASS" : isEvidenceGated ? "EVIDENCE_GATED" : "PASS",
