@@ -244,13 +244,13 @@
     "status": "passed",
     "run_date": "2026-09-24",
     "runner": "vitest run (local, pnpm test)",
-    "total_tests": 632,
-    "passing_tests": 619,
+    "total_tests": 636,
+    "passing_tests": 623,
     "failing_tests": 0,
     "skipped_tests": 13,
-    "suites_passed": 110,
+    "suites_passed": 109,
     "suites_skipped": 2,
-    "note": "Conteos tomados de la ejecución local real del 2026-09-24 tras merge remoto (a635ec8) + saneamiento + módulo TINA. Skips = gated sin TEST_DATABASE_URL u otros. Incluye 5 tests de triple-hardening-triangulation, 19 de tina-category y 1 test x402 payment vault del remoto."
+    "note": "Conteos de la ejecución local real del 2026-09-24 tras fix CROWN-SSR-01 (retiro del rename ciego generateBundle, forzado oxc.jsx.development:false en build). +4 tests de ssr-jsx-production. Skips = gated sin TEST_DATABASE_URL u otros."
   },
   "deployment_tiers": {
     "tier_0_predeployment": { "status": "passed", "percent_complete": 100 },

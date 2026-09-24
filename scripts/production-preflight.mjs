@@ -69,8 +69,14 @@ if (existsSync(resolve(root, "src/server-routes/api/isabella.ts")))
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
 if (!/^pnpm@10\.(15\.4|34\.5)$/.test(pkg.packageManager))
   errors.push("packageManager must be pnpm@10.15.4 or pnpm@10.34.5 (Vercel latest-10)");
-if (pkg.engines?.node !== ">=22 <25")
-  errors.push("engines.node must be >=22 <25 for deterministic production runtime");
+const nodeEnginePinOk =
+  pkg.engines?.node === "24.x" ||
+  pkg.engines?.node === "^24.0.0" ||
+  pkg.engines?.node === ">=22 <25";
+if (!nodeEnginePinOk)
+  errors.push(
+    "engines.node must pin Node 24.x (or legacy >=22 <25) for deterministic production runtime",
+  );
 for (const script of [
   "build",
   "start",

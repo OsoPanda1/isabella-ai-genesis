@@ -5,7 +5,7 @@
 **Deuda técnica eliminada:**
 - `Vite 6→8` + `npm→pnpm` + `Express→Nitro` + `store-authority→repository-factory`
 - `113 TODO/FIXME/HACK` catalogados en `docs/_archive` + `500-gates.ts` con `experimental` label
-- `V.jsxDEV` eliminado (`generateBundle` + `esbuild jsxDev:false`)
+- `V.jsxDEV` eliminado (raíz: `oxc.jsx.development:false` + `esbuild.jsxDev:false` en build — el hack `generateBundle` ciego fue retirado por provocar CROWN-SSR-01)
 
 **Hardening triangulado:**
 - `vercel.json` `HSTS` `CSP` `X-Frame` + `src/lib/security.ts` `sanitizePayload` + `secret-redactor`

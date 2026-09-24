@@ -29,7 +29,7 @@
 |---|---|---|
 | `repository_unhealthy` | `vercel env ls` → verificar `DATABASE_URL` sin `channel_binding`, `ISABELLA_STORAGE_PROVIDER=postgres`, `SELECT 1` | rotar `DATABASE_URL` si corrupto, ver `bookpi-postgres-repository.ts` |
 | `genesis_service_unconfigured` | `vercel env ls \| grep CROWN` | rotar `CROWN_POLICY_SIGNING_KEY` (64 hex), redeploy |
-| `V.jsxDEV` | `vite.config.ts` `generateBundle` debe estar en `main` | revert commit, push canónico |
+| `V.jsxDEV` / `CROWN-SSR-01` | `vite.config.ts` debe forzar `oxc.jsx.development:false` en build y NO contener rename ciego `generateBundle` | revert el commit que reintroduzca el hack, push canónico |
 | `5xx >0.5% 5m` | `vercel logs --since 5m \| grep 5xx` + `rate(http_requests_total{code~="5.."}[5m])` | escalar P0, freeze deploys |
 | `p95 >1500ms` | `k8s/HPA` metrics, `double-pipeline` queue, `ObservabilityService.getLatencyBudget()` | escalar HPA, revisar `measureVelocity` |
 | `drift >0.15` | `detectDrift(baseline,current)` en `governed-ml.ts:141` | P1, abrir `docs/ml/DRIFT.md` §3, bloquear promoción |
