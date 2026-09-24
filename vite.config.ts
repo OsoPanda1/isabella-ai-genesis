@@ -67,11 +67,6 @@ export default defineConfig({
       },
     },
   },
-  // Production runtime contract: Nitro/Vercel must emit Node.js 24 functions.
-  nitro: {
-    preset: "vercel",
-    runtime: "nodejs24.x",
-  },
   ssr: {
     noExternal: [],
     external: ["three"],
