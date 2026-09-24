@@ -116,6 +116,7 @@ describe("production authority (6 autoridades)", () => {
     vi.stubEnv("PROVISION_OWNER_TOKEN", "provision-owner-test-token");
     vi.stubEnv("ISABELLA_STORAGE_PROVIDER", "postgres");
     vi.stubEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "https://otel.example.com");
+    vi.stubEnv("X402_PAYMENT_VAULT_ADDRESS", "0x1111111111111111111111111111111111111111");
     const { resetConfigCache } = await import("@/lib/config");
     resetConfigCache();
     const { assertProductionAuthorities } = await import("@/lib/production-authority");

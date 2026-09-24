@@ -328,7 +328,8 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
     forbidden: [],
     provider: "bookpi",
     criticality: "CRITICAL",
-    description: "Dirección EVM de 20 bytes que recibe liquidaciones USDC x402; debe ser una dirección real configurada por el operador.",
+    description:
+      "Dirección EVM de 20 bytes que recibe liquidaciones USDC x402; debe ser una dirección real configurada por el operador.",
   },
   {
     name: "GEMINI_API_KEY",

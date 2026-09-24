@@ -33,6 +33,7 @@ describe("configuration runtime contract", () => {
       PROVISION_OWNER_TOKEN: "owner-token-123456789",
       STRIPE_SECRET_KEY: "stripe-secret-123456",
       STRIPE_WEBHOOK_SECRET: "stripe-webhook-123456",
+      X402_PAYMENT_VAULT_ADDRESS: "0x1111111111111111111111111111111111111111",
     });
     expect(parsed.ISABELLA_STORAGE_PROVIDER).toBe("postgres");
     expect(parsed.DATABASE_URL).toBe("postgresql://example.invalid/db");

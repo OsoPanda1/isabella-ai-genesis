@@ -16,7 +16,11 @@
  */
 
 import { createHash, randomUUID } from "node:crypto";
-import { getX402PaymentVaultAddress, PrincipalContext, SubscriptionStatus } from "./monetization/x402-connector";
+import {
+  getX402PaymentVaultAddress,
+  PrincipalContext,
+  SubscriptionStatus,
+} from "./monetization/x402-connector";
 
 export type EpistemicComplexity = "E0" | "E1" | "E2" | "E3" | "E4";
 

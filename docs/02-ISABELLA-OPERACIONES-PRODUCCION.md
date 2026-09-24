@@ -2,10 +2,10 @@
 
 > **Unifica:** `PRODUCTION_GATE`, `DEPLOYMENT-ROUTE-RECOVERY`, `ROADMAP-PRODUCTION-HARDENING`, `PLAN-FASES-100`, `RELEASE-CHECKLIST`, `ENTERPRISE-ARCHITECTURE`, `FGAIS-PRODUCTION-STATUS`, `RUNTIME-AUTHORITY-MAP`, `CANONICAL-PRODUCTION-STATUS`, `DISASTER_RECOVERY`, `PRODUCTION-READINESS-*`, `PRODUCTION-RECOVERY-RUNBOOK`, `PRODUCTION_REPAIR_REGISTER`, `OPERATIONAL-RISK-REGISTER`, `CAPABILITY_MATRIX`, `DEPENDENCY_MATRIX`, `ENCRYPTION_MATRIX`, `TELEMETRY-GOVERNANCE`, `300-CRITICAL-FIXES`, `P0-STATUS`, `SLO`, `SBOM`, `HARDENING-TRIANGULADO`
 
-**Estado:** local 2026-09-24 (post-saneamiento + TINA) — `100%` implementación verificable (`618 passed / 0 failed / 13 skipped`), `62%` despliegue hasta `Neon`/`Stripe`/`HSM` vivo — `81%` global honesto — `production-capabilities.json`
+**Estado:** local 2026-09-24 (post-merge remoto + TINA) — `100%` implementación verificable (`619 passed / 0 failed / 13 skipped`), `62%` despliegue hasta `Neon`/`Stripe`/`HSM` vivo — `81%` global honesto — `production-capabilities.json`
 
 ## 1. Gates de Producción (mismo SHA)
-`INSTALL` `pnpm --frozen-lockfile` → `TYPECHECK 0` → `LINT 0` → `TEST 618` → `SECURITY` → `SBOM` → `DB` → `RLS` → `NCUA 50/100/250/500` → `BUILD` → `VERCEL` → `HEALTH` → `SMOKE` → `BOOKPI` → `ROLLBACK` → `EVIDENCE` → `SAME_COMMIT`
+`INSTALL` `pnpm --frozen-lockfile` → `TYPECHECK 0` → `LINT 0` → `TEST 619` → `SECURITY` → `SBOM` → `DB` → `RLS` → `NCUA 50/100/250/500` → `BUILD` → `VERCEL` → `HEALTH` → `SMOKE` → `BOOKPI` → `ROLLBACK` → `EVIDENCE` → `SAME_COMMIT`
 
 ```bash
 pnpm production:gate # o pnpm verify:lock && pnpm typecheck && pnpm test && pnpm build

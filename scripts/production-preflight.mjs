@@ -97,7 +97,11 @@ if (!viteConfig.includes("tanstackStart("))
   errors.push("vite.config must use TanStack Start plugin");
 if (!viteConfig.includes("nitro(")) errors.push("vite.config must use the Nitro output adapter");
 const nodeEnginePinsVercel24 = pkg.engines?.node === "24.x" || pkg.engines?.node === "^24.0.0";
-if (!nodeEnginePinsVercel24 && !viteConfig.includes('runtime: "nodejs24.x"') && !builtVercelRuntime24(root))
+if (
+  !nodeEnginePinsVercel24 &&
+  !viteConfig.includes('runtime: "nodejs24.x"') &&
+  !builtVercelRuntime24(root)
+)
   errors.push(
     "Production runtime must pin Node 24.x via package.json engines, vite config, or built .vercel/output artifact",
   );

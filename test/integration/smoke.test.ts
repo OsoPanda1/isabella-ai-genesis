@@ -38,7 +38,7 @@ describe("smoke de despliegue", () => {
       engines?: { node?: string };
     };
     expect(pkg.packageManager).toMatch(/^pnpm@10\./);
-    expect(pkg.engines?.node).toMatch(/^>=22/);
+    expect(pkg.engines?.node).toMatch(/^(>=22|24)/);
     for (const workflow of ["ci.yml", "release.yml", "security.yml"]) {
       const content = readFileSync(resolve(root, `.github/workflows/${workflow}`), "utf8");
       expect(content.includes("version: 11"), `${workflow} usa pnpm 11`).toBe(false);
