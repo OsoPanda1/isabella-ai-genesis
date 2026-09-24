@@ -11,10 +11,10 @@ import {
 } from "../crypto/bookpi-signer";
 import type { BlockPIBlock, LedgerCategory, LedgerStatus } from "../bookpi/types";
 
-const GENESIS_PREVIOUS_HASH = "0".repeat(64);
+const GENESIS_PREVIOUS_HASH = "0".repeat(128);
 
 function hashBlock(block: Partial<BlockPIBlock>): string {
-  return createHash("sha256")
+  return createHash("sha3-512")
     .update(canonicalBookPiPayload(block as any))
     .digest("hex");
 }
@@ -159,11 +159,11 @@ export function createBookpiPostgresRepository() {
         };
       }
 
-      const { rows } = await client.query(
+       const { rows } = await client.query(
         `INSERT INTO public.bookpi_ledger
          (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed,
          previous_hash, block_hash, status, nonce, signature_algorithm, pqc_signature)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          RETURNING *`,
         [
           base.index,
@@ -184,7 +184,7 @@ export function createBookpiPostgresRepository() {
       await client.query("COMMIT");
       return { success: true as const, block: mapRow(rows[0]!) };
     } catch {
-      await client.query("ROLLBACK");
+      await client.query("ROLLBACK").catch(() => undefined);
       return { success: false as const, error: "Fallo transaccional" };
     } finally {
       client.release();
@@ -282,7 +282,7 @@ export function createBookpiPostgresRepository() {
             `INSERT INTO public.bookpi_ledger
              (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed,
              previous_hash, block_hash, status, nonce, signature_algorithm, pqc_signature)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
              RETURNING *`,
             [
               base.index,
@@ -310,7 +310,7 @@ export function createBookpiPostgresRepository() {
       await client.query("COMMIT");
       return { success: true as const, blocks: results };
     } catch {
-      await client.query("ROLLBACK");
+      await client.query("ROLLBACK").catch(() => undefined);
       return { success: false as const, error: "Fallo transaccional" };
     } finally {
       client.release();
@@ -418,7 +418,7 @@ export function createBookpiPostgresRepository() {
           `INSERT INTO public.bookpi_ledger
            (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed,
             previous_hash, block_hash, status, nonce, signature_algorithm, pqc_signature)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
           [
             base.index,
             base.tenantId,
@@ -441,7 +441,7 @@ export function createBookpiPostgresRepository() {
       await client.query("COMMIT");
       return { success: true, prunedCount };
     } catch {
-      await client.query("ROLLBACK");
+      await client.query("ROLLBACK").catch(() => undefined);
       return { success: false, error: "Fallo transaccional", prunedCount: 0 };
     } finally {
       client.release();
@@ -506,28 +506,111 @@ export function createBookpiPostgresRepository() {
     requestor: { tenantId: string; userId: string },
     reason: string,
   ) {
-    // FASE 3: refunds como nuevo evento, nunca UPDATE del original.
-    // El esquema no expone `id`; el identificador del evento es su `index`.
     const index = Number(originalEventId);
     if (!Number.isInteger(index) || index < 0)
       return { success: false as const, error: "Índice de bloque inválido." };
-    const byIndex = await pool.query(
-      "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 AND index = $2 LIMIT 1",
-      [requestor.tenantId, originalEventId],
-    );
-    const original = byIndex.rows[0] ? mapRow(byIndex.rows[0]) : null;
-    if (!original) return { success: false as const, error: "Evento original no encontrado." };
-    if (original.status === "refunded")
-      return { success: false as const, error: "Evento ya refundido." };
-    return append({
-      tenantId: requestor.tenantId,
-      userId: requestor.userId,
-      operation: `refund_of_${original.index}_${reason}`,
-      category: original.category,
-      cost: original.costDecimal ? Number(original.costDecimal) : 0,
-      tokens: 0,
-      status: "refunded",
-    });
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const tenantHash = createHash("sha256").update(requestor.tenantId).digest();
+      const lockId = tenantHash.readInt32BE(0);
+      await client.query("SELECT pg_advisory_xact_lock($1)", [lockId]);
+
+      const byIndex = await client.query(
+        "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 AND index = $2 LIMIT 1 FOR UPDATE",
+        [requestor.tenantId, originalEventId],
+      );
+      const original = byIndex.rows[0] ? mapRow(byIndex.rows[0]) : null;
+      if (!original) {
+        await client.query("ROLLBACK");
+        return { success: false as const, error: "Evento original no encontrado." };
+      }
+      if (original.status === "refunded") {
+        await client.query("ROLLBACK");
+        return { success: false as const, error: "Evento ya refundido." };
+      }
+      // Check idempotencia por original_event_id (UNIQUE partial index)
+      const dup = await client.query(
+        "SELECT index FROM public.bookpi_ledger WHERE original_event_id = $1 LIMIT 1",
+        [String(original.index)],
+      );
+      if (dup.rows[0]) {
+        await client.query("ROLLBACK");
+        return { success: false as const, error: "Evento ya refundido." };
+      }
+
+      const { rows: previous } = await client.query(
+        "SELECT * FROM public.bookpi_ledger WHERE tenant_id = $1 ORDER BY index DESC LIMIT 1 FOR UPDATE",
+        [requestor.tenantId],
+      );
+      const previousBlock = previous[0] ? mapRow(previous[0]) : null;
+      const newIndex = previousBlock ? previousBlock.index + 1 : 0;
+      const timestamp = new Date().toISOString();
+      const costDecimal = original.costDecimal ? Number(original.costDecimal).toFixed(2) : "0.00";
+      const base: Omit<BlockPIBlock, "blockHash"> = {
+        index: newIndex,
+        timestamp,
+        tenantId: requestor.tenantId,
+        userId: requestor.userId,
+        operation: `refund_of_${original.index}_${reason}`.slice(0, 200),
+        category: original.category,
+        costDecimal,
+        tokensConsumed: 0,
+        previousHash: previousBlock?.blockHash ?? GENESIS_PREVIOUS_HASH,
+        pqcSignature: null,
+        signatureAlgorithm: getSigningAlgorithm(),
+        status: "refunded" as LedgerStatus,
+        nonce: randomUUID(),
+      };
+      const blockHash = hashBlock(base);
+      if (isSimulatedAlgorithm()) {
+        throw new Error("CRITICAL_SECURITY_ERROR: algoritmo de firma simulado no permitido para el ledger.");
+      }
+      const pqcSignature = signBlockHash(blockHash);
+      if (!pqcSignature) {
+        await client.query("ROLLBACK");
+        return { success: false as const, error: "CRITICAL_SECURITY_ERROR: Failed to sign BookPI block." };
+      }
+      try {
+        const { rows } = await client.query(
+          `INSERT INTO public.bookpi_ledger
+           (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed,
+            previous_hash, block_hash, status, nonce, signature_algorithm, pqc_signature, original_event_id)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+           RETURNING *`,
+          [
+            base.index,
+            base.tenantId,
+            base.userId,
+            base.operation,
+            base.category,
+            base.costDecimal,
+            base.tokensConsumed,
+            base.previousHash,
+            blockHash,
+            base.status,
+            base.nonce,
+            base.signatureAlgorithm,
+            pqcSignature,
+            String(original.index),
+          ],
+        );
+        await client.query("COMMIT");
+        return { success: true as const, block: mapRow(rows[0]!) };
+      } catch (e) {
+        await client.query("ROLLBACK").catch(() => undefined);
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg.includes("uq_bookpi_refund_original") || msg.includes("duplicate") || msg.includes("original_event_id")) {
+          return { success: false as const, error: "Evento ya refundido." };
+        }
+        return { success: false as const, error: "Fallo transaccional" };
+      }
+    } catch {
+      await client.query("ROLLBACK").catch(() => undefined);
+      return { success: false as const, error: "Fallo transaccional" };
+    } finally {
+      client.release();
+    }
   }
 
   /**

@@ -25,14 +25,20 @@ function toRepositoryError(message: string, statusCode = 500, tenantId?: string)
 }
 
 let pgPool: Pool | null = null;
-function sanitizeDatabaseUrl(raw: string): string {
+export function sanitizeDatabaseUrl(raw: string): string {
   // Neon agrega channel_binding=require que node-postgres no entiende y hace fallar el Pool en 3ms con repository_unhealthy
   try {
     const u = new URL(raw);
     if (u.searchParams.has("channel_binding")) u.searchParams.delete("channel_binding");
     return u.toString();
   } catch {
-    return raw.replace(/[?&]channel_binding=[^&]*/g, "");
+    // Fallback sin URL parser: elimina channel_binding y limpia artefactos ? & &&
+    let cleaned = raw.replace(/[?&]channel_binding=[^&]*/gi, "");
+    cleaned = cleaned.replace(/\?&/g, "?").replace(/&&/g, "&").replace(/[?&]$/, "");
+    // Si quedó "?&" intermedio o doble ?, normaliza
+    cleaned = cleaned.replace(/\?&/g, "?");
+    if (cleaned.includes("?") && cleaned.endsWith("&")) cleaned = cleaned.slice(0, -1);
+    return cleaned;
   }
 }
 function getPgPool(): Pool {
@@ -53,6 +59,12 @@ function getPgPool(): Pool {
     pgPool.on("error", (err) => console.error("Unexpected error on idle Postgres pool", err));
   }
   return pgPool;
+}
+export function _resetPgPoolForTests(): void {
+  if (pgPool) {
+    void pgPool.end().catch(() => undefined);
+    pgPool = null;
+  }
 }
 
 function toSnakeKey(key: string): string {

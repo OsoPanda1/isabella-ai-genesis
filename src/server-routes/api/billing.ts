@@ -231,11 +231,11 @@ export const Route = createFileRoute("/api/billing")({
               });
             }
 
-            // Recalcular para corroborar
-            const blockContent = `${block.index}-${block.timestamp}-${block.tenantId}-${block.userId}-${block.operation}-${block.category}-${block.costDecimal}-${block.tokensConsumed}-${block.previousHash}`;
+            // Recalcular para corroborar usando payload canónico SHA3-512 (mismo que bookpi-postgres-repository)
+            const { canonicalBookPiPayload } = await import("@/lib/bookpi/canonical-payload");
             const recalculatedHash = nodeCrypto
-              .createHash("sha256")
-              .update(blockContent)
+              .createHash("sha3-512")
+              .update(canonicalBookPiPayload(block as unknown as Record<string, unknown>))
               .digest("hex");
             const isChainValid = block.blockHash === recalculatedHash;
 
@@ -504,20 +504,29 @@ export const Route = createFileRoute("/api/billing")({
             })({ request });
           }
 
-          // 2. WEBHOOK (REAL STRIPE)
+          // 2. WEBHOOK (REAL STRIPE) — fail-closed sin STRIPE_SECRET_KEY ni STRIPE_WEBHOOK_SECRET
           if (action === "webhook") {
             const stripe = getStripe();
             const signature = request.headers.get("stripe-signature");
 
-            if (!stripe || !signature) {
+            // Fail-closed: sin STRIPE_SECRET_KEY el webhook no se procesa (503 para que Stripe reintente)
+            if (!stripe) {
               return new Response(
-                JSON.stringify({
-                  error: "Webhook requires Stripe configuration and signature.",
-                }),
-                {
-                  status: 400,
-                  headers,
-                },
+                JSON.stringify({ error: "stripe_unconfigured" }),
+                { status: 503, headers },
+              );
+            }
+            if (!signature) {
+              return new Response(
+                JSON.stringify({ error: "Webhook requires Stripe signature." }),
+                { status: 400, headers },
+              );
+            }
+            const endpointSecret = config().STRIPE_WEBHOOK_SECRET;
+            if (!endpointSecret) {
+              return new Response(
+                JSON.stringify({ error: "stripe_webhook_unconfigured" }),
+                { status: 503, headers },
               );
             }
 
@@ -528,12 +537,7 @@ export const Route = createFileRoute("/api/billing")({
             let disputeAmountMinor = 0;
 
             try {
-              const endpointSecret = config().STRIPE_WEBHOOK_SECRET || "";
-              const verifiedEvent = stripe.webhooks.constructEvent(
-                bodyText,
-                signature,
-                endpointSecret,
-              );
+              const verifiedEvent = stripe.webhooks.constructEvent(bodyText, signature, endpointSecret);
               eventType = verifiedEvent.type;
               const sessionObject = verifiedEvent.data.object as unknown as Record<string, unknown>;
               metadata = (sessionObject.metadata as Record<string, string>) || {};
@@ -883,14 +887,14 @@ export const Route = createFileRoute("/api/billing")({
               // (sin escaneo O(n) del ledger, sin carreras).
               const piMarker = `STRIPE_PI:${parsed.data.stripePaymentIntentId}`;
 
-              // P0: el saldo solo se acredita tras verificar un pago real en Stripe.
+              // P0: el saldo solo se acredita tras verificar un pago real en Stripe. Fail-closed sin STRIPE_SECRET_KEY.
               const stripe = getStripe();
               if (!stripe) {
                 return new Response(
                   JSON.stringify({
-                    error: "Stripe no configurado en el servidor.",
+                    error: "stripe_unconfigured",
                   }),
-                  { status: 500, headers },
+                  { status: 503, headers },
                 );
               }
               let paymentIntent;
