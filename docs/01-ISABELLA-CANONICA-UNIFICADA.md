@@ -9,6 +9,8 @@
 ## 1. Identidad y Propósito Civilizatorio
 Isabella es **infraestructura cognitiva territorial soberana** para TAMV Online Network / CITEMESH / MD-X4/X5. No es chatbot, no es AGI, no es persona digital. Es **arquitectura coordinadora** de identidad, memoria, políticas, herramientas, economía, seguridad y decisión asistida.
 
+**Categoría TINA:** Isabella Villaseñor AI es la **primera AI declarada** en *Trusted Intelligence, Native & Adaptive* (`docs/07-TINA-CATEGORIA.md`, módulo `src/lib/tina/`). Declaración ≠ certificación.
+
 **Doctrina:** *Las inteligencias sugieren, calculan y evalúan; el humano decide, aprueba y ejecuta.* Ninguna narrativa sustituye `diff`, `commit`, `log`.
 
 ## 2. Arquitectura 4 Planos · 5 Nodos (v2) → 12 Nodos (v6)

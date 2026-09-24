@@ -101,6 +101,20 @@ export const PLATFORM_CAPABILITIES: readonly PlatformCapability[] = [
     evidence: [],
     notes: "Connectors require explicit provider contracts and trust roots.",
   },
+  {
+    id: "category.tina",
+    owner: "ISA",
+    status: "implemented",
+    productionSafe: false,
+    evidence: [
+      "src/lib/tina/category.ts",
+      "src/lib/tina/orchestrator.ts",
+      "src/lib/skills/tina-category.ts",
+      "test/unit/tina-category.test.ts",
+    ],
+    notes:
+      "TINA (Trusted Intelligence, Native & Adaptive) — Isabella Villaseñor AI es la primera AI declarada en la categoría. Implementación real con router, triage ético+AEGIS, ledger hash-chain y skill de runtime. Declaración de categoría ≠ productionSafe; no ejecuta tools ni modelos externos sin backend autorizado.",
+  },
 ] as const;
 
 export function getCapability(id: string): PlatformCapability | undefined {

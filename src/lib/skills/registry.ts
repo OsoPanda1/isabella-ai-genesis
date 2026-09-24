@@ -7,6 +7,7 @@ import { THEMIS, SENTINEL } from "./sovereignty-pack";
 import { HELIOS, KAIROS } from "./economy-pack";
 import { UTAMV } from "./education-pack";
 import { HEPTA } from "./hepta.skill";
+import { TINA_CATEGORY } from "./tina-category";
 import { evolvedSkillsPack } from "./evolved-skills-pack";
 import { OSOPANDA_ECOSYSTEM_SKILLS_PACK } from "./osopanda-ecosystem-pack";
 import { createNativeFusedSkill } from "@/lib/native-ml/skill-fusion";
@@ -65,6 +66,7 @@ export const isabellaSkills = {
   SENTINEL,
   UTAMV,
   HEPTA,
+  TINA: TINA_CATEGORY,
   ...OSOPANDA_ECOSYSTEM_SKILLS_PACK,
   ...evolvedSkillsPack,
   ...nativeFusedEvolvedSkills,

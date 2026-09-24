@@ -199,11 +199,12 @@ export class CryptographicTriangulation {
     const blockSeal = await SovereignAudit.signAuditSeal(merkleRoot);
 
     // Checksum tripartito unificado SHA-384
+    // blockSeal es `audit-seal-v1:<base64url>` (UTF-8), NO hex.
     const tripartiteChecksum = createHash("sha384")
       .update(
         Buffer.concat([
           Buffer.from(merkleRoot, "hex"),
-          Buffer.from(blockSeal, "hex"),
+          Buffer.from(blockSeal, "utf8"),
           tenantBinding,
           alphaTag,
           betaTag,
@@ -285,7 +286,7 @@ export class CryptographicTriangulation {
       .update(
         Buffer.concat([
           Buffer.from(envelope.vertexGamma.merkleRoot, "hex"),
-          Buffer.from(envelope.vertexGamma.blockSeal, "hex"),
+          Buffer.from(envelope.vertexGamma.blockSeal, "utf8"),
           tenantBinding,
           alphaTag,
           betaTag,

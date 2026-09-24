@@ -8,3 +8,6 @@ if (!process.env.AUTH_JWT_SECRET) {
 if (!process.env.ENCRYPTION_MASTER_KEY) {
   process.env.ENCRYPTION_MASTER_KEY = "01234567890123456789012345678901";
 }
+if (!process.env.AEGIS_AUDIT_SECRET) {
+  process.env.AEGIS_AUDIT_SECRET = "aegis-key-0123456789abcdef-0123456789abcdef";
+}
