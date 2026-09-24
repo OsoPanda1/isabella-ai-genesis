@@ -16,7 +16,7 @@
  */
 
 import { createHash, randomUUID } from "node:crypto";
-import { PrincipalContext, SubscriptionStatus } from "./monetization/x402-connector";
+import { getX402PaymentVaultAddress, PrincipalContext, SubscriptionStatus } from "./monetization/x402-connector";
 
 export type EpistemicComplexity = "E0" | "E1" | "E2" | "E3" | "E4";
 
@@ -134,7 +134,7 @@ export class CrownSmartPaywallEngine {
           resourceId,
           priceCentsUSD: priceCents,
           currency: "USDC",
-          recipientAddress: `0x_isabella_vault_${context.tenantId}`,
+          recipientAddress: getX402PaymentVaultAddress(),
           idempotencyKey,
           expiresAt,
         },

@@ -96,9 +96,10 @@ const viteConfig = readFileSync(resolve(root, "vite.config.ts"), "utf8");
 if (!viteConfig.includes("tanstackStart("))
   errors.push("vite.config must use TanStack Start plugin");
 if (!viteConfig.includes("nitro(")) errors.push("vite.config must use the Nitro output adapter");
-if (!viteConfig.includes('runtime: "nodejs24.x"') && !builtVercelRuntime24(root))
+const nodeEnginePinsVercel24 = pkg.engines?.node === "24.x" || pkg.engines?.node === "^24.0.0";
+if (!nodeEnginePinsVercel24 && !viteConfig.includes('runtime: "nodejs24.x"') && !builtVercelRuntime24(root))
   errors.push(
-    "Nitro Vercel functions must pin Node 24.x (in vite.config or the built .vercel/output artifact)",
+    "Production runtime must pin Node 24.x via package.json engines, vite config, or built .vercel/output artifact",
   );
 const server = readFileSync(resolve(root, "src/server.ts"), "utf8");
 if (/public-chat/i.test(server))
