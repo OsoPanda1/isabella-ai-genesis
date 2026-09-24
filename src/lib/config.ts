@@ -81,6 +81,12 @@ function assertProductionCrypto(mode: RuntimeMode, parsed: Env): void {
       "CRITICAL_SECURITY_ERROR: CROWN_POLICY_SIGNING_KEY is required (>=32 characters) in staging/production.",
     );
   }
+  const x402Vault = parsed.X402_PAYMENT_VAULT_ADDRESS?.trim() ?? "";
+  if (!/^0x[a-fA-F0-9]{40}$/.test(x402Vault)) {
+    throw new Error(
+      "CRITICAL_SECURITY_ERROR: X402_PAYMENT_VAULT_ADDRESS must be a valid 20-byte EVM address in staging/production.",
+    );
+  }
 }
 function isSameDatabaseInstance(url1Str: string, url2Str: string): boolean {
   const u1Trim = url1Str.trim();

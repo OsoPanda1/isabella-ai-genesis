@@ -8,6 +8,7 @@ import {
   signX402Payment,
   verifyPayloadECDSAP384,
   getX402PublicKeyPem,
+  getX402PaymentVaultAddress,
   __resetX402CryptoState,
   MAX_MONETIZATION_AMOUNT_CENTS,
   PrincipalContext,
@@ -462,6 +463,10 @@ describe("ISABELLA SOVEREIGN MONETIZATION & x402 PROTOCOL SUITE", () => {
   });
 
   describe("6. Higiene de clave criográfica", () => {
+    it("usa una dirección EVM válida para el desafío x402", () => {
+      expect(getX402PaymentVaultAddress()).toMatch(/^0x[a-fA-F0-9]{40}$/);
+    });
+
     it("reset de estado crypto es expuesto para tests aislados", () => {
       expect(typeof __resetX402CryptoState).toBe("function");
       __resetX402CryptoState();

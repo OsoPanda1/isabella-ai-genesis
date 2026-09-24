@@ -117,6 +117,8 @@ export const envSchema = z
     // --- BOOKPI ---
     BOOKPI_SIGNATURE_ALGORITHM: z.string().default("NOT_IMPLEMENTED"),
     BOOKPI_SIGNING_KEY: optionalMinString(32),
+    // x402 USDC recipient. Required and validated before live settlement.
+    X402_PAYMENT_VAULT_ADDRESS: optionalString(),
     // --- REDIS ---
     REDIS_URL: optionalString(),
     REDIS_TOKEN: optionalString(),
@@ -318,6 +320,15 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
     forbidden: [],
     provider: "bookpi",
     criticality: "CRITICAL",
+  },
+  {
+    name: "X402_PAYMENT_VAULT_ADDRESS",
+    visibility: "public",
+    required: ["staging", "production"],
+    forbidden: [],
+    provider: "bookpi",
+    criticality: "CRITICAL",
+    description: "Dirección EVM de 20 bytes que recibe liquidaciones USDC x402; debe ser una dirección real configurada por el operador.",
   },
   {
     name: "GEMINI_API_KEY",
