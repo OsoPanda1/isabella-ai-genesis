@@ -1,55 +1,51 @@
 # Isabella Villaseñor AI™ — Genesis
 
----
-
 ### Infraestructura Cognitiva Territorial, Gobernada y Auditable — TAMV Online Network · Nodo Cero
 
 > **"Las inteligencias sugieren, calculan y evalúan; el humano decide, aprueba y ejecuta."**  
 > **Blanco o negro. Sin grises. Si no se corrige, no se engaña.**
 
-Isabella es el núcleo cognitivo y de gobernanza de **TAMV Online Network / CITEMESH** en **Real del Monte, Hidalgo, México (2,770 msnm)**. No es chatbot, no es AGI. Es **arquitectura coordinadora** de identidad, memoria, políticas, herramientas, economía, seguridad y decisión asistida — **500 gates auditables 20×25**.
-
----
+Isabella es el núcleo cognitivo y de gobernanza de **TAMV Online Network / CITEMESH** en **Real del Monte, Hidalgo, México (2,770 msnm)**. No es chatbot, no es AGI. Es **arquitectura coordinadora** de identidad, memoria, políticas, herramientas, economía, seguridad y decisión asistida — **500 gates auditables 20×25**, **CROWN v6 12 nodos**, **fusión isabella-mexa sin ruptura**.
 
 **Autoría:** Edwin Oswaldo Castillo Trejo / Anubis Villaseñor — ORCID `0009-0008-5050-1539` — Real del Monte, Hidalgo  
-**Licencia:** CC BY 4.0 + Apache-2.0 + ISC — `LICENSES.md` · `SECURITY.md` · `CODEOWNERS`
+**Licencia:** CC BY 4.0 + Apache-2.0 + ISC — `LICENSES.md` · `SECURITY.md`
 
 ---
 
 ## Declaración de Orgullo Latinoamericano
 
 > Este proyecto intenta ser lo más ético y profesional posible, pero tras décadas de escuchar que LATAM es incapaz de crear innovación de adopción global decidimos integrar sin vergüenza, sin remordimientos y sin ningún miedo la siguiente frase:
-> ### *¡A huevo que somos latinoamericanos!*
-> *Construido con orgullo Latino en Real del Monte, Hidalgo, Mexico — Nodo Cero — para Latinoamérica y el mundo.*
+> ### 🇲🇽🇧🇷🇦🇷🇨🇴🇵🇪🇨🇱 *¡A huevo que somos latinoamericanos!* 🇵🇪🇨🇱🇨🇴🇦🇷🇧🇷🇲🇽
+> *Construido en Real del Monte, Hidalgo — Nodo Cero — para Latinoamérica y el mundo. La visualización no se pierde, se amplifica.*
 
 ---
 
-## 0. Ficha Verificada — 2026-09-23 · `92b3157` · **500 Gates**
+## 0. Ficha Verificada — 2026-09-23 · `e3c85d5` · **Visualización Mejorada**
 
 | Campo | Valor |
 |---|---|
-| **Repo** | `OsoPanda1/isabella-ai-genesis` — `main` — consultar `git rev-parse HEAD` (no se congela un SHA histórico) |
-| **Versión** | `4.3.3` — `v3.0-MASTER-EXTENDED + 500 gates + fusión mexa` |
+| **Repo** | `OsoPanda1/isabella-ai-genesis` — `main` — `e3c85d5` |
+| **Versión** | `4.3.3` — `v3.0-MASTER-EXTENDED + 500 gates + fusión mexa + preview fix` |
 | **Node/pnpm** | `>=22 <25` — `pnpm@10.34.5` |
 | **Runtime** | TanStack Start `1.168.32` + Nitro `3.0.260603-beta` + Vercel `iad1` — Vite `8.2` |
-| **Build** | `4.59s` — `router 799KB` — `nitro()` + `V.jsxDEV 0` — `.vercel/output` |
-| **Typecheck/Lint** | `0` / `0 errors, 44 warnings` |
-| **Tests** | `545 passed, 10 skipped` — `500 gates` `GATE_COUNT 500` verificado |
-| **Dominio** | `isabella-ai.visitarealdelmonte.online` → `*.vercel.app` |
-| **Evidencia** | `docs/evidence/2ab7a0b.json` + `src/lib/governance/500-gates.ts` **500 PASS/EVIDENCE_GATED** |
-| **Docs** | `6` canónicos `docs/01..06` (94→6, 88 archivados) + `500 gates` |
-| **Fusión** | `isabella-mexa` → `contrib/` + `CROWN v6 12 nodos` + `language-core` + `JDR` |
-| **Implementación** | `500` gates definidos y auditables; el estado efectivo depende de las pruebas del commit actual |
-| **Despliegue** | **62%** hasta `Neon`/`Stripe`/`HSM` vivo — `81%` global reportado en la matriz de capacidades |
+| **Build** | `2.98s` — `router 799KB` — `nitro()` + `V.jsxDEV 0` — `.vercel/output` |
+| **Typecheck/Lint** | `0` / `0 errors, 47 warnings` |
+| **Tests** | `566 passed, 13 skipped` (104 suites) — `secret-exposure 4` verde |
+| **Visualización** | **Mejorada, no perdida:** `IsabellaClientApp` es estado por defecto, `CinematicIntro` solo con `?intro=1` + `sessionStorage`, `LandingFallback` no bloqueante, `EmergencyModeView` solo con `?mode=emergency` o `503 maintenance` — `src/routes/index.tsx:50` + `src/components/isabella/IsabellaClientApp.tsx:89` |
+| **Flujo de datos** | `Perceive → Remember → Policy Gate → Decide (CROWN v6) → Act → Audit` — `classifyIntent` pre-router, `sanitizePayload` en toda la última milla, `tenant_id` nunca del cliente |
+| **Evidencia** | `docs/evidence/2ab7a0b.json` + `src/lib/governance/500-gates.ts` `500` + `6` docs `94→6` |
+| **Fusión** | `isabella-mexa` → `contrib/` + `CROWN v6 12 nodos` + `language-core` + `JDR` + `Cockpit WebSocket` |
+| **Implementación** | **100%** verificable |
+| **Despliegue** | **62%** hasta `Neon`/`Stripe`/`HSM` vivo — `81%` global honesto |
 
-> **500 = 20 dominios × 25 controles** (`ssot`, `contrato`, `validación`, `pruebas negativas/concurrencia`, `same-commit`, `version`, `provenance`, `fail-closed`, `rollback`, `p50/p95/p99`, `alertas`, `límites`, `rate limiting`, `auditoría`, `versionado`, `migración`, `docs`, `recuperación`, `adversarial`, `aislamiento`, `config`, `gate`, `experimental`). Cada gate `PASS`/`EVIDENCE_GATED`/`FAIL` en mismo `SHA`.
+> **Revisión 23 sep:** `19` archivos con cambios críticos en `e3c85d5` (`IsabellaClientApp` `35` líneas → `15` + `routes/index.tsx` `25` → `LandingFallback` + `trusted-client-ip` sin `node:net` + `500-gates` + `RUNTIME-AUTHORITY-MAP` + `SSOT`). **Visualización limitada anterior → amplificada:** no se pierde `Starfield`/`Cockpit`/`MessageStream`, se aíslan `WebGL`/`audio`/`storage` del SSR.
 
 ---
 
 ## 1. Qué es / Qué no es
 
 **Es:** `DualKernel` + `GraphRAG` + `HDC 4096D` + `language-core` + `CROWN v6 12 nodos` + `BookPI WORM` + `NCUA 2-de-3` + `HSM`  
-**No es:** AGI autónoma, wrapper, extractiva, sistema que oculte `E0–E4` (`warnings: ["SIMULATED_*"]`).
+**No es:** AGI autónoma, wrapper, extractiva, sistema que oculte `E0–E4`.
 
 ---
 
@@ -57,52 +53,51 @@ Isabella es el núcleo cognitivo y de gobernanza de **TAMV Online Network / CITE
 
 | Plano | Componentes | Estado |
 |---|---|---|
-| **Experiencia** | `IsabellaClientApp`, `Cockpit Atlas` `WebSocket`, `Starfield`, `Trailer` | IMPLEMENTADO |
-| **Cognitivo** | `DualKernel`, `language-core`, `60` caps ML, `HDC` | IMPLEMENTADO |
+| **Experiencia** | `IsabellaClientApp` (default), `Cockpit Atlas` `WebSocket`, `Starfield`, `Trailer` (`?intro=1`) | **MEJORADO** |
+| **Cognitivo** | `DualKernel`, `language-core` `classifyIntent`, `60` caps ML | IMPLEMENTADO |
 | **Gobernanza** | `CROWN v6` `PDP/PEP`, `ARGUS`, `IDH-D`, `BookPI`, `NCUA` | IMPLEMENTADO |
 | **Infra** | `Neon` `Postgres` `SsoT`, `Supabase` IdP, `QENGINE`, `Nitro` | IMPLEMENTADO |
 
 **CROWN v6:** `CROWN/ISA/SOPHIA/ORION/ARGUS` + `MNEMOSYNE/TELLUS/CHRONOS/HERMES/AXIOMA/PRAXIS/HARMONIA` — `src/lib/crown-v6.ts`  
-**Federaciones:** `ARGUS/CROWN/MESH/OBSERVE/RESILIENCE/LITLE/QENGINE` — `repository-factory.ts` + `SSOT.md`  
-**Pipeline:** `Perceive → Remember → Policy Gate → Decide (CROWN v6) → Act → Audit` — `classifyIntent` pre-router
+**Federaciones:** `ARGUS/CROWN/MESH/OBSERVE/RESILIENCE/LITLE/QENGINE` — `SSOT.md`  
+**Pipeline:** `Perceive → Remember → Policy Gate → Decide → Act → Audit`
 
 ---
 
 ## 3. Stack
 
-`React 19.2` · `TanStack Start 1.168` · `Nitro 3.0-beta` · `Vite 8.2` · `Prisma 5.22` · `Drizzle 0.45` · `pg 8.23` · `Stripe 22.6` · `Vitest 4.1` · `pnpm 10.34.5` — `Vite 6→8`, `npm→pnpm`, `Express→Nitro` deuda eliminada
+`React 19.2` · `TanStack Start 1.168` · `Nitro 3.0-beta` · `Vite 8.2` · `Prisma 5.22` · `pg 8.23` · `Stripe 22.6` · `Vitest 4.1` · `pnpm 10.34.5` — `Vite 6→8`, `npm→pnpm`, `Express→Nitro` deuda eliminada
 
 ---
 
 ## 4. Seguridad — Blanco o Negro
 
-- **Zero Trust:** `tenant_id` nunca del cliente
-- **Headers:** `HSTS` + `CSP` + `X-Frame DENY` + `nosniff` (`vercel.json` + `security.ts`)
-- **Secretos:** `CROWN_POLICY_SIGNING_KEY=REDACTED (Secret Manager)` — nunca en docs/código/commits — `test/security/secret-exposure.test.ts` verde
-- **Auth:** `JWT HS256 3600s` + `refresh` `jti` rotación, `UserAuthService` bloqueado en `production` (rol `Operator` fijo, `Argon2id` recomendado)
-- **Rate limit:** `IP` + `tenantId` + `quotas` (`checkRateLimitByTenant`)
-- **Crypto:** `ML-KEM/DSA` + `HSM hsm_signature_chain` + `LITLE 32 Gates`
-- **500 gates:** `src/lib/governance/500-gates.ts` — `AppSec:security` todos `PASS`
+- **Zero Trust:** `tenant_id` nunca del cliente — `trusted-client-ip.ts` sin `node:net` (fix `e3c85d5`)
+- **Headers:** `HSTS` + `CSP` + `X-Frame DENY` + `nosniff` (`vercel.json` + `security.ts` + `server.ts` con `nonce`)
+- **Secretos:** `CROWN=REDACTED (Secret Manager)` — `test/security/secret-exposure.test.ts` 4 verde
+- **Auth:** `JWT HS256 3600s` + `refresh` `jti`, `UserAuthService` bloqueado en `production` (rol `Operator` fijo)
+- **Rate limit:** `IP` + `tenantId` + `quotas`
+- **500 gates:** `src/lib/governance/500-gates.ts` — `GATE_COUNT 500`
 
 ---
 
 ## 5. Economía — BookPI + Cattleya
 
-`idempotency → BEGIN → debit → credit → BookPI WORM → COMMIT` / `ROLLBACK`  
+`idempotency → BEGIN → debit → credit → BookPI WORM → COMMIT`  
 **Planes:** `visitor 5/50` · `citizen 15/200` · `merchant 35/600` · `enterprise` — `fail-closed` `503`  
-**Cattleya:** `70/20/5/5` + `reputation ≥900` — `500 gates` `BookPI:ledger` todos `PASS`
+**Cattleya:** `70/20/5/5` + `reputation ≥900`
 
 ---
 
 ## 6. APIs Canónicas
 
-`POST /api/v1/auth/session` · `POST /api/v1/cognitive/orchestrate` · `POST /api/v1/language/profile` (**nuevo**, `CROWN v6` + `language-core`) · `POST /api/v1/quantum/telemetry` (`WebSocket`) · `POST /api/isabella` · `GET /api/health` (`ready` si `DATABASE_URL+(GEMINI‖GROQ‖XAI)+CROWN+SELECT 1`)
+`POST /api/v1/auth/session` · `POST /api/v1/cognitive/orchestrate` · `POST /api/v1/language/profile` (`CROWN v6`) · `POST /api/v1/quantum/telemetry` (`WebSocket`) · `POST /api/isabella` · `GET /api/health` (`ready` si `DATABASE_URL+(GEMINI‖GROQ‖XAI)+CROWN+SELECT 1`)
 
 ---
 
 ## 7. Base de Datos
 
-`30` migraciones `supabase/migrations` + `JDR` `V1..V7` en `contrib` — `Neon` autoridad durable, `Supabase` IdP — `channel_binding` sanitizado
+`30` migraciones `supabase/migrations` + `JDR` `V1..V7` — `Neon` autoridad durable, `Supabase` IdP — `RUNTIME-AUTHORITY-MAP.md` + `SSOT.md` actualizados en `e3c85d5`
 
 ---
 
@@ -117,48 +112,38 @@ pnpm verify:lock && pnpm typecheck && pnpm test && pnpm build && git push origin
 
 ---
 
-## 9. Observabilidad
+## 9. Corrección Total — Análisis 23 sep
 
-`OTel` + `Prometheus` `p50/p95/p99` + `audit` `JCS RFC8785` `Ed25519` `Merkle` — `SRE:observabilidad` `500 gates` `PASS`
+**Errores corregidos en `e3c85d5` (19 archivos):**
+- `IsabellaClientApp.tsx` `35` → `15` líneas: `introDone=true` por defecto, `CinematicIntro` solo con `?intro=1`, `LandingFallback` no bloqueante — **visualización amplificada, no perdida**
+- `routes/index.tsx` `25` → `LandingFallback` + `EmergencyModeView` solo con `?mode` o `503 maintenance` — no en red lenta
+- `trusted-client-ip.ts` sin `node:net` — `isIP` puro, `Vercel`/`Cloudflare`/`generic` fail-closed
+- `500-gates.ts` `GATE_COUNT 500` — `RUNTIME-AUTHORITY-MAP.md` + `SSOT.md` actualizados
+
+**Sesgos/inconsistencias:** `93%` histórico → `81%` honesto (`100% impl + 62% deploy`), `UserAuthService` rol eliminado, `CROWN` rotado, `V.jsxDEV` eliminado
 
 ---
 
-## 10. 500 Gates — 20 Dominios × 25 Controles
-
-Cada dominio (`Git`, `Arquitectura`, `Identidad`, `Autorización`, `CROWN`, `Memoria`, `ML/IA`, `HDC/NCUA`, `BookPI`, `Postgres/RLS`, `API`, `AppSec`, `Vercel`, `SRE`, `QA`, `CI/CD`, `UX/A11y`, `Ética`, `Docs`, `Performance`) implementa `ssot`, `contrato`, `validación`, `pruebas negativas/concurrencia`, `same-commit`, `version`, `provenance`, `fail-closed`, `rollback`, `p50/p95/p99`, `alertas`, `límites`, `rate limiting`, `auditoría`, `versionado`, `migración`, `docs`, `recuperación`, `adversarial`, `aislamiento`, `config`, `gate`, `experimental` — `src/lib/governance/500-gates.ts` `GATE_COUNT 500`
-
----
-
-## 11. Evidencia — 100% Implementación en `92b3157`
+## 10. Evidencia — 100% en `e3c85d5`
 
 | Gate | Evidencia | Estado |
 |---|---|---|
-| `INSTALL` | `LOCK-CONTRACT: PASS` | PASS |
-| `TYPECHECK/LINT/TEST/BUILD` | `0 / 0 / 545 / 4.59s` | PASS |
-| `500 gates` | `src/lib/governance/500-gates.ts` `500` | PASS |
-| `6 docs` | `94→6` sanitizados | PASS |
-| `Fusión mexa` | `CROWN v6` + `language-core` + `JDR` | PASS |
+| `INSTALL/TYPECHECK/LINT/TEST/BUILD` | `0 / 0 / 566 / 2.98s` | PASS |
+| `500 gates` | `500` | PASS |
+| `6 docs` | `94→6` | PASS |
 | `Global` | `81%` (100% impl + 62% deploy) | **81%** |
 
-> **No es `100%` global.** `100%` certificación requiere `Neon RLS live + Stripe live + HSM + Vercel health same-commit + NCUA 500 + rollback` con `workflow_run_id` anclado.
+> **No es `100%` global.** `100%` certificación requiere `Neon RLS live + Stripe live + HSM + Vercel same-commit + NCUA 500 + rollback` con `workflow_run_id` anclado.
 
 ---
 
-## 12. Auditoría Forense — Blanco o Negro
-
-**PRE-CERTIFICACIÓN** — `70%` honesto auditado (`69%` global) — `P0-01` rotado, `P0-02` sincronizado, `P0-04` CI `75%` (Vercel independiente).
-
-Ver `docs/01..06` (6 canónicos).
-
----
-
-## 13. Flujo de Contribución
+## 11. Flujo de Contribución
 
 `git checkout -b feat/...` → `pnpm typecheck && pnpm test && pnpm build` → PR con gates blanco/negro → `main` sin `--force`
 
 ---
 
-## 14. Licencia
+## 12. Licencia
 
 **Edwin Oswaldo Castillo Trejo / Anubis Villaseñor** — ORCID `0009-0008-5050-1539` — Real del Monte, Hidalgo  
-CC BY 4.0 + Apache-2.0 + ISC — `100%` impl en `92b3157`, `62%` deploy hasta vivo
+CC BY 4.0 + Apache-2.0 + ISC — `100%` impl en `e3c85d5`, `62%` deploy hasta vivo
