@@ -505,35 +505,61 @@ export const SecuritySystem = {
     return { allowed: true, claims };
   },
 
-  // --- LAYER 4: Hardened OWASP Secure Headers ---
-  injectSecureHeaders(headers: Headers = new Headers()): Headers {
+  // --- LAYER 4: Hardened OWASP Secure Headers (CSP nonces + HSTS preload) ---
+  /** Genera nonce criptográfico por-request para CSP (16 bytes → base64). Plan nonces: ver docs/operations/CSP-NONCES.md */
+  generateCspNonce(): string {
+    return crypto.randomBytes(16).toString("base64");
+  },
+
+  /** Construye CSP estricto; si nonce se provee usa 'nonce-<value>' y elimina unsafe-inline en prod. */
+  buildCspHeader(nonce?: string): string {
+    const production = isProductionLikeRuntime();
+    const hasNonce = typeof nonce === "string" && nonce.length >= 16;
+    // En producción con nonce: script-src 'self' 'nonce-<value>' (sin unsafe-inline). Fallback dev: permite unsafe-inline solo si no hay nonce.
+    const scriptSource = hasNonce
+      ? `'self' 'nonce-${nonce}'`
+      : production
+        ? "'self'"
+        : "'self' 'unsafe-inline'";
+    return [
+      "default-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data: https:",
+      "media-src 'self' blob:",
+      "connect-src 'self' https://generativelanguage.googleapis.com https://api.groq.com https://api.x.ai https://api.stripe.com https://stream.mux.com https://*.supabase.co",
+      "style-src 'self' 'unsafe-inline'",
+      `script-src ${scriptSource}`,
+      "worker-src 'self' blob:",
+      "upgrade-insecure-requests",
+    ].join("; ");
+  },
+
+  /** HSTS con preload (RFC 6797) — vercel.json + server.ts deben coincidir. Valor canónico: 63072000 (2 años) + includeSubDomains + preload */
+  getHstsHeader(): string {
+    return "max-age=63072000; includeSubDomains; preload";
+  },
+
+  injectSecureHeaders(
+    headers: Headers = new Headers(),
+    opts?: { nonce?: string; cspNonce?: string },
+  ): Headers {
+    const nonce = opts?.nonce ?? opts?.cspNonce;
     if (!headers.has("Content-Security-Policy")) {
-      const production = isProductionLikeRuntime();
-      const scriptSource = production ? "'self'" : "'self' 'unsafe-inline'";
-      headers.set(
-        "Content-Security-Policy",
-        [
-          "default-src 'self'",
-          "object-src 'none'",
-          "base-uri 'self'",
-          "frame-ancestors 'none'",
-          "form-action 'self'",
-          "img-src 'self' data: blob: https:",
-          "font-src 'self' data: https:",
-          "media-src 'self' blob:",
-          "connect-src 'self' https://generativelanguage.googleapis.com https://api.groq.com https://api.x.ai https://api.stripe.com https://stream.mux.com https://*.supabase.co",
-          "style-src 'self' 'unsafe-inline'",
-          `script-src ${scriptSource}`,
-          "worker-src 'self' blob:",
-          "upgrade-insecure-requests",
-        ].join("; "),
-      );
+      headers.set("Content-Security-Policy", this.buildCspHeader(nonce));
+      if (nonce) headers.set("X-CSP-Nonce", nonce);
+    } else if (nonce && !headers.get("Content-Security-Policy")?.includes("nonce-")) {
+      // Si caller pasó nonce pero CSP ya existía sin nonce, expone nonce por header auxiliar para auditoría.
+      headers.set("X-CSP-Nonce", nonce);
     }
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("X-Frame-Options", "DENY");
     headers.set("X-XSS-Protection", "0");
     headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-    headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+    headers.set("Strict-Transport-Security", this.getHstsHeader());
     headers.set("X-Permitted-Cross-Domain-Policies", "none");
     headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
     headers.set("Cross-Origin-Opener-Policy", "same-origin");
@@ -541,6 +567,15 @@ export const SecuritySystem = {
     // Never advertise a literal nonce placeholder as if it were a real CSP nonce.
     headers.delete("Content-Security-Policy-Report-Only");
     return headers;
+  },
+
+  /** Secret-redactor integration — delega a src/lib/secret-redactor.ts (deterministic redaction). */
+  redactSecrets(input: string): string {
+    // Fallback inline para evitar ciclo ESM; src/lib/secret-redactor.ts es canónico para logs.
+    return input.replace(
+      /(\b(?:api[_-]?key|secret|token|password|bearer)\b\s*[:=]\s*["']?)([^\s"']{8,})/gi,
+      "$1[REDACTED]",
+    );
   },
 
   UPSTREAM_ALLOWLIST,

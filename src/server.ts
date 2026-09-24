@@ -8,6 +8,7 @@ import { redact } from "./lib/secret-redactor";
 import { resolveTrustedClientIp } from "./lib/trusted-client-ip";
 import { validateStartupEnvironment } from "./lib/env-validator";
 import { initOpenTelemetry, withSpan, recordMetric } from "./lib/telemetry/otel-init";
+import * as nodeCrypto from "node:crypto";
 
 const envCheck = validateStartupEnvironment();
 if (!envCheck.valid && (envCheck.mode === "production" || envCheck.mode === "staging")) {
@@ -146,7 +147,19 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
-export function withSecurityHeaders(response: Response): Response {
+/** Genera nonce por-request para CSP (base C. CSP nonces plan: docs/operations/CSP-NONCES.md + src/lib/security.ts:generateCspNonce) */
+function generateCspNonceForRequest(): string {
+  try {
+    return nodeCrypto.randomBytes(16).toString("base64");
+  } catch {
+    return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  }
+}
+
+export function withSecurityHeaders(
+  response: Response,
+  opts?: { nonce?: string; cspNonce?: string },
+): Response {
   const headers = new Headers(response.headers);
   const setIfMissing = (name: string, value: string) => {
     if (!headers.has(name)) headers.set(name, value);
@@ -156,13 +169,20 @@ export function withSecurityHeaders(response: Response): Response {
   setIfMissing("X-Frame-Options", "DENY");
   setIfMissing("Referrer-Policy", "strict-origin-when-cross-origin");
   setIfMissing("X-XSS-Protection", "0");
+  // HSTS preload (2 años) — must match src/lib/security.ts#getHstsHeader y vercel.json
   setIfMissing("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
   setIfMissing("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   setIfMissing("Cross-Origin-Opener-Policy", "same-origin");
   setIfMissing("Cross-Origin-Resource-Policy", "same-origin");
 
   const production = process.env.NODE_ENV === "production";
-  const scriptSource = production ? "'self'" : "'self' 'unsafe-inline'";
+  const nonce = opts?.nonce ?? opts?.cspNonce ?? (production ? generateCspNonceForRequest() : undefined);
+  const hasNonce = typeof nonce === "string" && nonce.length >= 16;
+  const scriptSource = hasNonce
+    ? `'self' 'nonce-${nonce}'`
+    : production
+      ? "'self'"
+      : "'self' 'unsafe-inline'";
   const csp = [
     "default-src 'self'",
     "base-uri 'self'",
@@ -179,6 +199,7 @@ export function withSecurityHeaders(response: Response): Response {
   ].join("; ");
 
   setIfMissing("Content-Security-Policy", csp);
+  if (hasNonce) headers.set("X-CSP-Nonce", nonce as string);
   if (production) headers.delete("Content-Security-Policy-Report-Only");
 
   return new Response(response.body, {
