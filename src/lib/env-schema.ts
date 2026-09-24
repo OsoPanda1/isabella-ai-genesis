@@ -322,6 +322,15 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
     criticality: "CRITICAL",
   },
   {
+    name: "X402_PAYMENT_VAULT_ADDRESS",
+    visibility: "public",
+    required: ["staging", "production"],
+    forbidden: [],
+    provider: "bookpi",
+    criticality: "CRITICAL",
+    description: "Dirección EVM de 20 bytes que recibe liquidaciones USDC x402; debe ser una dirección real configurada por el operador.",
+  },
+  {
     name: "GEMINI_API_KEY",
     visibility: "secret",
     required: [],
