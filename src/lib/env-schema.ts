@@ -117,6 +117,8 @@ export const envSchema = z
     // --- BOOKPI ---
     BOOKPI_SIGNATURE_ALGORITHM: z.string().default("NOT_IMPLEMENTED"),
     BOOKPI_SIGNING_KEY: optionalMinString(32),
+    // x402 USDC recipient. Required and validated before live settlement.
+    X402_PAYMENT_VAULT_ADDRESS: optionalString(),
     // --- REDIS ---
     REDIS_URL: optionalString(),
     REDIS_TOKEN: optionalString(),
