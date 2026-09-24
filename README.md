@@ -28,7 +28,7 @@ Isabella es el núcleo cognitivo y de gobernanza de **TAMV Online Network / CITE
 
 | Campo | Valor |
 |---|---|
-| **Repo** | `OsoPanda1/isabella-ai-genesis` — `main` — `92b3157` |
+| **Repo** | `OsoPanda1/isabella-ai-genesis` — `main` — consultar `git rev-parse HEAD` (no se congela un SHA histórico) |
 | **Versión** | `4.3.3` — `v3.0-MASTER-EXTENDED + 500 gates + fusión mexa` |
 | **Node/pnpm** | `>=22 <25` — `pnpm@10.34.5` |
 | **Runtime** | TanStack Start `1.168.32` + Nitro `3.0.260603-beta` + Vercel `iad1` — Vite `8.2` |
@@ -39,8 +39,8 @@ Isabella es el núcleo cognitivo y de gobernanza de **TAMV Online Network / CITE
 | **Evidencia** | `docs/evidence/2ab7a0b.json` + `src/lib/governance/500-gates.ts` **500 PASS/EVIDENCE_GATED** |
 | **Docs** | `6` canónicos `docs/01..06` (94→6, 88 archivados) + `500 gates` |
 | **Fusión** | `isabella-mexa` → `contrib/` + `CROWN v6 12 nodos` + `language-core` + `JDR` |
-| **Implementación** | **100%** verificable (`500` gates) |
-| **Despliegue** | **62%** hasta `Neon`/`Stripe`/`HSM` vivo — `81%` global honesto |
+| **Implementación** | `500` gates definidos y auditables; el estado efectivo depende de las pruebas del commit actual |
+| **Despliegue** | **62%** hasta `Neon`/`Stripe`/`HSM` vivo — `81%` global reportado en la matriz de capacidades |
 
 > **500 = 20 dominios × 25 controles** (`ssot`, `contrato`, `validación`, `pruebas negativas/concurrencia`, `same-commit`, `version`, `provenance`, `fail-closed`, `rollback`, `p50/p95/p99`, `alertas`, `límites`, `rate limiting`, `auditoría`, `versionado`, `migración`, `docs`, `recuperación`, `adversarial`, `aislamiento`, `config`, `gate`, `experimental`). Cada gate `PASS`/`EVIDENCE_GATED`/`FAIL` en mismo `SHA`.
 

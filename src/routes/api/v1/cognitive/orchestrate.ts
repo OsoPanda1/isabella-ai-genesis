@@ -26,7 +26,6 @@ export const Route = createFileRoute("/api/v1/cognitive/orchestrate")({
           actorId: ctx.userId,
           federationId: 5,
           intent,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           mode: (body.mode as any) ?? "chat",
           context: { ...body.context, memoryEnabled: true },
           constraints: { maxLatencyMs: 8000 },
