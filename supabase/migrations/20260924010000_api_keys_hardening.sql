@@ -8,7 +8,7 @@ ALTER TABLE public.api_keys
 
 ALTER TABLE public.api_keys
   ADD CONSTRAINT api_keys_prefix_format
-  CHECK (prefix ~ '^is[k|a]_(live|stage|test)_[A-Za-z0-9]+$');
+  CHECK (prefix ~ '^(isk|isa)_(live|stage|test)_[A-Za-z0-9]+$');
 
 ALTER TABLE public.api_keys
   DROP CONSTRAINT IF EXISTS api_keys_scopes_nonempty;
