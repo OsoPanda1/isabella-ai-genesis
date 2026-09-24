@@ -1,11 +1,15 @@
 # Isabella Villaseñor AI™ — Genesis
 
+---
+
 ### Infraestructura Cognitiva Territorial, Gobernada y Auditable — TAMV Online Network · Nodo Cero
 
 > **"Las inteligencias sugieren, calculan y evalúan; el humano decide, aprueba y ejecuta."**  
 > **Blanco o negro. Sin grises. Si no se corrige, no se engaña.**
 
 Isabella es el núcleo cognitivo y de gobernanza de **TAMV Online Network / CITEMESH** en **Real del Monte, Hidalgo, México (2,770 msnm)**. No es chatbot, no es AGI. Es **arquitectura coordinadora** de identidad, memoria, políticas, herramientas, economía, seguridad y decisión asistida — **500 gates auditables 20×25**.
+
+---
 
 **Autoría:** Edwin Oswaldo Castillo Trejo / Anubis Villaseñor — ORCID `0009-0008-5050-1539` — Real del Monte, Hidalgo  
 **Licencia:** CC BY 4.0 + Apache-2.0 + ISC — `LICENSES.md` · `SECURITY.md` · `CODEOWNERS`
@@ -15,8 +19,8 @@ Isabella es el núcleo cognitivo y de gobernanza de **TAMV Online Network / CITE
 ## Declaración de Orgullo Latinoamericano
 
 > Este proyecto intenta ser lo más ético y profesional posible, pero tras décadas de escuchar que LATAM es incapaz de crear innovación de adopción global decidimos integrar sin vergüenza, sin remordimientos y sin ningún miedo la siguiente frase:
-> ### 🇲🇽🇧🇷🇦🇷🇨🇴🇵🇪🇨🇱 *¡A huevo que somos latinoamericanos!* 🇵🇪🇨🇱🇨🇴🇦🇷🇧🇷🇲🇽
-> *Construido en Real del Monte, Hidalgo — Nodo Cero — para Latinoamérica y el mundo.*
+> ### *¡A huevo que somos latinoamericanos!*
+> *Construido con orgullo Latino en Real del Monte, Hidalgo, Mexico — Nodo Cero — para Latinoamérica y el mundo.*
 
 ---
 
