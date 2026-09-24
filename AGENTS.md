@@ -1,5 +1,5 @@
 # AGENTS.md — Documento Maestro de Arquitectura, Seguridad y Especificación Canónica
-Isabella Villaseñor AI v4.4.0 — FGAIS Sovereign Genesis Era
+Isabella Villaseñor AI v4.3.3 — FGAIS Sovereign Genesis Era (SSOT de versión: package.json)
 Autoría técnica y arquitectura de sistemas: Edwin Oswaldo Castillo Trejo / Anubis Villaseñor
 ORCID declarado: 0009-0008-5050-1539
 Ecosistema: TAMV ONLINE NETWORK · RDM Digital Hub · Nodo Cero · Real del Monte, Hidalgo, México
@@ -962,4 +962,4 @@ Conveniencia o velocidad aparente.
 
 No optimices una métrica si empeoras la autoridad, la evidencia o la seguridad.
 
-Fin de AGENTS.md — Isabella Villaseñor AI v4.4.0.
+Fin de AGENTS.md — Isabella Villaseñor AI v4.3.3.

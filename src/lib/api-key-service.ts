@@ -205,7 +205,10 @@ export class ApiKeyService {
     }
 
     const prefix = parts.slice(0, -1).join("_");
-    if (!/^isk_(live|stage|test)_[A-Za-z0-9]+$/.test(prefix) && !/^isa_(live|stage|test)_[A-Za-z0-9]+$/.test(prefix)) {
+    if (
+      !/^isk_(live|stage|test)_[A-Za-z0-9]+$/.test(prefix) &&
+      !/^isa_(live|stage|test)_[A-Za-z0-9]+$/.test(prefix)
+    ) {
       return { success: false, error: "invalid_credential" };
     }
 
@@ -259,7 +262,11 @@ export class ApiKeyService {
     return { success: true, record };
   }
 
-  public static async revokeApiKey(id: string, tenantId: string, actorId?: string): Promise<boolean> {
+  public static async revokeApiKey(
+    id: string,
+    tenantId: string,
+    actorId?: string,
+  ): Promise<boolean> {
     const existing = await this.repo.read(tenantId, id);
     if (!existing) return false;
 

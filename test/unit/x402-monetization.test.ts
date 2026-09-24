@@ -1,11 +1,23 @@
 // @ts-nocheck
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
+import { randomUUID } from "node:crypto";
 import {
   GovernanceMonetizationGuard,
   BookPILedgerService,
   x402MonetizationConnector,
+  signX402Payment,
+  verifyPayloadECDSAP384,
+  getX402PublicKeyPem,
+  __resetX402CryptoState,
+  MAX_MONETIZATION_AMOUNT_CENTS,
   PrincipalContext,
+  type x402PaymentPayload,
 } from "../../src/lib/monetization/x402-connector";
+import {
+  validateMonetizationAmount,
+  economyCapabilityGate,
+  resolveSubscriptionStatus,
+} from "../../src/lib/monetization/economic-authority";
 import {
   CrownSmartPaywallEngine,
   SmartPaywallEvaluationRequest,
@@ -15,6 +27,21 @@ import {
   validateIsmfAccess,
   calculateIsmfSplit,
 } from "../../src/lib/monetization/ismf-catalog";
+
+function makePayload(overrides: Partial<x402PaymentPayload> = {}): x402PaymentPayload {
+  const now = Date.now();
+  return {
+    v: 1,
+    amountCents: 2000,
+    currency: "USDC",
+    resourceId: "mcp_weather_tool",
+    tenantId: "tenant_rdm_01",
+    nonce: `nonce_${now}_${randomUUID()}`,
+    issuedAt: new Date(now).toISOString(),
+    expiresAt: new Date(now + 4 * 60 * 1000).toISOString(),
+    ...overrides,
+  };
+}
 
 describe("ISABELLA SOVEREIGN MONETIZATION & x402 PROTOCOL SUITE", () => {
   const activeContext: PrincipalContext = {
@@ -59,12 +86,28 @@ describe("ISABELLA SOVEREIGN MONETIZATION & x402 PROTOCOL SUITE", () => {
   describe("2. BookPILedgerService (WORM Immutability & 75/25 Split)", () => {
     const ledger = new BookPILedgerService();
 
-    it("calcula hash SHA3-512 y firma criptográfica ECDSA P-384", () => {
+    it("calcula hash SHA3-512 y firma ECDSA P-384 real verificable", () => {
       const hash = ledger.calculateSHA3_512("test-payload");
       expect(hash).toMatch(/^sha3-512:[a-f0-9]{128}$/);
 
       const sig = ledger.signPayloadECDSAP384(hash);
-      expect(sig).toMatch(/^ecdsa-p384-sig:[a-f0-9]{96}$/);
+      // IEEE P1363 P-384: r||s = 96 bytes = 192 hex chars
+      expect(sig).toMatch(/^ecdsa-p384-sig:[a-f0-9]{192}$/);
+      expect(ledger.verifyPayloadECDSAP384(hash, sig)).toBe(true);
+    });
+
+    it("rechaza firma ECDSA P-384 alterada o de otro payload", () => {
+      const hash = ledger.calculateSHA3_512("payload-a");
+      const otherHash = ledger.calculateSHA3_512("payload-b");
+      const sig = ledger.signPayloadECDSAP384(hash);
+
+      expect(ledger.verifyPayloadECDSAP384(otherHash, sig)).toBe(false);
+
+      const tampered = sig.replace(/[a-f0-9]$/, (c) => (c === "0" ? "1" : "0"));
+      expect(ledger.verifyPayloadECDSAP384(hash, tampered)).toBe(false);
+
+      // Un digest SHA-384 etiquetado NO debe pasar como firma ECDSA
+      expect(verifyPayloadECDSAP384(hash, "ecdsa-p384-sig:" + "a".repeat(192))).toBe(false);
     });
 
     it("aplica el reparto estricto 75% Creador / 25% Plataforma en centavos", async () => {
@@ -82,11 +125,29 @@ describe("ISABELLA SOVEREIGN MONETIZATION & x402 PROTOCOL SUITE", () => {
       expect(event.creatorCreditCents + event.platformFeeCents).toBe(grossCents);
       expect(event.currentHash).toMatch(/^sha3-512:/);
       expect(event.signature).toMatch(/^ecdsa-p384-sig:/);
+      expect(verifyPayloadECDSAP384(event.currentHash, event.signature)).toBe(true);
+      expect(event.eventId).toMatch(/^evt_bookpi_[0-9a-f-]{36}$/);
+    });
+
+    it("rechaza importes no enteros o no positivos en el ledger", async () => {
+      await expect(
+        ledger.recordMonetizationTransaction(activeContext, "idemp_x", 0, "v1"),
+      ).rejects.toThrow(/INVALID_GROSS_AMOUNT/);
+      await expect(
+        ledger.recordMonetizationTransaction(activeContext, "idemp_y", -100, "v1"),
+      ).rejects.toThrow(/INVALID_GROSS_AMOUNT/);
+      await expect(
+        ledger.recordMonetizationTransaction(activeContext, "idemp_z", 10.5, "v1"),
+      ).rejects.toThrow(/INVALID_GROSS_AMOUNT/);
     });
   });
 
   describe("3. x402MonetizationConnector (HTTP 402 Challenge & Settlement)", () => {
-    const connector = new x402MonetizationConnector();
+    let connector: x402MonetizationConnector;
+
+    beforeEach(() => {
+      connector = new x402MonetizationConnector();
+    });
 
     it("devuelve 403 Forbidden con CROWN_POLICY_DENY para usuarios sin suscripción mensual", async () => {
       const res = await connector.handleMonetizationRequest(
@@ -110,24 +171,44 @@ describe("ISABELLA SOVEREIGN MONETIZATION & x402 PROTOCOL SUITE", () => {
       expect(res.body.terms.currency).toBe("USDC");
     });
 
-    it("devuelve 400 si la firma de pago x402 es inválida", async () => {
-      const res = await connector.handleMonetizationRequest(
-        activeContext,
-        "mcp_weather_tool",
-        500,
-        "bad_sig",
-      );
-
-      expect(res.status).toBe(400);
-      expect(res.body.error).toBe("INVALID_X402_PAYMENT_SIGNATURE");
+    it("rechaza importes inválidos (0, negativos, no enteros, excesivos)", async () => {
+      for (const bad of [0, -100, 10.5, MAX_MONETIZATION_AMOUNT_CENTS + 1]) {
+        const res = await connector.handleMonetizationRequest(
+          activeContext,
+          "mcp_weather_tool",
+          bad,
+        );
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("INVALID_AMOUNT");
+      }
     });
 
-    it("liquida exitosamente con 200 OK y reparto 75/25 con firma válida", async () => {
+    it("devuelve 400 si la firma de pago x402 es basura o de formato antiguo", async () => {
+      for (const junk of [
+        "bad_sig",
+        "x402_sig_valid_cryptographic_payload_a2a_token_123456",
+        "x402 qualquer coisa longa o suficiente",
+      ]) {
+        const res = await connector.handleMonetizationRequest(
+          activeContext,
+          "mcp_weather_tool",
+          500,
+          junk,
+        );
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("INVALID_X402_PAYMENT_SIGNATURE");
+      }
+    });
+
+    it("liquida exitosamente con 200 OK y reparto 75/25 con firma ECDSA P-384 real", async () => {
+      const payload = makePayload({ amountCents: 2000 });
+      const header = signX402Payment(payload);
+
       const res = await connector.handleMonetizationRequest(
         activeContext,
         "mcp_weather_tool",
-        2000, // $20.00 USD
-        "x402_sig_valid_cryptographic_payload_a2a_token_123456",
+        2000,
+        header,
       );
 
       expect(res.status).toBe(200);
@@ -136,6 +217,152 @@ describe("ISABELLA SOVEREIGN MONETIZATION & x402 PROTOCOL SUITE", () => {
       expect(res.body.distribution.creator75PercentUSD).toBe(15.0); // 75%
       expect(res.body.distribution.platform25PercentUSD).toBe(5.0); // 25%
       expect(res.body.bookPIEntry.currentHash).toMatch(/^sha3-512:/);
+      expect(verifyPayloadECDSAP384(res.body.bookPIEntry.currentHash, res.body.bookPIEntry.signature)).toBe(
+        true,
+      );
+    });
+
+    it("rechaza firma válida firmada para OTRO importe (amount binding)", async () => {
+      const payload = makePayload({ amountCents: 1000 }); // firmado por 10.00
+      const header = signX402Payment(payload);
+
+      const res = await connector.handleMonetizationRequest(
+        activeContext,
+        "mcp_weather_tool",
+        2000, // servidor espera 20.00
+        header,
+      );
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe("INVALID_X402_PAYMENT_SIGNATURE");
+      expect(res.body.reason).toBe("AMOUNT_BINDING_MISMATCH");
+    });
+
+    it("rechaza firma válida para OTRO recurso (resource binding)", async () => {
+      const payload = makePayload({ resourceId: "otro_recurso" });
+      const header = signX402Payment(payload);
+
+      const res = await connector.handleMonetizationRequest(
+        activeContext,
+        "mcp_weather_tool",
+        2000,
+        header,
+      );
+
+      expect(res.status).toBe(400);
+      expect(res.body.reason).toBe("RESOURCE_BINDING_MISMATCH");
+    });
+
+    it("rechaza firma válida para OTRO tenant (tenant binding)", async () => {
+      const payload = makePayload({ tenantId: "tenant_intruso" });
+      const header = signX402Payment(payload);
+
+      const res = await connector.handleMonetizationRequest(
+        activeContext,
+        "mcp_weather_tool",
+        2000,
+        header,
+      );
+
+      expect(res.status).toBe(400);
+      expect(res.body.reason).toBe("TENANT_BINDING_MISMATCH");
+    });
+
+    it("rechaza replay del mismo nonce (anti-replay)", async () => {
+      const payload = makePayload({ amountCents: 2000 });
+      const header = signX402Payment(payload);
+
+      const first = await connector.handleMonetizationRequest(
+        activeContext,
+        "mcp_weather_tool",
+        2000,
+        header,
+      );
+      expect(first.status).toBe(200);
+
+      const replay = await connector.handleMonetizationRequest(
+        activeContext,
+        "mcp_weather_tool",
+        2000,
+        header,
+      );
+      expect(replay.status).toBe(400);
+      expect(replay.body.reason).toBe("NONCE_REPLAY_DETECTED");
+    });
+
+    it("rechaza pagos con timestamp expirado", async () => {
+      const past = Date.now() - 10 * 60 * 1000;
+      const payload = makePayload({
+        issuedAt: new Date(past).toISOString(),
+        expiresAt: new Date(past + 60 * 1000).toISOString(),
+      });
+      const header = signX402Payment(payload);
+
+      const res = await connector.handleMonetizationRequest(
+        activeContext,
+        "mcp_weather_tool",
+        2000,
+        header,
+      );
+      expect(res.status).toBe(400);
+      expect(res.body.reason).toBe("EXPIRED_OR_NOT_YET_VALID");
+    });
+
+    it("rechaza payload con bytes alterados tras la firma (integridad del payload)", async () => {
+      const payload = makePayload({ amountCents: 2000 });
+      const header = signX402Payment(payload);
+      // Alterar el segmento del payload conservando longitud
+      const tampered = header.replace(
+        /^x402 v1\.([A-Za-z0-9_-]+)/,
+        (_m, b64: string) => `x402 v1.${b64.slice(0, -1)}${b64.endsWith("A") ? "B" : "A"}`,
+      );
+
+      const res = await connector.handleMonetizationRequest(
+        activeContext,
+        "mcp_weather_tool",
+        2000,
+        tampered,
+      );
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe("INVALID_X402_PAYMENT_SIGNATURE");
+    });
+
+    it("expone clave pública PEM para verificación externa", () => {
+      const pem = getX402PublicKeyPem();
+      expect(pem).toContain("BEGIN PUBLIC KEY");
+    });
+  });
+
+  describe("3b. EconomicAuthority (contrato económico y capability gate)", () => {
+    it("validateMonetizationAmount acepta enteros positivos dentro del límite", () => {
+      expect(validateMonetizationAmount(1)).toEqual({ ok: true, amountCents: 1 });
+      expect(validateMonetizationAmount(1000)).toEqual({ ok: true, amountCents: 1000 });
+      expect(validateMonetizationAmount(MAX_MONETIZATION_AMOUNT_CENTS)).toEqual({
+        ok: true,
+        amountCents: MAX_MONETIZATION_AMOUNT_CENTS,
+      });
+    });
+
+    it("validateMonetizationAmount rechaza 0, negativos, fraccionarios, excesivos y no-numéricos", () => {
+      for (const bad of [0, -1, 10.5, MAX_MONETIZATION_AMOUNT_CENTS + 1, "1000", null, NaN]) {
+        const res = validateMonetizationAmount(bad);
+        expect(res.ok).toBe(false);
+      }
+    });
+
+    it("economyCapabilityGate no bloquea en development", () => {
+      expect(economyCapabilityGate().blocked).toBe(false);
+    });
+
+    it("resolveSubscriptionStatus nunca proviene del cliente y es trazable", () => {
+      const res = resolveSubscriptionStatus("tenant_x", "user_x");
+      expect(["durable", "development-default", "unavailable-fail-closed"]).toContain(res.source);
+      expect(["ACTIVE", "PAST_DUE", "INACTIVE", "EXPIRED"]).toContain(res.status);
+      if (res.status === "ACTIVE") {
+        expect(["durable", "development-default"]).toContain(res.source);
+      } else {
+        expect(["durable", "unavailable-fail-closed"]).toContain(res.source);
+      }
     });
   });
 
@@ -233,5 +460,13 @@ describe("ISABELLA SOVEREIGN MONETIZATION & x402 PROTOCOL SUITE", () => {
       expect(split.platformUsd).toBe(25.0);
     });
   });
+
+  describe("6. Higiene de clave criográfica", () => {
+    it("reset de estado crypto es expuesto para tests aislados", () => {
+      expect(typeof __resetX402CryptoState).toBe("function");
+      __resetX402CryptoState();
+      const pem = getX402PublicKeyPem();
+      expect(pem).toContain("BEGIN PUBLIC KEY");
+    });
+  });
 });
-// @ts-nocheck

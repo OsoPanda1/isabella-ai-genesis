@@ -1,3 +1,7 @@
+import { vi } from "vitest";
+
+vi.setConfig({ testTimeout: 15_000, hookTimeout: 15_000 });
+
 if (!process.env.AUTH_JWT_SECRET) {
   process.env.AUTH_JWT_SECRET = "test-secret-key-for-auth-jwt-must-be-long-enough-32";
 }

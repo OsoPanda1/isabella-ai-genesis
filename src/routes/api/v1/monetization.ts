@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { SecuritySystem } from "@/lib/security";
-import { z } from "zod";
+import {
+  economyCapabilityGate,
+  resolveSubscriptionStatus,
+} from "@/lib/monetization/economic-authority";
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -13,6 +16,21 @@ function json(data: unknown, status = 200): Response {
     ),
   });
 }
+
+/**
+ * Auditoría Fase 0 (P0-04): la ruta de monetización v1 estaba devolviendo
+ * transacciones sintéticas (`success:true`, `ledgerVerification:RECORDED_IN_BOOKPI`,
+ * saldo fijo 450, hash derivado de `audit-${tenantId}`) sin pago ni BookPI reales.
+ *
+ * Correcciones:
+ * - Runtime staging/production ⇒ 503 CAPABILITY_NOT_CERTIFIED (gate enforceado
+ *   en economic-authority, no en manos del desarrollador de la ruta).
+ * - POST siempre 503: las transacciones sintéticas fueron eliminadas; hasta que
+ *   exista EconomicAuthority canónico (Stripe → economic-events → BookPI) no se
+ *   ejecuta ninguna operación económica por esta ruta.
+ * - GET en development sirve solo el catálogo (tiers/skills) sin saldo ni hashes
+ *   sintéticos; el estado de cuenta sale de la fuente durable cuando exista.
+ */
 
 const MONETIZATION_TIERS = [
   {
@@ -117,107 +135,59 @@ const MARKETPLACE_SKILLS = [
   },
 ];
 
-const purchaseSchema = z.object({
-  action: z.enum(["purchase-tier", "topup-credits", "unlock-skill"]),
-  tierId: z.string().optional(),
-  creditAmount: z.number().int().positive().max(100000).optional(),
-  skillId: z.string().optional(),
-});
+function capabilityNotCertifiedResponse(gate: ReturnType<typeof economyCapabilityGate>) {
+  if (!gate.blocked) return null;
+  return json(
+    {
+      success: false,
+      error: gate.error,
+      capability: gate.capability,
+      notes: gate.notes,
+      authority: "billing (src/server-routes/api/billing.ts) — única ruta económica viva",
+    },
+    503,
+  );
+}
 
 export const Route = createFileRoute("/api/v1/monetization")({
   server: {
     handlers: {
       GET: withSovereignAuth("system", "read", async (context) => {
+        const gate = economyCapabilityGate();
+        const blocked = capabilityNotCertifiedResponse(gate);
+        if (blocked) return blocked;
+
+        // Catálogo de solo lectura. Sin saldo sintético, sin hash sintético.
         return json({
           success: true,
+          certification: "CAPABILITY_NOT_CERTIFIED",
           account: {
             tenantId: context.tenantId,
             userId: context.userId,
-            currentTier: "plan-citizen",
-            sovereignCreditsBalance: 450,
+            currentTier: null,
+            sovereignCreditsBalance: null,
             currency: "BOOKPI_CREDITS",
-            lastLedgerAuditHash: `0x${Buffer.from(`audit-${context.tenantId}`).toString("hex").slice(0, 32)}`,
+            lastLedgerAuditHash: null,
+            note: "Saldo y auditoría requieren EconomicAuthority durable (Stripe → BookPI). Nunca se sirven valores sintéticos.",
           },
+          subscription: resolveSubscriptionStatus(context.tenantId, context.userId),
           tiers: MONETIZATION_TIERS,
           marketplaceSkills: MARKETPLACE_SKILLS,
         });
       }),
 
-      POST: withSovereignAuth("system", "execute", async (context, request) => {
-        let body: unknown;
-        try {
-          body = await request.json();
-        } catch {
-          return json({ error: "JSON inválido." }, 400);
-        }
-
-        const parsed = purchaseSchema.safeParse(body);
-        if (!parsed.success) {
-          return json(
-            { error: "Datos de transacción inválidos.", details: parsed.error.issues },
-            400,
-          );
-        }
-
-        const timestamp = new Date().toISOString();
-        const txHash = `tx-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-
-        if (parsed.data.action === "purchase-tier") {
-          const tier = MONETIZATION_TIERS.find((t) => t.id === parsed.data.tierId);
-          if (!tier) {
-            return json({ error: "Plan no encontrado." }, 404);
-          }
-
-          return json({
-            success: true,
-            transaction: {
-              txHash,
-              action: "PURCHASE_TIER",
-              tierId: tier.id,
-              tierName: tier.name,
-              creditedAmount: tier.credits,
-              chargedUsd: tier.priceUsd,
-              timestamp,
-              ledgerVerification: "RECORDED_IN_BOOKPI",
-            },
-          });
-        }
-
-        if (parsed.data.action === "topup-credits") {
-          const credits = parsed.data.creditAmount ?? 100;
-          const costUsd = Number((credits * 0.08).toFixed(2));
-
-          return json({
-            success: true,
-            transaction: {
-              txHash,
-              action: "TOPUP_CREDITS",
-              creditsAdded: credits,
-              chargedUsd: costUsd,
-              timestamp,
-              ledgerVerification: "RECORDED_IN_BOOKPI",
-            },
-          });
-        }
-
-        // unlock-skill
-        const skill = MARKETPLACE_SKILLS.find((s) => s.skillId === parsed.data.skillId);
-        if (!skill) {
-          return json({ error: "Habilidad del marketplace no encontrada." }, 404);
-        }
-
-        return json({
-          success: true,
-          transaction: {
-            txHash,
-            action: "UNLOCK_SKILL",
-            skillId: skill.skillId,
-            skillName: skill.name,
-            creditsDeducted: skill.costCredits,
-            timestamp,
-            ledgerVerification: "RECORDED_IN_BOOKPI",
+      POST: withSovereignAuth("system", "execute", async () => {
+        // Fase 0 (auditoría P0-04): toda operación económica sintética eliminada.
+        return json(
+          {
+            success: false,
+            error: "CAPABILITY_NOT_CERTIFIED",
+            capability: "economy.ledger",
+            notes:
+              "Las transacciones sintéticas (purchase-tier/topup-credits/unlock-skill sin pago ni BookPI) fueron eliminadas. La liquidación real vive en billing.ts (Stripe + economic-events + BookPI idempotente). Esta ruta devolverá 503 hasta la certificación de EconomicAuthority.",
           },
-        });
+          503,
+        );
       }),
     },
   },

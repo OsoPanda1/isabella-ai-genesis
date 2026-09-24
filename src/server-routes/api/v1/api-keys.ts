@@ -5,7 +5,14 @@ import { SecuritySystem } from "@/lib/security";
 import { withSovereignAuth } from "@/lib/principal-context";
 
 const MANAGE_SCOPE = "isabella:api-keys:manage";
-const ROLE_VALUES = ["SovereignOwner", "Operator", "Auditor", "Guest", "System", "governance_admin"] as const;
+const ROLE_VALUES = [
+  "SovereignOwner",
+  "Operator",
+  "Auditor",
+  "Guest",
+  "System",
+  "governance_admin",
+] as const;
 type ApiKeyRole = (typeof ROLE_VALUES)[number];
 
 const createSchema = z.object({
@@ -98,13 +105,15 @@ export const Route = createFileRoute("/api/v1/api-keys")({
             {
               success: true,
               apiKey: result,
-              warning: "Esta es la única respuesta que contiene el secreto completo. Guárdalo en un gestor de secretos.",
+              warning:
+                "Esta es la única respuesta que contiene el secreto completo. Guárdalo en un gestor de secretos.",
             },
             201,
           );
         } catch (error) {
           const code = error instanceof Error ? error.message : "api_key_creation_failed";
-          const status = code === "invalid_api_key_ttl" || code === "invalid_api_key_scopes" ? 400 : 500;
+          const status =
+            code === "invalid_api_key_ttl" || code === "invalid_api_key_scopes" ? 400 : 500;
           return json({ error: status === 500 ? "API_KEY_CREATION_FAILED" : code }, status);
         }
       }),

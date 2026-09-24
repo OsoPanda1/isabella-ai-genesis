@@ -1,14 +1,19 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import {
   executeNcuaBenchmark,
   estimateNcuaVramSavings,
   BENCHMARK_ENTROPY_THRESHOLDS,
   NCUA_BENCHMARK_PROMPTS,
+  type NcuaBenchmarkReport,
 } from "@/lib/ncua/benchmark";
 
 describe("ncua:benchmark", () => {
-  const report = executeNcuaBenchmark();
+  let report: NcuaBenchmarkReport;
+
+  beforeAll(() => {
+    report = executeNcuaBenchmark();
+  });
 
   it("ejecuta 5 umbrales de entropía", () => {
     expect(report.rows.length).toBe(BENCHMARK_ENTROPY_THRESHOLDS.length);

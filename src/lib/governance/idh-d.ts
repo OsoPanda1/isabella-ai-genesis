@@ -46,7 +46,9 @@ export function computeIDHD(
     input.valueRetention === undefined ||
     input.cohesion === undefined
   ) {
-    throw new Error("IDH-D requiere autonomy, privacy, valueRetention, cohesion explícitos (no defaults)");
+    throw new Error(
+      "IDH-D requiere autonomy, privacy, valueRetention, cohesion explícitos (no defaults)",
+    );
   }
   const c: IDHDComponent = {
     autonomy: clamp01(input.autonomy),

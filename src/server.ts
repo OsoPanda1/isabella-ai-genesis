@@ -147,13 +147,11 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
-/** Genera nonce por-request para CSP (base C. CSP nonces plan: docs/operations/CSP-NONCES.md + src/lib/security.ts:generateCspNonce) */
+/** Genera nonce por-request para CSP (base C. CSP nonces plan: docs/operations/CSP-NONCES.md + src/lib/security.ts:generateCspNonce)
+ * Fail-closed (auditoría P2-02): si crypto.randomBytes falla, se lanza el error
+ * y la request no continúa con un nonce no criptográfico. Nunca Math.random. */
 function generateCspNonceForRequest(): string {
-  try {
-    return nodeCrypto.randomBytes(16).toString("base64");
-  } catch {
-    return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
-  }
+  return nodeCrypto.randomBytes(16).toString("base64");
 }
 
 export function withSecurityHeaders(
@@ -176,7 +174,8 @@ export function withSecurityHeaders(
   setIfMissing("Cross-Origin-Resource-Policy", "same-origin");
 
   const production = process.env.NODE_ENV === "production";
-  const nonce = opts?.nonce ?? opts?.cspNonce ?? (production ? generateCspNonceForRequest() : undefined);
+  const nonce =
+    opts?.nonce ?? opts?.cspNonce ?? (production ? generateCspNonceForRequest() : undefined);
   const hasNonce = typeof nonce === "string" && nonce.length >= 16;
   const scriptSource = hasNonce
     ? `'self' 'nonce-${nonce}'`

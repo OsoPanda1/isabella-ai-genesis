@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   createAuditEvent,
   normalizeText,
@@ -430,7 +431,7 @@ export const QSTASH_EVENT_DISPATCHER: IsabellaSkill<
   canRun: (input) => Boolean(input.topic?.trim() && input.eventPayload),
   async run(input, context): Promise<SkillResult<QstashEventDispatcherOutput>> {
     const dest = input.destinationNode ?? "CROWN";
-    const idempotency = `idemp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const idempotency = `idemp-${randomUUID()}`;
 
     const data: QstashEventDispatcherOutput = {
       messageId: `msg-qstash-${Date.now()}`,

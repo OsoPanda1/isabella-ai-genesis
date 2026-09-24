@@ -1,10 +1,29 @@
 {
-  "version": "4.4.0",
-  "assessment_date": "2026-09-24T02:04:00Z",
-  "commit_sha": "7650510",
-  "overall_readiness_percent": 97,
+  "version": "4.3.3",
+  "assessment_date": "2026-09-24T12:00:00Z",
+  "commit_sha": "PENDING_SAME_COMMIT",
+  "overall_readiness_percent": 81,
+  "readiness_breakdown": {
+    "implementation_percent": 100,
+    "deployment_percent": 62,
+    "global_percent": 81,
+    "note": "SSOT honesto alineado con README: 100% implementación verificable, 62% despliegue hasta Neon/Stripe/HSM vivo, 81% global. Nunca 97% ni 100% global."
+  },
   "environment": "production",
-  "governance_hash": "sha3-512:fgais-v4.4.0-seal-certified",
+  "governance_hash": "sha3-512:fgais-v4.3.3-audit-corrections",
+  "crown_runtime_authority": {
+    "authority": "CROWN_V6",
+    "authority_version": "6.0.0-fusion",
+    "compat_adapter": "src/lib/crown.ts",
+    "compat_adapter_version": "2.0.0",
+    "runtime_entry": "src/lib/crown-runtime-authority.ts"
+  },
+  "gates_500": {
+    "defined": 500,
+    "status": "EVIDENCE_GATED",
+    "pass_executed": 0,
+    "note": "500 controles definidos (20 dominios x 25 controles) y preparados para evidencia; estado de ejecución requiere evidence runner con workflow_run_id. EVIDENCE_GATED no cuenta como PASS (AGENTS §19)."
+  },
   "capabilities": [
     {
       "name": "governance.crown",
@@ -12,11 +31,13 @@
       "production_safe": true,
       "readiness_percent": 100,
       "evidence": [
+        "src/lib/crown-runtime-authority.ts",
+        "src/lib/crown-v6.ts",
         "src/lib/crown.ts",
         "src/lib/policy-engine.ts",
         "test/unit/platform-capabilities.test.ts"
       ],
-      "notes": "Policy arbitration and decision gating are implemented; production evidence remains gate-controlled."
+      "notes": "Autoridad runtime canónica CROWN v6 (crown-runtime-authority.ts) en sovereign-pipeline; crown.ts declarado compatibility adapter. Policy arbitration y decision gating implementados; producción gate-controlled."
     },
     {
       "name": "authentication.jwt_oidc",
@@ -29,7 +50,7 @@
         "src/lib/isabella-chat-gateway.ts",
         "test/security/auth-verification-layer.test.ts"
       ],
-      "notes": "JWT/OIDC, tenant isolation y sanitización de errores en boundary público verificados (canUseGuestChat + guest degraded fallback + sanitizePayload). 9 tests auth-verification verdes."
+      "notes": "JWT/OIDC, tenant isolation y sanitización de errores en boundary público verificados (canUseGuestChat + guest degraded fallback + sanitizePayload)."
     },
     {
       "name": "authorization.rbac_abac",
@@ -42,22 +63,24 @@
         "test/unit/pdp-real.test.ts",
         "src/server-routes/api/billing.ts"
       ],
-      "notes": "Centralized RBAC/ABAC decision point verified. Billing-specific scopes (billing:checkout/topup/refund/authorize-run) fully wired and protected across all handlers."
+      "notes": "Centralized RBAC/ABAC decision point verified. Billing-specific scopes cableados y protegidos."
     },
     {
       "name": "monetization.payments",
-      "status": "verified",
-      "production_safe": true,
-      "readiness_percent": 100,
+      "status": "implemented",
+      "production_safe": false,
+      "readiness_percent": 62,
+      "last_verified": null,
       "evidence": [
         "src/server-routes/api/billing.ts",
         "src/lib/economic-events.ts",
         "src/lib/repositories/billing-security-repository.ts",
         "supabase/migrations/20260913210000_billing_security_contract.sql",
         "src/routes/api/billing-topup-intent.ts",
-        "src/routes/api/v1/monetization.ts"
+        "src/routes/api/v1/monetization.ts",
+        "src/lib/monetization/economic-authority.ts"
       ],
-      "notes": "Billing scopes + step-up HMAC + tenant-bound PaymentIntent + 4 planes (visitor/citizen/merchant/enterprise) cableados y verificados. Checkout mock soberano para demo sin Stripe."
+      "notes": "Auditoría P0/P1: la ruta sintética /api/v1/monetization devolvía transacciones fake; ahora POST=503 CAPABILITY_NOT_CERTIFIED y GET no publica saldo/hash sintéticos. billing.ts (Stripe + economic-events + BookPI) es la única autoridad económica viva. x402 deshabilitado en staging/production hasta certificar EconomicAuthority."
     },
     {
       "name": "billing.checkout_idempotency",
@@ -82,7 +105,7 @@
         "src/lib/billing-authorization.ts",
         "src/server-routes/api/billing.ts"
       ],
-      "notes": "Durable one-time capability (hash + TTL 120s + consumeRunAuthorization) reemplaza authToken efímero. issueRunAuthorization persiste hash, consume verifica y marca como usado."
+      "notes": "Durable one-time capability (hash + TTL 120s + consumeRunAuthorization) reemplaza authToken efímero."
     },
     {
       "name": "security.secret_redaction",
@@ -108,7 +131,7 @@
         "vite.config.ts",
         "vercel.json"
       ],
-      "notes": "Lint 0 errors 44 warnings, prettier --fix audit-repository.ts, vite.config.ts nitro() canonico + vercel.json .vercel/output, build 4.98s+4.45s. 541 tests verdes local, smoke 7/7."
+      "notes": "Lint 0 errors; prettier; vite.config.ts nitro() canónico + vercel.json .vercel/output; CSP canónica unificada en src/server.ts (vercel.json sin CSP conflictiva)."
     },
     {
       "name": "database.migrations",
@@ -130,9 +153,11 @@
       "evidence": [
         ".github/workflows/ci.yml",
         ".github/workflows/fgais-gate.yml",
+        ".github/workflows/release.yml",
+        "package.json",
         "vercel.json"
       ],
-      "notes": "Workflows hardened. Local production gate green (541 tests). Vercel deployment pipeline active on push to main with Nitro output build."
+      "notes": "production:gate reordenado (build antes de production:preflight para validar .vercel/output); release.yml reutiliza fgais-gate.yml (workflow_call). Deploy sigue requiriendo security/SAST/secret-scan como dependencia formal (pendiente P1-06)."
     },
     {
       "name": "ncua.v2_academic_pipeline",
@@ -150,7 +175,7 @@
         "test/unit/ncua-academic-pipeline.test.ts",
         "test/security/ncua-load.test.ts"
       ],
-      "notes": "Tokenless byte patching with SOPHIA E0–E4 classification, canonical ERI ≥ 95 gate verified with zero-tolerance iterative refinement, QUP SHA3-512 merkle seal, and BookPI append-only HMAC ledger."
+      "notes": "Tokenless byte patching with SOPHIA E0–E4 classification, canonical ERI ≥ 95 gate, QUP SHA3-512 merkle seal, BookPI append-only HMAC ledger. Algoritmo verificado por contrato; no afirma superioridad científica externa."
     },
     {
       "name": "igds.genesis_document_seal",
@@ -173,30 +198,77 @@
         "test/unit/igds-rfc3161.test.ts",
         "test/unit/igds-service.test.ts"
       ],
-      "notes": "Genesis document seal complete: JCS RFC 8785 canonicalization, Ed25519/ML-DSA-65 post-quantum hybrid signatures, C2PA manifest JSON, Merkle RFC 6962 inclusion/consistency proof, and RFC 3161 timestamping live in database."
+      "notes": "Genesis document seal: JCS RFC 8785, Ed25519 signatures, C2PA manifest, Merkle RFC 6962, RFC 3161 timestamping."
+    },
+    {
+      "name": "economy.x402_payment",
+      "status": "implemented",
+      "production_safe": false,
+      "readiness_percent": 40,
+      "last_verified": null,
+      "evidence": [
+        "src/lib/monetization/x402-connector.ts",
+        "src/lib/monetization/economic-authority.ts",
+        "test/unit/x402-monetization.test.ts"
+      ],
+      "notes": "Auditoría P0-01/P0-05/P0-06 corregida: verificación ECDSA P-384 real (secp384r1/SHA-384/IEEE-P1363) con amount/resource/tenant binding, ventana temporal y nonce anti-replay; tests negativos (mutated amount/resource/tenant, replay, expired, junk prefix). Runtime staging/production bloqueado con 503 CAPABILITY_NOT_CERTIFIED hasta certificación con pagador real."
+    },
+    {
+      "name": "economy.ledger",
+      "status": "implemented",
+      "production_safe": false,
+      "readiness_percent": 55,
+      "last_verified": null,
+      "evidence": [
+        "src/lib/monetization/",
+        "src/lib/repositories/bookpi-postgres-repository.ts",
+        "src/lib/bookpi-dev-adapter.ts",
+        "src/lib/crypto/bookpi-signer.ts"
+      ],
+      "notes": "Requiere reconciliation de producción, verificación de payout provider y controles operativos antes de fondos vivos. BookPI dev adapter nunca debe alcanzarse desde rutas públicas."
+    },
+    {
+      "name": "cryptography.hsm",
+      "status": "experimental",
+      "production_safe": false,
+      "readiness_percent": 30,
+      "last_verified": null,
+      "evidence": [
+        "src/lib/kms-provider.ts",
+        "docs/architecture/RUNTIME-AUTHORITY-MAP.md"
+      ],
+      "notes": "Auditoría P1-10: EnvKMSProvider (AES-256-GCM + HKDF-SHA-3-512) es criptografía real pero NO es un HSM hardware. Custodia hardware pendiente; no declarar HSM certificado."
     }
   ],
   "test_summary": {
     "status": "passed",
-    "total_tests": 541,
-    "passing_tests": 541,
+    "run_date": "2026-09-24",
+    "runner": "vitest run (local, pnpm test)",
+    "total_tests": 607,
+    "passing_tests": 594,
     "failing_tests": 0,
-    "smoke_tests": "7/7 passed",
-    "note": "Validated locally via canonical FGAIS production gate script and Vercel build output."
+    "skipped_tests": 13,
+    "note": "Conteos tomados de la ejecución local real del 2026-09-24 (106 archivos pass, 2 skipped). Skips = gated sin TEST_DATABASE_URL u otros. Se corrigió la medición de ncua-benchmark (antes en fase de colección bajo contención; ahora en beforeAll) — el umbral <50ms no se tocó."
   },
   "deployment_tiers": {
     "tier_0_predeployment": { "status": "passed", "percent_complete": 100 },
-    "tier_1_staging": { "status": "passed", "percent_complete": 100 },
-    "tier_2_production": { "status": "passed", "percent_complete": 100 }
+    "tier_1_staging": { "status": "evidence_required", "percent_complete": 62 },
+    "tier_2_production": { "status": "blocked_pending_evidence", "percent_complete": 62 }
   },
   "security_audit": {
     "critical_issues": 0,
-    "high_issues": 0,
-    "medium_issues": 0,
+    "high_issues": 5,
+    "medium_issues": 6,
     "low_issues": 0,
-    "overall_posture": "hardened_total"
+    "overall_posture": "p0_economic_fixed_pending_independent_recertification",
+    "note": "P0 económicos (x402 fake signature, subscription spoof, amount sin contrato, monetización sintética, ECDSA fake) corregidos en este commit. Quedan P1: security workflows como dependencia formal del deploy (P1-06), 500 gates evidence runner (P1-04), drift de cifras remediado hacia SSOT. No se declara hardened_total hasta recertificación."
   },
-  "release_blockers": [],
+  "release_blockers": [
+    "economy.ledger productionSafe=false — rutas económicas v1/x402 bloqueadas 503 en staging/production",
+    "500 gates en estado EVIDENCE_GATED (0 PASS ejecutados con workflow_run_id)",
+    "Neon RLS live + Stripe live + HSM + Vercel same-commit + NCUA 500 + rollback pendientes para certificación 100%"
+  ],
   "maintained_by": "FGAIS Governance Committee",
-  "certification_authority": "Human + Automated Gates"
+  "certification_authority": "Human + Automated Gates",
+  "honesty_note": "Código existente ≠ capacidad certificada. EVIDENCE_GATED ≠ PASS. KMS local ≠ HSM. Este manifiesto se alinea con README (81% global) y con package.json (4.3.3)."
 }

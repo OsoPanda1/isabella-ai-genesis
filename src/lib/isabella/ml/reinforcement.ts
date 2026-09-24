@@ -79,12 +79,7 @@ function assertFiniteNonNegative(value: number, field: string): void {
 function normalize(text: string): string[] {
   if (typeof text !== "string") throw new Error("evaluation_text_must_be_string");
 
-  return text
-    .normalize("NFKC")
-    .toLocaleLowerCase("und")
-    .trim()
-    .split(/\s+/u)
-    .filter(Boolean);
+  return text.normalize("NFKC").toLocaleLowerCase("und").trim().split(/\s+/u).filter(Boolean);
 }
 
 function canonicalize(value: unknown): string {
@@ -166,17 +161,19 @@ function percentile(values: number[], percentileValue: number): number {
   return sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower);
 }
 
-function resolveThresholds(
-  thresholds?: Partial<EvaluationThresholds>,
-): EvaluationThresholds {
+function resolveThresholds(thresholds?: Partial<EvaluationThresholds>): EvaluationThresholds {
   const resolved = { ...DEFAULT_THRESHOLDS, ...thresholds };
 
   if (
-    resolved.minAccuracy < 0 || resolved.minAccuracy > 1 ||
-    resolved.minF1 < 0 || resolved.minF1 > 1 ||
-    resolved.maxBias < 0 || resolved.maxBias > 1 ||
+    resolved.minAccuracy < 0 ||
+    resolved.minAccuracy > 1 ||
+    resolved.minF1 < 0 ||
+    resolved.minF1 > 1 ||
+    resolved.maxBias < 0 ||
+    resolved.maxBias > 1 ||
     resolved.maxInvalidSamples < 0 ||
-    resolved.minMeasuredLatencyCoverage < 0 || resolved.minMeasuredLatencyCoverage > 1
+    resolved.minMeasuredLatencyCoverage < 0 ||
+    resolved.minMeasuredLatencyCoverage > 1
   ) {
     throw new Error("invalid_evaluation_thresholds");
   }
@@ -185,14 +182,18 @@ function resolveThresholds(
 }
 
 function benchmarkReasons(
-  metrics: Pick<EvaluationMetrics, "accuracy" | "f1Score" | "biasScore" | "invalidSampleCount" | "latencyCoverage">,
+  metrics: Pick<
+    EvaluationMetrics,
+    "accuracy" | "f1Score" | "biasScore" | "invalidSampleCount" | "latencyCoverage"
+  >,
   thresholds: EvaluationThresholds,
 ): string[] {
   const reasons: string[] = [];
   if (metrics.accuracy < thresholds.minAccuracy) reasons.push("accuracy_below_threshold");
   if (metrics.f1Score < thresholds.minF1) reasons.push("f1_below_threshold");
   if (metrics.biasScore >= thresholds.maxBias) reasons.push("bias_at_or_above_threshold");
-  if (metrics.invalidSampleCount > thresholds.maxInvalidSamples) reasons.push("invalid_samples_present");
+  if (metrics.invalidSampleCount > thresholds.maxInvalidSamples)
+    reasons.push("invalid_samples_present");
   if (metrics.latencyCoverage < thresholds.minMeasuredLatencyCoverage) {
     reasons.push("latency_coverage_below_threshold");
   }

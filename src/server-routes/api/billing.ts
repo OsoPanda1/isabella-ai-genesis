@@ -511,23 +511,23 @@ export const Route = createFileRoute("/api/billing")({
 
             // Fail-closed: sin STRIPE_SECRET_KEY el webhook no se procesa (503 para que Stripe reintente)
             if (!stripe) {
-              return new Response(
-                JSON.stringify({ error: "stripe_unconfigured" }),
-                { status: 503, headers },
-              );
+              return new Response(JSON.stringify({ error: "stripe_unconfigured" }), {
+                status: 503,
+                headers,
+              });
             }
             if (!signature) {
-              return new Response(
-                JSON.stringify({ error: "Webhook requires Stripe signature." }),
-                { status: 400, headers },
-              );
+              return new Response(JSON.stringify({ error: "Webhook requires Stripe signature." }), {
+                status: 400,
+                headers,
+              });
             }
             const endpointSecret = config().STRIPE_WEBHOOK_SECRET;
             if (!endpointSecret) {
-              return new Response(
-                JSON.stringify({ error: "stripe_webhook_unconfigured" }),
-                { status: 503, headers },
-              );
+              return new Response(JSON.stringify({ error: "stripe_webhook_unconfigured" }), {
+                status: 503,
+                headers,
+              });
             }
 
             let eventType;
@@ -537,7 +537,11 @@ export const Route = createFileRoute("/api/billing")({
             let disputeAmountMinor = 0;
 
             try {
-              const verifiedEvent = stripe.webhooks.constructEvent(bodyText, signature, endpointSecret);
+              const verifiedEvent = stripe.webhooks.constructEvent(
+                bodyText,
+                signature,
+                endpointSecret,
+              );
               eventType = verifiedEvent.type;
               const sessionObject = verifiedEvent.data.object as unknown as Record<string, unknown>;
               metadata = (sessionObject.metadata as Record<string, string>) || {};

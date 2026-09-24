@@ -15,9 +15,12 @@ function isValidIpAddress(value: string): boolean {
   }
 
   const octets = candidate.split(".");
-  return octets.length === 4 && octets.every((octet) => {
-    return /^(0|[1-9]\d{0,2})$/.test(octet) && Number(octet) <= 255;
-  });
+  return (
+    octets.length === 4 &&
+    octets.every((octet) => {
+      return /^(0|[1-9]\d{0,2})$/.test(octet) && Number(octet) <= 255;
+    })
+  );
 }
 
 /**

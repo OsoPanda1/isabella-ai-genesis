@@ -100,7 +100,7 @@ export function createBookpiDevRepository(storePath: string = STORE_PATH) {
   function saveStore(store: BookPIStoreFile): void {
     const dir = path.dirname(storePath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    const tmp = `${storePath}.tmp.${Date.now()}.${Math.random().toString(36).slice(2)}`;
+    const tmp = `${storePath}.tmp.${Date.now()}.${crypto.randomUUID()}`;
     fs.writeFileSync(tmp, JSON.stringify(store, null, 2), "utf-8");
     fs.renameSync(tmp, storePath);
   }

@@ -159,7 +159,7 @@ export function createBookpiPostgresRepository() {
         };
       }
 
-       const { rows } = await client.query(
+      const { rows } = await client.query(
         `INSERT INTO public.bookpi_ledger
          (index, tenant_id, user_id, operation, category, cost_decimal, tokens_consumed,
          previous_hash, block_hash, status, nonce, signature_algorithm, pqc_signature)
@@ -564,12 +564,17 @@ export function createBookpiPostgresRepository() {
       };
       const blockHash = hashBlock(base);
       if (isSimulatedAlgorithm()) {
-        throw new Error("CRITICAL_SECURITY_ERROR: algoritmo de firma simulado no permitido para el ledger.");
+        throw new Error(
+          "CRITICAL_SECURITY_ERROR: algoritmo de firma simulado no permitido para el ledger.",
+        );
       }
       const pqcSignature = signBlockHash(blockHash);
       if (!pqcSignature) {
         await client.query("ROLLBACK");
-        return { success: false as const, error: "CRITICAL_SECURITY_ERROR: Failed to sign BookPI block." };
+        return {
+          success: false as const,
+          error: "CRITICAL_SECURITY_ERROR: Failed to sign BookPI block.",
+        };
       }
       try {
         const { rows } = await client.query(
@@ -600,7 +605,11 @@ export function createBookpiPostgresRepository() {
       } catch (e) {
         await client.query("ROLLBACK").catch(() => undefined);
         const msg = e instanceof Error ? e.message : String(e);
-        if (msg.includes("uq_bookpi_refund_original") || msg.includes("duplicate") || msg.includes("original_event_id")) {
+        if (
+          msg.includes("uq_bookpi_refund_original") ||
+          msg.includes("duplicate") ||
+          msg.includes("original_event_id")
+        ) {
           return { success: false as const, error: "Evento ya refundido." };
         }
         return { success: false as const, error: "Fallo transaccional" };

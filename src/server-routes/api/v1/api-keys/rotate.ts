@@ -25,7 +25,10 @@ export const Route = createFileRoute("/api/v1/api-keys/rotate")({
       POST: withSovereignAuth("system", "admin", async (context, request) => {
         const scopes = new Set(context.scope.split(/\s+/).filter(Boolean));
         if (!scopes.has(MANAGE_SCOPE)) {
-          return json({ error: "API_KEY_MANAGEMENT_SCOPE_REQUIRED", requiredScope: MANAGE_SCOPE }, 403);
+          return json(
+            { error: "API_KEY_MANAGEMENT_SCOPE_REQUIRED", requiredScope: MANAGE_SCOPE },
+            403,
+          );
         }
 
         let payload: unknown;
@@ -50,7 +53,8 @@ export const Route = createFileRoute("/api/v1/api-keys/rotate")({
           success: true,
           apiKey: result.newKey,
           revokedKeyId: parsed.data.keyId,
-          warning: "La clave anterior fue revocada. Guarda el nuevo secreto ahora; no volverá a mostrarse.",
+          warning:
+            "La clave anterior fue revocada. Guarda el nuevo secreto ahora; no volverá a mostrarse.",
         });
       }),
     },

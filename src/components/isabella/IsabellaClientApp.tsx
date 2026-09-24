@@ -1,7 +1,11 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, FolderOpen } from "lucide-react";
 import { useIsabella } from "@/lib/useIsabella";
-import { CrystalNavigation, NAV_GROUPS, type NavTabId } from "@/components/isabella/CrystalNavigation";
+import {
+  CrystalNavigation,
+  NAV_GROUPS,
+  type NavTabId,
+} from "@/components/isabella/CrystalNavigation";
 
 const CinematicIntro = lazy(() => import("@/components/isabella/CinematicIntro"));
 const CommandLine = lazy(() =>

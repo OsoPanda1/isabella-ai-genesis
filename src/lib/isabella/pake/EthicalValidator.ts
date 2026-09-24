@@ -35,9 +35,7 @@ export function generateHash(value: string): string {
     throw new TypeError("content_must_be_string");
   }
 
-  return createHash("sha256")
-    .update(value, "utf8")
-    .digest("hex");
+  return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
 function normalizeContent(content: string): string {
@@ -205,9 +203,7 @@ export class EthicalValidator {
     }
 
     const critical = flags.some((flag) => flag.severity === "critical");
-    const valid =
-      score >= threshold &&
-      (!(options.failOnCritical ?? true) || !critical);
+    const valid = score >= threshold && (!(options.failOnCritical ?? true) || !critical);
 
     return {
       valid,

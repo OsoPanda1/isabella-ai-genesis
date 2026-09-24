@@ -9,7 +9,9 @@
  *  - Registra un DecisionRecord y un AuditBundle al finalizar.
  */
 
-import * as CROWN from "./crown";
+// Autoridad canónica runtime: CROWN v6 (compat adapter de crown.ts v2.0.0).
+// Auditoría P1-03: el pipeline soberano no importa crown.ts directamente.
+import * as CROWN from "./crown-runtime-authority";
 import { evaluateConstitutionalGate } from "./constitutional-gate";
 import { evaluatePolicy, type PolicyEvaluationResult } from "./policy-engine";
 import { createToolRegistry } from "./tool-registry";

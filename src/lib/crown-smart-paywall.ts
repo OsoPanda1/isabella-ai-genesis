@@ -15,7 +15,7 @@
  *    - x402 CHALLENGE: Desafío HTTP 402 (Micro-pago A2A por Token)
  */
 
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { PrincipalContext, SubscriptionStatus } from "./monetization/x402-connector";
 
 export type EpistemicComplexity = "E0" | "E1" | "E2" | "E3" | "E4";
@@ -68,7 +68,7 @@ export class CrownSmartPaywallEngine {
    * Ejecuta el pipeline completo de 5 pasos del Smart Paywall dinámico de CROWN.
    */
   public evaluate(request: SmartPaywallEvaluationRequest): SmartPaywallDecision {
-    const decisionId = `dec_crown_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const decisionId = `dec_crown_${randomUUID()}`;
     const { context, resourceId, epistemicComplexity, currentQuotaUsed, maxQuotaAllowed } = request;
 
     // PASO 1 & 2: ARGUS Validación de Identidad y Tenant

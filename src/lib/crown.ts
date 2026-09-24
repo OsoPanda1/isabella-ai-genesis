@@ -1,6 +1,10 @@
 /**
- * C.R.O.W.N.
+ * C.R.O.W.N. — COMPATIBILITY ADAPTER (CROWN v2.0.0, 5 módulos base)
  * Constitutional Runtime for Orchestration, Witnessing and Normative Governance
+ *
+ * ⚠️ Autoridad canónica runtime: src/lib/crown-runtime-authority.ts (CROWN v6.0-fusion).
+ * Este módulo conserva la implementación de los 5 módulos base (ISA/SOPHIA/ORION/
+ * ARGUS/CROWN) reutilizada por crown-v6.ts; no es la segunda autoridad de versión.
  *
  * Capa determinista de gobernanza, enrutamiento, evaluación de riesgo,
  * control de memoria y trazabilidad para Isabella Villaseñor AI.

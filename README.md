@@ -75,7 +75,8 @@ Isabella es el núcleo cognitivo y de gobernanza de **TAMV Online Network / CITE
 - **Secretos:** `CROWN=REDACTED (Secret Manager)` — `test/security/secret-exposure.test.ts` 4 verde
 - **Auth:** `JWT HS256 3600s` + `refresh` `jti`, `UserAuthService` bloqueado en `production`
 - **ML Governance:** `AdvancedReinforcementEngine` valida `finite` + `canonicalize` + `thresholds`; `EthicalValidator` `SHA-256` con `severity` — nunca inventa `actualOutput`
-- **500 gates:** `src/lib/governance/500-gates.ts` — `GATE_COUNT 500`
+- **500 gates:** `src/lib/governance/500-gates.ts` — `GATE_COUNT 500` **definidos**, estado `EVIDENCE_GATED` hasta evidence runner (no son 500 PASS)
+- **Economía honesta:** rutas `v1/monetization` y `x402/process` devuelven `503 CAPABILITY_NOT_CERTIFIED` en staging/production; x402 exige firma ECDSA P-384 real + bindings + anti-replay
 
 ---
 
@@ -123,11 +124,12 @@ pnpm verify:lock && pnpm typecheck && pnpm test && pnpm build && git push origin
 
 | Gate | Evidencia | Estado |
 |---|---|---|
-| `INSTALL/TYPECHECK/LINT/TEST/BUILD` | `0 / 0 / 566 / 4.23s` | PASS |
-| `500 gates` | `500` | PASS |
+| `INSTALL/TYPECHECK/LINT/TEST/BUILD` | `0 / 0 / ver en CI same-commit / ver en CI` | PASS local |
+| `500 gates` | `500 definidos (20×25)` | **EVIDENCE_GATED** — 0 PASS ejecutados sin evidence runner |
+| `Economía v1/x402` | `503 CAPABILITY_NOT_CERTIFIED` en staging/production | BLOCKED (P0 corregido) |
 | `Global` | `81%` (100% impl + 62% deploy) | **81%** |
 
-> **No es `100%` global.** `100%` certificación requiere `Neon RLS live + Stripe live + HSM + Vercel health same-commit + NCUA 500 + rollback` con `workflow_run_id` anclado.
+> **No es `100%` global.** `100%` certificación requiere `Neon RLS live + Stripe live + HSM + Vercel health same-commit + NCUA 500 + rollback` con `workflow_run_id` anclado. `EVIDENCE_GATED` nunca cuenta como PASS (AGENTS §19).
 
 ---
 
