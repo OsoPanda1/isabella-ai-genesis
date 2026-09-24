@@ -24,7 +24,11 @@ export function PakeMonitor() {
           const snippet = globalEthicalRegistry.storeSnippet(content, audit.hash, 0.9);
           snippetIds.push(snippet.id);
           // Add transparency markers immediately for the audit trail
-          globalEthicalRegistry.addTransparencyMarker(snippet.id, audit.score, audit.flags);
+          globalEthicalRegistry.addTransparencyMarker(
+            snippet.id,
+            audit.score,
+            audit.flags.map((f) => f.message),
+          );
         }
       });
 
