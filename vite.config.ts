@@ -51,6 +51,7 @@ export default defineConfig({
   build: {
     target: "esnext",
     minify: "esbuild",
+    sourcemap: false,
     cssCodeSplit: true,
     rollupOptions: {
       output: {
@@ -65,6 +66,11 @@ export default defineConfig({
         },
       },
     },
+  },
+  // Production runtime contract: Nitro/Vercel must emit Node.js 24 functions.
+  nitro: {
+    preset: "vercel",
+    runtime: "nodejs24.x",
   },
   ssr: {
     noExternal: [],
