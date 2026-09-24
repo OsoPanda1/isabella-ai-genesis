@@ -48,7 +48,7 @@ function getPgPool(): Pool {
       connectionTimeoutMillis: 10_000,
       idleTimeoutMillis: 30_000,
       statement_timeout: 15_000,
-      ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
+      ssl: needsSsl ? { rejectUnauthorized: true } : undefined,
     });
     pgPool.on("error", (err) => console.error("Unexpected error on idle Postgres pool", err));
   }

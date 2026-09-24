@@ -3,6 +3,7 @@ import { z } from "zod";
 import { videoEngineXManager } from "@/lib/video-x/engine";
 import { DEFAULT_SHOT_CARDS, routeModel } from "@/lib/video-x/contracts";
 import type { InferenceRequest } from "@/lib/video-x/types";
+import { PrincipalContext } from "@/lib/principal-context";
 
 const createProjectSchema = z.object({
   title: z.string().min(3),
@@ -52,6 +53,8 @@ export const Route = createFileRoute("/api/video-engine-x")({
         }
 
         if (action === "project") {
+          const authResult = await PrincipalContext.authorize(request, "isabella:tools");
+          if (!authResult.success) return authResult.response;
           const project = videoEngineXManager.getProject(projectId);
           if (!project) {
             return new Response(
@@ -116,6 +119,8 @@ export const Route = createFileRoute("/api/video-engine-x")({
       },
 
       POST: async ({ request }) => {
+        const authResult = await PrincipalContext.authorize(request, "isabella:tools");
+        if (!authResult.success) return authResult.response;
         try {
           const body = await request.json();
           const action = body?.action || "create-project";
