@@ -7,7 +7,7 @@
   "sideEffects": false,
   "type": "module",
   "engines": {
-    "node": ">=22 <25"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/check-env.mjs && vite dev --host 0.0.0.0",
