@@ -33,18 +33,27 @@ const DEFAULT_WEIGHTS: IDHDWeights = { w1: 0.3, w2: 0.3, w3: 0.2, w4: 0.2 };
 const POLICY_VERSION = "idh-d-v3.0-2026-09-21";
 
 function clamp01(n: number) {
-  return Math.max(0, Math.min(1, Math.min(1, Math.max(0, n))));
+  return Math.max(0, Math.min(1, n));
 }
 
 export function computeIDHD(
   input: Partial<IDHDComponent> & { weights?: Partial<IDHDWeights>; policyVersion?: string },
 ): IDHDResult {
+  // P1-01: No defaults silenciosos — exigir componentes explícitos para evitar sesgo por dato faltante
+  if (
+    input.autonomy === undefined ||
+    input.privacy === undefined ||
+    input.valueRetention === undefined ||
+    input.cohesion === undefined
+  ) {
+    throw new Error("IDH-D requiere autonomy, privacy, valueRetention, cohesion explícitos (no defaults)");
+  }
   const c: IDHDComponent = {
-    autonomy: clamp01(input.autonomy ?? 0.7),
-    privacy: clamp01(input.privacy ?? 0.7),
-    valueRetention: clamp01(input.valueRetention ?? 0.6),
-    cohesion: clamp01(input.cohesion ?? 0.7),
-    delta: clamp01(input.delta ?? 0.1),
+    autonomy: clamp01(input.autonomy),
+    privacy: clamp01(input.privacy),
+    valueRetention: clamp01(input.valueRetention),
+    cohesion: clamp01(input.cohesion),
+    delta: clamp01(input.delta ?? 0),
   };
   const w: IDHDWeights = {
     w1: input.weights?.w1 ?? DEFAULT_WEIGHTS.w1,
