@@ -1,5 +1,3 @@
-import { createHash, randomUUID } from "node:crypto";
-
 export type MetricKind = "request" | "inference" | "policy" | "security" | "error";
 export interface OTelEvent {
   traceId: string;
@@ -23,12 +21,23 @@ const ALLOWED_KEYS = new Set([
 const MAX_ATTR_VALUE = 64;
 function bucket(value: string | number | boolean): string | number | boolean {
   if (typeof value !== "string") return value;
-  return value.length > MAX_ATTR_VALUE
-    ? createHash("sha256").update(value).digest("hex").slice(0, 12)
-    : value;
+  if (value.length <= MAX_ATTR_VALUE) return value;
+  // Keep telemetry synchronous and browser-safe; never load node:crypto in the client.
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `${value.slice(0, 8)}…${(hash >>> 0).toString(16).padStart(8, "0")}`;
 }
 export function createTraceId(): string {
-  return randomUUID().replaceAll("-", "");
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID().replaceAll("-", "");
+  if (globalThis.crypto?.getRandomValues) {
+    const bytes = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(bytes);
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  }
+  return `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`;
 }
 export function normalizeAttributes(
   input: Record<string, string | number | boolean>,

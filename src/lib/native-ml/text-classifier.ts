@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import type { NativeMLHooks } from "./types";
 
 export interface TextMLSignal {
@@ -27,7 +26,13 @@ function sigmoid(value: number): number {
 }
 
 function hash(value: unknown): string {
-  return createHash("sha256").update(JSON.stringify(value)).digest("hex");
+  const serialized = JSON.stringify(value);
+  let hashValue = 2166136261;
+  for (let index = 0; index < serialized.length; index += 1) {
+    hashValue ^= serialized.charCodeAt(index);
+    hashValue = Math.imul(hashValue, 16777619);
+  }
+  return (hashValue >>> 0).toString(16).padStart(8, "0");
 }
 
 // Constant for a given model version: computed once, not on every request.
