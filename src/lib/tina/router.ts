@@ -2,6 +2,7 @@
  * TINA adaptive router (src/lib/tina/router.ts)
  * Path rules align with AGENTS.md §12 (FAST/GROUNDED/AGENT/HUMAN_REVIEW).
  */
+import { classifyWithGenesisTurbo, type GenesisResult } from "../native-ml/genesis-turbo";
 import {
   normalizeComplexity,
   type TinaComplexityScore,
@@ -33,6 +34,18 @@ export function modeForPath(path: TinaExecutionPath, c: TinaComplexityScore): Ti
     default:
       return s.factualityRequired >= 0.55 ? "limited_memory" : "generative";
   }
+}
+
+export async function classifyAndRouteTina(
+  input: string,
+  complexity: TinaComplexityScore,
+): Promise<{ route: TinaRoute; genesis: GenesisResult }> {
+  const genesis = await classifyWithGenesisTurbo(input);
+  const route = routeTina({
+    ...complexity,
+    sensitivity: Math.max(complexity.sensitivity, genesis.riskScore),
+  });
+  return { route, genesis };
 }
 
 export function routeTina(c: TinaComplexityScore): TinaRoute {
