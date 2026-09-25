@@ -25,6 +25,21 @@
 
 ## 2. Triage blanco/negro
 
+### 2.0 Preview visible pero bloqueado tras unos segundos
+
+Síntoma: se conserva el shell visual de Isabella, pero botones, navegación y entrada dejan de responder.
+
+Causa conocida del frontend: la decoración `Starfield` llegó a montar 1,000 elementos DOM con sombras y animaciones individuales. En previews con GPU virtual o throttling, esa carga puede saturar el hilo principal y retrasar el input aunque no exista un error JavaScript. La corrección vigente limita la decoración a 180 estrellas, elimina `box-shadow` por estrella, retira `will-change` permanente y conserva `pointer-events: none`.
+
+Diagnóstico:
+1. Abrir DevTools/agent-browser y revisar `errors`, `console` y Web Vitals; un bloqueo sin excepción suele ser saturación de pintura/composición.
+2. Capturar Performance durante 5–10 s y buscar tareas largas, recálculo de estilo o paint asociado a `.star`/`.starfield-layer`.
+3. Probar `prefers-reduced-motion: reduce`; si el bloqueo desaparece, tratarlo como regresión de animación/renderizado, no como fallo de autorización.
+4. No reintroducir 1,000 nodos animados ni overlays con `pointer-events: auto` sobre el cockpit.
+
+La interfaz operativa no debe depender de la intro cinematográfica ni de un módulo diferido para montar el terminal; el fallback “Inicializando…” es solo contingencia de carga y no una pantalla de operación.
+
+
 | Síntoma | Check | Acción inmediata |
 |---|---|---|
 | `repository_unhealthy` | `vercel env ls` → verificar `DATABASE_URL` sin `channel_binding`, `ISABELLA_STORAGE_PROVIDER=postgres`, `SELECT 1` | rotar `DATABASE_URL` si corrupto, ver `bookpi-postgres-repository.ts` |
