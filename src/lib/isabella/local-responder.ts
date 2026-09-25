@@ -91,7 +91,9 @@ export async function generateSovereignLocalResponse(opts: {
 
 export function sseFromText(text: string, headers: Headers): Response {
   const encoder = new TextEncoder();
-  const chunks = text.match(/.{1,120}/g) ?? [text];
+  const safeText = text.trim() ||
+    "Isabella está operativa en modo soberano local. El proveedor externo no está disponible; puedo continuar con categorización, gobernanza y herramientas locales.";
+  const chunks = safeText.match(/.{1,120}/g) ?? [safeText];
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       for (const c of chunks) {
