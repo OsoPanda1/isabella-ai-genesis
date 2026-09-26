@@ -38,8 +38,46 @@ export const Route = createFileRoute("/api/v1/msr/ledger/event")({
           });
           bookpiLogged = !!r.success;
         } catch (e) {
-          console.warn("[MSR] bookpi warn", e);
-          bookpiLogged = true;
+          console.error(
+            `[msr:ledger:${eventId}] append falló`,
+            e instanceof Error ? e.message : String(e),
+          );
+          // Fail-closed (AGENTS §4.2): si BookPI no registró el evento, la
+          // operación NO puede reportarse como aceptada.
+          return new Response(
+            JSON.stringify({
+              schemaVersion: "v1",
+              requestId: ctx.correlationId,
+              traceId: ctx.traceId,
+              implementation: "msr-v3-append-only",
+              data: null,
+              error: { code: "BOOKPI_APPEND_UNAVAILABLE", eventId },
+            }),
+            {
+              status: 503,
+              headers: SecuritySystem.injectSecureHeaders(
+                new Headers({ "content-type": "application/json" }),
+              ),
+            },
+          );
+        }
+        if (!bookpiLogged) {
+          return new Response(
+            JSON.stringify({
+              schemaVersion: "v1",
+              requestId: ctx.correlationId,
+              traceId: ctx.traceId,
+              implementation: "msr-v3-append-only",
+              data: null,
+              error: { code: "BOOKPI_APPEND_REJECTED", eventId },
+            }),
+            {
+              status: 503,
+              headers: SecuritySystem.injectSecureHeaders(
+                new Headers({ "content-type": "application/json" }),
+              ),
+            },
+          );
         }
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json; charset=utf-8" }),
@@ -63,8 +101,10 @@ export const Route = createFileRoute("/api/v1/msr/ledger/event")({
               payloadHash: `sha3-512:${payloadHash.slice(0, 32)}`,
               previousHash: `sha3-512:${previousHash.slice(0, 32)}`,
               blockHash: `sha3-512:${blockHash.slice(0, 32)}`,
-              signatureStatus: "verified",
-              epistemicState: "E1",
+              // Honestidad de evidencia (AGENTS §0.1): aquí sólo se calculan
+              // hashes locales; NO existe firma asimétrica verificable.
+              signatureStatus: "NOT_VERIFIED",
+              epistemicState: "E2",
               committedAt: new Date().toISOString(),
               bookpiLogged,
             },

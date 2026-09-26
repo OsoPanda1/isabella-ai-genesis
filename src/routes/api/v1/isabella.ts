@@ -10,7 +10,7 @@ import { handleIsabellaChat } from "@/lib/isabella-chat-gateway";
 export const Route = createFileRoute("/api/v1/isabella")({
   server: {
     handlers: {
-      POST: withSovereignAuth("system", "execute", async (context, request) =>
+      POST: withSovereignAuth("chat", "execute", async (context, request) =>
         handleIsabellaChat(
           {
             ip: context.ip,

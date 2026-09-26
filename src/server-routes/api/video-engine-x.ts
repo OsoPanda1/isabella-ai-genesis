@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { videoEngineXManager } from "@/lib/video-x/engine";
 import { DEFAULT_SHOT_CARDS, routeModel } from "@/lib/video-x/contracts";
@@ -38,6 +39,10 @@ export const Route = createFileRoute("/api/video-engine-x")({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        // Autorización ANTES de cualquier acción (incluye el listado por
+        // defecto): sin ella, la enumeración de proyectos era pública.
+        const authResult = await PrincipalContext.authorize(request, "isabella:tools");
+        if (!authResult.success) return authResult.response;
         const url = new URL(request.url);
         const action = url.searchParams.get("action") || "projects";
         const projectId = url.searchParams.get("id") || "proj-isabella-mineral-01";
@@ -53,8 +58,6 @@ export const Route = createFileRoute("/api/video-engine-x")({
         }
 
         if (action === "project") {
-          const authResult = await PrincipalContext.authorize(request, "isabella:tools");
-          if (!authResult.success) return authResult.response;
           const project = videoEngineXManager.getProject(projectId);
           if (!project) {
             return new Response(
@@ -204,11 +207,18 @@ export const Route = createFileRoute("/api/video-engine-x")({
             headers: { "Content-Type": "application/json" },
           });
         } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : String(err);
-          return new Response(JSON.stringify({ success: false, error: msg }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          });
+          const internalId = randomUUID().slice(0, 12);
+          console.error(
+            `[video-engine-x:${internalId}]`,
+            err instanceof Error ? err.message : String(err),
+          );
+          return new Response(
+            JSON.stringify({ success: false, error: "operation_failed", internalId }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
         }
       },
     },

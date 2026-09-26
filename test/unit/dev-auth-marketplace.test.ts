@@ -37,6 +37,47 @@ describe("dev-auth guard", () => {
     const { devAuthNotFound } = await import("@/lib/dev-auth-guard");
     expect(devAuthNotFound("oauth-url")).toBeNull();
   });
+
+  it("las acciones normales NUNCA las bloquea este guard (regresion /api/db)", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ISABELLA_RUNTIME_MODE", "production");
+    vi.stubEnv("AUTH_DEV_SESSION_ENABLED", "false");
+    vi.stubEnv("ALLOW_GUEST_CHAT", "false");
+    vi.stubEnv("DURABLE_JSON_ALLOWED", "false");
+    const { resetConfigCache } = await import("@/lib/config");
+    resetConfigCache();
+    const { devAuthNotFound } = await import("@/lib/dev-auth-guard");
+    for (const action of [
+      "session",
+      "ledger",
+      "audit",
+      "test",
+      "emergency-kill",
+      "user-login",
+      "approve",
+      "payout",
+    ]) {
+      expect(devAuthNotFound(action)).toBeNull();
+    }
+    vi.unstubAllEnvs();
+    resetConfigCache();
+  });
+
+  it("la superficie dev/test si se oculta en produccion (404)", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ISABELLA_RUNTIME_MODE", "production");
+    vi.stubEnv("AUTH_DEV_SESSION_ENABLED", "false");
+    vi.stubEnv("ALLOW_GUEST_CHAT", "false");
+    vi.stubEnv("DURABLE_JSON_ALLOWED", "false");
+    const { resetConfigCache } = await import("@/lib/config");
+    resetConfigCache();
+    const { devSurfaceNotFound } = await import("@/lib/dev-auth-guard");
+    const response = devSurfaceNotFound();
+    expect(response?.status).toBe(404);
+    vi.unstubAllEnvs();
+    resetConfigCache();
+    expect(devSurfaceNotFound()).toBeNull();
+  });
 });
 
 describe("marketplace validate (puro)", () => {

@@ -123,6 +123,39 @@ const RLS_REQUIRED = [
   "api_keys",
   "webhook_events",
   "economic_events",
+  // Tablas server-only endurecidas en 20260926020000 (auditoría S2/S3).
+  "accounting_accounts",
+  "accounting_journal_entries",
+  "accounting_ledger_lines",
+  "episodic_memory",
+  "semantic_memory",
+  "procedural_memory",
+  "fgais_model_registry",
+  "fgais_federation_replay",
+  "isabella_learning_state",
+  "billing_payment_intents",
+  "billing_checkout_idempotency",
+  "billing_run_authorizations",
+  "observability_events",
+];
+
+// Tablas que NUNCA deben ser alcanzables por PostgREST (anon/authenticated).
+const SERVER_ONLY_TABLES = [
+  "webhook_events",
+  "accounting_accounts",
+  "accounting_journal_entries",
+  "accounting_ledger_lines",
+  "episodic_memory",
+  "semantic_memory",
+  "procedural_memory",
+  "fgais_model_registry",
+  "fgais_federation_replay",
+  "isabella_learning_state",
+  "billing_payment_intents",
+  "billing_checkout_idempotency",
+  "billing_run_authorizations",
+  "observability_events",
+  "connector_webhook_events",
 ];
 
 const IMMUTABLE_TABLES = ["bookpi_ledger", "audit_events"];
@@ -161,6 +194,15 @@ function staticCheck() {
       errors.push(`RLS no declarada para ${table}`);
   // No FORCE RLS assertion: the canonical production migration explicitly
   // removes FORCE RLS for backend-owned PostgreSQL connections.
+  // Toda tabla server-only debe tener un REVOKE explícito a los roles de
+  // PostgREST declarado en alguna migración (gate estático).
+  for (const table of SERVER_ONLY_TABLES) {
+    const revoked = new RegExp(
+      `revoke\\s+all\\s+on\\s+(?:public\\.)?${table}\\s+from\\s+[^;]*\\b(anon|authenticated)\\b`,
+      "i",
+    ).test(allSql);
+    if (!revoked) errors.push(`REVOKE a anon/authenticated no declarado para ${table}`);
+  }
   if (!/prevent_bookpi_mutation|bookpi.*immutable|immutable.*bookpi/i.test(allSql))
     errors.push("No se encontró evidencia estática de inmutabilidad BookPI");
   return { errors, files };
@@ -203,6 +245,19 @@ async function liveCheck() {
       const row = rlsRows.find((item) => String(item.table_name) === table);
       if (!row?.relrowsecurity) errors.push(`RLS desactivada en DB viva: ${table}`);
       // FORCE RLS is intentionally false for backend-owned connections.
+    }
+
+    // PostgREST no debe tener privilegio sobre tablas server-only.
+    for (const table of SERVER_ONLY_TABLES) {
+      const { rows } = await pool.query(
+        `SELECT CASE WHEN to_regclass('public.' || $1) IS NULL THEN false
+                     ELSE has_table_privilege('anon', 'public.' || $1, 'SELECT') END AS anon_select,
+                CASE WHEN to_regclass('public.' || $1) IS NULL THEN false
+                     ELSE has_table_privilege('authenticated', 'public.' || $1, 'SELECT') END AS auth_select`,
+        [table],
+      );
+      if (rows[0]?.anon_select) errors.push(`anon tiene SELECT sobre ${table}`);
+      if (rows[0]?.auth_select) errors.push(`authenticated tiene SELECT sobre ${table}`);
     }
 
     const { rows: triggerRows } = await pool.query(

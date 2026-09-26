@@ -183,12 +183,16 @@ export const Route = createFileRoute("/api/v1/monetization/x402/process")({
             ...result.body,
           });
         } catch (error: unknown) {
-          const message = error instanceof Error ? error.message : "unknown error";
+          // Sin volcado del error interno al cliente (ISA-239 / §16).
+          console.error(
+            `[x402:process:${requestId}]`,
+            error instanceof Error ? error.message : String(error),
+          );
           return respond(500, {
             schemaVersion: "v3.0-MASTER-EXTENDED",
             requestId,
             traceId,
-            error: { code: "INTERNAL_MONETIZATION_ERROR", message },
+            error: { code: "INTERNAL_MONETIZATION_ERROR", message: "internal_error" },
             evidenceStatus: "E4_ACTION_REQUIRED",
           });
         }

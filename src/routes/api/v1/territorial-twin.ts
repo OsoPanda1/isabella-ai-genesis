@@ -26,16 +26,22 @@ export const Route = createFileRoute("/api/v1/territorial-twin")({
       GET: withSovereignAuth("system", "read", async (_ctx) => {
         return json({
           success: true,
+          // Datos de referencia (hechos estáticos del territorio). Los índices
+          // NO existen sin una fuente instrumentada: se devuelven null con
+          // estado explícito en lugar de valores fabricados (ISA-448).
           territory: {
             name: "Real del Monte (Mineral del Monte)",
             state: "Hidalgo, México",
             elevationMeters: 2700,
             digitalTwinVersion: "v4.3-NodoCero",
-            lastSimulationRun: new Date().toISOString(),
-            sustainabilityIndex: 0.94,
-            heritageIntegrityScore: 0.96,
-            economicLocalRetentionPct: 88.5,
-            carbonFootprintMitigationPct: 79.2,
+            lastSimulationRun: null,
+            sustainabilityIndex: null,
+            heritageIntegrityScore: null,
+            economicLocalRetentionPct: null,
+            carbonFootprintMitigationPct: null,
+            metricsStatus: "NO_DATA",
+            metricsNote:
+              "Sin telemetría territorial conectada no se declara ningún índice. Requiere fuente instrumentada.",
           },
         });
       }),
@@ -76,7 +82,12 @@ export const Route = createFileRoute("/api/v1/territorial-twin")({
         return json({
           success: true,
           traceId: context.traceId,
+          // Modelo heurístico con parámetros del solicitante: NO es medición.
           simulation: {
+            model: "heuristic-v1",
+            evidenceStatus: "E3",
+            dataSources: [],
+            instrumented: false,
             carryingCapacityStatus:
               carryingCapacityRatio > 1.1
                 ? "OVER_CAPACITY_ALERT"
@@ -86,11 +97,15 @@ export const Route = createFileRoute("/api/v1/territorial-twin")({
             preservationIntegrityScore: Number(preservationScore.toFixed(3)),
             economicVibrancyScore: Number(economicVibrancy.toFixed(3)),
             estimatedDailyLocalRetentionUsd: Number(estimatedLocalImpactUsd.toFixed(2)),
+            estimatedDailyLocalRetentionNote:
+              "Heurística fija de 42.5 USD por visitante-día; no derivada de medición.",
             mitigationActions: [
               "Habilitar estacionamientos satélite en Peñas Cargadero para evitar colapso vial en Centro Histórico.",
               "Canalizar 5% de consumos turísticos hacia el fondo de mantenimiento del Panteón Inglés.",
               "Desplegar alertas geolocalizadas hacia Mina La Dificultad para redistribuir flujo de visitantes.",
             ],
+            mitigationActionsNote:
+              "Recomendaciones estáticas de catálogo, no generadas por simulación.",
           },
         });
       }),

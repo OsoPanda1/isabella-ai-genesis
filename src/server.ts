@@ -7,6 +7,7 @@ import { createRequestContext, withRequestContext } from "./lib/request-context"
 import { redact } from "./lib/secret-redactor";
 import { resolveTrustedClientIp } from "./lib/trusted-client-ip";
 import { validateStartupEnvironment } from "./lib/env-validator";
+import { passthroughEnv } from "./lib/config";
 import { initOpenTelemetry, withSpan, recordMetric } from "./lib/telemetry/otel-init";
 import * as nodeCrypto from "node:crypto";
 
@@ -173,7 +174,7 @@ export function withSecurityHeaders(
   setIfMissing("Cross-Origin-Opener-Policy", "same-origin");
   setIfMissing("Cross-Origin-Resource-Policy", "same-origin");
 
-  const production = process.env.NODE_ENV === "production";
+  const production = passthroughEnv("NODE_ENV") === "production";
   const nonce =
     opts?.nonce ?? opts?.cspNonce ?? (production ? generateCspNonceForRequest() : undefined);
   const hasNonce = typeof nonce === "string" && nonce.length >= 16;

@@ -11,7 +11,7 @@ import { SecuritySystem } from "@/lib/security";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { SovereignSandboxService } from "@/lib/sovereign-sandbox";
 import { config, isPayoutCircuitCertified } from "@/lib/config";
-import { devAuthNotFound } from "@/lib/dev-auth-guard";
+import { devAuthNotFound, devSurfaceNotFound } from "@/lib/dev-auth-guard";
 
 const addLedgerSchema = z.object({
   operation: z.string().min(1).max(200),
@@ -231,6 +231,12 @@ export const Route = createFileRoute("/api/db")({
         }
 
         if (action === "test") {
+          // ISA-13/S13: la suite de seguridad es un artefacto de test/dev.
+          // En staging/production esta accion no existe (404) y el runner
+          // jamas se importa dentro del bundle productivo (ademas de exigir
+          // system:execute).
+          const notFoundInProd = devSurfaceNotFound();
+          if (notFoundInProd) return notFoundInProd;
           return withSovereignAuth("system", "execute", async (context) => {
             const headers = SecuritySystem.injectSecureHeaders(
               new Headers({ "content-type": "application/json" }),
@@ -853,8 +859,15 @@ export const Route = createFileRoute("/api/db")({
               username: z.string().min(3).max(64),
               password: z.string().min(8).max(128),
               tenantSlug: z.string().optional(),
-              role: z.enum(["Operator", "Auditor", "Guest", "SovereignOwner"]).optional(),
+              // El rol NUNCA se acepta del cliente (P0-06); se deriva server-side.
             });
+            const rateLimited = !SecuritySystem.checkRateLimit(`signup:ip:${ip}`, 5).allowed;
+            if (rateLimited) {
+              return new Response(
+                JSON.stringify({ error: "Demasiados registros desde esta red." }),
+                { status: 429, headers },
+              );
+            }
             const val = signupSchema.safeParse(body);
             if (!val.success) {
               return new Response(
@@ -876,12 +889,16 @@ export const Route = createFileRoute("/api/db")({
               });
               return new Response(JSON.stringify(res), { headers });
             } catch (err: unknown) {
-              return new Response(
-                JSON.stringify({
-                  error: err instanceof Error ? err.message : "Error al registrar usuario.",
-                }),
-                { status: 400, headers },
+              // Sin fuga de detalles internos: código estable + log correlacionado.
+              const internalId = nodeCrypto.randomUUID().slice(0, 12);
+              console.error(
+                `[api/db:user-signup:${internalId}]`,
+                err instanceof Error ? err.message : String(err),
               );
+              return new Response(JSON.stringify({ error: "signup_failed", internalId }), {
+                status: 400,
+                headers,
+              });
             }
           }
 
@@ -900,6 +917,21 @@ export const Route = createFileRoute("/api/db")({
                 { status: 400, headers },
               );
             }
+            // Rate limit por IP y por cuenta: frena fuerza bruta online y
+            // amplificación de PBKDF2 (100k iteraciones por intento).
+            const emailKey = val.data.email.trim().toLowerCase();
+            if (!SecuritySystem.checkRateLimit(`login:ip:${ip}`, 15).allowed) {
+              return new Response(
+                JSON.stringify({ error: "rate_limited", retryAfterSeconds: 60 }),
+                { status: 429, headers },
+              );
+            }
+            if (!SecuritySystem.checkRateLimit(`login:account:${emailKey}`, 8).allowed) {
+              return new Response(
+                JSON.stringify({ error: "rate_limited_account", retryAfterSeconds: 60 }),
+                { status: 429, headers },
+              );
+            }
             const { UserAuthService } = await import("@/lib/user-auth-service");
             try {
               const res = await UserAuthService.login({
@@ -909,12 +941,15 @@ export const Route = createFileRoute("/api/db")({
               });
               return new Response(JSON.stringify(res), { headers });
             } catch (err: unknown) {
-              return new Response(
-                JSON.stringify({
-                  error: err instanceof Error ? err.message : "Error de autenticación.",
-                }),
-                { status: 401, headers },
+              const internalId = nodeCrypto.randomUUID().slice(0, 12);
+              console.error(
+                `[api/db:user-login:${internalId}]`,
+                err instanceof Error ? err.message : String(err),
               );
+              return new Response(JSON.stringify({ error: "invalid_credentials", internalId }), {
+                status: 401,
+                headers,
+              });
             }
           }
 
@@ -1373,11 +1408,18 @@ export const Route = createFileRoute("/api/db")({
                     : await store.release(capability, context.userId);
                 return new Response(JSON.stringify({ success: true, state }), { headers });
               } catch (error) {
-                const message = error instanceof Error ? error.message : String(error);
-                return new Response(JSON.stringify({ error: message }), {
-                  status: 400,
-                  headers,
-                });
+                const internalId = nodeCrypto.randomUUID().slice(0, 12);
+                console.error(
+                  `[api/db:emergency:${internalId}]`,
+                  error instanceof Error ? error.message : String(error),
+                );
+                return new Response(
+                  JSON.stringify({ error: "kill_switch_operation_failed", internalId }),
+                  {
+                    status: 400,
+                    headers,
+                  },
+                );
               }
             })({ request });
           }

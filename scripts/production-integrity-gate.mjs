@@ -70,7 +70,9 @@ const checks = [
   {
     file: "src/server.ts",
     required: [
-      /production\s*=\s*process\.env\.NODE_ENV\s*===\s*[\"']production[\"']/,
+      // Acepta el acceso centralizado via config.ts (passthroughEnv) o el
+      // directo process.env: la condicion es detectar production para CSP estricto.
+      /production\s*=\s*(?:passthroughEnv\(\s*["']NODE_ENV["']\s*\)|process\.env\.NODE_ENV)\s*===\s*["']production["']/,
       /script-src \$\{scriptSource\}/,
     ],
     label: "Production server boundary must enforce strict script CSP",

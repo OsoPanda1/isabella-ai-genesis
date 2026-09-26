@@ -42,13 +42,16 @@ export function SovereignCompliancePanel() {
 
     setTimeout(async () => {
       try {
-        const fakeContent = JSON.stringify(logs.slice(0, 10));
+        // Contenido real del reporte (los últimos eventos de auditoría), no
+        // un marcador de posición: se serializa de forma canónica y se
+        // compara el hash recalculado con la referencia provista.
+        const reportContent = JSON.stringify(logs.slice(0, 10));
         // Run unpatched ANUBIS skill with safety pipeline
         const result = await runIsabellaSkill(
           "ANUBIS",
           {
             artifactId: "COMPLIANCE-REPORT-001",
-            content: fakeContent,
+            content: reportContent,
             expectedHash: targetHash.trim(),
           },
           {
@@ -69,7 +72,8 @@ export function SovereignCompliancePanel() {
           setVerifyResult({
             status: "success",
             sha256: (result.data as { sha256: string }).sha256,
-            message: "Firma verificada exitosamente en el Ledger Soberano de Isabella.",
+            message:
+              "Hash recalculado del reporte coincide con la referencia provista. Verificación de integridad local, sin firma en Ledger.",
           });
         } else {
           setVerifyResult({
@@ -124,55 +128,26 @@ export function SovereignCompliancePanel() {
               <CheckCircle className="size-4" /> C.R.O.W.N. PRODUCTION GATE
             </h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 font-mono text-xs">
-              <div className="space-y-1">
-                <span className="text-muted-foreground block text-[10px] uppercase">
-                  Arquitectura
-                </span>
-                <div className="flex justify-between text-platinum">
-                  <span className="text-amber-400">82%</span>
-                  <span className="text-muted-foreground/60">/ 90%</span>
+              {[
+                "Arquitectura",
+                "Seguridad / Identidad",
+                "IA Segura / CROWN",
+                "BookPI / DB / Pagos",
+              ].map((label) => (
+                <div key={label} className="space-y-1">
+                  <span className="text-muted-foreground block text-[10px] uppercase">{label}</span>
+                  <div className="flex justify-between text-platinum">
+                    <span className="text-muted-foreground">Sin métrica verificable</span>
+                  </div>
+                  <div className="w-full bg-border/20 h-1 rounded-full" />
                 </div>
-                <div className="w-full bg-border/20 h-1 rounded-full">
-                  <div className="bg-amber-400 h-1 rounded-full" style={{ width: "82%" }}></div>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <span className="text-muted-foreground block text-[10px] uppercase">
-                  Seguridad / Identidad
-                </span>
-                <div className="flex justify-between text-platinum">
-                  <span className="text-amber-400">78%</span>
-                  <span className="text-muted-foreground/60">/ 95%</span>
-                </div>
-                <div className="w-full bg-border/20 h-1 rounded-full">
-                  <div className="bg-amber-400 h-1 rounded-full" style={{ width: "78%" }}></div>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <span className="text-muted-foreground block text-[10px] uppercase">
-                  IA Segura / CROWN
-                </span>
-                <div className="flex justify-between text-platinum">
-                  <span className="text-red-400">68%</span>
-                  <span className="text-muted-foreground/60">/ 95%</span>
-                </div>
-                <div className="w-full bg-border/20 h-1 rounded-full">
-                  <div className="bg-red-400 h-1 rounded-full" style={{ width: "68%" }}></div>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <span className="text-muted-foreground block text-[10px] uppercase">
-                  BookPI / DB / Pagos
-                </span>
-                <div className="flex justify-between text-platinum">
-                  <span className="text-red-400">65%</span>
-                  <span className="text-muted-foreground/60">/ 95%</span>
-                </div>
-                <div className="w-full bg-border/20 h-1 rounded-full">
-                  <div className="bg-red-400 h-1 rounded-full" style={{ width: "65%" }}></div>
-                </div>
-              </div>
+              ))}
             </div>
+            <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+              Porcentajes retirados: no existe telemetría que los sustente en este entorno. La única
+              cifra verificable es la auditoría ISA-500 registrada en{" "}
+              <span className="font-mono">production-capabilities.json</span> y en el README.
+            </p>
             <div className="mt-4 flex gap-2">
               <div className="px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 font-mono text-[9px] uppercase tracking-wider flex items-center gap-1.5">
                 <AlertTriangle className="size-3" /> Producción Restringida

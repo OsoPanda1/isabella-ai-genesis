@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { fingerprintEnvSource, passthroughEnv } from "./config";
 
 /**
  * MANIFIESTO DE BUILD (src/lib/build-manifest.ts)
@@ -46,7 +47,7 @@ export function computeSourceHash(root: string): string {
   return hashText(acc);
 }
 
-export function computeEnvFingerprint(env: NodeJS.ProcessEnv = process.env): string {
+export function computeEnvFingerprint(env: NodeJS.ProcessEnv = fingerprintEnvSource()): string {
   const parts = [
     env.NODE_ENV ?? "development",
     env.PUBLIC_URL ?? "",
@@ -79,7 +80,7 @@ export function buildManifest(
     runtime,
     depsHash: hashText(process.version + version),
   };
-  const commit = process.env.COMMIT_SHA;
+  const commit = passthroughEnv("COMMIT_SHA");
   if (commit) manifest.commit = commit;
   return manifest;
 }

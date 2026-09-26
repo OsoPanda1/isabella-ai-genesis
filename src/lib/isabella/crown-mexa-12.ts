@@ -5,7 +5,7 @@
  * License: CC BY 4.0
  */
 
-export const ISABELLA_VERSION = "5.0.0";
+export const ISABELLA_VERSION = "4.3.3";
 export const ISABELLA_NODE_ZERO = "Real del Monte, Hidalgo, México";
 export const ISABELLA_ORCID = "0009-0008-5050-1539";
 
@@ -1000,26 +1000,26 @@ export const SKILLS: SkillSpec[] = [
 export const MATURITY = [
   {
     module: "Terminal CROWN & UI",
-    state: "100% Funcional",
+    state: "IMPLEMENTED",
     impl: "Consola React + Web Speech API.",
     pending: "Optimización móvil de gama baja.",
   },
   {
     module: "Gobernanza CROWN / ARGUS",
-    state: "90% Funcional",
+    state: "IMPLEMENTED",
     impl: "Motor de políticas Allowed/Denied y pesos dinámicos.",
     pending: "Integración SIEM empresarial.",
   },
   {
     module: "Esquemas y Contratos (TS/SQL)",
-    state: "100% Especificado",
+    state: "IMPLEMENTED",
     impl: "Tipos TS + DDL isabella_*.",
     pending: "Replicación multirregión.",
   },
   {
     module: "Firmas Post-Cuánticas (Dilithium-5)",
-    state: "Especificación / Stub",
-    impl: "Firmas mock en TS.",
+    state: "EXPERIMENTAL",
+    impl: "Sólo simulación en TS; no es autoridad criptográfica.",
     pending: "Librerías nativas C/Rust.",
   },
   {

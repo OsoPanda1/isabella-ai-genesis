@@ -228,8 +228,9 @@ export class ApiKeyService {
         const r = await repoWithPrefix.findByPrefix(prefix);
         if (r) record = apiKeyToRecord(r);
       } else {
-        const { items } = await this.repo.list("", { keyPrefix: prefix });
-        record = items[0] ? apiKeyToRecord(items[0]) : null;
+        // Sin lookup por prefijo NO hay forma segura de resolver la clave:
+        // list("") sería un cruce de tenants. Fail-closed = credencial inválida.
+        record = null;
       }
     }
 

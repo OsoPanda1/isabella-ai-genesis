@@ -25,7 +25,7 @@ import { createHash } from "node:crypto";
 import { evaluateAuthorization } from "./authorization";
 import { evaluatePolicy } from "./policy-engine";
 import { verifyCapabilityToken } from "./capability-tokens";
-import { createToolRegistry, type RegisteredTool } from "./tool-registry";
+import { createToolRegistry, missingToolPermissions, type RegisteredTool } from "./tool-registry";
 import type { MemoryRepository } from "./repositories/memory-repository";
 import type { AuditRepository } from "./repositories/audit-repository";
 
@@ -304,6 +304,16 @@ export function createExecutionAuthority(opts?: {
         return {
           executed: false,
           reason: "Herramienta no registrada.",
+          stage: "decide",
+        };
+      }
+
+      // ── ISA-164: requiredPermissions declarados son OBLIGATORIOS ──
+      const missingPermissions = missingToolPermissions(tool, request.role);
+      if (missingPermissions.length > 0) {
+        return {
+          executed: false,
+          reason: `Permisos requeridos ausentes para el rol '${request.role}': ${missingPermissions.join(", ")}.`,
           stage: "decide",
         };
       }

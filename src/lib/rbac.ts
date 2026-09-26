@@ -200,6 +200,9 @@ export const PERMISSIONS = {
   "system:state": "Consultar estado del sistema",
   "system:telemetry": "Consultar telemetría operativa",
   "system:admin": "Operaciones administrativas del sistema",
+  "system:execute": "Ejecutar operaciones internas del sistema (rol operativo)",
+  "chat:execute": "Conversar con Isabella en el turno de chat",
+  "session:read": "Consultar la sesion de la propia identidad",
 } as const satisfies Record<string, string>;
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -219,13 +222,19 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "tool:list",
     "monetization:read",
     "system:telemetry",
+    "chat:execute",
+    "session:read",
   ],
   System: [
     "audit:write",
     "ledger:verify",
     "tool:list",
     "tool:execute:readonly",
+    "system:state",
     "system:telemetry",
+    "system:execute",
+    "chat:execute",
+    "session:read",
   ],
   Auditor: [
     "ledger:read:any",
@@ -234,6 +243,8 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "audit:verify",
     "governance:read",
     "system:state",
+    "chat:execute",
+    "session:read",
   ],
   Operator: [
     "memory:write:own",
@@ -244,7 +255,11 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "sandbox:run",
     "monetization:configure",
     "monetization:withdraw",
+    "system:state",
     "system:telemetry",
+    "system:execute",
+    "chat:execute",
+    "session:read",
   ],
   governance_admin: [
     "governance:write",
@@ -252,8 +267,12 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "permission:revoke",
     "memory:admin",
     "system:admin",
+    "system:state",
     "ledger:read:any",
     "audit:read",
+    "system:execute",
+    "chat:execute",
+    "session:read",
   ],
   SovereignOwner: [
     "ledger:refund",
@@ -262,6 +281,9 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "memory:admin",
     "system:admin",
     "governance:write",
+    "system:execute",
+    "chat:execute",
+    "session:read",
   ],
 };
 

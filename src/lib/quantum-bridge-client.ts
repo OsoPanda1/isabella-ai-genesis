@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
-import { config } from "./config";
+import { config, passthroughChildEnv } from "./config";
 
 export interface QuantumBridgePayload {
   schema: "pennylane-request-v5";
@@ -58,13 +58,9 @@ export class QuantumBridgeClient {
     return new Promise((resolve, reject) => {
       // Zero-Trust: allowlist mínima — nunca propagar DATABASE_URL / AUTH_JWT_SECRET al hijo Python
       const allowEnv: NodeJS.ProcessEnv = {
-        PATH: process.env.PATH,
-        PYTHONPATH: process.env.PYTHONPATH,
+        ...passthroughChildEnv(),
         PYTHON_PATH: config().PYTHON_PATH,
         QUANTUM_BRIDGE_PATH: config().QUANTUM_BRIDGE_PATH,
-        NODE_ENV: process.env.NODE_ENV,
-        HOME: process.env.HOME,
-        LANG: process.env.LANG,
       };
       const child = spawn(this.pythonPath, [this.scriptPath, "--stdio"], {
         env: allowEnv,

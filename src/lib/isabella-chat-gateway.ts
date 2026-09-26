@@ -25,6 +25,11 @@ import {
   standardError,
   IsabellaChatErrorCode,
 } from "@/lib/api-contracts";
+import { redactLogArg } from "@/lib/secret-redactor";
+
+// Logs con redaccion (ISA-447): nunca volcar errores crudos a consola.
+const logError = (...args: unknown[]): void => console.error(...args.map(redactLogArg));
+const logWarn = (...args: unknown[]): void => console.warn(...args.map(redactLogArg));
 
 type GatewayContext = {
   ip: string;
@@ -213,7 +218,7 @@ async function aiGatewaySse(
       } catch (error) {
         const message =
           "Isabella continúa operativa en modo soberano local. El proveedor externo no está disponible en este entorno; la solicitud quedó registrada como degradada y puedes continuar con categorización y gobernanza local.";
-        console.error(
+        logError(
           `[ISABELLA_AI_GATEWAY_STREAM] fallback=${error instanceof Error ? error.message : "unknown"}`,
         );
         controller.enqueue(
@@ -398,7 +403,7 @@ export async function handleIsabellaChat(
       durableLearningAvailable: prepared.durableLearningAvailable,
     };
   } catch (error) {
-    console.error(
+    logError(
       `[ISABELLA_LEARNING] retrieval_failed trace=${context.traceId} error=${error instanceof Error ? error.message : "unknown"}`,
     );
   }
@@ -436,14 +441,20 @@ export async function handleIsabellaChat(
     },
     timestamp: new Date().toISOString(),
   });
+  // Cuando la gobernanza deniega a Guest, la denuncia DEBE detener toda
+  // operacion con side effects de este turno: skills/herramientas y
+  // escrituras. Solo se conserva el turno conversacional sin herramientas
+  // (ISA-170). Este camino no escribe memoria ni ejecuta herramientas; si
+  // se anade una via de side effects, debe consultar guestDegraded.
+  let guestDegraded = false;
   if (governance.denied) {
-    // Hardening: Guest de bajo riesgo no debe recibir 403 seco — degradar a fallback soberano con trazabilidad
     const isGuestLowRisk =
       context.role === "Guest" &&
       governance.decision?.policy?.risk !== "critical" &&
       governance.decision?.policy?.risk !== "high";
     if (isGuestLowRisk) {
-      console.warn(
+      guestDegraded = true;
+      logWarn(
         `[ISABELLA_GUEST_DEGRADED] trace=${context.traceId} reason=${governance.denialReason} risk=${governance.decision?.policy?.risk}`,
       );
       // continuar hacia fallback soberano — no bloquear UX pública
@@ -458,6 +469,15 @@ export async function handleIsabellaChat(
   }
   // 1. Enlace directo de habilidades soberanas (@skill:<nombre> o @<nombre>)
   const skillInvocation = detectSkillInvocation(lastUserMessage);
+  if (guestDegraded && skillInvocation) {
+    // La gobernanza ya denegó el turno: nada de side effects para Guest.
+    return contractError(
+      context,
+      IsabellaChatErrorCode.AUTHORIZATION_DENIED,
+      "Gobernanza denegó la operación; Guest no puede ejecutar habilidades en este turno.",
+      403,
+    );
+  }
   if (skillInvocation) {
     const bridgeResult = await executeChatSkillBridge(skillInvocation, {
       correlationId: context.correlationId,
@@ -501,7 +521,7 @@ export async function handleIsabellaChat(
     matched: false,
     result: null,
   };
-  if (lastUserMessage.trim().startsWith("@")) {
+  if (!guestDegraded && lastUserMessage.trim().startsWith("@")) {
     conversationalSkill = await executeConversationalSkill(lastUserMessage, {
       requestId: context.correlationId,
       traceId: context.traceId,
@@ -708,7 +728,7 @@ export async function handleIsabellaChat(
             headers,
           );
         } catch (error) {
-          console.error(
+          logError(
             `[ISABELLA_AI_GATEWAY] trace=${context.traceId} error=${error instanceof Error ? error.message : "unknown"}`,
           );
           continue;
@@ -760,11 +780,11 @@ export async function handleIsabellaChat(
           degraded: index > 0,
         },
       }).catch((error) => {
-        console.error("[observability] durable inference event failed:", error);
+        logError("[observability] durable inference event failed:", error);
       });
       if (!upstream.ok || !upstream.body) {
         const detail = await upstream.text().catch(() => "");
-        console.error(
+        logError(
           `[ISABELLA_${attempt.provider.toUpperCase()}] status=${upstream.status} trace=${context.traceId} detail=${detail.slice(0, 300)}`,
         );
         continue;
@@ -801,7 +821,7 @@ export async function handleIsabellaChat(
           })
         : new Response(upstream.body, { status: 200, headers });
     } catch (error) {
-      console.error(
+      logError(
         `[ISABELLA_FALLBACK] provider=${attempt.provider} trace=${context.traceId} error=${error instanceof Error ? error.message : "unknown"}`,
       );
     }
@@ -838,7 +858,7 @@ export async function handleIsabellaChat(
     );
     return sseFromText(fallback.answer, headers);
   } catch (fallbackError) {
-    console.error(
+    logError(
       `[ISABELLA_SOVEREIGN_FALLBACK] trace=${context.traceId} error=${fallbackError instanceof Error ? fallbackError.message : "unknown"}`,
     );
   }

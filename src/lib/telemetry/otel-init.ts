@@ -7,7 +7,7 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { config } from "../config";
+import { config, passthroughEnv } from "../config";
 import { createOTelEvent, toOTelLog, type MetricKind } from "./otel-neutral";
 
 export interface SpanContext {
@@ -185,7 +185,7 @@ class OpenTelemetryService {
       },
     });
 
-    if (process.env.NODE_ENV === "development" && span.status.code === "ERROR") {
+    if (passthroughEnv("NODE_ENV") === "development" && span.status.code === "ERROR") {
       console.log(`[OTel] ${toOTelLog(otelEvent)}`);
     }
 
@@ -252,7 +252,7 @@ class OpenTelemetryService {
                 { key: "service.version", value: { stringValue: "4.3.3" } },
                 {
                   key: "deployment.environment",
-                  value: { stringValue: process.env.NODE_ENV || "development" },
+                  value: { stringValue: passthroughEnv("NODE_ENV") || "development" },
                 },
               ],
             },

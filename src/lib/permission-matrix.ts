@@ -23,6 +23,8 @@ export type Resource =
   | "tool"
   | "sandbox"
   | "monetization"
+  | "chat"
+  | "session"
   | "system";
 
 export const RESOURCES: readonly Resource[] = [
@@ -35,6 +37,8 @@ export const RESOURCES: readonly Resource[] = [
   "tool",
   "sandbox",
   "monetization",
+  "chat",
+  "session",
   "system",
 ];
 
@@ -115,11 +119,23 @@ const MATRIX: Record<Resource, Partial<Record<Action, Permission | null>>> = {
     write: "monetization:configure",
     execute: "monetization:withdraw",
   },
+  // Chat: turno conversacional. Distinto de system/execute para que Guest
+  // pueda chatear sin heredar el acceso a ejecuci_n de sistema.
+  chat: {
+    execute: "chat:execute",
+    read: "chat:execute",
+  },
+  // Sesi_n: lectura de la identidad propia (sin side effects).
+  session: {
+    read: "session:read",
+    execute: "session:read",
+  },
   system: {
     read: "system:state",
     write: "system:admin",
     delete: "system:admin",
-    execute: "system:telemetry",
+    // Ejecuci_n de sistema = permiso operativo expl_cito; nunca telemetr_a.
+    execute: "system:execute",
     admin: "system:admin",
   },
 };

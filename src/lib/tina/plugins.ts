@@ -8,6 +8,7 @@
  * rechaza antes de ejecutar el plugin.
  */
 import type { TinaBookPI } from "./ledger";
+import { assertToolsWithinLimits, LimitError } from "../input-limits";
 
 export interface TinaPluginManifest {
   id: string;
@@ -159,6 +160,21 @@ export class TinaPluginRegistry {
     const plugin = this.plugins.get(id);
     if (!plugin) throw new Error("Plugin no encontrado");
     const permissions = plugin.manifest.permissions;
+
+    // ISA-150: limite duro de herramientas declaradas por peticion.
+    try {
+      assertToolsWithinLimits(request.tools?.length ?? 0);
+    } catch (error) {
+      if (error instanceof LimitError) {
+        await this.bookpi.append("PLUGIN_INPUT_LIMIT", {
+          pluginId: id,
+          code: error.code,
+          limit: error.limit,
+          actual: error.actual,
+        });
+      }
+      throw error;
+    }
 
     const declaredChecks: Array<[PluginPermissionKind, string[] | undefined, string[]]> = [
       ["read", request.reads, permissions.read],

@@ -9,10 +9,12 @@
  *
  * Se invoca desde `npm run security:scan`.
  */
-import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
+import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { execFileSync } from "node:child_process";
 
-const ROOT = resolve(import.meta.dirname ?? ".");
+// ROOT es la raíz del repositorio, NO el directorio del script.
+const ROOT = resolve(import.meta.dirname ?? ".", "..");
 const SCAN_DIRS = ["src", "supabase"];
 const SKIP = [
   ".git",
@@ -44,7 +46,30 @@ function walk(dir, out = []) {
 
 function checkEnvFiles() {
   const problems = [];
-  for (const f of [".env", ".env.local", ".env.production"]) {
+  const envFiles = [".env", ".env.local", ".env.production", ".env.vercel"];
+  let tracked = null;
+  try {
+    // La regla correcta es "estar versionado", no "existir en disco":
+    // un .env local no versionado es esperado en desarrollo.
+    tracked = execFileSync("git", ["ls-files", "--", ...envFiles], {
+      cwd: ROOT,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+  } catch {
+    tracked = null;
+  }
+  if (tracked !== null) {
+    for (const line of tracked
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean)) {
+      problems.push(`Archivo ${line} versionado en el repositorio — no debe versionarse.`);
+    }
+    return problems;
+  }
+  // Fallback (git no disponible): al menos reporta los que estén tracked-en-disco.
+  for (const f of envFiles) {
     if (existsSync(resolve(ROOT, f))) {
       problems.push(`Archivo ${f} detectado en el repositorio — no debe versionarse.`);
     }
@@ -55,6 +80,13 @@ function checkEnvFiles() {
 function checkSecrets() {
   const problems = [];
   const files = SCAN_DIRS.flatMap((d) => walk(resolve(ROOT, d)));
+  // Un escáner que no lee nada no puede declarar "OK" (gate vacío).
+  if (files.length === 0) {
+    problems.push(
+      `SECRET-SCAN: no se pudo leer ningún archivo bajo ${SCAN_DIRS.join(", ")} en ${ROOT} — gate vacío.`,
+    );
+    return problems;
+  }
   for (const file of files) {
     if (file.includes("env-schema") || file.includes("config.ts")) continue;
     const content = readFileSync(file, "utf8");

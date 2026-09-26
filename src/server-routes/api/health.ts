@@ -114,10 +114,11 @@ async function checkRepositoryHealth(kind: "repository" | "audit"): Promise<Heal
     return {
       ok: false,
       latencyMs: Number((performance.now() - started).toFixed(2)),
+      // Sin volcado de detalle interno en la respuesta pública (ISA-7).
       error:
         error instanceof Error && error.message === "dependency_timeout"
           ? "dependency_timeout"
-          : `${kind}_unavailable: ${msg}`,
+          : `${kind}_unavailable`,
     };
   }
 }

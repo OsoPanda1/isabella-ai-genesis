@@ -6,7 +6,7 @@ import { config } from "@/lib/config";
 export const Route = createFileRoute("/api/v1/auth/session")({
   server: {
     handlers: {
-      POST: withSovereignAuth("system", "execute", async (ctx, req) => {
+      POST: withSovereignAuth("session", "read", async (ctx, req) => {
         const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json; charset=utf-8" }),
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/api/v1/auth/session")({
           { status: 200, headers },
         );
       }),
-      GET: withSovereignAuth("system", "read", async (ctx) => {
+      GET: withSovereignAuth("session", "read", async (ctx) => {
         const headers = SecuritySystem.injectSecureHeaders(
           new Headers({ "content-type": "application/json; charset=utf-8" }),
         );

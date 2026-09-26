@@ -19,7 +19,9 @@ export function useIsabellaObservability() {
     ) => {
       const timestamp = new Date().toISOString();
       // Solo desarrollo: details puede contener texto del usuario (privacidad).
-      if (typeof process !== "undefined" && process.env?.NODE_ENV !== "production") {
+      // `import.meta.env.DEV` es el indicador del bundler en el cliente;
+      // `process.env` no se lee nunca fuera de src/lib/config.ts.
+      if (import.meta.env?.DEV === true) {
         console.log(`[Isabella Observability] [${timestamp}] [${stage}]`, details);
       }
 

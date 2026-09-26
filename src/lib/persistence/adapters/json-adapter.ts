@@ -95,7 +95,7 @@ function recordTenantId(record: unknown): string | undefined {
 }
 
 function isTenantIsolated<T>(record: T, tenantId: string): boolean {
-  if (!tenantId) return true; // empty tenant allowed only for prefix lookup during auth
+  if (!tenantId) return false; // deny: sólo findByPrefix cruza tenants
   const tid = recordTenantId(record);
   // For Tenant records, id === tenantId
   const id = (record as { id: string }).id;
@@ -131,6 +131,9 @@ export class JsonFileRepository<T extends { id: string }> implements IRepository
 
   async read(tenantId: string, id: string): Promise<T | null> {
     assertJsonAllowed();
+    // S14: sin tenantId no hay lookup — sería lectura cross-tenant.
+    // El lookup por prefijo (auth) usa findByPrefix, que es el único cruce.
+    if (!tenantId) throw toRepositoryError(new Error("tenantId required for read"));
     const items = load<T>(this.type);
     const found = items.find((r) => r.id === id && isTenantIsolated(r, tenantId)) ?? null;
     return found;
@@ -143,12 +146,14 @@ export class JsonFileRepository<T extends { id: string }> implements IRepository
     offset?: number,
   ): Promise<{ items: T[]; total: number }> {
     assertJsonAllowed();
+    // S14: list("") devolvía TODOS los tenants. Denegar salvo lookup por
+    // prefijo, que se resuelve con findByPrefix().
+    if (!tenantId) {
+      throw toRepositoryError(new Error("tenantId required for list (cross-tenant denied)"));
+    }
     const items = load<T>(this.type);
     let result = items;
-    // Enforce tenant isolation unless empty (auth prefix lookup)
-    if (tenantId) {
-      result = result.filter((r) => isTenantIsolated(r, tenantId));
-    }
+    result = result.filter((r) => isTenantIsolated(r, tenantId));
     if (_filters) {
       result = result.filter((r) =>
         Object.entries(_filters).every(([k, v]) => {
@@ -199,6 +204,8 @@ export class JsonFileRepository<T extends { id: string }> implements IRepository
   }
 
   async findByPrefix(prefix: string): Promise<T | null> {
+    // Único lookup autorizado SIN tenantId: se usa antes de conocer el tenant
+    // (validación de llave API por prefijo). El caller compara el hash.
     assertJsonAllowed();
     const items = load<T>(this.type);
     return (

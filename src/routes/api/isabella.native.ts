@@ -5,7 +5,7 @@ import { handleNativeComprehension } from "@/lib/isabella-native-gateway";
 export const Route = createFileRoute("/api/isabella/native")({
   server: {
     handlers: {
-      POST: withSovereignAuth("system", "execute", async (context, request) =>
+      POST: withSovereignAuth("chat", "execute", async (context, request) =>
         handleNativeComprehension(
           {
             ip: context.ip,

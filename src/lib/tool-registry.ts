@@ -11,6 +11,8 @@
  *    define la whitelist y sus metadatos operativos.
  */
 
+import { grantedPermissions, ROLES, type Permission, type Role } from "./rbac";
+
 export type ToolRisk = "low" | "medium" | "high" | "critical";
 export type ToolCategory =
   "memory" | "ledger" | "compute" | "storage" | "network" | "identity" | "system" | "creativity";
@@ -439,6 +441,87 @@ export const TOOL_REGISTRY_SEED: readonly RegisteredTool[] = [
  * pero el comportamiento default es deny-by-default: toda herramienta no
  * registrada se considera NO autorizada.
  */
+
+/**
+ * Mapa EXPLÍCITO de los permisos declarados por herramienta (ISA-164) al
+ * catálogo RBAC: un permiso de herramienta queda satisfecho si el rol posee
+ * ALGUNO de los permisos RBAC equivalentes. Sin entrada en este mapa la
+ * herramienta queda DENEGADA (fail-closed): añadir un permiso nuevo al
+ * registro exige declarar aquí qué rol puede ejecutarlo.
+ */
+const READ_ONLY_PERMISSIONS: readonly Permission[] = [
+  "tool:execute:readonly",
+  "tool:execute",
+  "system:admin",
+];
+const WRITE_PERMISSIONS: readonly Permission[] = ["tool:execute", "system:admin"];
+
+const TOOL_PERMISSION_TO_RBAC: Record<string, readonly Permission[]> = {
+  // Datos / ledger / cómputo con equivalencia directa en RBAC.
+  "memory:read": [
+    "memory:read:own",
+    "memory:read:territorial",
+    "memory:read:restricted",
+    "memory:admin",
+  ],
+  "memory:write": ["memory:write:own", "memory:admin"],
+  "ledger:write": ["ledger:write", "ledger:refund"],
+  "compute:execute": ["sandbox:run", "tool:execute"],
+  // Lecturas (herramientas sin side effects): el rol de sólo-lectura las ve.
+  "storage:read": READ_ONLY_PERMISSIONS,
+  "identity:read": READ_ONLY_PERMISSIONS,
+  "market:read": READ_ONLY_PERMISSIONS,
+  "monitor:read": READ_ONLY_PERMISSIONS,
+  "search:read": READ_ONLY_PERMISSIONS,
+  "seo:read": READ_ONLY_PERMISSIONS,
+  "kb:read": READ_ONLY_PERMISSIONS,
+  "render:read": READ_ONLY_PERMISSIONS,
+  "reporting:read": READ_ONLY_PERMISSIONS,
+  "research:read": READ_ONLY_PERMISSIONS,
+  "intel:read": READ_ONLY_PERMISSIONS,
+  "leadgen:read": READ_ONLY_PERMISSIONS,
+  // Escrituras y ejecuciones con side effects.
+  "banner:write": WRITE_PERMISSIONS,
+  "brand:write": WRITE_PERMISSIONS,
+  "cicd:write": WRITE_PERMISSIONS,
+  "infographic:write": WRITE_PERMISSIONS,
+  "slides:write": WRITE_PERMISSIONS,
+  "spec:write": WRITE_PERMISSIONS,
+  "swiftui:write": WRITE_PERMISSIONS,
+  "testing:write": WRITE_PERMISSIONS,
+  "launch:execute": WRITE_PERMISSIONS,
+  "testing:execute": WRITE_PERMISSIONS,
+  "workflows:execute": WRITE_PERMISSIONS,
+};
+
+/**
+ * Devuelve los `requiredPermissions` de una herramienta que el rol NO posee
+ * (ISA-164). Reglas:
+ *  1. Coincidencia exacta con el catálogo RBAC.
+ *  2. Emparejamiento jerárquico: `memory:read` queda cubierto por
+ *     `memory:read:own` / `memory:read:territorial`.
+ *  3. Permisos sin entrada en `TOOL_PERMISSION_TO_RBAC` quedan en `missing`.
+ * Un rol desconocido otorga conjunto vacío (fail-closed).
+ */
+export function missingToolPermissions(
+  tool: Pick<RegisteredTool, "requiredPermissions">,
+  role: string,
+): string[] {
+  const granted: ReadonlySet<string> = ROLES.includes(role as Role)
+    ? grantedPermissions(role as Role)
+    : new Set<string>();
+  const missing: string[] = [];
+  for (const required of tool.requiredPermissions) {
+    if (granted.has(required)) continue;
+    if ([...granted].some((permission) => permission.startsWith(`${required}:`))) continue;
+    const accepted = TOOL_PERMISSION_TO_RBAC[required];
+    if (!accepted || !accepted.some((permission) => granted.has(permission))) {
+      missing.push(required);
+    }
+  }
+  return missing;
+}
+
 export function createToolRegistry(seed: readonly RegisteredTool[] = TOOL_REGISTRY_SEED) {
   const byName = new Map<string, RegisteredTool>();
   for (const tool of seed)

@@ -12,6 +12,11 @@ import {
   billingRequestHash,
 } from "@/lib/billing-guard";
 import Stripe from "stripe";
+import { redactLogArg } from "@/lib/secret-redactor";
+
+// Logs con redaccion (ISA-447): nunca volcar errores crudos a consola.
+const logError = (...args: unknown[]): void => console.error(...args.map(redactLogArg));
+const logWarn = (...args: unknown[]): void => console.warn(...args.map(redactLogArg));
 
 /**
  * Autorización económica server-side para handlers de billing.
@@ -47,7 +52,7 @@ function getStripe(): Stripe | null {
           apiVersion: "2022-11-15" as Stripe.LatestApiVersion,
         });
       } catch (err) {
-        console.error("Fallo al inicializar Stripe SDK:", err);
+        logError("Fallo al inicializar Stripe SDK:", err);
       }
     }
   }
@@ -366,7 +371,7 @@ export const Route = createFileRoute("/api/billing")({
                     { status: 409, headers },
                   );
                 }
-                console.error("[billing:checkout] idempotencia no disponible:", error);
+                logError("[billing:checkout] idempotencia no disponible:", error);
                 return new Response(JSON.stringify({ error: "IDEMPOTENCY_STORE_UNAVAILABLE" }), {
                   status: 503,
                   headers,
@@ -435,7 +440,7 @@ export const Route = createFileRoute("/api/billing")({
                   sessionId = stripeSession.id;
                   checkoutUrl = stripeSession.url ?? "";
                 } catch (stripeError) {
-                  console.error("Fallo Stripe checkout:", stripeError);
+                  logError("Fallo Stripe checkout:", stripeError);
                   await releaseCheckoutIdempotency({
                     tenantId: context.tenantId,
                     operation: "checkout",
@@ -471,7 +476,7 @@ export const Route = createFileRoute("/api/billing")({
                   checkoutUrl,
                 });
               } catch (error) {
-                console.error("[billing:checkout] no se pudo confirmar la idempotencia:", error);
+                logError("[billing:checkout] no se pudo confirmar la idempotencia:", error);
                 await releaseCheckoutIdempotency({
                   tenantId: context.tenantId,
                   operation: "checkout",
@@ -554,7 +559,7 @@ export const Route = createFileRoute("/api/billing")({
                 verificationError instanceof Error
                   ? verificationError.message
                   : String(verificationError);
-              console.error("Firma Webhook Stripe inválida:", errorMsg);
+              logError("Firma Webhook Stripe inválida:", errorMsg);
               return new Response(JSON.stringify({ error: "Fallo de validación de firma." }), {
                 status: 400,
                 headers,
@@ -584,7 +589,7 @@ export const Route = createFileRoute("/api/billing")({
               );
             }
             if (claim.status === "error") {
-              console.error("[billing:webhook] claimWebhookEvent failed:", claim.message);
+              logError("[billing:webhook] claimWebhookEvent failed:", claim.message);
               return new Response(
                 JSON.stringify({ error: "Idempotencia de webhook no disponible." }),
                 { status: 503, headers },
@@ -695,7 +700,7 @@ export const Route = createFileRoute("/api/billing")({
                     metadata: { dispute: true },
                   });
                   if (!hold.ok && !hold.duplicate) {
-                    console.error("[billing:dispute] recordEconomicEvent failed:", hold.error);
+                    logError("[billing:dispute] recordEconomicEvent failed:", hold.error);
                     if (config().NODE_ENV === "production") {
                       return new Response(
                         JSON.stringify({
@@ -756,9 +761,9 @@ export const Route = createFileRoute("/api/billing")({
               const message =
                 webhookError instanceof Error ? webhookError.message : String(webhookError);
               await markWebhookFailed(claim.id, message).catch((markError) => {
-                console.error("[billing:webhook] unable to persist failure state:", markError);
+                logError("[billing:webhook] unable to persist failure state:", markError);
               });
-              console.error("[billing:webhook] durable processing failed:", message);
+              logError("[billing:webhook] durable processing failed:", message);
               return new Response(
                 JSON.stringify({ error: "Webhook processing failed; Stripe may retry." }),
                 { status: 503, headers },
@@ -907,7 +912,7 @@ export const Route = createFileRoute("/api/billing")({
                   parsed.data.stripePaymentIntentId,
                 );
               } catch (err) {
-                console.error("[billing:topup] PaymentIntent inválido:", err);
+                logError("[billing:topup] PaymentIntent inválido:", err);
                 return new Response(JSON.stringify({ error: "PaymentIntent inválido." }), {
                   status: 422,
                   headers,
@@ -1089,7 +1094,7 @@ export const Route = createFileRoute("/api/billing")({
                   tokenHash: hashCapability(capability),
                 });
               } catch (error) {
-                console.error("[billing:authorize-run] capability store unavailable:", error);
+                logError("[billing:authorize-run] capability store unavailable:", error);
                 return new Response(JSON.stringify({ error: "RUN_CAPABILITY_STORE_UNAVAILABLE" }), {
                   status: 503,
                   headers,
@@ -1150,7 +1155,7 @@ export const Route = createFileRoute("/api/billing")({
                 skillId: parsed.data.skillId,
                 estimatedCostMinor: Math.round(parsed.data.actualCostUSD * 100),
               }).catch((error: unknown) => {
-                console.error("[billing:consume-run] capability store unavailable:", error);
+                logError("[billing:consume-run] capability store unavailable:", error);
                 return null;
               });
               if (consumed === null) {
@@ -1299,7 +1304,7 @@ export const Route = createFileRoute("/api/billing")({
                     "Marketplace listing failed: DATABASE_URL required in production",
                   );
                 }
-                console.warn(
+                logWarn(
                   "[billing] Marketplace listing: DB unavailable, falling back to in-memory (dev only)",
                 );
               }
@@ -1432,7 +1437,7 @@ export const Route = createFileRoute("/api/billing")({
           );
         } catch (e: unknown) {
           const internalId = nodeCrypto.randomUUID().slice(0, 8);
-          console.error(`[api/billing:${internalId}]`, e);
+          logError(`[api/billing:${internalId}]`, e);
           const isDev = config().NODE_ENV === "development";
           const payload: Record<string, string> = {
             error: "internal_error",

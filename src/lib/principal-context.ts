@@ -314,6 +314,19 @@ export class PrincipalContext {
       scope: claims.scope,
     };
     return runWithIdentity(identity, async () => {
+      // Fail-closed: un claim sin tenant no puede tocar el repositorio
+      // (denegación explícita 403, no un 500 por excepción).
+      if (!claims.tenantId) {
+        return {
+          success: false,
+          response: jsonError(
+            "Aislamiento de Tenant Violado: El token no declara tenant.",
+            telemetry.traceId,
+            403,
+            headers,
+          ),
+        };
+      }
       const tenantRecord = await repositoryFactory
         .getTenantRepository()
         .read(claims.tenantId, claims.tenantId);
@@ -416,12 +429,16 @@ export function withSovereignAuth(
   handler: (context: PrincipalContext, request: Request, body?: unknown) => Promise<Response>,
 ) {
   return async ({ request }: { request: Request }): Promise<Response> => {
+    // El turno de chat exige scope de conversación; la ejecución de sistema
+    // también (conserva el contrato de scope previo). La lectura de sesión
+    // propia no requiere scope adicional: sólo identidad + session:read.
     const requiredScope =
-      resource === "system" && action === "execute" ? "isabella:chat" : undefined;
+      resource === "chat" || (resource === "system" && action === "execute")
+        ? "isabella:chat"
+        : undefined;
     const authResult = await PrincipalContext.authorize(request, requiredScope);
     if (!authResult.success) return authResult.response;
     const { context } = authResult;
-    const isGuestChat = context.role === "Guest" && resource === "system" && action === "execute";
     const authReq: AuthorizationContext = {
       tenant_id: context.tenantId,
       subject_id: context.userId,
@@ -435,7 +452,9 @@ export function withSovereignAuth(
         timestamp: new Date(),
       },
     };
-    const decisionResult = isGuestChat ? { allow: true } : await evaluateAuthorization(authReq);
+    // Sin atajos por rol: toda identidad pasa por el PDP centralizado.
+    // (Guest chatea mediante el recurso "chat", nunca mediante system/execute.)
+    const decisionResult = await evaluateAuthorization(authReq);
     if (!decisionResult.allow)
       return jsonError(
         `Acceso Denegado por Política Centralizada: Privilegios insuficientes para la operación (${resource}:${action}).`,

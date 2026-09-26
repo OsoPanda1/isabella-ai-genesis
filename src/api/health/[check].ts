@@ -13,8 +13,8 @@ type HealthResponse = {
 export default async function handler(req: HealthRequest, res: HealthResponse) {
   const check = Array.isArray(req.query.check) ? req.query.check[0] : req.query.check;
 
+  // Sin SHA de commit en respuestas publicas: evita fingerprinting del build.
   const versionInfo = {
-    sha: config().VERCEL_GIT_COMMIT_SHA || "dev-local",
     mode: config().ISABELLA_RUNTIME_MODE || "development",
     timestamp: new Date().toISOString(),
   };
@@ -34,11 +34,12 @@ export default async function handler(req: HealthRequest, res: HealthResponse) {
         ...versionInfo,
       });
     } catch (error) {
+      console.error("[health:ready]", error instanceof Error ? error.message : String(error));
       return res.status(503).json({
         status: "ERROR",
         type: "ready",
         database: "disconnected",
-        error: String(error),
+        error: "database_unavailable",
       });
     }
   }
@@ -59,7 +60,12 @@ export default async function handler(req: HealthRequest, res: HealthResponse) {
         ...versionInfo,
       });
     } catch (error) {
-      return res.status(503).json({ status: "ERROR", type: "deep", error: String(error) });
+      console.error("[health:deep]", error instanceof Error ? error.message : String(error));
+      return res.status(503).json({
+        status: "ERROR",
+        type: "deep",
+        error: "dependency_unavailable",
+      });
     }
   }
 

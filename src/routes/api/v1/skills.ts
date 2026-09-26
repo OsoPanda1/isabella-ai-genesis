@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { randomUUID } from "node:crypto";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { SecuritySystem } from "@/lib/security";
 import { listIsabellaSkills, getRuntimeSkill, type IsabellaSkillId } from "@/lib/skills/registry";
@@ -110,12 +111,17 @@ export const Route = createFileRoute("/api/v1/skills")({
             result,
           });
         } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
+          const internalId = randomUUID().slice(0, 12);
+          console.error(
+            `[skills:${skill.name}:${internalId}]`,
+            error instanceof Error ? error.message : String(error),
+          );
           return json(
             {
               success: false,
               traceId: context.traceId,
-              error: `Fallo durante la ejecución de la habilidad: ${message}`,
+              error: "skill_execution_failed",
+              internalId,
             },
             500,
           );

@@ -157,7 +157,12 @@ export function verifyJwt(token: string, options: JwtVerifierOptions): JwtVerify
   const tolerance = options.clockToleranceSeconds ?? CLOCK_TOLERANCE_DEFAULT;
   const now = Math.floor(Date.now() / 1000);
 
-  if (typeof payload.exp === "number" && now > payload.exp + tolerance) {
+  // AGENTS §8.1: exp es obligatorio. Un token sin exp nunca expira y por
+  // tanto no puede considerarse válido (fail-closed).
+  if (typeof payload.exp !== "number") {
+    return { ok: false, reason: "Token sin exp." };
+  }
+  if (now > payload.exp + tolerance) {
     return { ok: false, reason: "Token expirado." };
   }
   if (typeof payload.nbf === "number" && now < payload.nbf - tolerance) {

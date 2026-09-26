@@ -27,14 +27,10 @@ export function isDevAuthAction(action: string): action is DevAuthAction {
 }
 
 /**
- * Retorna una Response 404 si la acción dev-auth llega en producción,
- * o null si puede continuar (desarrollo con doble gate verificado
- * por el llamador vía isDevSessionEnabled()).
+ * Devuelve 404 si la superficie dev/test debe estar oculta (producción o
+ * staging), o null si puede continuar (desarrollo).
  */
-export function devAuthNotFound(action: string): Response | null {
-  // La acción solo determina el llamador; la respuesta es siempre 404
-  // genérico para no confirmar qué acciones dev existen.
-  void action;
+export function devSurfaceNotFound(): Response | null {
   let productionLike = true;
   try {
     productionLike = isProductionLike(resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE));
@@ -49,6 +45,21 @@ export function devAuthNotFound(action: string): Response | null {
     status: 404,
     headers,
   });
+}
+
+/**
+ * Retorna una Response 404 si la acción dev-auth llega en producción,
+ * o null si puede continuar (desarrollo con doble gate verificado
+ * por el llamador vía isDevSessionEnabled()).
+ */
+export function devAuthNotFound(action: string): Response | null {
+  // Fuera de la superficie dev-auth este guard NO aplica: las acciones
+  // normales (session, ledger, emergency, payout, ...) tienen sus propios
+  // controles. Aquí sólo se ocultan las acciones dev en producción.
+  if (!isDevAuthAction(action)) return null;
+  // La respuesta es siempre 404 genérico para no confirmar qué acciones
+  // dev existen.
+  return devSurfaceNotFound();
 }
 
 export const DEV_AUTH_GUARD = {

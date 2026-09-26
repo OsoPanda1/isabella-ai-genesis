@@ -106,6 +106,22 @@ const UPSTREAM_ALLOWLIST: readonly string[] = [
   "api.x.ai",
 ];
 
+/**
+ * Detecta hosts que son literales IP (IPv4, IPv6, decimal/hex ya
+ * normalizado por el parser WHATWG). Una IP nunca esta en la allowlist,
+ * pero el parser convierte formas como http://2130706433 a 127.0.0.1,
+ * asi que se rechaza explicitamente (ISA-184/ISA-187).
+ */
+function isLiteralIpHost(hostname: string): boolean {
+  const host = hostname.replace(/^\[|\]$/g, "").toLowerCase();
+  if (host.includes(":")) return true; // IPv6 (con o sin corchetes)
+  const octets = host.split(".");
+  const isOctet = (part: string) => part.length > 0 && part.length <= 3 && /^\d+$/.test(part);
+  if (octets.length === 4 && octets.every(isOctet)) return true; // IPv4
+  if (/^0x[0-9a-f]+$/.test(host) || /^\d+$/.test(host)) return true; // hex/decimal residual
+  return false;
+}
+
 function isUpstreamAllowed(url: string): boolean {
   let parsed: URL;
   try {
@@ -113,9 +129,14 @@ function isUpstreamAllowed(url: string): boolean {
   } catch {
     return false;
   }
+  // ISA-184: canonicalizacion estricta del destino.
   if (parsed.protocol !== "https:") return false;
   if (parsed.username !== "" || parsed.password !== "") return false;
+  // ISA-185: solo el puerto https por defecto (443 implicito o explicito).
+  if (parsed.port !== "" && parsed.port !== "443") return false;
+  // Coincidencia exacta: sin trailing dot, sin literales IP.
   const host = parsed.hostname.toLowerCase();
+  if (host === "" || isLiteralIpHost(host)) return false;
   if (UPSTREAM_ALLOWLIST.includes(host)) return true;
   try {
     const voice = config().VOICE_API_URL;
@@ -605,7 +626,26 @@ export const SecuritySystem = {
     if (!isUpstreamAllowed(url)) {
       throw new Error(`[SovereignEgress] Host no autorizado para egress server-side: ${url}.`);
     }
-    return globalCircuitBreaker.execute(url, options);
+    // ISA-185: los redireccionamientos no se siguen nunca: un 302 podria
+    // llevar el request a un host fuera de la allowlist.
+    const response = await globalCircuitBreaker.execute(url, {
+      ...options,
+      redirect: "error",
+    });
+    // Defensa en profundidad: con redirect:"error" un 3xx no deberia
+    // llegar nunca; si llega, el cuerpo se descarta en lugar de propagarse
+    // a un host que no fue validado.
+    if (response.status >= 300 && response.status < 400) {
+      throw new Error(
+        `[SovereignEgress] Redireccionamiento inesperado (${response.status}) hacia: ${
+          response.headers.get("location") ?? "unknown"
+        }.`,
+      );
+    }
+    if (response.url && !isUpstreamAllowed(response.url)) {
+      throw new Error(`[SovereignEgress] Destino final no autorizado (redirect): ${response.url}.`);
+    }
+    return response;
   },
 
   generateTelemetry(ip: string, policy: "allowed" | "denied" | "flagged"): SecurityTelemetry {

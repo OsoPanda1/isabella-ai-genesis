@@ -228,3 +228,49 @@ export function isCiEnvironment(source: RawEnv = process.env): boolean {
 export function getCiRunId(source: RawEnv = process.env): string {
   return source.GITHUB_RUN_ID ?? "local";
 }
+
+/**
+ * Único punto de lectura de variables de entorno "crudas" fuera del esquema
+ * validado (AGENTS.md: `process.env` sólo vive en este módulo). La lista es
+ * una allowlist explícita de claves NO sensibles: secretos, URLs y tokens
+ * jamás aparecen aquí.
+ */
+export const PASSTHROUGH_ENV_KEYS = [
+  "NODE_ENV",
+  "COMMIT_SHA",
+  "PATH",
+  "PYTHONPATH",
+  "HOME",
+  "LANG",
+  "LC_ALL",
+  "TZ",
+] as const;
+export type PassthroughEnvKey = (typeof PASSTHROUGH_ENV_KEYS)[number];
+
+export function passthroughEnv(key: PassthroughEnvKey): string | undefined {
+  return process.env[key];
+}
+
+/** Copia mínima del entorno para procesos hijos (spawn) — sin secretos. */
+export function passthroughChildEnv(): NodeJS.ProcessEnv {
+  const out: NodeJS.ProcessEnv = {};
+  for (const key of PASSTHROUGH_ENV_KEYS) {
+    const value = process.env[key];
+    if (value !== undefined) out[key] = value;
+  }
+  return out;
+}
+
+/**
+ * Claves no sensibles usadas por el fingerprint de build (`computeEnvFingerprint`).
+ * Se exponen aquí para que ningún otro módulo toque `process.env` directamente.
+ */
+export function fingerprintEnvSource(): NodeJS.ProcessEnv {
+  return {
+    NODE_ENV: process.env.NODE_ENV,
+    PUBLIC_URL: process.env.PUBLIC_URL,
+    LLM_DEFAULT_MODEL: process.env.LLM_DEFAULT_MODEL,
+    CROWN_CONSTITUTION_VERSION: process.env.CROWN_CONSTITUTION_VERSION,
+    BOOKPI_SIGNATURE_ALGORITHM: process.env.BOOKPI_SIGNATURE_ALGORITHM,
+  };
+}

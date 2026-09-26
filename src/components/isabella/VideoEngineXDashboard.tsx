@@ -26,6 +26,22 @@ import type {
   ShotCardX,
 } from "@/lib/video-x/types";
 import { PROJECT_STATUS_FLOW } from "@/lib/video-x/engine";
+import { getSessionToken } from "@/lib/auth-client";
+
+/**
+ * Todas las llamadas a la API llevan la sesion: el handler exige
+ * withSovereignAuth y sin Bearer el servidor responde 401.
+ */
+async function videoFetch(input: string, init?: RequestInit): Promise<Response> {
+  const token = getSessionToken() || sessionStorage.getItem("isabella_session_token") || "";
+  return fetch(input, {
+    ...init,
+    headers: {
+      ...(init?.headers ?? {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+}
 
 export function VideoEngineXDashboard() {
   const [projects, setProjects] = useState<VideoProject[]>([]);
@@ -42,6 +58,7 @@ export function VideoEngineXDashboard() {
   >("graph");
 
   const [loading, setLoading] = useState(false);
+  const [errorNotice, setErrorNotice] = useState<string | null>(null);
   const [impactAnalysis, setImpactAnalysis] = useState<ImpactAnalysisResult | null>(null);
   const [selectedShotCardCategory, setSelectedShotCardCategory] = useState<string>("all");
 
@@ -54,14 +71,17 @@ export function VideoEngineXDashboard() {
   const fetchProjectDetails = useCallback(async (projectId: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/video-engine-x?action=project&id=${projectId}`);
+      const res = await videoFetch(`/api/video-engine-x?action=project&id=${projectId}`);
       const data = await res.json();
       if (data.success) {
+        setErrorNotice(null);
         setProject(data.project);
         setGraph(data.narrativeGraph);
         setTimeline(data.timeline);
         setQaReport(data.qaReport);
         setC2paManifest(data.c2paManifest);
+      } else if (res.status === 401 || res.status === 403) {
+        setErrorNotice("Sesion requerida: inicia sesion para consultar los proyectos de Video X.");
       }
     } catch (e) {
       console.error("Error fetching Video X details", e);
@@ -75,18 +95,23 @@ export function VideoEngineXDashboard() {
     async function initData() {
       try {
         const [projRes, cardsRes] = await Promise.all([
-          fetch("/api/video-engine-x?action=projects"),
-          fetch("/api/video-engine-x?action=shot-cards"),
+          videoFetch("/api/video-engine-x?action=projects"),
+          videoFetch("/api/video-engine-x?action=shot-cards"),
         ]);
         const projData = await projRes.json();
         const cardsData = await cardsRes.json();
 
         if (projData.success) {
+          setErrorNotice(null);
           setProjects(projData.projects);
           if (projData.projects.length > 0) {
             setSelectedProjectId(projData.projects[0].id);
             void fetchProjectDetails(projData.projects[0].id);
           }
+        } else if (projRes.status === 401 || projRes.status === 403) {
+          setErrorNotice(
+            "Sesion requerida: inicia sesion para consultar los proyectos de Video X.",
+          );
         }
         if (cardsData.success) {
           setShotCards(cardsData.shotCards);
@@ -102,7 +127,7 @@ export function VideoEngineXDashboard() {
   const handleAdvanceState = async () => {
     if (!project) return;
     try {
-      const res = await fetch("/api/video-engine-x", {
+      const res = await videoFetch("/api/video-engine-x", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -124,7 +149,7 @@ export function VideoEngineXDashboard() {
   const handleMutateNode = async (nodeId: string) => {
     if (!project) return;
     try {
-      const res = await fetch("/api/video-engine-x", {
+      const res = await videoFetch("/api/video-engine-x", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -147,7 +172,7 @@ export function VideoEngineXDashboard() {
   const handleRegenerateShot = async (shotId: string) => {
     if (!project) return;
     try {
-      const res = await fetch("/api/video-engine-x", {
+      const res = await videoFetch("/api/video-engine-x", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -169,7 +194,7 @@ export function VideoEngineXDashboard() {
   const handleRunQA = async () => {
     if (!project) return;
     try {
-      const res = await fetch("/api/video-engine-x", {
+      const res = await videoFetch("/api/video-engine-x", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -190,7 +215,7 @@ export function VideoEngineXDashboard() {
   const handleExportC2PA = async () => {
     if (!project) return;
     try {
-      const res = await fetch("/api/video-engine-x", {
+      const res = await videoFetch("/api/video-engine-x", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -212,7 +237,7 @@ export function VideoEngineXDashboard() {
   const handleCreateProject = async () => {
     if (!newTitle.trim()) return;
     try {
-      const res = await fetch("/api/video-engine-x", {
+      const res = await videoFetch("/api/video-engine-x", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -243,6 +268,15 @@ export function VideoEngineXDashboard() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 font-sans text-foreground">
+      {errorNotice && (
+        <div
+          role="alert"
+          className="flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-xs font-medium text-amber-500"
+        >
+          <AlertTriangle className="size-4 shrink-0" />
+          {errorNotice}
+        </div>
+      )}
       {/* HEADER BAR */}
       <div className="flex flex-col gap-4 rounded-3xl border border-electric/30 bg-background/60 p-6 backdrop-blur-xl md:flex-row md:items-center md:justify-between">
         <div>

@@ -28,6 +28,7 @@ import { verifyJwt, type JwtClaims, type JwtHeader } from "./jwt-verifier";
 import { jwkToPem } from "./oidc";
 import { createAuditRepository, type AuditSeverity } from "./repositories/audit-repository";
 import { mapSupabaseRole } from "./supabase-auth";
+import { ROLES, type Role } from "./rbac";
 import type { TokenClaims } from "./security";
 
 export type AuthProviderType = "internal_sovereign" | "oidc_jwks" | "supabase_auth";
@@ -444,15 +445,28 @@ class AuthVerificationLayerImpl {
       const providerType: AuthProviderType = isSupabase ? "supabase_auth" : "oidc_jwks";
 
       // Control Anti-Spoofing de Roles:
-      // Tokens externos nunca pueden autoasignarse 'SovereignOwner' arbitrariamente.
+      // - Un rol desconocido/ausente degrada a Guest, nunca a Operator
+      //   (que tiene tool:execute, sandbox:run y monetización).
+      // - Un emisor EXTERNO (OIDC de terceros) sólo puede declarar roles de
+      //   la allowlist: jamás governance_admin ni SovereignOwner. La
+      //   administración de gobernanza/permisos no viene de un IdP ajeno.
+      const EXTERNAL_ISSUER_ROLES: readonly string[] = ["Guest", "Auditor", "Operator"];
       const rawRole =
         (p.role as unknown) ?? (p.app_metadata as Record<string, unknown> | undefined)?.role;
-      let mappedRole = isSupabase ? mapSupabaseRole(rawRole) : "Operator";
-
-      // Si el token externo solicita SovereignOwner pero no tiene respaldo de tenant verificado
-      if (rawRole === "SovereignOwner" && !isInternalIssuer && !isSupabase) {
-        mappedRole = "Operator"; // degradación segura anti-spoofing
-      }
+      // Normalización case-insensitive: los IdP suelen emitir "operator".
+      const normalizedRole =
+        typeof rawRole === "string"
+          ? (ROLES.find((role) => role.toLowerCase() === rawRole.trim().toLowerCase()) as
+              Role | undefined)
+          : undefined;
+      const roleAllowed =
+        normalizedRole !== undefined &&
+        (isInternalIssuer || isSupabase || EXTERNAL_ISSUER_ROLES.includes(normalizedRole));
+      const mappedRole: Role = isSupabase
+        ? mapSupabaseRole(rawRole)
+        : normalizedRole && roleAllowed
+          ? normalizedRole
+          : "Guest";
 
       const normalizedClaims: TokenClaims = {
         iss: p.iss ?? tokenIssuer,
@@ -546,7 +560,10 @@ class AuthVerificationLayerImpl {
       aud: Array.isArray(p.aud) ? p.aud.join(" ") : String(p.aud ?? "isabella"),
       exp: p.exp ?? Math.floor(Date.now() / 1000) + 3600,
       tenantId: (p.tenantId as string) ?? "sovereign-default",
-      role: (p.role as string) ?? "Operator",
+      role:
+        typeof p.role === "string" && (ROLES as readonly string[]).includes(p.role)
+          ? p.role
+          : "Guest",
       scope: (p.scope as string) ?? "isabella:chat",
       jti: (p.jti as string) ?? `jti_${crypto.randomUUID().slice(0, 8)}`,
     };

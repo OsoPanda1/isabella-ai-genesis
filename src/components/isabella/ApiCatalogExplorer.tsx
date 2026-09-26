@@ -30,11 +30,12 @@ const METHOD_COLORS: Record<string, string> = {
   PUT: "bg-blue-500/10 text-blue-400 border-blue-500/20",
 };
 
-// Estrategias de Arquitectura AI (Inspiradas en OpenAI, Anthropic, DeepSeek y MemGPT)
+// Estrategias de enrutamiento del gateway (heurística local determinista).
+// NO son MoE ni modelos de terceros: el router decide por señales del texto.
 const AI_ROUTING_STRATEGIES = [
   {
     id: "moe_dynamic",
-    label: "MoE Routing (DeepSeek-V3)",
+    label: "Enrutamiento heurístico por señales (no MoE)",
     icon: Network,
     color: "text-purple-400",
   },
@@ -90,7 +91,9 @@ export function ApiCatalogExplorer() {
   const [activeEntry, setActiveEntry] = useState<CatalogEntry | null>(null);
 
   const [simulateParams, setSimulateParams] = useState<string>(
-    '{\n  "tenantId": "tamv-node-zero",\n  "actorId": "usr-anubis",\n  "clientId": "isabella-cli-v4",\n  "contextDepth": "deep",\n  "vectorMemoryAccess": true\n}',
+    // tenantId/actorId NUNCA se envían desde el cliente: se derivan de la
+    // sesión en el servidor (ISA-457/ISA-458).
+    '{\n  "clientId": "isabella-cli-v4",\n  "contextDepth": "deep",\n  "vectorMemoryAccess": true\n}',
   );
 
   const [isSimulating, setIsProcessing] = useState(false);
@@ -245,7 +248,7 @@ export function ApiCatalogExplorer() {
           </div>
         </div>
 
-        {/* Estrategias de Inteligencia Artificial (DeepSeek / OpenAI / Swarm) */}
+        {/* Estrategias de enrutamiento del gateway (heurística interna) */}
         <div className="glass rounded-2xl p-4 border border-border/40">
           <h3 className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground mb-3 flex items-center gap-2">
             <BrainCircuit className="size-3.5 text-purple-400" />

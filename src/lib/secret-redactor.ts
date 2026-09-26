@@ -118,3 +118,21 @@ function isSensitiveKey(key: string): boolean {
 export const redactor: Redactor = createRedactor();
 export const redact = (input: string): string => redactor.redact(input);
 export const redactObject = (input: unknown): unknown => redactor.redactObject(input);
+
+/**
+ * Redacta cualquier argumento de log (string, Error u objeto) antes de
+ * emitirlo a consola/telemetría. Los mensajes de error pueden contener
+ * tokens, URLs con credenciales o payloads del cliente (ISA-447).
+ */
+export function redactLogArg(value: unknown): unknown {
+  if (typeof value === "string") return redact(value);
+  if (value instanceof Error) {
+    const head = redact(`${value.name}: ${value.message}`);
+    return value.stack ? `${head}\n${redact(value.stack)}` : head;
+  }
+  try {
+    return redactObject(value);
+  } catch {
+    return "[log no serializable]";
+  }
+}

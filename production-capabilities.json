@@ -1,13 +1,13 @@
 {
   "version": "4.3.3",
-  "assessment_date": "2026-09-24T12:00:00Z",
+  "assessment_date": "2026-09-26T00:00:00Z",
   "commit_sha": "PENDING_SAME_COMMIT",
-  "overall_readiness_percent": 81,
+  "overall_readiness_percent": 54,
   "readiness_breakdown": {
-    "implementation_percent": 100,
+    "implementation_percent": 46,
     "deployment_percent": 62,
-    "global_percent": 81,
-    "note": "SSOT honesto alineado con README: 100% implementación verificable, 62% despliegue hasta Neon/Stripe/HSM vivo, 81% global. Nunca 97% ni 100% global."
+    "global_percent": 54,
+    "note": "Cifras derivadas de la auditoria ISA-500 (500 items): 42 FIXED (8.4%), 376 PARTIAL (75.2%), 74 STILL_BROKEN (14.8%), 8 BLOCKED_ENVIRONMENT (1.6%). Implementacion = ponderado conservador FIXED=1 y PARTIAL=0.5 sobre 500 = 46% (cota inferior; FIXED-only = 8.4%). Despliegue 62% = viven hasta Neon/Stripe/HSM. Global = media aritmetica (46+62)/2 = 54%. Nunca se declara 100% de implementacion ni 100% global."
   },
   "environment": "production",
   "governance_hash": "sha3-512:fgais-v4.3.3-audit-corrections",
@@ -242,20 +242,29 @@
   ],
   "test_summary": {
     "status": "passed",
-    "run_date": "2026-09-24",
+    "run_date": "2026-09-26",
     "runner": "vitest run (local, pnpm test)",
-    "total_tests": 636,
-    "passing_tests": 623,
+    "total_tests": 684,
+    "passing_tests": 671,
     "failing_tests": 0,
     "skipped_tests": 13,
-    "suites_passed": 109,
+    "suites_passed": 114,
     "suites_skipped": 2,
-    "note": "Conteos de la ejecución local real del 2026-09-24 tras fix CROWN-SSR-01 (retiro del rename ciego generateBundle, forzado oxc.jsx.development:false en build). +4 tests de ssr-jsx-production. Skips = gated sin TEST_DATABASE_URL u otros."
+    "note": "Conteos de la ejecucion local real del 2026-09-26 tras las correcciones ISA-150/164/184/185/187/S14/dev-auth. Skips = gated sin TEST_DATABASE_URL u otros."
   },
   "deployment_tiers": {
-    "tier_0_predeployment": { "status": "passed", "percent_complete": 100 },
-    "tier_1_staging": { "status": "evidence_required", "percent_complete": 62 },
-    "tier_2_production": { "status": "blocked_pending_evidence", "percent_complete": 62 }
+    "tier_0_predeployment": {
+      "status": "passed",
+      "percent_complete": 100
+    },
+    "tier_1_staging": {
+      "status": "evidence_required",
+      "percent_complete": 62
+    },
+    "tier_2_production": {
+      "status": "blocked_pending_evidence",
+      "percent_complete": 62
+    }
   },
   "security_audit": {
     "critical_issues": 0,
@@ -272,5 +281,5 @@
   ],
   "maintained_by": "FGAIS Governance Committee",
   "certification_authority": "Human + Automated Gates",
-  "honesty_note": "Código existente ≠ capacidad certificada. EVIDENCE_GATED ≠ PASS. KMS local ≠ HSM. Este manifiesto se alinea con README (81% global) y con package.json (4.3.3)."
+  "honesty_note": "Codigo existente != capacidad certificada. EVIDENCE_GATED != PASS. KMS local != HSM. Este manifiesto se alinea con README (54% global) y con package.json (4.3.3)."
 }

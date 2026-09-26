@@ -85,18 +85,16 @@ export class UserAuthService {
       role: Role;
     };
   }> {
-    // P0-06: bloquear signup nativo en producción — solo dev/test/migración
-    try {
-      const { config } = await import("./config");
-      const { resolveRuntimeMode } = await import("./runtime-mode");
-      const mode = resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE);
-      if (mode === "production" || mode === "staging") {
-        throw new Error(
-          "signup nativo deshabilitado en producción — usar Supabase Auth/OIDC canónico",
-        );
-      }
-    } catch (e) {
-      if ((e as Error).message.includes("deshabilitado en producción")) throw e;
+    // P0-06: bloquear signup nativo en producción — solo dev/test/migración.
+    // Fail-closed: cualquier fallo al resolver el modo (config importada,
+    // esquema, etc.) PROPAGA el error; no se traga el guard.
+    const { config } = await import("./config");
+    const { resolveRuntimeMode } = await import("./runtime-mode");
+    const mode = resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE);
+    if (mode === "production" || mode === "staging") {
+      throw new Error(
+        "signup nativo deshabilitado en producción — usar Supabase Auth/OIDC canónico",
+      );
     }
     const email = params.email.trim().toLowerCase();
     const username = params.username.trim();
@@ -130,9 +128,14 @@ export class UserAuthService {
 
     const { hash, salt } = this.hashPassword(params.password);
 
-    // 1. Asegurar o aprovisionar Tenant en el repositorio
+    // 1. Asegurar o aprovisionar Tenant en el repositorio.
+    // S11: el tenantSlug del cliente NUNCA se usa para unirse a un tenant
+    // existente (eso sería alta de identidad ajena); sólo para crear uno nuevo.
     const tenantRepo = repositoryFactory.getTenantRepository();
     const existingTenant = await tenantRepo.read(tenantId, tenantId);
+    if (existingTenant && params.tenantSlug) {
+      throw new Error("tenant_already_exists — el tenant indicado ya existe");
+    }
     if (!existingTenant) {
       await tenantRepo.create(tenantId, {
         id: tenantId,
