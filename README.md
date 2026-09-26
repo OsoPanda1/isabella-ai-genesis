@@ -63,6 +63,10 @@ Usa `.env.example` como contrato. Nunca publiques secretos. En Preview, el chat 
 
 Los duplicados binarios rastreados que tienen funciones distintas se conservan separados: assets públicos/runtime, fixtures de despliegue, catálogos de policy y documentación histórica no son intercambiables. Los directorios `.output`, `dist`, `.next` y caches son generados y no deben versionarse.
 
+## Claves de operación
+
+El catálogo completo y actualizado de credenciales externas e internas está en [`docs/operations/SECRETS-CATALOG.md`](docs/operations/SECRETS-CATALOG.md). Para la operación mínima de producción se requieren persistencia configurada, `AUTH_JWT_SECRET`, `ENCRYPTION_MASTER_KEY`, `CROWN_POLICY_SIGNING_KEY`, `AEGIS_AUDIT_SECRET`, `BOOKPI_SIGNING_KEY`, `PROVISION_OWNER_TOKEN`, `API_KEY_HASH_SECRET` y, si se habilita inferencia externa, la credencial del proveedor correspondiente.
+
 ## Seguridad y honestidad operativa
 
 No introduzcas tokens, claves, datos personales, dumps ni certificados privados. Las claves de firma y credenciales se mantienen **REDACTED** en documentación y se gestionan únicamente mediante variables seguras del entorno. Un modelo no es una autoridad; una predicción no es un hecho; una recomendación no es una aprobación. Toda capacidad debe conservar procedencia, límites, revisión humana cuando corresponda y evidencia reproducible.

@@ -31,6 +31,7 @@
 - `docs/architecture/SSOT.md` — SSoT por dominio
 - `docs/architecture/RUNTIME-AUTHORITY-MAP.md` — mapa de autoridades runtime
 - `docs/operations/` — runbooks operativos (SLO, CSP, rate limit, backups, HSM, etc.)
+- [`docs/operations/SECRETS-CATALOG.md`](operations/SECRETS-CATALOG.md) — catálogo de claves externas e internas y requisitos por capacidad
 - `docs/runbooks/incident.md` — respuesta a incidentes P0/P1
 - `docs/security/ISABELLA-API-KEYS.md` — contrato de API keys
 - `docs/evidence/` — manifiestos de evidencia same-commit
