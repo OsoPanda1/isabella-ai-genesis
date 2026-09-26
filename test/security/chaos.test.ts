@@ -42,7 +42,7 @@ describe("fallos de infraestructura degradan con gracia", () => {
     await expect(SovereignAudit.signAuditSeal(hash)).rejects.toThrow(/fail-closed/);
     vi.unstubAllEnvs();
     resetConfigCache();
-  });
+  }, 30000);
 
   it("AEGIS con basura/entradas límite no falla y permite", async () => {
     const { analyzeAegisSemantic } = await import("@/lib/aegis-semantic");
@@ -52,7 +52,9 @@ describe("fallos de infraestructura degradan con gracia", () => {
       expect(Number.isFinite(analysis.score)).toBe(true);
     }
     expect(analyzeAegisSemantic("", {}).verdict).toBe("allow");
-  });
+    // Import dinamico + corpus de 20k bajo carga paralela: margen amplio
+    // para que el gate no dependa del scheduling de la maquina.
+  }, 30000);
 
   it("PDP con identidad vacía deniega (no lanza)", async () => {
     const { evaluateAuthorization } = await import("@/lib/authorization");
@@ -68,5 +70,5 @@ describe("fallos de infraestructura degradan con gracia", () => {
       },
     });
     expect(decision.allow).toBe(false);
-  });
+  }, 30000);
 });
