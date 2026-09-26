@@ -36,8 +36,18 @@ function parseEndpoints(raw: string | undefined): FreeAIEndpoint[] {
       const model = typeof candidate.model === "string" ? candidate.model.trim() : "";
       const label = typeof candidate.label === "string" ? candidate.label.trim() : id;
       const requiresKey = candidate.requiresKey === true;
-      if (!id || !model || !/^https:\/\//i.test(baseUrl) || !/^[a-zA-Z0-9._:/-]+$/.test(model)) return [];
-      return [{ id, label, baseUrl: baseUrl.replace(/\/$/, ""), model, license: requiresKey ? "provider-free-tier" : "local-open-weight", requiresKey }];
+      if (!id || !model || !/^https:\/\//i.test(baseUrl) || !/^[a-zA-Z0-9._:/-]+$/.test(model))
+        return [];
+      return [
+        {
+          id,
+          label,
+          baseUrl: baseUrl.replace(/\/$/, ""),
+          model,
+          license: requiresKey ? "provider-free-tier" : "local-open-weight",
+          requiresKey,
+        },
+      ];
     });
   } catch {
     return [];
@@ -54,7 +64,9 @@ class FreeCompatibleProvider implements IntelligenceProvider {
   }
   async health(): Promise<boolean> {
     try {
-      const response = await SecuritySystem.fetchSafeUpstream(`${this.endpoint.baseUrl}/models`, { method: "GET" });
+      const response = await SecuritySystem.fetchSafeUpstream(`${this.endpoint.baseUrl}/models`, {
+        method: "GET",
+      });
       return response.ok;
     } catch {
       return false;
@@ -62,20 +74,46 @@ class FreeCompatibleProvider implements IntelligenceProvider {
   }
   async invoke(request: IntelligenceRequest): Promise<IntelligenceResponse> {
     const started = performance.now();
-    const response = await SecuritySystem.fetchSafeUpstream(`${this.endpoint.baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ model: this.modelId, messages: request.messages, temperature: request.temperature ?? 0.7, max_tokens: request.maxTokens ?? 2048, stream: false }),
-    });
+    const response = await SecuritySystem.fetchSafeUpstream(
+      `${this.endpoint.baseUrl}/chat/completions`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          model: this.modelId,
+          messages: request.messages,
+          temperature: request.temperature ?? 0.7,
+          max_tokens: request.maxTokens ?? 2048,
+          stream: false,
+        }),
+      },
+    );
     if (!response.ok) throw new Error(`free federation upstream returned ${response.status}`);
-    const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }>; usage?: { prompt_tokens?: number; completion_tokens?: number } };
+    const payload = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+      usage?: { prompt_tokens?: number; completion_tokens?: number };
+    };
     const text = payload.choices?.[0]?.message?.content?.trim();
     if (!text) throw new Error("free federation upstream returned no text");
-    return { requestId: request.requestId, modelId: this.modelId, providerId: this.providerId, text, latencyMs: performance.now() - started, degraded: true, risk: "MEDIUM", usage: { inputTokens: payload.usage?.prompt_tokens, outputTokens: payload.usage?.completion_tokens } };
+    return {
+      requestId: request.requestId,
+      modelId: this.modelId,
+      providerId: this.providerId,
+      text,
+      latencyMs: performance.now() - started,
+      degraded: true,
+      risk: "MEDIUM",
+      usage: {
+        inputTokens: payload.usage?.prompt_tokens,
+        outputTokens: payload.usage?.completion_tokens,
+      },
+    };
   }
 }
 
-export function registerFreeAIFederation(register: (provider: IntelligenceProvider) => void): FreeAIEndpoint[] {
+export function registerFreeAIFederation(
+  register: (provider: IntelligenceProvider) => void,
+): FreeAIEndpoint[] {
   const runtime = config();
   if (!runtime.FREE_AI_FEDERATION_ENABLED) return [];
   const endpoints = parseEndpoints(runtime.FREE_AI_FEDERATION_ENDPOINTS);

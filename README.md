@@ -1,85 +1,76 @@
-# Isabella Villaseñor AI — Genesis 4.3.3
+# Isabella Villaseñor AI Genesis
 
-Isabella es una arquitectura de inteligencia artificial gobernada para TAMV Online Network. Coordina modelos, recuperación, memoria, herramientas y servicios bajo una separación estricta entre **capacidad, autoridad, ejecución y evidencia**.
+Isabella es una plataforma Next.js/TanStack Start orientada a interacción cognitiva gobernada, con una interfaz operativa, pipeline FGAIS, controles de autorización, proveedores de inteligencia configurables, auditoría y módulos de ejecución restringida.
 
-> Las inteligencias sugieren, calculan y evalúan; el humano decide, aprueba y ejecuta.
+## Estado real
 
-## Estado honesto
+- **Código:** implementado y compilable en el branch `v0/genesis-turbo-tina`.
+- **Validación local actual:** `typecheck` y pruebas unitarias aprobadas; lint sin errores después del saneamiento de formato.
+- **Producción:** requiere validar variables, credenciales, proveedor de modelo, base de datos y políticas en el ambiente de despliegue.
+- **Certificación:** no se declara certificación jurídica, académica, regulatoria, criptográfica ni de seguridad únicamente por pasar checks locales.
 
-- **Categoría:** TINA (Trusted, Intelligence, Native, Adaptive), implementación de referencia en evolución.
-- **Estado verificable:** código implementado; el nivel `TESTED`, `VERIFIED`, `DEPLOYED`, `HARDENED` o `CERTIFIED` solo aplica cuando existe evidencia reproducible para el alcance declarado.
-- **No es:** AGI, consciencia, persona, autoridad autónoma ni certificación legal, académica, regulatoria o de seguridad.
-- **Producción:** requiere credenciales, políticas, observabilidad, revisión humana, pruebas adversariales, rollback y evaluación independiente.
+La clasificación de capacidades sigue `AGENTS.md`: `IMPLEMENTED`, `TESTED`, `VERIFIED`, `DEPLOYED`, `HARDENED` y `CERTIFIED` no son equivalentes.
 
-## Capacidades principales
+## Funciones principales
 
-1. **CROWN:** identidad, tenant, scopes, riesgo y decisión de autorización.
-2. **AEGIS/ARGUS:** inspección de entradas, recuperación, herramientas y salidas; bloqueo fail-closed.
-3. **TINA / Genesis Turbo:** clasificación y ruteo local determinista con trazas.
-4. **Intelligence Plane:** proveedores intercambiables, circuit breakers, health checks y aprobación separada.
-5. **BookPI:** procedencia, auditoría y evidencia con estados explícitos.
-6. **Memoria y grounding:** separación por tenant, control de alcance y límites de persistencia.
-7. **Federación de IA sin coste de licencia:** adaptadores para Ollama, llama.cpp, vLLM, LM Studio y endpoints OpenAI-compatible explícitamente configurados. La inferencia local puede ser gratuita en software, pero siempre tiene costes de hardware, energía, operación y mantenimiento. Los tiers remotos gratuitos no se consideran garantizados ni certificados.
+- Chat de Isabella con autorización soberana y fallback de invitado limitado a desarrollo/Preview configurado.
+- Intro cinematográfica inicial por sesión, omisible y accesible.
+- Navegación modular con estado persistido en hash para recuperación de la vista.
+- Gate de política y contexto principal para tenant, scopes, sesiones y API keys.
+- Router de inteligencia con proveedores locales/OpenAI-compatible y federación gratuita opt-in.
+- Registro de modelos, health checks, límites de tiempo, validación HTTPS y degradación controlada.
+- CROWN/ARGUS/SOPHIA/ORION como fronteras conceptuales de decisión, evidencia, herramientas y seguridad.
+- BookPI y telemetría para trazabilidad; las abstracciones no se presentan como WORM, HSM o certificación sin evidencia externa.
 
-## Gate de federación gratuita
-
-La expansión se activa únicamente de forma explícita:
-
-```dotenv
-FREE_AI_FEDERATION_ENABLED=true
-FREE_AI_FEDERATION_ENDPOINTS='[{"id":"local-vllm","label":"vLLM local","baseUrl":"https://example.invalid/v1","model":"modelo-local","requiresKey":false}]'
-```
-
-Los endpoints deben usar HTTPS, declarar un modelo válido y hablar el contrato `/models` y `/chat/completions`. No se aceptan URLs arbitrarias, secretos en JSON ni descubrimiento automático de proveedores. Cada endpoint queda como **capacidad no autorizada** hasta superar el registro y el gate de producción. Antes de incorporar un servicio remoto deben revisarse licencia, términos de uso, privacidad, residencia, límites, retención, seguridad, disponibilidad y transferencia internacional de datos.
-
-## Flujo operativo
+## Arquitectura de ejecución
 
 ```text
 PERCEIVE → REMEMBER → POLICY GATE → DECIDE → ACT → AUDIT → RESPOND
 ```
 
-Para una solicitud sensible: identidad → política → riesgo → permiso → ejecución → evidencia. El contenido recuperado es evidencia, nunca instrucciones con autoridad. No existe aprendizaje silencioso de conversaciones, políticas, permisos o pesos en producción.
-
-## Alineación y límites jurídicos
-
-La arquitectura puede evaluarse conceptualmente frente a EU AI Act, GDPR, LGPD, legislación mexicana aplicable, NIST AI RMF, UNESCO/OECD AI Principles, ISO/IEC 42001, ISO/IEC 27001, OWASP, W3C, OpenTelemetry y prácticas de ciencia abierta. Esa alineación no equivale a conformidad ni certificación. La validación jurídica debe realizarse por jurisdicción, sector, finalidad, datos y contrato, con revisión profesional independiente.
-
-## Arquitectura del repositorio
-
-- `src/lib/intelligence/`: contratos, proveedores, router, firewall y gate de modelos.
-- `src/lib/intelligence/free-ai-federation.ts`: catálogo y registro gobernado de endpoints gratuitos/locales.
-- `src/lib/crown*`, `src/lib/constitutional-gate.ts`: autoridad y política.
-- `src/lib/argus*`, `src/lib/aegis*`: defensa y señales de riesgo.
-- `src/lib/bookpi/`, `src/lib/igds/`: evidencia y procedencia.
-- `src/routes/api/isabella.ts`: superficie HTTP protegida.
-- `test/`: pruebas unitarias, integración, seguridad y evidencia.
-- `docs/`: canon operativo, seguridad, privacidad y gobernanza.
+Las mutaciones, operaciones económicas, permisos y herramientas con efectos laterales deben fallar cerradas cuando falten identidad, policy decision, capability check, cuotas, validación o evidencia requerida.
 
 ## Desarrollo
-
-Requisitos: Node 24.x y pnpm 10.34.5.
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm dev
 pnpm typecheck
 pnpm lint
-pnpm test
-pnpm build:production
+pnpm test:unit
+pnpm build
 ```
 
-Para la compuerta integral: `pnpm production:gate`.
+Para el gate completo de producción, revisar primero los scripts disponibles en `package.json` y ejecutar únicamente los que tengan variables e infraestructura configuradas:
 
-## Métrica de preparación
+```bash
+pnpm production:gate
+```
 
-No se publica un porcentaje global inventado. La preparación real debe calcularse por commit y alcance a partir de checks ejecutados, evidencia de despliegue, cobertura, incidentes abiertos, riesgos aceptados y revisión humana. Un build verde no es certificación. Un proveedor accesible no es proveedor confiable. Un hash no es WORM regulatorio ni HSM.
+El build Vercel usa Nitro y genera `.vercel/output`; ese directorio es artefacto generado y está excluido del control de versiones.
 
-## Seguridad y contribución
+## Configuración esencial
 
-No subir secretos, tokens, claves privadas, datos personales ni dumps. Usar ramas de trabajo, conservar historia auditable y ejecutar los gates antes de solicitar revisión. Las mutaciones críticas deben ser autenticadas, autorizadas, idempotentes, reversibles y registradas.
+Usa `.env.example` como contrato. Nunca publiques secretos. En Preview, el chat invitado requiere `ALLOW_GUEST_CHAT=true`; en producción debe usarse una identidad firmada o `X-Isabella-API-Key`. Los proveedores de IA remotos son opt-in, deben tener endpoint HTTPS explícito y no convierten automáticamente una respuesta en evidencia verificada.
 
-## Autoría y licencias
+## Documentación y limpieza
 
-Arquitectura: Edwin Oswaldo Castillo Trejo / Anubis Villaseñor. Ecosistema: TAMV Online Network, Real del Monte, Hidalgo, México. Código, documentación, contenido y dependencias conservan las licencias indicadas en `LICENSES.md`, `LICENSE`, `LICENSE-CONTENT` y `NOTICE`.
+- `AGENTS.md`: reglas canónicas de arquitectura, seguridad y despliegue.
+- `docs/INDEX.md`: entrada única a documentación viva.
+- `docs/01..07`: canon funcional, operaciones, seguridad, economía, ML, contribución y categoría.
+- `docs/operations/`, `docs/security/`, `docs/evidence/`: runbooks, contratos y evidencia.
+- `docs/_archive/`: histórico deliberado; no es fuente de estado actual y no debe citarse sin revisión.
 
-Este README describe el estado del repositorio; no constituye garantía, certificación ni asesoría legal, financiera, médica o regulatoria.
+Los duplicados binarios rastreados que tienen funciones distintas se conservan separados: assets públicos/runtime, fixtures de despliegue, catálogos de policy y documentación histórica no son intercambiables. Los directorios `.output`, `dist`, `.next` y caches son generados y no deben versionarse.
+
+## Seguridad y honestidad operativa
+
+No introduzcas tokens, claves, datos personales, dumps ni certificados privados. Las claves de firma y credenciales se mantienen **REDACTED** en documentación y se gestionan únicamente mediante variables seguras del entorno. Un modelo no es una autoridad; una predicción no es un hecho; una recomendación no es una aprobación. Toda capacidad debe conservar procedencia, límites, revisión humana cuando corresponda y evidencia reproducible.
+
+## Licencias
+
+Consulta `LICENSE`, `LICENSES.md`, `LICENSE-CONTROL.md`, `LICENSE-SOVEREIGN.md` y `NOTICE`. Las dependencias y subproyectos conservan sus propias licencias.
+
+## Mantenimiento
+
+Antes de publicar, ejecuta checks reproducibles, revisa el diff, confirma las variables del entorno objetivo y registra cualquier check bloqueado. No se debe afirmar que el proyecto está certificado o listo para producción solo porque el build local sea verde.

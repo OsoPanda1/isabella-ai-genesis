@@ -27,10 +27,11 @@ export function canUseGuestChat(cfg: {
   ALLOW_GUEST_CHAT?: boolean;
   NODE_ENV?: string;
   ISABELLA_RUNTIME_MODE?: string;
+  VERCEL_ENV?: string;
 }): boolean {
   // El chat invitado solo existe en desarrollo explícito o en previews aislados.
   // Producción exige siempre una identidad firmada o API key.
-  const isPreview = process.env.VERCEL_ENV === "preview";
+  const isPreview = cfg.VERCEL_ENV === "preview";
   const isDevelopment =
     cfg.NODE_ENV === "development" && cfg.ISABELLA_RUNTIME_MODE === "development";
   return cfg.ALLOW_GUEST_CHAT === true && (isDevelopment || isPreview);

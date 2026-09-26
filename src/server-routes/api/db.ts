@@ -1114,7 +1114,7 @@ export const Route = createFileRoute("/api/db")({
                 );
                 await sandbox.deprovisionInstance();
               } else {
-result = SovereignSandbox.executeTool(
+                result = SovereignSandbox.executeTool(
                   val.data.expression,
                   val.data.variables || {},
                 );

@@ -203,7 +203,9 @@ async function aiGatewaySse(
           const message =
             "Isabella continúa operativa en modo soberano local. El proveedor externo no emitió contenido en este entorno; la solicitud quedó registrada como degradada.";
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: message } }], degraded: true })}\n\n`),
+            encoder.encode(
+              `data: ${JSON.stringify({ choices: [{ delta: { content: message } }], degraded: true })}\n\n`,
+            ),
           );
         }
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -215,7 +217,9 @@ async function aiGatewaySse(
           `[ISABELLA_AI_GATEWAY_STREAM] fallback=${error instanceof Error ? error.message : "unknown"}`,
         );
         controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: message } }], degraded: true })}\n\n`),
+          encoder.encode(
+            `data: ${JSON.stringify({ choices: [{ delta: { content: message } }], degraded: true })}\n\n`,
+          ),
         );
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();

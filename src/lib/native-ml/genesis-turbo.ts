@@ -1,10 +1,30 @@
 import type { NativeMLHooks } from "./types";
 
 export const GENESIS_EXPERTS = [
-  "territory", "economy", "culture", "science", "ux", "recommendation",
-  "voice", "narrative", "manipulation_guard", "privacy_guard", "security_guard", "bias_guard",
-  "planning", "reflection", "critique", "synthesis", "memory", "provenance",
-  "accessibility", "operations", "governance", "safety", "language", "fallback",
+  "territory",
+  "economy",
+  "culture",
+  "science",
+  "ux",
+  "recommendation",
+  "voice",
+  "narrative",
+  "manipulation_guard",
+  "privacy_guard",
+  "security_guard",
+  "bias_guard",
+  "planning",
+  "reflection",
+  "critique",
+  "synthesis",
+  "memory",
+  "provenance",
+  "accessibility",
+  "operations",
+  "governance",
+  "safety",
+  "language",
+  "fallback",
 ] as const;
 
 export type GenesisExpert = (typeof GENESIS_EXPERTS)[number];
@@ -30,22 +50,39 @@ export interface GenesisResult {
 }
 
 const KEYWORDS: Record<GenesisExpert, readonly string[]> = {
-  territory: ["territorio", "comunidad", "municipio", "región"], economy: ["economía", "precio", "pago", "negocio"],
-  culture: ["cultura", "arte", "historia", "tradición"], science: ["ciencia", "datos", "investigación"],
-  ux: ["interfaz", "botón", "pantalla", "diseño"], recommendation: ["recomienda", "sugiere", "opción"],
-  voice: ["voz", "audio", "hablar"], narrative: ["historia", "relato", "narrativa"],
-  manipulation_guard: ["ignora", "bypass", "manipula", "override"], privacy_guard: ["privado", "personal", "secreto"],
-  security_guard: ["token", "contraseña", "credencial", "ataque"], bias_guard: ["sesgo", "discrimina", "prejuicio"],
-  planning: ["plan", "pasos", "estrategia", "organiza"], reflection: ["reflexiona", "analiza"],
-  critique: ["critica", "verifica", "comprueba"], synthesis: ["resume", "sintetiza", "integra"],
-  memory: ["recuerda", "memoria", "historial"], provenance: ["fuente", "evidencia", "origen"],
-  accessibility: ["accesibilidad", "lector", "contraste"], operations: ["operación", "sistema", "servidor"],
-  governance: ["política", "permiso", "gobernanza"], safety: ["seguridad", "riesgo", "peligro"],
-  language: ["idioma", "traduce", "español"], fallback: [],
+  territory: ["territorio", "comunidad", "municipio", "región"],
+  economy: ["economía", "precio", "pago", "negocio"],
+  culture: ["cultura", "arte", "historia", "tradición"],
+  science: ["ciencia", "datos", "investigación"],
+  ux: ["interfaz", "botón", "pantalla", "diseño"],
+  recommendation: ["recomienda", "sugiere", "opción"],
+  voice: ["voz", "audio", "hablar"],
+  narrative: ["historia", "relato", "narrativa"],
+  manipulation_guard: ["ignora", "bypass", "manipula", "override"],
+  privacy_guard: ["privado", "personal", "secreto"],
+  security_guard: ["token", "contraseña", "credencial", "ataque"],
+  bias_guard: ["sesgo", "discrimina", "prejuicio"],
+  planning: ["plan", "pasos", "estrategia", "organiza"],
+  reflection: ["reflexiona", "analiza"],
+  critique: ["critica", "verifica", "comprueba"],
+  synthesis: ["resume", "sintetiza", "integra"],
+  memory: ["recuerda", "memoria", "historial"],
+  provenance: ["fuente", "evidencia", "origen"],
+  accessibility: ["accesibilidad", "lector", "contraste"],
+  operations: ["operación", "sistema", "servidor"],
+  governance: ["política", "permiso", "gobernanza"],
+  safety: ["seguridad", "riesgo", "peligro"],
+  language: ["idioma", "traduce", "español"],
+  fallback: [],
 };
 
 function tokenize(input: string): Set<string> {
-  return new Set(input.normalize("NFKC").toLocaleLowerCase("es-MX").match(/[\p{L}\p{N}_-]+/gu) ?? []);
+  return new Set(
+    input
+      .normalize("NFKC")
+      .toLocaleLowerCase("es-MX")
+      .match(/[\p{L}\p{N}_-]+/gu) ?? [],
+  );
 }
 
 function stableHash(value: string): string {
@@ -68,8 +105,16 @@ export async function classifyWithGenesisTurbo(
     score: KEYWORDS[expert].reduce((sum, keyword) => sum + (tokens.has(keyword) ? 1 : 0), 0),
   })).sort((a, b) => b.score - a.score || a.index - b.index);
   const selected = ranked.filter((item) => item.score > 0).slice(0, 3);
-  const active = selected.length ? selected : [{ expert: "fallback" as GenesisExpert, index: 23, score: 0 }];
-  const risk = active.some(({ expert }) => ["manipulation_guard", "privacy_guard", "security_guard", "bias_guard", "safety"].includes(expert)) ? 0.8 : 0.05;
+  const active = selected.length
+    ? selected
+    : [{ expert: "fallback" as GenesisExpert, index: 23, score: 0 }];
+  const risk = active.some(({ expert }) =>
+    ["manipulation_guard", "privacy_guard", "security_guard", "bias_guard", "safety"].includes(
+      expert,
+    ),
+  )
+    ? 0.8
+    : 0.05;
   const confidence = selected.length ? Math.min(0.99, 0.55 + selected[0]!.score * 0.15) : 0.25;
   const decision: GenesisDecision = risk >= 0.8 ? "REVIEW" : "ALLOW";
   const trace: GenesisRoutingTrace = {
