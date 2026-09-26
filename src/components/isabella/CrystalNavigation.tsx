@@ -99,9 +99,16 @@ function AccordionGroup({
   return (
     <div className="space-y-1">
       {collapsed ? (
-        <div className="w-full flex justify-center py-1">
-          <group.Icon className="size-4.5 text-crown" />
-        </div>
+        <button
+          type="button"
+          aria-label={`Abrir ${group.label}`}
+          aria-expanded={isOpen}
+          aria-controls={`nav-group-${group.id}`}
+          onClick={group.onToggle}
+          className="flex w-full justify-center rounded-xl py-2 text-crown transition-colors hover:bg-secondary/30"
+        >
+          <group.Icon className="size-4.5" />
+        </button>
       ) : (
         <button
           type="button"
@@ -150,6 +157,7 @@ function AccordionGroup({
                   }
                 }}
                 data-nav-item
+                aria-label={item.label}
                 aria-current={isCurrent ? "page" : undefined}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-mono text-[11.5px] transition-all ${item.glow} ${
                   isCurrent

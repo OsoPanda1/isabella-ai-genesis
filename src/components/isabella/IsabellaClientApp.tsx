@@ -127,7 +127,24 @@ function IndexClient() {
 function IsabellaInterface() {
   const isabella = useIsabella();
   const [panel, setPanel] = useState(false);
-  const [activeTab, setActiveTab] = useState<NavTabId>("terminal");
+  const [activeTab, setActiveTab] = useState<NavTabId>(() => {
+    if (typeof window === "undefined") return "terminal";
+    const candidate = window.location.hash.replace(/^#/, "") as NavTabId;
+    return [
+      "terminal",
+      "cli",
+      "governance",
+      "catalog",
+      "monetization",
+      "quantum",
+      "interfaces",
+      "aegis",
+      "findarepo",
+      "video-x",
+    ].includes(candidate)
+      ? candidate
+      : "terminal";
+  });
   const [monetizationSubTab, setMonetizationSubTab] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [upperOpen, setUpperOpen] = useState(false);
@@ -140,15 +157,27 @@ function IsabellaInterface() {
   }>({ text: "", attachments: [] });
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  const handleMonetizationNavigate = useCallback((subTab: string) => {
-    setActiveTab("monetization");
-    setMonetizationSubTab(subTab);
+  const selectTab = useCallback((tab: NavTabId) => {
+    setActiveTab(tab);
     try {
-      window.history.replaceState(null, "", `#monetization-${subTab}`);
+      window.history.replaceState(null, "", `#${tab}`);
     } catch {
-      // URL history is non-critical to the application runtime.
+      // URL state is non-critical to the application runtime.
     }
   }, []);
+
+  const handleMonetizationNavigate = useCallback(
+    (subTab: string) => {
+      selectTab("monetization");
+      setMonetizationSubTab(subTab);
+      try {
+        window.history.replaceState(null, "", `#monetization-${subTab}`);
+      } catch {
+        // URL history is non-critical to the application runtime.
+      }
+    },
+    [selectTab],
+  );
 
   const send = useCallback(
     (
@@ -161,6 +190,30 @@ function IsabellaInterface() {
     },
     [isabella],
   );
+
+  useEffect(() => {
+    const syncHash = () => {
+      const candidate = window.location.hash.replace(/^#/, "") as NavTabId;
+      if (
+        [
+          "terminal",
+          "cli",
+          "governance",
+          "catalog",
+          "monetization",
+          "quantum",
+          "interfaces",
+          "aegis",
+          "findarepo",
+          "video-x",
+        ].includes(candidate)
+      ) {
+        setActiveTab(candidate);
+      }
+    };
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, []);
 
   const navGroups = NAV_GROUPS(
     { cognition: upperOpen, catalog: middleOpen, sovereignty: lowerOpen },
@@ -212,7 +265,7 @@ function IsabellaInterface() {
             <CrystalNavigation
               groups={navGroups}
               activeTab={activeTab}
-              onSelect={setActiveTab}
+              onSelect={selectTab}
               collapsed={!isSidebarOpen}
             />
           </div>
@@ -234,6 +287,7 @@ function IsabellaInterface() {
             )}
             <button
               type="button"
+              aria-label={isSidebarOpen ? "Contraer panel" : "Expandir panel"}
               aria-expanded={isSidebarOpen}
               aria-controls="isabella-sidebar"
               onClick={() => setIsSidebarOpen((open) => !open)}
