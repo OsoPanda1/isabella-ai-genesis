@@ -90,16 +90,16 @@ function ClientFallback({ label = "Cargando módulo Isabella…" }: { label?: st
 }
 
 function IndexClient() {
-  // La interfaz es el estado operativo por defecto. La experiencia cinematográfica
-  // queda disponible explícitamente con ?intro=1 y nunca puede bloquear el cockpit.
-  const [introDone, setIntroDone] = useState(true);
+  // La intro se muestra una vez por sesión al entrar; ?intro=1 la fuerza de nuevo.
+  // La interfaz sigue siendo accesible mediante Escape o el botón de omitir.
+  const [introDone, setIntroDone] = useState(false);
 
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       const introRequested = params.get("intro") === "1";
       const introSeen = window.sessionStorage.getItem(INTRO_SEEN_KEY) === "1";
-      if (introRequested && !introSeen) setIntroDone(false);
+      setIntroDone(!introRequested && introSeen);
     } catch {
       setIntroDone(true);
     }
