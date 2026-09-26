@@ -23,8 +23,12 @@ spec:
           type: RuntimeDefault
       containers:
         - name: isabella
-          image: ghcr.io/osopanda1/isabella-ai-genesis:latest
-          imagePullPolicy: Always
+          # ISA-355: sin tag mutable `latest`. Pin a la release versionada de
+          # package.json (4.3.3). El pin definitivo es por digest
+          # (image@sha256:...); verificar con `pnpm k8s:image:verify
+          # --require-digest` una vez resuelto el digest real del registro.
+          image: ghcr.io/osopanda1/isabella-ai-genesis:4.3.3
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           envFrom:

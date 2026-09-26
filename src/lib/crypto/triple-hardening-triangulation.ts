@@ -82,16 +82,25 @@ export class CryptographicTriangulation {
 
   /**
    * Resuelve la llave maestra del sistema o deriva una a partir del secreto de encriptación.
+   * Fail-closed: sin secreto configurado (o con un override demasiado corto) la
+   * operación se aborta. Nunca existe un literal de respaldo conocido (ISA-248).
    */
   private static resolveMasterKey(overrideKey?: string): Buffer {
-    if (overrideKey && overrideKey.length >= 32) {
+    if (overrideKey !== undefined) {
+      if (overrideKey.length < 32) {
+        throw new Error(
+          "TriangulationSecurityError: overrideKey must be at least 32 characters (fail-closed).",
+        );
+      }
       return Buffer.from(overrideKey, "utf8").subarray(0, 32);
     }
     const cfg = config();
-    const secret =
-      cfg.ENCRYPTION_MASTER_KEY ||
-      cfg.AUTH_JWT_SECRET ||
-      "isabella-sovereign-triangulation-master-key-32-chars-min";
+    const secret = cfg.ENCRYPTION_MASTER_KEY || cfg.AUTH_JWT_SECRET;
+    if (!secret || secret.trim().length < 32) {
+      throw new Error(
+        "TriangulationSecurityError: ENCRYPTION_MASTER_KEY (>=32) o AUTH_JWT_SECRET (>=32) requerido; sin secreto maestro no se cifra (fail-closed).",
+      );
+    }
     return Buffer.from(createHash("sha256").update(secret).digest());
   }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { runNativePipeline } from "@/lib/ncua/pipeline";
+import { runNativePipeline, getMemoryIndexForScope } from "@/lib/ncua/pipeline";
 import { createNativeEngine } from "@/lib/ncua";
 
 describe("ncua:pipeline soberano de 12 pasos", () => {
@@ -76,12 +76,50 @@ describe("ncua:pipeline soberano de 12 pasos", () => {
       productionLike: false,
       hasProvider: false,
       memoryCorpus,
+      tenantId: "tenant-a",
+      attestations: {
+        principalPresent: true,
+        tenantBoundaryOk: true,
+        authorshipApproved: true,
+        sandboxAllowed: true,
+      },
     });
     expect(result.federations.approveVotes).toBeGreaterThanOrEqual(0);
     expect(result.federations.vetoActive).toBe(false);
     expect(result.attention).toBeDefined();
     expect(result.memory).toBeDefined();
     expect(result.metrics?.corpusSize).toBe(2);
+  });
+
+  it("sin atestaciones verificadas no afirma identidad, política ni sandbox (fail-closed)", () => {
+    const result = runNativePipeline("museo de sitio de la minería en Pachuca", {
+      productionLike: false,
+      hasProvider: false,
+      memoryCorpus,
+      tenantId: "tenant-unknown",
+    });
+    expect(result.attestations).toEqual({
+      principalPresent: false,
+      tenantBoundaryOk: false,
+      authorshipApproved: false,
+      sandboxAllowed: false,
+      capabilityTokenPresent: false,
+    });
+    expect(result.federations.vetoActive).toBe(true);
+    expect(result.federations.votesApproved).toBe(false);
+    const federationStep = result.chain.find((record) => record.stepName === "heptafederación");
+    expect(federationStep?.data).toMatchObject({
+      attestations: { principalPresent: false, tenantBoundaryOk: false },
+    });
+  });
+
+  it("aisla el índice de memoria por scope de tenant", () => {
+    const tenantA = getMemoryIndexForScope("tenant-a", memoryCorpus);
+    const tenantAAgain = getMemoryIndexForScope("tenant-a", memoryCorpus);
+    const tenantB = getMemoryIndexForScope("tenant-b", memoryCorpus);
+    expect(tenantA).toBeDefined();
+    expect(tenantAAgain).toBe(tenantA);
+    expect(tenantB).not.toBe(tenantA);
   });
 
   it("integra el motor nativo para recuperación y fundamentación", () => {

@@ -46,6 +46,9 @@ export function runNativeComprehension(input: NativeComprehensionInput): NativeC
     productionLike,
     hasProvider,
     memoryCorpus: input.memoryCorpus,
+    // Aislamiento de caché por tenant: la comprensión nativa sí conoce el
+    // tenant, aunque no verifique identidad/política (ISA-084/ISA-315).
+    tenantId: input.tenantId,
   });
   const latencyMs = Number((performance.now() - started).toFixed(1));
   const chainHash = createHash("sha256")

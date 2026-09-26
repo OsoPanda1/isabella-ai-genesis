@@ -204,6 +204,10 @@ export const envSchema = z
     STRIPE_SECRET_KEY: optionalString(),
     STRIPE_WEBHOOK_SECRET: optionalString(),
     ISABELLA_PAYOUT_CIRCUIT_CERTIFIED: bool(false),
+    // --- CONNECTOR WEBHOOKS (firma verificada de proveedores) ---
+    GITHUB_WEBHOOK_SECRET: optionalMinString(16),
+    SLACK_SIGNING_SECRET: optionalMinString(16),
+    LINEAR_WEBHOOK_SECRET: optionalMinString(16),
     // --- MEDIA / MUX ---
     MUX_INTRO_ASSET_ID: optionalString(),
     MUX_PLAYBACK_ID: optionalString(),
@@ -617,6 +621,39 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
     provider: "self",
     criticality: "MEDIUM",
     description: "Endpoint RFC 3161 para sellado temporal externo (opcional).",
+  },
+  {
+    name: "GITHUB_WEBHOOK_SECRET",
+    visibility: "secret",
+    required: [],
+    forbidden: [],
+    provider: "self",
+    criticality: "CRITICAL",
+    rotation: "90d",
+    description:
+      "Secreto HMAC para verificar firmas x-hub-signature-256 de webhooks de GitHub (ISA-199).",
+  },
+  {
+    name: "SLACK_SIGNING_SECRET",
+    visibility: "secret",
+    required: [],
+    forbidden: [],
+    provider: "self",
+    criticality: "CRITICAL",
+    rotation: "90d",
+    description:
+      "Secreto de signing para verificar x-slack-signature con ventana de replay de 300s (ISA-199/ISA-201).",
+  },
+  {
+    name: "LINEAR_WEBHOOK_SECRET",
+    visibility: "secret",
+    required: [],
+    forbidden: [],
+    provider: "self",
+    criticality: "HIGH",
+    rotation: "90d",
+    description:
+      "Secreto reservado: mientras no exista esquema de firma documentado para Linear, la ruta de webhook permanece denegada (ISA-213).",
   },
 ];
 

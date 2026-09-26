@@ -26,6 +26,20 @@ export interface TinaExecuteInput {
 export type TinaExecuteStatus =
   "pending_human_review" | "blocked_or_review" | "accepted_for_adapter";
 
+/**
+ * Estado inequívoco de ejecución (ISA-026). El orquestador no ejecuta
+ * herramientas ni llama modelos externos: `executed` es siempre `false` y el
+ * motivo documenta por qué no hubo ejecución real.
+ */
+export type TinaNonExecutionReason =
+  "ADAPTER_NOT_BOUND" | "HUMAN_REVIEW_REQUIRED" | "ETHICAL_BLOCK";
+
+export interface TinaExecutionOutcome {
+  executed: false;
+  reason: TinaNonExecutionReason;
+  detail: string;
+}
+
 export interface TinaExecuteResult {
   status: TinaExecuteStatus;
   route: TinaRoute;
@@ -35,7 +49,15 @@ export interface TinaExecuteResult {
   audit?: TinaEthicalResult;
   cacheKey?: string;
   ledger?: TinaBookEvent;
+  execution: TinaExecutionOutcome;
 }
+
+const NOT_EXECUTED_ADAPTER: TinaExecutionOutcome = {
+  executed: false,
+  reason: "ADAPTER_NOT_BOUND",
+  detail:
+    "Ningún adapter de ejecución está ligado: la solicitud fue enrutada y auditada, no ejecutada.",
+};
 
 export class TinaOrchestrator {
   private readonly bookpi: TinaBookPI;
@@ -66,7 +88,15 @@ export class TinaOrchestrator {
     } as const;
 
     if (route.requiresHumanReview) {
-      return { ...base, status: "pending_human_review" };
+      return {
+        ...base,
+        status: "pending_human_review",
+        execution: {
+          executed: false,
+          reason: "HUMAN_REVIEW_REQUIRED",
+          detail: "Ruta de revisión humana: nada se ejecuta hasta aprobación explícita.",
+        },
+      };
     }
 
     const audit = await auditTinaContent(input.text, {
@@ -81,7 +111,16 @@ export class TinaOrchestrator {
         flags: audit.flags.map((f) => f.code),
         tenantId: input.tenantId,
       });
-      return { ...base, status: "blocked_or_review", audit };
+      return {
+        ...base,
+        status: "blocked_or_review",
+        audit,
+        execution: {
+          executed: false,
+          reason: "ETHICAL_BLOCK",
+          detail: "Triaje ético fallido: la solicitud no se ejecuta.",
+        },
+      };
     }
 
     const cacheInput: TinaCacheInput = {
@@ -103,6 +142,7 @@ export class TinaOrchestrator {
       contentHash: audit.hash,
       cacheKey,
       tenantId: input.tenantId,
+      execution: NOT_EXECUTED_ADAPTER,
     });
 
     return {
@@ -111,6 +151,7 @@ export class TinaOrchestrator {
       contentHash: audit.hash,
       audit,
       cacheKey,
+      execution: NOT_EXECUTED_ADAPTER,
     };
   }
 

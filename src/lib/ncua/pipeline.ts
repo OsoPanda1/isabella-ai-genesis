@@ -41,7 +41,37 @@ export interface PipelineRunOptions {
   sink?: (record: AuditRecord) => void;
   inputBytesLimit?: number;
   consensusThreshold?: number;
+  /** Identidad de tenant/scope. Aísla los cachés de proceso por tenant (ISA-084/ISA-315). */
+  tenantId?: string;
+  /**
+   * Atestaciones explícitas verificadas por el llamador. Todas son `false` por
+   * defecto: el pipeline determinista local no valida identidad, política,
+   * tenant ni sandbox por sí mismo, por lo que nunca puede afirmarlas (ISA-090
+   * a ISA-094). Quien invoque con una verificación real debe declararla aquí.
+   */
+  attestations?: PipelineAttestations;
 }
+
+export interface PipelineAttestations {
+  principalPresent?: boolean;
+  tenantBoundaryOk?: boolean;
+  authorshipApproved?: boolean;
+  sandboxAllowed?: boolean;
+  capabilityTokenPresent?: boolean;
+}
+
+const UNVERIFIED_ATTESTATIONS: Required<PipelineAttestations> = {
+  principalPresent: false,
+  tenantBoundaryOk: false,
+  authorshipApproved: false,
+  sandboxAllowed: false,
+  capabilityTokenPresent: false,
+};
+
+function resolveAttestations(attestations?: PipelineAttestations): Required<PipelineAttestations> {
+  return { ...UNVERIFIED_ATTESTATIONS, ...(attestations ?? {}) };
+}
+
 export interface PipelineRunResult {
   id: string;
   inference: ReturnType<typeof resolveInferencePolicy>;
@@ -71,12 +101,14 @@ export interface PipelineRunResult {
   signature?: string | null;
   aligned?: boolean;
   message?: string;
+  attestations: Required<PipelineAttestations>;
 }
 
 const EMAIL_PATTERN = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 const DIRECTIVE_PATTERN =
   /(?:ignore|forget|omite|ignora|olvida)[^\n]{0,24}(?:previous|prior|above|instrucciones?)/i;
 const MEMORY_INDEX_DIM = 192;
+const ANONYMOUS_SCOPE = "anonymous";
 let cachedKnowledgeGraph: SovereignKnowledgeGraph | undefined;
 let cachedClassifier: NativeIntentClassifier | undefined;
 let cachedMemoryKey = "";
@@ -91,9 +123,24 @@ function corpusKey(corpus: Array<{ id: string; text: string }>): string {
   return hash.digest("hex");
 }
 
-function getMemoryIndex(corpus: Array<{ id: string; text: string }>): SimHashLshIndex | undefined {
+/**
+ * Clave de caché con scope de tenant: dos tenants nunca comparten la misma
+ * entrada de caché aunque su corpus sea idéntico (aislamiento ISA-084/ISA-315).
+ */
+export function ncuaCacheScopeKey(scopeId: string | undefined, corpusHash: string): string {
+  return `${scopeId?.trim() || ANONYMOUS_SCOPE}:${corpusHash}`;
+}
+
+/**
+ * Índice LSH de memoria con scope explícito. Exportado para que las pruebas
+ * demuestren que un scope distinto no reutiliza la instancia de otro scope.
+ */
+export function getMemoryIndexForScope(
+  scopeId: string | undefined,
+  corpus: Array<{ id: string; text: string }>,
+): SimHashLshIndex | undefined {
   if (corpus.length === 0) return undefined;
-  const key = corpusKey(corpus);
+  const key = ncuaCacheScopeKey(scopeId, corpusKey(corpus));
   if (cachedMemoryIndex && cachedMemoryKey === key && cachedMemorySize === corpus.length)
     return cachedMemoryIndex;
   const index = new SimHashLshIndex({ dim: MEMORY_INDEX_DIM });
@@ -104,9 +151,12 @@ function getMemoryIndex(corpus: Array<{ id: string; text: string }>): SimHashLsh
   return index;
 }
 
-function getMetrics(corpus: Array<{ id: string; text: string }>): MeasuredMetrics | null {
+function getMetrics(
+  scopeId: string | undefined,
+  corpus: Array<{ id: string; text: string }>,
+): MeasuredMetrics | null {
   if (corpus.length === 0) return null;
-  const key = corpusKey(corpus);
+  const key = ncuaCacheScopeKey(scopeId, corpusKey(corpus));
   if (cachedMetricsKey === key && cachedMetrics) return cachedMetrics;
   const measured = measureOnCorpus(corpus, { chunkSize: 32, dim: MEMORY_INDEX_DIM });
   cachedMetricsKey = key;
@@ -153,6 +203,8 @@ export function runNativePipeline(
 ): PipelineRunResult {
   const productionLike = options.productionLike ?? false;
   const hasProvider = options.hasProvider ?? false;
+  const attestations = resolveAttestations(options.attestations);
+  const memoryScope = options.tenantId ?? ANONYMOUS_SCOPE;
   const id = randomUUID();
   const chain: AuditRecord[] = [];
   let prevHash = "";
@@ -184,6 +236,7 @@ export function runNativePipeline(
       null,
       "Entrada excede el presupuesto de cómputo de la federación F3.",
       413,
+      attestations,
     );
   }
 
@@ -198,7 +251,7 @@ export function runNativePipeline(
   });
 
   const memoryCorpus = options.memoryCorpus ?? [];
-  const index = getMemoryIndex(memoryCorpus);
+  const index = getMemoryIndexForScope(memoryScope, memoryCorpus);
   let topHit: { id: string; text: string } | null = null;
   let exact = false;
   if (index) {
@@ -210,7 +263,12 @@ export function runNativePipeline(
       exact = hit.exact === true;
     }
   }
-  pushStep("memoria LSH", { corpusSize: memoryCorpus.length, hits: topHit ? 1 : 0, exact });
+  pushStep("memoria LSH", {
+    corpusSize: memoryCorpus.length,
+    hits: topHit ? 1 : 0,
+    exact,
+    cacheScope: memoryScope,
+  });
 
   const knowledgeGraph =
     options.knowledgeGraph ?? (cachedKnowledgeGraph ??= seedRdmKnowledgeGraph());
@@ -237,14 +295,15 @@ export function runNativePipeline(
     wantPrivileged: false,
     wantEgress: false,
     wantExecution: false,
-    authorshipApproved: true,
-    tenantBoundaryOk: true,
-    principalPresent: true,
-    capabilityTokenPresent: false,
-    sandboxAllowed: true,
+    authorshipApproved: attestations.authorshipApproved,
+    tenantBoundaryOk: attestations.tenantBoundaryOk,
+    principalPresent: attestations.principalPresent,
+    capabilityTokenPresent: attestations.capabilityTokenPresent,
+    sandboxAllowed: attestations.sandboxAllowed,
   };
   const consensus = controller.evaluate(context);
   pushStep("heptafederación", {
+    attestations,
     votes: consensus.votes.map((vote) => ({
       id: vote.id,
       approved: vote.approved,
@@ -309,7 +368,7 @@ export function runNativePipeline(
     response =
       "Consenso federado no alcanzado o coherencia insuficiente: no generaré una respuesta sin fundamento.";
 
-  const metrics = getMetrics(memoryCorpus);
+  const metrics = getMetrics(memoryScope, memoryCorpus);
   pushStep("redacción y auditoría", {
     mode: inference.mode,
     httpStatus: inference.httpStatus,
@@ -361,6 +420,7 @@ export function runNativePipeline(
     numberOfSteps: 12,
     signature,
     aligned: signature !== null,
+    attestations,
   };
 }
 
@@ -372,8 +432,9 @@ function buildResult(
   response: string | null,
   message: string,
   httpStatus: number,
+  attestations: Required<PipelineAttestations> = resolveAttestations(),
 ): PipelineRunResult {
-  const metrics = getMetrics(options.memoryCorpus ?? []);
+  const metrics = getMetrics(options.tenantId ?? ANONYMOUS_SCOPE, options.memoryCorpus ?? []);
   return {
     id,
     inference: { ...inference, httpStatus: httpStatus as 200 | 503 },
@@ -396,6 +457,7 @@ function buildResult(
     metrics,
     numberOfSteps: 12,
     message,
+    attestations,
   };
 }
 

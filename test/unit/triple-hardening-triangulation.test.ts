@@ -68,4 +68,48 @@ describe("CryptographicTriangulation (triple hardening)", () => {
       /Unsupported envelope version/,
     );
   });
+
+  it("falls closed without a configured master secret and rejects short overrides (ISA-248)", async () => {
+    const { resetConfigCache } = await import("@/lib/config");
+    const previousEncryptionKey = process.env.ENCRYPTION_MASTER_KEY;
+    const previousJwtSecret = process.env.AUTH_JWT_SECRET;
+    delete process.env.ENCRYPTION_MASTER_KEY;
+    delete process.env.AUTH_JWT_SECRET;
+    resetConfigCache();
+    try {
+      await expect(
+        CryptographicTriangulation.encrypt("secret", { tenantId, purpose }),
+      ).rejects.toThrow(/ENCRYPTION_MASTER_KEY/);
+      await expect(
+        CryptographicTriangulation.encrypt("secret", {
+          tenantId,
+          purpose,
+          masterKey: "short-key",
+        }),
+      ).rejects.toThrow(/at least 32 characters/);
+    } finally {
+      if (previousEncryptionKey !== undefined)
+        process.env.ENCRYPTION_MASTER_KEY = previousEncryptionKey;
+      if (previousJwtSecret !== undefined) process.env.AUTH_JWT_SECRET = previousJwtSecret;
+      resetConfigCache();
+    }
+  });
+
+  it("round-trips with an explicit master key override", async () => {
+    const masterKey = "explicit-master-key-with-32-characters-min";
+    const envelope = await CryptographicTriangulation.encrypt("secret", {
+      tenantId,
+      purpose,
+      masterKey,
+    });
+    const out = await CryptographicTriangulation.decrypt(envelope, {
+      tenantId,
+      purpose,
+      masterKey,
+    });
+    expect(out).toBe("secret");
+    await expect(
+      CryptographicTriangulation.decrypt(envelope, { tenantId, purpose }),
+    ).rejects.toThrow();
+  });
 });

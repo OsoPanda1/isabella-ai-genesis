@@ -194,6 +194,109 @@ describe("TINA BookPI ledger + plugins", () => {
       }),
     ).rejects.toThrow(/ya instalado/);
   });
+
+  it("enforces declared permissions at invocation time (ISA-041 a ISA-045)", async () => {
+    const book = new TinaBookPI();
+    const registry = new TinaPluginRegistry(book);
+    await registry.install({
+      manifest: {
+        id: "guarded",
+        version: "1.0.0",
+        publisher: "tina",
+        permissions: {
+          read: ["mem/*"],
+          write: ["mem/notes"],
+          tools: ["summarize"],
+          networkAllow: ["api.example.com"],
+        },
+      },
+      run: async (input, guard) => {
+        await guard.assertRead("mem/alpha");
+        await guard.assertTool("summarize");
+        await guard.assertNetwork("https://api.example.com/v1");
+        return { ok: true, input };
+      },
+    });
+
+    const allowed = await registry.invoke("guarded", { x: 1 }, {
+      reads: ["mem/alpha"],
+      tools: ["summarize"],
+      networkTargets: ["https://api.example.com/v1"],
+    });
+    expect(allowed).toMatchObject({ ok: true });
+
+    await expect(registry.invoke("guarded", {}, { writes: ["mem/other"] })).rejects.toThrow(
+      /PLUGIN_PERMISSION_DENIED/,
+    );
+    await expect(registry.invoke("guarded", {}, { tools: ["shell"] })).rejects.toThrow(
+      /PLUGIN_PERMISSION_DENIED/,
+    );
+    await expect(registry.invoke("guarded", {}, { networkTargets: ["https://evil.example.net"] }))
+      .rejects.toThrow(/PLUGIN_PERMISSION_DENIED/);
+
+    const denied = book.list().filter((event) => event.type === "PLUGIN_PERMISSION_DENIED");
+    expect(denied.length).toBeGreaterThanOrEqual(3);
+    expect(book.verifyChain()).toBe(true);
+  });
+
+  it("denies plugin-internal operations outside the manifest (default-deny guard)", async () => {
+    const book = new TinaBookPI();
+    const registry = new TinaPluginRegistry(book);
+    await registry.install({
+      manifest: {
+        id: "sneaky",
+        version: "1.0.0",
+        publisher: "tina",
+        permissions: { read: ["mem"], write: [], tools: [], networkAllow: [] },
+      },
+      run: async (_input, guard) => {
+        await guard.assertWrite("mem/notes");
+        return "unreachable";
+      },
+    });
+    await expect(registry.invoke("sneaky", {})).rejects.toThrow(/PLUGIN_PERMISSION_DENIED/);
+    await expect(registry.invoke("sneaky", {})).rejects.toMatchObject({
+      code: "PLUGIN_PERMISSION_DENIED",
+      kind: "write",
+    });
+
+    const networkRegistry = new TinaPluginRegistry(book);
+    await networkRegistry.install({
+      manifest: {
+        id: "net",
+        version: "1.0.0",
+        publisher: "tina",
+        permissions: { read: [], write: [], tools: [], networkAllow: ["api.example.com"] },
+      },
+      run: async (_input, guard) => {
+        await guard.assertNetwork("http://api.example.com/insecure");
+        return "unreachable";
+      },
+    });
+    await expect(networkRegistry.invoke("net", {})).rejects.toThrow(/PLUGIN_PERMISSION_DENIED/);
+    expect(book.verifyChain()).toBe(true);
+  });
+
+  it("rejects malformed permission manifests at install time", async () => {
+    const book = new TinaBookPI();
+    const registry = new TinaPluginRegistry(book);
+    await expect(
+      registry.install({
+        manifest: {
+          id: "bad",
+          version: "1.0.0",
+          publisher: "tina",
+          permissions: { read: "mem" } as unknown as {
+            read: string[];
+            write: string[];
+            tools: string[];
+            networkAllow: string[];
+          },
+        },
+        run: async () => null,
+      }),
+    ).rejects.toThrow(/Permiso "read" inválido/);
+  });
 });
 
 describe("TINA orchestrator", () => {
@@ -206,6 +309,11 @@ describe("TINA orchestrator", () => {
       principalId: "p1",
     });
     expect(result.status).toBe("accepted_for_adapter");
+    expect(result.execution).toEqual({
+      executed: false,
+      reason: "ADAPTER_NOT_BOUND",
+      detail: expect.stringContaining("no ejecutada"),
+    });
     expect(result.category).toBe("TINA");
     expect(result.member).toBe("isabella-villasenor-ai");
     expect(result.cacheKey).toMatch(/^tina:cache:/);
@@ -224,6 +332,8 @@ describe("TINA orchestrator", () => {
     });
     expect(result.status).toBe("pending_human_review");
     expect(result.route.requiresHumanReview).toBe(true);
+    expect(result.execution.executed).toBe(false);
+    expect(result.execution.reason).toBe("HUMAN_REVIEW_REQUIRED");
   });
 
   it("blocks critical governance bypass on non-FAST paths", async () => {
@@ -236,6 +346,26 @@ describe("TINA orchestrator", () => {
     });
     expect(result.status).toBe("blocked_or_review");
     expect(result.audit?.valid).toBe(false);
+    expect(result.execution).toMatchObject({ executed: false, reason: "ETHICAL_BLOCK" });
+  });
+
+  it("records non-execution in the ledger for accepted routes (ISA-026)", async () => {
+    const orch = createTinaOrchestrator();
+    await orch.execute({
+      text: "Respuesta gobernada con trazabilidad y privacidad.",
+      complexity: { score: 0.1 },
+      tenantId: "t1",
+      principalId: "p1",
+    });
+    const accepted = orch
+      .getBookPI()
+      .list()
+      .find((event) => event.type === "TINA_ACCEPTED");
+    expect(accepted).toBeDefined();
+    expect(accepted?.payload).toMatchObject({
+      execution: { executed: false, reason: "ADAPTER_NOT_BOUND" },
+    });
+    expect(orch.getBookPI().verifyChain()).toBe(true);
   });
 });
 

@@ -1,6 +1,18 @@
 import { json } from "@tanstack/react-start";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { SecuritySystem } from "@/lib/security";
+import { config } from "@/lib/config";
+import {
+  WEBHOOK_MAX_BYTES,
+  resolveWebhookEventId,
+  verifyWebhookSignature,
+  webhookSecretFor,
+} from "@/lib/connectors/webhook-verification";
+import {
+  createWebhookEventStore,
+  hashWebhookPayload,
+  type WebhookEventStore,
+} from "@/lib/connectors/webhook-event-store";
 import {
   beginAuthorization,
   isAuthorizationRequired,
@@ -66,16 +78,91 @@ export const status = protectedHandler(async (context, request, provider) => {
   }
 });
 
-export async function webhook(request: Request, provider: ConnectorProvider): Promise<Response> {
-  const rawEventId = request.headers.get("x-vercel-connect-event-id") ?? "";
+export interface WebhookOptions {
+  /** Almacén de idempotencia inyectable (tests); por defecto, el autoritativo. */
+  store?: WebhookEventStore | null;
+  /** Entorno inyectable (tests); por defecto, config(). */
+  env?: Record<string, string | undefined>;
+}
+
+export async function webhook(
+  request: Request,
+  provider: ConnectorProvider,
+  options: WebhookOptions = {},
+): Promise<Response> {
+  const environment = options.env ?? (config() as unknown as Record<string, string | undefined>);
+
+  // 1. Límite de tamaño ANTES de parsear (ISA-206).
+  const rawBody = await request.text();
+  const byteLength = Buffer.byteLength(rawBody, "utf8");
+  if (byteLength > WEBHOOK_MAX_BYTES) {
+    return json({ accepted: false, error: "WEBHOOK_PAYLOAD_TOO_LARGE" }, { status: 413 });
+  }
+
+  // 2. Identidad del evento, saneada (nunca se refleja el payload).
+  const rawEventId = resolveWebhookEventId(request.headers);
   const sanitizedEventId = SecuritySystem.sanitizePayload(rawEventId);
   const eventId = sanitizedEventId.flagged ? "" : sanitizedEventId.clean.slice(0, 256);
-  if (!eventId || eventId.length > 256 || sanitizedEventId.flagged) {
+  if (!eventId || sanitizedEventId.flagged) {
     return json({ accepted: false, error: "CONNECT_EVENT_ID_REQUIRED" }, { status: 400 });
   }
 
-  // Vercel Connect performs provider verification before forwarding this route.
-  // Isabella records only bounded correlation metadata until an idempotent event
-  // ledger is introduced; provider payloads are never echoed to the client.
-  return json({ accepted: true, provider, eventId, governed: true });
+  // 3. Verificación de firma sobre los bytes exactos recibidos (ISA-199/ISA-205).
+  //    Sin secreto configurado o sin esquema verificable: fail-closed.
+  const verification = verifyWebhookSignature({
+    provider,
+    rawBody,
+    byteLength,
+    headers: request.headers,
+    secret: webhookSecretFor(provider, environment),
+  });
+  if (!verification.ok) {
+    const status =
+      verification.code === "WEBHOOK_SECRET_NOT_CONFIGURED"
+        ? 503
+        : verification.code === "WEBHOOK_PAYLOAD_TOO_LARGE"
+          ? 413
+          : verification.code === "WEBHOOK_SIGNATURE_UNSUPPORTED"
+            ? 501
+            : 401;
+    // Nunca se incluye la firma recibida ni el secreto en la respuesta (ISA-217).
+    return json({ accepted: false, error: verification.code }, { status });
+  }
+
+  // 4. Idempotencia durable ANTES del ACK (ISA-200/ISA-210).
+  const store = options.store !== undefined ? options.store : createWebhookEventStore(environment);
+  if (!store) {
+    return json(
+      {
+        accepted: false,
+        error: "WEBHOOK_STORE_UNAVAILABLE",
+        action: "Requiere almacén durable de eventos de webhook antes de aceptar.",
+      },
+      { status: 503 },
+    );
+  }
+
+  // 5. Reclamo durable: el evento queda en la cola como `pending` y recién
+  //    entonces se hace ACK. El trabajo aguas abajo corre fuera del request
+  //    mediante processPendingWebhooks() (ISA-207) y nunca antes del ACK.
+  const outcome = await store.claim({
+    provider,
+    eventId,
+    payloadHash: hashWebhookPayload(rawBody),
+  });
+
+  if (outcome === "duplicate") {
+    // Reentrega idempotente: se confirma sin reprocesar.
+    return json({ accepted: true, duplicate: true, provider, eventId, governed: true });
+  }
+
+  return json({
+    accepted: true,
+    duplicate: false,
+    provider,
+    eventId,
+    governed: true,
+    queued: true,
+    durable: store.durable,
+  });
 }
