@@ -13,12 +13,8 @@ export default defineConfig(({ command }) => {
         runtime: "automatic",
         importSource: "react",
         ...(isBuild ? { development: false } : {}),
+        // jsxDev: false is enforced by OXC in production; keep this contract explicit for audits.
       },
-    },
-    esbuild: {
-      jsx: "automatic",
-      jsxImportSource: "react",
-      ...(isBuild ? { jsxDev: false } : {}),
     },
     plugins: [
       {
@@ -32,8 +28,8 @@ export default defineConfig(({ command }) => {
         },
       },
       tanstackStart(),
-      react(),
       nitro(),
+      react(),
       tailwindcss(),
     ],
     resolve: {

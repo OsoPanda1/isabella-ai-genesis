@@ -31,6 +31,7 @@
 - `docs/architecture/SSOT.md` — SSoT por dominio
 - `docs/architecture/RUNTIME-AUTHORITY-MAP.md` — mapa de autoridades runtime
 - `docs/operations/` — runbooks operativos (SLO, CSP, rate limit, backups, HSM, etc.)
+- [`docs/operations/SECRETS-CATALOG.md`](operations/SECRETS-CATALOG.md) — catálogo de claves externas e internas y requisitos por capacidad
 - `docs/runbooks/incident.md` — respuesta a incidentes P0/P1
 - `docs/security/ISABELLA-API-KEYS.md` — contrato de API keys
 - `docs/evidence/` — manifiestos de evidencia same-commit
@@ -42,8 +43,10 @@
 `docs/_archive/**` conserva ADRs, auditorías, unificaciones previas y documentos
 absorbidos por `docs/01..06`. No borrar sin política de retención; no usar como fuente de cifras actuales.
 
-## Unificación aplicada (2026-09-24)
+## Higiene documental y artefactos
 
-- Eliminados duplicados exactos de archive (governance, CAPABILITY_MATRIX, SLO, incident runbook).
-- Movidos a archive: `PRODUCTION-READINESS-2026-09-13.md`, `ISABELLA_VILLASENOR_AI_PRESENTACION_Y_AUDITORIA_v1.0.0.md`.
-- `README.md` reescrito solo con datos verificables del repo en la fecha de emisión.
+- `docs/_archive/**` es histórico deliberado y no se usa como fuente operativa.
+- Los artefactos generados (`.output`, `dist`, `.next` y caches) están excluidos del control de versiones.
+- Los duplicados exactos restantes se conservaron cuando pertenecen a contratos distintos: assets públicos/runtime, catálogos de policy y fixtures de despliegue.
+- `README.md` documenta únicamente capacidades y validaciones verificables; no convierte intención o documentación histórica en evidencia de producción.
+- Toda futura deduplicación debe comprobar referencias, propietario funcional, licencia y ruta de despliegue antes de borrar.

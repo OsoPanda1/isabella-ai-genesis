@@ -4,7 +4,6 @@ import {
   Activity,
   Gauge,
   Clock,
-  ArrowUpRight,
   TrendingDown,
   Layers,
   ShieldCheck,
@@ -12,7 +11,6 @@ import {
   Play,
   CheckCircle2,
   SlidersHorizontal,
-  Cpu,
   Sparkles,
   Info,
 } from "lucide-react";

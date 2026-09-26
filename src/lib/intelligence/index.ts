@@ -2,6 +2,7 @@ import { config } from "@/lib/config";
 import { GeminiProvider } from "./gemini-provider";
 import { OllamaProvider } from "./ollama-provider";
 import { OpenAICompatibleLocalProvider } from "./openai-compatible-provider";
+import { registerFreeAIFederation } from "./free-ai-federation";
 import { addProvider, invokeIntelligence, governIntelligence } from "./router";
 
 let initialized = false;
@@ -22,9 +23,14 @@ export function initializeIntelligencePlane(): void {
   if (runtime.OPENAI_COMPATIBLE_LOCAL_ENABLED) {
     addProvider(new OpenAICompatibleLocalProvider(), false);
   }
+
+  // Registration is capability discovery only. Production authorization remains
+  // in the model registry and the runtime gate; remote endpoints are opt-in.
+  registerFreeAIFederation((provider) => addProvider(provider, false));
   initialized = true;
 }
 
 export { invokeIntelligence, governIntelligence };
 export * from "./contracts";
 export * from "./model-registry";
+export * from "./free-ai-federation";

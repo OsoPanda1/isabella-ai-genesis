@@ -133,6 +133,9 @@ export const envSchema = z
     VOICE_API_URL: optionalUrl(),
     GROQ_API_KEY: optionalString(),
     XAI_API_KEY: optionalString(),
+    // Free federation is opt-in and only accepts explicitly configured, HTTPS endpoints.
+    FREE_AI_FEDERATION_ENABLED: bool(false),
+    FREE_AI_FEDERATION_ENDPOINTS: optionalString(),
     LLM_VOICE_MODEL: z.string().default("openai/gpt-4o-mini-tts"),
     LLM_UPSTREAM_TIMEOUT_MS: coercedInt(8500),
     // --- TELEMETRY ---

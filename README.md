@@ -1,143 +1,80 @@
-# Isabella Villaseñor AI™ — Genesis
+# Isabella Villaseñor AI Genesis
 
-### Infraestructura cognitiva territorial, gobernada y auditable — TAMV Online Network · Nodo Cero
+Isabella es una plataforma Next.js/TanStack Start orientada a interacción cognitiva gobernada, con una interfaz operativa, pipeline FGAIS, controles de autorización, proveedores de inteligencia configurables, auditoría y módulos de ejecución restringida.
 
-> **"Las inteligencias sugieren, calculan y evalúan; el humano decide, aprueba y ejecuta."**
-> **Blanco o negro. Sin grises. Si no se corrige, no se engaña.**
+## Estado real
 
-Isabella es el núcleo cognitivo y de gobernanza de **TAMV Online Network / CITEMESH** en **Real del Monte, Hidalgo, México (2,770 msnm)**. No es chatbot ni AGI: es **arquitectura coordinadora** de identidad, memoria, políticas, herramientas, economía, seguridad y decisión asistida.
+- **Código:** implementado y compilable en el branch `v0/genesis-turbo-tina`.
+- **Validación local actual:** `typecheck` y pruebas unitarias aprobadas; lint sin errores después del saneamiento de formato.
+- **Producción:** requiere validar variables, credenciales, proveedor de modelo, base de datos y políticas en el ambiente de despliegue.
+- **Certificación:** no se declara certificación jurídica, académica, regulatoria, criptográfica ni de seguridad únicamente por pasar checks locales.
 
-**Autoría:** Edwin Oswaldo Castillo Trejo / Anubis Villaseñor — ORCID `0009-0008-5050-1539` — Real del Monte, Hidalgo  
-**Licencia:** CC BY 4.0 (docs/contenido) + Apache-2.0 + ISC — ver `LICENSE`, `LICENSE-*`, `SECURITY.md`  
-**Documentación canónica:** [`docs/INDEX.md`](docs/INDEX.md) → `AGENTS.md` + `docs/01..06`
+La clasificación de capacidades sigue `AGENTS.md`: `IMPLEMENTED`, `TESTED`, `VERIFIED`, `DEPLOYED`, `HARDENED` y `CERTIFIED` no son equivalentes.
 
----
+## Funciones principales
 
-## Declaración de orgullo latinoamericano
+- Chat de Isabella con autorización soberana y fallback de invitado limitado a desarrollo/Preview configurado.
+- Intro cinematográfica inicial por sesión, omisible y accesible.
+- Navegación modular con estado persistido en hash para recuperación de la vista.
+- Gate de política y contexto principal para tenant, scopes, sesiones y API keys.
+- Router de inteligencia con proveedores locales/OpenAI-compatible y federación gratuita opt-in.
+- Registro de modelos, health checks, límites de tiempo, validación HTTPS y degradación controlada.
+- CROWN/ARGUS/SOPHIA/ORION como fronteras conceptuales de decisión, evidencia, herramientas y seguridad.
+- BookPI y telemetría para trazabilidad; las abstracciones no se presentan como WORM, HSM o certificación sin evidencia externa.
 
-> ¡A huevo que somos latinoamericanos! 🇲🇽🇧🇷🇦🇷🇨🇴🇵🇪🇨🇱  
-> *Construido en Real del Monte, Hidalgo — Nodo Cero — para Latinoamérica y el mundo.*
+## Arquitectura de ejecución
 
----
-
-## Ficha verificada (SSOT = `package.json` + gates locales)
-
-| Campo | Valor verificable |
-|---|---|
-| **Repo** | `OsoPanda1/isabella-ai-genesis` — rama `main` |
-| **Versión** | **`4.3.3`** |
-| **Node / pnpm** | `>=22 <25` · `pnpm@10.34.5` · `.nvmrc` `24.11.0` |
-| **Runtime** | TanStack Start `1.168.32` + Nitro `3.0.260603-beta` + Vite `8.2` + Vercel `iad1` |
-| **UI / datos** | React `19.2` · Tailwind `4` · Prisma `5.22` · `pg` · Neon/Postgres · Supabase IdP |
-| **Pagos** | Stripe `22.6` · BookPI WORM · Cattleya · x402 (ECDSA P-384 real) |
-| **Typecheck / Lint** | Se exigen en `pnpm production:gate` y en CI FGAIS |
-| **Tests** | `pnpm test` (Vitest 4) — ver `production-capabilities.json` `test_summary` |
-| **Economía** | Rutas monetization/x402 → **`503 CAPABILITY_NOT_CERTIFIED`** en staging/production |
-| **Readiness global** | **`81%`** = 100% implementación verificable + 62% despliegue vivo / 2 |
-
-> **No es 100% global.** `100%` de certificación exige Neon RLS live, Stripe live, HSM, Vercel health same-commit, evidence runner de los 500 gates y rollback demostrado. `EVIDENCE_GATED` no cuenta como PASS (`AGENTS.md` §19).
-
----
-
-## 1. Qué es / Qué no es
-
-**Es:** pipeline FGAIS + CROWN v6 (12 nodos) + BookPI + NCUA + ML gobernado + HDC + skills + economía fail-closed + **categoría TINA**.  
-**No es:** AGI autónoma, persona digital, certificación legal/financiera, ni sistema que oculte el nivel epistémico `E0–E4`.
-
-### Categoría TINA — Trusted Intelligence, Native & Adaptive
-
-**Isabella Villaseñor AI es la primera AI declarada en la categoría TINA** (spec `0.1.0-genesis`).  
-Módulo real: `src/lib/tina/` · skill `TINA` · capability `category.tina` (`implemented`, **no** productionSafe).  
-Detalle: [`docs/07-TINA-CATEGORIA.md`](docs/07-TINA-CATEGORIA.md). Declaración de categoría ≠ certificación de producción.
-
----
-
-## 2. Arquitectura — 4 planos · CROWN v6 · 7 federaciones
-
-| Plano | Componentes | Estado |
-|---|---|---|
-| **Experiencia** | `IsabellaClientApp`, cockpit, monitor de transparencia | Operativo (UI) |
-| **Cognitivo** | dual kernel / language core / ML gobernado / skills | Implementado |
-| **Gobernanza** | CROWN v6, ARGUS, RBAC/ABAC, BookPI, IGDS, NCUA | Implementado |
-| **Infra** | Neon Postgres, Supabase IdP, Upstash, Nitro/Vercel, QPU bridge | Implementado / parcial live |
-
-**Pipeline canónico:** `Perceive → Remember → Policy Gate → Decide (CROWN v6) → Act → Audit → Respond`  
-**Autoridad runtime:** `src/lib/crown-runtime-authority.ts` (v6) — `crown.ts` es compatibility adapter v2.
-
----
-
-## 3. Seguridad — hardening triangular
-
-Tres raíces independientes; una operación crítica solo es válida si las tres cierran:
-
-```
-T1 Identity  → JWT/JWKS/OIDC, sesión, revocación, API keys   (jwt-verifier, auth-verification-layer)
-T2 Policy    → CROWN/ARGUS PDP+PEP, RBAC/ABAC, capabilities  (crown-runtime-authority, authorization)
-T3 Evidence  → BookPI WORM + IGDS seal + audit append-only    (bookpi-*, igds/*, sovereign-audit)
+```text
+PERCEIVE → REMEMBER → POLICY GATE → DECIDE → ACT → AUDIT → RESPOND
 ```
 
-- **Envelope AES-256-GCM + KMS wrap:** `src/lib/crypto/triangular-envelope.ts`
-- **Triple vértice (AES-GCM · ChaCha20-Poly1305 · HMAC-SHA3-512/BookPI):** `src/lib/crypto/triple-hardening-triangulation.ts` (fail-closed)
-- **Firma ledger:** `src/lib/crypto/bookpi-signer.ts` — `ECDSA-P384` / `RSA-SHA256`; `ML-DSA-87` **solo** simulación (aborta en prod/staging)
-- **Headers:** HSTS + CSP con nonce fail-closed + `X-Frame-Options: DENY` + `nosniff`
-- **Secretos:** jamás en logs/docs/tests (`test/security/secret-exposure.test.ts`); valores históricos comprometidos **REDACTED**; rotación documentada en `SECURITY.md`
+Las mutaciones, operaciones económicas, permisos y herramientas con efectos laterales deben fallar cerradas cuando falten identidad, policy decision, capability check, cuotas, validación o evidencia requerida.
 
----
-
-## 4. Economía — honesta
-
-```
-idempotency-key → BEGIN → debit → credit → BookPI WORM → COMMIT | ROLLBACK
-```
-
-- Planes y cuotas definidos en código; sin `STRIPE_SECRET_KEY` → **fail-closed 503**
-- x402: firma ECDSA P-384 real, bindings amount/resource/tenant, anti-replay, TTL 5 min
-- Refunds = eventos nuevos (append-only); sin mutación silenciosa del ledger
-
----
-
-## 5. Comandos
+## Desarrollo
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm typecheck && pnpm lint && pnpm test && pnpm build
-pnpm verify:lock
-pnpm production:gate          # cadena completa same-commit
-pnpm capabilities             # matriz de capacidades
-pnpm security:scan            # eslint security + secret scan
+pnpm dev
+pnpm typecheck
+pnpm lint
+pnpm test:unit
+pnpm build
 ```
 
-Deploy: push a `main` → Vercel/Nitro. **Prohibido** `--force` en historia publicada (`AGENTS.md` §2.1).
+Para el gate completo de producción, revisar primero los scripts disponibles en `package.json` y ejecutar únicamente los que tengan variables e infraestructura configuradas:
 
----
-
-## 6. Estructura del repo
-
-```
-AGENTS.md                 # SSOT arquitectónica para agentes
-docs/INDEX.md             # índice canónico de documentación
-docs/01..06               # dominios unificados (canónicos)
-docs/_archive/            # histórico (no usar como cifra actual)
-src/lib/                  # núcleo (crown, auth, bookpi, igds, crypto, pipeline)
-src/routes/api/           # HTTP delgado
-src/server-routes/api/    # handlers de alto riesgo (billing, etc.)
-scripts/quantum/          # quantum bridge Python (boundary)
-supabase/migrations/      # esquema y RLS
-test/                     # unit · security · integration · bookpi
-production-capabilities.json  # manifiesto de readiness
+```bash
+pnpm production:gate
 ```
 
----
+El build Vercel usa Nitro y genera `.vercel/output`; ese directorio es artefacto generado y está excluido del control de versiones.
 
-## 7. Contribución
+## Configuración esencial
 
-`feat|fix|docs/<scope>` → typecheck + lint + test + build → PR con evidencia → `main` sin force.  
-CODEOWNERS y plantilla de PR en `.github/`.
+Usa `.env.example` como contrato. Nunca publiques secretos. En Preview, el chat invitado requiere `ALLOW_GUEST_CHAT=true`; en producción debe usarse una identidad firmada o `X-Isabella-API-Key`. Los proveedores de IA remotos son opt-in, deben tener endpoint HTTPS explícito y no convierten automáticamente una respuesta en evidencia verificada.
 
----
+## Documentación y limpieza
 
-## 8. Licencia y contacto
+- `AGENTS.md`: reglas canónicas de arquitectura, seguridad y despliegue.
+- `docs/INDEX.md`: entrada única a documentación viva.
+- `docs/01..07`: canon funcional, operaciones, seguridad, economía, ML, contribución y categoría.
+- `docs/operations/`, `docs/security/`, `docs/evidence/`: runbooks, contratos y evidencia.
+- `docs/_archive/`: histórico deliberado; no es fuente de estado actual y no debe citarse sin revisión.
 
-**Edwin Oswaldo Castillo Trejo / Anubis Villaseñor** — ORCID `0009-0008-5050-1539`  
-Seguridad: ver `SECURITY.md` (Security Advisories, no issues públicos para secretos).  
-Readiness y gates: `production-capabilities.json` + `docs/evidence/`.
+Los duplicados binarios rastreados que tienen funciones distintas se conservan separados: assets públicos/runtime, fixtures de despliegue, catálogos de policy y documentación histórica no son intercambiables. Los directorios `.output`, `dist`, `.next` y caches son generados y no deben versionarse.
+
+## Claves de operación
+
+El catálogo completo y actualizado de credenciales externas e internas está en [`docs/operations/SECRETS-CATALOG.md`](docs/operations/SECRETS-CATALOG.md). Para la operación mínima de producción se requieren persistencia configurada, `AUTH_JWT_SECRET`, `ENCRYPTION_MASTER_KEY`, `CROWN_POLICY_SIGNING_KEY`, `AEGIS_AUDIT_SECRET`, `BOOKPI_SIGNING_KEY`, `PROVISION_OWNER_TOKEN`, `API_KEY_HASH_SECRET` y, si se habilita inferencia externa, la credencial del proveedor correspondiente.
+
+## Seguridad y honestidad operativa
+
+No introduzcas tokens, claves, datos personales, dumps ni certificados privados. Las claves de firma y credenciales se mantienen **REDACTED** en documentación y se gestionan únicamente mediante variables seguras del entorno. Un modelo no es una autoridad; una predicción no es un hecho; una recomendación no es una aprobación. Toda capacidad debe conservar procedencia, límites, revisión humana cuando corresponda y evidencia reproducible.
+
+## Licencias
+
+Consulta `LICENSE`, `LICENSES.md`, `LICENSE-CONTROL.md`, `LICENSE-SOVEREIGN.md` y `NOTICE`. Las dependencias y subproyectos conservan sus propias licencias.
+
+## Mantenimiento
+
+Antes de publicar, ejecuta checks reproducibles, revisa el diff, confirma las variables del entorno objetivo y registra cualquier check bloqueado. No se debe afirmar que el proyecto está certificado o listo para producción solo porque el build local sea verde.

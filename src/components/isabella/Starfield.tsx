@@ -14,7 +14,8 @@ import { useEffect, useMemo, useState } from "react";
  *   prefiere reducir el movimiento, se desactivan todas las animaciones.
  */
 
-const STAR_COUNT = 1000;
+// Keep the decorative layer lightweight so it cannot starve input handling on preview GPUs.
+const STAR_COUNT = 180;
 
 /** Semilla determinista: misma constelación entre renders/reloads. */
 const SEED = 0x15443a1f; // "RDM / HGO" (hash simple estable)
