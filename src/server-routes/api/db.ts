@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import * as nodeCrypto from "node:crypto";
-import { COGNITIVE_HEADS } from "@/lib/sovereign-engine";
+import { COGNITIVE_HEADS, SovereignSandbox } from "@/lib/sovereign-engine";
 import { sovereignStateRepository } from "@/lib/sovereign-state-repository";
 import { prisma } from "@/lib/db";
 import { createBookpiPostgresRepository } from "@/lib/repositories/bookpi-postgres-repository";
@@ -1114,8 +1114,7 @@ export const Route = createFileRoute("/api/db")({
                 );
                 await sandbox.deprovisionInstance();
               } else {
-                const { SovereignSandbox } = await import("@/lib/sovereign-engine");
-                result = SovereignSandbox.executeTool(
+result = SovereignSandbox.executeTool(
                   val.data.expression,
                   val.data.variables || {},
                 );
