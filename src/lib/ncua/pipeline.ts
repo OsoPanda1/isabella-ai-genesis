@@ -11,6 +11,7 @@
 
 import { createHash, randomUUID } from "node:crypto";
 import { resolveInferencePolicy } from "../inference-policy";
+import { inspectInferenceInput } from "../intelligence/inference-firewall";
 import { encodeUtf8, decodeUtf8, chunkBytes, byteLengthOf } from "./bytes";
 import { compressToLatent, embed } from "./embed";
 import { SimHashLshIndex } from "./lsh";
@@ -197,6 +198,19 @@ function riskAssessment(text: string): { detected: boolean; reason: string | nul
   return { detected: false, reason: null };
 }
 
+/**
+ * El texto recuperado de memoria es dato no confiable (ISA-083 / ISA-179):
+ * sólo puede devolverse como respuesta si pasa el firewall de inferencia y el
+ * detector local de directivas. Los dos son deny-by-default sobre patrones
+ * catalogados, no una garantía exhaustiva; por eso la ausencia de coincidencia
+ * no convierte al fragmento en hecho verificado.
+ */
+export function isTrustedMemoryResponse(text: string): boolean {
+  if (!text.trim()) return false;
+  if (riskAssessment(text).detected) return false;
+  return inspectInferenceInput([{ role: "user", content: text }]).allowed;
+}
+
 export function runNativePipeline(
   text: string,
   options: PipelineRunOptions = {},
@@ -360,7 +374,10 @@ export function runNativePipeline(
       "La solicitud rechazada no fue procesada: " + (risk.reason ?? "riesgo detectado") + ".";
   else if (attention.consensusApproved && consensus.approved && coherence >= 0.4) {
     if (narrative.groundedFacts > 0) response = narrative.text;
-    else if (topHit) response = topHit.text;
+    // ISA-083/ISA-179: el texto recuperado es dato no confiable; no se
+    // devuelve si el firewall o el detector de directivas lo marcan. En ese
+    // caso se cae al mensaje honesto de abajo.
+    else if (topHit && isTrustedMemoryResponse(topHit.text)) response = topHit.text;
     else
       response =
         "He procesado tu consulta en el espacio continuo sin tokens. No tengo hechos fundamentados para esta consulta concreta; puedo escalar la pregunta a un humano.";

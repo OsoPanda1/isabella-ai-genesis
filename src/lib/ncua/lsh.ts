@@ -14,6 +14,29 @@ export interface LshDocument {
 }
 
 const COARSE_BITS = 16;
+const MAX_INDEXED_CHARS = 100_000;
+
+/**
+ * Higiene de corpus al ingerir (ISA-083 / ISA-179): el texto de un índice de
+ * recuperación es dato no confiable. Se eliminan caracteres de control y
+ * separadores de ancho cero, y se limita el tamaño para que una pieza
+ * envenenada no ocupe el índice ni sobreviva byte a byte hasta la respuesta.
+ */
+function sanitizeCorpusText(raw: string): string {
+  let out = "";
+  for (let i = 0; i < raw.length; i += 1) {
+    const code = raw.charCodeAt(i);
+    const isControl =
+      (code >= 0x00 && code <= 0x08) ||
+      code === 0x0b ||
+      code === 0x0c ||
+      (code >= 0x0e && code <= 0x1f) ||
+      code === 0x7f;
+    const isZeroWidth = code === 0x200b || code === 0x200d || code === 0xfeff;
+    if (!isControl && !isZeroWidth) out += raw[i];
+  }
+  return out.trim().slice(0, MAX_INDEXED_CHARS);
+}
 
 export interface LshSearchHit {
   id: string;
@@ -46,7 +69,9 @@ export class SimHashLshIndex {
   }
 
   add(doc: LshDocument, text: string): void {
-    const bytes = encodeUtf8(text);
+    const cleanText = sanitizeCorpusText(text);
+    if (!doc.id || cleanText.length === 0) return;
+    const bytes = encodeUtf8(cleanText);
     const vector = embedBytes(bytes, { dim: this.dim });
     const signature = simHash(vector, 64);
     const coarseKey = (signature.words[0] as number) & ((1 << this.coarseBits) - 1);
@@ -55,7 +80,7 @@ export class SimHashLshIndex {
     this.buckets.set(coarseKey, bucket);
     this.signatures.set(doc.id, signature);
     this.vectors.set(doc.id, vector);
-    this.texts.set(doc.id, text);
+    this.texts.set(doc.id, cleanText);
     let hash = 2166136261 >>> 0;
     for (let index = 0; index < bytes.length; index += 1) {
       hash ^= bytes[index] as number;

@@ -7,7 +7,7 @@
     "implementation_percent": 46,
     "deployment_percent": 62,
     "global_percent": 54,
-    "note": "Cifras derivadas de la auditoria ISA-500 (500 items): 42 FIXED (8.4%), 376 PARTIAL (75.2%), 74 STILL_BROKEN (14.8%), 8 BLOCKED_ENVIRONMENT (1.6%). Implementacion = ponderado conservador FIXED=1 y PARTIAL=0.5 sobre 500 = 46% (cota inferior; FIXED-only = 8.4%). Despliegue 62% = viven hasta Neon/Stripe/HSM. Global = media aritmetica (46+62)/2 = 54%. Nunca se declara 100% de implementacion ni 100% global."
+    "note": "Cifras derivadas de la auditoria ISA-500 (500 items): 44 FIXED (8.8%), 374 PARTIAL (74.8%), 72 STILL_BROKEN (14.4%), 8 BLOCKED_ENVIRONMENT (1.6%). Implementacion = ponderado conservador FIXED=1 y PARTIAL=0.5 sobre 500 = 46.2% redondeado a 46% (cota inferior; FIXED-only = 8.8%). Despliegue 62% = viven hasta Neon/Stripe/HSM. Global = media aritmetica (46+62)/2 = 54%. Nunca se declara 100% de implementacion ni 100% global."
   },
   "environment": "production",
   "governance_hash": "sha3-512:fgais-v4.3.3-audit-corrections",
@@ -244,13 +244,13 @@
     "status": "passed",
     "run_date": "2026-09-26",
     "runner": "vitest run (local, pnpm test)",
-    "total_tests": 684,
-    "passing_tests": 671,
+    "total_tests": 689,
+    "passing_tests": 676,
     "failing_tests": 0,
     "skipped_tests": 13,
-    "suites_passed": 114,
+    "suites_passed": 115,
     "suites_skipped": 2,
-    "note": "Conteos de la ejecucion local real del 2026-09-26 tras las correcciones ISA-150/164/184/185/187/S14/dev-auth. Skips = gated sin TEST_DATABASE_URL u otros."
+    "note": "Conteos de la ejecucion local real del 2026-09-26 tras las correcciones ISA-083/150/164/184/185/187/392/S14/dev-auth. Skips = gated sin TEST_DATABASE_URL u otros."
   },
   "deployment_tiers": {
     "tier_0_predeployment": {

@@ -12,12 +12,12 @@ Las cifras provienen de la auditoría de 500 ítems (`ISA-001..ISA-500`, 134 de 
 
 | Métrica | Valor | Cómo se calcula |
 |---|---:|---|
-| Ítems `FIXED` (implementados **y** con prueba) | **42 / 500 = 8.4%** | sólo ítems con código + test |
-| Ítems `PARTIAL` | 376 / 500 = 75.2% | implementación parcial |
-| Ítems `STILL_BROKEN` | 74 / 500 = 14.8% | sin implementación verificable |
+| Ítems `FIXED` (implementados **y** con prueba) | **44 / 500 = 8.8%** | sólo ítems con código + test |
+| Ítems `PARTIAL` | 374 / 500 = 74.8% | implementación parcial |
+| Ítems `STILL_BROKEN` | 72 / 500 = 14.4% | sin implementación verificable |
 | Ítems `BLOCKED_ENVIRONMENT` | 8 / 500 = 1.6% | requiere DB/GHCR/CI vivos |
-| **Implementación ponderada** | **46%** | `(42×1 + 376×0.5) / 500` — **cota inferior** |
-| Ítems P0 `FIXED` | 33 / 134 = 24.6% | P0 ponderado: 46.3% |
+| **Implementación ponderada** | **46%** | `(44×1 + 374×0.5) / 500 = 46.2%` — **cota inferior** |
+| Ítems P0 `FIXED` | 35 / 134 = 26.1% | P0 ponderado: 47.0% |
 | Despliegue | 62% | avance real hasta Neon/Stripe/HSM vivos |
 | **Global** | **54%** | media aritmética `(46 + 62) / 2` |
 
@@ -29,7 +29,7 @@ Se declara explícitamente lo que **no** está: no hay un 100% de implementació
 |---|---|
 | `pnpm typecheck` | PASS — 0 errores |
 | `pnpm lint` | PASS — 0 errores, 47 warnings |
-| `pnpm test` | PASS — **671 pruebas**, 13 omitidas, 0 fallos (114 archivos, 116 en total) |
+| `pnpm test` | PASS — **676 pruebas**, 13 omitidas, 0 fallos (115 archivos, 117 en total) |
 | `pnpm build` | PASS (Vite + Nitro) |
 | `pnpm security:scan` | PASS (SAST + secret scan) |
 | `pnpm verify:lock` | PASS |
@@ -44,7 +44,7 @@ Se declara explícitamente lo que **no** está: no hay un 100% de implementació
 - `k8s:image:verify --require-digest`: **BLOCKED_ENVIRONMENT** (GHCR devuelve `DENIED` en lectura anónima).
 - `db:migrate`, RLS en vivo, Neon/Stripe/HSM reales: sin `DATABASE_URL`/credenciales en este entorno; sólo se validan estáticamente.
 - `production:evidence`: declara `EVIDENCE_GATED` salvo con árbol limpio y commit *same-commit*; `EVIDENCE_GATED` no cuenta como `PASS`.
-- Ítems P0 abiertos de mayor impacto: MoE real (`ISA-003..017`), gate de salida de seguridad (`ISA-140/175`), gobierno del router de inteligencia (`ISA-125`), sanitización en `ncua/lsh.ts` (`ISA-083`), borrado verificable (`ISA-427/428`), gate de secretos en CI (`ISA-325`) y suites `ISA-379..393`.
+- Ítems P0 abiertos de mayor impacto: MoE real (`ISA-003..017`), gate de salida de seguridad (`ISA-140/175`), gobierno del router de inteligencia (`ISA-125`), borrado verificable (`ISA-427/428`), gate de secretos en CI (`ISA-325`, existe en `fgais-gate.yml` pero la protección de rama no es verificable desde aquí) y suites `ISA-379..391`/`ISA-393`.
 
 ## Funciones principales
 

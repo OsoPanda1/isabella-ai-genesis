@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-09-26T13:26:34.594Z",
-  "trackedFiles": 994,
-  "codeFiles": 660,
-  "documentationFiles": 137,
+  "generatedAt": "2026-09-26T15:28:29.851Z",
+  "trackedFiles": 998,
+  "codeFiles": 662,
+  "documentationFiles": 138,
   "riskSignals": {
-    "todo": 178,
+    "todo": 182,
     "mocks": 145,
     "consoleLogs": 133
   },
