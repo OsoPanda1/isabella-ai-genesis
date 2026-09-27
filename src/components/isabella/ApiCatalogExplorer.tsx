@@ -22,6 +22,17 @@ import {
 } from "lucide-react";
 
 // Colores normativos para verbos HTTP
+function parseSimulationParams(value: string): Record<string, unknown> | null {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 const METHOD_COLORS: Record<string, string> = {
   GET: "bg-teal-500/10 text-teal-400 border-teal-500/20",
   POST: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
@@ -134,10 +145,8 @@ export function ApiCatalogExplorer() {
     setSimulationResult(null);
     setErrorNotice(null);
 
-    let parsedParams = {};
-    try {
-      parsedParams = JSON.parse(simulateParams);
-    } catch {
+    const parsedParams = parseSimulationParams(simulateParams);
+    if (!parsedParams) {
       setErrorNotice("Sintaxis JSON inválida en los parámetros de entrada.");
       setIsProcessing(false);
       return;

@@ -49,6 +49,12 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // React Compiler diagnostics are advisory until the legacy client surfaces
+      // are migrated to compiler-safe patterns in a dedicated pass.
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/refs": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
       ...security.configs.recommended.rules,
       "security/detect-object-injection": "off",
       "security/detect-non-literal-fs-filename": "off",

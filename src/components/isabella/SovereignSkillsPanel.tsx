@@ -22,7 +22,7 @@ export function SovereignSkillsPanel() {
   const handleSelectSkill = (id: IsabellaSkillId) => {
     setSelectedId(id);
     // Populate smart default inputs for different skills to provide an amazing experience!
-    let defaultInput: Record<string, unknown> = {};
+    let defaultInput!: Record<string, unknown>;
     if (id === "HEPTA") {
       defaultInput = {
         request: "Quiero visitar la mina de San Acosta y conocer las rutas turísticas",

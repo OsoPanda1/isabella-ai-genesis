@@ -183,10 +183,13 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
     if (!video) return;
 
     video.muted = muted;
-    void video.play().then(() => setMediaReady(true)).catch(() => {
-      setMediaFailed(true);
-      setMediaReady(true);
-    });
+    void video
+      .play()
+      .then(() => setMediaReady(true))
+      .catch(() => {
+        setMediaFailed(true);
+        setMediaReady(true);
+      });
   }, [showGate, playbackUrl, mediaFailed, muted]);
 
   useEffect(() => {

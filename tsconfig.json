@@ -389,7 +389,6 @@
     //   - Necesario para que paths funcione
     // ════════════════════════════════════════════════════════════════════════
     
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       // "@components/*": ["./src/components/*"],
@@ -528,7 +527,7 @@
     // CHECK JS: false (default)
     //   - false: No checkea archivos .js
     //   - true: Checkea archivos .js (con inferencia)
-    // ════════════════════════════════════════════════════════════���═══════════
+    // ═══��════════════════════════════════════════════════════════���═══════════
     
     // "allowJs": false,  // Default
     // "checkJs": false,  // Default
