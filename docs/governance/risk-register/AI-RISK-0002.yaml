@@ -1,0 +1,43 @@
+# AI-RISK-0002 — Alucinación presentada como hecho verificado
+#
+# El sistema no puede afirmar "verificado/confirmado" sin evidencia versionada.
+# El mandato de honestidad (AGENTS.md §19) prohíbe que un resultado
+# EVIDENCE_GATED o SIMULADO se presente como PASS/real.
+
+risk_id: AI-RISK-0002
+title: Alucinación presentada como hecho verificado
+system: isabella-ai-genesis
+component: inference
+owner: model-owner
+status: mitigating
+
+likelihood: probable
+impact: high
+inherent_risk: high
+residual_risk: high
+
+tier: HIGH
+human_rights: [information]
+prohibited: false
+requires_human_approval: true
+
+existing_controls:
+  - mandato-de-honestidad             # AGENTS.md §19: EVIDENCE_GATED ≠ PASS
+  - capability-matrix                 # production-capabilities.json (status + last_verified)
+  - checklist-isa500-versionado       # docs/status/ISABELLA-GENESIS-500-CHECKLIST.json
+  - marcadores-simulados              # README "Trabajo no realizado" y notas SIMULATED
+
+mitigations:
+  - evidence-envelope-en-respuestas   # ISA-141: adjuntar estado de evidencia/fuente
+
+acceptance_criteria:
+  - "Ningún artefacto de salida afirma 'verificado' sin evidencia referenciada."
+  - "Los capabilities sin evidencia real quedan evidence-gated en el manifiesto."
+  - "README y checklist reportan los conteos SSOT sin re-contar."
+evidence_refs:
+  - production-capabilities.json
+  - docs/status/ISABELLA-GENESIS-500-CHECKLIST.json
+notes: >
+  Isabella puede contener errores: la transparencia prohíbe presentar
+  alucinaciones como hechos comprobados. El residual no baja hasta que el
+  envelope de evidencia (ISA-141) esté implementado y probado.

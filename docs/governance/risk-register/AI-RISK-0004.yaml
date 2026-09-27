@@ -1,0 +1,46 @@
+# AI-RISK-0004 — Acción de alto impacto sin aprobación humana
+#
+# Prohibido por diseño: acciones de alto impacto (riesgo alto/crítico o
+# categorías sensibles) ejecutan sin aprobación humana verificable.
+# La aprobación debe ser un token válido con contexto, TTL y registro —
+# no un botón decorativo.
+
+risk_id: AI-RISK-0004
+title: Acción de alto impacto sin aprobación humana
+system: isabella-ai-genesis
+component: orchestration
+owner: privacy-owner
+status: mitigating
+
+likelihood: possible
+impact: high
+inherent_risk: high
+residual_risk: high
+
+tier: PROHIBITED
+human_rights: [due-process]
+prohibited: true
+requires_human_approval: true
+
+existing_controls:
+  - authority-de-ejecucion            # src/lib/execution-authority.ts:
+                                      # requiresApproval → requires_approval
+  - verificacion-de-aprobacion        # src/lib/crown.ts isApprovalValid (intento + TTL + contexto)
+  - policy-engine-consent             # src/lib/policy-engine.ts approvalRequired
+  - policy-as-code-overlay            # src/lib/db-policy-gate.ts endurece requiresApproval
+  - decision-ledger                   # src/lib/repositories/decision-repository.ts
+                                      # ALLOW estricto persistido ANTES del despacho
+  - rls-server-only                   # migración 20260926030000 (tablas append-only)
+
+mitigations:
+  - evidencia-de-aprobacion           # registrar pruebas de flujo de aprobación
+                                      # y sellar cada aprobación en el ledger
+
+acceptance_criteria:
+  - "Toda acción con requiresApproval sin token válido termina en requires_approval o DENY."
+  - "Cada decisión ALLOW estricta queda en isabella_decisions con cadena verificable."
+  - "Ningún camino de despacho omite el ledger para decisiones ALLOW."
+evidence_refs: []
+notes: >
+  El flujo existe en código (authority + crown + ledger); lo que falta es
+  evidencia automatizada de extremo a extremo para bajar el residual.

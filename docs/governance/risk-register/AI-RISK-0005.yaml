@@ -1,0 +1,47 @@
+# AI-RISK-0005 — Despliegue sin verificación de CI/gates
+#
+# Los workflows de GitHub Actions no ejecutan por bloqueo de billing de la
+# cuenta (issue #66): en HEAD solo corren los gates locales. Riesgo de que se
+# publique un cambio que jamás pasó la verificación automatizada completa.
+
+risk_id: AI-RISK-0005
+title: Despliegue sin verificación de CI/gates
+system: isabella-ai-genesis
+component: release
+owner: security-owner
+status: open
+
+likelihood: probable
+impact: high
+inherent_risk: high
+residual_risk: high
+
+tier: CRITICAL
+human_rights: [accountability]
+prohibited: false
+requires_human_approval: true
+
+existing_controls:
+  - gates-locales-pre-push            # pnpm production:gate (typecheck, lint,
+                                      # test, security:scan, capabilities, build…)
+  - capability-matrix-honesta         # production-capabilities.json: sin
+                                      # last_verified = evidence-gated, no PASS
+  - audit-repository                  # scripts/repository-audit.mjs
+
+mitigations:
+  - restablecer-actions               # desbloquear billing (issue #66) y exigir
+                                      # checks verdes antes de merge/despliegue
+  - branch-protection                 # API devuelve 403 hoy: configurar
+                                      # protección de rama con required checks
+
+acceptance_criteria:
+  - "Ningún merge a main sin CI verde cuando las actions estén activas."
+  - "Mientras el CI esté bloqueado, el despliegue requiere gate local completo."
+  - "El estado del blocker queda visible en README y capabilities."
+evidence_refs:
+  - README.md            # sección "Bloqueado" (billing #66)
+  - production-capabilities.json   # release_blockers
+notes: >
+  Riesgo operativo, no de código: no se puede corregir solo con cambios en el
+  repositorio. El gate local parcializa la cobertura (sin matrix real de SO,
+  sin verificación de actions en HEAD).

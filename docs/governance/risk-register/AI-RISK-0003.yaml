@@ -1,0 +1,45 @@
+# AI-RISK-0003 — Evasión de políticas por inyección de prompt
+#
+# Un atacante (o un contexto comprometido) intenta que el modelo eluda
+# autorizaciones, ejecute herramientas no permitidas o filtre datos de otros
+# usuarios. Cubre entrada (firewall) y salida (el modelo "obedece" la
+# inyección y la materializa como acción o texto).
+
+risk_id: AI-RISK-0003
+title: Evasión de políticas por inyección de prompt (entrada/salida)
+system: isabella-ai-genesis
+component: execution-authority
+owner: security-owner
+status: mitigating
+
+likelihood: probable
+impact: high
+inherent_risk: high
+residual_risk: high
+
+tier: HIGH
+human_rights: [security, due-process]
+prohibited: false
+requires_human_approval: true
+
+existing_controls:
+  - aegis-firewall-entrada            # LatamAegisXFirewall.interceptRequest
+  - aegis-semantic                    # src/lib/aegis-semantic.ts (deny ≥ 0.8, flag ≥ 0.45)
+  - corpus-adversarial                # test/security/aegis-adversarial.test.ts
+  - policy-as-code-overlay            # src/lib/db-policy-gate.ts (monótono, fail-closed)
+  - authority-de-ejecucion            # src/lib/execution-authority.ts (stage db-policy)
+  - registro-de-herramientas          # src/lib/tool-registry.ts (risk/category/requiresApproval)
+
+mitigations:
+  - corpus-multilingue                # ISA-176: corpus adversarial español/inglés/Unicode
+  - output-security-gate              # ISA-140/ISA-175: verificar también la salida
+
+acceptance_criteria:
+  - "La evasión nunca amplía permisos: los overlays solo endurecen (monotonía)."
+  - "Un tool call que elude la aprobación humana termina en DENY auditado."
+  - "El corpus adversarial cubre español, inglés y Unicode (ISA-176)."
+evidence_refs: []
+notes: >
+  La inyección que logra que el modelo "acuerde" violar políticas sigue topándose
+  con el gate de ejecución: la política decide, no el modelo. El corpus
+  multilingüe sigue abierto (ISA-176).

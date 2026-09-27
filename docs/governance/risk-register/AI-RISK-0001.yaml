@@ -1,0 +1,42 @@
+# AI-RISK-0001 — Fuga de secretos o identificadores en la salida del modelo
+#
+# El gateway emite texto generado (SSE) hacia el cliente. Si el modelo repite
+# material sensible contenido en el contexto (claves, tokens, credenciales),
+# se produce una fuga hacia una superficie que hoy solo se vigila a la entrada.
+# Riesgo de la clase "AEGIS solo en input" (ISA-140 / ISA-175).
+
+risk_id: AI-RISK-0001
+title: Fuga de secretos o identificadores en la salida del modelo
+system: isabella-ai-genesis
+component: chat-gateway
+owner: security-owner
+status: open
+
+likelihood: possible
+impact: critical
+inherent_risk: critical
+residual_risk: critical   # sin evidencia de gate de salida, no baja
+
+tier: CRITICAL
+human_rights: [privacy, security]
+prohibited: false
+requires_human_approval: true
+
+existing_controls:
+  - secret-redactor-en-entrada        # src/lib/secret-redactor.ts
+  - aegis-firewall-entrada            # LatamAegisXFirewall.interceptRequest
+  - aegis-semantic-entrada            # src/lib/aegis-semantic.ts (verdicts allow/flag/deny)
+
+mitigations:
+  - output-security-gate              # ISA-140 + ISA-175: AEGIS/secretos en la
+                                      # salida ANTES de la emisión SSE
+
+acceptance_criteria:
+  - "Ningún chunk de salida se emite sin pasar por el gate de salida (fail-closed)."
+  - "Un patrón de alto nivel de secreto en la salida produce rechazo, no emisión."
+  - "Prueba automatizada que demuestre el bloqueo (ISA-140/ISA-175)."
+evidence_refs: []                     # se llena solo con la prueba del gate
+notes: >
+  El redactor de secretos actúa sobre peticiones y logs, no sobre la respuesta
+  generada. Mientras el gate de salida no esté aplicado y probado, el riesgo
+  residual permanece en crítico.
