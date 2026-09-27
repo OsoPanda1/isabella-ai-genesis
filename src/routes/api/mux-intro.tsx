@@ -58,7 +58,7 @@ function recordIntroRequest(startTime: number, result: "mux" | "fallback" | "dis
 
 function resolveIntroConfig(): IntroConfig {
   const cfg = loadConfig();
-  const fallbackType = cfg.MUX_INTRO_FALLBACK_TYPE ?? "static";
+  const fallbackType = cfg.MUX_INTRO_FALLBACK_TYPE ?? "procedural";
   const playbackId = cfg.MUX_PLAYBACK_ID?.trim();
   const assetId = cfg.MUX_INTRO_ASSET_ID?.trim();
 
