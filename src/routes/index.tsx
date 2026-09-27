@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-function LandingFallback() {
+export function LandingFallback() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
       <section className="w-full max-w-2xl rounded-3xl border border-border/20 bg-background/70 p-10 text-center shadow-2xl backdrop-blur-xl">
@@ -46,7 +46,7 @@ function LandingFallback() {
   );
 }
 
-function Index() {
+export function Index() {
   const [emergencyState, setEmergencyState] = useState<{
     active: boolean;
     mode: "emergency" | "maintenance";

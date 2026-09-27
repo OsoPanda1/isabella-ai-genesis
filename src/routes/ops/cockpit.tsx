@@ -5,7 +5,7 @@ export const Route = createFileRoute("/ops/cockpit")({
   component: CockpitOps,
 });
 
-function CockpitOps() {
+export function CockpitOps() {
   const [snapshot, setSnapshot] = useState<unknown>(null);
   const [latency, setLatency] = useState<number | null>(null);
 

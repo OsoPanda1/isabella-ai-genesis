@@ -14,7 +14,7 @@ import { EmergencyModeView } from "@/components/isabella/EmergencyModeView";
 
 import appCss from "../styles.css?inline";
 
-function NotFoundComponent() {
+export function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -34,7 +34,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: ErrorComponentProps) {
+export function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const err = useMemo(
     () => (error instanceof Error ? error : new Error(String(error ?? "Error de ejecución"))),
     [error],
@@ -85,7 +85,7 @@ export const Route = createRootRouteWithContext()({
   errorComponent: ErrorComponent,
 });
 
-function RootShell({ children }: { children: ReactNode }) {
+export function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className="bg-background">
       <head>
@@ -101,7 +101,7 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function RootComponent() {
+export function RootComponent() {
   return (
     <IsabellaErrorBoundary>
       <Outlet />

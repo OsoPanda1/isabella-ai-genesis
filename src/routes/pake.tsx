@@ -5,7 +5,7 @@ export const Route = createFileRoute("/pake")({
   component: PakePage,
 });
 
-function PakePage() {
+export function PakePage() {
   return (
     <div className="min-h-screen bg-[#020817] pt-24 px-4 pb-12">
       <div className="max-w-5xl mx-auto space-y-6">
