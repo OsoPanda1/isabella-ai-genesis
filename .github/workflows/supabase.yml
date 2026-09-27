@@ -141,7 +141,7 @@ jobs:
       schema-checksum: ${{ steps.schema-checksum.outputs.checksum }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -367,7 +367,7 @@ jobs:
     continue-on-error: true # Non-blocking (warning only)
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
