@@ -255,11 +255,6 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
     .toString()
     .padStart(2, "0")}`;
 
-  const fallbackUrl =
-    media.fallback?.type === "static"
-      ? (media.fallback.url ?? FALLBACK_BACKDROP)
-      : FALLBACK_BACKDROP;
-
   return (
     <section
       aria-labelledby="isabella-cinematic-title"
