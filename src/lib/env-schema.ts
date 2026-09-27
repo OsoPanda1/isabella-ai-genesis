@@ -219,9 +219,11 @@ export const envSchema = z
     SLACK_SIGNING_SECRET: optionalMinString(16),
     LINEAR_WEBHOOK_SECRET: optionalMinString(16),
     // --- MEDIA / MUX ---
+    MUX_TOKEN_ID: optionalString(),
+    MUX_TOKEN_SECRET: optionalString(),
     MUX_INTRO_ASSET_ID: optionalString(),
     MUX_PLAYBACK_ID: optionalString(),
-    MUX_INTRO_FALLBACK_TYPE: enumish(["none", "procedural", "static"] as const, "static"),
+    MUX_INTRO_FALLBACK_TYPE: enumish(["none", "procedural", "static"] as const, "procedural"),
     // --- FEATURE FLAGS & AUDIT ---
     ISABELLA_FEATURE_FLAGS: optionalString(),
     GENESIS_MAX_TEST_FILES: coercedInt(8),

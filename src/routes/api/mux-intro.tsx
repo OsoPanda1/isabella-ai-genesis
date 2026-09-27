@@ -102,7 +102,7 @@ export const Route = createFileRoute("/api/mux-intro")({
           return json(resolved);
         } catch {
           const cfg = loadConfig();
-          const fallbackType = cfg.MUX_INTRO_FALLBACK_TYPE ?? "static";
+          const fallbackType = cfg.MUX_INTRO_FALLBACK_TYPE ?? "procedural";
           recordIntroRequest(startTime, "error");
           return json(fallbackConfig(fallbackType), 503);
         }
