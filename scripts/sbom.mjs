@@ -23,10 +23,17 @@ const args = ["dlx", "@cyclonedx/cyclonedx-npm", "--ignore-npm-errors", "--outpu
 console.log(`[sbom] Generando SBOM CycloneDX → ${OUTPUT}`);
 console.log(`[sbom] Ejecutando: pnpm ${args.join(" ")}`);
 
+// `pnpm dlx` inyecta `npm_execpath` apuntando a pnpm.exe; CycloneDX exige un
+// npm-cli.js y lanza "Unexpected npmJsPath". Se limpia para que resuelva el npm
+// del sistema (fail-closed: sin npm válido, el spawn falla y exit ≠ 0).
+const childEnv = { ...process.env };
+delete childEnv.npm_execpath;
+delete childEnv.npm_node_execpath;
+
 const result = spawnSync("pnpm", args, {
   cwd: ROOT,
   stdio: "inherit",
-  env: process.env,
+  env: childEnv,
 });
 
 if (result.error) {

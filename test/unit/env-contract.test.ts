@@ -14,21 +14,43 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
+function schemaSource(): string {
+  return readFileSync(join(root, "src/lib/env-schema.ts"), "utf8");
+}
+
 function schemaKeys(): string[] {
-  const source = readFileSync(join(root, "src/lib/env-schema.ts"), "utf8");
+  const source = schemaSource();
+  // Recorta exactamente el cuerpo de envSchema (z.object({...}).passthrough())
+  // para no capturar claves de otros objetos del archivo.
+  const anchor = source.indexOf("export const envSchema");
+  const start = source.indexOf(".object({", anchor);
+  const end = source.indexOf(".passthrough();", start);
+  const body = source.slice(start, end);
   const keys = new Set<string>();
-  for (const match of source.matchAll(/^  ([A-Z][A-Z0-9_]+):/gm)) keys.add(match[1]);
+  for (const match of body.matchAll(/^\s+([A-Z][A-Z0-9_]+):/gm)) keys.add(match[1]);
   return [...keys];
 }
 
-function exampleKeys(): Set<string> {
+function exampleEntries(): Array<{ key: string; line: number }> {
   const example = readFileSync(join(root, ".env.example"), "utf8");
-  return new Set(
-    example
-      .split("\n")
-      .map((line) => line.split("=")[0].trim())
-      .filter((key) => key.length > 0 && !key.startsWith("#")),
-  );
+  return example
+    .split(/\r?\n/)
+    .map((line, i) => ({ key: line.split("=")[0].trim(), line: i + 1 }))
+    .filter((entry) => /^[A-Z][A-Z0-9_]*$/.test(entry.key));
+}
+
+function exampleKeys(): Set<string> {
+  return new Set(exampleEntries().map((entry) => entry.key));
+}
+
+function catalogKeys(): Set<string> {
+  const source = schemaSource();
+  const start = source.indexOf("export const ENV_VAR_CATALOG");
+  const end = source.indexOf("];", start);
+  const keys = new Set<string>();
+  for (const match of source.slice(start, end).matchAll(/name:\s*"([A-Z0-9_]+)"/g))
+    keys.add(match[1]);
+  return keys;
 }
 
 const PROCESS_ENV_ALLOWLIST = new Set([
@@ -55,6 +77,28 @@ describe("contrato de entorno", () => {
     const example = exampleKeys();
     const missing = schemaKeys().filter((key) => !example.has(key));
     expect(missing, `claves sin documentar: ${missing.join(", ")}`).toEqual([]);
+  });
+
+  it(".env.example sin duplicados ni líneas sangradas", () => {
+    const raw = readFileSync(join(root, ".env.example"), "utf8").split(/\r?\n/);
+    const indented = raw
+      .map((line, i) => ({ line, n: i + 1 }))
+      .filter(({ line }) => /^\s+[A-Za-z_][A-Za-z0-9_]*=/.test(line))
+      .map(({ n }) => `L${n}`);
+    expect(indented, `líneas con sangría: ${indented.join(", ")}`).toEqual([]);
+    const seen = new Map<string, number>();
+    const dupes: string[] = [];
+    for (const entry of exampleEntries()) {
+      if (seen.has(entry.key)) dupes.push(`${entry.key}: L${seen.get(entry.key)} y L${entry.line}`);
+      seen.set(entry.key, entry.line);
+    }
+    expect(dupes, `duplicados: ${dupes.join(", ")}`).toEqual([]);
+  });
+
+  it("toda clave del schema tiene descriptor en ENV_VAR_CATALOG (§21)", () => {
+    const catalog = catalogKeys();
+    const missing = schemaKeys().filter((key) => !catalog.has(key));
+    expect(missing, `claves sin descriptor: ${missing.join(", ")}`).toEqual([]);
   });
 
   it("process.env directo solo en módulos autorizados", () => {

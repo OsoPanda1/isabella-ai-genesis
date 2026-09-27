@@ -858,15 +858,9 @@ export async function handleIsabellaChat(
         !providerKeys.xai
       ) {
         // Skip gateway when no direct provider keys — go directly to sovereign fallback
-        // (AI_GATEWAY is optional; check via secrets/config not process.env per security policy)
-        try {
-          const gwKey =
-            ((config() as unknown as Record<string, unknown>).AI_GATEWAY_API_KEY as
-              string | undefined) ?? secrets.optionalProviderKey("ai-gateway" as any);
-          if (!gwKey) continue;
-        } catch {
-          continue;
-        }
+        // (AI_GATEWAY es opcional; se resuelve vía secrets/config validada por Zod)
+        const gwKey = secrets.optionalProviderKey("ai-gateway");
+        if (!gwKey) continue;
       }
       const isGemini = attempt.provider === "gemini";
       const isAiGateway = attempt.provider === "ai-gateway";

@@ -111,11 +111,15 @@ jobs:
       - name: Generate evidence bundle
         run: pnpm production:evidence
 
+      - name: Generate SBOM (CycloneDX)
+        run: pnpm sbom
+
       - name: Upload build evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: isabella-build-${{ github.sha }}
           path: |
             build-sha256.txt
+            sbom.json
             release/
           retention-days: 30

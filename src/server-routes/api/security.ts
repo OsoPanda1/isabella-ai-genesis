@@ -3,7 +3,7 @@ import { z } from "zod";
 import { SecuritySystem } from "@/lib/security";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { secrets } from "@/lib/secrets";
-import { config, passthroughEnv } from "@/lib/config";
+import { passthroughEnv } from "@/lib/config";
 import { spawn } from "node:child_process";
 import * as path from "node:path";
 import * as crypto from "node:crypto";
@@ -280,7 +280,9 @@ export const Route = createFileRoute("/api/security")({
             LANG: passthroughEnv("LANG") ?? "C.UTF-8",
             LC_ALL: passthroughEnv("LC_ALL") ?? "C.UTF-8",
             PYTHONPATH: pythonPath,
-            AEGIS_HASH_SECRET: config().API_KEY_HASH_SECRET || secrets.apiKeyHashSecret(),
+            // P0-APIKEYS (fail-closed): sin fallback a config() crudo; el HMAC
+            // de llaves exige API_KEY_HASH_SECRET dedicada y resoluble por KMS.
+            AEGIS_HASH_SECRET: secrets.apiKeyHashSecret(),
             AEGIS_AUDIT_SECRET: secrets.aegisAuditSecret(),
           };
 

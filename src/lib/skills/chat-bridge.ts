@@ -99,16 +99,17 @@ export function streamChatSkillAsSse(result: ChatSkillExecutionResult, headers: 
         };
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(initMetadata)}\n\n`));
 
-        // Marco 2: contenido incremental (delta), tras output gate.
+        // Marco 2: contenido incremental (delta), SIEMPRE tras output gate.
+        // (Antes se enrutaba result.content crudo: el gate quedaba anulado.)
         const gate = scanOutput(result.content, "skill-output");
         const gatedContent = gate.allowed
-          ? result.content
+          ? gate.text
           : safeOutputOrBlock(result.content, "skill-output");
         const chunk = {
           choices: [
             {
               delta: {
-                content: result.content,
+                content: gatedContent,
               },
             },
           ],
