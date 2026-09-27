@@ -11,6 +11,7 @@
  *  5. Capacidad de streaming SSE compatible con OpenAI/Gemini para el chat stream.
  */
 
+import { scanOutput, safeOutputOrBlock } from "@/lib/security/output-gate";
 import {
   detectSkillInvocation,
   processSkillInvocation,
@@ -66,7 +67,7 @@ export async function executeChatSkillBridge(
 
   return {
     success: result.success,
-    content: result.content,
+    content: gatedContent,
     skillId: result.skillId || invocation.canonicalName,
     decisionId: result.decisionId,
     traceId: result.traceId,
@@ -96,7 +97,9 @@ export function streamChatSkillAsSse(result: ChatSkillExecutionResult, headers: 
         };
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(initMetadata)}\n\n`));
 
-        // Marco 2: contenido incremental (delta)
+        // Marco 2: contenido incremental (delta), tras output gate.
+        const gate = scanOutput(result.content, "skill-output");
+        const gatedContent = gate.allowed ? result.content : safeOutputOrBlock(result.content, "skill-output");
         const chunk = {
           choices: [
             {

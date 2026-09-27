@@ -14,46 +14,110 @@ const walk = (dir) => {
   }
 };
 roots.forEach((dir) => walk(path.join(root, dir)));
+
 const normalize = (file) => {
   const rel = path.relative(root, file).replaceAll("\\", "/");
   const layer = rel.startsWith("src/server-routes/") ? "internal" : "active";
-  const route = rel
-    .replace(/^src\/(routes|server-routes)\//, "")
+  const route = rel.replace(/^src\/(routes|server-routes)\//, "")
     .replace(/\.(tsx?|jsx?)$/, "")
     .replace(/\/index$/, "");
   return {
     layer,
-    route:
-      route
-        .split("/")
-        .map((part) => (part.startsWith("$") ? `:${part.slice(1)}` : part))
-        .join("/") || "/",
+    route: route.split("/").map((part) => part.startsWith("$") ? `:${part.slice(1)}` : part).join("/") || "/",
+    file: rel,
   };
 };
-const grouped = new Map();
-for (const file of entries) {
-  const normalized = normalize(file);
-  const key = `${normalized.layer}:${normalized.route}`;
-  const list = grouped.get(key) ?? [];
-  list.push(path.relative(root, file));
-  grouped.set(key, list);
-}
-const active = new Map();
-const internal = new Map();
-for (const [key, files] of grouped)
-  (key.startsWith("active:") ? active : internal).set(key.slice(key.indexOf(":") + 1), files);
-const duplicates = [...grouped.entries()].filter(([, files]) => files.length > 1);
-const delegated = [...active.keys()].filter((route) => internal.has(route));
+
+const PUBLIC_EXCEPTIONS = [
+  /^api\/health$/,
+  /^api\/health\/.*$/,
+  /^api\/webhooks?\//,
+  /^api\/auth\/callback$/,
+];
+const AUTH_SIGNALS = [
+  "withSovereignAuth",
+  "getAuthenticatedUser",
+  "requireAuth",
+  "requireAuthenticated",
+  "authMiddleware",
+  "verifyJwt",
+  "principal-context",
+  "authorization",
+];
+const RATE_SIGNALS = [
+  "checkRateLimitDistributed",
+  "checkRateLimit",
+  "rateLimit",
+  "withRateLimit",
+  "@upstash/ratelimit",
+];
+const VALIDATION_SIGNALS = [
+  "safeParse",
+  "parseSafeJsonBody",
+  "z.object(",
+  "zod",
+  "Schema.parse",
+  "Schema.safeParse",
+  "requestSchema",
+];
+const SIGNATURE_SIGNALS = [
+  "stripe-signature",
+  "webhook signature",
+  "verifySignature",
+  "verifyWebhook",
+  "constructEvent",
+];
+const SENSITIVE = /(^|\/)(api-keys|billing|db|admin|generate|voice|upload|chat|execute|run|tools?|monetization|payments?|withdrawal|memory|learning)(\/|$)/i;
+
+const findings = [];
+const routes = entries.map((file) => {
+  const meta = normalize(file);
+  const source = fs.readFileSync(file, "utf8");
+  const methods = [...source.matchAll(/\b(GET|POST|PUT|PATCH|DELETE)\s*:/g)].map((m) => m[1]);
+  const mutation = methods.some((method) => method !== "GET");
+  const publicException = PUBLIC_EXCEPTIONS.some((pattern) => pattern.test(meta.route));
+  const sensitive = !publicException && (mutation || SENSITIVE.test(meta.route));
+  const hasAuth = AUTH_SIGNALS.some((signal) => source.includes(signal));
+  const hasRate = RATE_SIGNALS.some((signal) => source.includes(signal));
+  const hasValidation = VALIDATION_SIGNALS.some((signal) => source.includes(signal));
+  const hasSignature = SIGNATURE_SIGNALS.some((signal) => source.toLowerCase().includes(signal.toLowerCase()));
+  const rateRequired = sensitive && !publicException;
+  const validationRequired = sensitive && mutation;
+  const authRequired = sensitive && !publicException;
+  const effectiveRate = hasRate || source.includes("withSovereignAuth");
+  const effectiveValidation = hasValidation || source.includes("withSovereignAuth");
+  const effectiveAuth = hasAuth || source.includes("withSovereignAuth");
+  const missing = [];
+  if (authRequired && !effectiveAuth) missing.push("auth");
+  if (rateRequired && !effectiveRate) missing.push("rate-limit");
+  if (validationRequired && !effectiveValidation && !hasSignature) missing.push("input-validation");
+  if (publicException && meta.route.includes("webhook") && !hasSignature) missing.push("webhook-signature");
+  if (missing.length) findings.push({ ...meta, methods, sensitive, missing });
+  return { ...meta, methods, sensitive, auth: effectiveAuth, rateLimit: effectiveRate, validation: effectiveValidation || hasSignature, publicException };
+});
+
+const duplicates = routes.reduce((map, route) => {
+  const key = `${route.layer}:${route.route}`;
+  const list = map.get(key) ?? [];
+  list.push(route.file);
+  map.set(key, list);
+  return map;
+}, new Map());
+const duplicateRoutes = [...duplicates.entries()].filter(([, files]) => files.length > 1);
+
 const report = {
   generatedAt: new Date().toISOString(),
   canonicalDeployment: "https://isabella-ai.visitarealdelmonte.online",
-  routes: [...grouped.entries()].map(([key, files]) => ({
-    layer: key.startsWith("active:") ? "active" : "internal",
-    route: key.slice(key.indexOf(":") + 1),
-    files,
-  })),
-  duplicates,
-  delegated,
+  summary: {
+    total: routes.length,
+    sensitive: routes.filter((r) => r.sensitive).length,
+    findings: findings.length,
+    duplicates: duplicateRoutes.length,
+  },
+  routes,
+  findings,
+  duplicates: duplicateRoutes,
 };
+
 console.log(JSON.stringify(report, null, 2));
-if (duplicates.length) process.exitCode = 2;
+if (findings.length || duplicateRoutes.length) process.exitCode = 2;

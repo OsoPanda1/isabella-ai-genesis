@@ -26,6 +26,8 @@ import {
   IsabellaChatErrorCode,
 } from "@/lib/api-contracts";
 import { redactLogArg } from "@/lib/secret-redactor";
+import { scanOutput, safeOutputOrBlock } from "@/lib/security/output-gate";
+import { governIntelligence } from "@/lib/intelligence/router";
 
 // Logs con redaccion (ISA-447): nunca volcar errores crudos a consola.
 const logError = (...args: unknown[]): void => console.error(...args.map(redactLogArg));
@@ -90,11 +92,7 @@ function sseHeaders(
   );
 }
 
-function geminiSseToOpenAi(
-  upstream: Response,
-  headers: Headers,
-  provenance: Record<string, unknown>,
-): Response {
+function geminiSseToOpenAi(upstream: Response, headers: Headers, provenance: Record<string, unknown>): Response {
   if (!upstream.body) return json({ error: "INFERENCE_EMPTY_STREAM" }, 502);
   const reader = upstream.body.getReader();
   const decoder = new TextDecoder();
@@ -102,12 +100,9 @@ function geminiSseToOpenAi(
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       let buffer = "";
+      let accumulated = "";
       try {
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ provider: "google-gemini", ...provenance })}\n\n`,
-          ),
-        );
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ provider: "google-gemini", ...provenance })}\n\n`));
         for (;;) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -120,45 +115,18 @@ function geminiSseToOpenAi(
             const payload = line.slice(5).trim();
             if (!payload || payload === "[DONE]") continue;
             try {
-              const event = JSON.parse(payload) as {
-                candidates?: Array<{
-                  content?: { parts?: Array<{ text?: string }> };
-                  finishReason?: string;
-                }>;
-              };
-              const text =
-                event.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ??
-                "";
-              if (text)
-                controller.enqueue(
-                  encoder.encode(
-                    `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`,
-                  ),
-                );
-            } catch {
-              /* preserve stream on malformed provider frame */
-            }
-          }
-        }
-        buffer += decoder.decode();
-        const line = buffer.trim();
-        if (line.startsWith("data:")) {
-          try {
-            const event = JSON.parse(line.slice(5).trim()) as {
-              candidates?: Array<{
-                content?: { parts?: Array<{ text?: string }> };
-              }>;
-            };
-            const text =
-              event.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
-            if (text)
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`,
-                ),
-              );
-          } catch {
-            /* final incomplete frame */
+              const event = JSON.parse(payload) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+              const text = event.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
+              if (!text) continue;
+              accumulated = (accumulated + text).slice(-12000);
+              if (!scanOutput(accumulated, "gemini-output").allowed) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ choices:[{delta:{content:safeOutputOrBlock(text)}}], blocked:true })}\n\n`));
+                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                controller.close();
+                return;
+              }
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ choices:[{delta:{content:text}}] })}\n\n`));
+            } catch { /* malformed provider frame */ }
           }
         }
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -172,6 +140,56 @@ function geminiSseToOpenAi(
   });
   return new Response(stream, { status: 200, headers });
 }
+function guardedOpenAiSse(upstream: Response, headers: Headers, provenance: Record<string, unknown>): Response {
+  if (!upstream.body) return json({ error: "INFERENCE_EMPTY_STREAM" }, 502);
+  const reader = upstream.body.getReader();
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      let buffer = "";
+      let accumulated = "";
+      try {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(provenance)}\n\n`));
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const frames = buffer.split(/\r?\n/);
+          buffer = frames.pop() ?? "";
+          for (const raw of frames) {
+            const line = raw.trim();
+            if (!line.startsWith("data:")) continue;
+            const payload = line.slice(5).trim();
+            if (!payload || payload === "[DONE]") continue;
+            try {
+              const event = JSON.parse(payload) as { choices?: Array<{ delta?: { content?: string } }> };
+              const text = event.choices?.[0]?.delta?.content ?? "";
+              if (!text) continue;
+              accumulated = (accumulated + text).slice(-12000);
+              const gate = scanOutput(accumulated, "upstream-model-output");
+              if (!gate.allowed) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ choices:[{delta:{content:safeOutputOrBlock(text)}}], blocked:true })}\n\n`));
+                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                controller.close();
+                return;
+              }
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ choices:[{delta:{content:text}}] })}\n\n`));
+            } catch { /* malformed upstream frame */ }
+          }
+        }
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      } finally {
+        reader.releaseLock();
+      }
+    },
+  });
+  return new Response(stream, { status: 200, headers });
+}
+
 async function aiGatewaySse(
   messages: Array<{ role: "user" | "assistant"; content: unknown }>,
   system: string,
@@ -194,10 +212,19 @@ async function aiGatewaySse(
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       let emitted = false;
+      let accumulated = "";
       try {
         for await (const chunk of result.textStream) {
           if (!chunk) continue;
           emitted = true;
+          accumulated = (accumulated + chunk).slice(-12000);
+          const gate = scanOutput(accumulated, "ai-gateway-output");
+          if (!gate.allowed) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ choices:[{delta:{content:safeOutputOrBlock(chunk)}}], blocked:true })}\n\n`));
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            controller.close();
+            return;
+          }
           controller.enqueue(
             encoder.encode(
               `data: ${JSON.stringify({ choices: [{ delta: { content: chunk } }] })}\n\n`,
@@ -679,6 +706,28 @@ export async function handleIsabellaChat(
       403,
     );
 
+  const intelligenceGovernance = governIntelligence({
+    requestId: context.correlationId,
+    tenantId: context.tenantId,
+    actorId: context.userId,
+    messages: messages.map((message) => ({
+      role: message.role,
+      content: typeof message.content === "string" ? message.content : "material adjunto",
+    })),
+    temperature,
+    maxTokens: 8192,
+  });
+  if (intelligenceGovernance.decision !== "ALLOW") {
+    return contractError(
+      context,
+      IsabellaChatErrorCode.AUTHORIZATION_DENIED,
+      "El router de inteligencia rechazó la solicitud antes de seleccionar proveedor.",
+      403,
+      false,
+      { reasons: intelligenceGovernance.reasons },
+    );
+  }
+
   const governanceMetadata = {
     traceId: context.traceId,
     correlationId: context.correlationId,
@@ -825,7 +874,7 @@ export async function handleIsabellaChat(
             ...governanceMetadata,
             degraded,
           })
-        : new Response(upstream.body, { status: 200, headers });
+        : guardedOpenAiSse(upstream, headers, { model: attempt.model, ...governanceMetadata, degraded });
     } catch (error) {
       logError(
         `[ISABELLA_FALLBACK] provider=${attempt.provider} trace=${context.traceId} error=${error instanceof Error ? error.message : "unknown"}`,
@@ -862,7 +911,8 @@ export async function handleIsabellaChat(
       "sovereign-local-v1",
       true,
     );
-    return sseFromText(fallback.answer, headers);
+    const gatedFallback = safeOutputOrBlock(fallback.answer, "local-responder-output");
+    return sseFromText(gatedFallback, headers);
   } catch (fallbackError) {
     logError(
       `[ISABELLA_SOVEREIGN_FALLBACK] trace=${context.traceId} error=${fallbackError instanceof Error ? fallbackError.message : "unknown"}`,
