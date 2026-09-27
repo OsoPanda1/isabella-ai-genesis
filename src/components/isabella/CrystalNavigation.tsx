@@ -147,9 +147,10 @@ function AccordionGroup({
                     const all =
                       listRef.current?.querySelectorAll<HTMLButtonElement>("[data-nav-item]");
                     if (!all || all.length === 0) return;
-                    let next = index;
-                    if (e.key === "ArrowDown") next = (index + 1) % group.items.length;
-                    else next = (index - 1 + group.items.length) % group.items.length;
+                    const next =
+                      e.key === "ArrowDown"
+                        ? (index + 1) % group.items.length
+                        : (index - 1 + group.items.length) % group.items.length;
                     all[next]?.focus();
                   } else if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();

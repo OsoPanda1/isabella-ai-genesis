@@ -168,43 +168,11 @@ export function useIsabella() {
         presetId: preset.id,
         routing,
       });
-      const { getSessionToken, ensureSessionToken, setSessionToken } =
-        await import("@/lib/auth-client");
-      let token = getSessionToken();
-      try {
-        // Solo intenta la sesión efímera cuando el preview la anuncia explícitamente.
-        // En producción no se toca el endpoint de desarrollo.
-        const devSessionEnabled =
-          typeof import.meta !== "undefined" &&
-          import.meta.env?.DEV === true &&
-          import.meta.env?.VITE_DEV_SESSION_ENABLED === "true";
-        if (!devSessionEnabled) throw new Error("dev_session_disabled");
-        const devRes = await fetch("/api/db?action=dev-session", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-        });
-        if (devRes.ok) {
-          const devData = (await devRes.json()) as {
-            token?: string;
-            userId?: string;
-          };
-          if (devData.token) {
-            const { setStoredSovereignUserId } = await import("@/lib/auth-client");
-            setSessionToken(devData.token);
-            if (devData.userId) setStoredSovereignUserId(devData.userId);
-            token = devData.token;
-          }
-        }
-      } catch {
-        /* Development auth is optional; keep the real session when unavailable. */
-      }
-      if (!token) {
-        try {
-          token = await ensureSessionToken();
-        } catch {
-          token = "";
-        }
-      }
+      const { getSessionToken } = await import("@/lib/auth-client");
+      // La autorización pertenece al servidor: en previews configurados para chat
+      // invitado, /api/isabella puede aceptar la petición sin Bearer. En producción
+      // el mismo endpoint aplica fail-closed y devuelve 401/403 si falta identidad.
+      const token = getSessionToken();
       const userMsg: TerminalMessage = {
         id: uid(),
         role: "user",

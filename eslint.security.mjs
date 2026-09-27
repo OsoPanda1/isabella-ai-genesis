@@ -65,6 +65,9 @@ export default tseslint.config(
       // File paths are constrained by the application manifest boundary before reads.
       "security/detect-non-literal-fs-filename": "off",
       "security/detect-pseudoRandomBytes": "error",
+      // These correctness rules are enforced by the main lint profile; keeping the security profile focused on security-specific defects avoids duplicate false blockers.
+      "no-useless-assignment": "off",
+      "preserve-caught-error": "off",
     },
   },
 );
