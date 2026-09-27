@@ -417,7 +417,13 @@ export async function handleIsabellaChat(
       403,
     );
 
-  const pipeline = createSovereignPipeline();
+  // Policy-as-code + ledger de decisiones: se activan cuando existe autoridad
+  // durable (DATABASE_URL). Requiere la migración 20260926030000 aplicada;
+  // sin ella, el ALLOW queda bloqueado en stage "audit" (fail-closed, §4.2).
+  const { createPostgresDecisionLedger } = await import("@/lib/repositories/decision-repository");
+  const pipeline = createSovereignPipeline({
+    decisionStore: config().DATABASE_URL ? createPostgresDecisionLedger() : undefined,
+  });
   const governance = await pipeline.execute({
     requestId: context.correlationId,
     traceId: context.traceId,

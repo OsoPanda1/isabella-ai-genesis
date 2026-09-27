@@ -26,6 +26,7 @@ import { evaluateAuthorization } from "./authorization";
 import { evaluatePolicy } from "./policy-engine";
 import { applyDbPolicyGate } from "./db-policy-gate";
 import { createDbPolicyStore, type DbPolicyStore } from "./repositories/policy-repository";
+import { recordDecision, type LedgerStore, type Risk } from "./governance/decision-ledger";
 import { verifyCapabilityToken } from "./capability-tokens";
 import { createToolRegistry, missingToolPermissions, type RegisteredTool } from "./tool-registry";
 import type { MemoryRepository } from "./repositories/memory-repository";
@@ -220,6 +221,12 @@ export function createExecutionAuthority(opts?: {
    * "no configurado" en caso contrario).
    */
   dbPolicyStore?: DbPolicyStore;
+  /**
+   * Ledger durable de decisiones (`isabella_decisions`). Si se provee, cada
+   * decisión de política se registra con cadena hash: deny/review best-effort,
+   * allow estricto (sin persistencia no hay ejecución, §4.2).
+   */
+  decisionStore?: LedgerStore;
 }) {
   const registry = createToolRegistry();
   const approvals = opts?.approvalLedger ?? createApprovalLedger();
@@ -402,13 +409,6 @@ export function createExecutionAuthority(opts?: {
         consentGranted: hasApproval,
       });
       let approvalId: string | null = null;
-      if (policy.decision === "denied") {
-        return {
-          executed: false,
-          reason: `Política denegó: ${policy.reason}.`,
-          stage: "approval",
-        };
-      }
 
       // ── POLICY AS CODE: overlay de reglas versionadas (isabella_policies) ──
       // Integración de nodo-cero-isabella. La capa DB sólo puede endurecer la
@@ -421,14 +421,63 @@ export function createExecutionAuthority(opts?: {
         tool,
         authenticated: request.authenticated,
       });
+      const effectiveDecision = dbGate.status;
+
+      // ── DECISION LEDGER: persistencia durable de la decisión (isabella_decisions) ──
+      // Integración de nodo-cero-isabella ("decisiones en tabla"). La cadena se
+      // escribe ANTES del despacho para que una base ilegible bloquee la
+      // ejecución (fail-closed, §4.2); las denegaciones se registran
+      // best-effort porque el efecto ya es la denegación.
+      const persistDecision = async (
+        result: "ALLOW" | "DENY" | "REVIEW",
+        detail: string,
+        strict: boolean,
+      ): Promise<string | null> => {
+        if (!opts?.decisionStore) return null;
+        try {
+          await recordDecision(opts.decisionStore, {
+            id: `dec_${randomUUID().replace(/-/g, "")}`,
+            tenantId: request.tenantId,
+            actorId: request.actorId,
+            authority: "execution-authority",
+            capability: request.tool,
+            policy: `argus:${policy.decision}|db:${dbGate.source}:${dbGate.status}`,
+            risk: tool.risk.toUpperCase() as Risk,
+            inputHash: createHash("sha3-512")
+              .update(JSON.stringify(request.input ?? null) ?? "null")
+              .digest("hex"),
+            outputHash: createHash("sha3-512").update(detail).digest("hex"),
+            result,
+            timestamp: new Date().toISOString(),
+            evidenceIds: [request.traceId, detail],
+          });
+          return null;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return strict ? message : null;
+        }
+      };
+
+      if (policy.decision === "denied") {
+        await persistDecision("DENY", policy.reason, false);
+        return {
+          executed: false,
+          reason: `Política denegó: ${policy.reason}.`,
+          stage: "approval",
+        };
+      }
       if (dbGate.status === "denied") {
+        await persistDecision(
+          "DENY",
+          `politica_db:${dbGate.policyKey ?? "sin-key"}:${dbGate.reason}`,
+          false,
+        );
         return {
           executed: false,
           reason: `Política DB denegó (${dbGate.policyKey ?? "sin-key"}): ${dbGate.reason}.`,
           stage: "db-policy",
         };
       }
-      const effectiveDecision = dbGate.status;
 
       if (effectiveDecision === "requires_approval" || tool.requiresApproval) {
         // El capability token es single-context (ligado a la traza): no se
@@ -458,6 +507,7 @@ export function createExecutionAuthority(opts?: {
             ) ??
             null;
           if (!grant) {
+            await persistDecision("REVIEW", `aprobacion_humana_requerida:${request.tool}`, false);
             return {
               executed: false,
               reason: `Aprobación humana requerida para '${request.tool}' (un solo uso, TTL 5 min).`,
@@ -472,10 +522,21 @@ export function createExecutionAuthority(opts?: {
       // ── EXECUTION: despacho a ejecutor real ───────────────────
       const executor = executors(opts?.memoryRepository).get(request.tool);
       if (!executor) {
+        await persistDecision("DENY", `sin_ejecutor:${request.tool}`, false);
         return {
           executed: false,
           reason: `Sin ejecutor registrado para '${request.tool}' (fail-closed honesto).`,
           stage: "execution",
+        };
+      }
+      // La decisión se persiste ANTES de tocar el ejecutor: si la cadena de
+      // decisiones no puede escribirse, no se ejecuta (fail-closed, §4.2).
+      const persistError = await persistDecision("ALLOW", `dispatch:${request.tool}`, true);
+      if (persistError) {
+        return {
+          executed: false,
+          reason: `No se pudo persistir la decisión en isabella_decisions: ${persistError}`,
+          stage: "audit",
         };
       }
       let result: unknown;

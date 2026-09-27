@@ -19,6 +19,8 @@ import { createExecutionAuthority, type ApprovalGrant } from "./execution-author
 import { createMemoryEngine, type MemoryActorRole } from "./memory-engine";
 import type { MemoryRepository } from "./repositories/memory-repository";
 import type { AuditRepository } from "./repositories/audit-repository";
+import type { DbPolicyStore } from "./repositories/policy-repository";
+import type { LedgerStore } from "./governance/decision-ledger";
 import { doublePipeline } from "./isabella/double-pipeline";
 
 export interface ApprovalStore {
@@ -92,6 +94,10 @@ export function createSovereignPipeline(opts?: {
   killSwitchStore?: {
     isKilled(capability: string): Promise<boolean>;
   };
+  /** Policy-as-code (`isabella_policies`); si no se inyecta, store por defecto. */
+  dbPolicyStore?: DbPolicyStore;
+  /** Ledger durable de decisiones (`isabella_decisions`), opcional. */
+  decisionStore?: LedgerStore;
 }) {
   const memoryEngine = createMemoryEngine(opts?.memoryRepository);
   const toolRegistry = createToolRegistry();
@@ -223,6 +229,8 @@ export function createSovereignPipeline(opts?: {
               auditRepository: opts?.auditRepository,
               approvalStore: opts?.approvalStore,
               killSwitch: opts?.killSwitchStore,
+              dbPolicyStore: opts?.dbPolicyStore,
+              decisionStore: opts?.decisionStore,
             });
             const outcome = await authority.execute({
               tool: input.toolRequest,
