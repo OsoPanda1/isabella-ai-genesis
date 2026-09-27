@@ -7,7 +7,7 @@ import {
   type NavTabId,
 } from "@/components/isabella/CrystalNavigation";
 
-const CinematicIntro = lazy(() => import("@/components/isabella/CinematicIntro"));
+import CinematicIntro from "@/components/isabella/CinematicIntro";
 const CommandLine = lazy(() =>
   import("@/components/isabella/CommandLine").then((m) => ({
     default: m.CommandLine,
@@ -74,7 +74,7 @@ const VideoEngineXDashboard = lazy(() =>
   })),
 );
 
-const INTRO_SEEN_KEY = "isabella.entry.intro.v1";
+const INTRO_SEEN_KEY = "isabella.entry.intro.v2";
 
 function ClientFallback({ label = "Cargando módulo Isabella…" }: { label?: string }) {
   return (
