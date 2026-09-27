@@ -38,22 +38,22 @@ export function CognitiveStatusDashboard() {
   const [commandInput, setCommandInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [isBoosting, setIsBoosting] = useState(false);
-  const [boostProgress, setBoostProgress] = useState(0);
+  const [isBoosting, _setIsBoosting] = useState(false);
+  const [boostProgress, _setBoostProgress] = useState(0);
 
   // Diagnostic and custom log states
-  const [diagnosticProgress, setDiagnosticProgress] = useState<Record<string, number>>({});
-  const [diagnosticLatency, setDiagnosticLatency] = useState<Record<string, number>>({});
+  const [diagnosticProgress, _setDiagnosticProgress] = useState<Record<string, number>>({});
+  const [diagnosticLatency, _setDiagnosticLatency] = useState<Record<string, number>>({});
   const [isDiagnosing, setIsDiagnosing] = useState<Record<string, boolean>>({});
   const [diagnosticStream, setDiagnosticStream] = useState<Record<string, string[]>>({});
-  const [diagnosticHistory, setDiagnosticHistory] = useState<
+  const [diagnosticHistory, _setDiagnosticHistory] = useState<
     Record<string, { timestamp: string; latency: number }[]>
   >({});
   const [selectedLogModule, setSelectedLogModule] = useState<string | null>(null);
   const [logFilterQuery, setLogFilterQuery] = useState("");
 
   // Live status states for cognitive modules
-  const [modules, setModules] = useState<CognitiveModule[]>([
+  const [modules, _setModules] = useState<CognitiveModule[]>([
     {
       id: "crown",
       name: "CROWN Gateway",

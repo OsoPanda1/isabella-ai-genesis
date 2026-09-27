@@ -16,8 +16,6 @@ import { z } from "zod";
 import { createHash } from "node:crypto";
 import {
   CATTLEYA_MAX_SCORE,
-  CATTLEYA_SPLIT_PERCENTAGES,
-  COMMISSION_BY_TIER,
   createVirtualCard,
   commissionForPlan,
   calculateCattleyaSplit,

@@ -312,6 +312,7 @@ export class SovereignDB {
     const production = isProductionRuntime();
 
     if (!production) {
+      assertJsonPersistenceAllowed();
       try {
         if (fs.existsSync(PERSISTENCE_FILE_PATH)) {
           const raw = fs.readFileSync(PERSISTENCE_FILE_PATH, "utf8");
@@ -345,6 +346,7 @@ export class SovereignDB {
     const production = isProductionRuntime();
 
     if (!production) {
+      assertJsonPersistenceAllowed();
       try {
         const dir = path.dirname(PERSISTENCE_FILE_PATH);
         if (!fs.existsSync(dir)) {
