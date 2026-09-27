@@ -201,9 +201,19 @@ export function useIsabella() {
       if (!token) {
         try {
           token = await ensureSessionToken();
-        } catch {
-          token = "";
+        } catch (error) {
+          const reason =
+            error instanceof Error ? error.message : "Autenticación OIDC no disponible.";
+          throw new Error(
+            `Autenticación requerida para Isabella. Inicia sesión mediante OIDC antes de enviar mensajes. ${reason}`,
+            { cause: error },
+          );
         }
+      }
+      if (!token) {
+        throw new Error(
+          "Autenticación requerida para Isabella: no se obtuvo una sesión Bearer válida.",
+        );
       }
       const userMsg: TerminalMessage = {
         id: uid(),

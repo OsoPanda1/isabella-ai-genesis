@@ -159,7 +159,9 @@ export class PrincipalContext {
       };
     const authorizationHeader = request.headers.get("authorization");
     const hasApiKeyHeader = request.headers.has("x-isabella-api-key");
-    const hasApiKeyScheme = Boolean(authorizationHeader && /^ApiKey\s+\S+$/i.test(authorizationHeader));
+    const hasApiKeyScheme = Boolean(
+      authorizationHeader && /^ApiKey\s+\S+$/i.test(authorizationHeader),
+    );
     if (hasApiKeyHeader || hasApiKeyScheme) {
       const apiKeyRequest = hasApiKeyHeader
         ? request
@@ -376,7 +378,7 @@ export class PrincipalContext {
           allowDevelopmentRecovery =
             isExplicitDevelopmentAuth(config()) && claims.role === "SovereignOwner";
         } catch {
-          allowDevelopmentRecovery = false;
+          /* Fail closed: recovery remains disabled. */
         }
         if (!allowDevelopmentRecovery)
           return {
