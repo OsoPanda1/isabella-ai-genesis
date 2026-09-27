@@ -26,8 +26,14 @@ import {
   IsabellaChatErrorCode,
 } from "@/lib/api-contracts";
 import { redactLogArg } from "@/lib/secret-redactor";
-import { scanOutput, safeOutputOrBlock } from "@/lib/security/output-gate";
 import { governIntelligence } from "@/lib/intelligence/router";
+import {
+  createOutputGateTracker,
+  evaluateOutputSecurity,
+  gateOpenAiSseStream,
+  outputGateRefusalFrame,
+  OUTPUT_GATE_REFUSAL,
+} from "@/lib/output-security-gate";
 
 // Logs con redaccion (ISA-447): nunca volcar errores crudos a consola.
 const logError = (...args: unknown[]): void => console.error(...args.map(redactLogArg));
@@ -92,7 +98,11 @@ function sseHeaders(
   );
 }
 
-function geminiSseToOpenAi(upstream: Response, headers: Headers, provenance: Record<string, unknown>): Response {
+function geminiSseToOpenAi(
+  upstream: Response,
+  headers: Headers,
+  provenance: Record<string, unknown>,
+): Response {
   if (!upstream.body) return json({ error: "INFERENCE_EMPTY_STREAM" }, 502);
   const reader = upstream.body.getReader();
   const decoder = new TextDecoder();
@@ -100,9 +110,26 @@ function geminiSseToOpenAi(upstream: Response, headers: Headers, provenance: Rec
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       let buffer = "";
-      let accumulated = "";
+      // ISA-140/ISA-175: toda salida evaluada ANTES de emitir (fail-closed).
+      const gate = createOutputGateTracker((result) =>
+        logWarn(
+          `[ISABELLA_OUTPUT_GATE] verdict=${result.verdict} provider=gemini findings=${result.findings
+            .map((f) => f.code)
+            .join(",")}`,
+        ),
+      );
+      const emitDeny = (result: Parameters<typeof outputGateRefusalFrame>[0]): void => {
+        void reader.cancel().catch(() => undefined);
+        controller.enqueue(encoder.encode(outputGateRefusalFrame(result)));
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      };
       try {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ provider: "google-gemini", ...provenance })}\n\n`));
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ provider: "google-gemini", ...provenance })}\n\n`,
+          ),
+        );
         for (;;) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -115,18 +142,57 @@ function geminiSseToOpenAi(upstream: Response, headers: Headers, provenance: Rec
             const payload = line.slice(5).trim();
             if (!payload || payload === "[DONE]") continue;
             try {
-              const event = JSON.parse(payload) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
-              const text = event.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
-              if (!text) continue;
-              accumulated = (accumulated + text).slice(-12000);
-              if (!scanOutput(accumulated, "gemini-output").allowed) {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ choices:[{delta:{content:safeOutputOrBlock(text)}}], blocked:true })}\n\n`));
-                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-                controller.close();
+              const event = JSON.parse(payload) as {
+                candidates?: Array<{
+                  content?: { parts?: Array<{ text?: string }> };
+                  finishReason?: string;
+                }>;
+              };
+              const text =
+                event.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ??
+                "";
+              if (text) {
+                const scan = gate.push(text);
+                if (scan.verdict === "deny") {
+                  emitDeny(scan);
+                  return;
+                }
+                controller.enqueue(
+                  encoder.encode(
+                    `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`,
+                  ),
+                );
+              }
+            } catch {
+              /* preserve stream on malformed provider frame */
+            }
+          }
+        }
+        buffer += decoder.decode();
+        const line = buffer.trim();
+        if (line.startsWith("data:")) {
+          try {
+            const event = JSON.parse(line.slice(5).trim()) as {
+              candidates?: Array<{
+                content?: { parts?: Array<{ text?: string }> };
+              }>;
+            };
+            const text =
+              event.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
+            if (text) {
+              const scan = gate.push(text);
+              if (scan.verdict === "deny") {
+                emitDeny(scan);
                 return;
               }
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ choices:[{delta:{content:text}}] })}\n\n`));
-            } catch { /* malformed provider frame */ }
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`,
+                ),
+              );
+            }
+          } catch {
+            /* final incomplete frame */
           }
         }
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -140,7 +206,11 @@ function geminiSseToOpenAi(upstream: Response, headers: Headers, provenance: Rec
   });
   return new Response(stream, { status: 200, headers });
 }
-function guardedOpenAiSse(upstream: Response, headers: Headers, provenance: Record<string, unknown>): Response {
+function guardedOpenAiSse(
+  upstream: Response,
+  headers: Headers,
+  provenance: Record<string, unknown>,
+): Response {
   if (!upstream.body) return json({ error: "INFERENCE_EMPTY_STREAM" }, 502);
   const reader = upstream.body.getReader();
   const decoder = new TextDecoder();
@@ -148,7 +218,14 @@ function guardedOpenAiSse(upstream: Response, headers: Headers, provenance: Reco
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       let buffer = "";
-      let accumulated = "";
+      // ISA-140/ISA-175: passthrough groq/xai con el mismo PDP de salida.
+      const gate = createOutputGateTracker((result) =>
+        logWarn(
+          `[ISABELLA_OUTPUT_GATE] verdict=${result.verdict} provider=openai-passthrough findings=${result.findings
+            .map((f) => f.code)
+            .join(",")}`,
+        ),
+      );
       try {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(provenance)}\n\n`));
         for (;;) {
@@ -163,19 +240,27 @@ function guardedOpenAiSse(upstream: Response, headers: Headers, provenance: Reco
             const payload = line.slice(5).trim();
             if (!payload || payload === "[DONE]") continue;
             try {
-              const event = JSON.parse(payload) as { choices?: Array<{ delta?: { content?: string } }> };
+              const event = JSON.parse(payload) as {
+                choices?: Array<{ delta?: { content?: string } }>;
+              };
               const text = event.choices?.[0]?.delta?.content ?? "";
               if (!text) continue;
-              accumulated = (accumulated + text).slice(-12000);
-              const gate = scanOutput(accumulated, "upstream-model-output");
-              if (!gate.allowed) {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ choices:[{delta:{content:safeOutputOrBlock(text)}}], blocked:true })}\n\n`));
+              const scan = gate.push(text);
+              if (scan.verdict === "deny") {
+                void reader.cancel().catch(() => undefined);
+                controller.enqueue(encoder.encode(outputGateRefusalFrame(scan)));
                 controller.enqueue(encoder.encode("data: [DONE]\n\n"));
                 controller.close();
                 return;
               }
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ choices:[{delta:{content:text}}] })}\n\n`));
-            } catch { /* malformed upstream frame */ }
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`,
+                ),
+              );
+            } catch {
+              /* malformed upstream frame */
+            }
           }
         }
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -209,22 +294,29 @@ async function aiGatewaySse(
     maxOutputTokens: 8192,
   });
   const encoder = new TextEncoder();
+  // ISA-140/ISA-175: gate de salida sobre el acumulado (cubre secretos partidos
+  // entre chunks). DENY ⇒ marco de rechazo + [DONE]; nunca se emite el texto.
+  const gate = createOutputGateTracker((result) =>
+    logWarn(
+      `[ISABELLA_OUTPUT_GATE] verdict=${result.verdict} provider=ai-gateway findings=${result.findings
+        .map((f) => f.code)
+        .join(",")}`,
+    ),
+  );
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       let emitted = false;
-      let accumulated = "";
       try {
         for await (const chunk of result.textStream) {
           if (!chunk) continue;
-          emitted = true;
-          accumulated = (accumulated + chunk).slice(-12000);
-          const gate = scanOutput(accumulated, "ai-gateway-output");
-          if (!gate.allowed) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ choices:[{delta:{content:safeOutputOrBlock(chunk)}}], blocked:true })}\n\n`));
+          const scan = gate.push(chunk);
+          if (scan.verdict === "deny") {
+            controller.enqueue(encoder.encode(outputGateRefusalFrame(scan)));
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             controller.close();
             return;
           }
+          emitted = true;
           controller.enqueue(
             encoder.encode(
               `data: ${JSON.stringify({ choices: [{ delta: { content: chunk } }] })}\n\n`,
@@ -547,7 +639,19 @@ export async function handleIsabellaChat(
       skillInvocation.canonicalName,
       false,
     );
-    return streamChatSkillAsSse(bridgeResult, headers);
+    // ISA-140/175: el contenido del skill también se evalúa antes de emitir.
+    const skillSse = streamChatSkillAsSse(bridgeResult, headers);
+    if (!skillSse.body) return skillSse;
+    return new Response(
+      gateOpenAiSseStream(skillSse.body, (result) =>
+        logWarn(
+          `[ISABELLA_OUTPUT_GATE] verdict=${result.verdict} provider=isabella-skill-runtime findings=${result.findings
+            .map((f) => f.code)
+            .join(",")}`,
+        ),
+      ),
+      { status: skillSse.status, headers: skillSse.headers },
+    );
   }
 
   let conversationalSkill: Awaited<ReturnType<typeof executeConversationalSkill>> = {
@@ -874,7 +978,11 @@ export async function handleIsabellaChat(
             ...governanceMetadata,
             degraded,
           })
-        : guardedOpenAiSse(upstream, headers, { model: attempt.model, ...governanceMetadata, degraded });
+        : guardedOpenAiSse(upstream, headers, {
+            model: attempt.model,
+            ...governanceMetadata,
+            degraded,
+          });
     } catch (error) {
       logError(
         `[ISABELLA_FALLBACK] provider=${attempt.provider} trace=${context.traceId} error=${error instanceof Error ? error.message : "unknown"}`,
@@ -911,8 +1019,19 @@ export async function handleIsabellaChat(
       "sovereign-local-v1",
       true,
     );
-    const gatedFallback = safeOutputOrBlock(fallback.answer, "local-responder-output");
-    return sseFromText(gatedFallback, headers);
+    // ISA-140/175: incluso el responder local soberano pasa por el gate.
+    const localScan = evaluateOutputSecurity(fallback.answer);
+    if (localScan.verdict !== "allow") {
+      logWarn(
+        `[ISABELLA_OUTPUT_GATE] verdict=${localScan.verdict} provider=sovereign-local findings=${localScan.findings
+          .map((f) => f.code)
+          .join(",")}`,
+      );
+    }
+    return sseFromText(
+      localScan.verdict === "deny" ? OUTPUT_GATE_REFUSAL : fallback.answer,
+      headers,
+    );
   } catch (fallbackError) {
     logError(
       `[ISABELLA_SOVEREIGN_FALLBACK] trace=${context.traceId} error=${fallbackError instanceof Error ? fallbackError.message : "unknown"}`,

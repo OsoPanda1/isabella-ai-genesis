@@ -65,6 +65,8 @@ export async function executeChatSkillBridge(
     traceId: context.traceId,
   });
 
+  const gatedContent = safeOutputOrBlock(result.content, "skill-output");
+
   return {
     success: result.success,
     content: gatedContent,
@@ -99,7 +101,9 @@ export function streamChatSkillAsSse(result: ChatSkillExecutionResult, headers: 
 
         // Marco 2: contenido incremental (delta), tras output gate.
         const gate = scanOutput(result.content, "skill-output");
-        const gatedContent = gate.allowed ? result.content : safeOutputOrBlock(result.content, "skill-output");
+        const gatedContent = gate.allowed
+          ? result.content
+          : safeOutputOrBlock(result.content, "skill-output");
         const chunk = {
           choices: [
             {

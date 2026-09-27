@@ -10,12 +10,13 @@ title: Fuga de secretos o identificadores en la salida del modelo
 system: isabella-ai-genesis
 component: chat-gateway
 owner: security-owner
-status: open
+status: mitigating
 
 likelihood: possible
 impact: critical
 inherent_risk: critical
-residual_risk: critical   # sin evidencia de gate de salida, no baja
+residual_risk: high      # gate implementado + probado; baja de crítico con esa
+                         # evidencia, no a low (sin despliegue verificado aún)
 
 tier: CRITICAL
 human_rights: [privacy, security]
@@ -26,17 +27,22 @@ existing_controls:
   - secret-redactor-en-entrada        # src/lib/secret-redactor.ts
   - aegis-firewall-entrada            # LatamAegisXFirewall.interceptRequest
   - aegis-semantic-entrada            # src/lib/aegis-semantic.ts (verdicts allow/flag/deny)
+  - output-security-gate              # ISA-140 + ISA-175: src/lib/output-security-gate.ts
+                                      # aplicado en las 5 rutas SSE del gateway
 
 mitigations:
-  - output-security-gate              # ISA-140 + ISA-175: AEGIS/secretos en la
-                                      # salida ANTES de la emisión SSE
+  - evidencia-de-despliegue           # verificar el gate en runtime con BD y CI
+                                      # activos (issue #66) antes de bajar residual
 
 acceptance_criteria:
   - "Ningún chunk de salida se emite sin pasar por el gate de salida (fail-closed)."
   - "Un patrón de alto nivel de secreto en la salida produce rechazo, no emisión."
   - "Prueba automatizada que demuestre el bloqueo (ISA-140/ISA-175)."
-evidence_refs: []                     # se llena solo con la prueba del gate
+evidence_refs:
+  - test/unit/output-security-gate.test.ts   # 18 pruebas: deny, SSE, split-secret, flag
+  - src/lib/output-security-gate.ts
 notes: >
   El redactor de secretos actúa sobre peticiones y logs, no sobre la respuesta
-  generada. Mientras el gate de salida no esté aplicado y probado, el riesgo
-  residual permanece en crítico.
+  generada. El gate de salida cierra esa brecha en las cinco rutas de emisión
+  del chat gateway; el residual baja solo con la evidencia de la prueba, no
+  con la existencia del archivo.

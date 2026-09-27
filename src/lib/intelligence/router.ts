@@ -104,13 +104,23 @@ export async function invokeIntelligence(
     requestId: input.requestId ?? randomUUID(),
   };
   const governance = evaluateGovernance(request);
-  if (governance.decision !== "ALLOW") throw new Error(`intelligence_${governance.decision.toLowerCase()}`);
+  if (governance.decision !== "ALLOW")
+    throw new Error(`intelligence_${governance.decision.toLowerCase()}`);
 
   const production = isProductionLike(resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE));
-  const descriptors = new Map(listModels().map((model) => [
-    model.modelId,
-    { modalities: model.modalities, enabled: model.enabled, productionApproved: model.productionApproved },
-  ] as const));
+  const descriptors = new Map(
+    listModels().map(
+      (model) =>
+        [
+          model.modelId,
+          {
+            modalities: model.modalities,
+            enabled: model.enabled,
+            productionApproved: model.productionApproved,
+          },
+        ] as const,
+    ),
+  );
   const route = createMoERoute(request, providers, descriptors, 3);
   const eligible = route.selected.filter((expert) => !production || expert.productionApproved);
   if (!eligible.length) throw new Error("inference_unavailable:no_production_approved_expert");
@@ -121,8 +131,12 @@ export async function invokeIntelligence(
     const provider = providers.get(expert.modelId);
     if (!provider) continue;
     if (production) {
-      try { await authorizeModelForRuntime(request.tenantId, provider); }
-      catch { recordFailure(expert.modelId); continue; }
+      try {
+        await authorizeModelForRuntime(request.tenantId, provider);
+      } catch {
+        recordFailure(expert.modelId);
+        continue;
+      }
     }
     authorizedExperts.push(expert);
   }

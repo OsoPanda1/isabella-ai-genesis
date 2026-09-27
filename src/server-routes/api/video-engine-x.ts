@@ -5,6 +5,18 @@ import { videoEngineXManager } from "@/lib/video-x/engine";
 import { DEFAULT_SHOT_CARDS, routeModel } from "@/lib/video-x/contracts";
 import type { InferenceRequest } from "@/lib/video-x/types";
 import { PrincipalContext } from "@/lib/principal-context";
+import { SecuritySystem } from "@/lib/security";
+
+/** Rate limit por IP (L3): la ruta ejecuta inferencia con costo. */
+function videoXRateLimit(request: Request): Response | null {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rateLimit = SecuritySystem.checkRateLimit(`video-x:${ip}`, 30);
+  if (rateLimit.allowed) return null;
+  return new Response(JSON.stringify({ success: false, error: "RATE_LIMITED" }), {
+    status: 429,
+    headers: { "Content-Type": "application/json" },
+  });
+}
 
 const createProjectSchema = z.object({
   title: z.string().min(3),
@@ -39,6 +51,8 @@ export const Route = createFileRoute("/api/video-engine-x")({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        const rateResponse = videoXRateLimit(request);
+        if (rateResponse) return rateResponse;
         // Autorización ANTES de cualquier acción (incluye el listado por
         // defecto): sin ella, la enumeración de proyectos era pública.
         const authResult = await PrincipalContext.authorize(request, "isabella:tools");
@@ -122,6 +136,8 @@ export const Route = createFileRoute("/api/video-engine-x")({
       },
 
       POST: async ({ request }) => {
+        const rateResponse = videoXRateLimit(request);
+        if (rateResponse) return rateResponse;
         const authResult = await PrincipalContext.authorize(request, "isabella:tools");
         if (!authResult.success) return authResult.response;
         try {

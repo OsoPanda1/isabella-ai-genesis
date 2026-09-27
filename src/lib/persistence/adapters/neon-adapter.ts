@@ -41,7 +41,7 @@ export function sanitizeDatabaseUrl(raw: string): string {
     return cleaned;
   }
 }
-function getPgPool(): Pool {
+export function getPgPool(): Pool {
   if (!pgPool) {
     const rawUrl = config().DATABASE_URL;
     if (!rawUrl) throw toRepositoryError("DATABASE_URL not configured", 500);
