@@ -33,7 +33,7 @@ const pkg = readJson("package.json");
 const vercel = readJson("vercel.json");
 if (pkg?.packageManager !== "pnpm@10.34.5")
   errors.push("packageManager no está fijado a pnpm@10.34.5");
-if (pkg?.engines?.node !== ">=22 <25") errors.push("engines.node no es >=22 <25");
+if (pkg?.engines?.node !== "24.x") errors.push("engines.node no es 24.x");
 if (vercel?.framework !== "tanstack-start") errors.push("Vercel framework incorrecto");
 if (vercel?.installCommand !== "pnpm install --frozen-lockfile")
   errors.push("Vercel installCommand no es reproducible");
