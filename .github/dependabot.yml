@@ -1,0 +1,174 @@
+# ================================================================
+# Dependabot Enterprise Configuration
+# Auditoría, mantenimiento y actualizaciones automáticas
+# Blindaje CI/CD + Seguridad + Gobernanza técnica
+# ================================================================
+version: 2
+updates:
+  # -----------------------------------------------------------------
+  # 1. CI/CD - GitHub Actions Workflows
+  # -----------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+      timezone: "America/Mexico_City"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "OsoPanda1"
+    labels:
+      - "dependencies"
+      - "ci-cd"
+      - "security-audit"
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"
+    groups:
+      github-actions-core:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+      github-actions-security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
+
+  # -----------------------------------------------------------------
+  # 2. Node.js / JavaScript / TypeScript Ecosystem (npm / pnpm / yarn)
+  # -----------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "05:00"
+      timezone: "America/Mexico_City"
+    open-pull-requests-limit: 15
+    reviewers:
+      - "OsoPanda1"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "automerge"
+      - "security-audit"
+    commit-message:
+      prefix: "fix(deps-js)"
+      include: "scope"
+    groups:
+      npm-patch-minor:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+          - "minor"
+      npm-major:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+        update-types:
+          - "major"
+      npm-security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
+
+  # -----------------------------------------------------------------
+  # 3. Python Ecosystem (pip / requirements.txt / pyproject.toml)
+  # -----------------------------------------------------------------
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "05:30"
+      timezone: "America/Mexico_City"
+    open-pull-requests-limit: 15
+    reviewers:
+      - "OsoPanda1"
+    labels:
+      - "dependencies"
+      - "python"
+      - "security-audit"
+    commit-message:
+      prefix: "fix(deps-py)"
+      include: "scope"
+    groups:
+      python-patch-minor:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+          - "minor"
+      python-major:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+        update-types:
+          - "major"
+      python-security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
+
+  # -----------------------------------------------------------------
+  # 4. Docker Ecosystem (Dockerfile / Container Dependencies)
+  # -----------------------------------------------------------------
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "03:00"
+      timezone: "America/Mexico_City"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "OsoPanda1"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "security-audit"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+    groups:
+      docker-patch-minor:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+          - "minor"
+      docker-security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
+
+  # -----------------------------------------------------------------
+  # 5. Infraestructura Soberana - Seguridad Extendida
+  # -----------------------------------------------------------------
+  - package-ecosystem: "bundler"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "02:00"
+      timezone: "America/Mexico_City"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "OsoPanda1"
+    labels:
+      - "dependencies"
+      - "ruby"
+      - "security-audit"
+    commit-message:
+      prefix: "fix(deps-rb)"
+      include: "scope"
+    groups:
+      ruby-security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
