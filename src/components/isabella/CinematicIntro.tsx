@@ -15,7 +15,6 @@ import {
 
 const DURATION = 59;
 const TARGET_FPS = 60;
-const FALLBACK_BACKDROP = "/assets/isabella-intro-backdrop.png";
 
 export interface TelemetryPayload {
   elapsed: number;
@@ -97,12 +96,11 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
   const [elapsed, setElapsed] = useState(0);
   const [fps, setFps] = useState(TARGET_FPS);
   const [media, setMedia] = useState<IntroMediaConfig>({
-    fallback: { type: "static", url: FALLBACK_BACKDROP },
+    fallback: { type: "procedural" },
   });
 
   const completedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
   const clockRef = useRef(0);
   const onCompleteRef = useRef(onComplete);
   const telemetryRef = useRef(onTelemetryUpdate);
@@ -135,8 +133,6 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
     if (completedRef.current) return;
     completedRef.current = true;
     videoRef.current?.pause();
-    audioRef.current?.pause();
-    if (audioRef.current) audioRef.current.currentTime = 0;
     onCompleteRef.current();
   }, []);
 
@@ -147,11 +143,6 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
     clockRef.current = performance.now();
 
     const video = videoRef.current;
-    const audio = audioRef.current;
-    if (audio) {
-      audio.muted = muted;
-      void audio.play().catch(() => undefined);
-    }
     if (!video || mediaFailed) return;
     video.muted = muted;
     void video
@@ -251,7 +242,6 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.muted = muted;
-    if (audioRef.current) audioRef.current.muted = muted;
   }, [muted]);
 
   const scene = useMemo(
@@ -294,13 +284,6 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
         }
       `}</style>
 
-      <audio
-        ref={audioRef}
-        src="/assets/isabella-intro-mashup.mp3"
-        preload="auto"
-        aria-label="Banda sonora de la introducción cinematográfica"
-      />
-
       {/* REPRODUCTOR DE VIDEO O FALLBACK SOBERANO */}
       {playbackUrl ? (
         <video
@@ -318,10 +301,19 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
         />
       ) : (
         <div
-          className="absolute inset-0 bg-cover bg-center transition-all duration-1000 scale-105"
-          style={{
-            backgroundImage: `linear-gradient(135deg, rgba(2,6,9,0.88), rgba(6,18,28,0.95)), url("${fallbackUrl}")`,
-          }}
+          className="absolute inset-0 transition-all duration-1000 scale-105"
+          style={
+            media.fallback?.type === "static" && media.fallback.url
+              ? {
+                  backgroundImage: `linear-gradient(135deg, rgba(2,6,9,0.88), rgba(6,18,28,0.95)), url("${media.fallback.url}")`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }
+              : {
+                  backgroundImage:
+                    "radial-gradient(circle at 50% 40%, rgba(34,211,238,0.18), transparent 28%), radial-gradient(circle at 20% 80%, rgba(14,116,144,0.2), transparent 32%), linear-gradient(135deg, #020609 0%, #06121c 55%, #010508 100%)",
+                }
+          }
           aria-hidden="true"
         />
       )}
