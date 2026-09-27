@@ -10,7 +10,7 @@
  * - Reparto estricto: 75% Creador / 25% Plataforma liquidado en BookPI WORM Ledger.
  */
 
-import { PrincipalContext, SubscriptionStatus } from "./x402-connector";
+import { PrincipalContext } from "./x402-connector";
 
 export type MonetizationCategory =
   | "AGENTIC_MACHINE_INFRA"

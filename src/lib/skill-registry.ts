@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { capabilityRegistry, type CapabilityState } from "./capability-registry";
-import { getIsabellaSkill } from "./skills/registry";
 
 export const SkillId = z
   .string()
