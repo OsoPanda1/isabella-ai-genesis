@@ -1,5 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Play, SkipForward, Volume2, VolumeX } from "lucide-react";
+import {
+  Play,
+  SkipForward,
+  Volume2,
+  VolumeX,
+  Activity,
+  Shield,
+  Cpu,
+  Radio,
+  Lock,
+  Terminal,
+  Wifi,
+} from "lucide-react";
 
 const DURATION = 59;
 const TARGET_FPS = 60;
@@ -35,39 +47,45 @@ interface CinematicIntroProps {
 const scenes = [
   {
     end: 10,
-    kicker: "REAL DEL MONTE · HIDALGO // NODO CERO",
-    title: "La inteligencia empieza escuchando.",
-    body: "Isabella Villaseñor AI coordina contexto, memoria y herramientas bajo decisión humana.",
+    kicker: "NODO CERO // REAL DEL MONTE · HIDALGO · MX",
+    title: "LA INTELIGENCIA EMPIEZA ESCUCHANDO.",
+    body: "Isabella Villaseñor AI sintetiza contexto, memoria y proveniencia territorial bajo estricto mandato y gobernanza humana.",
+    tag: "COGNITIVE ARCHITECTURE // ACTIVE",
   },
   {
     end: 20,
-    kicker: "CROWN // ORQUESTACIÓN CON TRAZABILIDAD",
-    title: "Cada respuesta tiene un porqué.",
-    body: "La percepción se convierte en contexto, política, decisión y registro auditable.",
+    kicker: "CROWN CORE // ORQUESTACIÓN TÁCTICA AUDITABLE",
+    title: "CADA RESPUESTA TIENE UN ORIGEN DECLARADO.",
+    body: "La percepción transita por capas no-deterministas hacia políticas, decisiones y trazabilidad criptográfica LITLE.",
+    tag: "TRACEABILITY // 100% VERIFIED",
   },
   {
     end: 30,
-    kicker: "ARGUS // GOBERNANZA ZERO TRUST",
-    title: "La capacidad no está por encima del cuidado.",
-    body: "Si una acción implica riesgo, Isabella detiene el flujo y solicita aprobación.",
+    kicker: "ARGUS GATE // PROTECCIÓN ZERO-TRUST",
+    title: "LA CAPACIDAD NO ESTÁ POR ENCIMA DEL CUIDADO.",
+    body: "Frente a la ambigüedad o el riesgo, el kernel frena el flujo autónomo y eleva la solicitud al supervisor humano.",
+    tag: "ZERO-TRUST GOVERNANCE // ENGAGED",
   },
   {
     end: 40,
-    kicker: "ISA · SOPHIA · ORION // ROLES SEPARADOS",
-    title: "Distintas funciones. Una responsabilidad.",
-    body: "Presencia, razonamiento y ejecución trabajan con límites explícitos, no con promesas vacías.",
+    kicker: "TRIADA ISA · SOPHIA · ORION // SEGREGACIÓN DE ROLES",
+    title: "ROLES DIVERGENTES. UNA SOLA RESPONSABILIDAD.",
+    body: "Presencia, razonamiento analítico y ejecución táctica operan con límites explícitos de acción, sin opacidad corporativa.",
+    tag: "TRIAD KERNEL // SYNCED",
   },
   {
     end: 50,
-    kicker: "SOBERANÍA TERRITORIAL // CONTEXTO LOCAL",
-    title: "El territorio no es un dato más.",
-    body: "La memoria local, la procedencia y la incertidumbre se conservan antes de generalizar.",
+    kicker: "SOBERANÍA TERRITORIAL // SANTUARIO DE MEMORIA",
+    title: "EL TERRITORIO Y SU GENTE NO SON UN DATO MÁS.",
+    body: "La memoria colectiva, la raíz cultural y la incertidumbre local se protegen y honran antes de cualquier abstracción.",
+    tag: "LOCAL SOVEREIGNTY // PROTECTED",
   },
   {
     end: DURATION + 1,
-    kicker: "ISABELLA VILLASEÑOR AI // LISTA PARA COLABORAR",
-    title: "Tú decides. Isabella ayuda a ver mejor.",
-    body: "No soy una autoridad ni una persona: soy una interfaz cognitiva gobernada para pensar contigo.",
+    kicker: "ISABELLA VILLASEÑOR AI // KERNEL COGNITIVO LIBRE",
+    title: "TÚ DECIDES. ISABELLA AYUDA A VER MEJOR.",
+    body: "Una interfaz cognitiva comunitaria construida para pensar contigo, defender la verdad y potenciar la soberanía digital.",
+    tag: "SYSTEM READY // STANDBY",
   },
 ] as const;
 
@@ -81,6 +99,7 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
   const [media, setMedia] = useState<IntroMediaConfig>({
     fallback: { type: "static", url: FALLBACK_BACKDROP },
   });
+
   const completedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -163,6 +182,7 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
     let frame = 0;
     let last = performance.now();
     let frames = 0;
+
     const tick = (now: number) => {
       frames += 1;
       const current = Math.min(DURATION, Math.max(0, (now - clockRef.current) / 1000));
@@ -184,6 +204,7 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
       if (current >= DURATION) complete();
       else frame = requestAnimationFrame(tick);
     };
+
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
   }, [complete, showGate]);
@@ -196,7 +217,9 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
       } else if (!showGate && event.key === "Escape") {
         event.preventDefault();
         complete();
-      } else if (!showGate && event.key.toLowerCase() === "m") setMuted((value) => !value);
+      } else if (!showGate && event.key.toLowerCase() === "m") {
+        setMuted((value) => !value);
+      }
     };
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
@@ -209,7 +232,7 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
 
   const scene = useMemo(
     () => scenes.find((item) => elapsed < item.end) ?? scenes[scenes.length - 1],
-    [elapsed],
+    [elapsed]
   );
   const progress = Math.min(1, elapsed / DURATION);
   const timecode = `${Math.floor(elapsed / 60)
@@ -217,10 +240,12 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
     .padStart(2, "0")}:${Math.floor(elapsed % 60)
     .toString()
     .padStart(2, "0")}`;
+
   const fallbackUrl =
     media.fallback?.type === "static"
-      ? (media.fallback.url ?? FALLBACK_BACKDROP)
+      ? media.fallback.url ?? FALLBACK_BACKDROP
       : FALLBACK_BACKDROP;
+
   const playbackUrl =
     media.playbackId && !mediaFailed
       ? `https://stream.mux.com/${encodeURIComponent(media.playbackId)}/high.mp4`
@@ -229,24 +254,39 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
   return (
     <section
       aria-labelledby="isabella-cinematic-title"
-      style={{
-        position: "relative",
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-        background: "#020a0d",
-      }}
+      className="relative h-screen w-screen overflow-hidden bg-[#020609] font-sans select-none"
     >
+      {/* CSS Inyectado para animaciones puras GPU sin romper bundle */}
+      <style>{`
+        @keyframes hudScan {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(1000%); }
+        }
+        @keyframes pulseRing {
+          0%, 100% { transform: scale(1); opacity: 0.3; }
+          50% { transform: scale(1.08); opacity: 0.7; }
+        }
+        @keyframes revealCinematic {
+          0% { opacity: 0; transform: translateY(20px) scale(0.97); filter: blur(10px); }
+          100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+        .animate-reveal {
+          animation: revealCinematic 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
+
       <audio
         ref={audioRef}
         src="/assets/isabella-intro-mashup.mp3"
         preload="auto"
         aria-label="Banda sonora de la introducción cinematográfica"
       />
+
+      {/* REPRODUCTOR DE VIDEO O FALLBACK SOBERANO */}
       {playbackUrl ? (
         <video
           ref={videoRef}
-          className="absolute inset-0 size-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover filter brightness-[0.85] contrast-[1.1]"
           src={playbackUrl}
           autoPlay={false}
           muted={muted}
@@ -259,60 +299,108 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
         />
       ) : (
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center transition-all duration-1000 scale-105"
           style={{
-            backgroundImage: `linear-gradient(135deg, rgba(2,10,13,.72), rgba(10,22,40,.94)), url("${fallbackUrl}")`,
+            backgroundImage: `linear-gradient(135deg, rgba(2,6,9,0.88), rgba(6,18,28,0.95)), url("${fallbackUrl}")`,
           }}
           aria-hidden="true"
         />
       )}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(0,0,0,.38)_62%,rgba(0,0,0,.9)_100%)]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[9vh] bg-black/75" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[9vh] bg-black/75" />
 
+      {/* OVERLAY TÁCTICO HUD: SCANLINES, RETÍCULA Y VIÑETA */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(0,0,0,0.6)_65%,rgba(1,4,7,0.98)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100%_4px] opacity-40" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[10vh] bg-gradient-to-b from-black/90 via-black/40 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[12vh] bg-gradient-to-t from-black/95 via-black/50 to-transparent" />
+
+      {/* ESQUINAS HUD TÁCTICAS */}
+      <div className="pointer-events-none absolute top-6 left-6 size-8 border-l-2 border-t-2 border-cyan-400/40" />
+      <div className="pointer-events-none absolute top-6 right-6 size-8 border-r-2 border-t-2 border-cyan-400/40" />
+      <div className="pointer-events-none absolute bottom-6 left-6 size-8 border-l-2 border-b-2 border-cyan-400/40" />
+      <div className="pointer-events-none absolute bottom-6 right-6 size-8 border-r-2 border-b-2 border-cyan-400/40" />
+
+      {/* EXPERIENCIA PRINCIPAL DE REPRODUCCIÓN */}
       {!showGate && (
         <>
-          <header className="absolute inset-x-8 top-[11vh] z-20 flex items-center justify-between text-[10px] uppercase tracking-[.35em] text-white/55 sm:inset-x-12">
-            <span>{scene.kicker}</span>
-            <span className="hidden items-center gap-3 sm:flex">
-              <span>{fps} FPS</span>
-              <span className="text-white/25">//</span>
-              <span>{timecode} / 00:59</span>
-            </span>
+          {/* HEADER DEL HUD */}
+          <header className="absolute inset-x-8 top-[8vh] z-20 flex items-center justify-between text-[11px] font-mono tracking-[0.3em] uppercase text-cyan-200/70 sm:inset-x-12">
+            <div className="flex items-center gap-3">
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
+                <span className="relative inline-flex size-2 rounded-full bg-cyan-300" />
+              </span>
+              <span className="font-semibold text-cyan-100">{scene.kicker}</span>
+            </div>
+
+            <div className="hidden items-center gap-6 sm:flex text-white/50">
+              <div className="flex items-center gap-2">
+                <Activity className="size-3.5 text-cyan-400" />
+                <span>{fps} FPS</span>
+              </div>
+              <span className="text-white/20">//</span>
+              <div className="flex items-center gap-2">
+                <Shield className="size-3.5 text-cyan-400" />
+                <span>LITLE VERIFIED</span>
+              </div>
+              <span className="text-white/20">//</span>
+              <span className="font-mono text-cyan-300">{timecode} / 00:59</span>
+            </div>
           </header>
+
+          {/* CONTENIDO CINEMÁTICO CENTRAL */}
           <div className="absolute inset-0 z-10 flex items-center px-8 sm:px-16 lg:px-24">
-            <div
-              key={scene.title}
-              className="max-w-4xl"
-              style={{ animation: "reveal 1s cubic-bezier(.16,1,.3,1) both" }}
-            >
-              <p className="mb-5 text-[10px] font-semibold uppercase tracking-[.45em] text-cyan-100/75 sm:text-xs">
-                {scene.kicker}
-              </p>
+            <div key={scene.title} className="max-w-4xl animate-reveal">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-sm border border-cyan-500/30 bg-cyan-950/40 px-3 py-1 backdrop-blur-md">
+                <Cpu className="size-3 text-cyan-300" />
+                <span className="text-[10px] font-mono tracking-[0.35em] text-cyan-200 uppercase">
+                  {scene.tag}
+                </span>
+              </div>
+
               <h1
                 id="isabella-cinematic-title"
-                className="max-w-4xl text-4xl font-black leading-[.92] tracking-[-.055em] text-white sm:text-6xl md:text-8xl"
+                className="text-4xl font-black leading-[0.92] tracking-tight text-white drop-shadow-[0_0_35px_rgba(34,211,238,0.2)] sm:text-6xl md:text-8xl"
               >
                 {scene.title}
               </h1>
-              <p className="mt-7 max-w-xl border-l border-cyan-200/50 pl-4 text-sm leading-relaxed tracking-wide text-white/60 sm:text-base">
+
+              <p className="mt-8 max-w-2xl border-l-2 border-cyan-400/80 pl-6 text-base leading-relaxed tracking-wide text-cyan-50/80 sm:text-lg">
                 {scene.body}
               </p>
             </div>
           </div>
-          <footer className="absolute inset-x-8 bottom-[11vh] z-20 sm:inset-x-12">
-            <div className="mb-3 flex items-center justify-between text-[9px] uppercase tracking-[.3em] text-white/40">
-              <span>ISABELLA // GENESIS</span>
-              <button
-                type="button"
-                onClick={complete}
-                className="rounded px-2 py-1 transition-colors hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-100/70"
-              >
-                Omitir intro <SkipForward className="ml-1 inline size-3" />
-              </button>
+
+          {/* FOOTER DEL HUD Y BARRA DE PROGRESO */}
+          <footer className="absolute inset-x-8 bottom-[8vh] z-20 sm:inset-x-12">
+            <div className="mb-3 flex items-center justify-between text-[10px] font-mono tracking-[0.25em] uppercase text-white/50">
+              <div className="flex items-center gap-2">
+                <Terminal className="size-3.5 text-cyan-400" />
+                <span>ISABELLA AI // TAMV OS MD-X5</span>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setMuted((val) => !val)}
+                  className="hidden sm:flex items-center gap-1.5 transition-colors hover:text-cyan-200"
+                >
+                  {muted ? <VolumeX className="size-3.5" /> : <Volume2 className="size-3.5" />}
+                  <span>[M] {muted ? "UNMUTE" : "MUTE"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={complete}
+                  className="flex items-center gap-1.5 rounded border border-cyan-500/30 bg-black/40 px-3 py-1 text-cyan-200 transition-colors hover:border-cyan-300 hover:bg-cyan-900/30 focus-visible:outline-none"
+                >
+                  <span>OMITIR INTRO [ESC]</span>
+                  <SkipForward className="size-3.5" />
+                </button>
+              </div>
             </div>
+
+            {/* BARRA DE PROGRESO CON GLOW */}
             <div
-              className="h-px overflow-hidden bg-white/15"
+              className="relative h-1 w-full overflow-hidden rounded-full bg-white/10 backdrop-blur-sm"
               role="progressbar"
               aria-label="Progreso de la introducción"
               aria-valuemin={0}
@@ -320,7 +408,7 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
               aria-valuenow={Math.round(progress * 100)}
             >
               <div
-                className="h-full bg-cyan-200 shadow-[0_0_14px_rgba(120,220,255,.8)]"
+                className="h-full bg-gradient-to-r from-cyan-500 via-sky-300 to-white transition-all duration-100 ease-linear shadow-[0_0_15px_rgba(34,211,238,0.9)]"
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
@@ -328,59 +416,85 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
         </>
       )}
 
+      {/* PANTALLA DE ACCESO / START GATE */}
       {showGate && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#03050a]/70 px-6 backdrop-blur-[2px]">
-          <div
-            className="w-full max-w-xl text-center"
-            style={{ animation: "reveal 1.2s cubic-bezier(.16,1,.3,1) both" }}
-          >
-            <div className="mx-auto mb-8 flex size-24 items-center justify-center rounded-full border border-cyan-100/25 bg-black/35 shadow-[0_0_70px_rgba(65,196,255,.2),inset_0_0_25px_rgba(119,83,255,.2)]">
-              <div className="size-3 rounded-full bg-cyan-100 shadow-[0_0_20px_8px_rgba(103,224,255,.7)]" />
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#010508]/80 px-6 backdrop-blur-md">
+          <div className="w-full max-w-2xl text-center animate-reveal">
+            {/* LOGO NÚCLEO COGNITIVO */}
+            <div className="relative mx-auto mb-8 flex size-28 items-center justify-center rounded-full border border-cyan-400/30 bg-black/60 shadow-[0_0_80px_rgba(34,211,238,0.25),inset_0_0_30px_rgba(34,211,238,0.15)]">
+              <div
+                className="absolute inset-0 rounded-full border border-cyan-300/20"
+                style={{ animation: "pulseRing 3s infinite ease-in-out" }}
+              />
+              <div className="size-4 rounded-full bg-cyan-200 shadow-[0_0_25px_8px_rgba(34,211,238,0.8)]" />
+              <Lock className="absolute size-5 text-cyan-300/40" />
             </div>
-            <p className="text-[10px] uppercase tracking-[.5em] text-cyan-100/65">
+
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-950/30 px-4 py-1 text-[10px] font-mono tracking-[0.4em] uppercase text-cyan-300/80 mb-4">
+              <Radio className="size-3 animate-pulse text-cyan-400" />
               TAMV ONLINE // PRÓLOGO DE SISTEMA
-            </p>
-            <h2 className="mt-5 text-5xl font-black tracking-[-.06em] text-white sm:text-7xl">
-              ISABELLA<span className="text-cyan-100">.</span>
+            </div>
+
+            <h2 className="text-5xl font-black tracking-tighter text-white sm:text-7xl">
+              ISABELLA<span className="text-cyan-400">.</span>
             </h2>
-            <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-white/60">
-              Una interfaz cognitiva territorial. Contexto antes que certeza; humano antes que
-              automatismo.
+
+            <p className="mx-auto mt-6 max-w-lg text-sm leading-relaxed text-cyan-100/70 sm:text-base">
+              Interfaz cognitiva territorial. Contexto soberano antes que certeza; supervisión humana
+              antes que automatismo irrestricto.
             </p>
-            <p className="mx-auto mt-3 max-w-sm text-[10px] uppercase tracking-[.18em] text-white/35">
-              Sin acciones externas sin autorización · Sin memoria sin procedencia
-            </p>
+
+            <div className="mx-auto mt-4 flex max-w-md items-center justify-center gap-4 text-[10px] font-mono tracking-[0.2em] uppercase text-white/40">
+              <span className="flex items-center gap-1">
+                <Wifi className="size-3 text-cyan-400" /> REAL DEL MONTE
+              </span>
+              <span>•</span>
+              <span>ZERO TRUST</span>
+              <span>•</span>
+              <span>LITLE ARCHIVE</span>
+            </div>
+
             <div
-              className="mx-auto mt-7 flex max-w-xs items-center justify-center gap-2 text-[9px] uppercase tracking-[.28em] text-white/35"
+              className="mx-auto mt-8 flex items-center justify-center gap-2.5 text-[10px] font-mono tracking-[0.25em] text-white/40 uppercase"
               aria-live="polite"
             >
               <span
-                className={`size-1.5 rounded-full ${mediaReady ? "bg-cyan-200 shadow-[0_0_10px_3px_rgba(117,224,255,.55)]" : "bg-white/25"}`}
+                className={`size-2 rounded-full ${
+                  mediaReady
+                    ? "bg-cyan-300 shadow-[0_0_12px_3px_rgba(34,211,238,0.7)]"
+                    : "bg-white/20"
+                }`}
               />
               {playbackUrl
                 ? mediaReady
-                  ? "Canal visual listo"
-                  : "Preparando canal visual"
+                  ? "Flujo de video soberano listo"
+                  : "Cargando canal de video"
                 : mediaFailed
-                  ? "Respaldo visual activo"
-                  : "Modo de respaldo listo"}
+                ? "Respaldo territorial activo"
+                : "Modo de respaldo listo"}
             </div>
-            <button
-              type="button"
-              onClick={enter}
-              aria-label="Iniciar la experiencia cinematográfica"
-              className="mx-auto mt-9 flex items-center gap-3 border border-cyan-100/35 bg-white/[.06] px-7 py-4 text-[10px] font-semibold uppercase tracking-[.35em] text-white transition-all hover:border-cyan-100 hover:bg-cyan-100/10 active:scale-95"
-            >
-              <Play className="size-4 fill-current text-cyan-100" /> Iniciar experiencia
-            </button>
-            <button
-              type="button"
-              onClick={() => setMuted((value) => !value)}
-              className="mt-6 inline-flex items-center gap-2 text-[10px] uppercase tracking-[.25em] text-white/35 transition-colors hover:text-white/75"
-            >
-              {muted ? <VolumeX className="size-3.5" /> : <Volume2 className="size-3.5" />}
-              {muted ? "Audio desactivado" : "Audio activado"}
-            </button>
+
+            {/* BOTONES DE ACCIÓN */}
+            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <button
+                type="button"
+                onClick={enter}
+                aria-label="Iniciar la experiencia y el manifiesto"
+                className="group relative flex items-center gap-3 overflow-hidden rounded border border-cyan-300/50 bg-cyan-500/10 px-9 py-4 text-xs font-mono font-bold tracking-[0.35em] text-white uppercase transition-all duration-300 hover:border-cyan-200 hover:bg-cyan-400/20 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] active:scale-95 focus-visible:outline-none"
+              >
+                <Play className="size-4 fill-cyan-300 text-cyan-300 transition-transform group-hover:scale-110" />
+                <span>INICIAR EXPERIENCIA</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMuted((value) => !value)}
+                className="inline-flex items-center gap-2 rounded border border-white/10 bg-black/40 px-5 py-4 text-xs font-mono tracking-[0.25em] text-white/50 uppercase transition-colors hover:border-white/30 hover:text-white"
+              >
+                {muted ? <VolumeX className="size-4 text-red-400" /> : <Volume2 className="size-4 text-cyan-300" />}
+                <span>{muted ? "AUDIO DESACTIVADO" : "AUDIO ACTIVADO"}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
