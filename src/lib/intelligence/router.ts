@@ -7,7 +7,7 @@ import type {
   IntelligenceRequest,
   IntelligenceResponse,
 } from "./contracts";
-import { approveModel, listModels, registerProvider } from "./model-registry";
+import { approveModel, getModel, listModels, registerProvider } from "./model-registry";
 import { createMoERoute, executeMoE } from "./moe-engine";
 import { recordIntelligenceMetric } from "./observability";
 import { authorizeModelForRuntime } from "./production-model-gate";
@@ -17,6 +17,7 @@ const providers = new Map<string, IntelligenceProvider>();
 const failures = new Map<string, { count: number; openUntil: number }>();
 const FAILURE_THRESHOLD = 3;
 const COOLDOWN_MS = 30_000;
+const MAX_CANDIDATES = 3;
 
 function circuitOpen(modelId: string): boolean {
   const state = failures.get(modelId);
@@ -130,17 +131,6 @@ export async function invokeIntelligence(
   const started = performance.now();
   try {
     const result = await executeMoE(request, { ...route, selected: authorizedExperts }, providers);
-    for (const expert of authorizedExperts) {
-      const response = result.responses.find((item) => item.modelId === expert.modelId);
-      recordIntelligenceMetric({
-        providerId: expert.providerId,
-        modelId: expert.modelId,
-        latencyMs: response?.latencyMs ?? 0,
-        success: Boolean(response),
-        degraded: response?.degraded ?? true,
-        timestamp: new Date().toISOString(),
-      });
-    }
     for (const response of result.responses) {
       recordSuccess(response.modelId);
       recordIntelligenceMetric({

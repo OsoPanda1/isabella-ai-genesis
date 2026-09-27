@@ -40,7 +40,7 @@ BEGIN
   IF p_tenant_id IS NULL OR length(trim(p_tenant_id)) = 0 THEN RAISE EXCEPTION 'tenant_id_required'; END IF;
   PERFORM pg_advisory_xact_lock(hashtextextended('isabella-erasure:' || p_tenant_id, 0));
 
-  DELETE FROM public.memories WHERE tenant_id = p_tenant_id AND (p_user_id IS NULL OR user_id = p_user_id);
+  DELETE FROM public.memories WHERE tenant_id = p_tenant_id AND (p_user_id IS NULL OR actor_id = p_user_id);
   GET DIAGNOSTICS v_memories = ROW_COUNT;
   DELETE FROM public.economic_events WHERE tenant_id = p_tenant_id AND (p_user_id IS NULL OR actor_id = p_user_id);
   GET DIAGNOSTICS v_economic = ROW_COUNT;
