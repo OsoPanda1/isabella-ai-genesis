@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { DOMAINS, CATALOG_ENTRIES, type CatalogEntry } from "@/lib/api-catalog";
 import {
   Search,
@@ -99,7 +99,7 @@ export function ApiCatalogExplorer() {
   const [selectedMethod, setSelectedMethod] = useState<string>("all");
   const [selectedStrategy, setSelectedStrategy] = useState<string>("moe_dynamic");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeEntry, setActiveEntry] = useState<CatalogEntry | null>(null);
+  const [activeEntry, setActiveEntry] = useState<CatalogEntry | null>(CATALOG_ENTRIES[0] ?? null);
 
   const [simulateParams, setSimulateParams] = useState<string>(
     // tenantId/actorId NUNCA se envían desde el cliente: se derivan de la
@@ -112,13 +112,6 @@ export function ApiCatalogExplorer() {
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"schemas" | "simulator" | "cot">("simulator");
   const [copied, setCopied] = useState(false);
-
-  // Inicialización inteligente del primer contrato activo
-  useEffect(() => {
-    if (CATALOG_ENTRIES.length > 0 && !activeEntry) {
-      setActiveEntry(CATALOG_ENTRIES[0] || null);
-    }
-  }, [activeEntry]);
 
   // Filtrado multivariable memoiado
   const filteredEntries = useMemo(() => {

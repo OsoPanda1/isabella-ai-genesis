@@ -268,7 +268,7 @@ export function CognitiveStatusDashboard() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `isabella-logs-${selectedLogModule}-${Date.now()}.json`;
+    link.download = `isabella-logs-${selectedLogModule}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -716,7 +716,7 @@ export function CognitiveStatusDashboard() {
             <span
               className="absolute pointer-events-none bg-electric h-[14px] w-[7px] animate-caret"
               style={{
-                left: `${Math.min(commandInput.length * 7.2, inputRef.current?.offsetWidth || 0)}px`,
+                left: `${commandInput.length * 7.2}px`,
               }}
             />
           </div>
