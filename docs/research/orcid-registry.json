@@ -1,0 +1,511 @@
+{
+  "schema": "isabella-orcid-registry/v1",
+  "generated_at": "2026-09-27",
+  "source": {
+    "api": "https://pub.orcid.org/v3.0/0009-0008-5050-1539/{works,person,employments}",
+    "registry_page": "https://orcid.org/0009-0008-5050-1539",
+    "content": "Solo metadatos públicos del registro ORCID; sin correos ni datos personales sensibles.",
+    "verification": "metadata-only: los DOIs provienen de la API pública de ORCID (fuentes DataCite/Zenodo/OSF); el contenido de cada depósito NO se descargó ni se verificó en esta sesión."
+  },
+  "identity": {
+    "orcid": "0009-0008-5050-1539",
+    "credit_name": "Edwin Oswaldo Castillo Trejo",
+    "given_names": "Edwin Oswaldo",
+    "family_names": "Castillo Trejo",
+    "other_names": [
+      "Anubis Villaseñor"
+    ],
+    "keywords": [
+      "TAMV ONLINE",
+      "Team Anubis",
+      "Nueva era digital",
+      "Sensorial Inmersiva"
+    ],
+    "researcher_urls": [
+      {
+        "name": "TAMV ONLINE WEB OFICIAL",
+        "url": "https://tamvonline-oficial.odoo.com"
+      },
+      {
+        "name": "BLOG TAMV ONLINE",
+        "url": "https://tamvonlinenetwork.blogspot.com"
+      },
+      {
+        "name": "CANAL DE REPORTAJES E INFORMACION TECH",
+        "url": "https://www.linkedin.com/build-relation/newsletter-follow?entityUrn=7395085399506927616"
+      }
+    ],
+    "external_identifiers": [
+      {
+        "type": "Loop profile",
+        "value": "3117809",
+        "url": "http://loop.frontiersin.org/people/3117809/overview?referrer=orcid_profile"
+      }
+    ]
+  },
+  "employment": [
+    {
+      "organization": "TAMV ONLINE NETWORK",
+      "role": "Director General de Proyectos ",
+      "department": "CEO Fundador",
+      "start_year": "2020",
+      "end_year": "2026",
+      "disambiguation": null
+    }
+  ],
+  "works": [
+    {
+      "title": "TINA — Trusted Intelligence, Native & Adaptive ISABELLA VILLASEÑOR AI — GENESIS SISTEMA OPERATIVO CIVILIZATORIO TAMV OS",
+      "type": "conference-presentation",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.22939783",
+        "10.5281/zenodo.22939784"
+      ],
+      "put_codes": [
+        227709416,
+        227709418,
+        227709428
+      ],
+      "sources": [
+        "DataCite"
+      ]
+    },
+    {
+      "title": "Documento Magno Canónico: RDM Digital Hub y el Paradigma TAMV — Arquitectura de Soberanía Digital Territorial, Criptografía Post-Cuántica y Gobernanza Phygital",
+      "type": "report",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.21694236",
+        "10.5281/zenodo.21694237"
+      ],
+      "put_codes": [
+        222221001,
+        222221002,
+        222221003,
+        222221004
+      ],
+      "sources": [
+        "DataCite"
+      ]
+    },
+    {
+      "title": "Nodo Cero — RDM Digital Hub: Infraestructura Tecnológica Soberana, Inteligencia Territorial y Cooperación Multilateral.",
+      "type": "lecture-speech",
+      "year": "2026",
+      "dois": [
+        "10.6084/m9.figshare.33029609",
+        "10.6084/m9.figshare.33029609.v1"
+      ],
+      "put_codes": [
+        221164075,
+        221164076,
+        221164077
+      ],
+      "sources": [
+        "DataCite",
+        "figshare"
+      ]
+    },
+    {
+      "title": "NODO CERO RDM DIGITAL HUB",
+      "type": "report",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.21400908",
+        "10.5281/zenodo.21400907"
+      ],
+      "put_codes": [
+        220931072,
+        220931073,
+        220931074,
+        221014531
+      ],
+      "sources": [
+        "DataCite",
+        "OpenAIRE"
+      ]
+    },
+    {
+      "title": "Evaluacion Publica de Consistencia Conceptual de Isabella",
+      "type": "report",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.20606360",
+        "10.5281/zenodo.20606361"
+      ],
+      "put_codes": [
+        223983753
+      ],
+      "sources": [
+        "DataCite"
+      ]
+    },
+    {
+      "title": "La Paradoja de la Comprensión Emergente: Isabella Villaseñor AI, Cognición Contextual y la Refutación Experimental del Reduccionismo en Modelos de Lenguaje",
+      "type": "working-paper",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.20538364",
+        "10.5281/zenodo.20538366"
+      ],
+      "put_codes": [
+        223812979
+      ],
+      "sources": [
+        "DataCite"
+      ]
+    },
+    {
+      "title": "Informe Público de Auditoría y Preparación para Despliegue de Real del Monte AI Nexus (RDM·X) y RDM Digital doi.org/10.6084/m9.figshare.32508306",
+      "type": "report",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.20518074",
+        "10.5281/zenodo.20518075"
+      ],
+      "put_codes": [
+        223970255
+      ],
+      "sources": [
+        "DataCite"
+      ]
+    },
+    {
+      "title": "TAMV ATLAS V4.0 ENTERPRISE: Infraestructura analizada por AI veredictos y resultados 10.6084/m9.figshare.32508306",
+      "type": "online-resource",
+      "year": "2026",
+      "dois": [
+        "10.6084/m9.figshare.32508306"
+      ],
+      "put_codes": [
+        216116857
+      ],
+      "sources": [
+        "figshare"
+      ]
+    },
+    {
+      "title": "Memoria Fundacional TAMV ONLINE",
+      "type": "lecture-speech",
+      "year": "2026",
+      "dois": [
+        "10.6084/m9.figshare.32337309"
+      ],
+      "put_codes": [
+        215258878,
+        215261482
+      ],
+      "sources": [
+        "OpenAIRE",
+        "figshare"
+      ]
+    },
+    {
+      "title": "Compendium of Technological Sovereignty: The TAMV MD-X4 Heptafederated Kernel.",
+      "type": "online-resource",
+      "year": "2026",
+      "dois": [
+        "10.6084/m9.figshare.32135386"
+      ],
+      "put_codes": [
+        214201516
+      ],
+      "sources": [
+        "figshare"
+      ]
+    },
+    {
+      "title": "ANALISIS DE TAMV ONLINE EFECTUADO POR NOTEBOOKLM",
+      "type": "online-resource",
+      "year": "2026",
+      "dois": [
+        "10.6084/m9.figshare.32135389"
+      ],
+      "put_codes": [
+        213345200
+      ],
+      "sources": [
+        "figshare"
+      ]
+    },
+    {
+      "title": "<i>Computer Software Architecture</i><b>22</b>",
+      "type": "lecture-speech",
+      "year": "2026",
+      "dois": [
+        "10.6084/m9.figshare.32098846"
+      ],
+      "put_codes": [
+        212847513
+      ],
+      "sources": [
+        "figshare"
+      ]
+    },
+    {
+      "title": "Compendium of Technological Sovereignty: The TAMV MD-X4 Heptafederated Kernel.",
+      "type": "report",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.19436661"
+      ],
+      "put_codes": [
+        216158968
+      ],
+      "sources": [
+        "DataCite"
+      ]
+    },
+    {
+      "title": "Biografía técnica y trayectoria en sistemas digitales soberanos",
+      "type": "other",
+      "year": "2026",
+      "dois": [],
+      "put_codes": [
+        203110748
+      ],
+      "sources": [
+        "Edwin Oswaldo Castillo Trejo"
+      ]
+    },
+    {
+      "title": "Documento Magno Canónico: RDM Digital Hub y el Paradigma TAMV — Arquitectura de Soberanía Digital Territorial, Criptografía Post-Cuántica y Gobernanza Phygital",
+      "type": "other",
+      "year": "2026",
+      "dois": [
+        "10.17605/osf.io/t3wmy",
+        "10.17605/osf.io/p68bc"
+      ],
+      "put_codes": [
+        222347368,
+        222447812
+      ],
+      "sources": [
+        "DataCite"
+      ]
+    },
+    {
+      "title": "TAMV: Arquitectura de una plataforma digital soberana distribuida",
+      "type": "report",
+      "year": "2026",
+      "dois": [],
+      "put_codes": [
+        203110749
+      ],
+      "sources": [
+        "Edwin Oswaldo Castillo Trejo"
+      ]
+    },
+    {
+      "title": "Análisis forense del whitepaper del WEF sobre innovación, soberanía digital y captura de valor en ecosistemas tecnológicos",
+      "type": "other",
+      "year": null,
+      "dois": [
+        "10.5281/zenodo.20400447"
+      ],
+      "put_codes": [
+        215815365
+      ],
+      "sources": [
+        "OpenAIRE"
+      ]
+    },
+    {
+      "title": "Análisis sistémico sobre socialización del riesgo, privatización de la ganancia y fuga de valor hacia infraestructuras externas",
+      "type": "other",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.20399769",
+        "10.5281/zenodo.20399768"
+      ],
+      "put_codes": [
+        215815250,
+        223923950
+      ],
+      "sources": [
+        "DataCite",
+        "OpenAIRE"
+      ]
+    },
+    {
+      "title": "Arquitectura de UTAMV y el Núcleo de IA Académica (Core 2026).",
+      "type": "preprint",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.19562517",
+        "10.5281/zenodo.19562516"
+      ],
+      "put_codes": [
+        211621882,
+        224710651
+      ],
+      "sources": [
+        "DataCite",
+        "OpenAIRE"
+      ]
+    },
+    {
+      "title": "Compendium of Technological Sovereignty: The TAMV MD-X4 Heptafederated Kernel.",
+      "type": "report",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.19436662"
+      ],
+      "put_codes": [
+        211432195,
+        216158825
+      ],
+      "sources": [
+        "DataCite",
+        "OpenAIRE"
+      ]
+    },
+    {
+      "title": "Comunicado de Soberanía Infraestructural: Respuesta a la Ética Digital en el Sur Global desde el Ecosistema TAMV ONLINE.",
+      "type": "working-paper",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.19564367",
+        "10.5281/zenodo.19564366"
+      ],
+      "put_codes": [
+        211629551,
+        224026629
+      ],
+      "sources": [
+        "DataCite",
+        "OpenAIRE"
+      ]
+    },
+    {
+      "title": "DEVHUBS TAMV ONLINE NETWORK: La Resistencia Tecnológica de Latinoamérica.",
+      "type": "report",
+      "year": null,
+      "dois": [
+        "10.5281/zenodo.19414631"
+      ],
+      "put_codes": [
+        211432201
+      ],
+      "sources": [
+        "OpenAIRE"
+      ]
+    },
+    {
+      "title": "Declaración de Autoría y Existencia de una Arquitectura Estratégica Emergente: Registro Conceptual del Método 4L™",
+      "type": "report",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.20105366",
+        "10.5281/zenodo.20105365"
+      ],
+      "put_codes": [
+        214195960,
+        225504481
+      ],
+      "sources": [
+        "DataCite",
+        "OpenAIRE"
+      ]
+    },
+    {
+      "title": "Ecosistema TAMV Online™ & Isabella Villaseñor AI™: Arquitectura, Gobernanza, IA Ética y Soberanía Tecnológica desde Latinoamérica",
+      "type": "other",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.20071455",
+        "10.5281/zenodo.20071454"
+      ],
+      "put_codes": [
+        213986846,
+        224527811
+      ],
+      "sources": [
+        "DataCite",
+        "OpenAIRE"
+      ]
+    },
+    {
+      "title": "Manifiesto Definitivo de Soberanía Tecnológica y Arquitectura Civilizatoria: Ecosistema TAMV Online RDM Digital",
+      "type": "other",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.19411506"
+      ],
+      "put_codes": [
+        211432197,
+        216159063,
+        210693687
+      ],
+      "sources": [
+        "DataCite",
+        "Edwin Oswaldo Castillo Trejo",
+        "OpenAIRE"
+      ]
+    },
+    {
+      "title": "Soberanía Digital como Función Estructural del Estado: Arquitectura GEMET y Gobernanza Algorítmica en el Ecosistema TAMV",
+      "type": "other",
+      "year": "2026",
+      "dois": [
+        "10.5281/zenodo.19997063",
+        "10.5281/zenodo.19997062"
+      ],
+      "put_codes": [
+        213552024,
+        225259482
+      ],
+      "sources": [
+        "DataCite",
+        "OpenAIRE"
+      ]
+    }
+  ],
+  "summary": {
+    "groups": 26,
+    "works": 47,
+    "works_with_doi": 24,
+    "distinct_dois": 38
+  },
+  "distinct_dois": [
+    "10.17605/osf.io/p68bc",
+    "10.17605/osf.io/t3wmy",
+    "10.5281/zenodo.19411506",
+    "10.5281/zenodo.19414631",
+    "10.5281/zenodo.19436661",
+    "10.5281/zenodo.19436662",
+    "10.5281/zenodo.19562516",
+    "10.5281/zenodo.19562517",
+    "10.5281/zenodo.19564366",
+    "10.5281/zenodo.19564367",
+    "10.5281/zenodo.19997062",
+    "10.5281/zenodo.19997063",
+    "10.5281/zenodo.20071454",
+    "10.5281/zenodo.20071455",
+    "10.5281/zenodo.20105365",
+    "10.5281/zenodo.20105366",
+    "10.5281/zenodo.20399768",
+    "10.5281/zenodo.20399769",
+    "10.5281/zenodo.20400447",
+    "10.5281/zenodo.20518074",
+    "10.5281/zenodo.20518075",
+    "10.5281/zenodo.20538364",
+    "10.5281/zenodo.20538366",
+    "10.5281/zenodo.20606360",
+    "10.5281/zenodo.20606361",
+    "10.5281/zenodo.21400907",
+    "10.5281/zenodo.21400908",
+    "10.5281/zenodo.21694236",
+    "10.5281/zenodo.21694237",
+    "10.5281/zenodo.22939783",
+    "10.5281/zenodo.22939784",
+    "10.6084/m9.figshare.32098846",
+    "10.6084/m9.figshare.32135386",
+    "10.6084/m9.figshare.32135389",
+    "10.6084/m9.figshare.32337309",
+    "10.6084/m9.figshare.32508306",
+    "10.6084/m9.figshare.33029609",
+    "10.6084/m9.figshare.33029609.v1"
+  ]
+}

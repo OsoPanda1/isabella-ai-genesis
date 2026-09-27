@@ -48,15 +48,19 @@ Se declara explícitamente lo que **no** está: no hay un 100% de implementació
 - `k8s:image:verify --require-digest`: **BLOCKED_ENVIRONMENT** (GHCR devuelve `DENIED` en lectura anónima).
 - `db:migrate`, RLS en vivo, Neon/Stripe/HSM reales: sin `DATABASE_URL`/credenciales en este entorno; sólo se validan estáticamente. Docker no está instalado localmente.
 - `production:evidence`: declara `EVIDENCE_GATED` salvo con árbol limpio y commit *same-commit*; `EVIDENCE_GATED` no cuenta como `PASS`.
-- Ítems P0 abiertos de mayor impacto: MoE real (`ISA-003..017`), gate de salida de seguridad (`ISA-140/175`), gobierno del router de inteligencia (`ISA-125`), borrado verificable (`ISA-427/428`), gate de secretos en CI (`ISA-325`, existe en `fgais-gate.yml` pero la protección de rama no es verificable desde aquí) y suites `ISA-379..391`/`ISA-393`.
+- Ítems P0 abiertos de mayor impacto: MoE real (`ISA-003..017`), gobierno del router de inteligencia (`ISA-125`), borrado verificable (`ISA-427/428`), gate de secretos en CI (`ISA-325`, existe en `fgais-gate.yml` pero la protección de rama no es verificable desde aquí) y suites `ISA-379..391`/`ISA-393`. El gate de salida `ISA-140/175` quedó implementado y probado (ver fila de abajo).
 
-## Cambios recientes (2026-09-26)
+## Cambios recientes (2026-09-26/27)
 
 | Lote | Commits | Contenido |
 |---|---|---|
 | Seguridad | `f0896d2` | Cadena durable fail-closed en runtime productivo (`HsmDurableUnavailableError`, sin fallback a memoria), canonicalización JCS (RFC 8785) en hash/firma de `authorization` y `ncua-protocol`, aislamiento territorial ABAC desde el contexto, salidas marcadas sin `raw`, telemetría **medida** en double-pipeline/sovereign-pipeline (fin de los valores sembrados con `Math.sin`), Dockerfile a `node:24-alpine` con `.dockerignore` y sin label SBOM embebido. |
 | Policy-as-code | `5dcef2d` | Migración `20260926030000` (tablas + RLS server-only + seeds fail-closed), `policy-repository`, `db-policy-gate` (overlay monótono) y su wiring en `execution-authority` (stage `db-policy`). 27 tests. |
 | Decisiones | `c1f5059` | `decision-repository` (ledger Postgres con verificación de cadena previa, idempotencia y `verifyChain`), persistencia del `ALLOW` **antes** del despacho (si la cadena no escribeable no se ejecuta) y del `DENY`/`REVIEW` best-effort, inyección desde `isabella-chat-gateway` cuando hay `DATABASE_URL`. 8 tests. |
+| Documentación | `afe5310`, `466372e` | README reescrito con estado real, capabilities + status ISA-500 versionados; absorción de `isabella-mexa-rh`: `docs/governance/` (marco, riesgos `AI-RISK-0001..0005`) y `docs/architecture/ADR-012-evidence-ledger.md`. |
+| Gate de salida (ISA-140/175) | `7380b9f` | `output-security-gate.ts` (PDP de salida fail-closed: credenciales, redactor, AEGIS, frontera TINA) aplicado en las 5 rutas SSE del gateway; reparación de `main` roto por los PRs #388/#389 (imports, `gatedContent`, prettier) y auditoría de rutas corregida para delegación ADR-001 (findings 18→0). 18 tests. |
+| Constitución OPA | `dd0aa14` | `policy/constitution.rego` (issue #137) adaptada a `k8s/` real + espejo ejecutable `src/lib/policy/constitution.ts` con 11 pruebas de paridad rego↔TS↔deployment. EVIDENCE_GATED hasta que OPA corra en CI. |
+| Registro ORCID | (commit de esta fila) | `docs/research/orcid-registry.json`: metadatos públicos del registro ORCID (26 grupos/47 works, 24 con DOI, 38 DOI distintos) + 6 pruebas de integridad. Metadata-only, sin verificar el contenido de los depósitos. |
 
 ## Integración de Nodo Cero
 
@@ -75,6 +79,10 @@ Se declara explícitamente lo que **no** está: no hay un 100% de implementació
 - `supabase/functions/model-router` y `cron-audit-sync` (Edge Functions Deno): duplicarían el router de inteligencia y la auditoría ya presentes.
 - `domains/*/src/contracts.ts`: contratos mínimos inferiores a `AGENTS.md` §7.
 - `docs/architecture/tamv-kernel-unificado.md` y `docs/isabella/blueprint.md`: documentación de diseño sin evidencia ejecutable; conservados como referencia, no como estado.
+
+## Ciencia abierta y ORCID
+
+`docs/research/orcid-registry.json` concentra los metadatos públicos del registro ORCID **0009-0008-5050-1539** (Edwin Oswaldo Castillo Trejo / Anubis Villaseñor): identidad, afiliaciones, researcher-urls y **38 DOI distintos** en 24 works (Zenodo, Figshare, OSF), con procedencia declarada y 6 pruebas de integridad. Es un registro **metadata-only**: no certifica el contenido de los depósitos ni acredita capacidades del sistema (AGENTS.md §19). Detalle y reglas de regeneración en `docs/research/README.md`.
 
 ## Funciones principales
 
