@@ -241,19 +241,49 @@
         "docs/architecture/RUNTIME-AUTHORITY-MAP.md"
       ],
       "notes": "Auditoría P1-10: EnvKMSProvider (AES-256-GCM + HKDF-SHA-3-512) es criptografía real pero NO es un HSM hardware. Custodia hardware pendiente; no declarar HSM certificado."
+    },
+    {
+      "name": "governance.policy_as_code",
+      "status": "implemented",
+      "production_safe": false,
+      "readiness_percent": 60,
+      "last_verified": null,
+      "evidence": [
+        "supabase/migrations/20260926030000_isabella_policy_as_code.sql",
+        "src/lib/repositories/policy-repository.ts",
+        "src/lib/db-policy-gate.ts",
+        "src/lib/execution-authority.ts",
+        "test/unit/db-policy-gate.test.ts"
+      ],
+      "notes": "Integracion de nodo-cero-isabella: reglas versionadas en isabella_policies (seeds fail-closed, orden determinista por priority) aplicadas como overlay monotonico sobre ARGUS en execution-authority (stage db-policy). 27 tests locales. production_safe=false hasta aplicar la migracion 20260926030000 en el ambiente y verificar RLS live; sin DATABASE_URL la capa se declara not_configured y no inventa un allow."
+    },
+    {
+      "name": "governance.decision_ledger",
+      "status": "implemented",
+      "production_safe": false,
+      "readiness_percent": 55,
+      "last_verified": null,
+      "evidence": [
+        "supabase/migrations/20260926030000_isabella_policy_as_code.sql",
+        "src/lib/repositories/decision-repository.ts",
+        "src/lib/governance/decision-ledger.ts",
+        "src/lib/execution-authority.ts",
+        "test/unit/decision-repository.test.ts"
+      ],
+      "notes": "Decisiones en tabla append-only (isabella_decisions, triggers prevent_bookpi_mutation) con cadena SHA3-512 verificada antes de insertar, reenvio idempotente y verifyChain. execution-authority persiste el ALLOW antes del despacho (si la cadena no escribeable no se ejecuta, stage audit) y DENY/REVIEW best-effort. 8 tests locales. production_safe=false hasta aplicar la migracion en el ambiente."
     }
   ],
   "test_summary": {
     "status": "passed",
     "run_date": "2026-09-26",
     "runner": "vitest run (local, pnpm test)",
-    "total_tests": 689,
-    "passing_tests": 676,
+    "total_tests": 733,
+    "passing_tests": 720,
     "failing_tests": 0,
     "skipped_tests": 13,
-    "suites_passed": 115,
+    "suites_passed": 117,
     "suites_skipped": 2,
-    "note": "Conteos de la ejecucion local real del 2026-09-26 tras las correcciones ISA-083/150/164/184/185/187/392/S14/dev-auth. Skips = gated sin TEST_DATABASE_URL u otros."
+    "note": "Conteos de la ejecucion local real del 2026-09-26 tras las correcciones ISA-083/150/164/184/185/187/392/S14/dev-auth, la telemetria real de double-pipeline y la integracion de nodo-cero (policy-as-code + decision ledger: 35 tests nuevos). Skips = gated sin TEST_DATABASE_URL u otros."
   },
   "deployment_tiers": {
     "tier_0_predeployment": {
@@ -279,14 +309,15 @@
     "isa500_partial": 374,
     "isa500_blocked_environment": 8,
     "overall_posture": "p0_economic_fixed_pending_independent_recertification",
-    "note": "P0 economicos (x402 fake signature, subscription spoof, amount sin contrato, monetizacion sintetica, ECDSA fake) corregidos. `critical_issues: 0` se refiere SOLO a esa pasada; la auditoria ISA-500 mantiene 72 STILL_BROKEN (14.4%) y 8 BLOCKED_ENVIRONMENT, incluidos P0 de autoridad (output security gate, intelligence router bypass, MoE real, telemetria sintetica). Quedan P1: security workflows como dependencia formal del deploy (P1-06), 500 gates evidence runner (P1-04). No se declara hardened_total hasta recertificacion."
+    "note": "P0 economicos (x402 fake signature, subscription spoof, amount sin contrato, monetizacion sintetica, ECDSA fake) corregidos. `critical_issues: 0` se refiere SOLO a esa pasada; la auditoria ISA-500 mantiene 72 STILL_BROKEN (14.4%) y 8 BLOCKED_ENVIRONMENT, incluidos P0 de autoridad (output security gate, intelligence router bypass, MoE real). Quedan P1: security workflows como dependencia formal del deploy (P1-06), 500 gates evidence runner (P1-04). No se declara hardened_total hasta recertificacion."
   },
   "release_blockers": [
     "economy.ledger productionSafe=false — rutas economicas v1/x402 bloqueadas 503 en staging/production",
     "500 gates en estado EVIDENCE_GATED (0 PASS ejecutados con workflow_run_id)",
     "Neon RLS live + Stripe live + HSM + Vercel same-commit + NCUA 500 + rollback pendientes para certificacion 100%",
     "CI de GitHub Actions bloqueado por billing (issue #66): ningun workflow corre en HEAD, gates canonicos SKIPPED",
-    "P0 de autoridad abiertos: output security gate (ISA-140/175), intelligence router/model gate bypass en chat gateway, MoE real ausente, telemetria sintetica en double-pipeline"
+    "Migracion 20260926030000 (isabella_policies/isabella_decisions) versionada pero NO aplicada en el ambiente: policy-as-code y decision ledger quedan production_safe=false y RLS live sigue EVIDENCE_GATED",
+    "P0 de autoridad abiertos: output security gate (ISA-140/175), intelligence router/model gate bypass en chat gateway, MoE real ausente"
   ],
   "maintained_by": "FGAIS Governance Committee",
   "certification_authority": "Human + Automated Gates",
