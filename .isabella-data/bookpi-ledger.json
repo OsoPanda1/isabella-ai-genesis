@@ -1,0 +1,306 @@
+// bookpi-ledger-verifier-advanced.ts
+// BookPI Ledger v5 — Nodo Cero (versión avanzada)
+// Ejecutar:
+//   pnpm tsx bookpi-ledger-verifier-advanced.ts ledger.json
+//
+// Códigos de salida:
+//   0 = ledger válido
+//   1 = ledger inválido
+//   2 = error de entrada o ejecución
+
+import { readFile, writeFile } from "node:fs/promises";
+import { createHash, createVerify } from "node:crypto";
+
+// =========================
+// Constantes y expresiones
+// =========================
+const ZERO_HASH = "0".repeat(64);
+const HASH_64 = /^[a-f0-9]{64}$/i;
+const CID_V1 = /^bafy[a-z2-9]{20,}$/;
+const MAX_EVENTS = 1_000_000;
+
+// =========================
+// Tipos y estructuras
+// =========================
+type ActorType = "user" | "service" | "agent" | "system";
+type VerificationStatus = "pending" | "verified" | "invalid" | "unverified";
+
+interface LegacyEvent {
+  index: number;
+  timestamp: string;
+  eventType: string;
+  module: string;
+  action: string;
+  actor: string;
+  data: Record<string, unknown>;
+  prevHash: string;
+  nonce: number;
+  hash: string;
+  cid?: string;
+  signature?: string;
+  keyId?: string;
+}
+
+interface BookPIEvent {
+  schema: "bookpi.event.v5";
+  eventId: string;
+  sequence: number;
+  timestamp: string;
+  eventType: string;
+  module: string;
+  action: string;
+  actor: { type: ActorType; id: string; keyId?: string };
+  tenantId?: string;
+  requestId?: string;
+  traceId?: string;
+  policyVersion: string;
+  payload: Record<string, unknown>;
+  payloadHash: string | null;
+  previousEventHash: string;
+  eventHash: string;
+  nonce?: number;
+  signature?: { algorithm: "Ed25519" | "RSA" | "ECDSA"; keyId: string; value: string };
+  storage: {
+    provider: "supabase-postgres" | "neon-postgres" | "object-storage" | "midnight" | "legacy-json";
+    objectRef?: string;
+    contentAddress?: string;
+  };
+  verification: { status: VerificationStatus; verifiedAt?: string };
+}
+
+interface ValidationIssue {
+  code: string;
+  message: string;
+  sequence?: number;
+}
+
+interface ValidationResult {
+  valid: boolean;
+  status: "verified" | "invalid" | "unverified";
+  checked: number;
+  total: number;
+  issues: ValidationIssue[];
+  warnings: string[];
+  firstInvalidSequence?: number;
+}
+
+interface NormalizedOutput {
+  schema: "bookpi.ledger.v5";
+  source: "legacy" | "bookpi-v5";
+  generatedAt: string;
+  validation: ValidationResult;
+  events: BookPIEvent[];
+}
+
+// =========================
+// Utilidades criptográficas
+// =========================
+function canonical(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  const record = value as Record<string, unknown>;
+  return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${canonical(record[key])}`).join(",")}}`;
+}
+
+function sha256(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex");
+}
+
+function sha3_512(value: string): string {
+  return createHash("sha3-512").update(value, "utf8").digest("hex");
+}
+
+function hashPayload(payload: Record<string, unknown>): string {
+  return sha3_512(canonical(payload));
+}
+
+function hashEvent(event: {
+  schema: string;
+  eventId: string;
+  sequence: number;
+  timestamp: string;
+  eventType: string;
+  module: string;
+  action: string;
+  actorId: string;
+  policyVersion: string;
+  payloadHash: string;
+  previousEventHash: string;
+}): string {
+  return sha256(canonical(event));
+}
+
+// =========================
+// Validadores
+// =========================
+function isValidTimestamp(value: string): boolean {
+  return typeof value === "string" && !Number.isNaN(Date.parse(value));
+}
+function isValidActor(value: string): boolean {
+  return typeof value === "string" && value.length > 0 && value.length <= 128;
+}
+function isValidEventType(value: string): boolean {
+  return /^[a-z][a-z0-9_]{1,64}$/.test(value);
+}
+function isValidModule(value: string): boolean {
+  return /^[A-Za-z][A-Za-z0-9_-]{1,64}$/.test(value);
+}
+function isValidAction(value: string): boolean {
+  return /^[a-z][a-z0-9_.-]{1,96}$/.test(value);
+}
+function isValidCid(value: string | undefined): boolean {
+  return !value || CID_V1.test(value);
+}
+
+// =========================
+// Motor de validación
+// =========================
+function addIssue(result: ValidationResult, code: string, message: string, sequence?: number): void {
+  result.issues.push({ code, message, sequence });
+  if (result.firstInvalidSequence === undefined && sequence !== undefined) result.firstInvalidSequence = sequence;
+}
+
+// =========================
+// Normalización avanzada
+// =========================
+function normalizeLegacy(events: LegacyEvent[]): BookPIEvent[] {
+  return events.map((event) => {
+    const payloadHash = hashPayload(event.data);
+    const eventId = typeof event.data.eventId === "string" ? event.data.eventId : `legacy-${event.index}`;
+    const policyVersion = typeof event.data.version === "string" ? event.data.version : "unknown";
+    return {
+      schema: "bookpi.event.v5",
+      eventId,
+      sequence: event.index + 1,
+      timestamp: event.timestamp,
+      eventType: event.eventType,
+      module: event.module,
+      action: event.action,
+      actor: { type: event.actor === "system" ? "system" : "service", id: event.actor, ...(event.keyId ? { keyId: event.keyId } : {}) },
+      policyVersion,
+      payload: event.data,
+      payloadHash,
+      previousEventHash: event.prevHash,
+      eventHash: event.hash,
+      nonce: event.nonce,
+      ...(event.signature && event.keyId ? { signature: { algorithm: "Ed25519", keyId: event.keyId, value: event.signature } } : {}),
+      storage: event.cid ? { provider: "object-storage", contentAddress: event.cid } : { provider: "legacy-json" },
+      verification: { status: "unverified" },
+    };
+  });
+}
+
+// =========================
+// Verificación de hashes
+// =========================
+function verifyNormalizedHashes(events: BookPIEvent[]): ValidationResult {
+  const result: ValidationResult = { valid: true, status: "verified", checked: 0, total: events.length, issues: [], warnings: [] };
+  for (const event of events) {
+    if (!event.payloadHash) {
+      result.status = "unverified";
+      result.warnings.push(`payloadHash ausente en ${event.sequence}.`);
+      continue;
+    }
+    const calculatedPayloadHash = hashPayload(event.payload);
+    if (calculatedPayloadHash !== event.payloadHash) addIssue(result, "PAYLOAD_HASH_MISMATCH", "El payloadHash no coincide.", event.sequence);
+    const calculatedEventHash = hashEvent({
+      schema: event.schema,
+      eventId: event.eventId,
+      sequence: event.sequence,
+      timestamp: event.timestamp,
+      eventType: event.eventType,
+      module: event.module,
+      action: event.action,
+      actorId: event.actor.id,
+      policyVersion: event.policyVersion,
+      payloadHash: event.payloadHash,
+      previousEventHash: event.previousEventHash,
+    });
+    if (calculatedEventHash !== event.eventHash) {
+      result.status = "unverified";
+      result.warnings.push(`eventHash legacy no coincide en ${event.sequence}; posible algoritmo distinto.`);
+    }
+    result.checked++;
+  }
+  result.valid = result.issues.length === 0;
+  if (!result.valid) result.status = "invalid";
+  return result;
+}
+
+// =========================
+// Salida humana y JSON
+// =========================
+function printHumanSummary(validation: ValidationResult): void {
+  console.error("BookPI Ledger Validation — Advanced");
+  console.error("===================================");
+  console.error(`Valid: ${validation.valid}`);
+  console.error(`Status: ${validation.status}`);
+  console.error(`Checked: ${validation.checked}/${validation.total}`);
+  console.error(`Issues: ${validation.issues.length}`);
+  console.error(`Warnings: ${validation.warnings.length}`);
+  for (const issue of validation.issues) console.error(`[${issue.code}] ${issue.message}`);
+  for (const warning of validation.warnings) console.error(`[WARNING] ${warning}`);
+}
+
+// =========================
+// Main
+// =========================
+async function main(): Promise<void> {
+  const inputPath = process.argv[2];
+  const outputPath = process.argv[3];
+
+  if (!inputPath) {
+    console.error("Uso: pnpm tsx bookpi-ledger-verifier-advanced.ts ledger.json [normalized.json]");
+    process.exitCode = 2;
+    return;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(await readFile(inputPath, "utf8"));
+  } catch {
+    console.error("No fue posible leer o parsear el archivo JSON.");
+    process.exitCode = 2;
+    return;
+  }
+
+  if (!Array.isArray(parsed)) {
+    console.error("El archivo debe contener un arreglo JSON.");
+    process.exitCode = 2;
+    return;
+  }
+
+  const events = parsed as LegacyEvent[];
+  const normalized = normalizeLegacy(events);
+  const hashes = verifyNormalizedHashes(normalized);
+
+  const combined: ValidationResult = {
+    valid: hashes.valid,
+    status: hashes.status,
+    checked: hashes.checked,
+    total: hashes.total,
+    issues: hashes.issues,
+    warnings: hashes.warnings,
+    firstInvalidSequence: hashes.firstInvalidSequence,
+  };
+
+  printHumanSummary(combined);
+
+  const output: NormalizedOutput = {
+    schema: "bookpi.ledger.v5",
+    source: "legacy",
+    generatedAt: new Date().toISOString(),
+    validation: combined,
+    events: normalized,
+  };
+
+  if (outputPath) {
+    await writeFile(outputPath, JSON.stringify(output, null, 2), "utf8");
+    console.error(`Normalized ledger escrito en ${outputPath}`);
+  }
+
+  console.log(JSON.stringify(output, null, 2));
+  process.exitCode = combined.valid ? 0 : 1;
+}
+
+void main();
