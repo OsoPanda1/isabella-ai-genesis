@@ -277,13 +277,13 @@
     "status": "passed",
     "run_date": "2026-09-27",
     "runner": "vitest run (local, pnpm test)",
-    "total_tests": 764,
-    "passing_tests": 751,
+    "total_tests": 775,
+    "passing_tests": 762,
     "failing_tests": 0,
     "skipped_tests": 13,
-    "suites_passed": 126,
+    "suites_passed": 127,
     "suites_skipped": 2,
-    "note": "Conteos de la ejecucion local real del 2026-09-27 tras el gate de salida ISA-140/175, la absorcion de governance (docs/governance) y la fusion de los PRs #388/#389 (route audit, TINA output boundary, data erasure) con la auditoria de rutas corregida para delegacion ADR-001. Skips = gated sin TEST_DATABASE_URL u otros."
+    "note": "Conteos de la ejecucion local real del 2026-09-27 tras el gate de salida ISA-140/175, governance absorbido, la fusion de los PRs #388/#389 con la auditoria de rutas corregida para delegacion ADR-001, y la constitucion OPA/espejo TS (policy/constitution.rego + 11 pruebas de paridad). Skips = gated sin TEST_DATABASE_URL u otros."
   },
   "deployment_tiers": {
     "tier_0_predeployment": {
