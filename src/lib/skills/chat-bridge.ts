@@ -67,7 +67,7 @@ export async function executeChatSkillBridge(
 
   return {
     success: result.success,
-    content: result.content,
+    content: gatedContent,
     skillId: result.skillId || invocation.canonicalName,
     decisionId: result.decisionId,
     traceId: result.traceId,
