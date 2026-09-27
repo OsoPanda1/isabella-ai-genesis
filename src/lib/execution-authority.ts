@@ -24,6 +24,8 @@ import { randomUUID } from "node:crypto";
 import { createHash } from "node:crypto";
 import { evaluateAuthorization } from "./authorization";
 import { evaluatePolicy } from "./policy-engine";
+import { applyDbPolicyGate } from "./db-policy-gate";
+import { createDbPolicyStore, type DbPolicyStore } from "./repositories/policy-repository";
 import { verifyCapabilityToken } from "./capability-tokens";
 import { createToolRegistry, missingToolPermissions, type RegisteredTool } from "./tool-registry";
 import type { MemoryRepository } from "./repositories/memory-repository";
@@ -65,7 +67,14 @@ export type ExecutionOutcome =
   | {
       executed: false;
       reason: string;
-      stage: "decide" | "authorization" | "approval" | "execution" | "validation" | "audit";
+      stage:
+        | "decide"
+        | "authorization"
+        | "approval"
+        | "db-policy"
+        | "execution"
+        | "validation"
+        | "audit";
     };
 
 export interface ToolExecutor {
@@ -205,9 +214,18 @@ export function createExecutionAuthority(opts?: {
   killSwitch?: {
     isKilled(capability: string): Promise<boolean>;
   };
+  /**
+   * Policy-as-code: reglas versionadas en `isabella_policies`. Si no se
+   * inyecta, se usa el store por defecto (PostgreSQL cuando hay DATABASE_URL;
+   * "no configurado" en caso contrario).
+   */
+  dbPolicyStore?: DbPolicyStore;
 }) {
   const registry = createToolRegistry();
   const approvals = opts?.approvalLedger ?? createApprovalLedger();
+  // Capa policy-as-code: store por defecto (se declara "no configurado" cuando
+  // no hay DATABASE_URL; si la base falla, el gate la trata como indisponible).
+  const dbPolicyStore = opts?.dbPolicyStore ?? createDbPolicyStore();
 
   function executors(memoryRepository?: MemoryRepository): Map<string, ToolExecutor> {
     const map = new Map<string, ToolExecutor>();
@@ -391,7 +409,28 @@ export function createExecutionAuthority(opts?: {
           stage: "approval",
         };
       }
-      if (policy.decision === "requires_approval" || tool.requiresApproval) {
+
+      // ── POLICY AS CODE: overlay de reglas versionadas (isabella_policies) ──
+      // Integración de nodo-cero-isabella. La capa DB sólo puede endurecer la
+      // decisión de ARGUS (monótona); si la fuente falla, el efecto es
+      // fail-closed para herramientas sensibles (§4.2). Nunca inyecta un allow
+      // que el motor de código no haya dado.
+      const dbGate = await applyDbPolicyGate({
+        store: dbPolicyStore,
+        codeDecision: policy.decision,
+        tool,
+        authenticated: request.authenticated,
+      });
+      if (dbGate.status === "denied") {
+        return {
+          executed: false,
+          reason: `Política DB denegó (${dbGate.policyKey ?? "sin-key"}): ${dbGate.reason}.`,
+          stage: "db-policy",
+        };
+      }
+      const effectiveDecision = dbGate.status;
+
+      if (effectiveDecision === "requires_approval" || tool.requiresApproval) {
         // El capability token es single-context (ligado a la traza): no se
         // consume, se audita su jti. Ledger/grants sí son de un solo uso.
         if (capability?.valid === true && capability.claims) {
