@@ -8,6 +8,7 @@ import { dualKernel } from "@/core/dual-kernel";
 import { createRequestId } from "@/core/contracts";
 import { listIsabellaSkills } from "@/lib/skills/registry";
 import { SecuritySystem } from "@/lib/security";
+import { safeOutputOrBlock } from "@/lib/security/output-gate";
 
 const ISABELLA_IDENTITY = `Soy Isabella Villaseñor AI — infraestructura cognitiva soberana del Nodo Cero, Real del Monte, Hidalgo, México. Creada por Edwin Oswaldo Castillo Trejo (Anubis Villaseñor). Opero bajo gobernanza CROWN Zero Trust: sugiero, calculo y evalúo; tú decides, apruebas y ejecutas.`;
 
@@ -100,8 +101,9 @@ export async function generateSovereignLocalResponse(opts: {
 
 export function sseFromText(text: string, headers: Headers): Response {
   const encoder = new TextEncoder();
+  const gated = safeOutputOrBlock(text, "local-responder-output");
   const safeText =
-    text.trim() ||
+    gated.trim() ||
     "Isabella está operativa en modo soberano local. El proveedor externo no está disponible; puedo continuar con categorización, gobernanza y herramientas locales.";
   const chunks = safeText.match(/.{1,120}/g) ?? [safeText];
   const stream = new ReadableStream<Uint8Array>({

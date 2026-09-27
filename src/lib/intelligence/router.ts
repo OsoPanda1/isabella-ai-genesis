@@ -7,7 +7,9 @@ import type {
   IntelligenceRequest,
   IntelligenceResponse,
 } from "./contracts";
-import { approveModel, getModel, registerProvider } from "./model-registry";
+import { approveModel, getModel, listModels, registerProvider } from "./model-registry";
+import { createMoERoute, executeMoE } from "./moe-engine";
+import { recordIntelligenceMetric } from "./observability";
 import { authorizeModelForRuntime } from "./production-model-gate";
 import { inspectInferenceInput } from "./inference-firewall";
 
@@ -94,8 +96,6 @@ export function governIntelligence(request: IntelligenceRequest): GovernanceDeci
 export async function invokeIntelligence(
   input: Omit<IntelligenceRequest, "requestId"> & { requestId?: string },
 ): Promise<IntelligenceResponse> {
-  // Single firewall pass: the sanitized result is reused for governance below
-  // instead of scanning (and hashing) the payload twice per request.
   const firewall = inspectInferenceInput(input.messages);
   if (!firewall.allowed) throw new Error(`intelligence_DENY:${firewall.reasons.join(",")}`);
   const request: IntelligenceRequest = {
@@ -104,43 +104,50 @@ export async function invokeIntelligence(
     requestId: input.requestId ?? randomUUID(),
   };
   const governance = evaluateGovernance(request);
-  if (governance.decision !== "ALLOW")
-    throw new Error(`intelligence_${governance.decision.toLowerCase()}`);
+  if (governance.decision !== "ALLOW") throw new Error(`intelligence_${governance.decision.toLowerCase()}`);
 
-  const preferred = request.preferredModel;
-  const candidates = (preferred ? [preferred] : [...providers.keys()]).slice(0, MAX_CANDIDATES);
   const production = isProductionLike(resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE));
-  let lastError: unknown;
+  const descriptors = new Map(listModels().map((model) => [
+    model.modelId,
+    { modalities: model.modalities, enabled: model.enabled, productionApproved: model.productionApproved },
+  ] as const));
+  const route = createMoERoute(request, providers, descriptors, 3);
+  const eligible = route.selected.filter((expert) => !production || expert.productionApproved);
+  if (!eligible.length) throw new Error("inference_unavailable:no_production_approved_expert");
 
-  for (const modelId of candidates) {
-    if (circuitOpen(modelId)) continue;
-    const provider = providers.get(modelId);
-    const descriptor = getModel(modelId);
-    if (!provider || !descriptor || !descriptor.enabled) continue;
+  const authorizedExperts = [];
+  for (const expert of eligible) {
+    if (circuitOpen(expert.modelId)) continue;
+    const provider = providers.get(expert.modelId);
+    if (!provider) continue;
     if (production) {
-      try {
-        await authorizeModelForRuntime(request.tenantId, provider);
-      } catch (error) {
-        lastError = error;
-        recordFailure(modelId);
-        continue;
-      }
+      try { await authorizeModelForRuntime(request.tenantId, provider); }
+      catch { recordFailure(expert.modelId); continue; }
     }
-    try {
-      if (!(await provider.health())) {
-        recordFailure(modelId);
-        continue;
-      }
-      const response = await provider.invoke(request);
-      recordSuccess(modelId);
-      return response;
-    } catch (error) {
-      lastError = error;
-      recordFailure(modelId);
-    }
+    authorizedExperts.push(expert);
   }
+  if (!authorizedExperts.length) throw new Error("inference_unavailable:no_authorized_expert");
 
-  if (production) throw new Error("inference_unavailable: no production-approved healthy model");
-  if (lastError) throw lastError;
-  throw new Error("inference_unavailable: no registered model");
+  const started = performance.now();
+  try {
+    const result = await executeMoE(request, { ...route, selected: authorizedExperts }, providers);
+    for (const response of result.responses) {
+      recordSuccess(response.modelId);
+      recordIntelligenceMetric({
+        providerId: response.providerId,
+        modelId: response.modelId,
+        latencyMs: response.latencyMs,
+        success: true,
+        degraded: response.degraded,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    return {
+      ...result.selected,
+      latencyMs: Math.max(result.selected.latencyMs, performance.now() - started),
+    };
+  } catch (error) {
+    for (const expert of authorizedExperts) recordFailure(expert.modelId);
+    throw error;
+  }
 }
