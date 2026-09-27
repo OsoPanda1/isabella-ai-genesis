@@ -190,7 +190,7 @@ export const Route = createFileRoute("/api/v1/monetization/tamv")({
           });
           const statusCode = result.ok
             ? 200
-            : (result as any).reason === "stripe_issuing_unconfigured"
+            : result.reason === "stripe_issuing_unconfigured"
               ? 503
               : 400;
           return new Response(

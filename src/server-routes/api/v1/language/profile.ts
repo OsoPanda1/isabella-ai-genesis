@@ -4,7 +4,7 @@ import { SecuritySystem } from "@/lib/security";
 import { classifyIntent, buildLanguageDirectives } from "@/lib/language/language-core";
 import { CROWN_V6 } from "@/lib/crown-v6";
 
-export const Route = createFileRoute("/api/v1/language/profile" as any)({
+export const Route = createFileRoute("/api/v1/language/profile")({
   server: {
     handlers: {
       POST: withSovereignAuth("system", "read", async (ctx, req) => {

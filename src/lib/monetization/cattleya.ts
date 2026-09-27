@@ -88,7 +88,7 @@ function getStripe(): Stripe | null {
   const key = config().STRIPE_SECRET_KEY;
   if (!key) return null;
   try {
-    return new Stripe(key, { apiVersion: "2022-11-15" as any });
+    return new Stripe(key, { apiVersion: "2022-11-15" as Stripe.LatestApiVersion });
   } catch {
     return null;
   }
@@ -127,10 +127,10 @@ export async function createVirtualCard(input: {
       spending_controls: { spending_limits: [{ amount: spendingLimitDaily, interval: "daily" }] },
     });
     stripeCardId = card.id;
-    last4 = (card as any).last4 ?? "0000";
-    brand = (card as any).brand ?? "visa";
-    expMonth = (card as any).exp_month ?? 12;
-    expYear = (card as any).exp_year ?? 2028;
+    last4 = card.last4 ?? "0000";
+    brand = card.brand ?? "visa";
+    expMonth = card.exp_month ?? 12;
+    expYear = card.exp_year ?? 2028;
   }
 
   // Persistencia y Auditoría: Registro inmutable en BookPI — con rollback si falla (no simplifica, aumenta consistencia)
@@ -151,7 +151,7 @@ export async function createVirtualCard(input: {
       const stripeRollback = getStripe();
       if (stripeRollback && stripeCardId && !stripeCardId.startsWith("card_mock_")) {
         await stripeRollback.issuing.cards
-          .update(stripeCardId, { status: "inactive" } as any)
+          .update(stripeCardId, { status: "inactive" })
           .catch(() => {});
         console.warn(`[CATTLEYA] Rollback: tarjeta ${stripeCardId} inactivada por fallo BookPI`);
       }

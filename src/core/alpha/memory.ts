@@ -11,6 +11,10 @@ export interface MemoryQuery {
   scopes: string[];
   sensitivityMax?: DataClassification;
   maxResults?: number;
+  tenantId?: string;
+  actorId?: string;
+  projectId?: string;
+  territory?: string;
 }
 
 export interface MemoryResult {

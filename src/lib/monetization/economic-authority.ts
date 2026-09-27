@@ -100,7 +100,7 @@ export function resolveSubscriptionStatus(
   }
 
   if (isProductionLike(mode)) {
-    // TODO(Fase 1 EconomicAuthority): lookup en billing/subscriptions (Postgres).
+    // PENDIENTE(Fase 1 EconomicAuthority): lookup en billing/subscriptions (Postgres).
     // Mientras no exista, la suscripción NUNCA puede derivarse del request.
     return { status: "INACTIVE", source: "unavailable-fail-closed" };
   }

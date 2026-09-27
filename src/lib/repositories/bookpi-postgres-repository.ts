@@ -14,9 +14,7 @@ import type { BlockPIBlock, LedgerCategory, LedgerStatus } from "../bookpi/types
 const GENESIS_PREVIOUS_HASH = "0".repeat(128);
 
 function hashBlock(block: Partial<BlockPIBlock>): string {
-  return createHash("sha3-512")
-    .update(canonicalBookPiPayload(block as any))
-    .digest("hex");
+  return createHash("sha3-512").update(canonicalBookPiPayload(block)).digest("hex");
 }
 
 let pool: Pool | null = null;

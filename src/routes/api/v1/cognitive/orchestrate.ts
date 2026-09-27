@@ -3,7 +3,22 @@ import { withSovereignAuth } from "@/lib/principal-context";
 import { SecuritySystem } from "@/lib/security";
 import { config } from "@/lib/config";
 import { dualKernel } from "@/core/dual-kernel";
-import { createRequestId } from "@/core/contracts";
+import { createRequestId, type RequestMode } from "@/core/contracts";
+
+// Lista explícita para validar mode en runtime; debe mantenerse en sync con RequestMode.
+const REQUEST_MODES: readonly string[] = [
+  "chat",
+  "assistant",
+  "research",
+  "edge",
+  "quantum",
+  "implementation",
+  "monetization",
+];
+
+function isRequestMode(value: string | undefined): value is RequestMode {
+  return value !== undefined && REQUEST_MODES.includes(value);
+}
 
 export const Route = createFileRoute("/api/v1/cognitive/orchestrate")({
   server: {
@@ -26,7 +41,7 @@ export const Route = createFileRoute("/api/v1/cognitive/orchestrate")({
           actorId: ctx.userId,
           federationId: 5,
           intent,
-          mode: (body.mode as any) ?? "chat",
+          mode: isRequestMode(body.mode) ? body.mode : "chat",
           context: { ...body.context, memoryEnabled: true },
           constraints: { maxLatencyMs: 8000 },
         });

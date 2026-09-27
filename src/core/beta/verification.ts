@@ -4,6 +4,8 @@
  * Verificación formal de respuestas, pruebas y consistencia post-ejecución.
  */
 
+import type { CrownDecision, EvidenceRecord, ProvenanceRecord } from "../contracts";
+
 export interface VerificationCheck {
   name: string;
   passed: boolean;
@@ -27,7 +29,10 @@ export interface EpistemicClassification {
 }
 
 export class VerificationEngine {
-  classifyEpistemic(evidence: any[], governance: any): EpistemicClassification {
+  classifyEpistemic(
+    evidence: EvidenceRecord[],
+    governance: CrownDecision,
+  ): EpistemicClassification {
     const verified = evidence.filter((e) => e.confidence >= 0.7 && !e.isExpired);
     const conflicts = evidence.filter((e) => e.confidence < 0.3 || e.isExpired);
     const hasHighRisk =
@@ -68,9 +73,9 @@ export class VerificationEngine {
 
   verify(input: {
     response: string;
-    governance: any;
-    evidence: any[];
-    provenance: any;
+    governance: CrownDecision;
+    evidence: EvidenceRecord[];
+    provenance: ProvenanceRecord;
     costUsd?: number;
     reversible?: boolean;
   }): VerificationResult {

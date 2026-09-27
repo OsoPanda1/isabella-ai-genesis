@@ -12,7 +12,6 @@ import type {
   IsabellaDualRequest,
   IsabellaDualResponse,
   OperationState,
-  CrownDecision,
   EvidenceRecord,
   ProvenanceRecord,
   TelemetryRecord,
@@ -69,7 +68,7 @@ export class DualKernel {
 
       // ─── ALPHA: Context Building ───────────────────────────
       state = "context_ready";
-      const context = contextBuilder.build({
+      const _context = contextBuilder.build({
         session: {
           sessionId: request.sessionId ?? crypto.randomUUID(),
           startedAt: new Date().toISOString(),
@@ -99,12 +98,12 @@ export class DualKernel {
           tenantId: request.tenantId,
           actorId: request.actorId,
           scopes: ["session", "project", "territorial"],
-          sensitivityMax: classification.classification as any,
+          sensitivityMax: classification.classification,
           maxResults: 10,
           // Adición para trazabilidad y no simplificación: límite por tenant + proyecto
           projectId: request.context?.projectId,
           territory: request.context?.territory,
-        } as any);
+        });
 
         for (const mem of memories) {
           evidence.push({
@@ -181,7 +180,7 @@ export class DualKernel {
           level: risk.level,
           requiresApproval: risk.requiresApproval,
         },
-        classification: classification.classification as any,
+        classification: classification.classification,
         intent: request.intent,
         requestedCapabilities: request.requestedCapabilities ?? [],
       });
@@ -210,7 +209,7 @@ export class DualKernel {
 
       // ─── BETA: Verification ────────────────────────────────
       state = "verifying";
-      const answer = this.generateAnswer(proposal, perception.intent);
+      const answer = this.generateAnswer(proposal);
 
       const verification = verificationEngine.verify({
         response: answer,
@@ -341,7 +340,7 @@ export class DualKernel {
     }
   }
 
-  private generateAnswer(proposal: Proposal, intent: string): string {
+  private generateAnswer(proposal: Proposal): string {
     return (
       `Based on analysis, here is a structured response regarding: ${proposal.problem}\n\n` +
       `Value: ${proposal.valueProposition}\n\n` +
@@ -353,17 +352,9 @@ export class DualKernel {
   private hashString(input: string): string {
     // Evolución: SHA-256 canónico + fallback djb para entorno browser sin node:crypto — no simplifica, aumenta robustez
     try {
-      const cryptoAny = globalThis as any;
-      if (cryptoAny.crypto?.subtle) {
-        // Browser: no sync SHA-256 disponible, usa djb temporal y marca como no criptográfico en provenance
-        let hash = 0;
-        for (let i = 0; i < input.length; i++) {
-          hash = ((hash << 5) - hash + input.charCodeAt(i)) | 0;
-        }
-        return `insecure_djb_${Math.abs(hash).toString(16).padStart(8, "0")}`;
-      }
       return createHash("sha256").update(input, "utf8").digest("hex");
     } catch {
+      // Fallback no criptográfico: solo cuando node:crypto no está disponible (browser sin shim).
       let hash = 0;
       for (let i = 0; i < input.length; i++) {
         hash = ((hash << 5) - hash + input.charCodeAt(i)) | 0;

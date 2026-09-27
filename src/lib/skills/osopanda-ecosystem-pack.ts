@@ -1,11 +1,5 @@
 import { randomUUID } from "node:crypto";
-import {
-  createAuditEvent,
-  normalizeText,
-  type IsabellaSkill,
-  type SkillContext,
-  type SkillResult,
-} from "./contracts";
+import { createAuditEvent, normalizeText, type IsabellaSkill, type SkillResult } from "./contracts";
 
 // ============================================================================
 // 1. NODO_CERO_TWIN (Real del Monte Territorial Digital Twin Engine)
@@ -109,7 +103,7 @@ export const NODO_CERO_TWIN: IsabellaSkill<NodoCeroTwinInput, NodoCeroTwinOutput
       _simulated: true,
       _simulatedReason:
         "SIMULATED_TELEMETRY: requiere TerritorialTelemetryProvider vivo (sensores RDM) — datos de referencia territorial, no lectura de hardware",
-    } as any;
+    };
 
     return {
       skillId: "nodo-cero-twin",
@@ -368,7 +362,7 @@ export const FAST_PARALLEL_INGEST: IsabellaSkill<
       state: "STREAMING_COMPLETED",
       persistedLocation: `vault://rdm-storage/datasets/${encodeURIComponent(input.targetDataset)}`,
       _simulated: true,
-    } as any;
+    };
 
     return {
       skillId: "fast-parallel-ingest",
@@ -573,7 +567,7 @@ export const DOCS_INSTANT_SEARCH: IsabellaSkill<DocsInstantSearchInput, DocsInst
               },
             ],
       _simulated: true,
-    } as any;
+    };
 
     return {
       skillId: "docs-instant-search",

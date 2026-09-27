@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { withSovereignAuth } from "@/lib/principal-context";
 import { SecuritySystem } from "@/lib/security";
 
-export const Route = createFileRoute("/api/v1/quantum/telemetry" as any)({
+export const Route = createFileRoute("/api/v1/quantum/telemetry")({
   server: {
     handlers: {
       GET: withSovereignAuth("system", "read", async (ctx) => {

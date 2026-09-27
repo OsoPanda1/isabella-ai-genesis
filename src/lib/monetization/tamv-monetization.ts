@@ -267,7 +267,7 @@ export class TamvSovereignMonetizationEngine {
     } catch (err) {
       if ((err as Error)?.message === "stripe_issuing_unconfigured") {
         return {
-          ok: false,
+          ok: false as const,
           reason: "stripe_issuing_unconfigured",
         };
       }

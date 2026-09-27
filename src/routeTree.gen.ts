@@ -56,8 +56,10 @@ import { Route as ApiV1AuthSessionRouteImport } from './routes/api/v1/auth/sessi
 import { Route as ApiV1CognitiveOrchestrateRouteImport } from './routes/api/v1/cognitive/orchestrate'
 import { Route as ApiV1GovernanceDignityIndexRouteImport } from './routes/api/v1/governance/dignity-index'
 import { Route as ApiV1ImagesGenerateRouteImport } from './routes/api/v1/images/generate'
+import { Route as ApiV1LanguageProfileRouteImport } from './routes/api/v1/language/profile'
 import { Route as ApiV1MonetizationTamvRouteImport } from './routes/api/v1/monetization/tamv'
 import { Route as ApiV1NcuaOperationsRouteImport } from './routes/api/v1/ncua/operations'
+import { Route as ApiV1QuantumTelemetryRouteImport } from './routes/api/v1/quantum/telemetry'
 import { Route as ApiV1MonetizationX402ProcessRouteImport } from './routes/api/v1/monetization/x402/process'
 import { Route as ApiV1MsrLedgerEventRouteImport } from './routes/api/v1/msr/ledger/event'
 import { Route as ApiV1NcuaOperationsApprovalsRouteImport } from './routes/api/v1/ncua/operations/approvals'
@@ -302,6 +304,11 @@ const ApiV1ImagesGenerateRoute = ApiV1ImagesGenerateRouteImport.update({
   path: '/api/v1/images/generate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1LanguageProfileRoute = ApiV1LanguageProfileRouteImport.update({
+  id: '/api/v1/language/profile',
+  path: '/api/v1/language/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1MonetizationTamvRoute = ApiV1MonetizationTamvRouteImport.update({
   id: '/tamv',
   path: '/tamv',
@@ -310,6 +317,11 @@ const ApiV1MonetizationTamvRoute = ApiV1MonetizationTamvRouteImport.update({
 const ApiV1NcuaOperationsRoute = ApiV1NcuaOperationsRouteImport.update({
   id: '/api/v1/ncua/operations',
   path: '/api/v1/ncua/operations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1QuantumTelemetryRoute = ApiV1QuantumTelemetryRouteImport.update({
+  id: '/api/v1/quantum/telemetry',
+  path: '/api/v1/quantum/telemetry',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1MonetizationX402ProcessRoute =
@@ -378,8 +390,10 @@ export interface FileRoutesByFullPath {
   '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
   '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
   '/api/v1/images/generate': typeof ApiV1ImagesGenerateRoute
+  '/api/v1/language/profile': typeof ApiV1LanguageProfileRoute
   '/api/v1/monetization/tamv': typeof ApiV1MonetizationTamvRoute
   '/api/v1/ncua/operations': typeof ApiV1NcuaOperationsRouteWithChildren
+  '/api/v1/quantum/telemetry': typeof ApiV1QuantumTelemetryRoute
   '/api/v1/monetization/x402/process': typeof ApiV1MonetizationX402ProcessRoute
   '/api/v1/msr/ledger/event': typeof ApiV1MsrLedgerEventRoute
   '/api/v1/ncua/operations/approvals': typeof ApiV1NcuaOperationsApprovalsRoute
@@ -432,8 +446,10 @@ export interface FileRoutesByTo {
   '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
   '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
   '/api/v1/images/generate': typeof ApiV1ImagesGenerateRoute
+  '/api/v1/language/profile': typeof ApiV1LanguageProfileRoute
   '/api/v1/monetization/tamv': typeof ApiV1MonetizationTamvRoute
   '/api/v1/ncua/operations': typeof ApiV1NcuaOperationsRouteWithChildren
+  '/api/v1/quantum/telemetry': typeof ApiV1QuantumTelemetryRoute
   '/api/v1/monetization/x402/process': typeof ApiV1MonetizationX402ProcessRoute
   '/api/v1/msr/ledger/event': typeof ApiV1MsrLedgerEventRoute
   '/api/v1/ncua/operations/approvals': typeof ApiV1NcuaOperationsApprovalsRoute
@@ -487,8 +503,10 @@ export interface FileRoutesById {
   '/api/v1/cognitive/orchestrate': typeof ApiV1CognitiveOrchestrateRoute
   '/api/v1/governance/dignity-index': typeof ApiV1GovernanceDignityIndexRoute
   '/api/v1/images/generate': typeof ApiV1ImagesGenerateRoute
+  '/api/v1/language/profile': typeof ApiV1LanguageProfileRoute
   '/api/v1/monetization/tamv': typeof ApiV1MonetizationTamvRoute
   '/api/v1/ncua/operations': typeof ApiV1NcuaOperationsRouteWithChildren
+  '/api/v1/quantum/telemetry': typeof ApiV1QuantumTelemetryRoute
   '/api/v1/monetization/x402/process': typeof ApiV1MonetizationX402ProcessRoute
   '/api/v1/msr/ledger/event': typeof ApiV1MsrLedgerEventRoute
   '/api/v1/ncua/operations/approvals': typeof ApiV1NcuaOperationsApprovalsRoute
@@ -543,8 +561,10 @@ export interface FileRouteTypes {
     | '/api/v1/cognitive/orchestrate'
     | '/api/v1/governance/dignity-index'
     | '/api/v1/images/generate'
+    | '/api/v1/language/profile'
     | '/api/v1/monetization/tamv'
     | '/api/v1/ncua/operations'
+    | '/api/v1/quantum/telemetry'
     | '/api/v1/monetization/x402/process'
     | '/api/v1/msr/ledger/event'
     | '/api/v1/ncua/operations/approvals'
@@ -597,8 +617,10 @@ export interface FileRouteTypes {
     | '/api/v1/cognitive/orchestrate'
     | '/api/v1/governance/dignity-index'
     | '/api/v1/images/generate'
+    | '/api/v1/language/profile'
     | '/api/v1/monetization/tamv'
     | '/api/v1/ncua/operations'
+    | '/api/v1/quantum/telemetry'
     | '/api/v1/monetization/x402/process'
     | '/api/v1/msr/ledger/event'
     | '/api/v1/ncua/operations/approvals'
@@ -651,8 +673,10 @@ export interface FileRouteTypes {
     | '/api/v1/cognitive/orchestrate'
     | '/api/v1/governance/dignity-index'
     | '/api/v1/images/generate'
+    | '/api/v1/language/profile'
     | '/api/v1/monetization/tamv'
     | '/api/v1/ncua/operations'
+    | '/api/v1/quantum/telemetry'
     | '/api/v1/monetization/x402/process'
     | '/api/v1/msr/ledger/event'
     | '/api/v1/ncua/operations/approvals'
@@ -695,7 +719,9 @@ export interface RootRouteChildren {
   ApiV1CognitiveOrchestrateRoute: typeof ApiV1CognitiveOrchestrateRoute
   ApiV1GovernanceDignityIndexRoute: typeof ApiV1GovernanceDignityIndexRoute
   ApiV1ImagesGenerateRoute: typeof ApiV1ImagesGenerateRoute
+  ApiV1LanguageProfileRoute: typeof ApiV1LanguageProfileRoute
   ApiV1NcuaOperationsRoute: typeof ApiV1NcuaOperationsRouteWithChildren
+  ApiV1QuantumTelemetryRoute: typeof ApiV1QuantumTelemetryRoute
   ApiV1MsrLedgerEventRoute: typeof ApiV1MsrLedgerEventRoute
 }
 
@@ -1030,6 +1056,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1ImagesGenerateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/language/profile': {
+      id: '/api/v1/language/profile'
+      path: '/api/v1/language/profile'
+      fullPath: '/api/v1/language/profile'
+      preLoaderRoute: typeof ApiV1LanguageProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/monetization/tamv': {
       id: '/api/v1/monetization/tamv'
       path: '/tamv'
@@ -1042,6 +1075,13 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/ncua/operations'
       fullPath: '/api/v1/ncua/operations'
       preLoaderRoute: typeof ApiV1NcuaOperationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/quantum/telemetry': {
+      id: '/api/v1/quantum/telemetry'
+      path: '/api/v1/quantum/telemetry'
+      fullPath: '/api/v1/quantum/telemetry'
+      preLoaderRoute: typeof ApiV1QuantumTelemetryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/monetization/x402/process': {
@@ -1209,7 +1249,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1CognitiveOrchestrateRoute: ApiV1CognitiveOrchestrateRoute,
   ApiV1GovernanceDignityIndexRoute: ApiV1GovernanceDignityIndexRoute,
   ApiV1ImagesGenerateRoute: ApiV1ImagesGenerateRoute,
+  ApiV1LanguageProfileRoute: ApiV1LanguageProfileRoute,
   ApiV1NcuaOperationsRoute: ApiV1NcuaOperationsRouteWithChildren,
+  ApiV1QuantumTelemetryRoute: ApiV1QuantumTelemetryRoute,
   ApiV1MsrLedgerEventRoute: ApiV1MsrLedgerEventRoute,
 }
 export const routeTree = rootRouteImport

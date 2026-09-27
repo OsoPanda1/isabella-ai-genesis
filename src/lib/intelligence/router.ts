@@ -7,7 +7,7 @@ import type {
   IntelligenceRequest,
   IntelligenceResponse,
 } from "./contracts";
-import { approveModel, getModel, listModels, registerProvider } from "./model-registry";
+import { approveModel, listModels, registerProvider } from "./model-registry";
 import { createMoERoute, executeMoE } from "./moe-engine";
 import { recordIntelligenceMetric } from "./observability";
 import { authorizeModelForRuntime } from "./production-model-gate";
@@ -17,7 +17,6 @@ const providers = new Map<string, IntelligenceProvider>();
 const failures = new Map<string, { count: number; openUntil: number }>();
 const FAILURE_THRESHOLD = 3;
 const COOLDOWN_MS = 30_000;
-const MAX_CANDIDATES = 3;
 
 function circuitOpen(modelId: string): boolean {
   const state = failures.get(modelId);
