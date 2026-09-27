@@ -130,7 +130,6 @@ export async function invokeIntelligence(
   const started = performance.now();
   try {
     const result = await executeMoE(request, { ...route, selected: authorizedExperts }, providers);
-    const successfulModels = new Set(result.responses.map((response) => response.modelId));
     for (const expert of authorizedExperts) {
       const response = result.responses.find((item) => item.modelId === expert.modelId);
       recordIntelligenceMetric({
