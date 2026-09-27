@@ -168,6 +168,27 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
     setMediaReady(true);
   }, []);
 
+  // The media request can resolve after the user has already pressed
+  // "INICIAR EXPERIENCIA". In that case the <video> element is mounted after
+  // enter() and must be started here; otherwise the cinematic layer stays
+  // paused/black even though the intro itself is already active.
+  const playbackUrl =
+    media.playbackId && !mediaFailed
+      ? `https://stream.mux.com/${encodeURIComponent(media.playbackId)}/high.mp4`
+      : undefined;
+
+  useEffect(() => {
+    if (showGate || !playbackUrl || mediaFailed) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = muted;
+    void video.play().then(() => setMediaReady(true)).catch(() => {
+      setMediaFailed(true);
+      setMediaReady(true);
+    });
+  }, [showGate, playbackUrl, mediaFailed, muted]);
+
   useEffect(() => {
     if (showGate) return;
     const prefersReducedMotion =
@@ -245,11 +266,6 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
     media.fallback?.type === "static"
       ? (media.fallback.url ?? FALLBACK_BACKDROP)
       : FALLBACK_BACKDROP;
-
-  const playbackUrl =
-    media.playbackId && !mediaFailed
-      ? `https://stream.mux.com/${encodeURIComponent(media.playbackId)}/high.mp4`
-      : undefined;
 
   return (
     <section
