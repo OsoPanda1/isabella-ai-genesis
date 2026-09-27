@@ -60,6 +60,9 @@ export async function getPersistedObservabilityOverview(): Promise<PersistedObse
     avgLatencyMs: Number(result?.avg_latency_ms ?? 0),
     throughputPerMinute: Number(result?.event_count ?? 0) / (24 * 60),
     latestEventAt: result?.latest_event_at?.toISOString() ?? null,
-    bySource: sources.map((source) => ({ source: source.source, count: Number(source.count) })),
+    bySource: sources.map((source: { source: string; count: bigint }) => ({
+      source: source.source,
+      count: Number(source.count),
+    })),
   };
 }
