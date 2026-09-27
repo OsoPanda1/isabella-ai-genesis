@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import { checkPermission, ROLES, type Role } from "./rbac";
 import { permissionFor, RESOURCES, ACTIONS, type Resource, type Action } from "./permission-matrix";
 import { evaluateAbac, type AttributeContext } from "./abac";
+import { canonicalize } from "./igds/canonical";
+import { isProductionLike, resolveRuntimeMode } from "./runtime-mode";
 
 /**
  * C.R.O.W.N. / A.R.G.U.S. - PDP (Policy Decision Point)
@@ -44,6 +46,15 @@ export interface AuthorizationContext {
   role?: string;
   /** Si el request está autenticado (requerido para decisión real). */
   authenticated?: boolean;
+  /**
+   * Tenant al que pertenece el recurso objetivo. Sin esta información la
+   * política ABAC `isolation:territorial` no puede aplicarse (quedaría en
+   * `notApplied`), por lo que debe entregarse cuando el recurso tenga tenant
+   * propio; un tenant distinto del sujeto produce `abac-deny`.
+   */
+  resource_tenant_id?: string;
+  /** Propietario del recurso objetivo (para `data:personal`); vacío si no aplica. */
+  resource_owner?: string;
   context: {
     ip_address: string;
     user_agent: string;
@@ -55,9 +66,10 @@ export interface AuthorizationContext {
 }
 
 // ============================================================================
-// GESTIÓN DE CLAVES (HSM Durable — Postgres + KMS, no Map memoria)
-// Evolución v3.1: cadena de custodia durable por tenant con advisory lock y KMS
-// No simplifica: añade persistencia distribuida, rotación y verificación
+// GESTIÓN DE CLAVES (Clave ECDSA software + cadena durable en Postgres)
+// Cadena de custodia por tenant con advisory lock sobre `hsm_signature_chain`.
+// LIMITACIÓN DECLARADA: no hay HSM/KMS físico; la clave efímera por proceso
+// no es verificable entre procesos (ver production-capabilities.json).
 // ============================================================================
 class CryptoManager {
   private privateKey: KeyObject;
@@ -66,7 +78,6 @@ class CryptoManager {
 
   // En memoria solo como cache L1; fuente de verdad es Postgres `hsm_signature_chain` (ver `getAndAdvanceChainDurable`)
   private signatureChainState = new Map<string, string>(); // tenant_id -> last_hash (cache)
-  private durableEnabled = false;
 
   constructor() {
     const { privateKey, publicKey } = generateKeyPairSync("ec", {
@@ -75,39 +86,52 @@ class CryptoManager {
     this.privateKey = privateKey;
     this.publicKey = publicKey;
     this.keyId = `key_${randomUUID().replace(/-/g, "")}`;
+    // Honestidad (AGENTS §0.1): esto NO es un HSM ni un KMS. Es una clave
+    // software efimera por proceso; sin KMS persistente las firmas de este
+    // proceso no son verificables por otro proceso (limitación declarada en
+    // production-capabilities.json, no oculta).
     console.info(
-      `[CryptoManager] HSM Initialized. Active Key ID: ${this.keyId} (${CURVE}) — durable: ${this.durableEnabled ? "Postgres" : "memory+KMS"}`,
+      `[CryptoManager] Clave ECDSA software efimera generada (${CURVE}, keyId=${this.keyId}). ` +
+        `Sin HSM/KMS fisico: la cadena de firmas durable vive en Postgres hsm_signature_chain en runtime productivo.`,
     );
-    // Intenta habilitar modo durable si DATABASE_URL y tabla hsm_signature_chain existen
-    this.tryEnableDurable().catch(() => {});
+    // Informa si el runtime exige cadena durable (la exigencia real se
+    // evalúa en cada llamada a getAndAdvanceChainDurable, fail-closed).
+    this.logDurableMode().catch(() => {});
   }
 
-  private async tryEnableDurable(): Promise<void> {
+  private async logDurableMode(): Promise<void> {
     try {
       const { config } = await import("./config");
       const cfg = config();
-      if (cfg.DATABASE_URL && cfg.ISABELLA_RUNTIME_MODE === "production") {
-        this.durableEnabled = true;
-        console.info("[CryptoManager] Durable HSM enabled — Postgres advisory lock por tenant");
+      if (isProductionLike(resolveRuntimeMode(cfg.ISABELLA_RUNTIME_MODE))) {
+        console.info(
+          "[CryptoManager] Runtime productivo: cadena de firmas exige Postgres hsm_signature_chain (sin fallback a memoria).",
+        );
       }
     } catch {
-      // fallback a memoria en dev/test
+      // No se pudo resolver la configuración; getAndAdvanceChainDurable asume productivo (fail-closed).
     }
   }
 
+  /**
+   * Digest canónico. Usa la canonicalización JCS (RFC 8785) de IGDS para que
+   * el mismo payload produzca siempre los mismos bytes, sin importar el orden
+   * de construcción de las claves. Antes se usaba
+   * `JSON.stringify(payload, Object.keys(payload).sort())`, cuyo parámetro
+   * `replacer` sólo FILTRA claves y no las reordena (hash no canónico).
+   */
   public calculateHash(payload: Record<string, unknown>): string {
-    const raw = JSON.stringify(payload, Object.keys(payload).sort());
-    return createHash(HASH_ALGORITHM).update(raw).digest("hex");
+    return createHash(HASH_ALGORITHM).update(canonicalize(payload), "utf8").digest("hex");
   }
 
   public signPayload(payload: Record<string, unknown>): string {
-    const raw = JSON.stringify(payload, Object.keys(payload).sort());
+    const raw = canonicalize(payload);
     const signature = sign(SIGNATURE_ALGORITHM, Buffer.from(raw), this.privateKey);
     return signature.toString("base64url");
   }
 
   public verifySignature(payload: Record<string, unknown>, signatureB64: string): boolean {
-    const raw = JSON.stringify(payload, Object.keys(payload).sort());
+    const raw = canonicalize(payload);
     return verify(
       SIGNATURE_ALGORITHM,
       Buffer.from(raw),
@@ -134,29 +158,44 @@ class CryptoManager {
     return { previousHash, signatureChain: nextSigChain };
   }
 
-  // Versión durable async para producción — usa Postgres advisory lock por tenant y tabla hsm_signature_chain
+  /**
+   * Versión durable de la cadena de firmas: Postgres `hsm_signature_chain`
+   * con `pg_advisory_xact_lock` por tenant.
+   *
+   * Fail-closed (AGENTS §4.2): en runtime productivo/staging la cadena jamás
+   * cae a memoria local. Si falta `DATABASE_URL` o la transacción falla se
+   * lanza `HsmDurableUnavailableError` y el PDP responde DENY. El fallback a
+   * la cadena en memoria queda reservado para development/test.
+   */
   public async getAndAdvanceChainDurable(
     tenantId: string,
     newDecisionHash: string,
     newSignature: string,
   ): Promise<{ previousHash: string; signatureChain: string }> {
-    if (!this.durableEnabled)
+    const productionLike = await this.isProductionLikeRuntime();
+    if (!productionLike) {
       return this.getAndAdvanceChain(tenantId, newDecisionHash, newSignature);
+    }
+    const { createHash: createHash2 } = await import("node:crypto");
+    let pool: import("pg").Pool | null = null;
+    let release: (() => void) | null = null;
     try {
-      const { createHash: createHash2 } = await import("node:crypto");
       const { config } = await import("./config");
       const cfg = config();
-      if (!cfg.DATABASE_URL)
-        return this.getAndAdvanceChain(tenantId, newDecisionHash, newSignature);
+      if (!cfg.DATABASE_URL) {
+        throw new HsmDurableUnavailableError(
+          "DATABASE_URL ausente: la cadena durable de firmas no existe en este runtime productivo.",
+        );
+      }
       const { Pool } = await import("pg");
-      const pool = new Pool({ connectionString: cfg.DATABASE_URL, max: 1 });
+      pool = new Pool({ connectionString: cfg.DATABASE_URL, max: 1 });
       const client = await pool.connect();
-      try {
-        await client.query("BEGIN");
-        const lockId = createHash2("sha256").update(tenantId).digest().readInt32BE(0);
-        await client.query("SELECT pg_advisory_xact_lock($1)", [lockId]);
-        // Crea tabla si no existe (idempotente)
-        await client.query(`
+      release = () => client.release();
+      await client.query("BEGIN");
+      const lockId = createHash2("sha256").update(tenantId).digest().readInt32BE(0);
+      await client.query("SELECT pg_advisory_xact_lock($1)", [lockId]);
+      // Crea tabla si no existe (idempotente)
+      await client.query(`
           CREATE TABLE IF NOT EXISTS hsm_signature_chain (
             tenant_id VARCHAR(64) PRIMARY KEY,
             last_hash VARCHAR(128) NOT NULL,
@@ -164,37 +203,71 @@ class CryptoManager {
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
           )
         `);
-        const res = await client.query(
-          "SELECT last_hash, sigchain FROM hsm_signature_chain WHERE tenant_id = $1 FOR UPDATE",
-          [tenantId],
-        );
-        const previousHash = res.rows[0]?.last_hash ?? "genesis_hash_0000000000000000";
-        const previousSigChain = res.rows[0]?.sigchain ?? "genesis_sigchain_00000000";
-        const nextSigChain = createHash(HASH_ALGORITHM)
-          .update(previousSigChain + newSignature)
-          .digest("hex");
-        await client.query(
-          `INSERT INTO hsm_signature_chain (tenant_id, last_hash, sigchain) VALUES ($1,$2,$3)
+      const res = await client.query(
+        "SELECT last_hash, sigchain FROM hsm_signature_chain WHERE tenant_id = $1 FOR UPDATE",
+        [tenantId],
+      );
+      const previousHash = res.rows[0]?.last_hash ?? "genesis_hash_0000000000000000";
+      const previousSigChain = res.rows[0]?.sigchain ?? "genesis_sigchain_00000000";
+      const nextSigChain = createHash(HASH_ALGORITHM)
+        .update(previousSigChain + newSignature)
+        .digest("hex");
+      await client.query(
+        `INSERT INTO hsm_signature_chain (tenant_id, last_hash, sigchain) VALUES ($1,$2,$3)
            ON CONFLICT (tenant_id) DO UPDATE SET last_hash = EXCLUDED.last_hash, sigchain = EXCLUDED.sigchain, updated_at = NOW()`,
-          [tenantId, newDecisionHash, nextSigChain],
-        );
-        await client.query("COMMIT");
-        // Actualiza cache L1
-        this.signatureChainState.set(tenantId, newDecisionHash);
-        this.signatureChainState.set(`sigchain_${tenantId}`, nextSigChain);
-        return { previousHash, signatureChain: nextSigChain };
-      } finally {
-        (client as any).release?.();
-        await pool.end().catch(() => {});
-      }
+        [tenantId, newDecisionHash, nextSigChain],
+      );
+      await client.query("COMMIT");
+      // Actualiza cache L1 (la fuente de verdad sigue siendo Postgres)
+      this.signatureChainState.set(tenantId, newDecisionHash);
+      this.signatureChainState.set(`sigchain_${tenantId}`, nextSigChain);
+      return { previousHash, signatureChain: nextSigChain };
     } catch (e) {
-      console.warn("[CryptoManager] Durable fallback a memoria:", (e as Error).message);
-      return this.getAndAdvanceChain(tenantId, newDecisionHash, newSignature);
+      if (e instanceof HsmDurableUnavailableError) throw e;
+      throw new HsmDurableUnavailableError(
+        `hsm_signature_chain inaccesible en runtime productivo: ${(e as Error).message}`,
+      );
+    } finally {
+      release?.();
+      if (pool) await pool.end().catch(() => {});
+    }
+  }
+
+  /** Determina si el runtime exige cadena durable. Si no se puede determinar, se asume productivo (fail-closed). */
+  private async isProductionLikeRuntime(): Promise<boolean> {
+    try {
+      const { config } = await import("./config");
+      return isProductionLike(resolveRuntimeMode(config().ISABELLA_RUNTIME_MODE));
+    } catch (error) {
+      console.error(
+        "[CryptoManager] No se pudo resolver ISABELLA_RUNTIME_MODE; se asume runtime productivo:",
+        (error as Error).message,
+      );
+      return true;
     }
   }
 }
 
+/**
+ * La cadena durable de firmas no está disponible en un runtime que la exige.
+ * El PDP traduce este error en DENY: nunca se emite un `allow` sin cadena
+ * durable verificable (AGENTS §4.2 y §8.3).
+ */
+export class HsmDurableUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "HsmDurableUnavailableError";
+  }
+}
+
 const hsm = new CryptoManager();
+
+/**
+ * Instancia canónica del gestor de claves del PDP, expuesta para pruebas de
+ * canonicalización (hash independiente del orden de claves) y verificación de
+ * firmas. No expone claves privadas.
+ */
+export const authorizationCrypto = hsm;
 
 // ============================================================================
 // EVALUADOR PDP (Policy Decision Point)
@@ -263,8 +336,11 @@ export async function evaluateAuthorization(
             subjectTenant: ctx.tenant_id,
             resource: ctx.resource,
             action: ctx.action,
-            resourceTenant: ctx.tenant_id,
-            resourceOwner: "",
+            // Tenant del recurso: sólo se afirma si el llamador lo entrega.
+            // Si se omitiera y se rellenara con ctx.tenant_id la política
+            // territorial sería una tautología (siempre notApplied).
+            resourceTenant: ctx.resource_tenant_id ?? "",
+            resourceOwner: ctx.resource_owner ?? "",
             subject: ctx.subject_id,
             risk,
             authenticated: ctx.authenticated ?? false,
@@ -300,20 +376,37 @@ export async function evaluateAuthorization(
   // 2. Firmar el payload principal
   const signature = hsm.signPayload(basePayload);
 
-  // 3. Hash Chaining & Signature Chain
+  // 3. Hash Chaining & Signature Chain — cadena DURABLE (Postgres). En
+  // runtime productivo no hay fallback a memoria: si la cadena no está
+  // disponible la decisión se reescribe como DENY (fail-closed, AGENTS §4.2).
   const decisionHash = hsm.calculateHash(basePayload);
-  const { previousHash, signatureChain } = hsm.getAndAdvanceChain(
-    ctx.tenant_id,
-    decisionHash,
-    signature,
-  );
+  let chain: { previousHash: string; signatureChain: string };
+  try {
+    chain = await hsm.getAndAdvanceChainDurable(ctx.tenant_id, decisionHash, signature);
+  } catch (error) {
+    if (!(error instanceof HsmDurableUnavailableError)) throw error;
+    const deniedPayload = {
+      ...basePayload,
+      allow: false,
+      obligations: [...obligations, "deny:hsm-durable-unavailable"],
+    };
+    console.error(
+      `[PDP] Cadena durable de firmas no disponible; decisión convertida en DENY: ${error.message}`,
+    );
+    return {
+      ...deniedPayload,
+      signature: hsm.signPayload(deniedPayload),
+      signature_chain: "unavailable:hsm-durable",
+      previous_decision_hash: "unavailable:hsm-durable",
+    };
+  }
 
   // 4. Retornar Decisión Inmutable
   const finalDecision: AuthorizationDecision = {
     ...basePayload,
     signature,
-    signature_chain: signatureChain,
-    previous_decision_hash: previousHash,
+    signature_chain: chain.signatureChain,
+    previous_decision_hash: chain.previousHash,
   };
 
   return finalDecision;

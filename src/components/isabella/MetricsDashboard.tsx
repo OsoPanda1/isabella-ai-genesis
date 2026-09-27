@@ -162,7 +162,7 @@ export function MetricsDashboard() {
     selectedPipeline === "B" ? snapshot.metricsB : snapshot.metricsA;
 
   const isTurbo = snapshot.turboModeEnabled ?? true;
-  const speedupFactor = snapshot.turboSpeedupFactor ?? 3.42;
+  const speedupFactor = snapshot.turboSpeedupFactor ?? 1.0;
 
   return (
     <div

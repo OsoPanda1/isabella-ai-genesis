@@ -64,7 +64,11 @@ describe("Super Turbo Hexagonal Pipeline Engine", () => {
 
     const snap = await router.runSuperTurboBenchmark(4);
     expect(snap.turboModeEnabled).toBe(true);
-    expect(snap.turboSpeedupFactor).toBeGreaterThanOrEqual(3.0);
+    // Speedup MEDIDO: sin serie regular comparable se declara 1.0; nunca se
+    // devuelve un 3.42 fijo (auditoría P0-10).
+    expect(snap.turboSpeedupFactor).toBeGreaterThanOrEqual(1.0);
+    expect(snap.healthA).toBeGreaterThanOrEqual(0);
+    expect(snap.healthA).toBeLessThanOrEqual(1);
     expect(snap.parallelSavingsMs).toBeGreaterThan(0);
 
     // Route a task through the router
@@ -84,6 +88,41 @@ describe("Super Turbo Hexagonal Pipeline Engine", () => {
 
     router.setTurboMode(true);
     expect(router.isTurboMode()).toBe(true);
-    expect(router.getSnapshot().turboSpeedupFactor).toBe(3.42);
+    // Sin ejecuciones regulares y turbo comparables no hay speedup medible.
+    expect(router.getSnapshot().turboSpeedupFactor).toBe(1.0);
+  });
+
+  it("mide el speedup a partir de ejecuciones reales, no de una constante", async () => {
+    const pipeline = new HexagonalPipeline("A");
+    expect(pipeline.getTurboSpeedupFactor()).toBe(1.0); // sin datos
+
+    await pipeline.execute(async () => {
+      await new Promise((r) => setTimeout(r, 5));
+      return "regular";
+    });
+    expect(pipeline.getTurboSpeedupFactor()).toBe(1.0); // falta la serie turbo
+
+    await pipeline.executeTurbo(async () => {
+      await new Promise((r) => setTimeout(r, 5));
+      return "turbo";
+    });
+    const factor = pipeline.getTurboSpeedupFactor();
+    expect(Number.isFinite(factor)).toBe(true);
+    expect(factor).toBeGreaterThan(0);
+  });
+
+  it("la salud refleja éxitos y fallos reales (sin valores declarados)", async () => {
+    const pipeline = new HexagonalPipeline("B");
+    expect(pipeline.getHealth()).toBe(0); // sin ejecuciones: sin datos
+
+    await pipeline.execute(async () => "ok");
+    expect(pipeline.getHealth()).toBe(1);
+
+    await expect(
+      pipeline.execute(async () => {
+        throw new Error("boom");
+      }),
+    ).rejects.toThrow("boom");
+    expect(pipeline.getHealth()).toBe(0.5);
   });
 });

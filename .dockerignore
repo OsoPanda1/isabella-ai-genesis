@@ -1,0 +1,23 @@
+# Control de exposición en capas de imagen: nada de secretos, historia ni artefactos.
+.git
+.github
+.gitignore
+.husky
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+node_modules
+**/node_modules
+dist
+build
+.output
+.vercel
+release
+coverage
+*.log
+audit
+docs
+test
+tests

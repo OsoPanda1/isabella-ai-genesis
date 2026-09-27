@@ -8,24 +8,22 @@ describe("MetricsDashboard & Super Turbo Hexagonal Latency", () => {
     expect(typeof MetricsDashboard).toBe("function");
   });
 
-  it("DoublePipeline provides valid p50, p95, and p99 metrics for real-time visualization", () => {
+  it("DoublePipeline expone percentiles e historial sin muestras fabricadas", () => {
     const snapshot = doublePipeline.getSnapshot();
     expect(snapshot).toBeDefined();
     expect(snapshot.metricsA).toBeDefined();
     expect(snapshot.metricsB).toBeDefined();
 
-    // Verify p50, p95, p99 percentiles are positive numbers
-    expect(snapshot.metricsA.p50).toBeGreaterThan(0);
+    // Antes de la primera ejecución real los percentiles son 0 (sin datos);
+    // el pipeline ya no siembra 20 latencias sintéticas de arranque (P0-10).
+    expect(snapshot.metricsA.p50).toBe(0);
     expect(snapshot.metricsA.p95).toBeGreaterThanOrEqual(snapshot.metricsA.p50);
     expect(snapshot.metricsA.p99).toBeGreaterThanOrEqual(snapshot.metricsA.p95);
+    expect(snapshot.healthA).toBe(0);
+    expect(snapshot.turboSpeedupFactor).toBeGreaterThanOrEqual(1.0);
 
-    // Verify history points have p50, p95, p99
-    expect(snapshot.history.length).toBeGreaterThan(0);
-    const firstPoint = snapshot.history[0];
-    expect(firstPoint.p50A).toBeDefined();
-    expect(firstPoint.p95A).toBeDefined();
-    expect(firstPoint.p99A).toBeDefined();
-    expect(firstPoint.time).toBeDefined();
+    // El historial arranca vacío: sólo se llena con puntos reales.
+    expect(snapshot.history.length).toBe(0);
   });
 
   it("Super Turbo benchmark updates latency history dynamically", async () => {
@@ -33,8 +31,12 @@ describe("MetricsDashboard & Super Turbo Hexagonal Latency", () => {
     const snap = await doublePipeline.runSuperTurboBenchmark(2);
 
     expect(snap.turboModeEnabled).toBe(true);
-    expect(snap.turboSpeedupFactor).toBeGreaterThanOrEqual(3.0);
+    // Speedup medido a partir de las series reales (sin serie regular
+    // comparable devuelve 1.0), nunca una constante 3.42 (P0-10).
+    expect(snap.turboSpeedupFactor).toBeGreaterThanOrEqual(1.0);
     expect(snap.parallelSavingsMs).toBeGreaterThan(0);
+    expect(snap.totalProcessed).toBeGreaterThan(0);
     expect(snap.history.length).toBeGreaterThanOrEqual(beforeCount);
+    expect(snap.history.length).toBeGreaterThan(0);
   });
 });

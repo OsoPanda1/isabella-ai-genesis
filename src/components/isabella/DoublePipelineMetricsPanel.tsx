@@ -209,7 +209,7 @@ export function DoublePipelineMetricsPanel() {
               Aceleración Super Turbo Hexagonal Activa:
             </span>
             <span className="rounded-md bg-amber-400/20 px-2 py-0.5 font-bold text-amber-300">
-              Factor de Aceleración: {snapshot.turboSpeedupFactor ?? 3.42}x
+              Factor de Aceleración: {snapshot.turboSpeedupFactor ?? 1.0}x
             </span>
           </div>
           <div className="flex items-center gap-3 text-[11px] text-amber-300/80">

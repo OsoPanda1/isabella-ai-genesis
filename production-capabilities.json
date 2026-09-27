@@ -1,7 +1,8 @@
 {
   "version": "4.3.3",
   "assessment_date": "2026-09-26T00:00:00Z",
-  "commit_sha": "PENDING_SAME_COMMIT",
+  "commit_sha": null,
+  "commit_sha_note": "No se fija un SHA estatico en el manifiesto: se volveria obsoleto en el siguiente commit y seria una afirmacion no verificable. El mismo-commit se genera por `pnpm production:evidence` en release/commit.json (gitignored) y solo devuelve PASS cuando security, typecheck y tests corren en ESE SHA con arbol limpio.",
   "overall_readiness_percent": 54,
   "readiness_breakdown": {
     "implementation_percent": 46,
@@ -14,8 +15,10 @@
   "crown_runtime_authority": {
     "authority": "CROWN_V6",
     "authority_version": "6.0.0-fusion",
+    "registry_scope": "Catalogo de 12 nodos y 7 modulos extendidos con metadata (catálogo, no arbitraje).",
     "compat_adapter": "src/lib/crown.ts",
     "compat_adapter_version": "2.0.0",
+    "extended_modules_wired_into_pipeline": false,
     "runtime_entry": "src/lib/crown-runtime-authority.ts"
   },
   "gates_500": {
@@ -29,7 +32,7 @@
       "name": "governance.crown",
       "status": "verified",
       "production_safe": true,
-      "readiness_percent": 100,
+      "readiness_percent": 70,
       "evidence": [
         "src/lib/crown-runtime-authority.ts",
         "src/lib/crown-v6.ts",
@@ -37,7 +40,7 @@
         "src/lib/policy-engine.ts",
         "test/unit/platform-capabilities.test.ts"
       ],
-      "notes": "Autoridad runtime canónica CROWN v6 (crown-runtime-authority.ts) en sovereign-pipeline; crown.ts declarado compatibility adapter. Policy arbitration y decision gating implementados; producción gate-controlled."
+      "notes": "Alcance verificado: registry CROWN v6 (12 nodos/7 modulos con metadata) exportado desde crown-runtime-authority.ts y arbitraje real ejecutado por el compat adapter crown.ts (5 modulos base), con policy arbitration y decision gating probados. NO verificado: los 7 modulos extendidos de v6 NO estan cableados al pipeline (CROWN_EXTENDED_MODULES_WIRED=false), por lo que el readiness es 70%, no 100%."
     },
     {
       "name": "authentication.jwt_oidc",
@@ -267,17 +270,23 @@
     }
   },
   "security_audit": {
+    "scope": "Solo la ultima pasada de seguridad (economia/monetizacion). NO es el conteo global ISA-500.",
     "critical_issues": 0,
     "high_issues": 5,
     "medium_issues": 6,
     "low_issues": 0,
+    "isa500_still_broken": 72,
+    "isa500_partial": 374,
+    "isa500_blocked_environment": 8,
     "overall_posture": "p0_economic_fixed_pending_independent_recertification",
-    "note": "P0 económicos (x402 fake signature, subscription spoof, amount sin contrato, monetización sintética, ECDSA fake) corregidos en este commit. Quedan P1: security workflows como dependencia formal del deploy (P1-06), 500 gates evidence runner (P1-04), drift de cifras remediado hacia SSOT. No se declara hardened_total hasta recertificación."
+    "note": "P0 economicos (x402 fake signature, subscription spoof, amount sin contrato, monetizacion sintetica, ECDSA fake) corregidos. `critical_issues: 0` se refiere SOLO a esa pasada; la auditoria ISA-500 mantiene 72 STILL_BROKEN (14.4%) y 8 BLOCKED_ENVIRONMENT, incluidos P0 de autoridad (output security gate, intelligence router bypass, MoE real, telemetria sintetica). Quedan P1: security workflows como dependencia formal del deploy (P1-06), 500 gates evidence runner (P1-04). No se declara hardened_total hasta recertificacion."
   },
   "release_blockers": [
-    "economy.ledger productionSafe=false — rutas económicas v1/x402 bloqueadas 503 en staging/production",
+    "economy.ledger productionSafe=false — rutas economicas v1/x402 bloqueadas 503 en staging/production",
     "500 gates en estado EVIDENCE_GATED (0 PASS ejecutados con workflow_run_id)",
-    "Neon RLS live + Stripe live + HSM + Vercel same-commit + NCUA 500 + rollback pendientes para certificación 100%"
+    "Neon RLS live + Stripe live + HSM + Vercel same-commit + NCUA 500 + rollback pendientes para certificacion 100%",
+    "CI de GitHub Actions bloqueado por billing (issue #66): ningun workflow corre en HEAD, gates canonicos SKIPPED",
+    "P0 de autoridad abiertos: output security gate (ISA-140/175), intelligence router/model gate bypass en chat gateway, MoE real ausente, telemetria sintetica en double-pipeline"
   ],
   "maintained_by": "FGAIS Governance Committee",
   "certification_authority": "Human + Automated Gates",

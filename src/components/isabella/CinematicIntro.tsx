@@ -232,7 +232,7 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
 
   const scene = useMemo(
     () => scenes.find((item) => elapsed < item.end) ?? scenes[scenes.length - 1],
-    [elapsed]
+    [elapsed],
   );
   const progress = Math.min(1, elapsed / DURATION);
   const timecode = `${Math.floor(elapsed / 60)
@@ -243,7 +243,7 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
 
   const fallbackUrl =
     media.fallback?.type === "static"
-      ? media.fallback.url ?? FALLBACK_BACKDROP
+      ? (media.fallback.url ?? FALLBACK_BACKDROP)
       : FALLBACK_BACKDROP;
 
   const playbackUrl =
@@ -440,8 +440,8 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
             </h2>
 
             <p className="mx-auto mt-6 max-w-lg text-sm leading-relaxed text-cyan-100/70 sm:text-base">
-              Interfaz cognitiva territorial. Contexto soberano antes que certeza; supervisión humana
-              antes que automatismo irrestricto.
+              Interfaz cognitiva territorial. Contexto soberano antes que certeza; supervisión
+              humana antes que automatismo irrestricto.
             </p>
 
             <div className="mx-auto mt-4 flex max-w-md items-center justify-center gap-4 text-[10px] font-mono tracking-[0.2em] uppercase text-white/40">
@@ -470,8 +470,8 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
                   ? "Flujo de video soberano listo"
                   : "Cargando canal de video"
                 : mediaFailed
-                ? "Respaldo territorial activo"
-                : "Modo de respaldo listo"}
+                  ? "Respaldo territorial activo"
+                  : "Modo de respaldo listo"}
             </div>
 
             {/* BOTONES DE ACCIÓN */}
@@ -491,7 +491,11 @@ export function CinematicIntroContent({ onComplete, onTelemetryUpdate }: Cinemat
                 onClick={() => setMuted((value) => !value)}
                 className="inline-flex items-center gap-2 rounded border border-white/10 bg-black/40 px-5 py-4 text-xs font-mono tracking-[0.25em] text-white/50 uppercase transition-colors hover:border-white/30 hover:text-white"
               >
-                {muted ? <VolumeX className="size-4 text-red-400" /> : <Volume2 className="size-4 text-cyan-300" />}
+                {muted ? (
+                  <VolumeX className="size-4 text-red-400" />
+                ) : (
+                  <Volume2 className="size-4 text-cyan-300" />
+                )}
                 <span>{muted ? "AUDIO DESACTIVADO" : "AUDIO ACTIVADO"}</span>
               </button>
             </div>

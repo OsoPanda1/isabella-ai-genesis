@@ -70,9 +70,18 @@ export async function generateSovereignLocalResponse(opts: {
     };
     const result = await dualKernel.process(req);
     const rawAnswer = buildSovereignAnswer(safeMessage, result.answer, result.evidence.length);
-    // Sanitización de salida — nunca devolver payload hostil del kernel
+    // Sanitización de salida — Zero Trust también en la respuesta del kernel.
+    // Si la salida queda marcada NO se devuelve: antes se devolvía
+    // `rawAnswer` (el contenido hostil) y la sanitización quedaba anulada.
     const sanitizedOutput = SecuritySystem.sanitizePayload(rawAnswer);
-    const answer = sanitizedOutput.flagged ? rawAnswer.slice(0, 2000) : sanitizedOutput.clean;
+    if (sanitizedOutput.flagged) {
+      return {
+        answer: `${ISABELLA_IDENTITY}\n\nTu solicitud fue bloqueada por el filtro de contenido hostil (${sanitizedOutput.reason}). Reformula sin instrucciones adversas ni inyecciones.`,
+        degraded: true,
+        provenance: `local-output-blocked:${opts.traceId.slice(0, 8)}`,
+      };
+    }
+    const answer = sanitizedOutput.clean;
     return {
       answer,
       degraded: result.status !== "completed",

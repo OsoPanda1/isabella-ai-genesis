@@ -98,6 +98,15 @@ export function createSovereignPipeline(opts?: {
 
   return {
     async execute(input: PipelineInput): Promise<PipelineResult> {
+      // Pista de enrutamiento tomada de telemetría MEDIDA (0 antes de la
+      // primera ejecución), no de cifras fijas inventadas.
+      const measuredSnapshot = doublePipeline.getSnapshot();
+      const healthHint = {
+        A: measuredSnapshot.healthA,
+        B: measuredSnapshot.healthB,
+        latencyA: measuredSnapshot.metricsA.p95,
+        latencyB: measuredSnapshot.metricsB.p95,
+      };
       const outcome = await doublePipeline.route(
         async () => {
           const context: CROWN.RequestContext = {
@@ -277,7 +286,7 @@ export function createSovereignPipeline(opts?: {
             denied: false,
           };
         },
-        { A: 0.992, B: 0.985, latencyA: 1.8, latencyB: 2.4 },
+        healthHint,
         {
           tenantId: input.tenantId,
           userId: input.actorId,

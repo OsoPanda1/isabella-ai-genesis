@@ -15,6 +15,7 @@
 import { z } from "zod";
 import * as crypto from "node:crypto";
 import { config } from "../config";
+import { canonicalize } from "../igds/canonical";
 import { SovereignAudit } from "../sovereign-audit";
 import { BookPILedgerAuditor } from "./bookpi-trajectory";
 
@@ -169,7 +170,11 @@ export class NcuaProtocolEngine {
     const id = `op_${crypto.randomUUID().slice(0, 12)}`;
     const nonce = crypto.randomUUID().slice(0, 16);
     const payload = params.payload ?? {};
-    const payloadCanonical = JSON.stringify(payload, Object.keys(payload).sort());
+    // Digest canónico (RFC 8785 vía IGDS): antes usaba
+    // JSON.stringify(payload, Object.keys(payload).sort()), cuyo `replacer`
+    // sólo filtra claves y no las reordena, así que dos payloads iguales con
+    // distinto orden producían hashes distintos.
+    const payloadCanonical = canonicalize(JSON.parse(JSON.stringify(payload)));
     const payloadHash = crypto.createHash("sha256").update(payloadCanonical).digest("hex");
     const policyVersion = config().CROWN_CONSTITUTION_VERSION || "4.3.3";
     const policyHash = crypto.createHash("sha256").update(policyVersion).digest("hex");

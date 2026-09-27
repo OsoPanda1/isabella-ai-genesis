@@ -131,17 +131,18 @@ export class HexagonalPipeline {
   private triangularCache = new TriangularTurboCache();
   private cacheHits = 0;
   private totalExecutions = 0;
+  private failedExecutions = 0;
   private turboExecutions = 0;
   private totalParallelSavingsMs = 0;
+  // Series separadas para poder medir el speedup real turbo vs no-turbo
+  private regularLatencies: number[] = [];
+  private turboLatencies: number[] = [];
 
   constructor(id: PipelineId) {
     this.id = id;
-    // Sembrar valores iniciales óptimos para cold start
-    const baseLatency = id === "A" ? 2.4 : 3.1;
-    for (let i = 0; i < 20; i++) {
-      const variation = Math.sin(i * 0.5) * 0.6;
-      this.latencies.push(parseFloat(Math.max(0.8, baseLatency + variation).toFixed(2)));
-    }
+    // Sin semillas sintéticas: latencias, salud y speedup sólo se alimentan
+    // con muestras reales de ejecución (auditoría P0-10/P0-15). Antes se
+    // "sembraban" 20 valores con Math.sin para simular un cold start óptimo.
   }
 
   // Cache canónica por tenant/usuario/input/contexto/modelo/policy — evita colisiones semánticas (audit F)
@@ -186,9 +187,39 @@ export class HexagonalPipeline {
 
   public getAveragePortTiming(port: PipelinePort): number {
     const arr = this.portAccumulators[port];
-    if (arr.length === 0) return this.id === "A" ? 0.35 : 0.45;
+    if (arr.length === 0) return 0; // sin muestras reales: 0, no un valor inventado
     const sum = arr.reduce((acc, v) => acc + v, 0);
     return parseFloat((sum / arr.length).toFixed(3));
+  }
+
+  /**
+   * Salud real del pipeline = 1 - (fallos / ejecuciones). Sin ejecuciones la
+   * salud es 0 (sin datos), nunca un 0.992 declarado.
+   */
+  public getHealth(): number {
+    if (this.totalExecutions === 0) return 0;
+    return parseFloat((1 - this.failedExecutions / this.totalExecutions).toFixed(4));
+  }
+
+  /**
+   * Speedup real medido: media de latencias turbo / media de latencias
+   * regulares. Si falta una de las dos series no hay speedup medible y se
+   * devuelve 1.0 (sin aceleración declarable).
+   */
+  public getTurboSpeedupFactor(): number {
+    if (this.turboLatencies.length === 0 || this.regularLatencies.length === 0) return 1.0;
+    const avg = (values: number[]) => values.reduce((a, b) => a + b, 0) / values.length;
+    const regularAvg = avg(this.regularLatencies);
+    const turboAvg = avg(this.turboLatencies);
+    if (turboAvg <= 0 || regularAvg <= 0) return 1.0;
+    return parseFloat((regularAvg / turboAvg).toFixed(3));
+  }
+
+  /** Ahorro real de un acierto de caché turbo frente a la media de ejecuciones completas. */
+  private realCacheHitSavingsMs(hitMs: number): number {
+    if (this.latencies.length === 0) return 0;
+    const avg = this.latencies.reduce((a, b) => a + b, 0) / this.latencies.length;
+    return parseFloat(Math.max(0, avg - hitMs).toFixed(3));
   }
 
   public getPortBreakdown(): PortLatencyMap {
@@ -234,8 +265,17 @@ export class HexagonalPipeline {
   }
 
   public getCacheHitRate(): number {
-    if (this.totalExecutions === 0) return 100;
+    if (this.totalExecutions === 0) return 0; // sin ejecuciones no hay tasa medible
     return parseFloat(((this.cacheHits / this.totalExecutions) * 100).toFixed(1));
+  }
+
+  /** Totales crudos para que el router agregue tasas sin promediar promedios. */
+  public getExecutionTotals(): { executions: number; hits: number; failures: number } {
+    return {
+      executions: this.totalExecutions,
+      hits: this.cacheHits,
+      failures: this.failedExecutions,
+    };
   }
 
   async execute<T>(
@@ -285,7 +325,13 @@ export class HexagonalPipeline {
 
     // Puerto 4: Inference (ejecución de la función invocada)
     const tInferenceStart = performance.now();
-    const result = await fn();
+    let result: T;
+    try {
+      result = await fn();
+    } catch (error) {
+      this.failedExecutions++;
+      throw error;
+    }
     const inferenceDuration = performance.now() - tInferenceStart;
     this.recordPortTiming("Inference", Math.max(0.1, inferenceDuration));
 
@@ -309,7 +355,9 @@ export class HexagonalPipeline {
 
     const totalMs = performance.now() - start;
     this.latencies.push(parseFloat(totalMs.toFixed(3)));
+    this.regularLatencies.push(parseFloat(totalMs.toFixed(3)));
     if (this.latencies.length > 1000) this.latencies.shift();
+    if (this.regularLatencies.length > 1000) this.regularLatencies.shift();
 
     return {
       result,
@@ -367,7 +415,9 @@ export class HexagonalPipeline {
         return {
           result: cached,
           metrics: this.getMetrics(),
-          turboSavingsMs: 12.5,
+          // Ahorro medido (media de ejecuciones completas − latencia del hit),
+          // no un "12.5 ms" declarado sin medición.
+          turboSavingsMs: this.realCacheHitSavingsMs(totalHitMs),
         };
       }
     }
@@ -396,7 +446,13 @@ export class HexagonalPipeline {
 
     // Puerto 4: Inference
     const tInferenceStart = performance.now();
-    const result = await fn();
+    let result: T;
+    try {
+      result = await fn();
+    } catch (error) {
+      this.failedExecutions++;
+      throw error;
+    }
     const inferenceDuration = performance.now() - tInferenceStart;
     this.recordPortTiming("Inference", Math.max(0.05, inferenceDuration));
 
@@ -419,7 +475,9 @@ export class HexagonalPipeline {
 
     const totalMs = performance.now() - start;
     this.latencies.push(parseFloat(totalMs.toFixed(3)));
+    this.turboLatencies.push(parseFloat(totalMs.toFixed(3)));
     if (this.latencies.length > 1000) this.latencies.shift();
+    if (this.turboLatencies.length > 1000) this.turboLatencies.shift();
 
     return {
       result,
@@ -438,29 +496,9 @@ export class DoublePipelineRouter {
   private turboModeEnabled = true;
 
   constructor() {
-    // Generar historial inicial para visualización en carga
-    const now = Date.now();
-    for (let i = 12; i >= 0; i--) {
-      const t = new Date(now - i * 5000);
-      const timeStr = t.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-      const mA = this.A.getMetrics();
-      const mB = this.B.getMetrics();
-      this.history.push({
-        time: timeStr,
-        p50A: mA.p50,
-        p95A: mA.p95,
-        p99A: mA.p99,
-        p50B: mB.p50,
-        p95B: mB.p95,
-        p99B: mB.p99,
-        totalA: mA.totalMs,
-        totalB: mB.totalMs,
-      });
-    }
+    // Historial vacío: el gráfico se llena sólo con puntos reales de
+    // appendHistoryPoint(). Antes se generaban 13 puntos con timestamps
+    // falsos para simular actividad previa.
   }
 
   public setTurboMode(enabled: boolean): void {
@@ -494,24 +532,32 @@ export class DoublePipelineRouter {
   public getSnapshot(): DoublePipelineSnapshot {
     const mA = this.A.getMetrics();
     const mB = this.B.getMetrics();
+    const totalsA = this.A.getExecutionTotals();
+    const totalsB = this.B.getExecutionTotals();
+    const executions = totalsA.executions + totalsB.executions;
+    const hits = totalsA.hits + totalsB.hits;
     const totalSavings = parseFloat(
       (this.A.getParallelSavings() + this.B.getParallelSavings()).toFixed(2),
     );
+    const speedup = this.turboModeEnabled
+      ? parseFloat(
+          ((this.A.getTurboSpeedupFactor() + this.B.getTurboSpeedupFactor()) / 2).toFixed(3),
+        )
+      : 1.0;
 
     return {
       timestamp: new Date().toISOString(),
       activePipeline: this.activePipeline,
-      healthA: 0.992,
-      healthB: 0.985,
+      // Salud medida (1 - fallos/ejecuciones), no valores declarados.
+      healthA: this.A.getHealth(),
+      healthB: this.B.getHealth(),
       metricsA: mA,
       metricsB: mB,
       history: [...this.history],
       totalProcessed: (mA.sampleCount || 0) + (mB.sampleCount || 0),
-      cacheHitRatePct: parseFloat(
-        ((this.A.getCacheHitRate() + this.B.getCacheHitRate()) / 2).toFixed(1),
-      ),
+      cacheHitRatePct: executions === 0 ? 0 : parseFloat(((hits / executions) * 100).toFixed(1)),
       turboModeEnabled: this.turboModeEnabled,
-      turboSpeedupFactor: this.turboModeEnabled ? 3.42 : 1.0,
+      turboSpeedupFactor: speedup,
       parallelSavingsMs: totalSavings,
     };
   }
@@ -554,9 +600,19 @@ export class DoublePipelineRouter {
       policyVersion?: string;
     },
   ) {
-    // health score 0-1, latency p95
-    const scoreA = health.A * 0.5 + (1 - health.latencyA / 100) * 0.5;
-    const scoreB = health.B * 0.5 + (1 - health.latencyB / 100) * 0.5;
+    // Selección por score (salud 0-1 + p95). La salud y la latencia se toman
+    // de MEDICIONES reales cuando el pipeline ya tiene ejecuciones; el
+    // parámetro `health` sólo sirve como pista de arranque antes de la primera
+    // ejecución (auditoría P0-10: antes la decisión dependía de cifras
+    // inyectadas por el llamador: 0.992/0.985 y 1.8/2.4 ms).
+    const totalsA = this.A.getExecutionTotals();
+    const totalsB = this.B.getExecutionTotals();
+    const healthA = totalsA.executions > 0 ? this.A.getHealth() : health.A;
+    const healthB = totalsB.executions > 0 ? this.B.getHealth() : health.B;
+    const latencyA = totalsA.executions > 0 ? this.A.getMetrics().p95 : health.latencyA;
+    const latencyB = totalsB.executions > 0 ? this.B.getMetrics().p95 : health.latencyB;
+    const scoreA = healthA * 0.5 + (1 - Math.min(100, latencyA) / 100) * 0.5;
+    const scoreB = healthB * 0.5 + (1 - Math.min(100, latencyB) / 100) * 0.5;
     const chosen = scoreA >= scoreB ? this.A : this.B;
     const fallback = chosen === this.A ? this.B : this.A;
     this.activePipeline = chosen.id;
