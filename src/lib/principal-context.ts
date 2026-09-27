@@ -157,9 +157,21 @@ export class PrincipalContext {
           headers,
         ),
       };
-    const hasApiKey = request.headers.has("x-isabella-api-key");
-    if (hasApiKey) {
-      const authResult = await ApiKeyAuthenticator.authenticate(request);
+    const authorizationHeader = request.headers.get("authorization");
+    const hasApiKeyHeader = request.headers.has("x-isabella-api-key");
+    const hasApiKeyScheme = Boolean(authorizationHeader && /^ApiKey\s+\S+$/i.test(authorizationHeader));
+    if (hasApiKeyHeader || hasApiKeyScheme) {
+      const apiKeyRequest = hasApiKeyHeader
+        ? request
+        : (() => {
+            const headers = new Headers(request.headers);
+            headers.set(
+              "x-isabella-api-key",
+              authorizationHeader!.replace(/^ApiKey\s+/i, "").trim(),
+            );
+            return new Request(request, { headers });
+          })();
+      const authResult = await ApiKeyAuthenticator.authenticate(apiKeyRequest);
       if (!authResult.success)
         return {
           success: false,
