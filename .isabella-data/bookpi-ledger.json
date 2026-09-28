@@ -3100,5 +3100,129 @@
     "nonce": 114,
     "hash": "0093e290c6c99df2b5d8d2d2b54aa643ca2346683fbc99aca12cd4285ea99177",
     "cid": "bafyrei3FnqSkpxJYAsjfNzFzJ3oGhaDuJjw2Vo"
+  },
+  {
+    "index": 200,
+    "timestamp": "2026-09-28T03:17:22.574Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "87386197a6584ff3",
+      "context": "boot"
+    },
+    "prevHash": "0093e290c6c99df2b5d8d2d2b54aa643ca2346683fbc99aca12cd4285ea99177",
+    "nonce": 71,
+    "hash": "00dfa6450f467a44e5dea404c2a01a638c12bbb4b9191785949e51bd0b3ef6a7",
+    "cid": "bafyrei4QoDFHVCs8AgnNwNgozA9Hf9fwUFpav2"
+  },
+  {
+    "index": 201,
+    "timestamp": "2026-09-28T03:17:22.597Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "a86cc013f0873ef7"
+    },
+    "prevHash": "00dfa6450f467a44e5dea404c2a01a638c12bbb4b9191785949e51bd0b3ef6a7",
+    "nonce": 112,
+    "hash": "003c447aff66ac4acab460c8019f782bdc35197f782a542d7978090e6b8c4722",
+    "cid": "bafyreivJTB6noKLc2XGeQNQxM2MrnFcXe2A5bs"
+  },
+  {
+    "index": 202,
+    "timestamp": "2026-09-28T03:17:26.826Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "a18fc44b7e9db89c",
+      "context": "boot"
+    },
+    "prevHash": "003c447aff66ac4acab460c8019f782bdc35197f782a542d7978090e6b8c4722",
+    "nonce": 16,
+    "hash": "0017a2d75de2310a5ce590c7e61401ea895d40e41df3042feccb99211d1f72c2",
+    "cid": "bafyreiMuRfv83NfTU598eDgaw4yNyTKJjicSzX"
+  },
+  {
+    "index": 203,
+    "timestamp": "2026-09-28T03:17:26.855Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "cdcf46ce6e8c623a"
+    },
+    "prevHash": "0017a2d75de2310a5ce590c7e61401ea895d40e41df3042feccb99211d1f72c2",
+    "nonce": 351,
+    "hash": "00ea5389715f9180fb6d2bcd58fe6129733d482449ce349526d7458d31398313",
+    "cid": "bafyrei4aEtHFLkDQFSuvATTGwiK4qgfmewLWgu"
+  },
+  {
+    "index": 204,
+    "timestamp": "2026-09-28T03:17:30.979Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "0d37366e1b2df203",
+      "context": "boot"
+    },
+    "prevHash": "00ea5389715f9180fb6d2bcd58fe6129733d482449ce349526d7458d31398313",
+    "nonce": 160,
+    "hash": "00075b3c710472f63354b59323705f757d9bbd587bba8476db14e188428599bd",
+    "cid": "bafyrei7WMHRsKjrfbTXcm5FtTKAThRWeePdamW"
+  },
+  {
+    "index": 205,
+    "timestamp": "2026-09-28T03:17:31.015Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "f7bbdecb3d58abfe"
+    },
+    "prevHash": "00075b3c710472f63354b59323705f757d9bbd587bba8476db14e188428599bd",
+    "nonce": 184,
+    "hash": "003eefc453c9261e29a9cd4f36045957d90788f1007ca53ca7624ee6396cff8c",
+    "cid": "bafyreixfN5eEomg3GpwfUsqok5Ud5B6HPggjAp"
+  },
+  {
+    "index": 206,
+    "timestamp": "2026-09-28T03:17:35.195Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "c80e9d59d182e305",
+      "context": "boot"
+    },
+    "prevHash": "003eefc453c9261e29a9cd4f36045957d90788f1007ca53ca7624ee6396cff8c",
+    "nonce": 13,
+    "hash": "0044663826dbd7e8f7e6e029a289a8d041d92b710d3d8fd3908e30ca3dbee2a4",
+    "cid": "bafyrei23VaPHzZwn2whF7FY9rQ3xDGwkDGCDEe"
+  },
+  {
+    "index": 207,
+    "timestamp": "2026-09-28T03:17:35.223Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "103752b52383a4af"
+    },
+    "prevHash": "0044663826dbd7e8f7e6e029a289a8d041d92b710d3d8fd3908e30ca3dbee2a4",
+    "nonce": 48,
+    "hash": "00c132836a58d772ec699a155c96d1371d1344c9f46c2be564b3055ddc0c6944",
+    "cid": "bafyrei3ws9orEuiPvMv6miT3hpgjayEWDLZ1My"
   }
 ]
