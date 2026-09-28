@@ -144,7 +144,7 @@ jobs:
             > "artifacts/isabella-gateway-${RELEASE_TAG}.tar.gz.sig"
 
       - name: Attest build provenance (SLSA)
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: artifacts/isabella-gateway-${{ github.ref_name }}.tar.gz
 
