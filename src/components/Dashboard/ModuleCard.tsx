@@ -1,21 +1,7 @@
 import React, { useState } from "react";
 import { CognitiveModule } from "../../types";
 import { useCrown } from "../../context/CrownContext";
-import {
-  Brain,
-  Heart,
-  Zap,
-  Shield,
-  Layers,
-  Activity,
-  Sliders,
-  Settings2,
-  CheckCircle2,
-  AlertCircle,
-  TrendingUp,
-  Cpu,
-  Power,
-} from "lucide-react";
+import { Brain, Heart, Zap, Shield, Layers, Sliders, Power } from "lucide-react";
 import { soundManager } from "../../utils/soundEffects";
 
 interface ModuleCardProps {
@@ -23,29 +9,23 @@ interface ModuleCardProps {
   isFocused?: boolean;
 }
 
-export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isFocused = false }) => {
+type ModuleIcon = typeof Heart;
+
+const MODULE_ICONS: Record<string, ModuleIcon> = {
+  ISA: Heart,
+  SOPHIA: Brain,
+  ORION: Zap,
+  ARGUS: Shield,
+  CROWN_GATEWAY: Layers,
+};
+
+export const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
   const { updateModuleParameter, activeModuleId } = useCrown();
   const [showSettings, setShowSettings] = useState(false);
 
   const isCurrentActive = activeModuleId === module.id;
 
-  const getModuleIcon = () => {
-    switch (module.id) {
-      case "ISA":
-        return Heart;
-      case "SOPHIA":
-        return Brain;
-      case "ORION":
-        return Zap;
-      case "ARGUS":
-        return Shield;
-      case "CROWN_GATEWAY":
-      default:
-        return Layers;
-    }
-  };
-
-  const Icon = getModuleIcon();
+  const Icon = MODULE_ICONS[module.id] ?? Layers;
 
   const handleWeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateModuleParameter(module.id, "weight", parseFloat(e.target.value));
