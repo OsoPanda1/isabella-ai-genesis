@@ -694,8 +694,8 @@ export const CrownProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Pre-mint guest auth token on mount so first API call doesn't 401
   useEffect(() => {
-    import("../lib/auth-client").then(({ ensureAuthToken }) => {
-      ensureAuthToken().catch(() => {});
+    import("../lib/auth-client").then(({ ensureSessionToken }) => {
+      ensureSessionToken().catch(() => {});
     });
   }, []);
 
@@ -1067,7 +1067,7 @@ Puedes conversar conmigo, pedirme que sintetice voz en tiempo real, me solicites
         try {
           const { inferSovereign } = await import("../lib/isabella-inference-engine");
           const localResult = inferSovereign(trimmed, {
-            history: state.messages.slice(-8).map((m) => ({ role: m.role, content: m.content })),
+            history: state.messages.slice(-8).map((m) => ({ role: m.role ?? "user", content: m.content ?? "" })),
             activePreset: state.activePreset,
           });
 

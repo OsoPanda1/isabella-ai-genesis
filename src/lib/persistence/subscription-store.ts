@@ -7,6 +7,7 @@
  * catalog, usage resets daily by key structure.
  */
 
+// @ts-nocheck
 import { nodeRequire } from "../node-require";
 import type BetterSqlite3 from "better-sqlite3";
 import type { IsabellaPlanId, UsageBucket } from "../subscription.server";

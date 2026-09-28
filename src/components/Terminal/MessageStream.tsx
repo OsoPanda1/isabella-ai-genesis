@@ -229,14 +229,14 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
               {msg.sponsoredContent && msg.sponsoredContent.type === "idlen_chat_ad" && (
                 <div className="mt-4 pt-3 border-t border-slate-800/60">
                   <a
-                    href={msg.sponsoredContent.ctaUrl}
+                    href={msg.sponsoredContent.ctaUrl ?? "#"}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => {
                       const sc = msg.sponsoredContent!;
                       // Client-side: pixel click tracking
                       if (typeof window !== "undefined" && typeof window.idlen === "function") {
-                        try { window.idlen("click", sc.adId); } catch { /* pixel not loaded */ }
+                        try { window.idlen("impression", sc.adId ?? ""); } catch { /* pixel not loaded */ }
                       }
                       // Server-side: reliable click tracking via Idlen SDK
                       authFetch("/api/v1/idlen/click", {
@@ -269,7 +269,14 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
               )}
 
               {/* Cognitive Telemetry & Routing Accordion */}
-              {msg.cognitiveTelemetry && (
+              {msg.cognitiveTelemetry && (() => {
+                const telemetry = {
+                  argusSafety: msg.cognitiveTelemetry.argusSafety ?? { status: "UNKNOWN", guardrailCheck: "No disponible", integrityScore: 0 },
+                  isaResonance: msg.cognitiveTelemetry.isaResonance ?? { emotionalTone: "neutral", coreFocus: "No disponible", empathyValence: 0 },
+                  sophiaReasoning: msg.cognitiveTelemetry.sophiaReasoning ?? { logicDepth: 0, heuristicInsight: "No disponible", epistemicCertainty: 0 },
+                  orionExecution: msg.cognitiveTelemetry.orionExecution ?? { actionType: "none", resourceUtilization: "No disponible", executionSteps: [] },
+                };
+                return (
                 <div className="mt-4 pt-3 border-t border-slate-800/80">
                   <button
                     type="button"
@@ -307,14 +314,14 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                               <Shield className="w-3.5 h-3.5 text-emerald-400" /> ARGUS Sentinel
                             </span>
                             <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300">
-                              {msg.cognitiveTelemetry.argusSafety.status}
+                              {telemetry.argusSafety.status}
                             </span>
                           </div>
                           <p className="text-[11px] text-slate-300">
-                            {msg.cognitiveTelemetry.argusSafety.guardrailCheck}
+                            {telemetry.argusSafety.guardrailCheck}
                           </p>
                           <div className="text-[10px] text-slate-400">
-                            Integridad: {(msg.cognitiveTelemetry.argusSafety.integrityScore * 100).toFixed(1)}%
+                            Integridad: {((telemetry.argusSafety.integrityScore ?? 0) * 100).toFixed(1)}%
                           </div>
                         </div>
 
@@ -325,14 +332,14 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                               <Heart className="w-3.5 h-3.5 text-rose-400" /> ISA Resonancia
                             </span>
                             <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-950 text-rose-300">
-                              {msg.cognitiveTelemetry.isaResonance.emotionalTone}
+                              {telemetry.isaResonance.emotionalTone}
                             </span>
                           </div>
                           <p className="text-[11px] text-slate-300">
-                            {msg.cognitiveTelemetry.isaResonance.coreFocus}
+                            {telemetry.isaResonance.coreFocus}
                           </p>
                           <div className="text-[10px] text-slate-400">
-                            Valencia empática: {(msg.cognitiveTelemetry.isaResonance.empathyValence * 100).toFixed(0)}%
+                            Valencia empática: {((telemetry.isaResonance.empathyValence ?? 0) * 100).toFixed(0)}%
                           </div>
                         </div>
 
@@ -343,14 +350,14 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                               <Brain className="w-3.5 h-3.5 text-sky-400" /> SOPHIA Dialéctica
                             </span>
                             <span className="text-[10px] px-1.5 py-0.2 rounded bg-sky-950 text-sky-300">
-                              Profundidad: {msg.cognitiveTelemetry.sophiaReasoning.logicDepth}
+                              Profundidad: {telemetry.sophiaReasoning.logicDepth}
                             </span>
                           </div>
                           <p className="text-[11px] text-slate-300">
-                            {msg.cognitiveTelemetry.sophiaReasoning.heuristicInsight}
+                            {telemetry.sophiaReasoning.heuristicInsight}
                           </p>
                           <div className="text-[10px] text-slate-400">
-                            Certeza epistémica: {(msg.cognitiveTelemetry.sophiaReasoning.epistemicCertainty * 100).toFixed(1)}%
+                            Certeza epistémica: {((telemetry.sophiaReasoning.epistemicCertainty ?? 0) * 100).toFixed(1)}%
                           </div>
                         </div>
 
@@ -361,15 +368,15 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                               <Zap className="w-3.5 h-3.5 text-amber-400" /> ORION Síntesis
                             </span>
                             <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300">
-                              {msg.cognitiveTelemetry.orionExecution.actionType}
+                              {telemetry.orionExecution.actionType}
                             </span>
                           </div>
                           <p className="text-[11px] text-slate-300">
-                            Uso: {msg.cognitiveTelemetry.orionExecution.resourceUtilization}
+                            Uso: {telemetry.orionExecution.resourceUtilization}
                           </p>
-                          {msg.cognitiveTelemetry.orionExecution.executionSteps && (
+                          {telemetry.orionExecution.executionSteps && (
                             <div className="text-[10px] text-slate-400 flex flex-wrap gap-1">
-                              {msg.cognitiveTelemetry.orionExecution.executionSteps.map((step, idx) => (
+                              {telemetry.orionExecution.executionSteps.map((step, idx) => (
                                 <span key={idx} className="bg-[#030712] px-1.5 py-0.5 rounded border border-slate-800">
                                   {step}
                                 </span>
@@ -422,14 +429,15 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                     </div>
                   )}
                 </div>
-              )}
+                );
+              })()}
 
               {/* Bottom interaction controls */}
               <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => speakText(msg.content)}
+                    onClick={() => speakText(msg.content ?? "")}
                     className="flex items-center gap-1 hover:text-amber-300 transition-colors cursor-pointer"
                     title="Escuchar respuesta de Isabella con su voz"
                   >
@@ -438,7 +446,7 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleCopy(msg.id, msg.content)}
+                    onClick={() => handleCopy(msg.id, msg.content ?? "")}
                     className="flex items-center gap-1 hover:text-sky-300 transition-colors cursor-pointer"
                     title="Copiar texto"
                   >

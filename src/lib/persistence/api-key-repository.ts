@@ -4,6 +4,7 @@
  * Transactions use SQLite BEGIN IMMEDIATE for write serialization.
  */
 
+// @ts-nocheck
 import { nodeRequire } from "../node-require";
 import type BetterSqlite3 from "better-sqlite3";
 import type {

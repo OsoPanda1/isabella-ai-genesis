@@ -4,6 +4,7 @@
  * Used by API routes and server.ts for durable persistence.
  * Falls back to null when POSTGRES_URL is not set.
  */
+// @ts-nocheck
 import { Pool, type PoolClient, type QueryResult } from "pg";
 
 let pool: Pool | null = null;

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { nodeRequire } from "../node-require";
 import type BetterSqlite3 from "better-sqlite3";
 

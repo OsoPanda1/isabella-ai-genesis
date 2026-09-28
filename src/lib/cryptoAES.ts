@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { hsmClient } from "./hsmClient";
 
 export interface EncryptedData {

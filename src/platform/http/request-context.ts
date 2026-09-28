@@ -20,8 +20,8 @@ export const createRequestContext = (req: VercelRequest): RequestContext => {
   const traceValue = Array.isArray(traceHeader) ? traceHeader[0] : traceHeader;
   const requestValue = Array.isArray(requestHeader) ? requestHeader[0] : requestHeader;
 
-  const traceId = validId(traceValue ?? null) ? traceValue : `isabella-${randomUUID()}`;
-  const requestId = validId(requestValue ?? null) ? requestValue : `req-${randomUUID()}`;
+  const traceId = validId(traceValue ?? null) ? (traceValue ?? `isabella-${randomUUID()}`) : `isabella-${randomUUID()}`;
+  const requestId = validId(requestValue ?? null) ? (requestValue ?? `req-${randomUUID()}`) : `req-${randomUUID()}`;
   const startedAt = performance.now();
 
   return {

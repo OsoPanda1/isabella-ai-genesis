@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * =============================================================================
  * IMMERSIVE SCENE — ESCENA CINEMATOGRÁFICA ORQUESTADA

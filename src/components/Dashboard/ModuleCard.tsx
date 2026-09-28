@@ -80,7 +80,7 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isFocused = fals
         <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-800/80">
           <div className="flex items-center gap-3">
             <div
-              className={`flex items-center justify-center w-11 h-11 rounded-xl border shadow-inner ${module.themeColor.badge}`}
+              className={`flex items-center justify-center w-11 h-11 rounded-xl border shadow-inner ${module.themeColor?.badge ?? "border-slate-700 bg-slate-900/50"}`}
             >
               <Icon className="w-6 h-6" />
             </div>

@@ -4,7 +4,8 @@
  * Recupera únicamente memorias autorizadas y vigentes.
  */
 
-import type { MemoryScope, SensitivityLevel } from "../../contracts";
+export type MemoryScope = "session" | "user" | "tenant" | "public";
+export type SensitivityLevel = "public" | "internal" | "confidential" | "secret";
 
 export interface MemoryQuery {
   query: string;

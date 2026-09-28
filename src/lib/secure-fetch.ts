@@ -423,7 +423,7 @@ export const isabellaFetch = async (
     headers.set("Authorization", `Bearer ${config.accessToken}`);
   }
 
-  const timeout = createTimeoutSignal(timeoutMs, options.signal);
+  const timeout = createTimeoutSignal(timeoutMs, options.signal ?? undefined);
   try {
     const response = await fetch(url.toString(), {
       ...options,

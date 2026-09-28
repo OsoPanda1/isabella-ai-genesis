@@ -8,6 +8,7 @@
 
 import { randomUUID } from "node:crypto";
 import { nodeRequire } from "../../node-require";
+// @ts-expect-error Optional SQLite adapter; the module is loaded through nodeRequire at runtime.
 import type BetterSqlite3 from "better-sqlite3";
 import type {
   ContentAsset,
