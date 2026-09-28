@@ -1,8 +1,8 @@
 export const SCHEMA_TABLES = [
-  "isabella_memories",
-  "isabella_audit_logs",
-  "isabella_decisions",
-  "isabella_tool_runs",
+  { name: "isabella_memories", scope: "tenant/session", purpose: "Tenant-scoped hierarchical memory." },
+  { name: "isabella_audit_logs", scope: "tenant", purpose: "Append-only governance and audit events." },
+  { name: "isabella_decisions", scope: "tenant", purpose: "Policy and decision records." },
+  { name: "isabella_tool_runs", scope: "tenant", purpose: "Authorized tool execution outcomes." },
 ] as const;
 
 export const ISABELLA_SQL_MIGRATION = `
