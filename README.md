@@ -1,171 +1,123 @@
 # Isabella Villaseñor AI Genesis
 
-Plataforma de interacción cognitiva gobernada (Next.js/TanStack Start + Nitro), con pipeline FGAIS, autorización soberana, memoria jerárquica, registro de herramientas, economía con ledger, módulos de ejecución restringida, **policy-as-code** y **ledger durable de decisiones**.
+**Infraestructura cognitiva soberana, gobernada y auditable para TAMV Online y RDM Digital.**
 
-**Versión:** `4.3.3` (SSOT: `package.json`). **Rama:** `main`. **Fecha de esta revisión:** 2026-09-26.
+Isabella no es un chatbot ni una autoridad autónoma. Es una capa de orquestación que interpreta solicitudes, recupera memoria con alcance controlado, aplica políticas, coordina capacidades y responde con límites explícitos. El humano conserva la autoridad para aprobar, revisar y ejecutar decisiones de alto impacto.
 
-> Doctrina de capacidad (`AGENTS.md`): código existente ≠ capacidad verificada; build verde ≠ certificación; un gate `EVIDENCE_GATED` ≠ `PASS`; una firma simulada ≠ criptografía operativa.
+> **Estado operativo (28 de septiembre de 2026):** implementación avanzada en evolución. Los gates locales principales pasan, pero la preparación para producción depende de aplicar migraciones, configurar infraestructura real y obtener evidencia independiente. No se declara certificación, cumplimiento legal ni disponibilidad productiva sólo por tener un build verde.
 
-## Estado real
+## Qué hace
 
-Las cifras provienen de la auditoría de 500 ítems (`ISA-001..ISA-500`, 134 de severidad P0) re-verificada contra el código el 2026-09-26. Detalle y metodología: [`docs/status/ISA-500-STATUS-2026-09-26.md`](docs/status/ISA-500-STATUS-2026-09-26.md); checklist completo versionado en [`docs/status/ISABELLA-GENESIS-500-CHECKLIST.md`](docs/status/ISABELLA-GENESIS-500-CHECKLIST.md) (y `.json`/`.csv`). El mismo estado es el SSOT publicado en `production-capabilities.json`.
+- Ejecuta el pipeline FGAIS: `PERCEIVE → REMEMBER → POLICY GATE → DECIDE → ACT → AUDIT → RESPOND`.
+- Centraliza el arbitraje en CROWN y aplica autorización con PDP/PEP, aislamiento territorial y principio `deny by default`.
+- Coordina capacidades cognitivas especializadas mediante un registro único de skills.
+- Preserva procedencia, decisiones y eventos mediante BookPI y un ledger durable cuando existe persistencia configurada.
+- Protege salidas, credenciales, identidad y operaciones con ARGUS, validación de contratos, límites de cuota y kill switch.
+- Expone una interfaz operativa para chat, módulos de gobernanza, memoria, economía y observabilidad.
+- Permite degradación segura: una dependencia crítica ausente bloquea acciones sensibles; nunca se inventa un `allow`.
 
-| Métrica | Valor | Cómo se calcula |
-|---|---:|---|
-| Ítems `FIXED` (implementados **y** con prueba) | **44 / 500 = 8.8%** | sólo ítems con código + test |
-| Ítems `PARTIAL` | 374 / 500 = 74.8% | implementación parcial |
-| Ítems `STILL_BROKEN` | 72 / 500 = 14.4% | sin implementación verificable |
-| Ítems `BLOCKED_ENVIRONMENT` | 8 / 500 = 1.6% | requiere DB/GHCR/CI vivos |
-| **Implementación ponderada** | **46%** | `(44×1 + 374×0.5) / 500 = 46.2%` — **cota inferior** |
-| Ítems P0 `FIXED` | 35 / 134 = 26.1% | P0 ponderado: 47.0% |
-| Despliegue | 62% | avance real hasta Neon/Stripe/HSM vivos |
-| **Global** | **54%** | media aritmética `(46 + 62) / 2` |
+## Motor nativo y arquitectura
 
-Se declara explícitamente lo que **no** está: no hay un 100% de implementación ni un 97% de avance; el 46% es una cota inferior porque `PARTIAL` es además el valor por defecto para los ítems P1/P2 no auditados en profundidad.
+La implementación canónica vive en TypeScript sobre Vite, TanStack Start y Nitro, con React 19, contratos Zod, Prisma/Neon para persistencia opcional y adaptadores explícitos para proveedores. El núcleo se organiza así:
 
-> Los cambios del 2026-09-26 posteriores a la auditoría (canonicalización JCS en la cadena durable, aislamiento territorial ABAC, telemetría real del double-pipeline, policy-as-code y ledger de decisiones) **aún no se han re-contado** dentro de las 500 casillas; hasta re-ejecutar el conteo, las cifras de arriba se mantienen sin inflar.
-
-### Qué está verificado localmente (2026-09-26)
-
-| Gate | Estado |
-|---|---|
-| `pnpm typecheck` | PASS — 0 errores |
-| `pnpm lint` | PASS — 0 errores, 33 warnings |
-| `pnpm test` | PASS — **720 pruebas**, 13 omitidas, 0 fallos (117 archivos aprobados, 119 en total) |
-| `pnpm build` | PASS (Vite + Nitro) |
-| `pnpm security:scan` | PASS (SAST + secret scan) |
-| `pnpm verify:lock` | PASS |
-| `pnpm capabilities` | PASS — 31 capacidades (28 `real`, 2 `evidence-gated`, 1 `manual`) |
-| `pnpm audit:repository`, `pnpm audit:routes` | PASS |
-| `pnpm db:verify` | PASS — 36 migraciones, contrato estático OK (sin base viva) |
-| `pnpm production:integrity`, `pnpm production:preflight` | PASS — `static_ready`, 30 archivos validados |
-| `pnpm format:check` | PASS |
-
-### Qué sigue bloqueado o sin ejecutar
-
-- **CI de GitHub Actions bloqueado por billing (issue #66):** ningún workflow corre en HEAD (fallan en segundos sin runner asignado); es un bloqueo de cuenta, no de código. Los gates canónicos quedan `SKIPPED`/`EVIDENCE_GATED`.
-- **Migración `20260926030000` versionada pero no aplicada:** `isabella_policies` e `isabella_decisions` existen en código y RLS está declarado, pero hasta aplicarla en el ambiente, policy-as-code y decision ledger se publican como `production_safe: false`.
-- `k8s:image:verify --require-digest`: **BLOCKED_ENVIRONMENT** (GHCR devuelve `DENIED` en lectura anónima).
-- `db:migrate`, RLS en vivo, Neon/Stripe/HSM reales: sin `DATABASE_URL`/credenciales en este entorno; sólo se validan estáticamente. Docker no está instalado localmente.
-- `production:evidence`: declara `EVIDENCE_GATED` salvo con árbol limpio y commit *same-commit*; `EVIDENCE_GATED` no cuenta como `PASS`.
-- Ítems P0 abiertos de mayor impacto: MoE real (`ISA-003..017`), gobierno del router de inteligencia (`ISA-125`), borrado verificable (`ISA-427/428`), gate de secretos en CI (`ISA-325`, existe en `fgais-gate.yml` pero la protección de rama no es verificable desde aquí) y suites `ISA-379..391`/`ISA-393`. El gate de salida `ISA-140/175` quedó implementado y probado (ver fila de abajo).
-
-## Cambios recientes (2026-09-26/27)
-
-| Lote | Commits | Contenido |
+| Nodo | Responsabilidad | Regla de autoridad |
 |---|---|---|
-| Seguridad | `f0896d2` | Cadena durable fail-closed en runtime productivo (`HsmDurableUnavailableError`, sin fallback a memoria), canonicalización JCS (RFC 8785) en hash/firma de `authorization` y `ncua-protocol`, aislamiento territorial ABAC desde el contexto, salidas marcadas sin `raw`, telemetría **medida** en double-pipeline/sovereign-pipeline (fin de los valores sembrados con `Math.sin`), Dockerfile a `node:24-alpine` con `.dockerignore` y sin label SBOM embebido. |
-| Policy-as-code | `5dcef2d` | Migración `20260926030000` (tablas + RLS server-only + seeds fail-closed), `policy-repository`, `db-policy-gate` (overlay monótono) y su wiring en `execution-authority` (stage `db-policy`). 27 tests. |
-| Decisiones | `c1f5059` | `decision-repository` (ledger Postgres con verificación de cadena previa, idempotencia y `verifyChain`), persistencia del `ALLOW` **antes** del despacho (si la cadena no escribeable no se ejecuta) y del `DENY`/`REVIEW` best-effort, inyección desde `isabella-chat-gateway` cuando hay `DATABASE_URL`. 8 tests. |
-| Documentación | `afe5310`, `466372e` | README reescrito con estado real, capabilities + status ISA-500 versionados; absorción de `isabella-mexa-rh`: `docs/governance/` (marco, riesgos `AI-RISK-0001..0005`) y `docs/architecture/ADR-012-evidence-ledger.md`. |
-| Gate de salida (ISA-140/175) | `7380b9f` | `output-security-gate.ts` (PDP de salida fail-closed: credenciales, redactor, AEGIS, frontera TINA) aplicado en las 5 rutas SSE del gateway; reparación de `main` roto por los PRs #388/#389 (imports, `gatedContent`, prettier) y auditoría de rutas corregida para delegación ADR-001 (findings 18→0). 18 tests. |
-| Constitución OPA | `dd0aa14` | `policy/constitution.rego` (issue #137) adaptada a `k8s/` real + espejo ejecutable `src/lib/policy/constitution.ts` con 11 pruebas de paridad rego↔TS↔deployment. EVIDENCE_GATED hasta que OPA corra en CI. |
-| Registro ORCID | (commit de esta fila) | `docs/research/orcid-registry.json`: metadatos públicos del registro ORCID (26 grupos/47 works, 24 con DOI, 38 DOI distintos) + 6 pruebas de integridad. Metadata-only, sin verificar el contenido de los depósitos. |
+| **CROWN** | Arbitraje, routing, estado y decisión de política | Decide; no ejecuta side effects por sí mismo |
+| **ISA** | Presencia, tono y presentación | Presenta; no altera permisos |
+| **SOPHIA** | Evidencia, investigación y síntesis E0–E4 | Señala procedencia; no convierte predicción en hecho |
+| **ORION** | Herramientas, sandbox y workflows | Ejecuta sólo capacidades autorizadas |
+| **ARGUS** | Defensa, veto, riesgo y auditoría | Endurece o bloquea; no concede permisos |
+| **MNEMOS** | Memoria civilizatoria y preservación | Respeta scope, retención y procedencia |
+| **LUMEN** | Gobernanza constitucional y límites | Mantiene reglas versionadas y revisión humana |
 
-## Integración de Nodo Cero
+El motor turbo MoE, la inferencia remota, PQC, HSM, mesh offline y federación geográfica se tratan como capacidades condicionadas: deben demostrar implementación, pruebas, configuración y evidencia antes de publicarse como disponibles.
 
-`nodo-cero-isabella` es el repositorio del Nodo Cero (Real del Monte, Hidalgo), origen de los intentos previos de Isabella. Se reconstruyó desde su `.git/objects` (147 objetos sueltos + 2 packfiles; 62 commits, 4 puntas) y se integró lo funcional con `isabella-ai-genesis`:
+## Skills canónicos
 
-**Integrado (adaptado a `AGENTS.md`):**
+1. **ORION — Cognitive Archaeology Engine:** recuperación, relaciones y artefactos históricos.
+2. **SOPHIA — Deep Research and Synthesis Engine:** investigación, síntesis, vacíos y fuentes.
+3. **ARGUS — Sentinel and Future Impact Engine:** anomalías, riesgos, escenarios y veto.
+4. **MNEMOS — Civilizational Preservation Engine:** memoria estratificada, canonización y trazabilidad.
+5. **LUMEN — Constitutional Governance Engine:** políticas, obligaciones, supervisión y contención.
+6. **HERMES — Narrative and Communication Engine:** traducción comprensible y accesible.
+7. **ATLAS — Territorial Modeling Engine:** contexto territorial, rutas e impacto.
+8. **ANUBIS — Cryptographic and Evidence Sentinel:** integridad, custodia de claves y evidencia.
 
-- `data/migrations/006_rls_security.sql` + `data/seed/006_policies.sql` → migración `20260926030000_isabella_policy_as_code.sql`: tablas `isabella_policies`/`isabella_decisions`, RLS con el patrón server-only de este repo (`ENABLE` + `REVOKE`, no las políticas permisivas de origen), triggers append-only y seeds reescritos al vocabulario propio (`risk`, `category`, `territorialBoundary`, `authenticated`).
-- `domains/ai/src/infrastructure/policy-gate.ts` → `src/lib/db-policy-gate.ts`: **cambiado de fail-open a fail-closed** (el original devolvía `default_allow`/`no_rule_matched` → `allowed`); aquí sólo puede endurecer la decisión de ARGUS y la indisponibilidad de la fuente exige aprobación humana para herramientas sensibles.
-- `domains/ai/src/infrastructure/audit-tracer.ts` + tabla de decisiones → `src/lib/repositories/decision-repository.ts` sobre `governance/decision-ledger.ts` (la firma HMAC-SHA256 de origen se omite: aquí la cadena ya es SHA3-512 con `audit_events`/BookPI como autoridad de evidencia).
+Los nombres son un catálogo arquitectónico, no una afirmación de consciencia, agencia propia o capacidad humana. Cada skill debe tener contrato de entrada/salida, permisos, límites, telemetría, pruebas negativas y clasificación de evidencia.
 
-**Evaluado y NO integrado:**
+## Seguridad y gobernanza
 
-- `apps/rdm-hub/**` (Next.js territorial con audio/imagenes): producto distinto, sin relación con los huecos ISA-500; mezclarlo rompería el alcance del proyecto.
-- `packages/tamv-kernel/*` (event bus/store): solapado por `decision-ledger` + BookPI + outbox ya existentes.
-- `supabase/functions/model-router` y `cron-audit-sync` (Edge Functions Deno): duplicarían el router de inteligencia y la auditoría ya presentes.
-- `domains/*/src/contracts.ts`: contratos mínimos inferiores a `AGENTS.md` §7.
-- `docs/architecture/tamv-kernel-unificado.md` y `docs/isabella/blueprint.md`: documentación de diseño sin evidencia ejecutable; conservados como referencia, no como estado.
+- Autorización centralizada: el cliente nunca es autoridad para `tenant_id`, roles, precios, scopes o scores.
+- Identidad, tenant, policy, capability, cuota, entrada, salida y evidencia se validan antes de acciones sensibles.
+- Triple bloqueo de identidad: ontológico, semántico y conductual; cualquier bloqueo se audita y puede escalar a revisión humana.
+- Egress remoto mediante allowlist HTTPS con host exacto, sin redirecciones implícitas.
+- Secretos sólo en el entorno seguro o Secret Manager; jamás en código, logs, bundles, fixtures o documentación.
+- Ledger append-only con cadena verificable donde la infraestructura está disponible; un hash no equivale a WORM ni a certificación regulatoria.
+- Datos mínimos, retención explícita, separación de tenants y defensa en profundidad en repositorios.
 
-## Ciencia abierta y ORCID
+## Contratos y superficies técnicas
 
-`docs/research/orcid-registry.json` concentra los metadatos públicos del registro ORCID **0009-0008-5050-1539** (Edwin Oswaldo Castillo Trejo / Anubis Villaseñor): identidad, afiliaciones, researcher-urls y **38 DOI distintos** en 24 works (Zenodo, Figshare, OSF), con procedencia declarada y 6 pruebas de integridad. Es un registro **metadata-only**: no certifica el contenido de los depósitos ni acredita capacidades del sistema (AGENTS.md §19). Detalle y reglas de regeneración en `docs/research/README.md`.
+La fuente de verdad ejecutable son los validadores runtime y contratos en `src/lib/api-contracts.ts` y módulos relacionados. OpenAPI, SDKs y documentación son artefactos derivados. Las rutas deben validar entrada y salida, producir errores seguros, propagar `request_id`/`trace_id` y registrar decisiones sin PII innecesaria.
 
-## Funciones principales
+Puntos de integración principales:
 
-- Chat de Isabella con autorización soberana (RBAC + PDP) y fallback de invitado limitado a desarrollo/Preview.
-- Intro cinematográfica inicial por sesión, omisible y accesible.
-- Navegación modular con estado persistido en hash.
-- Pipeline FGAIS canónico: `PERCEIVE → REMEMBER → POLICY GATE → DECIDE → ACT → AUDIT → RESPOND`, con fail-closed en identidad, tenant, política, cuota, validación y evidencia.
-- **Policy-as-code:** reglas versionadas en `isabella_policies` (seeds fail-closed) aplicadas como overlay monótono sobre ARGUS; sin `DATABASE_URL` la capa se declara `not_configured` y no inventa un allow.
-- **Ledger de decisiones durable:** `isabella_decisions` append-only con cadena SHA3-512 verificada antes de cada insert; el `ALLOW` se persiste antes de ejecutar y un fallo de escritura bloquea la ejecución.
-- Memoria jerárquica (`immediate`, `session`, `project`, `territorial`, `historical`) con procedencia y límites de scope.
-- Registro de herramientas con `requiredPermissions` mapeados de forma explícita a RBAC (deny-by-default si el permiso no está mapeado) y re-evaluación inmediata antes de ejecutar.
-- Proveedores de inteligencia locales/OpenAI-compatible y federación gratuita opt-in; todo egress remoto pasa por la allowlist centralizada (`SecuritySystem.fetchSafeUpstream`, HTTPS + host exacto + sin redirecciones).
-- Webhooks de connect verificados por firma con cola idempotente durable.
-- BookPI y telemetría para trazabilidad: las abstracciones **no** se presentan como WORM, HSM ni certificación sin evidencia externa.
+- `src/core/`: contratos, kernel y capacidades cognitivas.
+- `src/lib/`: seguridad, configuración, persistencia, policy-as-code y ledger.
+- `src/routes/` y `src/server-routes/`: API y PEPs de borde.
+- `src/components/`: terminal cognitivo y módulos de operación.
+- `policy/`: constitución y reglas versionadas.
+- `scripts/`: verificación de locks, secretos, rutas, capacidades, base y evidencia.
+- `docs/`: ADRs, runbooks, riesgos, contratos y estado verificable.
 
-## Arquitectura de ejecución
+## Estado de preparación
 
-```text
-PERCEIVE → REMEMBER → POLICY GATE → DECIDE → ACT → AUDIT → RESPOND
-```
+Las métricas de preparación se deben actualizar con evidencia reproducible, no con estimaciones narrativas. En esta rama, el baseline documentado es el de `docs/status/ISA-500-STATUS-2026-09-26.md`; las capacidades nuevas deben recontarse después de cada cambio relevante.
 
-Nodos: `CROWN` (arbitraje/routing/estado), `ISA` (presencia/tono), `SOPHIA` (evidencia/E0–E4), `ORION` (herramientas/sandbox), `ARGUS` (defensa/veto/auditoría).
+Bloqueadores habituales para producción:
 
-El `POLICY GATE` evalúa en dos capas: motor ARGUS de código (`policy-engine.ts`) y overlay de reglas versionadas (`db-policy-gate.ts` sobre `isabella_policies`); la segunda sólo puede endurecir a la primera. Las mutaciones, operaciones económicas, cambios de permisos y herramientas con efectos laterales fallan cerradas cuando falta identidad, decisión de política, capability, cuota, validación o evidencia requerida.
+- Migraciones y RLS deben aplicarse y verificarse en el ambiente objetivo.
+- Neon/DB, proveedor de inferencia, Stripe, KMS/HSM y observabilidad deben estar configurados con credenciales reales y rotación definida.
+- CI debe ejecutar lockfile, typecheck, lint, tests, build, SAST, secret scan, CodeQL y gates de migración.
+- Deben existir rollback, backup/restore probado, alertas, runbooks y evidencia de aislamiento cross-tenant.
+- Las afirmaciones legales, regulatorias, científicas o de certificación requieren revisión competente independiente.
 
-## Desarrollo
+## Desarrollo y validación
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm dev
 pnpm typecheck
 pnpm lint
 pnpm test
 pnpm build
+pnpm verify:lock
+pnpm security:scan
+pnpm audit:repository
+pnpm audit:routes
+pnpm db:verify
 ```
 
-Gates completos (revisa `package.json` antes de invocarlos; ejecuta sólo los que tengan variables e infraestructura configuradas):
+Para una validación de producción, usar el gate existente sólo cuando sus dependencias estén disponibles:
 
 ```bash
-pnpm verify:lock && pnpm security:scan && pnpm capabilities
-pnpm audit:repository && pnpm audit:routes && pnpm db:verify
-pnpm production:integrity && pnpm production:preflight
-pnpm production:gate        # cadena completa, incluye production:evidence
+pnpm production:gate
 ```
 
-El build de Vercel usa Nitro y genera `.vercel/output`; es artefacto generado y está excluido del control de versiones.
+No se deben ignorar fallos ni convertir warnings en evidencia de seguridad. Un check bloqueado por infraestructura se reporta como `BLOCKED_ENVIRONMENT` o `EVIDENCE_GATED`.
 
-## Configuración esencial
+## Despliegue
 
-Usa `.env.example` como contrato. Los secretos reales **REDACTED**: viven sólo en variables seguras del entorno y en Secret Manager del proveedor de despliegue; nunca en código, logs, UI, fixtures ni documentación.
+El proyecto genera salida Vite/Nitro y debe desplegarse con la configuración de `vercel.json` y el pipeline versionado. El orden mínimo es: instalar con lockfile congelado, validar contratos, ejecutar migraciones aprobadas, comprobar secretos y persistencia, construir, revisar el output y realizar un smoke test autenticado. No se deben desplegar artefactos locales, bases embebidas ni datos de auditoría generados.
 
-Para la operación mínima de producción se requieren persistencia configurada, `AUTH_JWT_SECRET`, `ENCRYPTION_MASTER_KEY`, `CROWN_POLICY_SIGNING_KEY`, `AEGIS_AUDIT_SECRET`, `BOOKPI_SIGNING_KEY`, `PROVISION_OWNER_TOKEN`, `API_KEY_HASH_SECRET` y, si se habilita inferencia externa, la credencial del proveedor correspondiente. Catálogo completo: [`docs/operations/SECRETS-CATALOG.md`](docs/operations/SECRETS-CATALOG.md).
+## Ciencia abierta y licenciamiento
 
-El acceso a `process.env` está centralizado en `src/lib/config.ts` (`passthroughEnv`, `passthroughChildEnv`, `fingerprintEnvSource`); el resto del código consume esa única superficie.
+La documentación distingue código, dependencias, datos, marcas, contenido y modelos. Consulta `LICENSE`, `LICENSES.md`, `LICENSE-CONTROL.md`, `NOTICE` y los documentos de procedencia antes de redistribuir. ORCID, DOI, Zenodo, OSF, JSON-LD, DID o credenciales verificables son mecanismos de interoperabilidad y preservación; su presencia no prueba por sí sola autoría, titularidad, cumplimiento o certificación.
 
-**Orden de despliegue con la nueva gobernanza:** aplicar `pnpm db:migrate` (job `migrate` de `deploy-production.yml`) *antes* de servir tráfico: `isabella_policies` e `isabella_decisions` deben existir para que el `ALLOW` de herramientas pueda persistirse. Sin `DATABASE_URL` (Preview/dev) la capa se desactiva de forma declarada, no silenciosa.
+## Gobernanza documental
 
-En Preview, el chat invitado requiere `ALLOW_GUEST_CHAT=true`; en producción debe usarse identidad firmada o `X-Isabella-API-Key`. Los proveedores IA remotos son opt-in, exigen endpoint HTTPS explícito y una respuesta de modelo nunca se convierte automáticamente en evidencia verificada.
+- `AGENTS.md` es la autoridad operativa para agentes y contribuyentes.
+- Los ADRs fijan decisiones técnicas y sus estados de evidencia.
+- `docs/status/` contiene el estado cuantificado y sus límites.
+- `docs/security/` y `docs/operations/` contienen controles y runbooks.
+- Los documentos históricos no sustituyen contratos ni código ejecutable.
 
-## Documentación y limpieza
-
-- `AGENTS.md`: reglas canónicas de arquitectura, seguridad y despliegue.
-- `docs/INDEX.md`: entrada única a documentación viva.
-- `docs/status/ISA-500-STATUS-2026-09-26.md`: estado real de la auditoría de 500 ítems.
-- `docs/status/ISABELLA-GENESIS-500-CHECKLIST.{md,json,csv}`: checklist de remediación completo (500 ítems) versionado en el repo.
-- `docs/01..07`: canon funcional, operaciones, seguridad, economía, ML, contribución y categoría.
-- `docs/operations/`, `docs/security/`, `docs/evidence/`: runbooks, contratos y evidencia.
-- `docs/_archive/`: histórico deliberado; no es fuente de estado actual.
-
-Los duplicados binarios rastreados con funciones distintas se conservan separados (assets, fixtures de despliegue, catálogos de policy y documentación histórica no son intercambiables). Los directorios `.output`, `dist`, `.next` y caches son generados y no deben versionarse.
-
-## Seguridad y honestidad operativa
-
-No introduzcas tokens, claves, datos personales, dumps ni certificados privados. Las claves de firma y credenciales se mantienen **REDACTED** en la documentación y se gestionan únicamente mediante variables seguras del entorno/Secret Manager.
-
-Prohibiciones verificadas por gates: sin datos sintéticos en runtime productivo, sin adapters de test fuera de test/dev, sin `process.env` directo fuera de `src/lib/config.ts`, sin secretos en el repositorio (`pnpm security:scan`).
-
-Un modelo no es una autoridad; una predicción no es un hecho; una recomendación no es una aprobación. Toda capacidad debe conservar procedencia, límites, revisión humana cuando corresponda y evidencia reproducible.
-
-## Licencias
-
-Consulta `LICENSE`, `LICENSES.md`, `LICENSE-CONTROL.md`, `LICENSE-SOVEREIGN.md` y `NOTICE`. Las dependencias y subproyectos conservan sus propias licencias. El material proveniente del Nodo Cero se integra bajo las mismas condiciones; su procedencia queda registrada en la sección *Integración de Nodo Cero*.
-
-## Mantenimiento
-
-Antes de publicar: ejecuta los checks reproducibles, revisa `git diff`, confirma las variables del entorno objetivo y registra cualquier check bloqueado. No se afirma que el proyecto esté certificado o listo para producción sólo porque el build local sea verde.
+**Principio rector:** Isabella sugiere, calcula y evalúa; las personas deciden, aprueban y ejecutan.
