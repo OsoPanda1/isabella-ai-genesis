@@ -1,7 +1,6 @@
-/**
- * TINA BookPI hash-chain ledger (src/lib/tina/ledger.ts)
- * In-process append-only chain for TINA orchestration events.
- * Production durable ledger remains BookPI Postgres / bookpi-signer.
+/** TINA BookPI hash-chain ledger (src/lib/tina/ledger.ts).
+ * This class is intentionally an in-memory test/development adapter.
+ * Production audit must use the durable BookPI/decision repository.
  */
 import { sha256Hex } from "./ethical";
 
@@ -13,39 +12,46 @@ export interface TinaBookEvent {
   previousHash: string | null;
 }
 
+function canonicalBody(event: Pick<TinaBookEvent, "type" | "timestamp" | "payload" | "previousHash">): string {
+  return JSON.stringify({
+    type: event.type,
+    timestamp: event.timestamp,
+    payload: event.payload,
+    previousHash: event.previousHash,
+  });
+}
+
 export class TinaBookPI {
   private events: TinaBookEvent[] = [];
 
   async append(type: string, payload: Record<string, unknown>): Promise<TinaBookEvent> {
-    const previous = this.events.at(-1)?.hash ?? null;
-    const body = JSON.stringify({ type, payload, previous });
-    const hash = sha256Hex(body);
-    const event: TinaBookEvent = {
-      type,
-      timestamp: new Date().toISOString(),
-      payload,
-      hash,
-      previousHash: previous,
-    };
+    const previousHash = this.events.at(-1)?.hash ?? null;
+    const timestamp = new Date().toISOString();
+    const hash = sha256Hex(canonicalBody({ type, timestamp, payload, previousHash }));
+    const event: TinaBookEvent = { type, timestamp, payload, hash, previousHash };
     this.events.push(event);
     return event;
   }
 
   list(): readonly TinaBookEvent[] {
-    return [...this.events];
+    return this.events.map((event) => ({
+      ...event,
+      payload: { ...event.payload },
+    }));
   }
 
   last(): TinaBookEvent | undefined {
-    return this.events.at(-1);
+    const event = this.events.at(-1);
+    return event ? { ...event, payload: { ...event.payload } } : undefined;
   }
 
   verifyChain(): boolean {
-    let prev: string | null = null;
-    for (const e of this.events) {
-      if (e.previousHash !== prev) return false;
-      const body = JSON.stringify({ type: e.type, payload: e.payload, previous: e.previousHash });
-      if (sha256Hex(body) !== e.hash) return false;
-      prev = e.hash;
+    let previousHash: string | null = null;
+    for (const event of this.events) {
+      if (event.previousHash !== previousHash) return false;
+      const expected = sha256Hex(canonicalBody(event));
+      if (expected !== event.hash) return false;
+      previousHash = event.hash;
     }
     return true;
   }

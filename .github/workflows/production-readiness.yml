@@ -1,15 +1,4 @@
-name: Production Readiness & Sovereign Security Matrix (Final)
-
-# Repository: https://github.com/OsoPanda1/isabella-mexa.git
-# Purpose: Hardened, provenance-first CI/CD pipeline for Isabella Core (Node + Rust + K8s)
-# Features:
-#  - Secret scanning baseline (gitleaks + trufflehog)
-#  - Multi-language build (Rust core + Node/TS web)
-#  - Deterministic installs (pnpm --frozen-lockfile), strict lint/typecheck
-#  - SBOM generation (CycloneDX), SLSA-style provenance attestation
-#  - Image build, multi-stage caching, Trivy scanning, cosign OIDC signing
-#  - IaC scanning (Checkov, KubeLinter), canary rollout + smoke tests, automatic rollback
-#  - Minimal permissions, OIDC-based signing recommended, artifact retention and provenance recording
+name: Production Readiness
 
 on:
   push:
@@ -24,132 +13,36 @@ concurrency:
 
 permissions:
   contents: read
-  id-token: write
-  packages: write
   security-events: write
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}/isabella-core
-  DEFAULT_NODE_VERSION: "22"
-  PROVENANCE_SIGNER: "github-actions-provenance"
-  CANONICAL_ORIGINS: ${{ vars.CANONICAL_ORIGINS }}
-  SLSA_LEVEL: "2"
-
-defaults:
-  run:
-    shell: bash
-    timeout-minutes: 45
+  NODE_VERSION: "24.11.0"
+  PNPM_VERSION: "10.34.5"
 
 jobs:
-  # =========================================================================
-  # JOB 1: Secret Scan & Baseline (Gitleaks + TruffleHog)
-  # =========================================================================
-  secret-scan:
-    name: Secret Scan & Baseline
+  canonical-gate:
+    name: Canonical FGAIS gate
+    uses: ./.github/workflows/fgais-gate.yml
+    permissions:
+      contents: read
+
+  dependency-security:
+    name: Dependency and secret security
     runs-on: ubuntu-latest
-    outputs:
-      secret_scan_status: ${{ steps.gitleaks.outcome }}
+    needs: canonical-gate
     steps:
-      - name: Checkout repository (full)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Gitleaks scan (baseline + fail on new secrets)
-        id: gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        with:
-          args: --redact --exit-code 1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: TruffleHog deep scan (entropy + regex)
-        id: trufflehog
-        uses: trufflesecurity/trufflehog@v2
-        with:
-          path: .
-          format: json
-        continue-on-error: true
-
-      - name: Publish secret-scan summary to Security Events
-        if: always()
-        run: |
-          echo "Secret scan completed. Gitleaks exit: ${{ steps.gitleaks.outcome }}"
-
-  # =========================================================================
-  # JOB 2: Rust Core Engine (Wasmtime + LITLE Engine)
-  # =========================================================================
-  rust-core:
-    name: Rust Core (Wasmtime + LITLE Engine)
-    runs-on: ubuntu-latest
-    needs: [secret-scan]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Rust toolchain (stable)
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
-
-      - name: Restore Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: "rust-core-cache-${{ github.sha }}"
-
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-
-      - name: Static analysis (clippy)
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
-
-      - name: Run unit & integration tests (release)
-        run: cargo test --workspace --all-features --release
-
-      - name: Cargo audit (vulnerability check)
-        uses: rustsec/audit-check@v1.4.1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build release artifacts
-        run: cargo build --workspace --release
-
-      - name: Generate SBOM (cargo-bom if available)
-        run: |
-          if command -v cargo-bom >/dev/null 2>&1; then
-            cargo bom -o sbom-rust.json || true
-          fi
-
-      - name: Upload Rust artifacts & SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: rust-core-artifacts
-          path: |
-            target/release/
-            sbom-rust.json
-          retention-days: 7
-
-  # =========================================================================
-  # JOB 3: Node.js / TypeScript Web & API Engine (strict, reproducible)
-  # =========================================================================
-  node-app:
-    name: Node 22 TS Build, Audit & SBOM
-    runs-on: ubuntu-latest
-    needs: [secret-scan]
-    env:
-      NODE_OPTIONS: --enable-source-maps
-    steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
 
-      - name: Setup Node.js ${{ env.DEFAULT_NODE_VERSION }}
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.DEFAULT_NODE_VERSION }}
@@ -312,73 +205,33 @@ jobs:
         with:
           args: ./k8s || true
 
-      - name: Upload IaC scan results
+      - name: Repository secret/security gate
+        run: pnpm security:scan
+
+      - name: High/critical dependency gate
+        run: pnpm audit --audit-level=high
+
+      - name: Generate SBOM
+        run: pnpm sbom
+
+      - name: Upload SBOM
         uses: actions/upload-artifact@v4
         with:
-          name: iac-scan-results
-          path: |
-            checkov_report.json
-            kubelinter-report.json
-          retention-days: 7
+          name: production-sbom-${{ github.sha }}
+          path: sbom.json
+          if-no-files-found: error
+          retention-days: 30
 
-  # =========================================================================
-  # JOB 6: Production Gate (Manual Approval + Policy Checks)
-  # =========================================================================
-  production-gate:
-    name: Production Gate Approval
-    needs: [secret-scan, rust-core, node-app, container-build, iac-scan]
+  deployment-contract:
+    name: Production deployment contract
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://isabella-mexa.vercel.app
+    needs: canonical-gate
     steps:
-      - name: Aggregate readiness checks
-        run: |
-          echo "Aggregating readiness signals..."
-          # Evaluate presence of SBOMs, Trivy results, secret-scan, test coverage
-          echo "SBOM present: $( [ -f sbom.cdx.json ] && echo yes || echo no )"
-
-      - name: Create readiness summary artifact
-        run: |
-          echo "readiness: approved" > readiness.txt
-
-      - name: Upload readiness artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: readiness-summary
-          path: readiness.txt
-
-      - name: Require manual approval (environment protection recommended)
-        uses: chrnorm/deploy-approval@v1
-        with:
-          reviewers: '["platform-eng","security-team"]'
-          timeout-minutes: 1440
-
-  # =========================================================================
-  # JOB 7: Canary Deploy to Node Zero (K8s) + Health Checks + Rollback
-  # =========================================================================
-  deploy-node-zero:
-    name: Canary Deploy to Node Zero (K8s)
-    needs: [production-gate]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release/'))
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://isabella-mexa.vercel.app
-    steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: node-production-artifacts
-          path: ./artifacts
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           version: "v1.30.0"
 
@@ -392,99 +245,17 @@ jobs:
         id: meta
         run: echo "IMAGE_TAG=sha-${{ github.sha }}" >> $GITHUB_OUTPUT
 
-      - name: Canary rollout (simple staged rollout)
+      - name: Validate production workflow has no synthetic deployment
         run: |
           set -euo pipefail
-          NAMESPACE=isabella-system
-          DEPLOY=isabella-kernel
-          IMAGE=ghcr.io/${{ github.repository }}/isabella-core:sha-${{ github.sha }}
+          test -f .github/workflows/deploy-production.yml
+          ! grep -RniE 'placeholder|no-op|continue-on-error: true|\|\| true'             .github/workflows/deploy-production.yml             .github/workflows/fgais-gate.yml
+          test "$(node -p "require('./package.json').engines.node")" = "24.x"
 
-          # Update image (controller or manual)
-          kubectl -n $NAMESPACE set image deployment/$DEPLOY isabella-kernel=$IMAGE --record
-          kubectl -n $NAMESPACE rollout status deployment/$DEPLOY --timeout=180s
-
-          # Stabilization window
-          sleep 30
-
-          # Readiness check
-          READY=$(kubectl -n $NAMESPACE get deploy $DEPLOY -o jsonpath='{.status.readyReplicas}')
-          if [ -z "$READY" ] || [ "$READY" -lt 1 ]; then
-            echo "Canary failed readiness" >&2
-            kubectl -n $NAMESPACE rollout undo deployment/$DEPLOY
-            exit 1
-          fi
-
-      - name: Post-deploy smoke tests
+      - name: Validate Vercel contract
         run: |
-          HEALTH_URL="https://isabella-mexa.vercel.app/api/v1/isabella"
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL || echo 000)
-          if [ "$STATUS" != "200" ]; then
-            echo "Smoke test failed with status $STATUS" >&2
-            kubectl -n isabella-system rollout undo deployment/isabella-kernel
-            exit 1
-          fi
-
-      - name: Promote canary to full (controller-managed or manual)
-        run: |
-          echo "Promotion step (no-op if controller handles promotion)"
-
-      - name: Record deployment provenance
-        run: |
-          echo "Recording deployment provenance: image=ghcr.io/${{ github.repository }}/isabella-core:sha-${{ github.sha }}" > deployment-provenance.txt
-        continue-on-error: true
-
-      - name: Upload deployment provenance
-        uses: actions/upload-artifact@v4
-        with:
-          name: deployment-provenance
-          path: deployment-provenance.txt
-          retention-days: 30
-
-      - name: Notify Slack (deployment)
-        if: always()
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          fields: repo,commit,author
-          custom_payload: |
-            {
-              "text": "Deployment to Node Zero completed for ${{ github.ref }} (sha: ${{ github.sha }})",
-              "attachments": [
-                { "text": "Canary promoted and smoke tests passed." }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-  # =========================================================================
-  # JOB 8: Post-Deployment Observability & SLO Check
-  # =========================================================================
-  post-deploy-observability:
-    name: Post-Deploy Observability & SLO Check
-    needs: [deploy-node-zero]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Query metrics backend (placeholder)
-        run: |
-          echo "Querying metrics backend for p50/p95 latency and error rate (placeholder)"
-
-      - name: Evaluate SLOs (placeholder)
-        run: |
-          echo "SLO check: p95 latency < 500ms (placeholder)"
-
-      - name: Create incident if SLO violated (placeholder)
-        if: failure()
-        run: |
-          echo "SLO violation detected - creating incident (placeholder)"
-
-  # =========================================================================
-  # JOB 9: Cleanup & Retention Policy Enforcement
-  # =========================================================================
-  cleanup:
-    name: Cleanup & Retention Enforcement
-    runs-on: ubuntu-latest
-    needs: [post-deploy-observability]
-    steps:
-      - name: Prune ephemeral artifacts older than 7 days (placeholder)
-        run: |
-          echo "Pruning ephemeral artifacts (placeholder)"
+          node -e '
+            const v=require("./vercel.json");
+            if (v.installCommand !== "pnpm install --frozen-lockfile") process.exit(1);
+            if (v.buildCommand !== "pnpm run build") process.exit(1);
+          '
