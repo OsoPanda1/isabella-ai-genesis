@@ -240,6 +240,7 @@ export type EnvVarProvider =
   | "supabase"
   | "stripe"
   | "gemini"
+  | "mux"
   | "openai"
   | "redis"
   | "crown"
