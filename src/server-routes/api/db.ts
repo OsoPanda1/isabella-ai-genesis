@@ -321,7 +321,7 @@ export const Route = createFileRoute("/api/db")({
             const { evaluateEligibility } = await import("@/lib/monetization/eligibility");
             // subscriptionActive desde el tenant durable (repository authority),
             // jamás de proyecciones en memoria. Fallo → false (fail-closed).
-            let subscriptionActive = false;
+            let subscriptionActive: boolean;
             try {
               const tenantRepo = repositoryFactory.getTenantRepository();
               const tenant = await tenantRepo.read(context.tenantId, context.tenantId);
@@ -1434,36 +1434,34 @@ export const Route = createFileRoute("/api/db")({
                 });
               }
 
-              let centsToAdd = 0;
-              let description = "";
-
-              switch (task) {
-                case "gis":
-                  centsToAdd = 150; // $1.50 USD
-                  description = "Provisión de mapas geográficos catastrales GIS";
-                  break;
-                case "compute":
-                  centsToAdd = 300; // $3.00 USD
-                  description = "Sincronización de hardware local (Nodo de cómputo)";
-                  break;
-                case "skill":
-                  centsToAdd = 500; // $5.00 USD
-                  description = "Licenciamiento comercial de habilidad cognitiva premium";
-                  break;
-                case "qec":
-                  centsToAdd = 820; // $8.20 USD
-                  description = "Simulación correctora cuántica de errores (QEC)";
-                  break;
-                case "patrimony":
-                  centsToAdd = 75; // $0.75 USD
-                  description = "Validación de metadatos históricos contra BookPI";
-                  break;
-                default:
-                  return new Response(JSON.stringify({ error: "Task desconocida." }), {
-                    status: 400,
-                    headers,
-                  });
+              const taskCredits: Record<string, { cents: number; description: string }> = {
+                gis: { cents: 150, description: "Provisión de mapas geográficos catastrales GIS" },
+                compute: {
+                  cents: 300,
+                  description: "Sincronización de hardware local (Nodo de cómputo)",
+                },
+                skill: {
+                  cents: 500,
+                  description: "Licenciamiento comercial de habilidad cognitiva premium",
+                },
+                qec: {
+                  cents: 820,
+                  description: "Simulación correctora cuántica de errores (QEC)",
+                },
+                patrimony: {
+                  cents: 75,
+                  description: "Validación de metadatos históricos contra BookPI",
+                },
+              };
+              const credit = taskCredits[task];
+              if (!credit) {
+                return new Response(JSON.stringify({ error: "Task desconocida." }), {
+                  status: 400,
+                  headers,
+                });
               }
+              const centsToAdd = credit.cents;
+              const description = credit.description;
 
               let account = await prisma.monetizationAccount.findUnique({
                 where: { userId: context.userId },
@@ -1591,7 +1589,7 @@ export const Route = createFileRoute("/api/db")({
                   });
                   if (!acc) throw new Error("No account");
                   const { evaluateEligibility } = await import("@/lib/monetization/eligibility");
-                  let withdrawalSubscriptionActive = false;
+                  let withdrawalSubscriptionActive: boolean;
                   try {
                     const tenantRepo = repositoryFactory.getTenantRepository();
                     const tenant = await tenantRepo.read(context.tenantId, context.tenantId);

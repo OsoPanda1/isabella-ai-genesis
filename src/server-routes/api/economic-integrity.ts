@@ -29,15 +29,15 @@ export async function checkEconomicIntegrity(): Promise<EconomicIntegrityReport>
   }
 
   // Cadena BookPI válida (si la DB canónica está disponible).
-  let bookpi = { available: false, valid: false };
+  let bookpi: { available: boolean; chainValid: boolean };
   try {
     const { createBookpiPostgresRepository } =
       await import("@/lib/repositories/bookpi-postgres-repository");
     const repo = createBookpiPostgresRepository();
     const integrity = await repo.verifyIntegrity();
-    bookpi = { available: true, valid: integrity.success };
+    bookpi = { available: true, chainValid: integrity.success };
   } catch {
-    bookpi = { available: false, valid: false };
+    bookpi = { available: false, chainValid: false };
   }
 
   // Proyección consistente — solo si economic_events está disponible.
@@ -49,7 +49,7 @@ export async function checkEconomicIntegrity(): Promise<EconomicIntegrityReport>
       const pool = new Pool({ connectionString: url, max: 1 });
       try {
         await pool.query("SELECT 1");
-        projection = { available: true, rebuildable: bookpi.valid };
+        projection = { available: true, rebuildable: bookpi.chainValid };
       } finally {
         await pool.end();
       }
@@ -58,14 +58,14 @@ export async function checkEconomicIntegrity(): Promise<EconomicIntegrityReport>
     projection = { available: false, rebuildable: false };
   }
 
-  const ok = signerAvailable && bookpi.valid && projection.available && projection.rebuildable;
+  const ok = signerAvailable && bookpi.chainValid && projection.available && projection.rebuildable;
   return {
     status: ok ? "ok" : "economic_integrity_failure",
     httpStatus: ok ? 200 : 503,
     checks: {
       signerAvailable,
       signatureSimulated: simulated,
-      bookpi: { available: bookpi.available, chainValid: bookpi.valid },
+      bookpi: { available: bookpi.available, chainValid: bookpi.chainValid },
       projection: {
         available: projection.available,
         rebuildable: projection.rebuildable,

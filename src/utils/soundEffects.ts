@@ -14,7 +14,7 @@ class SoundManager {
       }
     }
     if (this.ctx && this.ctx.state === "suspended") {
-      this.ctx.resume();
+      void this.ctx.resume();
     }
   }
 
@@ -63,7 +63,9 @@ class SoundManager {
 
       osc.start(now);
       osc.stop(now + 0.15);
-    } catch {}
+    } catch {
+      // Audio playback is optional and may be blocked until user interaction.
+    }
   }
 
   public playModuleEngage(freq = 520) {
@@ -87,7 +89,9 @@ class SoundManager {
 
       osc.start(now);
       osc.stop(now + 0.1);
-    } catch {}
+    } catch {
+      // Audio playback is optional and may be blocked until user interaction.
+    }
   }
 
   public playArrival() {
@@ -113,7 +117,9 @@ class SoundManager {
         osc.start(now + i * 0.06);
         osc.stop(now + i * 0.06 + 0.12);
       });
-    } catch {}
+    } catch {
+      // Audio playback is optional and may be blocked until user interaction.
+    }
   }
 
   public playSuccess() {
@@ -139,7 +145,9 @@ class SoundManager {
         osc.start(now + i * 0.04);
         osc.stop(now + i * 0.04 + 0.1);
       });
-    } catch {}
+    } catch {
+      // Audio playback is optional and may be blocked until user interaction.
+    }
   }
 }
 

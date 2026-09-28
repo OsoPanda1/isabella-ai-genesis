@@ -71,7 +71,13 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction) 
 
 function inspectPromptPayload(value: unknown, path = "$", findings: string[] = []): string[] {
   if (typeof value === "string") {
-    const normalized = value.replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, 20_000);
+    const normalized = [...value]
+      .filter((character) => {
+        const code = character.charCodeAt(0);
+        return code > 0x1f && code !== 0x7f;
+      })
+      .join("")
+      .slice(0, 20_000);
     if (PROMPT_INJECTION_PATTERNS.some((pattern) => pattern.test(normalized))) findings.push(path);
     return findings;
   }

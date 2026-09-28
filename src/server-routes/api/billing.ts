@@ -395,8 +395,8 @@ export const Route = createFileRoute("/api/billing")({
                 });
               }
 
-              let sessionId = "";
-              let checkoutUrl = "";
+              let sessionId: string;
+              let checkoutUrl: string;
 
               {
                 try {
