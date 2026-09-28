@@ -81,6 +81,20 @@ Bloqueadores habituales para producción:
 - Deben existir rollback, backup/restore probado, alertas, runbooks y evidencia de aislamiento cross-tenant.
 - Las afirmaciones legales, regulatorias, científicas o de certificación requieren revisión competente independiente.
 
+## Auditoría técnica y deuda conocida
+
+La auditoría de esta rama separa tres estados para evitar claims inflados: `IMPLEMENTED` (código presente), `TESTED` (check automatizado aprobado) y `VERIFIED` (evidencia reproducible en el ambiente objetivo). El último typecheck ejecutado en el sandbox pasa; eso no sustituye la verificación de producción.
+
+Prioridades de reducción de deuda:
+
+- Sustituir persistencia de memoria por un almacén distribuido antes de declarar circuit breakers multi-instancia como `VERIFIED`.
+- Mantener `src/generated/` como salida de generación y no editarlo manualmente; revisar su tamaño y exclusiones del bundle en cada actualización de Prisma.
+- Mantener los módulos pesados bajo carga diferida y medir LCP/INP/CLS tras cambios de interfaz; ningún indicador visual debe convertirse en telemetría de contenido.
+- Eliminar casts `any`, mocks y `console.log` de rutas productivas; los hallazgos restantes deben tener issue, test o justificación de compatibilidad.
+- Validar backup/restore, migraciones, RLS, aislamiento cross-tenant, secret scanning y CodeQL en CI con infraestructura real.
+
+La preparación global es **avanzada pero no certificada**: el código puede ser desplegable en un entorno controlado, pero la disponibilidad productiva requiere completar evidencia operativa, seguridad de infraestructura y pruebas de recuperación.
+
 ## Desarrollo y validación
 
 ```bash

@@ -1,5 +1,19 @@
 import { CircuitStore, defaultCircuitStore, DistributedCircuitRecord } from "./circuit-store";
 
+type CircuitErrorCode = "SERVICE_TEMPORARILY_UNAVAILABLE" | "CIRCUIT_HALF_OPEN_BUSY";
+
+type CircuitError = Error & {
+  status: 503;
+  code: CircuitErrorCode;
+};
+
+function circuitError(code: CircuitErrorCode): CircuitError {
+  const error = new Error(code) as CircuitError;
+  error.status = 503;
+  error.code = code;
+  return error;
+}
+
 export class DistributedCircuitBreaker {
   public constructor(
     private readonly service: string,
@@ -21,19 +35,13 @@ export class DistributedCircuitBreaker {
     if (record.state === "OPEN") {
       const elapsed = Date.now() - (record.openedAt ?? 0);
       if (elapsed < this.resetMs) {
-        const error = new Error("SERVICE_TEMPORARILY_UNAVAILABLE");
-        (error as any).status = 503;
-        (error as any).code = "SERVICE_TEMPORARILY_UNAVAILABLE";
-        throw error;
+        throw circuitError("SERVICE_TEMPORARILY_UNAVAILABLE");
       }
 
       const leaseId = crypto.randomUUID();
       const acquired = await this.store.acquireHalfOpenLease(this.key(), leaseId, 15);
       if (!acquired) {
-        const error = new Error("CIRCUIT_HALF_OPEN_BUSY");
-        (error as any).status = 503;
-        (error as any).code = "CIRCUIT_HALF_OPEN_BUSY";
-        throw error;
+        throw circuitError("CIRCUIT_HALF_OPEN_BUSY");
       }
 
       await this.store.set(
