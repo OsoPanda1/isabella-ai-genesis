@@ -127,6 +127,7 @@ const log = createLogger("server");
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 export { app };
+export default app;
 
 // ─── API KEY SERVICE INIT ─────────────────────────────────────────
 try {
