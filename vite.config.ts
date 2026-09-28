@@ -28,7 +28,7 @@ export default defineConfig(({ command }) => {
         },
       },
       tanstackStart(),
-      nitro({ preset: "vercel" }),
+      nitro(),
       react(),
       tailwindcss(),
     ],
