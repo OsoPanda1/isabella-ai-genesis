@@ -42,6 +42,9 @@ export default defineConfig(({ command }) => {
       host: "0.0.0.0",
       port: 3000,
       strictPort: true,
+      // Nitro/TanStack owns the preview transport. Disable Vite's auxiliary
+      // HMR socket so restarts cannot spawn the colliding default port 24678.
+      hmr: false,
     },
     build: {
       target: "esnext",
