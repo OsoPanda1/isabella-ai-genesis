@@ -139,5 +139,67 @@
     "nonce": 144,
     "hash": "00185e8a0c863115f47fb5d9b2dfba1a1cd6f320d7bb562342b9161e5889a6f9",
     "cid": "bafyreiNZ32eb1apHKEEvWxsnkWo4e4jYkjfqif"
+  },
+  {
+    "index": 9,
+    "timestamp": "2026-09-28T02:24:18.666Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "c79a0d33781d73cf",
+      "context": "boot"
+    },
+    "prevHash": "00185e8a0c863115f47fb5d9b2dfba1a1cd6f320d7bb562342b9161e5889a6f9",
+    "nonce": 51,
+    "hash": "00357d965dc58a948e25db75caaa9915a984851747ddd99ae72eaf15fec708ec",
+    "cid": "bafyreipJpszjZ3UQaRJtxwVF3zrJaWqkJZh735"
+  },
+  {
+    "index": 10,
+    "timestamp": "2026-09-28T02:24:18.675Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "b52b963d941f47d4"
+    },
+    "prevHash": "00357d965dc58a948e25db75caaa9915a984851747ddd99ae72eaf15fec708ec",
+    "nonce": 28,
+    "hash": "003c3f7d21a98eead204bd5928fa6074c4158cfb301ce47f53a77fe539124900",
+    "cid": "bafyreivHTASkdiGNoGxjStjg8xwomNZuRof8Ly"
+  },
+  {
+    "index": 11,
+    "timestamp": "2026-09-28T02:31:03.097Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "0b91aea0107e1070",
+      "context": "boot"
+    },
+    "prevHash": "003c3f7d21a98eead204bd5928fa6074c4158cfb301ce47f53a77fe539124900",
+    "nonce": 51,
+    "hash": "00d9887f846c04ec0823bd7f997cc733afd2d5b313cfd12f2991cf8269b6859e",
+    "cid": "bafyrei4KPURJrKvyv33Ec3RpFWfz6157rbpTxy"
+  },
+  {
+    "index": 12,
+    "timestamp": "2026-09-28T02:31:03.104Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "606e3567827134d9"
+    },
+    "prevHash": "00d9887f846c04ec0823bd7f997cc733afd2d5b313cfd12f2991cf8269b6859e",
+    "nonce": 244,
+    "hash": "008e63ed30269c64a8c5624733778783598ff8827283fdee2acb60f58fe2b427",
+    "cid": "bafyrei3AvyzuL1iYfFVwc9WLwNsGmcMTH21JPk"
   }
 ]
