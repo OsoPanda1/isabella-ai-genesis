@@ -55,16 +55,8 @@ export class AlphaMemory {
   /**
    * Filter results by sensitivity level.
    */
-  filterBySensitivity(
-    results: MemoryResult[],
-    maxSensitivity: SensitivityLevel,
-  ): MemoryResult[] {
-    const levels: SensitivityLevel[] = [
-      "public",
-      "internal",
-      "confidential",
-      "secret",
-    ];
+  filterBySensitivity(results: MemoryResult[], maxSensitivity: SensitivityLevel): MemoryResult[] {
+    const levels: SensitivityLevel[] = ["public", "internal", "confidential", "secret"];
     const maxIndex = levels.indexOf(maxSensitivity);
 
     return results.filter((r) => {

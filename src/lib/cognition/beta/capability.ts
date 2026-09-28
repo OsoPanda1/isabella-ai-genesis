@@ -52,8 +52,7 @@ export class CapabilityRegistry {
       }
 
       const hasScope = cap.requiredScopes.every(
-        (scope) =>
-          params.allowedScopes.includes(scope) || params.allowedScopes.includes("*"),
+        (scope) => params.allowedScopes.includes(scope) || params.allowedScopes.includes("*"),
       );
       if (!hasScope) return false;
 

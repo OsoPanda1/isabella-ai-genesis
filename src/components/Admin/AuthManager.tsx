@@ -12,7 +12,9 @@ export const AuthManager: React.FC = () => {
       // 512 bits = 64 bytes
       const array = new Uint8Array(64);
       window.crypto.getRandomValues(array);
-      const hex = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+      const hex = Array.from(array)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
       setApiKey(`iv_live_${hex}`);
       setGenerating(false);
     }, 1200);
@@ -32,7 +34,9 @@ export const AuthManager: React.FC = () => {
         </div>
         <div>
           <h3 className="text-lg font-bold text-slate-200">Native Authentication (512-bit)</h3>
-          <p className="text-xs text-slate-400">Generate sovereign API keys for Isabella Villaseñor AI</p>
+          <p className="text-xs text-slate-400">
+            Generate sovereign API keys for Isabella Villaseñor AI
+          </p>
         </div>
       </div>
 
@@ -40,7 +44,13 @@ export const AuthManager: React.FC = () => {
         <div className="flex items-start gap-3 mb-4">
           <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0" />
           <p className="text-sm text-slate-300 leading-relaxed">
-            Keys generated here use a secure internal 512-bit entropy pool. These keys are prefixed with <span className="font-mono text-xs bg-slate-800 px-1 rounded">iv_live_</span> and must be passed via the <span className="font-mono text-xs bg-slate-800 px-1 rounded">Authorization: Bearer</span> header.
+            Keys generated here use a secure internal 512-bit entropy pool. These keys are prefixed
+            with <span className="font-mono text-xs bg-slate-800 px-1 rounded">iv_live_</span> and
+            must be passed via the{" "}
+            <span className="font-mono text-xs bg-slate-800 px-1 rounded">
+              Authorization: Bearer
+            </span>{" "}
+            header.
           </p>
         </div>
 
@@ -49,17 +59,19 @@ export const AuthManager: React.FC = () => {
           disabled={generating}
           className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-purple-900/20 flex justify-center items-center gap-2"
         >
-          {generating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Key className="w-5 h-5" />}
+          {generating ? (
+            <RefreshCw className="w-5 h-5 animate-spin" />
+          ) : (
+            <Key className="w-5 h-5" />
+          )}
           {generating ? "Synthesizing 512-bit Key..." : "Generate Native API Key"}
         </button>
       </div>
 
       {apiKey && (
         <div className="bg-slate-950 p-4 rounded-xl border border-purple-500/30 flex items-center justify-between">
-          <div className="font-mono text-xs text-purple-300 break-all pr-4">
-            {apiKey}
-          </div>
-          <button 
+          <div className="font-mono text-xs text-purple-300 break-all pr-4">{apiKey}</div>
+          <button
             onClick={copyToClipboard}
             className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors shrink-0"
             title="Copy to clipboard"

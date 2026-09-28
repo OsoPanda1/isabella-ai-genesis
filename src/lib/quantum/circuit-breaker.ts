@@ -36,7 +36,11 @@ function getCircuit(provider: string): CircuitState {
 /**
  * Verifica si un provider puede recibir tráfico.
  */
-export function canExecute(provider: string): { allowed: boolean; reason?: string; retryAfterMs?: number } {
+export function canExecute(provider: string): {
+  allowed: boolean;
+  reason?: string;
+  retryAfterMs?: number;
+} {
   const circuit = getCircuit(provider);
 
   if (circuit.state === "CLOSED") {

@@ -37,7 +37,7 @@ function base64UrlDecode(input: string): Buffer {
   const normalized = input.replace(/-/g, "+").replace(/_/g, "/");
   return Buffer.from(
     normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "="),
-    "base64"
+    "base64",
   );
 }
 
@@ -64,7 +64,8 @@ export function verifyHs256Jwt(token: string, secret: string): AuthenticatedPrin
   if (!payload?.sub || typeof payload.sub !== "string") return null;
   if (payload.exp && Number(payload.exp) * 1000 <= Date.now()) return null;
   // Validate issuer and audience if present
-  if (payload.iss && payload.iss !== "isabella-native-auth" && payload.iss !== "isabella-external") return null;
+  if (payload.iss && payload.iss !== "isabella-native-auth" && payload.iss !== "isabella-external")
+    return null;
   if (payload.aud && payload.aud !== "isabella-api") return null;
   const roles = Array.isArray(payload.roles) ? payload.roles : [payload.role || "citizen"];
   return {
@@ -81,10 +82,13 @@ export function verifyHs256Jwt(token: string, secret: string): AuthenticatedPrin
 function parseCookies(header: unknown): Record<string, string> {
   if (typeof header !== "string") return {};
   return Object.fromEntries(
-    header.split(";").map((part) => {
-      const [name, ...rest] = part.trim().split("=");
-      return [name, decodeURIComponent(rest.join("="))];
-    }).filter(([name]) => Boolean(name)),
+    header
+      .split(";")
+      .map((part) => {
+        const [name, ...rest] = part.trim().split("=");
+        return [name, decodeURIComponent(rest.join("="))];
+      })
+      .filter(([name]) => Boolean(name)),
   );
 }
 
@@ -188,9 +192,7 @@ export function requireRole(minRole: IsabellaRole) {
     const roles = req.principal?.roles || [];
     const allowed = roles.some((r) => roleRank[r] >= roleRank[minRole]);
     if (!allowed)
-      return res
-        .status(403)
-        .json({ ok: false, error: "Insufficient privileges for this action." });
+      return res.status(403).json({ ok: false, error: "Insufficient privileges for this action." });
     return next();
   };
 }
@@ -205,25 +207,23 @@ export function requireScope(scope: string) {
       if (roles.includes("system")) {
         return next();
       }
-      return res
-        .status(403)
-        .json({ ok: false, error: "Wildcard scope requires system role" });
+      return res.status(403).json({ ok: false, error: "Wildcard scope requires system role" });
     }
 
     if (!scopes.includes(scope)) {
-      return res
-        .status(403)
-        .json({ ok: false, error: `Missing required scope: ${scope}` });
+      return res.status(403).json({ ok: false, error: `Missing required scope: ${scope}` });
     }
     return next();
   };
 }
 
 export function currentPrincipal(req: Request): AuthenticatedPrincipal {
-  return req.principal || {
-    sub: "anonymous",
-    tenantId: "public",
-    roles: ["viewer"],
-    scopes: [],
-  };
+  return (
+    req.principal || {
+      sub: "anonymous",
+      tenantId: "public",
+      roles: ["viewer"],
+      scopes: [],
+    }
+  );
 }

@@ -18,11 +18,11 @@ import { z } from "zod";
 // ============================================================================
 
 export const EvidenceStatusSchema = z.enum([
-  "supports",       // exists sufficient compatible evidence
-  "contradicts",    // relevant evidence contradicts under same scope
+  "supports", // exists sufficient compatible evidence
+  "contradicts", // relevant evidence contradicts under same scope
   "contextualizes", // evidence adds nuance without direct support/refute
-  "insufficient",   // retrieval happened but does not constitute proof
-  "unavailable",    // source could not be reached
+  "insufficient", // retrieval happened but does not constitute proof
+  "unavailable", // source could not be reached
 ]);
 export type EvidenceStatus = z.infer<typeof EvidenceStatusSchema>;
 
@@ -44,33 +44,39 @@ export type ClaimDomain = z.infer<typeof ClaimDomainSchema>;
 // MCP ADAPTER CONTRACTS V2 (Section 10.1 — Corrected)
 // ============================================================================
 
-export const MCPQueryContextSchema = z.object({
-  requestId: z.string().uuid(),
-  assertionId: z.string().uuid(),
-  assertion: z.string().min(1).max(4096),
-  targetDoi: z.string().max(256).optional(),
-  maxResults: z.number().int().min(1).max(25).default(5),
-  deadlineMs: z.number().int().min(1000).max(30000).default(5000),
-  dataClass: DataClassSchema.default("public"),
-  embedding: z.object({
-    modelId: z.string().max(64),
-    modelDigest: z.string().max(128),
-    vector: z.array(z.number().finite()),
-    normalized: z.boolean(),
-  }).optional(),
-}).refine(
-  (data) => data.embedding ? data.embedding.vector.length > 0 : true,
-  "Embedding vector must be non-empty when provided",
-);
+export const MCPQueryContextSchema = z
+  .object({
+    requestId: z.string().uuid(),
+    assertionId: z.string().uuid(),
+    assertion: z.string().min(1).max(4096),
+    targetDoi: z.string().max(256).optional(),
+    maxResults: z.number().int().min(1).max(25).default(5),
+    deadlineMs: z.number().int().min(1000).max(30000).default(5000),
+    dataClass: DataClassSchema.default("public"),
+    embedding: z
+      .object({
+        modelId: z.string().max(64),
+        modelDigest: z.string().max(128),
+        vector: z.array(z.number().finite()),
+        normalized: z.boolean(),
+      })
+      .optional(),
+  })
+  .refine(
+    (data) => (data.embedding ? data.embedding.vector.length > 0 : true),
+    "Embedding vector must be non-empty when provided",
+  );
 export type MCPQueryContext = z.infer<typeof MCPQueryContextSchema>;
 
 export const MCPQueryResultV2Schema = z.object({
   evidenceId: z.string().max(128),
   repository: z.enum(["ZENODO", "OSF", "LITLE_LOCAL"]),
-  persistentId: z.object({
-    type: z.enum(["doi", "handle", "url"]),
-    value: z.string().max(256),
-  }).optional(),
+  persistentId: z
+    .object({
+      type: z.enum(["doi", "handle", "url"]),
+      value: z.string().max(256),
+    })
+    .optional(),
   title: z.string().max(512),
   excerpt: z.string().max(1024),
   retrievedAt: z.string().datetime(),
@@ -146,10 +152,12 @@ export const SovereignInferenceRequestSchema = z.object({
     text: z.string().min(1).max(32768),
     locale: z.string().min(2).max(10).default("es-MX"),
     dataClass: DataClassSchema,
-    location: z.object({
-      lat: z.number().min(-90).max(90),
-      lon: z.number().min(-180).max(180),
-    }).optional(),
+    location: z
+      .object({
+        lat: z.number().min(-90).max(90),
+        lon: z.number().min(-180).max(180),
+      })
+      .optional(),
   }),
   policy: z.object({
     risk: z.enum(["low", "moderate", "high", "critical"]),
@@ -175,13 +183,15 @@ export const SovereignInferenceResponseSchema = z.object({
   requestId: z.string().uuid(),
   status: z.enum(["completed", "refused", "degraded", "cancelled"]),
   answer: z.string().max(32768).optional(),
-  claims: z.array(z.object({
-    id: z.string().uuid(),
-    text: z.string().max(2048),
-    confidence: z.number().min(0).max(1),
-    evidenceIds: z.array(z.string().max(128)),
-    status: EvidenceStatusSchema,
-  })),
+  claims: z.array(
+    z.object({
+      id: z.string().uuid(),
+      text: z.string().max(2048),
+      confidence: z.number().min(0).max(1),
+      evidenceIds: z.array(z.string().max(128)),
+      status: EvidenceStatusSchema,
+    }),
+  ),
   policyDecision: z.object({
     decision: z.enum(["allow", "deny", "degrade"]),
     ruleIds: z.array(z.string().max(128)),
@@ -282,7 +292,16 @@ export type AuditEvent = z.infer<typeof AuditEventSchema>;
 export const AirGapArtifactSchema = z.object({
   name: z.string().max(128),
   digest: z.string().max(128),
-  type: z.enum(["oci-image", "model", "index", "policy", "sbom", "provenance", "migration", "rollback"]),
+  type: z.enum([
+    "oci-image",
+    "model",
+    "index",
+    "policy",
+    "sbom",
+    "provenance",
+    "migration",
+    "rollback",
+  ]),
   size: z.number().int().min(0),
   path: z.string().max(256),
 });
@@ -320,15 +339,17 @@ export const KillSwitchEventSchema = z.object({
   severity: z.enum(["SEV-1", "SEV-2", "SEV-3", "SEV-4"]),
   previousState: KillSwitchStateSchema,
   newState: KillSwitchStateSchema,
-  actions: z.array(z.object({
-    step: z.number().int().min(1),
-    action: z.string().max(256),
-    status: z.enum(["pending", "executing", "completed", "failed"]),
-    timestamp: z.string().datetime().optional(),
-    automated: z.boolean().default(true),
-    humanRequired: z.boolean().default(false),
-    humanInstruction: z.string().max(512).optional(),
-  })),
+  actions: z.array(
+    z.object({
+      step: z.number().int().min(1),
+      action: z.string().max(256),
+      status: z.enum(["pending", "executing", "completed", "failed"]),
+      timestamp: z.string().datetime().optional(),
+      automated: z.boolean().default(true),
+      humanRequired: z.boolean().default(false),
+      humanInstruction: z.string().max(512).optional(),
+    }),
+  ),
   activatedAt: z.string().datetime(),
   resolvedAt: z.string().datetime().optional(),
   approvedBy: z.string().max(128).optional(),

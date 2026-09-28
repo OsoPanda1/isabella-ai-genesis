@@ -40,27 +40,15 @@ export const ISABELLA_VOICE_MODEL_VERSION = "1.0.0" as const;
 export const ISABELLA_VOICE_LOCALE = "es-MX" as const;
 
 export type IsabellaVoiceProfile = typeof ISABELLA_VOICE_PROFILE;
-export type IsabellaVoiceModelVersion =
-  typeof ISABELLA_VOICE_MODEL_VERSION;
+export type IsabellaVoiceModelVersion = typeof ISABELLA_VOICE_MODEL_VERSION;
 export type IsabellaVoiceLocale = "es-MX" | "es-ES" | "en-US";
 
 export type IsabellaVoiceStyle =
-  | "natural"
-  | "serene"
-  | "poetic"
-  | "lucid"
-  | "protective"
-  | "radiant";
+  "natural" | "serene" | "poetic" | "lucid" | "protective" | "radiant";
 
-export type IsabellaVoiceEngine =
-  | "sovereign_local_tts"
-  | "browser_continuity"
-  | "silent";
+export type IsabellaVoiceEngine = "sovereign_local_tts" | "browser_continuity" | "silent";
 
-export type VoiceAvailability =
-  | "available"
-  | "degraded"
-  | "unavailable";
+export type VoiceAvailability = "available" | "degraded" | "unavailable";
 
 export interface IsabellaVoiceIdentity {
   readonly profile: IsabellaVoiceProfile;
@@ -187,7 +175,7 @@ export interface VoicePlaybackHandle {
  */
 export async function speakAsIsabella(
   text: string,
-  options: SpeakAsIsabellaOptions = {}
+  options: SpeakAsIsabellaOptions = {},
 ): Promise<SpeakAsIsabellaResult> {
   const request = createSovereignVoiceRequest(text, options);
 
@@ -208,10 +196,7 @@ export async function speakAsIsabella(
       throw error;
     }
 
-    const fallback = await speakWithBrowserContinuity(
-      request.text,
-      options.locale
-    );
+    const fallback = await speakWithBrowserContinuity(request.text, options.locale);
 
     options.onEngineResolved?.(fallback.engine);
 
@@ -228,10 +213,7 @@ export async function speakAsIsabella(
 export function stopIsabellaVoice(): void {
   stopActiveSovereignAudio();
 
-  if (
-    typeof window !== "undefined" &&
-    "speechSynthesis" in window
-  ) {
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
     window.speechSynthesis.cancel();
   }
 }
@@ -258,9 +240,7 @@ export async function resumeIsabellaVoice(): Promise<void> {
  * El endpoint no debe exponer rutas internas, secretos, modelo base,
  * ubicación del servidor, ni información de usuarios.
  */
-export async function getSovereignVoiceHealth(
-  signal?: AbortSignal
-): Promise<SovereignVoiceHealth> {
+export async function getSovereignVoiceHealth(signal?: AbortSignal): Promise<SovereignVoiceHealth> {
   const response = await fetch("/api/voice/health", {
     method: "GET",
     credentials: "same-origin",
@@ -299,7 +279,7 @@ export function createSovereignVoiceRequest(
     style: IsabellaVoiceStyle;
     rate: number;
     volume: number;
-  }> = {}
+  }> = {},
 ): SovereignVoiceSynthesisRequest {
   const normalizedText = normalizeVoiceText(text);
 
@@ -326,10 +306,7 @@ export function createSovereignVoiceRequest(
  * No modifica semántica, no registra contenido ni aplica filtros de negocio.
  */
 export function normalizeVoiceText(text: string): string {
-  return text
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, ISABELLA_VOICE.maximumTextLength);
+  return text.replace(/\s+/g, " ").trim().slice(0, ISABELLA_VOICE.maximumTextLength);
 }
 
 /* =============================================================================
@@ -338,7 +315,7 @@ export function normalizeVoiceText(text: string): string {
 
 async function requestSovereignVoiceAudio(
   request: SovereignVoiceSynthesisRequest,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<SovereignVoiceSynthesisResponse> {
   /*
    * authFetch attaches the guest Bearer token or the operator's API key and
@@ -370,7 +347,7 @@ async function requestSovereignVoiceAudio(
 
 function validateSovereignVoiceResponse(
   payload: SovereignVoiceSynthesisResponse,
-  request: SovereignVoiceSynthesisRequest
+  request: SovereignVoiceSynthesisRequest,
 ): void {
   const isValid =
     payload.engine === "sovereign_local_tts" &&
@@ -388,13 +365,9 @@ function validateSovereignVoiceResponse(
 }
 
 function isAllowedAudioContentType(
-  contentType: string
+  contentType: string,
 ): contentType is SovereignVoiceSynthesisResponse["contentType"] {
-  return (
-    contentType === "audio/wav" ||
-    contentType === "audio/mpeg" ||
-    contentType === "audio/ogg"
-  );
+  return contentType === "audio/wav" || contentType === "audio/mpeg" || contentType === "audio/ogg";
 }
 
 /* =============================================================================
@@ -405,7 +378,7 @@ let activeSovereignAudio: HTMLAudioElement | null = null;
 
 export async function playSovereignAudio(
   audioUrl: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<VoicePlaybackHandle> {
   if (typeof window === "undefined" || typeof Audio === "undefined") {
     throw new Error("ISABELLA_AUDIO_PLAYBACK_UNSUPPORTED");
@@ -436,17 +409,13 @@ export async function playSovereignAudio(
     const onEnded = () => finish(resolve);
 
     const onError = () =>
-      finish(() =>
-        reject(new Error("ISABELLA_SOVEREIGN_AUDIO_PLAYBACK_FAILED"))
-      );
+      finish(() => reject(new Error("ISABELLA_SOVEREIGN_AUDIO_PLAYBACK_FAILED")));
 
     const onAbort = () => {
       audio.pause();
       audio.currentTime = 0;
 
-      finish(() =>
-        reject(new DOMException("Voice playback aborted.", "AbortError"))
-      );
+      finish(() => reject(new DOMException("Voice playback aborted.", "AbortError")));
     };
 
     audio.addEventListener("ended", onEnded, { once: true });
@@ -455,11 +424,7 @@ export async function playSovereignAudio(
 
     audio.play().catch((error: unknown) => {
       finish(() =>
-        reject(
-          error instanceof Error
-            ? error
-            : new Error("ISABELLA_AUDIO_PLAYBACK_REJECTED")
-        )
+        reject(error instanceof Error ? error : new Error("ISABELLA_AUDIO_PLAYBACK_REJECTED")),
       );
     });
   });
@@ -494,8 +459,7 @@ function stopActiveSovereignAudio(): void {
    - no intenta "fabricar" género mediante pitch.
    ============================================================================= */
 
-const BROWSER_VOICE_STORAGE_KEY =
-  "isabella.browser-continuity-voice.v1";
+const BROWSER_VOICE_STORAGE_KEY = "isabella.browser-continuity-voice.v1";
 
 interface BrowserVoiceFingerprint {
   readonly name: string;
@@ -511,9 +475,7 @@ type BrowserVoiceFallbackResult =
   | {
       readonly engine: "silent";
       readonly fallbackReason:
-        | "BROWSER_SPEECH_UNSUPPORTED"
-        | "NO_BROWSER_VOICES"
-        | "NO_COMPATIBLE_BROWSER_VOICE";
+        "BROWSER_SPEECH_UNSUPPORTED" | "NO_BROWSER_VOICES" | "NO_COMPATIBLE_BROWSER_VOICE";
     };
 
 /*
@@ -589,7 +551,7 @@ const EXCLUDED_LOCAL_VOICE_HINTS = [
 
 async function speakWithBrowserContinuity(
   text: string,
-  locale: IsabellaVoiceLocale | undefined
+  locale: IsabellaVoiceLocale | undefined,
 ): Promise<BrowserVoiceFallbackResult> {
   if (
     typeof window === "undefined" ||
@@ -639,12 +601,9 @@ async function speakWithBrowserContinuity(
  * Obtiene voces incluso cuando el navegador las carga después de iniciar.
  */
 export async function getBrowserVoices(
-  timeoutMs = 2_500
+  timeoutMs = 2_500,
 ): Promise<readonly SpeechSynthesisVoice[]> {
-  if (
-    typeof window === "undefined" ||
-    !("speechSynthesis" in window)
-  ) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
     return [];
   }
 
@@ -681,7 +640,7 @@ export async function getBrowserVoices(
  * Retorna siempre la misma voz en un navegador mientras continúe instalada.
  */
 export function resolveStableBrowserVoice(
-  voices: readonly SpeechSynthesisVoice[]
+  voices: readonly SpeechSynthesisVoice[],
 ): SpeechSynthesisVoice | undefined {
   if (voices.length === 0) return undefined;
 
@@ -692,7 +651,7 @@ export function resolveStableBrowserVoice(
       (voice) =>
         voice.name === persistedFingerprint.name &&
         voice.lang === persistedFingerprint.lang &&
-        voice.voiceURI === persistedFingerprint.voiceURI
+        voice.voiceURI === persistedFingerprint.voiceURI,
     );
 
     if (restoredVoice) {
@@ -717,9 +676,7 @@ export function resolveStableBrowserVoice(
 }
 
 function scoreBrowserVoice(voice: SpeechSynthesisVoice): number {
-  const descriptor = normalizeDescriptor(
-    `${voice.name} ${voice.voiceURI}`
-  );
+  const descriptor = normalizeDescriptor(`${voice.name} ${voice.voiceURI}`);
   const language = voice.lang.toLowerCase();
 
   if (containsAnyHint(descriptor, EXCLUDED_LOCAL_VOICE_HINTS)) {
@@ -794,9 +751,7 @@ function readBrowserVoiceFingerprint(): BrowserVoiceFingerprint | null {
   }
 }
 
-function persistBrowserVoiceFingerprint(
-  voice: SpeechSynthesisVoice
-): void {
+function persistBrowserVoiceFingerprint(voice: SpeechSynthesisVoice): void {
   try {
     const fingerprint: BrowserVoiceFingerprint = {
       name: voice.name,
@@ -804,10 +759,7 @@ function persistBrowserVoiceFingerprint(
       voiceURI: voice.voiceURI,
     };
 
-    window.localStorage.setItem(
-      BROWSER_VOICE_STORAGE_KEY,
-      JSON.stringify(fingerprint)
-    );
+    window.localStorage.setItem(BROWSER_VOICE_STORAGE_KEY, JSON.stringify(fingerprint));
   } catch {
     // Modo privado o storage bloqueado: se conserva la voz sólo en memoria.
   }
@@ -824,13 +776,8 @@ function normalizeDescriptor(value: string): string {
     .toLocaleLowerCase();
 }
 
-function containsAnyHint(
-  normalizedValue: string,
-  hints: readonly string[]
-): boolean {
-  return hints.some((hint) =>
-    normalizedValue.includes(normalizeDescriptor(hint))
-  );
+function containsAnyHint(normalizedValue: string, hints: readonly string[]): boolean {
+  return hints.some((hint) => normalizedValue.includes(normalizeDescriptor(hint)));
 }
 
 function createVoiceRequestId(): string {
@@ -838,9 +785,7 @@ function createVoiceRequestId(): string {
     return `iv_voice_${globalThis.crypto.randomUUID()}`;
   }
 
-  return `iv_voice_${Date.now().toString(36)}_${Math.random()
-    .toString(36)
-    .slice(2, 12)}`;
+  return `iv_voice_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -848,10 +793,7 @@ function clamp(value: number, minimum: number, maximum: number): number {
 }
 
 function isAbortError(error: unknown): boolean {
-  return (
-    error instanceof DOMException &&
-    error.name === "AbortError"
-  );
+  return error instanceof DOMException && error.name === "AbortError";
 }
 
 /* =============================================================================
@@ -860,10 +802,31 @@ function isAbortError(error: unknown): boolean {
 
 const FEMALE_VOICE_HINTS = [
   ...PREFERRED_LOCAL_VOICE_HINTS,
-  "mónica", "gabriela", "claudia", "patricia", "rosa", "maria", "ana",
-  "clara", "sofia", "valeria", "camila", "isabella", "fernanda", "diana",
-  "beatriz", "reina", "princesa", "google", "karen", "sabina",
-  "daniela", "alejandra", "greta", "helena", "norma",
+  "mónica",
+  "gabriela",
+  "claudia",
+  "patricia",
+  "rosa",
+  "maria",
+  "ana",
+  "clara",
+  "sofia",
+  "valeria",
+  "camila",
+  "isabella",
+  "fernanda",
+  "diana",
+  "beatriz",
+  "reina",
+  "princesa",
+  "google",
+  "karen",
+  "sabina",
+  "daniela",
+  "alejandra",
+  "greta",
+  "helena",
+  "norma",
 ] as const;
 
 export function isStrictlyFemaleVoice(voice: SpeechSynthesisVoice): boolean {
@@ -876,21 +839,19 @@ export function isStrictlyFemaleVoice(voice: SpeechSynthesisVoice): boolean {
 }
 
 export function getAvailableFemaleVoices(
-  voices: readonly SpeechSynthesisVoice[]
+  voices: readonly SpeechSynthesisVoice[],
 ): SpeechSynthesisVoice[] {
   return voices.filter(isStrictlyFemaleVoice);
 }
 
 export function selectBestFemaleVoice(
   voices: readonly SpeechSynthesisVoice[],
-  preferredName?: string
+  preferredName?: string,
 ): { voice: SpeechSynthesisVoice | null; pitchMultiplier: number } {
   if (voices.length === 0) return { voice: null, pitchMultiplier: 1 };
 
   if (preferredName) {
-    const exact = voices.find(
-      (v) => v.name === preferredName && isStrictlyFemaleVoice(v)
-    );
+    const exact = voices.find((v) => v.name === preferredName && isStrictlyFemaleVoice(v));
     if (exact) return { voice: exact, pitchMultiplier: 1 };
   }
 
@@ -906,10 +867,11 @@ export function selectBestFemaleVoice(
   if (!best) return { voice: null, pitchMultiplier: 1 };
 
   const descriptor = normalizeDescriptor(best.voice.name);
-  const pitchMultiplier =
-    /deep|low|bass/.test(descriptor) ? 1.15 :
-    /high|soprano/.test(descriptor) ? 0.9 :
-    1.0;
+  const pitchMultiplier = /deep|low|bass/.test(descriptor)
+    ? 1.15
+    : /high|soprano/.test(descriptor)
+      ? 0.9
+      : 1.0;
 
   return { voice: best.voice, pitchMultiplier };
 }

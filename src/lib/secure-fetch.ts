@@ -116,7 +116,8 @@ const PROMPT_RULES: readonly PromptRule[] = [
     id: "PI-002",
     category: "instruction_override",
     risk: "high",
-    expression: /\b(?:reveal|print|show|dump|leak)\b.{0,80}\b(?:system prompt|hidden prompt|developer message|secret)\b/giu,
+    expression:
+      /\b(?:reveal|print|show|dump|leak)\b.{0,80}\b(?:system prompt|hidden prompt|developer message|secret)\b/giu,
   },
   {
     id: "PI-003",
@@ -128,7 +129,8 @@ const PROMPT_RULES: readonly PromptRule[] = [
     id: "PI-004",
     category: "secret_exfiltration",
     risk: "critical",
-    expression: /\b(?:api[_ -]?key|access[_ -]?token|private[_ -]?key|password|credential)\b.{0,80}\b(?:send|post|upload|return|reveal|display)\b/giu,
+    expression:
+      /\b(?:api[_ -]?key|access[_ -]?token|private[_ -]?key|password|credential)\b.{0,80}\b(?:send|post|upload|return|reveal|display)\b/giu,
   },
   {
     id: "PI-005",
@@ -146,7 +148,8 @@ const PROMPT_RULES: readonly PromptRule[] = [
     id: "PI-007",
     category: "tool_abuse",
     risk: "high",
-    expression: /\b(?:disable|bypass|remove)\b.{0,80}\b(?:safety|guardrail|approval|sandbox|policy|audit)\b/giu,
+    expression:
+      /\b(?:disable|bypass|remove)\b.{0,80}\b(?:safety|guardrail|approval|sandbox|policy|audit)\b/giu,
   },
 ];
 
@@ -198,7 +201,7 @@ const classifyPrompt = (
   }
 
   const highestRisk = findings.reduce<PromptRisk>(
-    (highest, finding) => RISK_ORDER[finding.risk] > RISK_ORDER[highest] ? finding.risk : highest,
+    (highest, finding) => (RISK_ORDER[finding.risk] > RISK_ORDER[highest] ? finding.risk : highest),
     "low",
   );
 
@@ -213,7 +216,13 @@ const classifyPrompt = (
   }
 
   if (highestRisk === "critical") {
-    return { disposition: "deny", risk: highestRisk, normalizedText, findings, reasonCode: "CRITICAL_PROMPT_SIGNAL" };
+    return {
+      disposition: "deny",
+      risk: highestRisk,
+      normalizedText,
+      findings,
+      reasonCode: "CRITICAL_PROMPT_SIGNAL",
+    };
   }
   if (highestRisk === "high") {
     return {
@@ -225,9 +234,21 @@ const classifyPrompt = (
     };
   }
   if (findings.length) {
-    return { disposition: "review", risk: highestRisk, normalizedText, findings, reasonCode: "PROMPT_REVIEW_REQUIRED" };
+    return {
+      disposition: "review",
+      risk: highestRisk,
+      normalizedText,
+      findings,
+      reasonCode: "PROMPT_REVIEW_REQUIRED",
+    };
   }
-  return { disposition: "allow", risk: "low", normalizedText, findings, reasonCode: "NO_KNOWN_SIGNAL" };
+  return {
+    disposition: "allow",
+    risk: "low",
+    normalizedText,
+    findings,
+    reasonCode: "NO_KNOWN_SIGNAL",
+  };
 };
 
 const collectPromptFields = (
@@ -245,9 +266,15 @@ const collectPromptFields = (
 
 export const analyzePrompt = (
   prompt: string,
-  options: Pick<IsabellaFetchOptions, "contentClass" | "onPromptReview"> & { reviewHighRisk?: boolean } = {},
+  options: Pick<IsabellaFetchOptions, "contentClass" | "onPromptReview"> & {
+    reviewHighRisk?: boolean;
+  } = {},
 ): PromptPolicyResult => {
-  const result = classifyPrompt(prompt, options.contentClass ?? "user_input", options.reviewHighRisk ?? false);
+  const result = classifyPrompt(
+    prompt,
+    options.contentClass ?? "user_input",
+    options.reviewHighRisk ?? false,
+  );
   if (result.disposition === "review") options.onPromptReview?.(result);
   return result;
 };
@@ -255,7 +282,10 @@ export const analyzePrompt = (
 export const sanitizePrompt = (prompt: string): string => {
   const result = analyzePrompt(prompt);
   if (result.disposition !== "allow") {
-    throw new IsabellaRequestError("PROMPT_POLICY_REJECTED", "La entrada requiere revision de seguridad.");
+    throw new IsabellaRequestError(
+      "PROMPT_POLICY_REJECTED",
+      "La entrada requiere revision de seguridad.",
+    );
   }
   return result.normalizedText;
 };
@@ -274,13 +304,19 @@ const getSafeOrigin = (url: string, allowCrossOrigin: boolean, origins: readonly
     throw new IsabellaRequestError("INVALID_URL", "La URL de solicitud no es valida.");
   }
 
-  if (parsed.protocol !== "https:" && !(isBrowser() && parsed.origin === window.location.origin && parsed.protocol === "http:")) {
+  if (
+    parsed.protocol !== "https:" &&
+    !(isBrowser() && parsed.origin === window.location.origin && parsed.protocol === "http:")
+  ) {
     throw new IsabellaRequestError("INSECURE_URL", "La solicitud requiere un origen seguro.");
   }
 
   if (allowCrossOrigin && origins.includes(parsed.origin)) return parsed;
   if (isBrowser() && parsed.origin === window.location.origin) return parsed;
-  throw new IsabellaRequestError("ORIGIN_NOT_ALLOWED", "El origen de la solicitud no esta autorizado.");
+  throw new IsabellaRequestError(
+    "ORIGIN_NOT_ALLOWED",
+    "El origen de la solicitud no esta autorizado.",
+  );
 };
 
 const bodyByteLength = (body: string) => new TextEncoder().encode(body).byteLength;
@@ -296,7 +332,10 @@ const getBodyWithPolicy = (
   if (body === null || body === undefined) return body;
   if (typeof body !== "string") return body;
   if (bodyByteLength(body) > maxBodyBytes) {
-    throw new IsabellaRequestError("BODY_TOO_LARGE", "El cuerpo de la solicitud excede el limite permitido.");
+    throw new IsabellaRequestError(
+      "BODY_TOO_LARGE",
+      "El cuerpo de la solicitud excede el limite permitido.",
+    );
   }
 
   let parsed: unknown;
@@ -313,7 +352,10 @@ const getBodyWithPolicy = (
     const result = classifyPrompt(value, contentClass, reviewHighRisk);
     if (result.disposition === "review") onPromptReview?.(result);
     if (result.disposition === "deny") {
-      throw new IsabellaRequestError("PROMPT_POLICY_REJECTED", "La entrada requiere revision de seguridad.");
+      throw new IsabellaRequestError(
+        "PROMPT_POLICY_REJECTED",
+        "La entrada requiere revision de seguridad.",
+      );
     }
     const field = promptValues.find((item) => item.value === value)?.field;
     if (field) object[field] = result.normalizedText;
@@ -321,7 +363,10 @@ const getBodyWithPolicy = (
 
   const rewritten = JSON.stringify(object);
   if (bodyByteLength(rewritten) > maxBodyBytes) {
-    throw new IsabellaRequestError("BODY_TOO_LARGE", "El cuerpo de la solicitud excede el limite permitido.");
+    throw new IsabellaRequestError(
+      "BODY_TOO_LARGE",
+      "El cuerpo de la solicitud excede el limite permitido.",
+    );
   }
   return rewritten;
 };
@@ -389,7 +434,9 @@ export const isabellaFetch = async (
   options: IsabellaFetchOptions = {},
 ): Promise<Response> => {
   const config = runtimeConfig;
-  const method = (options.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
+  const method = (
+    options.method ?? (input instanceof Request ? input.method : "GET")
+  ).toUpperCase();
   const auditId = generateAuditId();
   const timeoutMs = Math.min(
     Math.max(options.timeoutMs ?? config.defaultTimeoutMs ?? 30_000, 1_000),
@@ -397,16 +444,19 @@ export const isabellaFetch = async (
   );
   const promptFields = options.promptFields ?? ["prompt", "input", "text"];
 
-  const rawUrl = typeof input === "string" || input instanceof URL
-    ? input.toString()
-    : input.url;
+  const rawUrl = typeof input === "string" || input instanceof URL ? input.toString() : input.url;
   const url = getSafeOrigin(rawUrl, options.allowCrossOrigin === true, config.apiOrigins);
 
   const headers = new Headers(input instanceof Request ? input.headers : undefined);
   new Headers(options.headers).forEach((value, key) => headers.set(key, value));
   headers.set("X-Isabella-Audit-ID", auditId);
   headers.set("Accept", headers.get("Accept") ?? "application/json");
-  if (method !== "GET" && method !== "HEAD" && !headers.has("Content-Type") && typeof options.body === "string") {
+  if (
+    method !== "GET" &&
+    method !== "HEAD" &&
+    !headers.has("Content-Type") &&
+    typeof options.body === "string"
+  ) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -430,15 +480,20 @@ export const isabellaFetch = async (
       method,
       headers,
       body,
-      credentials: options.credentials ?? (config.authMode === "cookie" ? "include" : "same-origin"),
+      credentials:
+        options.credentials ?? (config.authMode === "cookie" ? "include" : "same-origin"),
       signal: timeout.signal,
     });
 
     if (!response.ok) {
-      throw new IsabellaRequestError("UPSTREAM_REQUEST_FAILED", "La solicitud no pudo completarse.", {
-        status: response.status,
-        auditId,
-      });
+      throw new IsabellaRequestError(
+        "UPSTREAM_REQUEST_FAILED",
+        "La solicitud no pudo completarse.",
+        {
+          status: response.status,
+          auditId,
+        },
+      );
     }
     return response;
   } catch (error) {
@@ -450,7 +505,9 @@ export const isabellaFetch = async (
         { auditId },
       );
     }
-    throw new IsabellaRequestError("NETWORK_ERROR", "No fue posible conectar con el servicio.", { auditId });
+    throw new IsabellaRequestError("NETWORK_ERROR", "No fue posible conectar con el servicio.", {
+      auditId,
+    });
   } finally {
     timeout.cleanup();
   }

@@ -73,10 +73,7 @@ export class HypothesisEngine {
     return hypotheses;
   }
 
-  private findAnalogies(
-    query: string,
-    entities: Array<{ type: string; value: string }>,
-  ): string[] {
+  private findAnalogies(query: string, entities: Array<{ type: string; value: string }>): string[] {
     const analogies: string[] = [];
 
     if (entities.some((e) => e.type === "territory")) {

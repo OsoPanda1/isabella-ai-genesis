@@ -55,7 +55,10 @@ export function isTrustedOAuthEvent(event: MessageEvent): boolean {
 }
 
 /** Obtiene una sesión emitida por el IDP de desarrollo; nunca fabrica tokens. */
-export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+export async function authFetch(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+): Promise<Response> {
   const token = await ensureSessionToken();
   const headers = new Headers(init.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);

@@ -115,10 +115,7 @@ export class ResearchEngine {
 
   /* --- Retrieval Methods --- */
 
-  private async retrieve(
-    query: ResearchQuery,
-    method: RetrievalMethod,
-  ): Promise<ResearchResult[]> {
+  private async retrieve(query: ResearchQuery, method: RetrievalMethod): Promise<ResearchResult[]> {
     const results: ResearchResult[] = [];
 
     switch (method) {
@@ -198,10 +195,7 @@ export class ResearchEngine {
     });
   }
 
-  private rank(
-    results: ResearchResult[],
-    minRelevance: number,
-  ): ResearchResult[] {
+  private rank(results: ResearchResult[], minRelevance: number): ResearchResult[] {
     return results
       .filter((r) => r.relevance >= minRelevance)
       .sort((a, b) => b.relevance - a.relevance);
@@ -226,10 +220,7 @@ export class ResearchEngine {
       for (let j = i + 1; j < claims.length; j++) {
         if (claims[i].source !== claims[j].source) {
           const similarity = this.textSimilarity(claims[i].text, claims[j].text);
-          if (
-            similarity > 0.7 &&
-            Math.abs(claims[i].confidence - claims[j].confidence) > 0.3
-          ) {
+          if (similarity > 0.7 && Math.abs(claims[i].confidence - claims[j].confidence) > 0.3) {
             contradictions.push({
               claimA: claims[i],
               claimB: claims[j],
@@ -257,25 +248,17 @@ export class ResearchEngine {
       .map(([source, data]) => ({
         source,
         totalResults: data.results.length,
-        avgRelevance:
-          data.results.reduce((sum, r) => sum + r.relevance, 0) /
-          data.results.length,
-        avgConfidence:
-          data.results.reduce((sum, r) => sum + r.confidence, 0) /
-          data.results.length,
+        avgRelevance: data.results.reduce((sum, r) => sum + r.relevance, 0) / data.results.length,
+        avgConfidence: data.results.reduce((sum, r) => sum + r.confidence, 0) / data.results.length,
         reliabilityScore: this.calculateReliability(source),
       }))
       .sort((a, b) => b.reliabilityScore - a.reliabilityScore);
   }
 
-  private calculateOverallConfidence(
-    results: ResearchResult[],
-    claims: Claim[],
-  ): number {
+  private calculateOverallConfidence(results: ResearchResult[], claims: Claim[]): number {
     if (results.length === 0) return 0;
 
-    const avgRelevance =
-      results.reduce((sum, r) => sum + r.relevance, 0) / results.length;
+    const avgRelevance = results.reduce((sum, r) => sum + r.relevance, 0) / results.length;
     const supportedClaims = claims.filter((c) => c.isSupported).length;
     const claimSupport = claims.length > 0 ? supportedClaims / claims.length : 0.5;
 

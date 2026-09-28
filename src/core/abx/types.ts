@@ -8,12 +8,7 @@
 export type AbxRisk = "low" | "normal" | "high" | "critical";
 
 export type AbxDecision =
-  | "commit"
-  | "commit_with_notice"
-  | "repair"
-  | "degrade"
-  | "reject"
-  | "escalate";
+  "commit" | "commit_with_notice" | "repair" | "degrade" | "reject" | "escalate";
 
 export type AbxEvidenceKind = "source" | "tool" | "policy" | "test";
 

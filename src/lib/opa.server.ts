@@ -89,10 +89,7 @@ function decide(input: PolicyInput): PolicyDecision {
 
   // State transition policy
   if (input.action === "transition" && input.document) {
-    if (
-      input.document.state === "archived" &&
-      !input.actor.roles.includes("governance_admin")
-    ) {
+    if (input.document.state === "archived" && !input.actor.roles.includes("governance_admin")) {
       return {
         allow: false,
         reason: "only governance_admin can revive archived docs",
@@ -113,8 +110,7 @@ function decide(input: PolicyInput): PolicyDecision {
 export async function evaluate(input: PolicyInput): Promise<PolicyDecision> {
   const d = decide(input);
   DECISIONS.push({ ...d, input });
-  if (DECISIONS.length > MAX_DECISIONS)
-    DECISIONS.splice(0, DECISIONS.length - MAX_DECISIONS);
+  if (DECISIONS.length > MAX_DECISIONS) DECISIONS.splice(0, DECISIONS.length - MAX_DECISIONS);
 
   metrics
     .counter("atlas_policy_decisions_total")

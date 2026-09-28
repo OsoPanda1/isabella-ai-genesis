@@ -28,12 +28,7 @@ import { ISABELLA_AVATAR_PRIMARY } from "../../data/isabellaAvatar";
 import { SubscriptionPlans } from "../Billing/SubscriptionPlans";
 
 type ActiveView =
-  | "presence"
-  | "voice_studio"
-  | "image_studio"
-  | "architecture"
-  | "traceability"
-  | "hub";
+  "presence" | "voice_studio" | "image_studio" | "architecture" | "traceability" | "hub";
 
 type NavigationItem = {
   label: string;
@@ -201,10 +196,15 @@ export const IsabellaTerminal: React.FC = () => {
                 aria-current={active ? "page" : undefined}
                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 ${active ? "bg-slate-800/90 text-white" : "text-slate-400 hover:bg-slate-900 hover:text-slate-100"}`}
               >
-                <Icon className={`h-4 w-4 shrink-0 ${active ? "text-sky-300" : "text-slate-500"}`} aria-hidden="true" />
+                <Icon
+                  className={`h-4 w-4 shrink-0 ${active ? "text-sky-300" : "text-slate-500"}`}
+                  aria-hidden="true"
+                />
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-medium">{item.label}</span>
-                  <span className="block truncate text-[11px] text-slate-500">{item.description}</span>
+                  <span className="block truncate text-[11px] text-slate-500">
+                    {item.description}
+                  </span>
                 </span>
               </button>
             );
@@ -228,7 +228,10 @@ export const IsabellaTerminal: React.FC = () => {
             <span className="block text-sm font-medium">Planes y uso</span>
             <span className="block text-[11px] text-slate-500">Administrar suscripción</span>
           </span>
-          <ChevronRight className={`h-4 w-4 transition-transform ${showPlans ? "rotate-90" : ""}`} aria-hidden="true" />
+          <ChevronRight
+            className={`h-4 w-4 transition-transform ${showPlans ? "rotate-90" : ""}`}
+            aria-hidden="true"
+          />
         </button>
       </div>
 
@@ -241,7 +244,9 @@ export const IsabellaTerminal: React.FC = () => {
           <Shield className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" aria-hidden="true" />
           <span>
             <span className="block text-xs font-semibold text-slate-200">Protección activa</span>
-            <span className="mt-0.5 block text-[11px] leading-relaxed text-slate-500">Controles de seguridad y privacidad</span>
+            <span className="mt-0.5 block text-[11px] leading-relaxed text-slate-500">
+              Controles de seguridad y privacidad
+            </span>
           </span>
         </button>
       </div>
@@ -278,29 +283,70 @@ export const IsabellaTerminal: React.FC = () => {
               </button>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="truncate text-base font-semibold text-white sm:text-lg">Conversación</h1>
-                  <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusStyles[status.tone]}`}>
+                  <h1 className="truncate text-base font-semibold text-white sm:text-lg">
+                    Conversación
+                  </h1>
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusStyles[status.tone]}`}
+                  >
                     {status.label}
                   </span>
                 </div>
-                <p className="mt-0.5 truncate text-xs text-slate-500">Isabella · espacio de trabajo personal</p>
+                <p className="mt-0.5 truncate text-xs text-slate-500">
+                  Isabella · espacio de trabajo personal
+                </p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
-              <button type="button" onClick={openShortcutsModal} className="hidden rounded-lg p-2 text-slate-500 hover:bg-slate-900 hover:text-slate-200 sm:block" title="Preferencias y atajos" aria-label="Preferencias y atajos">
+              <button
+                type="button"
+                onClick={openShortcutsModal}
+                className="hidden rounded-lg p-2 text-slate-500 hover:bg-slate-900 hover:text-slate-200 sm:block"
+                title="Preferencias y atajos"
+                aria-label="Preferencias y atajos"
+              >
                 <Settings2 className="h-4 w-4" aria-hidden="true" />
               </button>
-              <button type="button" onClick={triggerManualDiagnostic} className="rounded-lg p-2 text-slate-500 hover:bg-slate-900 hover:text-sky-300" title="Comprobar estado" aria-label="Comprobar estado">
+              <button
+                type="button"
+                onClick={triggerManualDiagnostic}
+                className="rounded-lg p-2 text-slate-500 hover:bg-slate-900 hover:text-sky-300"
+                title="Comprobar estado"
+                aria-label="Comprobar estado"
+              >
                 <Activity className="h-4 w-4" aria-hidden="true" />
               </button>
-              <button type="button" onClick={toggleSpeechSynthesis} className={`rounded-lg p-2 ${state.speechSynthesisEnabled ? "text-amber-300 hover:bg-amber-400/10" : "text-slate-500 hover:bg-slate-900 hover:text-slate-200"}`} title="Activar o desactivar voz" aria-label="Activar o desactivar voz" aria-pressed={state.speechSynthesisEnabled}>
-                {state.speechSynthesisEnabled ? <Volume2 className="h-4 w-4" aria-hidden="true" /> : <VolumeX className="h-4 w-4" aria-hidden="true" />}
+              <button
+                type="button"
+                onClick={toggleSpeechSynthesis}
+                className={`rounded-lg p-2 ${state.speechSynthesisEnabled ? "text-amber-300 hover:bg-amber-400/10" : "text-slate-500 hover:bg-slate-900 hover:text-slate-200"}`}
+                title="Activar o desactivar voz"
+                aria-label="Activar o desactivar voz"
+                aria-pressed={state.speechSynthesisEnabled}
+              >
+                {state.speechSynthesisEnabled ? (
+                  <Volume2 className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <VolumeX className="h-4 w-4" aria-hidden="true" />
+                )}
               </button>
-              <button type="button" onClick={toggleSound} className="hidden rounded-lg px-2 py-1.5 text-[10px] font-semibold text-slate-500 hover:bg-slate-900 hover:text-slate-200 sm:block" aria-label="Activar o desactivar sonidos" aria-pressed={state.soundEnabled}>
+              <button
+                type="button"
+                onClick={toggleSound}
+                className="hidden rounded-lg px-2 py-1.5 text-[10px] font-semibold text-slate-500 hover:bg-slate-900 hover:text-slate-200 sm:block"
+                aria-label="Activar o desactivar sonidos"
+                aria-pressed={state.soundEnabled}
+              >
                 FX {state.soundEnabled ? "ON" : "OFF"}
               </button>
-              <button type="button" onClick={handleClear} className="rounded-lg p-2 text-slate-500 hover:bg-slate-900 hover:text-rose-300" title="Limpiar conversación" aria-label="Limpiar conversación">
+              <button
+                type="button"
+                onClick={handleClear}
+                className="rounded-lg p-2 text-slate-500 hover:bg-slate-900 hover:text-rose-300"
+                title="Limpiar conversación"
+                aria-label="Limpiar conversación"
+              >
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
@@ -318,7 +364,9 @@ export const IsabellaTerminal: React.FC = () => {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-medium text-slate-300">¿En qué trabajamos?</p>
-                    <p className="mt-0.5 text-[11px] text-slate-500">Escribe una pregunta, idea o tarea.</p>
+                    <p className="mt-0.5 text-[11px] text-slate-500">
+                      Escribe una pregunta, idea o tarea.
+                    </p>
                   </div>
                   <button
                     type="button"
@@ -331,7 +379,8 @@ export const IsabellaTerminal: React.FC = () => {
                 </div>
                 {showWorkspaceInfo && (
                   <p className="mt-3 max-w-2xl text-xs leading-relaxed text-slate-500">
-                    Isabella puede ayudarte a redactar, analizar, planificar y crear. Las funciones avanzadas están disponibles desde la navegación lateral.
+                    Isabella puede ayudarte a redactar, analizar, planificar y crear. Las funciones
+                    avanzadas están disponibles desde la navegación lateral.
                   </p>
                 )}
               </div>

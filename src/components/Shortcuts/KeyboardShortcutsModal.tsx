@@ -318,7 +318,17 @@ export const KeyboardShortcutsModal: React.FC<Props> = ({ isOpen, onClose }) => 
         <div className="flex items-center justify-between px-6 py-3 border-t border-slate-800 bg-[#0B1526]/90 text-xs font-mono text-slate-400">
           <div className="flex items-center gap-2">
             <span className="text-amber-400 font-bold">Consejo:</span>
-            <span>Usa <kbd className="px-1.5 py-0.5 rounded bg-[#060D1A] text-sky-300 border border-slate-700 text-[11px]">Ctrl+K</kbd> para limpiar y <kbd className="px-1.5 py-0.5 rounded bg-[#060D1A] text-sky-300 border border-slate-700 text-[11px]">Ctrl+Enter</kbd> para enviar rápidamente.</span>
+            <span>
+              Usa{" "}
+              <kbd className="px-1.5 py-0.5 rounded bg-[#060D1A] text-sky-300 border border-slate-700 text-[11px]">
+                Ctrl+K
+              </kbd>{" "}
+              para limpiar y{" "}
+              <kbd className="px-1.5 py-0.5 rounded bg-[#060D1A] text-sky-300 border border-slate-700 text-[11px]">
+                Ctrl+Enter
+              </kbd>{" "}
+              para enviar rápidamente.
+            </span>
           </div>
           <button
             type="button"

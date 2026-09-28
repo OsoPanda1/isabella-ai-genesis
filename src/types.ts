@@ -62,13 +62,7 @@ export interface DomainError<TCode extends string = string> {
    02. ENUMERACIONES DE DOMINIO
    ============================================================================ */
 
-export const COGNITIVE_MODULE_IDS = [
-  "ISA",
-  "SOPHIA",
-  "CROWN_GATEWAY",
-  "ORION",
-  "ARGUS",
-] as const;
+export const COGNITIVE_MODULE_IDS = ["ISA", "SOPHIA", "CROWN_GATEWAY", "ORION", "ARGUS"] as const;
 
 export type CognitiveModuleId = (typeof COGNITIVE_MODULE_IDS)[number];
 
@@ -82,8 +76,7 @@ export const COGNITIVE_MODULE_STATUS = [
   "OFFLINE",
 ] as const;
 
-export type CognitiveModuleStatus =
-  (typeof COGNITIVE_MODULE_STATUS)[number];
+export type CognitiveModuleStatus = (typeof COGNITIVE_MODULE_STATUS)[number];
 
 export const ACTIVE_VIEW_IDS = [
   "terminal",
@@ -109,20 +102,11 @@ export const ACTIVE_VIEW_IDS = [
 
 export type ActiveViewId = (typeof ACTIVE_VIEW_IDS)[number];
 
-export const INFERENCE_MODES = [
-  "cloud_federated",
-  "local_sovereign",
-] as const;
+export const INFERENCE_MODES = ["cloud_federated", "local_sovereign"] as const;
 
 export type InferenceMode = (typeof INFERENCE_MODES)[number];
 
-export const SECURITY_SEVERITIES = [
-  "info",
-  "low",
-  "medium",
-  "high",
-  "critical",
-] as const;
+export const SECURITY_SEVERITIES = ["info", "low", "medium", "high", "critical"] as const;
 
 export type SecuritySeverity = (typeof SECURITY_SEVERITIES)[number];
 
@@ -174,9 +158,7 @@ export interface CognitiveModule {
   updatedAt?: ISODateTime;
 }
 
-export type CognitiveModuleMap = Readonly<
-  Record<CognitiveModuleId, CognitiveModule>
->;
+export type CognitiveModuleMap = Readonly<Record<CognitiveModuleId, CognitiveModule>>;
 
 /* ============================================================================
    04. ENRUTAMIENTO Y DECISIONES
@@ -275,12 +257,7 @@ export interface IsabellaState {
    07. ESTUDIO DE IMAGEN
    ============================================================================ */
 
-export const IMAGE_SOURCES = [
-  "gemini",
-  "neural_canvas",
-  "orion_flux",
-  "orion_art",
-] as const;
+export const IMAGE_SOURCES = ["gemini", "neural_canvas", "orion_flux", "orion_art"] as const;
 
 export type GeneratedImageSource = (typeof IMAGE_SOURCES)[number];
 
@@ -318,8 +295,7 @@ export type VoiceTimbrePreset = (typeof VOICE_TIMBRE_PRESETS)[number];
 
 export const SUPPORTED_VOICE_LANGUAGES = ["es-MX", "es-ES", "en-US"] as const;
 
-export type SupportedVoiceLanguage =
-  (typeof SUPPORTED_VOICE_LANGUAGES)[number];
+export type SupportedVoiceLanguage = (typeof SUPPORTED_VOICE_LANGUAGES)[number];
 
 export interface VoiceSettings {
   /** Rango permitido: 0.8 a 1.4. */
@@ -430,12 +406,7 @@ export interface ArgusAlertMessage extends BaseTimelineItem {
    ============================================================================ */
 
 export type SponsoredContentStatus =
-  | "eligible"
-  | "served"
-  | "dismissed"
-  | "clicked"
-  | "expired"
-  | "blocked";
+  "eligible" | "served" | "dismissed" | "clicked" | "expired" | "blocked";
 
 export interface SponsoredContent {
   kind?: "sponsored_content";
@@ -500,16 +471,9 @@ export interface PresetProfile {
    12. GOBERNANZA Y SOBERANÍA
    ============================================================================ */
 
-export type CryptographicEnclaveState =
-  | "verified"
-  | "audited"
-  | "degraded"
-  | "unavailable";
+export type CryptographicEnclaveState = "verified" | "audited" | "degraded" | "unavailable";
 
-export type DataBoundary =
-  | "strict_territorial"
-  | "federated_monitored"
-  | "local_only";
+export type DataBoundary = "strict_territorial" | "federated_monitored" | "local_only";
 
 export interface SecurityGovernanceLevel {
   levelNumber: 1 | 2 | 3 | 4 | 5;
@@ -550,8 +514,7 @@ export const PRESENTATION_CATEGORIES = [
   "Visión Global",
 ] as const;
 
-export type PresentationCategory =
-  (typeof PRESENTATION_CATEGORIES)[number];
+export type PresentationCategory = (typeof PRESENTATION_CATEGORIES)[number];
 
 export interface PresentationChapter {
   id: string;
@@ -663,7 +626,7 @@ declare global {
       (
         command: "track",
         event: string,
-        data?: ReadonlyRecord<string | number | boolean | null>
+        data?: ReadonlyRecord<string | number | boolean | null>,
       ): void;
 
       (command: "click", adId: string): void;
@@ -679,7 +642,7 @@ declare global {
       deny: () => void;
       track: (
         eventName: string,
-        properties?: ReadonlyRecord<string | number | boolean | null>
+        properties?: ReadonlyRecord<string | number | boolean | null>,
       ) => void;
     };
   }

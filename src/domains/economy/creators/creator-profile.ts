@@ -65,17 +65,14 @@ export function createCreatorProfile(params: {
   return profile;
 }
 
-export function getCreatorProfile(
-  principalId: string,
-  tenantId: string
-): CreatorProfile | null {
+export function getCreatorProfile(principalId: string, tenantId: string): CreatorProfile | null {
   return profiles.get(`${tenantId}:${principalId}`) || null;
 }
 
 export function updateCreatorReputation(
   principalId: string,
   tenantId: string,
-  update: Partial<CreatorReputation>
+  update: Partial<CreatorReputation>,
 ): CreatorReputation | null {
   const key = `${tenantId}:${principalId}`;
   const profile = profiles.get(key);
@@ -91,7 +88,7 @@ export function updateCreatorReputation(
         rep.security * 0.2 +
         rep.customerRetention * 0.15) *
         100) /
-        100
+        100,
     ) / 100;
 
   rep.updatedAt = new Date().toISOString();
@@ -103,7 +100,7 @@ export function updateCreatorReputation(
 export function recordTransaction(
   principalId: string,
   tenantId: string,
-  amount: number
+  amount: number,
 ): CreatorReputation | null {
   const key = `${tenantId}:${principalId}`;
   const profile = profiles.get(key);

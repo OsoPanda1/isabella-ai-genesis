@@ -22,11 +22,13 @@ export const sanitizePath = (rawUrl: string | undefined): string => {
   if (!rawUrl) return "/";
   try {
     const parsed = new URL(rawUrl, "https://internal.local");
-    return parsed.pathname
-      .replace(/\0/g, "")
-      .replace(/\/{2,}/g, "/")
-      .replace(/\.\./g, "")
-      .slice(0, 512) || "/";
+    return (
+      parsed.pathname
+        .replace(/\0/g, "")
+        .replace(/\/{2,}/g, "/")
+        .replace(/\.\./g, "")
+        .slice(0, 512) || "/"
+    );
   } catch {
     return "/invalid-path";
   }
@@ -47,10 +49,7 @@ export const logEvent = (
   level: LogLevel = "info",
 ): void => {
   const sanitizedData = Object.fromEntries(
-    Object.entries(data).map(([k, v]) => [
-      k,
-      typeof v === "string" ? sanitizeString(v) : v,
-    ]),
+    Object.entries(data).map(([k, v]) => [k, typeof v === "string" ? sanitizeString(v) : v]),
   );
 
   const payload = JSON.stringify({

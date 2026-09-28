@@ -27,11 +27,7 @@
  */
 
 import * as React from "react";
-import {
-  StrictMode,
-  type ErrorInfo,
-  type ReactNode,
-} from "react";
+import { StrictMode, type ErrorInfo, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import App from "./App";
@@ -98,13 +94,7 @@ interface RuntimeContext {
   readonly version: string;
 }
 
-type BootPhase =
-  | "cold"
-  | "initializing"
-  | "mounting"
-  | "ready"
-  | "degraded"
-  | "failed";
+type BootPhase = "cold" | "initializing" | "mounting" | "ready" | "degraded" | "failed";
 
 /* =============================================================================
    03. IDENTIDAD DE EJECUCIÓN
@@ -121,9 +111,7 @@ function createRuntimeId(prefix: string): string {
    * Fallback no criptográfico para navegadores antiguos.
    * Es un ID técnico efímero, no una clave, token ni identidad de usuario.
    */
-  return `${prefix}_${Date.now().toString(36)}_${Math.random()
-    .toString(36)
-    .slice(2, 12)}`;
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
 }
 
 const runtime: RuntimeContext = Object.freeze({
@@ -147,7 +135,7 @@ const runtime: RuntimeContext = Object.freeze({
 function emitRuntimeEvent(
   type: RuntimeEventName,
   severity: RuntimeSeverity,
-  attributes: SafeAttributes = {}
+  attributes: SafeAttributes = {},
 ): void {
   const event: RuntimeEvent = {
     eventId: createRuntimeId("evt"),
@@ -164,7 +152,7 @@ function emitRuntimeEvent(
   window.dispatchEvent(
     new CustomEvent<RuntimeEvent>("isabella:runtime-event", {
       detail: event,
-    })
+    }),
   );
 
   if (IS_DEVELOPMENT) {
@@ -197,17 +185,14 @@ function normalizeError(error: unknown): Error {
 
 function sanitizeText(value: string, maxLength: number): string {
   return value
-    .replace(
-      /(?:bearer\s+|token=|apikey=|api[_-]?key=|authorization:)\S+/gi,
-      "[REDACTED]"
-    )
+    .replace(/(?:bearer\s+|token=|apikey=|api[_-]?key=|authorization:)\S+/gi, "[REDACTED]")
     .replace(/\b[A-Za-z0-9_-]{24,}\.[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{12,}\b/g, "[REDACTED]")
     .slice(0, maxLength);
 }
 
 function describeError(
   error: unknown,
-  errorInfo?: Pick<ErrorInfo, "componentStack">
+  errorInfo?: Pick<ErrorInfo, "componentStack">,
 ): ErrorDescriptor {
   const normalized = normalizeError(error);
 
@@ -215,7 +200,7 @@ function describeError(
     name: sanitizeText(normalized.name || "Error", 80),
     message: sanitizeText(
       normalized.message || "Error técnico no identificado.",
-      MAX_ERROR_MESSAGE_LENGTH
+      MAX_ERROR_MESSAGE_LENGTH,
     ),
     componentStack: errorInfo?.componentStack
       ? sanitizeText(errorInfo.componentStack, MAX_COMPONENT_STACK_LENGTH)
@@ -226,7 +211,7 @@ function describeError(
 function reportRuntimeError(
   source: "react" | "window" | "promise" | "resource" | "service_worker",
   error: unknown,
-  errorInfo?: Pick<ErrorInfo, "componentStack">
+  errorInfo?: Pick<ErrorInfo, "componentStack">,
 ): void {
   const descriptor = describeError(error, errorInfo);
 
@@ -250,15 +235,14 @@ class BootController {
   }
 
   public transition(next: BootPhase): void {
-    const allowedTransitions: Readonly<Record<BootPhase, readonly BootPhase[]>> =
-      {
-        cold: ["initializing", "failed"],
-        initializing: ["mounting", "degraded", "failed"],
-        mounting: ["ready", "degraded", "failed"],
-        ready: ["degraded"],
-        degraded: ["ready", "failed"],
-        failed: [],
-      };
+    const allowedTransitions: Readonly<Record<BootPhase, readonly BootPhase[]>> = {
+      cold: ["initializing", "failed"],
+      initializing: ["mounting", "degraded", "failed"],
+      mounting: ["ready", "degraded", "failed"],
+      ready: ["degraded"],
+      degraded: ["ready", "failed"],
+      failed: [],
+    };
 
     if (!allowedTransitions[this.phase].includes(next)) {
       emitRuntimeEvent("runtime_error", "warning", {
@@ -304,9 +288,7 @@ function detectRuntimeCapabilities(): RuntimeCapabilities {
     serviceWorkerSupported: "serviceWorker" in navigator,
     webCryptoSupported: Boolean(globalThis.crypto?.subtle),
     localStorageAvailable: canUseLocalStorage(),
-    reducedMotionPreferred: window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches,
+    reducedMotionPreferred: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   });
 }
 
@@ -314,11 +296,7 @@ function detectRuntimeCapabilities(): RuntimeCapabilities {
    08. FALLO VISUAL DE CONTINUIDAD
    ============================================================================= */
 
-function renderBootFailure(
-  rootElement: HTMLElement,
-  reason: string,
-  canRetry = true
-): void {
+function renderBootFailure(rootElement: HTMLElement, reason: string, canRetry = true): void {
   rootElement.replaceChildren();
 
   const container = document.createElement("main");
@@ -399,38 +377,24 @@ class RootContinuityBoundary extends React.Component<
   public render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <main
-          id="main-content"
-          className="boot-fallback"
-          role="alert"
-          aria-live="assertive"
-        >
-          <section
-            className="boot-fallback__panel"
-            aria-labelledby="continuity-title"
-          >
-            <p className="boot-fallback__eyebrow">
-              Isabella Villaseñor AI · Continuidad protegida
-            </p>
+        <main id="main-content" className="boot-fallback" role="alert" aria-live="assertive">
+          <section className="boot-fallback__panel" aria-labelledby="continuity-title">
+            <p className="boot-fallback__eyebrow">Isabella Villaseñor AI · Continuidad protegida</p>
 
             <h1 id="continuity-title" className="boot-fallback__title">
               El entorno requiere una restauración
             </h1>
 
             <p className="boot-fallback__description">
-              Se aisló un fallo de interfaz para proteger la continuidad de la
-              sesión. Puedes restaurar el entorno de forma segura.
+              Se aisló un fallo de interfaz para proteger la continuidad de la sesión. Puedes
+              restaurar el entorno de forma segura.
             </p>
 
             <p className="boot-fallback__reference">
               Referencia técnica: {this.state.incidentReference}
             </p>
 
-            <button
-              type="button"
-              className="boot-fallback__action"
-              onClick={this.handleRecovery}
-            >
+            <button type="button" className="boot-fallback__action" onClick={this.handleRecovery}>
               Restaurar entorno
             </button>
           </section>
@@ -565,7 +529,7 @@ function mountApplication(rootElement: HTMLElement): Root {
       <RootContinuityBoundary>
         <App />
       </RootContinuityBoundary>
-    </StrictMode>
+    </StrictMode>,
   );
 
   return root;
@@ -609,9 +573,7 @@ function boot(): void {
   if (!rootElement) {
     bootController.transition("failed");
 
-    throw new Error(
-      `No se encontró el punto de montaje ${ROOT_SELECTOR} en index.html.`
-    );
+    throw new Error(`No se encontró el punto de montaje ${ROOT_SELECTOR} en index.html.`);
   }
 
   const capabilities = detectRuntimeCapabilities();
@@ -640,10 +602,7 @@ function boot(): void {
   installGlobalErrorGuards();
 
   const bootWatchdog = window.setTimeout(() => {
-    if (
-      bootController.getPhase() === "initializing" ||
-      bootController.getPhase() === "mounting"
-    ) {
+    if (bootController.getPhase() === "initializing" || bootController.getPhase() === "mounting") {
       bootController.transition("degraded");
 
       emitRuntimeEvent("runtime_degraded", "warning", {
@@ -674,10 +633,7 @@ function boot(): void {
     bootController.transition("failed");
     reportRuntimeError("react", error);
 
-    renderBootFailure(
-      rootElement,
-      `BOOT_${createRuntimeId("failure").slice(-12).toUpperCase()}`
-    );
+    renderBootFailure(rootElement, `BOOT_${createRuntimeId("failure").slice(-12).toUpperCase()}`);
   }
 }
 

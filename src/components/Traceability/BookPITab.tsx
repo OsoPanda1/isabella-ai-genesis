@@ -33,9 +33,9 @@ export const BookPITab: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
-      <div className="space-y-6 animate-fade-in pb-12">
-        <DemoDataNotice />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="space-y-6 animate-fade-in pb-12">
+      <DemoDataNotice />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-[#030712] border border-slate-800 p-6 rounded-xl flex items-start gap-4">
           <div className="p-3 bg-blue-900/30 text-blue-400 rounded-lg border border-blue-500/20">
             <Database className="w-5 h-5" />
@@ -64,9 +64,9 @@ export const BookPITab: React.FC = () => {
           </h3>
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input 
-              type="text" 
-              placeholder="Buscar por Block ID..." 
+            <input
+              type="text"
+              placeholder="Buscar por Block ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 pr-4 py-1.5 bg-[#0A101D] border border-slate-700 rounded-lg text-xs font-mono text-slate-200 focus:outline-none focus:border-blue-500 w-64"
@@ -86,8 +86,11 @@ export const BookPITab: React.FC = () => {
               </tr>
             </thead>
             <tbody className="text-xs font-mono text-slate-300">
-              {MOCK_BLOCKS.filter(b => b.blockId.includes(searchTerm)).map((block, idx) => (
-                <tr key={idx} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+              {MOCK_BLOCKS.filter((b) => b.blockId.includes(searchTerm)).map((block, idx) => (
+                <tr
+                  key={idx}
+                  className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors"
+                >
                   <td className="p-4 font-bold text-sky-400">{block.blockId}</td>
                   <td className="p-4 text-slate-400 flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5" />
@@ -99,7 +102,9 @@ export const BookPITab: React.FC = () => {
                   <td className="p-4 text-right">
                     <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-900/30 border border-emerald-500/20 text-emerald-400">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span className="uppercase text-[9px] font-bold tracking-wider">{block.status}</span>
+                      <span className="uppercase text-[9px] font-bold tracking-wider">
+                        {block.status}
+                      </span>
                     </div>
                   </td>
                 </tr>

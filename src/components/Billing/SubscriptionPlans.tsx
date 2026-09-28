@@ -66,10 +66,9 @@ const PLAN_PRIORITY: Record<PlanId, number> = {
   enterprise: 4,
 };
 
-const DEFAULT_ALLOWED_ORIGINS =
-  (import.meta.env.VITE_CHECKOUT_ORIGINS?.split(",") ?? [])
-    .map((origin: string) => origin.trim())
-    .filter(Boolean);
+const DEFAULT_ALLOWED_ORIGINS = (import.meta.env.VITE_CHECKOUT_ORIGINS?.split(",") ?? [])
+  .map((origin: string) => origin.trim())
+  .filter(Boolean);
 
 const integerFormatter = new Intl.NumberFormat("es-MX", {
   maximumFractionDigits: 0,
@@ -150,7 +149,10 @@ const parseBilling = (input: unknown): BillingDto | null => {
 
   return {
     ok: true,
-    positioning: safeText(raw.positioning, "Elige el nivel operativo que mejor se adapte a tu flujo."),
+    positioning: safeText(
+      raw.positioning,
+      "Elige el nivel operativo que mejor se adapte a tu flujo.",
+    ),
     plans,
     current: {
       plan: currentPlan,
@@ -184,10 +186,7 @@ const formatResetDate = (value: string, locale: string) => {
   }).format(date);
 };
 
-const isAllowedCheckoutUrl = (
-  value: string | null,
-  allowedOrigins: readonly string[],
-) => {
+const isAllowedCheckoutUrl = (value: string | null, allowedOrigins: readonly string[]) => {
   if (!value) return false;
   try {
     const url = new URL(value);
@@ -266,7 +265,10 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
 
   if (load.status === "loading" && !billing) {
     return (
-      <section className="mb-4 rounded-3xl border border-slate-800 bg-slate-950/80 p-6" aria-busy="true">
+      <section
+        className="mb-4 rounded-3xl border border-slate-800 bg-slate-950/80 p-6"
+        aria-busy="true"
+      >
         <div className="flex items-center justify-center gap-2 text-sm text-slate-400">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           Cargando configuración de planes…
@@ -277,12 +279,17 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
 
   if (load.status === "error" && !billing) {
     return (
-      <section className="mb-4 rounded-3xl border border-rose-500/30 bg-rose-950/20 p-5" role="alert">
+      <section
+        className="mb-4 rounded-3xl border border-rose-500/30 bg-rose-950/20 p-5"
+        role="alert"
+      >
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-300" aria-hidden="true" />
           <div className="min-w-0 flex-1">
             <h2 className="text-sm font-bold text-rose-100">No se pudieron cargar los planes</h2>
-            <p className="mt-1 text-xs text-rose-200/70">La información no está disponible en este momento.</p>
+            <p className="mt-1 text-xs text-rose-200/70">
+              La información no está disponible en este momento.
+            </p>
             <button
               type="button"
               onClick={() => setRetryNonce((value) => value + 1)}
@@ -318,20 +325,37 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               Cuota diaria activa
             </span>
           </div>
-          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-400">{billing.positioning}</p>
+          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-400">
+            {billing.positioning}
+          </p>
           <p className="mt-1 text-[10px] text-slate-500">Reinicio estimado: {resetLabel}</p>
         </div>
 
         <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 lg:min-w-[540px]">
-          <Metric label="Mensajes" value={integerFormatter.format(remaining.messages)} tone="text-sky-300" />
-          <Metric label="Imágenes" value={integerFormatter.format(remaining.images)} tone="text-amber-300" />
-          <Metric label="Voz · segundos" value={integerFormatter.format(remaining.voiceSeconds)} tone="text-pink-300" />
+          <Metric
+            label="Mensajes"
+            value={integerFormatter.format(remaining.messages)}
+            tone="text-sky-300"
+          />
+          <Metric
+            label="Imágenes"
+            value={integerFormatter.format(remaining.images)}
+            tone="text-amber-300"
+          />
+          <Metric
+            label="Voz · segundos"
+            value={integerFormatter.format(remaining.voiceSeconds)}
+            tone="text-pink-300"
+          />
           <Metric label="Plan actual" value={billing.current.plan.name} tone="text-emerald-300" />
         </dl>
       </div>
 
       {load.status === "error" && billing && (
-        <div className="mt-3 flex items-center gap-2 rounded-xl border border-amber-400/20 bg-amber-400/5 px-3 py-2 text-[11px] text-amber-200" role="status">
+        <div
+          className="mt-3 flex items-center gap-2 rounded-xl border border-amber-400/20 bg-amber-400/5 px-3 py-2 text-[11px] text-amber-200"
+          role="status"
+        >
           <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           Mostrando la última información válida.
         </div>
@@ -356,22 +380,41 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
 
               <div className="flex items-center justify-between gap-2 pr-12">
                 <h3 className="truncate text-sm font-bold text-slate-100">{plan.name}</h3>
-                {isHighlighted && <Sparkles className="h-4 w-4 shrink-0 text-amber-300" aria-label="Plan destacado" />}
-                {plan.id === "enterprise" && <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-300" aria-label="Plan empresarial" />}
+                {isHighlighted && (
+                  <Sparkles
+                    className="h-4 w-4 shrink-0 text-amber-300"
+                    aria-label="Plan destacado"
+                  />
+                )}
+                {plan.id === "enterprise" && (
+                  <ShieldCheck
+                    className="h-4 w-4 shrink-0 text-emerald-300"
+                    aria-label="Plan empresarial"
+                  />
+                )}
               </div>
 
               <p className="mt-2 text-2xl font-black text-white">
                 {formatCurrency(plan.monthlyUsd, locale, currency)}
-                {plan.monthlyUsd !== null && <span className="text-xs font-medium text-slate-400">/mes</span>}
+                {plan.monthlyUsd !== null && (
+                  <span className="text-xs font-medium text-slate-400">/mes</span>
+                )}
               </p>
 
               <p className="mt-1 text-[11px] font-mono leading-relaxed text-slate-400">
-                {integerFormatter.format(plan.dailyMessages)} mensajes · {integerFormatter.format(plan.dailyImages)} imágenes/día
+                {integerFormatter.format(plan.dailyMessages)} mensajes ·{" "}
+                {integerFormatter.format(plan.dailyImages)} imágenes/día
               </p>
 
-              <ul className="mt-3 flex-1 space-y-1.5 text-[11px] text-slate-300" aria-label={`Características de ${plan.name}`}>
+              <ul
+                className="mt-3 flex-1 space-y-1.5 text-[11px] text-slate-300"
+                aria-label={`Características de ${plan.name}`}
+              >
                 {plan.features.slice(0, 5).map((feature, index) => (
-                  <li key={`${plan.id}-${index}-${feature}`} className="flex gap-1.5 leading-relaxed">
+                  <li
+                    key={`${plan.id}-${index}-${feature}`}
+                    className="flex gap-1.5 leading-relaxed"
+                  >
                     <Check className="mt-0.5 h-3 w-3 shrink-0 text-sky-300" aria-hidden="true" />
                     <span>{feature}</span>
                   </li>

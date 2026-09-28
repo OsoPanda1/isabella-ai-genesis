@@ -48,14 +48,27 @@ function newId(prefix: string): string {
 }
 
 /** Valida el contrato de aprobación (reglas anti-elusión). */
-export function validateApproval(input: Partial<HumanApproval>, requiredLevel: HumanOversightLevel): string | null {
-  if (!input.reviewerSubject) return "Falta reviewerSubject (no se permite autoaprobación anónima).";
-  if (input.decision === "approve" && !input.reason?.trim()) return "Una aprobación sin motivo no es válida.";
-  if (input.expiresAt && new Date(input.expiresAt).getTime() < Date.now()) return "La aprobación ha expirado.";
-  if (input.decision !== "approve" && input.decision !== "reject" && input.decision !== "request_changes") {
+export function validateApproval(
+  input: Partial<HumanApproval>,
+  requiredLevel: HumanOversightLevel,
+): string | null {
+  if (!input.reviewerSubject)
+    return "Falta reviewerSubject (no se permite autoaprobación anónima).";
+  if (input.decision === "approve" && !input.reason?.trim())
+    return "Una aprobación sin motivo no es válida.";
+  if (input.expiresAt && new Date(input.expiresAt).getTime() < Date.now())
+    return "La aprobación ha expirado.";
+  if (
+    input.decision !== "approve" &&
+    input.decision !== "reject" &&
+    input.decision !== "request_changes"
+  ) {
     return "Decisión inválida.";
   }
-  if (requiredLevel === "H3" && (!input.secondReviewerId || input.secondReviewerId === input.reviewerSubject)) {
+  if (
+    requiredLevel === "H3" &&
+    (!input.secondReviewerId || input.secondReviewerId === input.reviewerSubject)
+  ) {
     return "H3 requiere un segundo aprobador independiente.";
   }
   return null;
@@ -71,7 +84,11 @@ export function gateAction(options: {
   scope: string;
   evidenceRefs?: string[];
   approvals?: HumanApproval[];
-}): { status: "allowed" | "blocked" | "pending_human_approval"; reason?: string; approval?: Partial<HumanApproval> } {
+}): {
+  status: "allowed" | "blocked" | "pending_human_approval";
+  reason?: string;
+  approval?: Partial<HumanApproval>;
+} {
   const need = OVERSIGHT_ORDER[options.requiredLevel];
   if (need <= OVERSIGHT_ORDER.H0) {
     return { status: "allowed" };

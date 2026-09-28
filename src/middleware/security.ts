@@ -23,10 +23,13 @@ const MutatingRequestSchema = z.object({
 function parseCookies(header: unknown): Record<string, string> {
   if (typeof header !== "string") return {};
   return Object.fromEntries(
-    header.split(";").map((part) => {
-      const [name, ...rest] = part.trim().split("=");
-      return [name, decodeURIComponent(rest.join("="))];
-    }).filter(([name]) => Boolean(name)),
+    header
+      .split(";")
+      .map((part) => {
+        const [name, ...rest] = part.trim().split("=");
+        return [name, decodeURIComponent(rest.join("="))];
+      })
+      .filter(([name]) => Boolean(name)),
   );
 }
 
@@ -85,12 +88,19 @@ function inspectPromptPayload(value: unknown, path = "$", findings: string[] = [
 }
 
 export function promptInjectionGuard(req: Request, res: Response, next: NextFunction) {
-  const parsed = MutatingRequestSchema.safeParse({ body: req.body, method: req.method, path: req.path });
-  if (!parsed.success) return res.status(400).json({ ok: false, error: "Malformed request envelope." });
+  const parsed = MutatingRequestSchema.safeParse({
+    body: req.body,
+    method: req.method,
+    path: req.path,
+  });
+  if (!parsed.success)
+    return res.status(400).json({ ok: false, error: "Malformed request envelope." });
   if (SAFE_METHODS.has(req.method)) return next();
   const findings = inspectPromptPayload(req.body);
   if (findings.length > 0) {
-    return res.status(400).json({ ok: false, error: "Potential prompt injection content rejected.", fields: findings });
+    return res
+      .status(400)
+      .json({ ok: false, error: "Potential prompt injection content rejected.", fields: findings });
   }
   return next();
 }

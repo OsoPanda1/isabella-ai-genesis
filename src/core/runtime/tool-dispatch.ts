@@ -24,9 +24,16 @@ const TOOL_AUTHORIZATION: Record<string, { minRisk?: string; requiresConsent?: b
   sovereign_ledger_commit: { minRisk: "medium", requiresConsent: true },
 };
 
-export function authorizeToolCall(toolName: string, riskLevel: string): { allowed: boolean; reason?: string } {
+export function authorizeToolCall(
+  toolName: string,
+  riskLevel: string,
+): { allowed: boolean; reason?: string } {
   const policy = TOOL_AUTHORIZATION[toolName];
-  if (!policy) return { allowed: false, reason: `Tool '${toolName}' is not registered in the authorization policy.` };
+  if (!policy)
+    return {
+      allowed: false,
+      reason: `Tool '${toolName}' is not registered in the authorization policy.`,
+    };
 
   const tool = REGISTERED_TOOLS.find((t) => t.name === toolName);
   if (!tool) return { allowed: false, reason: `Tool '${toolName}' not found in catalog.` };
@@ -35,7 +42,11 @@ export function authorizeToolCall(toolName: string, riskLevel: string): { allowe
   const riskOrder = ["low", "medium", "high"];
   const minIdx = riskOrder.indexOf(policy.minRisk || "low");
   const actIdx = riskOrder.indexOf(riskLevel);
-  if (actIdx > minIdx) return { allowed: false, reason: `Risk '${riskLevel}' exceeds tool maximum '${policy.minRisk}'.` };
+  if (actIdx > minIdx)
+    return {
+      allowed: false,
+      reason: `Risk '${riskLevel}' exceeds tool maximum '${policy.minRisk}'.`,
+    };
 
   return { allowed: true };
 }
@@ -47,10 +58,23 @@ export async function resolveToolCall(
 ): Promise<ToolDispatchResult> {
   const auth = authorizeToolCall(tc.name, "low");
   if (!auth.allowed) {
-    return { toolName: tc.name, success: false, result: { error: auth.reason }, executionMs: 0, authorized: false, denyReason: auth.reason };
+    return {
+      toolName: tc.name,
+      success: false,
+      result: { error: auth.reason },
+      executionMs: 0,
+      authorized: false,
+      denyReason: auth.reason,
+    };
   }
 
   const toolCall: IsabellaDecisionToolCall = { toolName: tc.name, arguments: tc.arguments };
   const result = await executeTool(toolCall);
-  return { toolName: tc.name, success: result.success, result: result.result, executionMs: result.executionTimeMs, authorized: true };
+  return {
+    toolName: tc.name,
+    success: result.success,
+    result: result.result,
+    executionMs: result.executionTimeMs,
+    authorized: true,
+  };
 }

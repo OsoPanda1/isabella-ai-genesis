@@ -38,11 +38,14 @@ export async function auditTrace(payload: AuditTraceParams): Promise<{
   traceId: string;
   timestamp: string;
 }> {
-  const traceId = payload.traceId || `trace-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const traceId =
+    payload.traceId || `trace-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const auditId = `audit-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   const now = new Date().toISOString();
 
-  const checksum = `sha256_${createHash("sha256").update(JSON.stringify(payload.data || {})).digest("hex")}`;
+  const checksum = `sha256_${createHash("sha256")
+    .update(JSON.stringify(payload.data || {}))
+    .digest("hex")}`;
 
   const entry: IsabellaAuditLog = {
     id: auditId,
@@ -61,7 +64,7 @@ export async function auditTrace(payload: AuditTraceParams): Promise<{
       const db = getDatabase();
       db.prepare(
         `INSERT INTO audit_logs (id, tenantId, sessionId, actorId, eventType, payload, traceId, checksum, createdAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).run(
         entry.id,
         entry.tenantId ?? null,
@@ -71,17 +74,28 @@ export async function auditTrace(payload: AuditTraceParams): Promise<{
         JSON.stringify(entry.payload),
         entry.traceId,
         entry.checksum ?? null,
-        entry.createdAt
+        entry.createdAt,
       );
-      import("./../../../lib/persistence/postgres").then(({ pgExecute }) =>
-        pgExecute(
-          `INSERT INTO audit_logs (id, tenantId, sessionId, actorId, eventType, payload, traceId, checksum, createdAt)
+      import("./../../../lib/persistence/postgres")
+        .then(({ pgExecute }) =>
+          pgExecute(
+            `INSERT INTO audit_logs (id, tenantId, sessionId, actorId, eventType, payload, traceId, checksum, createdAt)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
            ON CONFLICT (id) DO NOTHING`,
-          [entry.id, entry.tenantId ?? null, entry.sessionId ?? null, entry.actorId ?? null,
-           entry.eventType, JSON.stringify(entry.payload), entry.traceId, entry.checksum ?? null, entry.createdAt]
-        ).catch(() => {})
-      ).catch(() => {});
+            [
+              entry.id,
+              entry.tenantId ?? null,
+              entry.sessionId ?? null,
+              entry.actorId ?? null,
+              entry.eventType,
+              JSON.stringify(entry.payload),
+              entry.traceId,
+              entry.checksum ?? null,
+              entry.createdAt,
+            ],
+          ).catch(() => {}),
+        )
+        .catch(() => {});
     } catch {
       insertIntoBuffer(entry);
     }
@@ -105,10 +119,12 @@ export function getRecentAuditLogs(limit = 50): IsabellaAuditLog[] {
   if (isSqliteAvailable()) {
     try {
       const db = getDatabase();
-      const rows = db.prepare(
-        `SELECT id, tenantId, sessionId, actorId, eventType, payload, traceId, checksum, createdAt
-         FROM audit_logs ORDER BY createdAt DESC LIMIT ?`
-      ).all(limit) as Array<{
+      const rows = db
+        .prepare(
+          `SELECT id, tenantId, sessionId, actorId, eventType, payload, traceId, checksum, createdAt
+         FROM audit_logs ORDER BY createdAt DESC LIMIT ?`,
+        )
+        .all(limit) as Array<{
         id: string;
         tenantId: string | null;
         sessionId: string | null;

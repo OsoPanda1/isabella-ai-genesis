@@ -49,7 +49,11 @@ function merkleRoot(leaves: string[]): string {
     for (let i = 0; i < layer.length; i += 2) {
       const a = layer[i];
       const b = layer[i + 1] ?? a;
-      next.push(createHash("sha256").update(a + b).digest("hex"));
+      next.push(
+        createHash("sha256")
+          .update(a + b)
+          .digest("hex"),
+      );
     }
     layer = next;
   }
@@ -79,7 +83,9 @@ export async function anchorDocument(input: {
   const required = 4;
   const root = merkleRoot(signatures.map((s) => s.signature));
   const anchor: AnchorRecord = {
-    anchor_id: `ANCH-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1e6).toString(36).toUpperCase()}`,
+    anchor_id: `ANCH-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1e6)
+      .toString(36)
+      .toUpperCase()}`,
     document_uid: input.document_uid,
     merkle_root: root,
     signatures,
@@ -119,9 +125,7 @@ export async function anchorDocument(input: {
       status: anchor.status,
       mismatches:
         anchor.status === "divergent"
-          ? FEDERATIONS.filter(
-              (f) => !signatures.some((s) => s.federation_id === f),
-            )
+          ? FEDERATIONS.filter((f) => !signatures.some((s) => s.federation_id === f))
           : [],
     },
   });

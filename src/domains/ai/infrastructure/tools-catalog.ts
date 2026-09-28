@@ -8,14 +8,18 @@ import { IsabellaTool, IsabellaDecisionToolCall } from "../../../contracts/isabe
 export const REGISTERED_TOOLS: IsabellaTool[] = [
   {
     name: "rdm_territory_query",
-    description: "Consulta entidades territoriales, puntos de interés y servicios turísticos/culturales en Real del Monte.",
+    description:
+      "Consulta entidades territoriales, puntos de interés y servicios turísticos/culturales en Real del Monte.",
     allowed: true,
     category: "territory",
     riskRating: "low",
     schema: {
       type: "object",
       properties: {
-        category: { type: "string", enum: ["patrimonio", "gastronomia", "turismo", "comercio", "clima"] },
+        category: {
+          type: "string",
+          enum: ["patrimonio", "gastronomia", "turismo", "comercio", "clima"],
+        },
         query: { type: "string" },
       },
       required: ["category"],
@@ -24,7 +28,8 @@ export const REGISTERED_TOOLS: IsabellaTool[] = [
   },
   {
     name: "isabella_synthesize_voice",
-    description: "Sintetiza modulación vocal femenina con parámetros acústicos de tono, ritmo y timbre.",
+    description:
+      "Sintetiza modulación vocal femenina con parámetros acústicos de tono, ritmo y timbre.",
     allowed: true,
     category: "synthesis",
     riskRating: "low",
@@ -40,7 +45,8 @@ export const REGISTERED_TOOLS: IsabellaTool[] = [
   },
   {
     name: "crown_cognitive_arbitrate",
-    description: "Ejecuta un ciclo de arbitraje de pesos y balanceo de carga entre ISA, SOPHIA, ORION y ARGUS.",
+    description:
+      "Ejecuta un ciclo de arbitraje de pesos y balanceo de carga entre ISA, SOPHIA, ORION y ARGUS.",
     allowed: true,
     category: "cognition",
     riskRating: "low",
@@ -56,7 +62,8 @@ export const REGISTERED_TOOLS: IsabellaTool[] = [
   },
   {
     name: "argus_security_audit",
-    description: "Inspecciona la integridad del contexto y genera un hash de verificación criptográfica.",
+    description:
+      "Inspecciona la integridad del contexto y genera un hash de verificación criptográfica.",
     allowed: true,
     category: "security",
     riskRating: "low",
@@ -71,7 +78,8 @@ export const REGISTERED_TOOLS: IsabellaTool[] = [
   },
   {
     name: "sovereign_ledger_commit",
-    description: "Registra un bloque de decisión inmutable en el registro de gobernanza comunitaria.",
+    description:
+      "Registra un bloque de decisión inmutable en el registro de gobernanza comunitaria.",
     allowed: true,
     category: "governance",
     riskRating: "medium",
@@ -98,7 +106,9 @@ async function executeToolUnsafe(toolCall: IsabellaDecisionToolCall): Promise<{
   if (!tool) {
     return {
       success: false,
-      result: { error: `Herramienta ${toolCall.toolName} no encontrada en el catálogo de Nodo Cero.` },
+      result: {
+        error: `Herramienta ${toolCall.toolName} no encontrada en el catálogo de Nodo Cero.`,
+      },
       executionTimeMs: Date.now() - start,
     };
   }
@@ -175,14 +185,22 @@ async function executeToolUnsafe(toolCall: IsabellaDecisionToolCall): Promise<{
       let totalRows = 0;
       try {
         const db = getDatabase();
-        const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as { name: string }[];
+        const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as {
+          name: string;
+        }[];
         tablesChecked = tables.length;
         for (const t of tables) {
-          const row = db.prepare(`SELECT COUNT(*) as cnt FROM "${t.name}"`).get() as { cnt: number };
+          const row = db.prepare(`SELECT COUNT(*) as cnt FROM "${t.name}"`).get() as {
+            cnt: number;
+          };
           totalRows += row.cnt;
         }
-      } catch { /* sqlite unavailable */ }
-      const integrityHash = createHash("sha256").update(`argus-audit-${tablesChecked}-${totalRows}-${Date.now()}`).digest("hex");
+      } catch {
+        /* sqlite unavailable */
+      }
+      const integrityHash = createHash("sha256")
+        .update(`argus-audit-${tablesChecked}-${totalRows}-${Date.now()}`)
+        .digest("hex");
       result = {
         auditStatus: "PASS",
         zeroTrustPassed: true,
@@ -225,7 +243,6 @@ async function executeToolUnsafe(toolCall: IsabellaDecisionToolCall): Promise<{
   };
 }
 
-
 export async function executeTool(toolCall: IsabellaDecisionToolCall): Promise<{
   success: boolean;
   result: Record<string, unknown>;
@@ -244,9 +261,10 @@ export async function executeTool(toolCall: IsabellaDecisionToolCall): Promise<{
     return {
       success: false,
       result: {
-        error: error instanceof Error && error.message === "TOOL_EXECUTION_TIMEOUT"
-          ? "Tool execution timed out in the Isabella sandbox guard."
-          : "Tool execution failed inside the Isabella sandbox guard.",
+        error:
+          error instanceof Error && error.message === "TOOL_EXECUTION_TIMEOUT"
+            ? "Tool execution timed out in the Isabella sandbox guard."
+            : "Tool execution failed inside the Isabella sandbox guard.",
         sandbox: process.env.TOOL_SANDBOX_RUNTIME || "policy-guard",
       },
       executionTimeMs: Date.now() - startedAt,

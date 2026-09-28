@@ -23,7 +23,8 @@ import { OscilloscopeWaveform } from "../AudioVisualizer/OscilloscopeWaveform";
 import { soundManager } from "../../utils/soundEffects";
 
 export const CognitiveTelemetryPage: React.FC = () => {
-  const { state, triggerManualDiagnostic, setActiveView, toggleSpeechSynthesis, toggleSound } = useCrown();
+  const { state, triggerManualDiagnostic, setActiveView, toggleSpeechSynthesis, toggleSound } =
+    useCrown();
   const {
     isProcessing,
     isSpeaking,
@@ -126,7 +127,8 @@ export const CognitiveTelemetryPage: React.FC = () => {
               Diagnóstico & Telemetría en Tiempo Real
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 font-sans max-w-2xl leading-relaxed">
-              Supervisión de los 5 enclaves cognitivos, trazabilidad de latencias, balance de enrutamiento y osciloscopio acústico.
+              Supervisión de los 5 enclaves cognitivos, trazabilidad de latencias, balance de
+              enrutamiento y osciloscopio acústico.
             </p>
           </div>
 
@@ -296,7 +298,8 @@ export const CognitiveTelemetryPage: React.FC = () => {
           <span>Bitácora de Integridad ARGUS Sentinel</span>
         </div>
         <p className="text-xs text-slate-400 font-sans mb-4">
-          Todas las respuestas emitidas pasan por el enclave centinela ARGUS para certificar rigor ontológico, tono respetuoso y protección total de datos privados.
+          Todas las respuestas emitidas pasan por el enclave centinela ARGUS para certificar rigor
+          ontológico, tono respetuoso y protección total de datos privados.
         </p>
 
         <div className="space-y-2">

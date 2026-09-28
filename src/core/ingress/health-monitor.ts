@@ -58,9 +58,19 @@ export interface AlertEvent {
    ========================================================================= */
 
 const allModules: Array<IngressRoute | "bookpi-legacy"> = [
-  "orchestrator", "prompt-builder", "context-compressor", "planner",
-  "skill-registry", "provider-registry", "tool-dispatch", "gateway",
-  "consent", "safety", "data-rights", "audit-receipt", "bookpi-legacy",
+  "orchestrator",
+  "prompt-builder",
+  "context-compressor",
+  "planner",
+  "skill-registry",
+  "provider-registry",
+  "tool-dispatch",
+  "gateway",
+  "consent",
+  "safety",
+  "data-rights",
+  "audit-receipt",
+  "bookpi-legacy",
 ];
 
 const moduleHealth = new Map<string, ModuleHealth>();
@@ -134,18 +144,24 @@ export function heartbeat(moduleId: IngressRoute | "bookpi-legacy"): void {
     }
 
     try {
-      emitQuantumEvent("quantum.job.completed" as any, {
-        event: "module_recovered",
-        moduleId,
-        previousLevel: prevLevel,
-      }, {
-        traceId: `health-${Date.now()}`,
-        requestId: randomUUID(),
-        tenantId: "system",
-        subjectId: "health-monitor",
-        originCore: 0,
-      });
-    } catch { /* ignore event emit errors */ }
+      emitQuantumEvent(
+        "quantum.job.completed" as any,
+        {
+          event: "module_recovered",
+          moduleId,
+          previousLevel: prevLevel,
+        },
+        {
+          traceId: `health-${Date.now()}`,
+          requestId: randomUUID(),
+          tenantId: "system",
+          subjectId: "health-monitor",
+          originCore: 0,
+        },
+      );
+    } catch {
+      /* ignore event emit errors */
+    }
   }
 }
 
@@ -163,7 +179,7 @@ export function recordFailure(moduleId: IngressRoute | "bookpi-legacy", error: s
   else if (newConsecutive >= 3) newLevel = "yellow";
   else if (newConsecutive >= 1) newLevel = "yellow";
 
-  const uptime = Math.max(0, 100 - (newConsecutive * 5));
+  const uptime = Math.max(0, 100 - newConsecutive * 5);
 
   const updated: ModuleHealth = {
     ...health,
@@ -192,30 +208,38 @@ export function recordFailure(moduleId: IngressRoute | "bookpi-legacy", error: s
     if (alertLog.length > MAX_ALERT_LOG) alertLog.splice(0, alertLog.length - MAX_ALERT_LOG);
 
     try {
-    emitQuantumEvent("quantum.job.failed" as any, {
-      event: "module_alert",
-      moduleId,
-      previousLevel: health.alertLevel,
-      newLevel,
-      error,
-      autoRecovery,
-    }, {
-      traceId: `health-${Date.now()}`,
-      requestId: randomUUID(),
-      tenantId: "system",
-      subjectId: "health-monitor",
-      originCore: 0,
-    });
-    } catch { /* ignore event emit errors */ }
+      emitQuantumEvent(
+        "quantum.job.failed" as any,
+        {
+          event: "module_alert",
+          moduleId,
+          previousLevel: health.alertLevel,
+          newLevel,
+          error,
+          autoRecovery,
+        },
+        {
+          traceId: `health-${Date.now()}`,
+          requestId: randomUUID(),
+          tenantId: "system",
+          subjectId: "health-monitor",
+          originCore: 0,
+        },
+      );
+    } catch {
+      /* ignore event emit errors */
+    }
 
     try {
-    void auditTrace({
-      eventType: `health.alert.${newLevel}`,
-      actorId: "health-monitor",
-      tenantId: "system",
-      data: { moduleId, previousLevel: health.alertLevel, newLevel, error },
-    }).catch(() => {});
-    } catch { /* ignore audit errors */ }
+      void auditTrace({
+        eventType: `health.alert.${newLevel}`,
+        actorId: "health-monitor",
+        tenantId: "system",
+        data: { moduleId, previousLevel: health.alertLevel, newLevel, error },
+      }).catch(() => {});
+    } catch {
+      /* ignore audit errors */
+    }
 
     if (autoRecovery) attemptRecovery(moduleId);
   }
@@ -243,44 +267,61 @@ function attemptRecovery(moduleId: IngressRoute | "bookpi-legacy"): void {
   moduleHealth.set(moduleId, updated);
 
   try {
-  emitQuantumEvent("quantum.job.completed" as any, {
-    event: "recovery_attempt",
-    moduleId,
-    attempt: updated.recoveryAttempts,
-  }, {
-    traceId: `recovery-${Date.now()}`,
-    requestId: randomUUID(),
-    tenantId: "system",
-    subjectId: "health-monitor",
-    originCore: 0,
-  });
-  } catch { /* ignore event emit errors */ }
+    emitQuantumEvent(
+      "quantum.job.completed" as any,
+      {
+        event: "recovery_attempt",
+        moduleId,
+        attempt: updated.recoveryAttempts,
+      },
+      {
+        traceId: `recovery-${Date.now()}`,
+        requestId: randomUUID(),
+        tenantId: "system",
+        subjectId: "health-monitor",
+        originCore: 0,
+      },
+    );
+  } catch {
+    /* ignore event emit errors */
+  }
 }
 
 /* =========================================================================
    QUERIES
    ========================================================================= */
 
-export function getModuleHealth(moduleId: IngressRoute | "bookpi-legacy"): ModuleHealth | undefined {
+export function getModuleHealth(
+  moduleId: IngressRoute | "bookpi-legacy",
+): ModuleHealth | undefined {
   return moduleHealth.get(moduleId);
 }
 
 export function getHealthSnapshot(): HealthSnapshot {
   const modules = Array.from(moduleHealth.values());
-  let healthy = 0, degraded = 0, failed = 0, recovering = 0;
+  let healthy = 0,
+    degraded = 0,
+    failed = 0,
+    recovering = 0;
 
   for (const m of modules) {
     if (m.alertLevel === "green") healthy++;
     else if (m.alertLevel === "yellow") degraded++;
-    else if (m.alertLevel === "orange" || m.alertLevel === "red") { failed++; recovering++; }
-    else failed++;
+    else if (m.alertLevel === "orange" || m.alertLevel === "red") {
+      failed++;
+      recovering++;
+    } else failed++;
   }
 
-  const overallLevel = modules.some((m) => m.alertLevel === "critical") ? "critical"
-    : modules.some((m) => m.alertLevel === "red") ? "red"
-    : modules.some((m) => m.alertLevel === "orange") ? "orange"
-    : modules.some((m) => m.alertLevel === "yellow") ? "yellow"
-    : "green";
+  const overallLevel = modules.some((m) => m.alertLevel === "critical")
+    ? "critical"
+    : modules.some((m) => m.alertLevel === "red")
+      ? "red"
+      : modules.some((m) => m.alertLevel === "orange")
+        ? "orange"
+        : modules.some((m) => m.alertLevel === "yellow")
+          ? "yellow"
+          : "green";
 
   const resilience = modules.length > 0 ? (healthy / modules.length) * 100 : 100;
 

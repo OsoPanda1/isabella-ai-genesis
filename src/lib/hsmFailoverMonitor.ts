@@ -7,7 +7,11 @@ interface FailoverMetrics {
 }
 
 class HSMFailoverMonitor {
-  private metrics: FailoverMetrics = { totalFailovers: 0, lastFailoverTime: null, healthCheckSuccessRate: 100 };
+  private metrics: FailoverMetrics = {
+    totalFailovers: 0,
+    lastFailoverTime: null,
+    healthCheckSuccessRate: 100,
+  };
   private healthChecks: boolean[] = [];
 
   constructor() {
@@ -20,7 +24,9 @@ class HSMFailoverMonitor {
       this.healthChecks.push(!!check.isConnected);
       this.healthChecks = this.healthChecks.slice(-100);
       const successes = this.healthChecks.filter(Boolean).length;
-      this.metrics.healthCheckSuccessRate = this.healthChecks.length ? (successes / this.healthChecks.length) * 100 : 100;
+      this.metrics.healthCheckSuccessRate = this.healthChecks.length
+        ? (successes / this.healthChecks.length) * 100
+        : 100;
     });
   }
 

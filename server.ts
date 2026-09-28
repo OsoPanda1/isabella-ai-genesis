@@ -1,6 +1,6 @@
 import express from "express";
 import path from "path";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import dotenv from "dotenv";
 import { createHash } from "node:crypto";
 import { processPerception } from "./src/domains/ai/application/handlers/processPerception";
@@ -2402,23 +2402,34 @@ async function startServer() {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: "spa",
+      appType: "custom",
     });
     app.use(vite.middlewares);
+    app.get("/{*splat}", async (req, res, next) => {
+      if (req.path.startsWith("/api/") || path.extname(req.path)) return next();
+
+      try {
+        const template = readFileSync(path.join(process.cwd(), "index.html"), "utf8");
+        const html = await vite.transformIndexHtml(req.originalUrl, template);
+        res.status(200).type("html").send(html);
+      } catch (error) {
+        next(error);
+      }
+    });
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
+    app.get("/{*splat}", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
-    app.post("*", (req, res) => {
+    app.post("/{*splat}", (req, res) => {
       res.status(404).json({ ok: false, error: "API route not found" });
     });
-    app.options("*", (req, res) => {
+    app.options("/{*splat}", (req, res) => {
       res.setHeader("Allow", "GET, HEAD, POST, OPTIONS");
       res.status(204).end();
     });
-    app.all("*", (req, res) => {
+    app.all("/{*splat}", (req, res) => {
       res.setHeader("Allow", "GET, HEAD, POST, OPTIONS");
       res.status(405).json({ ok: false, error: "Method not allowed", allowed: "GET, HEAD, POST, OPTIONS" });
     });

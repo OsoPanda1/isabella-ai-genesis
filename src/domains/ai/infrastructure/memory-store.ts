@@ -9,7 +9,8 @@ const SEED_ITEMS: Omit<IsabellaMemoryItem, "checksum" | "createdAt" | "updatedAt
     memoryId: "mem-territorial-001",
     tenantId: "nodo-cero-rdm",
     scope: "territorial",
-    content: "Real del Monte (Mineral del Monte), Hidalgo: Pueblo Mágico minero, cuna del paste y del fútbol en México. Altitud 2,700 msnm.",
+    content:
+      "Real del Monte (Mineral del Monte), Hidalgo: Pueblo Mágico minero, cuna del paste y del fútbol en México. Altitud 2,700 msnm.",
     sourceType: "system",
     relevance: 1.0,
   },
@@ -17,7 +18,8 @@ const SEED_ITEMS: Omit<IsabellaMemoryItem, "checksum" | "createdAt" | "updatedAt
     memoryId: "mem-historical-002",
     tenantId: "nodo-cero-rdm",
     scope: "historical",
-    content: "Nodo Cero: Primer nodo de soberanía tecnológica e inteligencia contextualizada en Latinoamérica fundado por RDM Digital.",
+    content:
+      "Nodo Cero: Primer nodo de soberanía tecnológica e inteligencia contextualizada en Latinoamérica fundado por RDM Digital.",
     sourceType: "system",
     relevance: 0.98,
   },
@@ -25,7 +27,8 @@ const SEED_ITEMS: Omit<IsabellaMemoryItem, "checksum" | "createdAt" | "updatedAt
     memoryId: "mem-project-003",
     tenantId: "nodo-cero-rdm",
     scope: "project",
-    content: "Isabella Villaseñor AI: Arquitectura cognitiva híbrida estructurada en 5 pilares (ISA, SOPHIA, ORION, ARGUS, CROWN Gateway).",
+    content:
+      "Isabella Villaseñor AI: Arquitectura cognitiva híbrida estructurada en 5 pilares (ISA, SOPHIA, ORION, ARGUS, CROWN Gateway).",
     sourceType: "system",
     relevance: 0.99,
   },
@@ -93,7 +96,9 @@ function ensureSeed(): void {
 }
 
 function computeChecksum(content: string, scope: string): string {
-  return `sha256_${createHash("sha256").update(content + scope).digest("hex")}`;
+  return `sha256_${createHash("sha256")
+    .update(content + scope)
+    .digest("hex")}`;
 }
 
 function rowToItem(row: Record<string, unknown>): IsabellaMemoryItem {
@@ -150,16 +155,29 @@ export async function addMemoryItem(
         now,
       );
       // Dual-write to PostgreSQL (fire-and-forget)
-      import("./../../../lib/persistence/postgres").then(({ pgExecute }) =>
-        pgExecute(
-          `INSERT INTO memory_items (memoryId, tenantId, sessionId, scope, content, contentJson, sourceType, relevance, expiresAt, checksum, createdAt, updatedAt)
+      import("./../../../lib/persistence/postgres")
+        .then(({ pgExecute }) =>
+          pgExecute(
+            `INSERT INTO memory_items (memoryId, tenantId, sessionId, scope, content, contentJson, sourceType, relevance, expiresAt, checksum, createdAt, updatedAt)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
            ON CONFLICT (memoryId) DO NOTHING`,
-          [memoryId, item.tenantId ?? null, item.sessionId ?? null, item.scope, item.content,
-           item.contentJson ? JSON.stringify(item.contentJson) : null, item.sourceType,
-           item.relevance, item.expiresAt ?? null, checksum, now, now]
-        ).catch(() => {})
-      ).catch(() => {});
+            [
+              memoryId,
+              item.tenantId ?? null,
+              item.sessionId ?? null,
+              item.scope,
+              item.content,
+              item.contentJson ? JSON.stringify(item.contentJson) : null,
+              item.sourceType,
+              item.relevance,
+              item.expiresAt ?? null,
+              checksum,
+              now,
+              now,
+            ],
+          ).catch(() => {}),
+        )
+        .catch(() => {});
       return fullItem;
     } catch {
       // fall through to in-memory
@@ -197,7 +215,10 @@ export function queryMemory(filter?: {
       }
 
       const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-      const rows = db.prepare(`SELECT * FROM memory_items ${where}`).all(...params) as Record<string, unknown>[];
+      const rows = db.prepare(`SELECT * FROM memory_items ${where}`).all(...params) as Record<
+        string,
+        unknown
+      >[];
       return rows.map(rowToItem);
     } catch {
       // fall through to in-memory

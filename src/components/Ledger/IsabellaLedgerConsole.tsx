@@ -33,11 +33,23 @@ const LIST_MAX_HEIGHT = 560;
 const OP_BADGES: Record<string, { bg: string; text: string; border: string }> = {
   SYSTEM_BOOT: { bg: "bg-violet-500/10", text: "text-violet-300", border: "border-violet-500/30" },
   MODEL_INVOCATION: { bg: "bg-cyan-500/10", text: "text-cyan-300", border: "border-cyan-500/30" },
-  REVENUE_SPLIT_SETTLE: { bg: "bg-amber-500/10", text: "text-amber-300", border: "border-amber-500/30" },
-  DATA_RIGHTS_EXPORT: { bg: "bg-emerald-500/10", text: "text-emerald-300", border: "border-emerald-500/30" },
+  REVENUE_SPLIT_SETTLE: {
+    bg: "bg-amber-500/10",
+    text: "text-amber-300",
+    border: "border-amber-500/30",
+  },
+  DATA_RIGHTS_EXPORT: {
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-300",
+    border: "border-emerald-500/30",
+  },
   MEMORY_LINK_COMMIT: { bg: "bg-sky-500/10", text: "text-sky-300", border: "border-sky-500/30" },
 };
-const FALLBACK_BADGE = { bg: "bg-slate-800/70", text: "text-slate-300", border: "border-slate-700" };
+const FALLBACK_BADGE = {
+  bg: "bg-slate-800/70",
+  text: "text-slate-300",
+  border: "border-slate-700",
+};
 
 const ORIGIN_BADGE: Record<DataOrigin, { label: string; cls: string }> = {
   live: { label: "LIVE", cls: "bg-emerald-500/10 border-emerald-500/30 text-emerald-300" },
@@ -71,7 +83,11 @@ function CopyButton({
       className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
       aria-label={copied ? "Hash copiado" : "Copiar hash"}
     >
-      {copied ? <Check aria-hidden="true" className="h-3.5 w-3.5 text-emerald-400" /> : <Copy aria-hidden="true" className="h-3.5 w-3.5" />}
+      {copied ? (
+        <Check aria-hidden="true" className="h-3.5 w-3.5 text-emerald-400" />
+      ) : (
+        <Copy aria-hidden="true" className="h-3.5 w-3.5" />
+      )}
       {copied ? "Copiado" : "Copiar"}
     </button>
   );
@@ -98,7 +114,10 @@ function HashField({
     <div className="min-w-0 space-y-1.5">
       <div className="flex items-center justify-between gap-3">
         <span className="flex min-w-0 items-center gap-1.5 truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-          <Icon aria-hidden="true" className={`h-3.5 w-3.5 ${accent ? "text-emerald-400" : "text-slate-500"}`} />
+          <Icon
+            aria-hidden="true"
+            className={`h-3.5 w-3.5 ${accent ? "text-emerald-400" : "text-slate-500"}`}
+          />
           {label}
         </span>
         <CopyButton value={value} copyId={copyId} copied={copied} onCopy={onCopy} />
@@ -145,7 +164,9 @@ function BlockRow({ index, style, data }: ListChildComponentProps<LedgerItemData
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold ${badge.bg} ${badge.text} ${badge.border}`}>
+            <span
+              className={`rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold ${badge.bg} ${badge.text} ${badge.border}`}
+            >
               {block.operation}
             </span>
           </div>
@@ -212,7 +233,12 @@ export const IsabellaLedgerConsole: React.FC = () => {
   const summary = useMemo(() => {
     const byOp = new Map<string, number>();
     for (const b of blocks) byOp.set(b.operation, (byOp.get(b.operation) ?? 0) + 1);
-    return { count: blocks.length, first: blocks[0]?.seq ?? null, last: blocks[blocks.length - 1]?.seq ?? null, byOp };
+    return {
+      count: blocks.length,
+      first: blocks[0]?.seq ?? null,
+      last: blocks[blocks.length - 1]?.seq ?? null,
+      byOp,
+    };
   }, [blocks]);
 
   const listHeight = Math.min(LIST_MAX_HEIGHT, Math.max(blocks.length, 1) * (ROW_HEIGHT + 8));
@@ -233,15 +259,21 @@ export const IsabellaLedgerConsole: React.FC = () => {
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 id="ledger-console-title" className="text-base font-bold tracking-tight text-slate-100">
+              <h2
+                id="ledger-console-title"
+                className="text-base font-bold tracking-tight text-slate-100"
+              >
                 BookPI Ledger Inspector
               </h2>
-              <span className={`rounded-md border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider ${originBadge.cls}`}>
+              <span
+                className={`rounded-md border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider ${originBadge.cls}`}
+              >
                 {originBadge.label}
               </span>
             </div>
             <p className="mt-1 text-xs text-slate-500">
-              Inspección secuencial de enlaces y payloads. La verificación es estructural local; la firma corresponde al backend.
+              Inspección secuencial de enlaces y payloads. La verificación es estructural local; la
+              firma corresponde al backend.
             </p>
           </div>
         </div>
@@ -252,13 +284,23 @@ export const IsabellaLedgerConsole: React.FC = () => {
           disabled={verifying || blocks.length === 0}
           className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-emerald-400/40 bg-gradient-to-r from-emerald-950/80 to-slate-900 px-4 py-2 text-xs font-semibold tracking-wide text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.08)] transition-all hover:border-emerald-400/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/80 disabled:cursor-wait disabled:opacity-60"
         >
-          {verifying ? <RefreshCw aria-hidden="true" className="h-4 w-4 animate-spin motion-reduce:animate-none" /> : <ShieldCheck aria-hidden="true" className="h-4 w-4" />}
+          {verifying ? (
+            <RefreshCw
+              aria-hidden="true"
+              className="h-4 w-4 animate-spin motion-reduce:animate-none"
+            />
+          ) : (
+            <ShieldCheck aria-hidden="true" className="h-4 w-4" />
+          )}
           {verifying ? "Verificando…" : "Verificar integridad"}
         </button>
       </header>
 
       {(loading || error) && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4 text-xs text-slate-400" role="status">
+        <div
+          className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4 text-xs text-slate-400"
+          role="status"
+        >
           {loading ? "Cargando ledger…" : `No fue posible obtener el ledger: ${error}`}
         </div>
       )}
@@ -274,24 +316,39 @@ export const IsabellaLedgerConsole: React.FC = () => {
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-              <span className="block text-[9px] uppercase tracking-widest text-slate-600">Bloques</span>
-              <span className="mt-1 block font-mono text-sm font-semibold text-slate-200">{summary.count}</span>
-            </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-              <span className="block text-[9px] uppercase tracking-widest text-slate-600">Rango</span>
+              <span className="block text-[9px] uppercase tracking-widest text-slate-600">
+                Bloques
+              </span>
               <span className="mt-1 block font-mono text-sm font-semibold text-slate-200">
-                {summary.first === null ? "—" : `#${summary.first}`}–{summary.last === null ? "—" : `#${summary.last}`}
+                {summary.count}
               </span>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-              <span className="block text-[9px] uppercase tracking-widest text-slate-600">Integridad</span>
-              <span className={`mt-1 block font-mono text-sm font-semibold ${result?.valid ? "text-emerald-300" : result ? "text-rose-300" : "text-slate-400"}`}>
+              <span className="block text-[9px] uppercase tracking-widest text-slate-600">
+                Rango
+              </span>
+              <span className="mt-1 block font-mono text-sm font-semibold text-slate-200">
+                {summary.first === null ? "—" : `#${summary.first}`}–
+                {summary.last === null ? "—" : `#${summary.last}`}
+              </span>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+              <span className="block text-[9px] uppercase tracking-widest text-slate-600">
+                Integridad
+              </span>
+              <span
+                className={`mt-1 block font-mono text-sm font-semibold ${result?.valid ? "text-emerald-300" : result ? "text-rose-300" : "text-slate-400"}`}
+              >
                 {result?.valid ? "Estructura válida" : result ? "Anomalía" : "Pendiente"}
               </span>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-              <span className="block text-[9px] uppercase tracking-widest text-slate-600">Política</span>
-              <span className="mt-1 block font-mono text-sm font-semibold text-slate-200">{snapshot?.policyVersion ?? "—"}</span>
+              <span className="block text-[9px] uppercase tracking-widest text-slate-600">
+                Política
+              </span>
+              <span className="mt-1 block font-mono text-sm font-semibold text-slate-200">
+                {snapshot?.policyVersion ?? "—"}
+              </span>
             </div>
           </div>
 
@@ -299,20 +356,32 @@ export const IsabellaLedgerConsole: React.FC = () => {
             <div
               className={[
                 "flex items-start gap-3 rounded-2xl border p-4",
-                result.valid ? "border-emerald-500/30 bg-emerald-950/30" : "border-rose-500/30 bg-rose-950/30",
+                result.valid
+                  ? "border-emerald-500/30 bg-emerald-950/30"
+                  : "border-rose-500/30 bg-rose-950/30",
               ].join(" ")}
               role="status"
               aria-live="polite"
             >
-              <div className={`rounded-lg p-1.5 ${result.valid ? "bg-emerald-400/15 text-emerald-300" : "bg-rose-400/15 text-rose-300"}`}>
-                {result.valid ? <ShieldCheck aria-hidden="true" className="h-5 w-5" /> : <ShieldAlert aria-hidden="true" className="h-5 w-5" />}
+              <div
+                className={`rounded-lg p-1.5 ${result.valid ? "bg-emerald-400/15 text-emerald-300" : "bg-rose-400/15 text-rose-300"}`}
+              >
+                {result.valid ? (
+                  <ShieldCheck aria-hidden="true" className="h-5 w-5" />
+                ) : (
+                  <ShieldAlert aria-hidden="true" className="h-5 w-5" />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className={`text-xs font-bold uppercase tracking-wider ${result.valid ? "text-emerald-300" : "text-rose-300"}`}>
+                  <h3
+                    className={`text-xs font-bold uppercase tracking-wider ${result.valid ? "text-emerald-300" : "text-rose-300"}`}
+                  >
                     {result.valid ? "Integridad estructural validada" : "Anomalía detectada"}
                   </h3>
-                  <span className="font-mono text-[10px] text-slate-500">{result.checked}/{result.total} bloques revisados</span>
+                  <span className="font-mono text-[10px] text-slate-500">
+                    {result.checked}/{result.total} bloques revisados
+                  </span>
                 </div>
                 <p className="mt-1 text-xs leading-5 text-slate-400">{result.message}</p>
                 {result.valid && (
@@ -350,40 +419,75 @@ export const IsabellaLedgerConsole: React.FC = () => {
               {selected ? (
                 <div className="space-y-4 rounded-2xl border border-slate-800/80 bg-[#050914]/80 p-4">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-lg font-light text-slate-100">#{selected.seq}</span>
-                    <span className={`rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold ${OP_BADGES[selected.operation]?.bg ?? FALLBACK_BADGE.bg} ${OP_BADGES[selected.operation]?.text ?? FALLBACK_BADGE.text} ${OP_BADGES[selected.operation]?.border ?? FALLBACK_BADGE.border}`}>
+                    <span className="font-mono text-lg font-light text-slate-100">
+                      #{selected.seq}
+                    </span>
+                    <span
+                      className={`rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold ${OP_BADGES[selected.operation]?.bg ?? FALLBACK_BADGE.bg} ${OP_BADGES[selected.operation]?.text ?? FALLBACK_BADGE.text} ${OP_BADGES[selected.operation]?.border ?? FALLBACK_BADGE.border}`}
+                    >
                       {selected.operation}
                     </span>
                   </div>
 
-                  <HashField label="Previous hash · link" value={selected.previousHash} icon={Link2} copyId={`prev-${selected.seq}`} copied={copyState.id === `prev-${selected.seq}`} onCopy={handleCopy} />
-                  <HashField label="Current hash" value={selected.currentHash} icon={Fingerprint} accent copyId={`current-${selected.seq}`} copied={copyState.id === `current-${selected.seq}`} onCopy={handleCopy} />
-                  <HashField label="Payload hash" value={selected.payloadHash} icon={Hash} copyId={`payload-${selected.seq}`} copied={copyState.id === `payload-${selected.seq}`} onCopy={handleCopy} />
+                  <HashField
+                    label="Previous hash · link"
+                    value={selected.previousHash}
+                    icon={Link2}
+                    copyId={`prev-${selected.seq}`}
+                    copied={copyState.id === `prev-${selected.seq}`}
+                    onCopy={handleCopy}
+                  />
+                  <HashField
+                    label="Current hash"
+                    value={selected.currentHash}
+                    icon={Fingerprint}
+                    accent
+                    copyId={`current-${selected.seq}`}
+                    copied={copyState.id === `current-${selected.seq}`}
+                    onCopy={handleCopy}
+                  />
+                  <HashField
+                    label="Payload hash"
+                    value={selected.payloadHash}
+                    icon={Hash}
+                    copyId={`payload-${selected.seq}`}
+                    copied={copyState.id === `payload-${selected.seq}`}
+                    onCopy={handleCopy}
+                  />
 
                   <div className="grid grid-cols-2 gap-3 border-t border-slate-800/70 pt-4 text-[11px]">
                     <div>
                       <span className="text-slate-600">ALGORITMO</span>
-                      <span className="mt-1 block font-semibold text-indigo-300">{selected.algorithm}</span>
+                      <span className="mt-1 block font-semibold text-indigo-300">
+                        {selected.algorithm}
+                      </span>
                     </div>
                     <div>
                       <span className="text-slate-600">SIGNER</span>
-                      <span className="mt-1 block font-semibold text-slate-300">{selected.signerId}</span>
+                      <span className="mt-1 block font-semibold text-slate-300">
+                        {selected.signerId}
+                      </span>
                     </div>
                     <div className="col-span-2">
                       <span className="text-slate-600">TIMESTAMP</span>
-                      <span className="mt-1 block font-mono text-slate-300">{selected.timestamp}</span>
+                      <span className="mt-1 block font-mono text-slate-300">
+                        {selected.timestamp}
+                      </span>
                     </div>
                     {selected.keyId && (
                       <div className="col-span-2">
                         <span className="text-slate-600">KEY ID</span>
-                        <span className="mt-1 block font-mono text-slate-300">{selected.keyId}</span>
+                        <span className="mt-1 block font-mono text-slate-300">
+                          {selected.keyId}
+                        </span>
                       </div>
                     )}
                   </div>
 
                   {origin === "demo" && (
                     <p className="flex items-center gap-1.5 border-t border-slate-800/70 pt-3 text-[10px] uppercase tracking-[0.12em] text-amber-300/80">
-                      <AlertTriangle aria-hidden="true" className="h-3.5 w-3.5" /> Dato de demostración · no producción
+                      <AlertTriangle aria-hidden="true" className="h-3.5 w-3.5" /> Dato de
+                      demostración · no producción
                     </p>
                   )}
                 </div>
@@ -394,7 +498,9 @@ export const IsabellaLedgerConsole: React.FC = () => {
               )}
 
               <div className="mt-4 rounded-2xl border border-slate-800/80 bg-slate-950/40 p-4">
-                <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Resumen de operaciones</h4>
+                <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                  Resumen de operaciones
+                </h4>
                 <ul className="space-y-1 text-[11px] text-slate-400">
                   {[...summary.byOp.entries()].map(([op, n]) => (
                     <li key={op} className="flex items-center justify-between">

@@ -14,8 +14,8 @@ export function requireLabMode(component: string): void {
   if (!LAB_MODE) {
     throw new Error(
       `PROTOTYPE_NOT_AVAILABLE: ${component} is a laboratory prototype. ` +
-      `Set FEATURE_LAB_MODE=true to enable. ` +
-      `This component must NOT be used in production.`
+        `Set FEATURE_LAB_MODE=true to enable. ` +
+        `This component must NOT be used in production.`,
     );
   }
 }

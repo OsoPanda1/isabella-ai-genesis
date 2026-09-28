@@ -6,7 +6,9 @@ interface NeuralWaveformProps {
   showLabels?: boolean;
 }
 
-export const NeuralWaveform: React.FC<NeuralWaveformProps> = ({ height = 48, showLabels = true }) => {
+export const NeuralWaveform: React.FC<NeuralWaveformProps> = ({
+  height = 48,
+  showLabels = true,
+}) => {
   return <OscilloscopeWaveform height={height} showControls={showLabels} />;
 };
-

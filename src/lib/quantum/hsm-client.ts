@@ -12,7 +12,13 @@ import { requireLabMode } from "../lab-mode";
 
 export interface HSMOperation {
   operationId: string;
-  type: "sign_policy" | "sign_bookpi" | "sign_worker_manifest" | "sign_artifact" | "sign_federation" | "unwrap";
+  type:
+    | "sign_policy"
+    | "sign_bookpi"
+    | "sign_worker_manifest"
+    | "sign_artifact"
+    | "sign_federation"
+    | "unwrap";
   payloadHash: string;
   signatureHex: string;
   keyId: string;
@@ -154,9 +160,10 @@ export function getHSMMetrics() {
     success: recent.filter((o) => o.status === "success").length,
     fallback: recent.filter((o) => o.status === "fallback").length,
     error: recent.filter((o) => o.status === "error").length,
-    avgLatencyMs: recent.length > 0
-      ? Math.round(recent.reduce((s, o) => s + o.latencyMs, 0) / recent.length)
-      : 0,
+    avgLatencyMs:
+      recent.length > 0
+        ? Math.round(recent.reduce((s, o) => s + o.latencyMs, 0) / recent.length)
+        : 0,
     primaryFailures,
     backupFailures,
   };

@@ -21,7 +21,14 @@ export type JobPriority = z.infer<typeof JobPrioritySchema>;
 export const DeviceTrustSchema = z.enum(["local", "remote-simulator", "qpu", "experimental"]);
 export type DeviceTrust = z.infer<typeof DeviceTrustSchema>;
 
-export const WorkerPoolSchema = z.enum(["core", "lightning", "qiskit", "braket", "rigetti", "catalyst"]);
+export const WorkerPoolSchema = z.enum([
+  "core",
+  "lightning",
+  "qiskit",
+  "braket",
+  "rigetti",
+  "catalyst",
+]);
 export type WorkerPool = z.infer<typeof WorkerPoolSchema>;
 
 // ---- Quantum Request ----

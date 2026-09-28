@@ -26,7 +26,9 @@ export const SynapticFlowDiagram: React.FC = () => {
     if (type === "empathy") {
       sendMessage("Isabella, ¿cómo te sientes al conectar con los seres humanos hoy?");
     } else if (type === "logic") {
-      sendMessage("Explica la paradoja de Fermi y las implicaciones epistemológicas para la inteligencia sintética.");
+      sendMessage(
+        "Explica la paradoja de Fermi y las implicaciones epistemológicas para la inteligencia sintética.",
+      );
     } else if (type === "action") {
       sendMessage("/status");
     } else if (type === "security") {
@@ -94,7 +96,9 @@ export const SynapticFlowDiagram: React.FC = () => {
               <span className="font-mono text-xl font-bold text-slate-200">IN</span>
             </div>
             <div>
-              <span className="text-xs font-bold font-mono text-slate-200 block">Entrada Operador</span>
+              <span className="text-xs font-bold font-mono text-slate-200 block">
+                Entrada Operador
+              </span>
               <span className="text-[10px] text-slate-400 font-mono">Tokens / CLI Prompt</span>
             </div>
           </div>
@@ -123,8 +127,12 @@ export const SynapticFlowDiagram: React.FC = () => {
               <Shield className="w-6 h-6 animate-pulse" />
             </div>
             <div>
-              <span className="text-xs font-bold font-mono text-emerald-300 block">ARGUS Sentinel</span>
-              <span className="text-[10px] text-slate-400 font-mono">Filtro Ético & Alineación</span>
+              <span className="text-xs font-bold font-mono text-emerald-300 block">
+                ARGUS Sentinel
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">
+                Filtro Ético & Alineación
+              </span>
             </div>
             <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-mono">
               Score: 99.9%
@@ -249,7 +257,9 @@ export const SynapticFlowDiagram: React.FC = () => {
               </div>
             </div>
             <div>
-              <span className="text-xs font-bold font-mono text-[#F8FAFC] block">Isabella Voice</span>
+              <span className="text-xs font-bold font-mono text-[#F8FAFC] block">
+                Isabella Voice
+              </span>
               <span className="text-[10px] text-slate-400 font-mono">Respuesta Armonizada</span>
             </div>
           </div>
@@ -261,19 +271,26 @@ export const SynapticFlowDiagram: React.FC = () => {
         <div className="p-3 rounded-xl bg-[#030712] border border-slate-800/80">
           <span className="text-sky-400 font-bold block mb-1">1. Gobernanza CROWN</span>
           <p className="text-[11px] leading-relaxed text-slate-300 font-sans">
-            El sistema evalúa continuamente la intención del usuario y ajusta en tiempo real las ponderaciones relativas de empatía (ISA), análisis (SOPHIA) y acción (ORION).
+            El sistema evalúa continuamente la intención del usuario y ajusta en tiempo real las
+            ponderaciones relativas de empatía (ISA), análisis (SOPHIA) y acción (ORION).
           </p>
         </div>
         <div className="p-3 rounded-xl bg-[#030712] border border-slate-800/80">
-          <span className="text-emerald-400 font-bold block mb-1">2. Supervisión Ininterrumpida ARGUS</span>
+          <span className="text-emerald-400 font-bold block mb-1">
+            2. Supervisión Ininterrumpida ARGUS
+          </span>
           <p className="text-[11px] leading-relaxed text-slate-300 font-sans">
-            Cada entrada y salida pasa por el centinela ARGUS para verificar coherencia epistémica, seguridad y ausencia de vectores adversarios.
+            Cada entrada y salida pasa por el centinela ARGUS para verificar coherencia epistémica,
+            seguridad y ausencia de vectores adversarios.
           </p>
         </div>
         <div className="p-3 rounded-xl bg-[#030712] border border-slate-800/80">
-          <span className="text-amber-300 font-bold block mb-1">3. Identidad Integrada de Isabella</span>
+          <span className="text-amber-300 font-bold block mb-1">
+            3. Identidad Integrada de Isabella
+          </span>
           <p className="text-[11px] leading-relaxed text-slate-300 font-sans">
-            No se trata de modelos aislados, sino de una arquitectura cognitiva híbrida unificada con presencia cálida, inteligente y proactiva.
+            No se trata de modelos aislados, sino de una arquitectura cognitiva híbrida unificada
+            con presencia cálida, inteligente y proactiva.
           </p>
         </div>
       </div>

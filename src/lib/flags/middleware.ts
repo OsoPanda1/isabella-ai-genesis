@@ -47,37 +47,41 @@ export const loadFeatureFlags = (): RequestHandler => async (_req, res, next) =>
   }
 };
 
-export const requireFeature = (key: string): RequestHandler => (req, res, next) => {
-  const state = res.locals.featureFlags as IsabellaFlagLocals | undefined;
-  const enabled = Boolean(state?.flags?.[key]);
-  if (!enabled) {
-    res.status(404).json({
-      error: {
-        code: "FEATURE_NOT_AVAILABLE",
-        trace_id: (req as any).traceId || "trace-unknown",
-        feature: key,
-        stale: state?.stale ?? true,
-      },
-    });
-    return;
-  }
-  next();
-};
+export const requireFeature =
+  (key: string): RequestHandler =>
+  (req, res, next) => {
+    const state = res.locals.featureFlags as IsabellaFlagLocals | undefined;
+    const enabled = Boolean(state?.flags?.[key]);
+    if (!enabled) {
+      res.status(404).json({
+        error: {
+          code: "FEATURE_NOT_AVAILABLE",
+          trace_id: (req as any).traceId || "trace-unknown",
+          feature: key,
+          stale: state?.stale ?? true,
+        },
+      });
+      return;
+    }
+    next();
+  };
 
-export const requireOperationalFeature = (key: string): RequestHandler => (req, res, next) => {
-  const state = res.locals.featureFlags as IsabellaFlagLocals | undefined;
-  const enabled = Boolean(state?.flags?.[key]);
-  if (!enabled) {
-    res.status(503).json({
-      error: {
-        code: "CAPABILITY_TEMPORARILY_DISABLED",
-        trace_id: (req as any).traceId || "trace-unknown",
-        feature: key,
-        retryable: true,
-        stale: state?.stale ?? true,
-      },
-    });
-    return;
-  }
-  next();
-};
+export const requireOperationalFeature =
+  (key: string): RequestHandler =>
+  (req, res, next) => {
+    const state = res.locals.featureFlags as IsabellaFlagLocals | undefined;
+    const enabled = Boolean(state?.flags?.[key]);
+    if (!enabled) {
+      res.status(503).json({
+        error: {
+          code: "CAPABILITY_TEMPORARILY_DISABLED",
+          trace_id: (req as any).traceId || "trace-unknown",
+          feature: key,
+          retryable: true,
+          stale: state?.stale ?? true,
+        },
+      });
+      return;
+    }
+    next();
+  };

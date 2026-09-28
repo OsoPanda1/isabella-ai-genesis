@@ -23,8 +23,7 @@ export function IsabellaVectorAvatar({
   animated = true,
   showAura = true,
 }: IsabellaVectorAvatarProps) {
-  const dimensions =
-    typeof size === "number" ? size : SIZE_MAP[size] ?? SIZE_MAP.md;
+  const dimensions = typeof size === "number" ? size : (SIZE_MAP[size] ?? SIZE_MAP.md);
   const auroraOpacity = showAura ? 1 : 0;
 
   return (

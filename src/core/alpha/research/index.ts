@@ -115,10 +115,7 @@ export class ResearchEngine {
 
   // --- Retrieval Methods ---
 
-  private async retrieve(
-    query: ResearchQuery,
-    method: RetrievalMethod,
-  ): Promise<ResearchResult[]> {
+  private async retrieve(query: ResearchQuery, method: RetrievalMethod): Promise<ResearchResult[]> {
     // In production, this would call actual retrieval systems
     // For now, return simulated results
     const results: ResearchResult[] = [];
@@ -275,7 +272,7 @@ export class ResearchEngine {
     const supportedClaims = claims.filter((c) => c.isSupported).length;
     const claimSupport = claims.length > 0 ? supportedClaims / claims.length : 0.5;
 
-    return (avgRelevance * 0.6 + claimSupport * 0.4);
+    return avgRelevance * 0.6 + claimSupport * 0.4;
   }
 
   private calculateReliability(source: string): number {

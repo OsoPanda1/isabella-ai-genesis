@@ -18,13 +18,7 @@ import { randomUUID } from "crypto";
 // ============================================================================
 
 export type Federation =
-  | "DEKATEOTL"
-  | "ANUBIS"
-  | "BOOKPI"
-  | "PHOENIX"
-  | "MDD_TAMV"
-  | "KAOS"
-  | "CHRONOS";
+  "DEKATEOTL" | "ANUBIS" | "BOOKPI" | "PHOENIX" | "MDD_TAMV" | "KAOS" | "CHRONOS";
 
 export type CivicEventType =
   | "TOURISM_INTERACTION"
@@ -102,14 +96,10 @@ class EventStore {
   }
 
   async loadStream(streamId: string, fromVersion = 1): Promise<StoredEvent[]> {
-    return this.events.filter(
-      (e) => e.streamId === streamId && e.streamVersion >= fromVersion,
-    );
+    return this.events.filter((e) => e.streamId === streamId && e.streamVersion >= fromVersion);
   }
 
-  async verifyIntegrity(
-    streamId: string,
-  ): Promise<{ valid: boolean; failedAtVersion?: number }> {
+  async verifyIntegrity(streamId: string): Promise<{ valid: boolean; failedAtVersion?: number }> {
     const events = await this.loadStream(streamId);
     for (const event of events) {
       const recomputed = this.hashEvent(event, event.streamId, event.streamVersion);
@@ -150,10 +140,7 @@ export class TAMVKernel {
     this.services.set(service.name, service);
   }
 
-  async emit(
-    event: Partial<CivicEvent>,
-    streamId?: string,
-  ): Promise<StoredEvent> {
+  async emit(event: Partial<CivicEvent>, streamId?: string): Promise<StoredEvent> {
     if (!this.started) {
       throw new Error("TAMV Kernel no está iniciado");
     }

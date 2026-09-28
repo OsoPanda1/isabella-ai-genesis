@@ -1,6 +1,6 @@
 /**
  * Isabella Villaseñor AI™ — Native Agent SDK & Programmatic Leasing Library
- * 
+ *
  * Provides native programmatic agent leasing, streaming thoughts, tool call interception,
  * and interactive loop orchestration for Isabella Villaseñor AI v5.0.0.
  */
@@ -72,7 +72,8 @@ export class IsabellaAgent {
 
   constructor(config: LocalAgentConfig = {}, baseUrl: string = "") {
     this.config = {
-      systemInstructions: "Eres Isabella Villaseñor AI, infraestructura cognitiva territorial gobernada.",
+      systemInstructions:
+        "Eres Isabella Villaseñor AI, infraestructura cognitiva territorial gobernada.",
       capabilities: {
         allowRunCommand: false,
         allowFileEdit: false,
@@ -88,7 +89,8 @@ export class IsabellaAgent {
       leaseDurationMinutes: config.leaseDurationMinutes || 60,
       ...config,
     };
-    this.baseUrl = baseUrl || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
+    this.baseUrl =
+      baseUrl || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
   }
 
   /**
@@ -155,12 +157,16 @@ export class IsabellaAgent {
   /**
    * Streams response tokens, thoughts, and tool calls in real time.
    */
-  async *stream(prompt: string): AsyncGenerator<{ type: "token" | "thought" | "tool_call" | "telemetry"; payload: any }> {
+  async *stream(
+    prompt: string,
+  ): AsyncGenerator<{ type: "token" | "thought" | "tool_call" | "telemetry"; payload: any }> {
     if (!this.session) {
       await this.lease();
     }
 
-    const response = await fetch(`${this.baseUrl}/api/v1/isabella/agent/stream?sessionId=${this.session?.sessionId}&prompt=${encodeURIComponent(prompt)}`);
+    const response = await fetch(
+      `${this.baseUrl}/api/v1/isabella/agent/stream?sessionId=${this.session?.sessionId}&prompt=${encodeURIComponent(prompt)}`,
+    );
 
     if (!response.body) {
       throw new Error("El servidor no admite streaming en este entorno.");

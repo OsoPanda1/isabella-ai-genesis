@@ -50,7 +50,10 @@ export const handleCorsAndPreflight = (
   }
 
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Trace-ID, X-CSRF-Token");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-Trace-ID, X-CSRF-Token",
+  );
   res.setHeader("Access-Control-Max-Age", "86400");
   res.status(204).end();
   return true;

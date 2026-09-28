@@ -105,8 +105,10 @@ export class PerceptionEngine {
   // --- Language Detection ---
 
   private detectLanguage(input: string): string {
-    const spanishPatterns = /\b(el|la|los|las|un|una|que|como|para|por|con|este|esta|puedo|hacer|quiero|necesito)\b/gi;
-    const englishPatterns = /\b(the|a|an|is|are|was|can|could|should|would|need|want|make|do|how|what|where|when)\b/gi;
+    const spanishPatterns =
+      /\b(el|la|los|las|un|una|que|como|para|por|con|este|esta|puedo|hacer|quiero|necesito)\b/gi;
+    const englishPatterns =
+      /\b(the|a|an|is|are|was|can|could|should|would|need|want|make|do|how|what|where|when)\b/gi;
 
     const spanishMatches = (input.match(spanishPatterns) ?? []).length;
     const englishMatches = (input.match(englishPatterns) ?? []).length;
@@ -120,14 +122,46 @@ export class PerceptionEngine {
 
   private classifyIntent(input: string): { category: IntentCategory; confidence: number } {
     const patterns: Array<{ regex: RegExp; intent: IntentCategory; weight: number }> = [
-      { regex: /\b(que|que|como|donde|cuando|quien|por que|cual)\b/i, intent: "question", weight: 1.0 },
-      { regex: /\b(haz|ejecuta|corre|inicia|detiene|envia|guarda|elimina|crea)\b/i, intent: "command", weight: 0.95 },
-      { regex: /\b(puedes|podrias|quiero|necesito|me gustaria|favor de)\b/i, intent: "request", weight: 0.9 },
-      { regex: /\b(crear|generar|construir|desarrollar|disenar|escribir)\b/i, intent: "creation", weight: 0.9 },
-      { regex: /\b(analizar|evaluar|revisar|examinar|comparar|medir)\b/i, intent: "analysis", weight: 0.9 },
-      { regex: /\b(abre|navega|muestra|enseña|busca|encuentra)\b/i, intent: "navigation", weight: 0.85 },
-      { regex: /\b(politica|permiso|autorizacion|auditoria|seguridad)\b/i, intent: "governance", weight: 0.95 },
-      { regex: /\b(precio|costo|pago|venta|ingreso|monetizar)\b/i, intent: "monetization", weight: 0.9 },
+      {
+        regex: /\b(que|que|como|donde|cuando|quien|por que|cual)\b/i,
+        intent: "question",
+        weight: 1.0,
+      },
+      {
+        regex: /\b(haz|ejecuta|corre|inicia|detiene|envia|guarda|elimina|crea)\b/i,
+        intent: "command",
+        weight: 0.95,
+      },
+      {
+        regex: /\b(puedes|podrias|quiero|necesito|me gustaria|favor de)\b/i,
+        intent: "request",
+        weight: 0.9,
+      },
+      {
+        regex: /\b(crear|generar|construir|desarrollar|disenar|escribir)\b/i,
+        intent: "creation",
+        weight: 0.9,
+      },
+      {
+        regex: /\b(analizar|evaluar|revisar|examinar|comparar|medir)\b/i,
+        intent: "analysis",
+        weight: 0.9,
+      },
+      {
+        regex: /\b(abre|navega|muestra|enseña|busca|encuentra)\b/i,
+        intent: "navigation",
+        weight: 0.85,
+      },
+      {
+        regex: /\b(politica|permiso|autorizacion|auditoria|seguridad)\b/i,
+        intent: "governance",
+        weight: 0.95,
+      },
+      {
+        regex: /\b(precio|costo|pago|venta|ingreso|monetizar)\b/i,
+        intent: "monetization",
+        weight: 0.9,
+      },
       { regex: /\b(estado|status|sistema|configuracion|ayuda)\b/i, intent: "system", weight: 0.85 },
     ];
 
@@ -191,7 +225,8 @@ export class PerceptionEngine {
   // --- Sentiment Analysis ---
 
   private analyzeSentiment(input: string): Sentiment {
-    const positivePatterns = /\b(excelente|genial|perfecto|gracias|bien|me gusta|me encanta|increible)\b/i;
+    const positivePatterns =
+      /\b(excelente|genial|perfecto|gracias|bien|me gusta|me encanta|increible)\b/i;
     const negativePatterns = /\b(malo|terrible|error|fallo|problema|no funciona|furioso|odio)\b/i;
 
     const positive = positivePatterns.test(input);
@@ -210,9 +245,7 @@ export class PerceptionEngine {
     intent: { category: IntentCategory },
     entities: Entity[],
   ): RiskLevel {
-    const hasSensitiveEntities = entities.some(
-      (e) => e.type === "email" || e.type === "url",
-    );
+    const hasSensitiveEntities = entities.some((e) => e.type === "email" || e.type === "url");
     const isGovernanceIntent = intent.category === "governance";
     const isSystemIntent = intent.category === "system";
     const hasCriticalKeywords = /\b(eliminar|borrar|revoke|delete|admin|root)\b/i.test(input);
@@ -226,7 +259,10 @@ export class PerceptionEngine {
 
   // --- Classification Suggestion ---
 
-  private suggestClassification(risk: RiskLevel, intent: { category: IntentCategory }): DataClassification {
+  private suggestClassification(
+    risk: RiskLevel,
+    intent: { category: IntentCategory },
+  ): DataClassification {
     if (risk === "R4_critical") return "critical";
     if (risk === "R3_high") return "restricted";
     if (risk === "R2_moderate") return "sensitive";

@@ -192,7 +192,11 @@ export const TerminalCommandLine: React.FC = () => {
                 ? "bg-red-600 border-red-400 text-white animate-pulse shadow-lg shadow-red-600/40"
                 : "bg-[#0B1728] hover:bg-[#10223A] text-slate-400 hover:text-sky-300 border-slate-800"
             }`}
-            title={state.isListening ? "Detener grabación de voz" : "Hablar con Isabella por micrófono (Ctrl+M)"}
+            title={
+              state.isListening
+                ? "Detener grabación de voz"
+                : "Hablar con Isabella por micrófono (Ctrl+M)"
+            }
           >
             {state.isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
           </button>
@@ -224,24 +228,34 @@ export const TerminalCommandLine: React.FC = () => {
       <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 px-1 border-t border-slate-800/80 pt-1.5 flex-wrap gap-y-1">
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <span className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-sky-300 border border-sky-500/40 text-[9px] font-bold">↵ Enter</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-sky-300 border border-sky-500/40 text-[9px] font-bold">
+              ↵ Enter
+            </kbd>
             <span className="text-slate-500">o</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-amber-300 border border-amber-500/40 text-[9px] font-bold">Ctrl+↵</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-amber-300 border border-amber-500/40 text-[9px] font-bold">
+              Ctrl+↵
+            </kbd>
             <span>enviar</span>
           </span>
           <span className="hidden sm:inline text-slate-700">|</span>
           <span className="hidden sm:flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700 text-[9px]">Shift+↵</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700 text-[9px]">
+              Shift+↵
+            </kbd>
             <span>nueva línea</span>
           </span>
           <span className="hidden md:inline text-slate-700">|</span>
           <span className="hidden md:flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700 text-[9px]">Ctrl+K</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700 text-[9px]">
+              Ctrl+K
+            </kbd>
             <span>limpiar</span>
           </span>
           <span className="hidden lg:inline text-slate-700">|</span>
           <span className="hidden lg:flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-amber-300 border border-amber-500/40 text-[9px]">Ctrl+M</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-amber-300 border border-amber-500/40 text-[9px]">
+              Ctrl+M
+            </kbd>
             <span>voz</span>
           </span>
         </div>

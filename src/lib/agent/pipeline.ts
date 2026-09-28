@@ -29,15 +29,7 @@ import { memory, type MemoryRecord } from "./memory";
 import { skillRegistry, type SkillWithStatus } from "./skills";
 
 export type PipelineStage =
-  | "idle"
-  | "perceive"
-  | "remember"
-  | "policy"
-  | "decide"
-  | "act"
-  | "audit"
-  | "complete"
-  | "error";
+  "idle" | "perceive" | "remember" | "policy" | "decide" | "act" | "audit" | "complete" | "error";
 
 export interface PipelineContext {
   requestId: string;
@@ -101,7 +93,12 @@ export class IsabellaPipeline {
     input: string,
     options?: {
       locale?: string;
-      identity?: { authenticated: boolean; actorId?: string | undefined; roles?: string[]; permissions?: string[] };
+      identity?: {
+        authenticated: boolean;
+        actorId?: string | undefined;
+        roles?: string[];
+        permissions?: string[];
+      };
     },
   ): Promise<PipelineResult> {
     const startedAt = nowIso();
@@ -159,16 +156,15 @@ export class IsabellaPipeline {
       const normalizedIdentity: import("../crown").IdentityAssessment = options?.identity
         ? {
             authenticated: options.identity.authenticated,
-            ...(options.identity.actorId !== undefined ? { actorId: options.identity.actorId } : {}),
+            ...(options.identity.actorId !== undefined
+              ? { actorId: options.identity.actorId }
+              : {}),
             roles: options.identity.roles ?? [],
             permissions: options.identity.permissions ?? [],
             dataScopes: ["turn" as const, "session" as const, "project" as const],
           }
         : DEFAULT_IDENTITY;
-      const memoryScopes = resolveAllowedMemoryScopes(
-        policyResult.intent,
-        normalizedIdentity,
-      );
+      const memoryScopes = resolveAllowedMemoryScopes(policyResult.intent, normalizedIdentity);
       const allowedTools = resolveAllowedTools(policyResult.policy, policyResult.intent);
       const responseMode = responseModeFor(policyResult.policy);
 
@@ -211,9 +207,7 @@ export class IsabellaPipeline {
         security: ["governance"],
       };
       const relevantCategories = categoryMap[intent.category] ?? ["knowledge"];
-      return skillRegistry
-        .getActive()
-        .filter((s) => relevantCategories.includes(s.category));
+      return skillRegistry.getActive().filter((s) => relevantCategories.includes(s.category));
     });
     stageTimings.act = actMs;
 

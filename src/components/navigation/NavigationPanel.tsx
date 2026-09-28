@@ -25,7 +25,7 @@ export function NavigationPanel({ navbarId, children }: NavigationPanelProps) {
     if (isOpen && panelRef.current) {
       // Focus primer elemento interactivo
       const firstInteractive = panelRef.current.querySelector<HTMLElement>(
-        "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+        "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
       );
       firstInteractive?.focus();
 
@@ -62,7 +62,7 @@ export function NavigationPanel({ navbarId, children }: NavigationPanelProps) {
       if (e.key !== "Tab" || !panelRef.current) return;
 
       const focusable = panelRef.current.querySelectorAll<HTMLElement>(
-        "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+        "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
       );
       if (focusable.length === 0) return;
 
@@ -89,13 +89,7 @@ export function NavigationPanel({ navbarId, children }: NavigationPanelProps) {
   return (
     <>
       {/* Overlay */}
-      {isOpen && (
-        <div
-          className="nav-overlay"
-          onClick={handleClose}
-          aria-hidden="true"
-        />
-      )}
+      {isOpen && <div className="nav-overlay" onClick={handleClose} aria-hidden="true" />}
 
       {/* Panel */}
       <nav

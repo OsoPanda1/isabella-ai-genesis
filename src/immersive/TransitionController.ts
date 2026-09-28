@@ -10,8 +10,7 @@
 
 type Easing = (t: number) => number;
 
-const EASE_IN_OUT: Easing = (t) =>
-  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const EASE_IN_OUT: Easing = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 interface ActiveTransition {
   from: number;
@@ -55,7 +54,7 @@ export class TransitionController {
   ): void {
     this.cancelCurrent();
 
-    const from = fromOverride ?? (this.current?.to ?? target);
+    const from = fromOverride ?? this.current?.to ?? target;
 
     this.current = {
       from,

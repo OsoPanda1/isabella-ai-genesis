@@ -14,7 +14,9 @@ export const CrownGovernanceCard: React.FC = () => {
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
             Gobernanza C.R.O.W.N.
           </h4>
-          <p className="text-[10px] text-slate-500 font-mono mt-1">Supervisión Zero-Trust & ARGUS Sentinel</p>
+          <p className="text-[10px] text-slate-500 font-mono mt-1">
+            Supervisión Zero-Trust & ARGUS Sentinel
+          </p>
         </div>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
           L4 Active

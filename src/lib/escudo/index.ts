@@ -121,11 +121,17 @@ export class ESCUDOPerimeter {
         metadata: { reason: "Not authenticated" },
       };
       this.auditLog.push(event);
-      return { allowed: false, reason: "No autenticado", requiresApproval: false, auditEvent: event };
+      return {
+        allowed: false,
+        reason: "No autenticado",
+        requiresApproval: false,
+        auditEvent: event,
+      };
     }
 
     // Check permissions
-    const hasPermission = request.context.permissions.includes("*") ||
+    const hasPermission =
+      request.context.permissions.includes("*") ||
       request.context.permissions.includes(`${request.action}:${request.resource}`);
 
     if (!hasPermission) {
@@ -141,7 +147,12 @@ export class ESCUDOPerimeter {
         metadata: { reason: "Insufficient permissions" },
       };
       this.auditLog.push(event);
-      return { allowed: false, reason: "Permisos insuficientes", requiresApproval: false, auditEvent: event };
+      return {
+        allowed: false,
+        reason: "Permisos insuficientes",
+        requiresApproval: false,
+        auditEvent: event,
+      };
     }
 
     // Check rate limit
@@ -160,7 +171,12 @@ export class ESCUDOPerimeter {
         metadata: { reason: "Rate limit exceeded" },
       };
       this.auditLog.push(event);
-      return { allowed: false, reason: "Límite de solicitudes alcanzado", requiresApproval: false, auditEvent: event };
+      return {
+        allowed: false,
+        reason: "Límite de solicitudes alcanzado",
+        requiresApproval: false,
+        auditEvent: event,
+      };
     }
 
     // Determine if approval required

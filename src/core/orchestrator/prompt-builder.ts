@@ -12,12 +12,7 @@
  */
 
 export type PromptLayer =
-  | "constitution"
-  | "policy"
-  | "personality"
-  | "context"
-  | "memory"
-  | "ephemeral";
+  "constitution" | "policy" | "personality" | "context" | "memory" | "ephemeral";
 
 interface PromptLayerConfig {
   readonly layer: PromptLayer;

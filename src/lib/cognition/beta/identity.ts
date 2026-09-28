@@ -52,9 +52,7 @@ export class IdentityResolver {
   }): IdentityContext {
     const roles = this.inferRoles(params.actorId, params.tenantId);
     const scopes = this.resolveScopes(roles, params.providedScopes);
-    const assuranceLevel = this.assessAssuranceLevel(
-      params.authMethod ?? "session",
-    );
+    const assuranceLevel = this.assessAssuranceLevel(params.authMethod ?? "session");
 
     return {
       actorId: params.actorId,
@@ -71,10 +69,7 @@ export class IdentityResolver {
   /**
    * Verify that an identity has the required scopes.
    */
-  verify(
-    identity: IdentityContext,
-    requiredScopes: string[],
-  ): IdentityVerification {
+  verify(identity: IdentityContext, requiredScopes: string[]): IdentityVerification {
     const granted: string[] = [];
     const denied: string[] = [];
 
@@ -92,8 +87,7 @@ export class IdentityResolver {
       assuranceLevel: identity.assuranceLevel,
       scopesGranted: granted,
       deniedScopes: denied,
-      reason:
-        denied.length > 0 ? `Missing scopes: ${denied.join(", ")}` : undefined,
+      reason: denied.length > 0 ? `Missing scopes: ${denied.join(", ")}` : undefined,
     };
   }
 

@@ -22,11 +22,7 @@ function Badge({ badge }: { badge: NavigationBadge }) {
     danger: "badge-danger",
   };
 
-  return (
-    <span className={`nav-badge ${toneClasses[badge.tone] ?? ""}`}>
-      {badge.value}
-    </span>
-  );
+  return <span className={`nav-badge ${toneClasses[badge.tone] ?? ""}`}>{badge.value}</span>;
 }
 
 // ============================================================================
@@ -39,11 +35,7 @@ interface AccordionFolderProps {
   onAction?: (node: NavigationNode) => void;
 }
 
-export function AccordionFolder({
-  node,
-  level = 0,
-  onAction,
-}: AccordionFolderProps) {
+export function AccordionFolder({ node, level = 0, onAction }: AccordionFolderProps) {
   const { toggleFolder, isFolderExpanded, state, dispatch } = useNavigation();
   const isExpanded = isFolderExpanded(node.id);
   const isActive = state.activeNode === node.id;
@@ -113,9 +105,7 @@ export function AccordionFolder({
 
         {node.badge && <Badge badge={node.badge} />}
 
-        {node.description && (
-          <span className="accordion-description">{node.description}</span>
-        )}
+        {node.description && <span className="accordion-description">{node.description}</span>}
       </button>
 
       <div

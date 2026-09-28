@@ -24,14 +24,40 @@ export interface Episode {
 const episodes: Episode[] = [];
 const EPISODE_MAX = 1_000;
 
-const STOPWORDS = new Set(["el","la","los","las","un","una","en","para","de","que","y","a","o","u","the","a","an","in","for","of","and","to","is","are"]);
+const STOPWORDS = new Set([
+  "el",
+  "la",
+  "los",
+  "las",
+  "un",
+  "una",
+  "en",
+  "para",
+  "de",
+  "que",
+  "y",
+  "a",
+  "o",
+  "u",
+  "the",
+  "a",
+  "an",
+  "in",
+  "for",
+  "of",
+  "and",
+  "to",
+  "is",
+  "are",
+]);
 
 function tokenize(text: string): Set<string> {
   return new Set(
-    text.toLowerCase()
+    text
+      .toLowerCase()
       .replace(/[^a-z0-9áéíóúñü\\s]/g, "")
       .split(/\\s+/)
-      .filter(t => t.length > 2 && !STOPWORDS.has(t))
+      .filter((t) => t.length > 2 && !STOPWORDS.has(t)),
   );
 }
 
@@ -42,12 +68,36 @@ function jaccard(a: Set<string>, b: Set<string>): number {
   return union === 0 ? 0 : inter / union;
 }
 
-export function registerEpisode(actor: string, input: string, output: string, context?: string, emotionalState?: string): Episode {
-  const id = createHash("sha256").update(`${Date.now()}${Math.random()}`).digest("hex").slice(0, 16);
-  const ep: Episode = { id, ts: new Date().toISOString(), actor, input, output, tokens: tokenize(input), emotionalState, context };
+export function registerEpisode(
+  actor: string,
+  input: string,
+  output: string,
+  context?: string,
+  emotionalState?: string,
+): Episode {
+  const id = createHash("sha256")
+    .update(`${Date.now()}${Math.random()}`)
+    .digest("hex")
+    .slice(0, 16);
+  const ep: Episode = {
+    id,
+    ts: new Date().toISOString(),
+    actor,
+    input,
+    output,
+    tokens: tokenize(input),
+    emotionalState,
+    context,
+  };
   episodes.push(ep);
   if (episodes.length > EPISODE_MAX) episodes.splice(0, episodes.length - EPISODE_MAX);
-  appendBlock({ eventType: "ai_decision", module: "Isabella", action: "episode.register", actor, data: { episodeId: id, context: context ?? "" } });
+  appendBlock({
+    eventType: "ai_decision",
+    module: "Isabella",
+    action: "episode.register",
+    actor,
+    data: { episodeId: id, context: context ?? "" },
+  });
   return ep;
 }
 
@@ -56,11 +106,11 @@ export function searchEpisodes(query: string, topK = 3): Episode[] {
   const q = tokenize(query);
   if (q.size === 0) return episodes.slice(-topK).reverse();
   return episodes
-    .map(ep => ({ ep, score: jaccard(q, ep.tokens) }))
-    .filter(x => x.score > 0.05)
+    .map((ep) => ({ ep, score: jaccard(q, ep.tokens) }))
+    .filter((x) => x.score > 0.05)
     .sort((a, b) => b.score - a.score)
     .slice(0, topK)
-    .map(x => x.ep);
+    .map((x) => x.ep);
 }
 
 // ── Recommendations ───────────────────────────────────────────────────────────
@@ -75,12 +125,60 @@ export interface IsabellaRecommendation {
 }
 
 const BASE_RECS: IsabellaRecommendation[] = [
-  { title: "Explora el Grafo Civilizatorio", subtitle: "Descubre cómo las 7 federaciones se conectan en tiempo real.", ctaLabel: "Ver Federaciones", ctaHref: "/federaciones", highlightPillar: "Conocimiento", confidence: 0.9, reasoning: "Core Atlas module" },
-  { title: "Activar Kernel de Observabilidad", subtitle: "Métricas RED/USE/AI en vivo con audit hash-chained.", ctaLabel: "Abrir Observabilidad", ctaHref: "/observabilidad", highlightPillar: "Infraestructura", confidence: 0.88, reasoning: "System health monitoring" },
-  { title: "Revisar Doctrina de Combate", subtitle: "7 planes estratégicos, zero-trust y gobernanza constitucional.", ctaLabel: "Ver Doctrina", ctaHref: "/doctrina", highlightPillar: "Gobernanza", confidence: 0.85, reasoning: "Governance enforcement active" },
-  { title: "BookPI™ — Ledger en Vivo", subtitle: "Bloques minados y encadenados del ecosistema TAMV.", ctaLabel: "Ver Ledger", ctaHref: "/observabilidad", highlightPillar: "Seguridad", confidence: 0.82, reasoning: "Ledger activity detected" },
-  { title: "Anubis Sentinel — Estado de Amenaza", subtitle: "Evaluación de anomalías y política de gobernanza.", ctaLabel: "Ver Seguridad", ctaHref: "/seguridad", highlightPillar: "Seguridad", confidence: 0.80, reasoning: "Security monitoring active" },
-  { title: "Economía Lucrum Prime", subtitle: "Membresías, marketplace y flujos de valor auditados.", ctaLabel: "Ver Servicios", ctaHref: "/servicios", highlightPillar: "Economía", confidence: 0.78, reasoning: "Economy module loaded" },
+  {
+    title: "Explora el Grafo Civilizatorio",
+    subtitle: "Descubre cómo las 7 federaciones se conectan en tiempo real.",
+    ctaLabel: "Ver Federaciones",
+    ctaHref: "/federaciones",
+    highlightPillar: "Conocimiento",
+    confidence: 0.9,
+    reasoning: "Core Atlas module",
+  },
+  {
+    title: "Activar Kernel de Observabilidad",
+    subtitle: "Métricas RED/USE/AI en vivo con audit hash-chained.",
+    ctaLabel: "Abrir Observabilidad",
+    ctaHref: "/observabilidad",
+    highlightPillar: "Infraestructura",
+    confidence: 0.88,
+    reasoning: "System health monitoring",
+  },
+  {
+    title: "Revisar Doctrina de Combate",
+    subtitle: "7 planes estratégicos, zero-trust y gobernanza constitucional.",
+    ctaLabel: "Ver Doctrina",
+    ctaHref: "/doctrina",
+    highlightPillar: "Gobernanza",
+    confidence: 0.85,
+    reasoning: "Governance enforcement active",
+  },
+  {
+    title: "BookPI™ — Ledger en Vivo",
+    subtitle: "Bloques minados y encadenados del ecosistema TAMV.",
+    ctaLabel: "Ver Ledger",
+    ctaHref: "/observabilidad",
+    highlightPillar: "Seguridad",
+    confidence: 0.82,
+    reasoning: "Ledger activity detected",
+  },
+  {
+    title: "Anubis Sentinel — Estado de Amenaza",
+    subtitle: "Evaluación de anomalías y política de gobernanza.",
+    ctaLabel: "Ver Seguridad",
+    ctaHref: "/seguridad",
+    highlightPillar: "Seguridad",
+    confidence: 0.8,
+    reasoning: "Security monitoring active",
+  },
+  {
+    title: "Economía Lucrum Prime",
+    subtitle: "Membresías, marketplace y flujos de valor auditados.",
+    ctaLabel: "Ver Servicios",
+    ctaHref: "/servicios",
+    highlightPillar: "Economía",
+    confidence: 0.78,
+    reasoning: "Economy module loaded",
+  },
 ];
 
 export function getRecommendations(userId?: string, context?: string): IsabellaRecommendation[] {
@@ -89,16 +187,28 @@ export function getRecommendations(userId?: string, context?: string): IsabellaR
 
   if (context) {
     const q = tokenize(context);
-    recs = recs.map(r => {
-      const rtokens = tokenize(`${r.title} ${r.subtitle} ${r.highlightPillar ?? ""}`);
-      const boost = jaccard(q, rtokens);
-      return { ...r, confidence: Math.min(1, r.confidence + boost * 0.15) };
-    }).sort((a, b) => b.confidence - a.confidence);
+    recs = recs
+      .map((r) => {
+        const rtokens = tokenize(`${r.title} ${r.subtitle} ${r.highlightPillar ?? ""}`);
+        const boost = jaccard(q, rtokens);
+        return { ...r, confidence: Math.min(1, r.confidence + boost * 0.15) };
+      })
+      .sort((a, b) => b.confidence - a.confidence);
   }
 
   const latencyMs = Date.now() - start;
-  recordAiEvaluation({ precision: 0.87, hallucination: 0.02, latencyMs, model: "isabella-local-v1" });
-  recordSeguimiento({ radar: "HORUS", level: "INFO", action: "ISABELLA_RECOMMENDATION", details: { userId: userId ?? "anonymous", count: recs.length, latencyMs } });
+  recordAiEvaluation({
+    precision: 0.87,
+    hallucination: 0.02,
+    latencyMs,
+    model: "isabella-local-v1",
+  });
+  recordSeguimiento({
+    radar: "HORUS",
+    level: "INFO",
+    action: "ISABELLA_RECOMMENDATION",
+    details: { userId: userId ?? "anonymous", count: recs.length, latencyMs },
+  });
 
   return recs.slice(0, 4);
 }
@@ -111,7 +221,14 @@ export interface ModerationResult {
   suggestedRevision?: string;
 }
 
-const BLOCKED_TERMS = [/\\bspam\\b/i, /\\bscam\\b/i, /\\bfake\\b/i, /odio\\b/i, /\\bviolenci/i, /\\babuso\\b/i];
+const BLOCKED_TERMS = [
+  /\\bspam\\b/i,
+  /\\bscam\\b/i,
+  /\\bfake\\b/i,
+  /odio\\b/i,
+  /\\bviolenci/i,
+  /\\babuso\\b/i,
+];
 const FLAG_TERMS = [/\\bdiscriminaci/i, /\\bmientira/i, /\\bmanipul/i, /\\bdesinform/i];
 
 export function moderateContent(content: string, context?: string): ModerationResult {
@@ -119,17 +236,31 @@ export function moderateContent(content: string, context?: string): ModerationRe
   let blocked = false;
 
   for (const p of BLOCKED_TERMS) {
-    if (p.test(content)) { blocked = true; reasons.push(`Blocked: ${p.source}`); }
+    if (p.test(content)) {
+      blocked = true;
+      reasons.push(`Blocked: ${p.source}`);
+    }
   }
   for (const p of FLAG_TERMS) {
     if (p.test(content)) reasons.push(`Flagged: ${p.source}`);
   }
 
   const confidence = blocked ? 0.95 : reasons.length > 0 ? 0.7 : 0.98;
-  recordSeguimiento({ radar: "DEKATEOTL", level: blocked ? "CRITICAL" : reasons.length > 0 ? "WARN" : "INFO", action: "MODERATION", details: { allowed: !blocked, reasons, context } });
+  recordSeguimiento({
+    radar: "DEKATEOTL",
+    level: blocked ? "CRITICAL" : reasons.length > 0 ? "WARN" : "INFO",
+    action: "MODERATION",
+    details: { allowed: !blocked, reasons, context },
+  });
 
   if (!blocked && reasons.length > 0) {
-    appendBlock({ eventType: "ai_decision", module: "Isabella", action: "moderation.flag", actor: "system", data: { reasons, confidence } });
+    appendBlock({
+      eventType: "ai_decision",
+      module: "Isabella",
+      action: "moderation.flag",
+      actor: "system",
+      data: { reasons, confidence },
+    });
   }
 
   return { allowed: !blocked, reasons, confidence };
@@ -143,13 +274,25 @@ export interface EmotionalState {
   timestamp: string;
 }
 
-let _emotionalState: EmotionalState = { dominant: "serene", valence: 0.6, arousal: 0.4, timestamp: new Date().toISOString() };
+let _emotionalState: EmotionalState = {
+  dominant: "serene",
+  valence: 0.6,
+  arousal: 0.4,
+  timestamp: new Date().toISOString(),
+};
 
-export function getEmotionalState(): EmotionalState { return _emotionalState; }
+export function getEmotionalState(): EmotionalState {
+  return _emotionalState;
+}
 
 export function updateEmotionalState(input: Partial<EmotionalState>): EmotionalState {
   _emotionalState = { ..._emotionalState, ...input, timestamp: new Date().toISOString() };
-  recordSeguimiento({ radar: "HORUS", level: "INFO", action: "EMOTIONAL_STATE_UPDATE", details: { state: _emotionalState } });
+  recordSeguimiento({
+    radar: "HORUS",
+    level: "INFO",
+    action: "EMOTIONAL_STATE_UPDATE",
+    details: { state: _emotionalState },
+  });
   return _emotionalState;
 }
 
@@ -165,4 +308,10 @@ export function isabellaStats() {
 }
 
 // Bootstrap
-registerEpisode("system", "kernel.boot", "Isabella AI kernel initialized. Civilizational graph online.", "boot", "serene");
+registerEpisode(
+  "system",
+  "kernel.boot",
+  "Isabella AI kernel initialized. Civilizational graph online.",
+  "boot",
+  "serene",
+);

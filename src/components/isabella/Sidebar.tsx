@@ -63,9 +63,7 @@ export function Sidebar({ open, onToggle, activeSection, onSectionChange }: Side
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border/50 p-4">
-        {open && (
-          <span className="font-display text-sm tracking-tight text-platinum">Menú</span>
-        )}
+        {open && <span className="font-display text-sm tracking-tight text-platinum">Menú</span>}
         <button
           onClick={onToggle}
           className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-platinum"
@@ -121,9 +119,7 @@ export function Sidebar({ open, onToggle, activeSection, onSectionChange }: Side
                 C.R.O.W.N. ACTIVO
               </span>
             </div>
-            <p className="mt-1 font-mono text-[8px] text-muted-foreground/50">
-              v2.0 · Nodo Cero
-            </p>
+            <p className="mt-1 font-mono text-[8px] text-muted-foreground/50">v2.0 · Nodo Cero</p>
           </div>
         </div>
       )}

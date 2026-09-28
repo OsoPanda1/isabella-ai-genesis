@@ -74,7 +74,9 @@ async function mintGuestToken() {
   if (!session.ok || !session.principal) {
     throw new Error("guest session response is invalid");
   }
-  const sessionCookie = sessionRes.headers.get("set-cookie")?.match(/__Host-isa_session=([^;]+)/)?.[1];
+  const sessionCookie = sessionRes.headers
+    .get("set-cookie")
+    ?.match(/__Host-isa_session=([^;]+)/)?.[1];
   if (!sessionCookie) throw new Error("guest session cookie missing");
   cookieHeader = `${cookieHeader ? `${cookieHeader}; ` : ""}__Host-isa_session=${sessionCookie}`;
   return session.principal;
@@ -102,8 +104,10 @@ await check("HEAD / is not refused with 405 (wrapper method guard)", async () =>
 });
 
 await check("unknown method is rejected deterministically", async () => {
-  const res = await fetch(new URL("/api/health", baseUrl), { method: "MKCOL", redirect: "manual" })
-    .catch(() => null);
+  const res = await fetch(new URL("/api/health", baseUrl), {
+    method: "MKCOL",
+    redirect: "manual",
+  }).catch(() => null);
   if (!res) return;
   assertStatus(res.status, [403, 404, 405, 200], "exotic method status");
 });
@@ -145,7 +149,10 @@ await check("billing plans respond for a guest session", async () => {
 });
 
 await check("api keys management is gated by scope, not anonymous", async () => {
-  const res = await request("/api/v1/apikeys", { method: "POST", body: JSON.stringify({ name: "smoke" }) });
+  const res = await request("/api/v1/apikeys", {
+    method: "POST",
+    body: JSON.stringify({ name: "smoke" }),
+  });
   if (res.status !== 401 && res.status !== 403) {
     throw new Error(`apikeys gate status: expected 401/403, got ${res.status}`);
   }
@@ -156,5 +163,7 @@ const failures = results.filter((r) => !r.ok);
 for (const r of results) {
   console.log(`${r.ok ? "✓" : "✗"} ${r.name}${r.ok ? "" : ` — ${r.error}`}`);
 }
-console.log(`\n${results.length - failures.length}/${results.length} smoke checks passed against ${baseUrl}`);
+console.log(
+  `\n${results.length - failures.length}/${results.length} smoke checks passed against ${baseUrl}`,
+);
 process.exit(failures.length === 0 ? 0 : 1);

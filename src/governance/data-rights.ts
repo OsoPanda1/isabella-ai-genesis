@@ -5,7 +5,8 @@
  * ================================================================
  */
 
-export type DataCategory = "memory" | "audit" | "session" | "telemetry" | "consent" | "profile" | "generated";
+export type DataCategory =
+  "memory" | "audit" | "session" | "telemetry" | "consent" | "profile" | "generated";
 
 export interface DataRetentionPolicy {
   readonly category: DataCategory;
@@ -32,13 +33,62 @@ export interface DataRetrievalRecord {
    ========================================================================= */
 
 const DEFAULT_POLICIES: DataRetentionPolicy[] = [
-  { category: "memory", maxAgeDays: 365, purpose: "Conversational continuity", requiresConsent: true, deletableByUser: true, exportable: true },
-  { category: "audit", maxAgeDays: 730, purpose: "Security and compliance", requiresConsent: false, deletableByUser: false, exportable: true },
-  { category: "session", maxAgeDays: 30, purpose: "Session management", requiresConsent: false, deletableByUser: true, exportable: false },
-  { category: "telemetry", maxAgeDays: 90, purpose: "Performance monitoring", requiresConsent: false, deletableByUser: false, exportable: false },
-  { category: "consent", maxAgeDays: 1825, purpose: "Consent history", requiresConsent: false, deletableByUser: false, exportable: true },
-  { category: "profile", maxAgeDays: 1825, purpose: "User identity", requiresConsent: true, deletableByUser: true, exportable: true },
-  { category: "generated", maxAgeDays: 90, purpose: "AI-generated content", requiresConsent: true, deletableByUser: true, exportable: true },
+  {
+    category: "memory",
+    maxAgeDays: 365,
+    purpose: "Conversational continuity",
+    requiresConsent: true,
+    deletableByUser: true,
+    exportable: true,
+  },
+  {
+    category: "audit",
+    maxAgeDays: 730,
+    purpose: "Security and compliance",
+    requiresConsent: false,
+    deletableByUser: false,
+    exportable: true,
+  },
+  {
+    category: "session",
+    maxAgeDays: 30,
+    purpose: "Session management",
+    requiresConsent: false,
+    deletableByUser: true,
+    exportable: false,
+  },
+  {
+    category: "telemetry",
+    maxAgeDays: 90,
+    purpose: "Performance monitoring",
+    requiresConsent: false,
+    deletableByUser: false,
+    exportable: false,
+  },
+  {
+    category: "consent",
+    maxAgeDays: 1825,
+    purpose: "Consent history",
+    requiresConsent: false,
+    deletableByUser: false,
+    exportable: true,
+  },
+  {
+    category: "profile",
+    maxAgeDays: 1825,
+    purpose: "User identity",
+    requiresConsent: true,
+    deletableByUser: true,
+    exportable: true,
+  },
+  {
+    category: "generated",
+    maxAgeDays: 90,
+    purpose: "AI-generated content",
+    requiresConsent: true,
+    deletableByUser: true,
+    exportable: true,
+  },
 ];
 
 const policies = new Map<DataCategory, DataRetentionPolicy>();
@@ -79,7 +129,8 @@ export function recordDataStorage(params: {
   };
 
   retentionRecords.push(record);
-  if (retentionRecords.length > MAX_RECORDS) retentionRecords.splice(0, retentionRecords.length - MAX_RECORDS);
+  if (retentionRecords.length > MAX_RECORDS)
+    retentionRecords.splice(0, retentionRecords.length - MAX_RECORDS);
   return record;
 }
 
@@ -88,7 +139,10 @@ export function getExpiredRecords(): DataRetrievalRecord[] {
   return retentionRecords.filter((r) => r.expiresAt < now);
 }
 
-export function deleteUserData(tenantId: string, userId: string): { deleted: number; categories: DataCategory[] } {
+export function deleteUserData(
+  tenantId: string,
+  userId: string,
+): { deleted: number; categories: DataCategory[] } {
   const affected = new Set<DataCategory>();
   let deleted = 0;
   for (let i = retentionRecords.length - 1; i >= 0; i--) {

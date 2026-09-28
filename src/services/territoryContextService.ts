@@ -1,7 +1,7 @@
 /**
  * Territory-Context Integration Service Layer
  * C.R.O.W.N. Orchestrator :: Nodo Cero Territorial Knowledge Engine
- * 
+ *
  * Provides academic, real-time and historical telemetry for Real del Monte,
  * enabling sovereign contextualization of all cognitive inferences.
  */
@@ -62,39 +62,48 @@ export const REAL_DEL_MONTE_HERITAGE_ENTITIES: TerritoryHeritageEntity[] = [
     name: "Mina de Acosta",
     periodOrYear: "1727",
     category: "mineria",
-    description: "Una de las minas más emblemáticas del distrito minero Real del Monte-Pachuca. Conserva vestigios de la época novohispana, británica y norteamericana con tiro de mina y casa de máquinas de vapor Cornish.",
-    culturalSignificance: "Testimonio vivo de la transferencia tecnológica minera entre el Reino Unido y México en el siglo XIX.",
+    description:
+      "Una de las minas más emblemáticas del distrito minero Real del Monte-Pachuca. Conserva vestigios de la época novohispana, británica y norteamericana con tiro de mina y casa de máquinas de vapor Cornish.",
+    culturalSignificance:
+      "Testimonio vivo de la transferencia tecnológica minera entre el Reino Unido y México en el siglo XIX.",
   },
   {
     id: "panteon_ingles",
     name: "Panteón Inglés de Real del Monte",
     periodOrYear: "1851",
     category: "arquitectura",
-    description: "Monumento funerario neogótico y romántico emplazado en la cima boscosa del Cerro del Judío, rodeado de oyameles y neblina permanente. Todas las tumbas están orientadas hacia Inglaterra.",
-    culturalSignificance: "Símbolo de hermandad histórica, memoria colectiva y respeto transatlántico.",
+    description:
+      "Monumento funerario neogótico y romántico emplazado en la cima boscosa del Cerro del Judío, rodeado de oyameles y neblina permanente. Todas las tumbas están orientadas hacia Inglaterra.",
+    culturalSignificance:
+      "Símbolo de hermandad histórica, memoria colectiva y respeto transatlántico.",
   },
   {
     id: "mina_la_dificultad",
     name: "Mina La Dificultad & Museo de Sitio",
     periodOrYear: "1889",
     category: "mineria",
-    description: "Portentoso conjunto industrial con chimenea de mampostería y casa de máquinas de vapor de gran capacidad. Marca la transición a la era del vapor y la electricidad.",
-    culturalSignificance: "Obra cumbre de la arquitectura industrial mexicana de finales del siglo XIX.",
+    description:
+      "Portentoso conjunto industrial con chimenea de mampostería y casa de máquinas de vapor de gran capacidad. Marca la transición a la era del vapor y la electricidad.",
+    culturalSignificance:
+      "Obra cumbre de la arquitectura industrial mexicana de finales del siglo XIX.",
   },
   {
     id: "museo_del_paste",
     name: "Museo Histórico del Paste",
     periodOrYear: "Tradición desde 1824",
     category: "gastronomia",
-    description: "Patrimonio gastronómico inmaterial de Real del Monte derivado del 'pasty' minero de Cornualles, adaptado con papa, poro, chiles y carnes locales con borde trenzado protector.",
-    culturalSignificance: "Fusión cultural gastronómica declarada Patrimonio Cultural del Estado de Hidalgo.",
+    description:
+      "Patrimonio gastronómico inmaterial de Real del Monte derivado del 'pasty' minero de Cornualles, adaptado con papa, poro, chiles y carnes locales con borde trenzado protector.",
+    culturalSignificance:
+      "Fusión cultural gastronómica declarada Patrimonio Cultural del Estado de Hidalgo.",
   },
   {
     id: "penas_cargadas",
     name: "Parque Ecológico Peñas Cargadas",
     periodOrYear: "Ancestral / Geológico",
     category: "naturaleza",
-    description: "Formaciones basálticas colosales y bosques de coníferas que resguardan la cuenca hidrológica y la biodiversidad de la Sierra de Pachuca.",
+    description:
+      "Formaciones basálticas colosales y bosques de coníferas que resguardan la cuenca hidrológica y la biodiversidad de la Sierra de Pachuca.",
     culturalSignificance: "Reserva natural y santuario geológico del territorio de Real del Monte.",
   },
   {
@@ -102,8 +111,10 @@ export const REAL_DEL_MONTE_HERITAGE_ENTITIES: TerritoryHeritageEntity[] = [
     name: "Santuario del Señor de Zelontla",
     periodOrYear: "Siglo XVIII",
     category: "arquitectura",
-    description: "Templo venerado por los mineros locales que encomendaban sus vidas antes de descender a las profundidades de los tiros mineros.",
-    culturalSignificance: "Centro espiritual y de cohesión comunitaria tradicional de la población minera.",
+    description:
+      "Templo venerado por los mineros locales que encomendaban sus vidas antes de descender a las profundidades de los tiros mineros.",
+    culturalSignificance:
+      "Centro espiritual y de cohesión comunitaria tradicional de la población minera.",
   },
 ];
 
@@ -143,9 +154,18 @@ class TerritoryContextService {
 
     this.currentTelemetry = {
       ...this.currentTelemetry,
-      temperatureCelsius: parseFloat(Math.max(10, Math.min(22, this.currentTelemetry.temperatureCelsius + tempDelta)).toFixed(1)),
-      humidityPercent: Math.round(Math.max(40, Math.min(95, this.currentTelemetry.humidityPercent + humidityDelta))),
-      nodeMeshLatencyMs: parseFloat(Math.max(0.8, Math.min(4.5, this.currentTelemetry.nodeMeshLatencyMs + latencyDelta)).toFixed(1)),
+      temperatureCelsius: parseFloat(
+        Math.max(10, Math.min(22, this.currentTelemetry.temperatureCelsius + tempDelta)).toFixed(1),
+      ),
+      humidityPercent: Math.round(
+        Math.max(40, Math.min(95, this.currentTelemetry.humidityPercent + humidityDelta)),
+      ),
+      nodeMeshLatencyMs: parseFloat(
+        Math.max(
+          0.8,
+          Math.min(4.5, this.currentTelemetry.nodeMeshLatencyMs + latencyDelta),
+        ).toFixed(1),
+      ),
     };
   }
 
@@ -172,7 +192,11 @@ class TerritoryContextService {
       heritageEntities: REAL_DEL_MONTE_HERITAGE_ENTITIES,
       activeSovereignVariables: {
         miningHeritageAlignment: true,
-        localLanguageVariations: ["español_mexicano_hidalguense", "terminologia_minera_cornish", "nahuatl_toponimico"],
+        localLanguageVariations: [
+          "español_mexicano_hidalguense",
+          "terminologia_minera_cornish",
+          "nahuatl_toponimico",
+        ],
         cornishMexicanSynthesisFactor: 0.98,
         sovereignDataBoundary: "strictly_local",
       },
@@ -190,7 +214,7 @@ class TerritoryContextService {
         (item) =>
           item.name.toLowerCase().includes(q) ||
           item.description.toLowerCase().includes(q) ||
-          item.culturalSignificance.toLowerCase().includes(q)
+          item.culturalSignificance.toLowerCase().includes(q),
       );
     }
     return list;

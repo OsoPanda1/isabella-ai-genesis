@@ -67,7 +67,10 @@ const SCORE_TO_LEVEL: Array<{ min: number; level: "low" | "medium" | "high" | "c
   { min: 0, level: "low" },
 ];
 
-export function riskLevel(likelihood: RiskLikelihood, impact: RiskImpact): "low" | "medium" | "high" | "critical" {
+export function riskLevel(
+  likelihood: RiskLikelihood,
+  impact: RiskImpact,
+): "low" | "medium" | "high" | "critical" {
   const score = LIKELIHOOD_WEIGHT[likelihood] * IMPACT_WEIGHT[impact];
   return SCORE_TO_LEVEL.find((entry) => score >= entry.min)!.level;
 }
@@ -82,14 +85,19 @@ export function tierForLikelihoodImpact(likelihood: RiskLikelihood, impact: Risk
  * Devuelve una razón clara y el riesgo residual, sin afirmar cumplimiento
  * únicamente por la existencia de una política.
  */
-export function computeResidual(a: RiskAssessment): Pick<RiskAssessment, "residualRisk"> & { rationale: string } {
+export function computeResidual(
+  a: RiskAssessment,
+): Pick<RiskAssessment, "residualRisk"> & { rationale: string } {
   const inherent = a.inherentRisk;
   const activeMitigations = a.mitigations.length;
   const hasEvidence = a.evidenceRefs.length > 0;
 
   // Sin evidencia, el riesgo residual no puede bajar por debajo del inherente.
   if (!hasEvidence) {
-    return { residualRisk: inherent, rationale: "Sin evidencia técnica, el riesgo residual no se reduce." };
+    return {
+      residualRisk: inherent,
+      rationale: "Sin evidencia técnica, el riesgo residual no se reduce.",
+    };
   }
 
   // Cada mitigación con evidencia baja un nivel (máx. inherente -> medium).
@@ -107,7 +115,10 @@ export function computeResidual(a: RiskAssessment): Pick<RiskAssessment, "residu
 
 export function requiresHumanApproval(assessment: RiskAssessment): boolean {
   if (assessment.prohibited) return true;
-  return RISK_TIER_ORDER[assessment.riskTier] >= RISK_TIER_ORDER.HIGH || assessment.requiresHumanApproval === true;
+  return (
+    RISK_TIER_ORDER[assessment.riskTier] >= RISK_TIER_ORDER.HIGH ||
+    assessment.requiresHumanApproval === true
+  );
 }
 
 function isRiskTier(value: string): value is RiskTier {

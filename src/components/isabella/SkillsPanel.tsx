@@ -40,9 +40,7 @@ export function SkillsPanel() {
   }, []);
 
   const filtered =
-    selectedCategory === "all"
-      ? skills
-      : skills.filter((s) => s.category === selectedCategory);
+    selectedCategory === "all" ? skills : skills.filter((s) => s.category === selectedCategory);
 
   const categories = Object.keys(CATEGORY_COLORS) as SkillCategory[];
 
@@ -102,10 +100,7 @@ export function SkillsPanel() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-1.5">
-                  <span
-                    className="text-[10px]"
-                    style={{ color: CATEGORY_COLORS[skill.category] }}
-                  >
+                  <span className="text-[10px]" style={{ color: CATEGORY_COLORS[skill.category] }}>
                     {CATEGORY_ICONS[skill.category]}
                   </span>
                   <span className="text-[11px] text-platinum">{skill.name}</span>

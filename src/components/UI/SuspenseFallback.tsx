@@ -6,10 +6,9 @@ export const SuspenseFallback: React.FC = () => {
     <div className="flex flex-col items-center justify-center w-full h-full min-h-[400px] bg-[#020409] animate-fade-in relative overflow-hidden">
       {/* Background Subtle Gradient */}
       <div className="absolute inset-0 bg-radial from-amber-500/5 via-transparent to-transparent opacity-50" />
-      
+
       {/* Container */}
       <div className="relative z-10 flex flex-col items-center gap-6 p-8 rounded-2xl bg-slate-900/40 border border-slate-800/80 backdrop-blur-xl shadow-2xl max-w-sm w-full mx-4">
-        
         {/* Core Animated Spinner */}
         <div className="relative flex items-center justify-center">
           <div className="absolute inset-0 rounded-full border border-amber-500/20 scale-125 animate-ping opacity-20" />

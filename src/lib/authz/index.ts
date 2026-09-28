@@ -13,8 +13,4 @@ export {
   createAuthorizationContext,
 } from "./authorization-context";
 
-export {
-  type PolicyDecision,
-  evaluateAccess,
-  evaluateToolInvocation,
-} from "./policy-engine";
+export { type PolicyDecision, evaluateAccess, evaluateToolInvocation } from "./policy-engine";

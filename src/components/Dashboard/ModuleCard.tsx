@@ -127,12 +127,8 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isFocused = fals
 
         {/* Full Name & Description */}
         <div className="py-2.5 space-y-1">
-          <p className="text-[11px] font-mono font-medium text-sky-300/90">
-            {module.fullName}
-          </p>
-          <p className="text-xs text-slate-300 leading-relaxed font-sans">
-            {module.description}
-          </p>
+          <p className="text-[11px] font-mono font-medium text-sky-300/90">{module.fullName}</p>
+          <p className="text-xs text-slate-300 leading-relaxed font-sans">{module.description}</p>
         </div>
 
         {/* Core Pillars */}
@@ -154,9 +150,7 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isFocused = fals
         <div className="grid grid-cols-3 gap-2 text-center font-mono">
           <div className="p-2 rounded-xl bg-[#030712] border border-slate-800/80">
             <span className="text-[10px] text-slate-400 block">ACTIVACIÓN</span>
-            <span className="text-sm font-bold text-slate-100">
-              {module.metrics.activation}%
-            </span>
+            <span className="text-sm font-bold text-slate-100">{module.metrics.activation}%</span>
             <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden mt-1">
               <div
                 className="h-full rounded-full bg-blue-500 transition-all duration-300"
@@ -167,9 +161,7 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isFocused = fals
 
           <div className="p-2 rounded-xl bg-[#030712] border border-slate-800/80">
             <span className="text-[10px] text-slate-400 block">LATENCIA</span>
-            <span className="text-sm font-bold text-sky-400">
-              {module.metrics.latencyMs}ms
-            </span>
+            <span className="text-sm font-bold text-sky-400">{module.metrics.latencyMs}ms</span>
             <span className="text-[9px] text-slate-400 block mt-0.5">
               {module.metrics.throughput}
             </span>
@@ -177,9 +169,7 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({ module, isFocused = fals
 
           <div className="p-2 rounded-xl bg-[#030712] border border-slate-800/80">
             <span className="text-[10px] text-slate-400 block">CONFIANZA</span>
-            <span className="text-sm font-bold text-emerald-400">
-              {module.metrics.confidence}%
-            </span>
+            <span className="text-sm font-bold text-emerald-400">{module.metrics.confidence}%</span>
             <span className="text-[9px] text-slate-400 block mt-0.5">
               {module.metrics.activeThreads} hilos
             </span>

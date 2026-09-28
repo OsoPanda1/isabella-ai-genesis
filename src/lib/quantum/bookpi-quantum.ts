@@ -52,7 +52,8 @@ function flushBatch(): void {
   if (!isSqlite()) {
     for (const item of batch) {
       fallbackBlocks.push(item.block);
-      if (fallbackBlocks.length > MAX_FALLBACK_BLOCKS) fallbackBlocks.splice(0, fallbackBlocks.length - MAX_FALLBACK_BLOCKS);
+      if (fallbackBlocks.length > MAX_FALLBACK_BLOCKS)
+        fallbackBlocks.splice(0, fallbackBlocks.length - MAX_FALLBACK_BLOCKS);
       lastBlockHash = item.block.blockHash;
       totalWritesCommitted++;
       item.resolve(item.block);
@@ -64,17 +65,25 @@ function flushBatch(): void {
     const db = getDatabase();
     const insert = db.prepare(
       `INSERT INTO bookpi_blocks (blockHash, version, previousHash, requestId, tenantId, circuitHash, implementation, status, policyVersion, signerKeyId, teeVerified, createdAt, blockData)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
     const tx = db.transaction(() => {
       for (const item of batch) {
         try {
           insert.run(
-            item.block.blockHash, item.block.version, item.block.previousHash,
-            item.block.requestId, item.block.tenantId, item.block.circuitHash,
-            item.block.implementation, item.block.status, item.block.policyVersion,
-            item.block.signerKeyId, item.block.teeVerified ? 1 : 0,
-            item.block.createdAt, item.blockData,
+            item.block.blockHash,
+            item.block.version,
+            item.block.previousHash,
+            item.block.requestId,
+            item.block.tenantId,
+            item.block.circuitHash,
+            item.block.implementation,
+            item.block.status,
+            item.block.policyVersion,
+            item.block.signerKeyId,
+            item.block.teeVerified ? 1 : 0,
+            item.block.createdAt,
+            item.blockData,
           );
           lastBlockHash = item.block.blockHash;
           totalWritesCommitted++;
@@ -97,20 +106,32 @@ function flushBatch(): void {
 
 function mirrorBatchToPG(batch: QueuedBlock[]): void {
   if (batch.length === 0) return;
-  import("../persistence/postgres").then(({ pgExecute }) => {
-    for (const item of batch) {
-      pgExecute(
-        `INSERT INTO bookpi_blocks (blockHash, version, previousHash, requestId, tenantId, circuitHash, implementation, status, policyVersion, signerKeyId, teeVerified, createdAt, blockData)
+  import("../persistence/postgres")
+    .then(({ pgExecute }) => {
+      for (const item of batch) {
+        pgExecute(
+          `INSERT INTO bookpi_blocks (blockHash, version, previousHash, requestId, tenantId, circuitHash, implementation, status, policyVersion, signerKeyId, teeVerified, createdAt, blockData)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
          ON CONFLICT (blockHash) DO NOTHING`,
-        [item.block.blockHash, item.block.version, item.block.previousHash,
-         item.block.requestId, item.block.tenantId, item.block.circuitHash,
-         item.block.implementation, item.block.status, item.block.policyVersion,
-         item.block.signerKeyId, item.block.teeVerified ? 1 : 0,
-         item.block.createdAt, item.blockData]
-      ).catch(() => {});
-    }
-  }).catch(() => {});
+          [
+            item.block.blockHash,
+            item.block.version,
+            item.block.previousHash,
+            item.block.requestId,
+            item.block.tenantId,
+            item.block.circuitHash,
+            item.block.implementation,
+            item.block.status,
+            item.block.policyVersion,
+            item.block.signerKeyId,
+            item.block.teeVerified ? 1 : 0,
+            item.block.createdAt,
+            item.blockData,
+          ],
+        ).catch(() => {});
+      }
+    })
+    .catch(() => {});
 }
 
 /* =========================================================================
@@ -118,11 +139,19 @@ function mirrorBatchToPG(batch: QueuedBlock[]): void {
    ========================================================================= */
 
 let lastVerifiedBlockIndex = 0;
-let lastVerificationResult: { valid: boolean; totalBlocks: number; brokenAt?: number } = { valid: true, totalBlocks: 0 };
+let lastVerificationResult: { valid: boolean; totalBlocks: number; brokenAt?: number } = {
+  valid: true,
+  totalBlocks: 0,
+};
 
 function isSqlite(): boolean {
   if (useSqlite !== null) return useSqlite;
-  try { getDatabase(); useSqlite = true; } catch { useSqlite = false; }
+  try {
+    getDatabase();
+    useSqlite = true;
+  } catch {
+    useSqlite = false;
+  }
   return useSqlite;
 }
 
@@ -132,9 +161,13 @@ function ensureInitialized(): void {
   if (!isSqlite()) return;
   try {
     const db = getDatabase();
-    const row = db.prepare("SELECT blockHash FROM bookpi_blocks ORDER BY rowid DESC LIMIT 1").get() as { blockHash: string } | undefined;
+    const row = db
+      .prepare("SELECT blockHash FROM bookpi_blocks ORDER BY rowid DESC LIMIT 1")
+      .get() as { blockHash: string } | undefined;
     if (row) lastBlockHash = row.blockHash;
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 const fallbackBlocks: BookPIBlock[] = [];
@@ -184,31 +217,56 @@ export function commitQuantumBlock(params: {
       const db = getDatabase();
       db.prepare(
         `INSERT INTO bookpi_blocks (blockHash, version, previousHash, requestId, tenantId, circuitHash, implementation, status, policyVersion, signerKeyId, teeVerified, createdAt, blockData)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).run(
-        block.blockHash, block.version, block.previousHash, block.requestId,
-        block.tenantId, block.circuitHash, block.implementation, block.status,
-        block.policyVersion, block.signerKeyId, block.teeVerified ? 1 : 0,
-        block.createdAt, blockData,
+        block.blockHash,
+        block.version,
+        block.previousHash,
+        block.requestId,
+        block.tenantId,
+        block.circuitHash,
+        block.implementation,
+        block.status,
+        block.policyVersion,
+        block.signerKeyId,
+        block.teeVerified ? 1 : 0,
+        block.createdAt,
+        blockData,
       );
       lastBlockHash = blockHash;
-      import("../persistence/postgres").then(({ pgExecute }) =>
-        pgExecute(
-          `INSERT INTO bookpi_blocks (blockHash, version, previousHash, requestId, tenantId, circuitHash, implementation, status, policyVersion, signerKeyId, teeVerified, createdAt, blockData)
+      import("../persistence/postgres")
+        .then(({ pgExecute }) =>
+          pgExecute(
+            `INSERT INTO bookpi_blocks (blockHash, version, previousHash, requestId, tenantId, circuitHash, implementation, status, policyVersion, signerKeyId, teeVerified, createdAt, blockData)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
            ON CONFLICT (blockHash) DO NOTHING`,
-          [block.blockHash, block.version, block.previousHash, block.requestId,
-           block.tenantId, block.circuitHash, block.implementation, block.status,
-           block.policyVersion, block.signerKeyId, block.teeVerified ? 1 : 0,
-           block.createdAt, blockData]
-        ).catch(() => {})
-      ).catch(() => {});
+            [
+              block.blockHash,
+              block.version,
+              block.previousHash,
+              block.requestId,
+              block.tenantId,
+              block.circuitHash,
+              block.implementation,
+              block.status,
+              block.policyVersion,
+              block.signerKeyId,
+              block.teeVerified ? 1 : 0,
+              block.createdAt,
+              blockData,
+            ],
+          ).catch(() => {}),
+        )
+        .catch(() => {});
       return block;
-    } catch { /* fall through to in-memory */ }
+    } catch {
+      /* fall through to in-memory */
+    }
   }
 
   fallbackBlocks.push(block);
-  if (fallbackBlocks.length > MAX_FALLBACK_BLOCKS) fallbackBlocks.splice(0, fallbackBlocks.length - MAX_FALLBACK_BLOCKS);
+  if (fallbackBlocks.length > MAX_FALLBACK_BLOCKS)
+    fallbackBlocks.splice(0, fallbackBlocks.length - MAX_FALLBACK_BLOCKS);
   lastBlockHash = blockHash;
   return block;
 }
@@ -276,11 +334,18 @@ export function verifyChainIntegrity(): {
   if (isSqlite()) {
     try {
       const db = getDatabase();
-      const countRow = db.prepare("SELECT COUNT(*) as cnt FROM bookpi_blocks").get() as { cnt: number };
+      const countRow = db.prepare("SELECT COUNT(*) as cnt FROM bookpi_blocks").get() as {
+        cnt: number;
+      };
       const totalCount = countRow.cnt;
 
       if (totalCount === lastVerifiedBlockIndex && lastVerificationResult.valid) {
-        return { valid: true, totalBlocks: totalCount, firstBlockHash: GENESIS_HASH, lastBlockHash };
+        return {
+          valid: true,
+          totalBlocks: totalCount,
+          firstBlockHash: GENESIS_HASH,
+          lastBlockHash,
+        };
       }
 
       if (totalCount === 0) {
@@ -292,12 +357,23 @@ export function verifyChainIntegrity(): {
       const offset = Math.max(0, lastVerifiedBlockIndex - 1);
       const limit = totalCount - offset;
       if (limit <= 0) {
-        return { valid: lastVerificationResult.valid, totalBlocks: totalCount, firstBlockHash: GENESIS_HASH, lastBlockHash };
+        return {
+          valid: lastVerificationResult.valid,
+          totalBlocks: totalCount,
+          firstBlockHash: GENESIS_HASH,
+          lastBlockHash,
+        };
       }
 
-      const rows = db.prepare(
-        "SELECT blockHash, previousHash, blockData FROM bookpi_blocks ORDER BY rowid ASC LIMIT ? OFFSET ?"
-      ).all(limit, offset) as Array<{ blockHash: string; previousHash: string; blockData: string }>;
+      const rows = db
+        .prepare(
+          "SELECT blockHash, previousHash, blockData FROM bookpi_blocks ORDER BY rowid ASC LIMIT ? OFFSET ?",
+        )
+        .all(limit, offset) as Array<{
+        blockHash: string;
+        previousHash: string;
+        blockData: string;
+      }>;
 
       let previousHash = offset === 0 ? GENESIS_HASH : rows[0]?.previousHash || GENESIS_HASH;
 
@@ -306,14 +382,26 @@ export function verifyChainIntegrity(): {
         if (row.previousHash !== previousHash) {
           lastVerificationResult = { valid: false, totalBlocks: totalCount, brokenAt: offset + i };
           lastVerifiedBlockIndex = offset + i;
-          return { valid: false, totalBlocks: totalCount, firstBlockHash: rows[0].blockHash, lastBlockHash: rows[rows.length - 1].blockHash, brokenAt: offset + i };
+          return {
+            valid: false,
+            totalBlocks: totalCount,
+            firstBlockHash: rows[0].blockHash,
+            lastBlockHash: rows[rows.length - 1].blockHash,
+            brokenAt: offset + i,
+          };
         }
 
         const recomputed = computeContentHash(row.previousHash, row.blockData);
         if (recomputed !== row.blockHash) {
           lastVerificationResult = { valid: false, totalBlocks: totalCount, brokenAt: offset + i };
           lastVerifiedBlockIndex = offset + i;
-          return { valid: false, totalBlocks: totalCount, firstBlockHash: rows[0].blockHash, lastBlockHash: rows[rows.length - 1].blockHash, brokenAt: offset + i };
+          return {
+            valid: false,
+            totalBlocks: totalCount,
+            firstBlockHash: rows[0].blockHash,
+            lastBlockHash: rows[rows.length - 1].blockHash,
+            brokenAt: offset + i,
+          };
         }
 
         previousHash = row.blockHash;
@@ -321,19 +409,38 @@ export function verifyChainIntegrity(): {
 
       lastVerifiedBlockIndex = totalCount;
       lastVerificationResult = { valid: true, totalBlocks: totalCount };
-      return { valid: true, totalBlocks: totalCount, firstBlockHash: rows.length > 0 ? rows[0].blockHash : GENESIS_HASH, lastBlockHash };
-    } catch { /* fall through */ }
+      return {
+        valid: true,
+        totalBlocks: totalCount,
+        firstBlockHash: rows.length > 0 ? rows[0].blockHash : GENESIS_HASH,
+        lastBlockHash,
+      };
+    } catch {
+      /* fall through */
+    }
   }
 
-  if (fallbackBlocks.length === 0) return { valid: true, totalBlocks: 0, firstBlockHash: GENESIS_HASH, lastBlockHash };
+  if (fallbackBlocks.length === 0)
+    return { valid: true, totalBlocks: 0, firstBlockHash: GENESIS_HASH, lastBlockHash };
   let previousHash = GENESIS_HASH;
   for (let i = 0; i < fallbackBlocks.length; i++) {
     if (fallbackBlocks[i].previousHash !== previousHash) {
-      return { valid: false, totalBlocks: fallbackBlocks.length, firstBlockHash: fallbackBlocks[0].blockHash, lastBlockHash: fallbackBlocks[fallbackBlocks.length - 1].blockHash, brokenAt: i };
+      return {
+        valid: false,
+        totalBlocks: fallbackBlocks.length,
+        firstBlockHash: fallbackBlocks[0].blockHash,
+        lastBlockHash: fallbackBlocks[fallbackBlocks.length - 1].blockHash,
+        brokenAt: i,
+      };
     }
     previousHash = fallbackBlocks[i].blockHash;
   }
-  return { valid: true, totalBlocks: fallbackBlocks.length, firstBlockHash: fallbackBlocks[0].blockHash, lastBlockHash: fallbackBlocks[fallbackBlocks.length - 1].blockHash };
+  return {
+    valid: true,
+    totalBlocks: fallbackBlocks.length,
+    firstBlockHash: fallbackBlocks[0].blockHash,
+    lastBlockHash: fallbackBlocks[fallbackBlocks.length - 1].blockHash,
+  };
 }
 
 const MAX_FALLBACK_BLOCKS = 50_000;
@@ -344,9 +451,9 @@ export function getRecentBlocks(limit: number = 50): BookPIBlock[] {
   if (isSqlite()) {
     try {
       const db = getDatabase();
-      const rows = db.prepare(
-        "SELECT * FROM bookpi_blocks ORDER BY rowid DESC LIMIT ?"
-      ).all(limit) as Array<Record<string, unknown>>;
+      const rows = db
+        .prepare("SELECT * FROM bookpi_blocks ORDER BY rowid DESC LIMIT ?")
+        .all(limit) as Array<Record<string, unknown>>;
       return rows.map((r) => ({
         version: r.version as BookPIBlock["version"],
         blockHash: r.blockHash as string,
@@ -361,7 +468,9 @@ export function getRecentBlocks(limit: number = 50): BookPIBlock[] {
         teeVerified: Boolean(r.teeVerified),
         createdAt: r.createdAt as string,
       }));
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
   return fallbackBlocks.slice(-limit);
 }
@@ -388,8 +497,12 @@ export function getBookPIMetrics() {
   if (isSqlite()) {
     try {
       const db = getDatabase();
-      const countRow = db.prepare("SELECT COUNT(*) as cnt FROM bookpi_blocks").get() as { cnt: number };
-      const statusRows = db.prepare("SELECT status, COUNT(*) as cnt FROM bookpi_blocks GROUP BY status").all() as Array<{ status: string; cnt: number }>;
+      const countRow = db.prepare("SELECT COUNT(*) as cnt FROM bookpi_blocks").get() as {
+        cnt: number;
+      };
+      const statusRows = db
+        .prepare("SELECT status, COUNT(*) as cnt FROM bookpi_blocks GROUP BY status")
+        .all() as Array<{ status: string; cnt: number }>;
       return {
         totalBlocks: countRow.cnt,
         byStatus: Object.fromEntries(statusRows.map((r) => [r.status, r.cnt])),
@@ -397,12 +510,20 @@ export function getBookPIMetrics() {
         chainValid: lastVerificationResult.valid,
         queue: getBookPIQueueMetrics(),
       };
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
 
   const byStatus: Record<string, number> = {};
   for (const b of fallbackBlocks) byStatus[b.status] = (byStatus[b.status] || 0) + 1;
-  return { totalBlocks: fallbackBlocks.length, byStatus, lastBlockHash, chainValid: lastVerificationResult.valid, queue: getBookPIQueueMetrics() };
+  return {
+    totalBlocks: fallbackBlocks.length,
+    byStatus,
+    lastBlockHash,
+    chainValid: lastVerificationResult.valid,
+    queue: getBookPIQueueMetrics(),
+  };
 }
 
 export function getBookPIQueueMetrics() {

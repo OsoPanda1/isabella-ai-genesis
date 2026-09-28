@@ -18,7 +18,12 @@ import { createLogger } from "../logger";
 import type { ConnectorManifest, FailurePolicy } from "./connector-manifest";
 import { validateManifest } from "./connector-manifest";
 import type { ConnectorCredential } from "./oauth-policy";
-import { credentialIsUsable, createCredential, rotateCredential, revokeCredential } from "./oauth-policy";
+import {
+  credentialIsUsable,
+  createCredential,
+  rotateCredential,
+  revokeCredential,
+} from "./oauth-policy";
 import type { MountCredentialInput } from "./oauth-policy";
 import { canCallScope } from "./scopes";
 import type { ScopeSet } from "./scopes";
@@ -59,8 +64,16 @@ export interface AuditEntry {
   readonly reason?: string;
 }
 
-interface RateBucket { count: number; windowStart: number; }
-type FailureToken = { failures: number; lastFailureAt: number; openedAt: number | null; remainingMs: number };
+interface RateBucket {
+  count: number;
+  windowStart: number;
+}
+type FailureToken = {
+  failures: number;
+  lastFailureAt: number;
+  openedAt: number | null;
+  remainingMs: number;
+};
 type CBState = "CLOSED" | "OPEN" | "HALF_OPEN";
 
 class ConnectorRuntime {
@@ -94,11 +107,17 @@ function randomUUID(): string {
 export function registerConnector(raw: unknown): ConnectorManifest {
   const manifest = validateManifest(raw);
   registry.set(manifest.id, new ConnectorRuntime(manifest));
-  log.info("connector_registered", { id: manifest.id, version: manifest.version, kind: manifest.kind });
+  log.info("connector_registered", {
+    id: manifest.id,
+    version: manifest.version,
+    kind: manifest.kind,
+  });
   return manifest;
 }
 
-export function mountConnectorCredential(input: MountCredentialInput & { connectorId: string }): void {
+export function mountConnectorCredential(
+  input: MountCredentialInput & { connectorId: string },
+): void {
   const rt = registry.get(input.connectorId);
   if (!rt) throw new Error(`connector not found: ${input.connectorId}`);
   rt.credential = createCredential(input);
@@ -135,7 +154,8 @@ export function listConnectors() {
 }
 
 function circuitStateOf(rt: ConnectorRuntime): CBState {
-  if (rt.cb.openedAt !== null && Date.now() - rt.cb.openedAt < rt.manifest.circuit.resetMs) return "OPEN";
+  if (rt.cb.openedAt !== null && Date.now() - rt.cb.openedAt < rt.manifest.circuit.resetMs)
+    return "OPEN";
   if (rt.cb.failures >= rt.manifest.circuit.threshold) {
     // fuera de ventana de reset → HALF_OPEN permitido para probar una llamada
     return Date.now() - rt.cb.openedAt! >= rt.manifest.circuit.resetMs ? "HALF_OPEN" : "OPEN";
@@ -175,9 +195,20 @@ export async function authorizeConnectorCall(
 ): Promise<{ decision: CallDecision; result?: unknown; audit: AuditEntry }> {
   const started = performance.now();
   const rt = registry.get(req.connectorId);
-  const base = { connectorId: req.connectorId, scope: req.requiredScope, dataClass: req.dataClass, tenantId: req.tenantId, subject: req.subject, decision: "CONNECTOR_NOT_FOUND" as MCPDecisionCode, latencyMs: 0 };
+  const base = {
+    connectorId: req.connectorId,
+    scope: req.requiredScope,
+    dataClass: req.dataClass,
+    tenantId: req.tenantId,
+    subject: req.subject,
+    decision: "CONNECTOR_NOT_FOUND" as MCPDecisionCode,
+    latencyMs: 0,
+  };
 
-  const decide = async (code: MCPDecisionCode, reason?: string): Promise<{ decision: CallDecision; result?: unknown; audit: AuditEntry }> => {
+  const decide = async (
+    code: MCPDecisionCode,
+    reason?: string,
+  ): Promise<{ decision: CallDecision; result?: unknown; audit: AuditEntry }> => {
     const latencyMs = Math.round(performance.now() - started);
     const audit = await runAudit({ ...base, decision: code, latencyMs, reason });
     return {
@@ -199,11 +230,15 @@ export async function authorizeConnectorCall(
 
   // 2. Credencial
   if (!credentialIsUsable(rt.credential, rt.manifest)) {
-    return decide("CREDENTIAL_INVALID", rt.manifest.auth.oauth ? "credencial OAuth ausente/expirada/revocada" : undefined);
+    return decide(
+      "CREDENTIAL_INVALID",
+      rt.manifest.auth.oauth ? "credencial OAuth ausente/expirada/revocada" : undefined,
+    );
   }
 
   // 3. Scope
-  const granted: ScopeSet = req.grantedScopes instanceof Set ? req.grantedScopes : new Set(req.grantedScopes);
+  const granted: ScopeSet =
+    req.grantedScopes instanceof Set ? req.grantedScopes : new Set(req.grantedScopes);
   if (!canCallScope(rt.manifest, granted, req.requiredScope)) {
     return decide("SCOPE_DENIED", "scope no otorgado o no declarado en el manifest");
   }
@@ -226,7 +261,8 @@ export async function authorizeConnectorCall(
 
   // 7. Ejecución con timeout
   const runOnce = async (): Promise<{ decision: CallDecision; result?: unknown }> => {
-    if (!onCall) return { decision: { code: "ALLOWED", allowed: true, connectorId: req.connectorId } };
+    if (!onCall)
+      return { decision: { code: "ALLOWED", allowed: true, connectorId: req.connectorId } };
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), rt.manifest.timeout.requestMs);
     try {
@@ -234,7 +270,10 @@ export async function authorizeConnectorCall(
       rt.cb.failures = 0;
       rt.cb.openedAt = null;
       rt.permitCount += 1;
-      return { decision: { code: "ALLOWED", allowed: true, connectorId: req.connectorId, healthy: true }, result };
+      return {
+        decision: { code: "ALLOWED", allowed: true, connectorId: req.connectorId, healthy: true },
+        result,
+      };
     } catch (err) {
       rt.cb.failures += 1;
       rt.cb.lastFailureAt = Date.now();
@@ -246,7 +285,15 @@ export async function authorizeConnectorCall(
       const policy: FailurePolicy = rt.manifest.failurePolicy;
       if (policy === "quarantine") {
         rt.cb.openedAt = rt.cb.openedAt ?? Date.now();
-        return { decision: { code: "CIRCUIT_OPEN", allowed: false, connectorId: req.connectorId, retryable: true, reason: "failure policy quarantine" } };
+        return {
+          decision: {
+            code: "CIRCUIT_OPEN",
+            allowed: false,
+            connectorId: req.connectorId,
+            retryable: true,
+            reason: "failure policy quarantine",
+          },
+        };
       }
       return {
         decision: {
@@ -269,7 +316,12 @@ export async function authorizeConnectorCall(
   const callResult = await runOnce();
 
   const latencyMs = Math.round(performance.now() - started);
-  const audit = await runAudit({ ...base, decision: callResult.decision.code, latencyMs, reason: callResult.decision.reason });
+  const audit = await runAudit({
+    ...base,
+    decision: callResult.decision.code,
+    latencyMs,
+    reason: callResult.decision.reason,
+  });
   return { decision: callResult.decision, result: callResult.result, audit };
 }
 

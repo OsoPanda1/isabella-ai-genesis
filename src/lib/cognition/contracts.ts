@@ -36,20 +36,9 @@ export type OperationState =
    ========================================================================= */
 
 export type RequestMode =
-  | "chat"
-  | "assistant"
-  | "research"
-  | "edge"
-  | "quantum"
-  | "implementation"
-  | "monetization";
+  "chat" | "assistant" | "research" | "edge" | "quantum" | "implementation" | "monetization";
 
-export type ResponseStatus =
-  | "completed"
-  | "review_required"
-  | "degraded"
-  | "rejected"
-  | "async";
+export type ResponseStatus = "completed" | "review_required" | "degraded" | "rejected" | "async";
 
 export interface IsabellaDualRequest {
   requestId: string;
@@ -113,23 +102,13 @@ export interface CrownDecision {
    ========================================================================= */
 
 export type DataClassification =
-  | "public"
-  | "internal"
-  | "private"
-  | "sensitive"
-  | "restricted"
-  | "critical";
+  "public" | "internal" | "private" | "sensitive" | "restricted" | "critical";
 
 /* =========================================================================
    RISK LEVELS
    ========================================================================= */
 
-export type RiskLevel =
-  | "R0_informational"
-  | "R1_low"
-  | "R2_moderate"
-  | "R3_high"
-  | "R4_critical";
+export type RiskLevel = "R0_informational" | "R1_low" | "R2_moderate" | "R3_high" | "R4_critical";
 
 /* =========================================================================
    PROPOSAL
@@ -164,12 +143,7 @@ export interface Proposal {
    IMPLEMENTATION PLAN
    ========================================================================= */
 
-export type ImplementationStatus =
-  | "draft"
-  | "approved"
-  | "running"
-  | "completed"
-  | "blocked";
+export type ImplementationStatus = "draft" | "approved" | "running" | "completed" | "blocked";
 
 export interface Milestone {
   id: string;
@@ -354,11 +328,6 @@ export function createTraceId(): string {
    MEMORY
    ========================================================================= */
 
-export type MemoryScope =
-  | "immediate"
-  | "session"
-  | "project"
-  | "territorial"
-  | "historical";
+export type MemoryScope = "immediate" | "session" | "project" | "territorial" | "historical";
 
 export type SensitivityLevel = "public" | "internal" | "confidential" | "secret";

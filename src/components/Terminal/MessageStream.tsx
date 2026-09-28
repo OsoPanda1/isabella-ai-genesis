@@ -51,16 +51,36 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
   const getModuleBadge = (moduleId?: CognitiveModuleId) => {
     switch (moduleId) {
       case "ISA":
-        return { label: "ISA Resonancia", color: "bg-rose-500/10 text-rose-300 border-rose-500/30", icon: Heart };
+        return {
+          label: "ISA Resonancia",
+          color: "bg-rose-500/10 text-rose-300 border-rose-500/30",
+          icon: Heart,
+        };
       case "SOPHIA":
-        return { label: "SOPHIA Mente", color: "bg-sky-500/10 text-sky-300 border-sky-500/30", icon: Brain };
+        return {
+          label: "SOPHIA Mente",
+          color: "bg-sky-500/10 text-sky-300 border-sky-500/30",
+          icon: Brain,
+        };
       case "ORION":
-        return { label: "ORION Síntesis", color: "bg-amber-500/10 text-amber-300 border-amber-500/30", icon: Zap };
+        return {
+          label: "ORION Síntesis",
+          color: "bg-amber-500/10 text-amber-300 border-amber-500/30",
+          icon: Zap,
+        };
       case "ARGUS":
-        return { label: "ARGUS Centinela", color: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30", icon: Shield };
+        return {
+          label: "ARGUS Centinela",
+          color: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30",
+          icon: Shield,
+        };
       case "CROWN_GATEWAY":
       default:
-        return { label: "CROWN Gateway", color: "bg-blue-500/10 text-blue-300 border-blue-500/30", icon: Layers };
+        return {
+          label: "CROWN Gateway",
+          color: "bg-blue-500/10 text-blue-300 border-blue-500/30",
+          icon: Layers,
+        };
     }
   };
 
@@ -163,7 +183,10 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                       <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
                         <span className="text-amber-300 font-medium">{msg.isabellaState.mood}</span>
                         <span>•</span>
-                        <span>Elegancia: {((msg.isabellaState.feminineEleganceIndex || 0.99) * 100).toFixed(0)}%</span>
+                        <span>
+                          Elegancia:{" "}
+                          {((msg.isabellaState.feminineEleganceIndex || 0.99) * 100).toFixed(0)}%
+                        </span>
                       </div>
                     )}
                   </div>
@@ -236,7 +259,11 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                       const sc = msg.sponsoredContent!;
                       // Client-side: pixel click tracking
                       if (typeof window !== "undefined" && typeof window.idlen === "function") {
-                        try { window.idlen("impression", sc.adId ?? ""); } catch { /* pixel not loaded */ }
+                        try {
+                          window.idlen("impression", sc.adId ?? "");
+                        } catch {
+                          /* pixel not loaded */
+                        }
                       }
                       // Server-side: reliable click tracking via Idlen SDK
                       authFetch("/api/v1/idlen/click", {
@@ -246,7 +273,9 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                           publisherId: sc.publisherId,
                           requestId: sc.requestId,
                         }),
-                      }).catch(() => { /* non-blocking */ });
+                      }).catch(() => {
+                        /* non-blocking */
+                      });
                     }}
                     className="group block rounded-2xl border border-slate-800/80 bg-[#081220]/80 hover:bg-[#0B1A2E] p-4 transition-all duration-200 hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-950/20"
                   >
@@ -255,7 +284,9 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                         Recomendación patrocinada
                       </span>
                       <span className="text-[10px] text-slate-500">•</span>
-                      <span className="text-[10px] text-slate-500">{msg.sponsoredContent.advertiserName}</span>
+                      <span className="text-[10px] text-slate-500">
+                        {msg.sponsoredContent.advertiserName}
+                      </span>
                     </div>
                     <p className="text-sm font-sans text-[#F1F5F9] mb-3 leading-relaxed">
                       {msg.sponsoredContent.title}
@@ -269,168 +300,237 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
               )}
 
               {/* Cognitive Telemetry & Routing Accordion */}
-              {msg.cognitiveTelemetry && (() => {
-                const telemetry = {
-                  argusSafety: msg.cognitiveTelemetry.argusSafety ?? { status: "UNKNOWN", guardrailCheck: "No disponible", integrityScore: 0 },
-                  isaResonance: msg.cognitiveTelemetry.isaResonance ?? { emotionalTone: "neutral", coreFocus: "No disponible", empathyValence: 0 },
-                  sophiaReasoning: msg.cognitiveTelemetry.sophiaReasoning ?? { logicDepth: 0, heuristicInsight: "No disponible", epistemicCertainty: 0 },
-                  orionExecution: msg.cognitiveTelemetry.orionExecution ?? { actionType: "none", resourceUtilization: "No disponible", executionSteps: [] },
-                };
-                return (
-                <div className="mt-4 pt-3 border-t border-slate-800/80">
-                  <button
-                    type="button"
-                    onClick={() => toggleTrace(msg.id)}
-                    className="flex items-center justify-between w-full px-3.5 py-2 rounded-xl bg-[#081220] hover:bg-[#0B1A2E] border border-slate-800 text-[11px] font-mono text-sky-300 transition-all cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Cpu className="w-3.5 h-3.5 text-sky-400" />
-                      <span className="font-semibold tracking-wider">
-                        TRAZA COGNITIVA CROWN & TELEMETRÍA MODULAR
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 text-slate-400">
-                      <span>{isExpanded ? "Ocultar" : "Expandir flujo"}</span>
-                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                    </div>
-                  </button>
-
-                  {isExpanded && (
-                    <div className="mt-2.5 rounded-2xl bg-[#070F1E] border border-slate-800 p-4 space-y-3 font-mono text-xs text-slate-300 animate-in fade-in duration-150">
-                      {/* Rationale */}
-                      {msg.routingDecision?.routingRationale && (
-                        <div className="rounded-xl bg-[#0A182B] border border-sky-800/30 p-2.5 text-[11px] text-sky-200">
-                          <span className="font-bold text-sky-300">Orquestación CROWN: </span>
-                          {msg.routingDecision.routingRationale}
+              {msg.cognitiveTelemetry &&
+                (() => {
+                  const telemetry = {
+                    argusSafety: msg.cognitiveTelemetry.argusSafety ?? {
+                      status: "UNKNOWN",
+                      guardrailCheck: "No disponible",
+                      integrityScore: 0,
+                    },
+                    isaResonance: msg.cognitiveTelemetry.isaResonance ?? {
+                      emotionalTone: "neutral",
+                      coreFocus: "No disponible",
+                      empathyValence: 0,
+                    },
+                    sophiaReasoning: msg.cognitiveTelemetry.sophiaReasoning ?? {
+                      logicDepth: 0,
+                      heuristicInsight: "No disponible",
+                      epistemicCertainty: 0,
+                    },
+                    orionExecution: msg.cognitiveTelemetry.orionExecution ?? {
+                      actionType: "none",
+                      resourceUtilization: "No disponible",
+                      executionSteps: [],
+                    },
+                  };
+                  return (
+                    <div className="mt-4 pt-3 border-t border-slate-800/80">
+                      <button
+                        type="button"
+                        onClick={() => toggleTrace(msg.id)}
+                        className="flex items-center justify-between w-full px-3.5 py-2 rounded-xl bg-[#081220] hover:bg-[#0B1A2E] border border-slate-800 text-[11px] font-mono text-sky-300 transition-all cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Cpu className="w-3.5 h-3.5 text-sky-400" />
+                          <span className="font-semibold tracking-wider">
+                            TRAZA COGNITIVA CROWN & TELEMETRÍA MODULAR
+                          </span>
                         </div>
-                      )}
-
-                      {/* Modular Cognitive Cards */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {/* ARGUS Sentinel */}
-                        <div className="rounded-xl bg-[#081220] border border-emerald-500/30 p-3 space-y-1">
-                          <div className="flex items-center justify-between text-emerald-400 font-bold text-[11px]">
-                            <span className="flex items-center gap-1">
-                              <Shield className="w-3.5 h-3.5 text-emerald-400" /> ARGUS Sentinel
-                            </span>
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300">
-                              {telemetry.argusSafety.status}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-300">
-                            {telemetry.argusSafety.guardrailCheck}
-                          </p>
-                          <div className="text-[10px] text-slate-400">
-                            Integridad: {((telemetry.argusSafety.integrityScore ?? 0) * 100).toFixed(1)}%
-                          </div>
+                        <div className="flex items-center gap-1 text-slate-400">
+                          <span>{isExpanded ? "Ocultar" : "Expandir flujo"}</span>
+                          {isExpanded ? (
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          ) : (
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          )}
                         </div>
+                      </button>
 
-                        {/* ISA Resonance */}
-                        <div className="rounded-xl bg-[#081220] border border-rose-500/30 p-3 space-y-1">
-                          <div className="flex items-center justify-between text-rose-300 font-bold text-[11px]">
-                            <span className="flex items-center gap-1">
-                              <Heart className="w-3.5 h-3.5 text-rose-400" /> ISA Resonancia
-                            </span>
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-950 text-rose-300">
-                              {telemetry.isaResonance.emotionalTone}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-300">
-                            {telemetry.isaResonance.coreFocus}
-                          </p>
-                          <div className="text-[10px] text-slate-400">
-                            Valencia empática: {((telemetry.isaResonance.empathyValence ?? 0) * 100).toFixed(0)}%
-                          </div>
-                        </div>
+                      {isExpanded && (
+                        <div className="mt-2.5 rounded-2xl bg-[#070F1E] border border-slate-800 p-4 space-y-3 font-mono text-xs text-slate-300 animate-in fade-in duration-150">
+                          {/* Rationale */}
+                          {msg.routingDecision?.routingRationale && (
+                            <div className="rounded-xl bg-[#0A182B] border border-sky-800/30 p-2.5 text-[11px] text-sky-200">
+                              <span className="font-bold text-sky-300">Orquestación CROWN: </span>
+                              {msg.routingDecision.routingRationale}
+                            </div>
+                          )}
 
-                        {/* SOPHIA Mind */}
-                        <div className="rounded-xl bg-[#081220] border border-sky-500/30 p-3 space-y-1">
-                          <div className="flex items-center justify-between text-sky-300 font-bold text-[11px]">
-                            <span className="flex items-center gap-1">
-                              <Brain className="w-3.5 h-3.5 text-sky-400" /> SOPHIA Dialéctica
-                            </span>
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-sky-950 text-sky-300">
-                              Profundidad: {telemetry.sophiaReasoning.logicDepth}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-300">
-                            {telemetry.sophiaReasoning.heuristicInsight}
-                          </p>
-                          <div className="text-[10px] text-slate-400">
-                            Certeza epistémica: {((telemetry.sophiaReasoning.epistemicCertainty ?? 0) * 100).toFixed(1)}%
-                          </div>
-                        </div>
-
-                        {/* ORION Engine */}
-                        <div className="rounded-xl bg-[#081220] border border-amber-500/30 p-3 space-y-1">
-                          <div className="flex items-center justify-between text-amber-300 font-bold text-[11px]">
-                            <span className="flex items-center gap-1">
-                              <Zap className="w-3.5 h-3.5 text-amber-400" /> ORION Síntesis
-                            </span>
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300">
-                              {telemetry.orionExecution.actionType}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-300">
-                            Uso: {telemetry.orionExecution.resourceUtilization}
-                          </p>
-                          {telemetry.orionExecution.executionSteps && (
-                            <div className="text-[10px] text-slate-400 flex flex-wrap gap-1">
-                              {telemetry.orionExecution.executionSteps.map((step, idx) => (
-                                <span key={idx} className="bg-[#030712] px-1.5 py-0.5 rounded border border-slate-800">
-                                  {step}
+                          {/* Modular Cognitive Cards */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            {/* ARGUS Sentinel */}
+                            <div className="rounded-xl bg-[#081220] border border-emerald-500/30 p-3 space-y-1">
+                              <div className="flex items-center justify-between text-emerald-400 font-bold text-[11px]">
+                                <span className="flex items-center gap-1">
+                                  <Shield className="w-3.5 h-3.5 text-emerald-400" /> ARGUS Sentinel
                                 </span>
-                              ))}
+                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300">
+                                  {telemetry.argusSafety.status}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-300">
+                                {telemetry.argusSafety.guardrailCheck}
+                              </p>
+                              <div className="text-[10px] text-slate-400">
+                                Integridad:{" "}
+                                {((telemetry.argusSafety.integrityScore ?? 0) * 100).toFixed(1)}%
+                              </div>
+                            </div>
+
+                            {/* ISA Resonance */}
+                            <div className="rounded-xl bg-[#081220] border border-rose-500/30 p-3 space-y-1">
+                              <div className="flex items-center justify-between text-rose-300 font-bold text-[11px]">
+                                <span className="flex items-center gap-1">
+                                  <Heart className="w-3.5 h-3.5 text-rose-400" /> ISA Resonancia
+                                </span>
+                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-950 text-rose-300">
+                                  {telemetry.isaResonance.emotionalTone}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-300">
+                                {telemetry.isaResonance.coreFocus}
+                              </p>
+                              <div className="text-[10px] text-slate-400">
+                                Valencia empática:{" "}
+                                {((telemetry.isaResonance.empathyValence ?? 0) * 100).toFixed(0)}%
+                              </div>
+                            </div>
+
+                            {/* SOPHIA Mind */}
+                            <div className="rounded-xl bg-[#081220] border border-sky-500/30 p-3 space-y-1">
+                              <div className="flex items-center justify-between text-sky-300 font-bold text-[11px]">
+                                <span className="flex items-center gap-1">
+                                  <Brain className="w-3.5 h-3.5 text-sky-400" /> SOPHIA Dialéctica
+                                </span>
+                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-sky-950 text-sky-300">
+                                  Profundidad: {telemetry.sophiaReasoning.logicDepth}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-300">
+                                {telemetry.sophiaReasoning.heuristicInsight}
+                              </p>
+                              <div className="text-[10px] text-slate-400">
+                                Certeza epistémica:{" "}
+                                {(
+                                  (telemetry.sophiaReasoning.epistemicCertainty ?? 0) * 100
+                                ).toFixed(1)}
+                                %
+                              </div>
+                            </div>
+
+                            {/* ORION Engine */}
+                            <div className="rounded-xl bg-[#081220] border border-amber-500/30 p-3 space-y-1">
+                              <div className="flex items-center justify-between text-amber-300 font-bold text-[11px]">
+                                <span className="flex items-center gap-1">
+                                  <Zap className="w-3.5 h-3.5 text-amber-400" /> ORION Síntesis
+                                </span>
+                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300">
+                                  {telemetry.orionExecution.actionType}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-300">
+                                Uso: {telemetry.orionExecution.resourceUtilization}
+                              </p>
+                              {telemetry.orionExecution.executionSteps && (
+                                <div className="text-[10px] text-slate-400 flex flex-wrap gap-1">
+                                  {telemetry.orionExecution.executionSteps.map((step, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="bg-[#030712] px-1.5 py-0.5 rounded border border-slate-800"
+                                    >
+                                      {step}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Weight Bars */}
+                          {msg.routingDecision?.moduleWeights && (
+                            <div className="space-y-1.5 pt-1">
+                              <span className="text-[10px] font-bold text-slate-400">
+                                DISTRIBUCIÓN DE ANCHO DE BANDA COGNITIVO (CROWN LAYER):
+                              </span>
+                              <div className="grid grid-cols-5 gap-1.5 text-[10px]">
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-rose-400">
+                                    ISA: {Math.round(msg.routingDecision.moduleWeights.isa * 100)}%
+                                  </span>
+                                  <div className="w-full bg-[#030712] h-1.5 rounded-full overflow-hidden">
+                                    <div
+                                      className="bg-rose-500 h-full rounded-full"
+                                      style={{
+                                        width: `${msg.routingDecision.moduleWeights.isa * 100}%`,
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-sky-400">
+                                    SOPHIA:{" "}
+                                    {Math.round(msg.routingDecision.moduleWeights.sophia * 100)}%
+                                  </span>
+                                  <div className="w-full bg-[#030712] h-1.5 rounded-full overflow-hidden">
+                                    <div
+                                      className="bg-sky-500 h-full rounded-full"
+                                      style={{
+                                        width: `${msg.routingDecision.moduleWeights.sophia * 100}%`,
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-amber-400">
+                                    ORION:{" "}
+                                    {Math.round(msg.routingDecision.moduleWeights.orion * 100)}%
+                                  </span>
+                                  <div className="w-full bg-[#030712] h-1.5 rounded-full overflow-hidden">
+                                    <div
+                                      className="bg-amber-500 h-full rounded-full"
+                                      style={{
+                                        width: `${msg.routingDecision.moduleWeights.orion * 100}%`,
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-emerald-400">
+                                    ARGUS:{" "}
+                                    {Math.round(msg.routingDecision.moduleWeights.argus * 100)}%
+                                  </span>
+                                  <div className="w-full bg-[#030712] h-1.5 rounded-full overflow-hidden">
+                                    <div
+                                      className="bg-emerald-500 h-full rounded-full"
+                                      style={{
+                                        width: `${msg.routingDecision.moduleWeights.argus * 100}%`,
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-blue-400">
+                                    CROWN:{" "}
+                                    {Math.round(msg.routingDecision.moduleWeights.crown * 100)}%
+                                  </span>
+                                  <div className="w-full bg-[#030712] h-1.5 rounded-full overflow-hidden">
+                                    <div
+                                      className="bg-blue-500 h-full rounded-full"
+                                      style={{
+                                        width: `${msg.routingDecision.moduleWeights.crown * 100}%`,
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
-                      </div>
-
-                      {/* Weight Bars */}
-                      {msg.routingDecision?.moduleWeights && (
-                        <div className="space-y-1.5 pt-1">
-                          <span className="text-[10px] font-bold text-slate-400">
-                            DISTRIBUCIÓN DE ANCHO DE BANDA COGNITIVO (CROWN LAYER):
-                          </span>
-                          <div className="grid grid-cols-5 gap-1.5 text-[10px]">
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-rose-400">ISA: {Math.round(msg.routingDecision.moduleWeights.isa * 100)}%</span>
-                              <div className="w-full bg-[#030712] h-1.5 rounded-full overflow-hidden">
-                                <div className="bg-rose-500 h-full rounded-full" style={{ width: `${msg.routingDecision.moduleWeights.isa * 100}%` }} />
-                              </div>
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-sky-400">SOPHIA: {Math.round(msg.routingDecision.moduleWeights.sophia * 100)}%</span>
-                              <div className="w-full bg-[#030712] h-1.5 rounded-full overflow-hidden">
-                                <div className="bg-sky-500 h-full rounded-full" style={{ width: `${msg.routingDecision.moduleWeights.sophia * 100}%` }} />
-                              </div>
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-amber-400">ORION: {Math.round(msg.routingDecision.moduleWeights.orion * 100)}%</span>
-                              <div className="w-full bg-[#030712] h-1.5 rounded-full overflow-hidden">
-                                <div className="bg-amber-500 h-full rounded-full" style={{ width: `${msg.routingDecision.moduleWeights.orion * 100}%` }} />
-                              </div>
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-emerald-400">ARGUS: {Math.round(msg.routingDecision.moduleWeights.argus * 100)}%</span>
-                              <div className="w-full bg-[#030712] h-1.5 rounded-full overflow-hidden">
-                                <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${msg.routingDecision.moduleWeights.argus * 100}%` }} />
-                              </div>
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-blue-400">CROWN: {Math.round(msg.routingDecision.moduleWeights.crown * 100)}%</span>
-                              <div className="w-full bg-[#030712] h-1.5 rounded-full overflow-hidden">
-                                <div className="bg-blue-500 h-full rounded-full" style={{ width: `${msg.routingDecision.moduleWeights.crown * 100}%` }} />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
                       )}
                     </div>
-                  )}
-                </div>
-                );
-              })()}
+                  );
+                })()}
 
               {/* Bottom interaction controls */}
               <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">

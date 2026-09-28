@@ -136,15 +136,13 @@ export function detectPerformanceProfile(): "high" | "medium" | "low" {
   if (typeof navigator === "undefined") return "medium";
 
   const connection = (navigator as unknown as Record<string, unknown>)["connection"] as
-    | { effectiveType?: string; saveData?: boolean }
-    | undefined;
+    { effectiveType?: string; saveData?: boolean } | undefined;
 
   if (connection?.saveData) return "low";
   if (connection?.effectiveType === "2g" || connection?.effectiveType === "slow-2g") return "low";
 
   const memory = (navigator as unknown as Record<string, unknown>)["deviceMemory"] as
-    | number
-    | undefined;
+    number | undefined;
   if (memory && memory < 4) return "low";
   if (memory && memory < 8) return "medium";
 

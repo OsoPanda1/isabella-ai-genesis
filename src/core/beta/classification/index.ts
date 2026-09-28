@@ -20,8 +20,16 @@ export class ClassificationEngine {
     classification: DataClassification;
     weight: number;
   }> = [
-    { pattern: /\b(password|secret|token|key|credential)\b/i, classification: "critical", weight: 1.0 },
-    { pattern: /\b(ssn|social security|credit card|bank account)\b/i, classification: "restricted", weight: 0.95 },
+    {
+      pattern: /\b(password|secret|token|key|credential)\b/i,
+      classification: "critical",
+      weight: 1.0,
+    },
+    {
+      pattern: /\b(ssn|social security|credit card|bank account)\b/i,
+      classification: "restricted",
+      weight: 0.95,
+    },
     { pattern: /\b(personal|private|confidential)\b/i, classification: "sensitive", weight: 0.8 },
     { pattern: /\b(internal|team|organization)\b/i, classification: "internal", weight: 0.7 },
     { pattern: /\b(public|open|shared)\b/i, classification: "public", weight: 0.6 },
@@ -30,7 +38,10 @@ export class ClassificationEngine {
   /**
    * Classify input based on content analysis.
    */
-  classify(input: string, context?: { intentCategory?: string; entities?: Array<{ type: string }> }): ClassificationResult {
+  classify(
+    input: string,
+    context?: { intentCategory?: string; entities?: Array<{ type: string }> },
+  ): ClassificationResult {
     const factors: string[] = [];
     let maxWeight = 0;
     let suggestedClassification: DataClassification = "public";
@@ -73,7 +84,14 @@ export class ClassificationEngine {
    * Check if a classification allows access at the required level.
    */
   allowsAccess(dataClassification: DataClassification, requiredLevel: DataClassification): boolean {
-    const levels: DataClassification[] = ["public", "internal", "private", "sensitive", "restricted", "critical"];
+    const levels: DataClassification[] = [
+      "public",
+      "internal",
+      "private",
+      "sensitive",
+      "restricted",
+      "critical",
+    ];
     const dataIndex = levels.indexOf(dataClassification);
     const requiredIndex = levels.indexOf(requiredLevel);
 

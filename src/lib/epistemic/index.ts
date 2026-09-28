@@ -1,1 +1,5 @@
-export { classifyEpistemicStatus, toEpistemicResponse, getEpistemicRules } from "./epistemic-governance";
+export {
+  classifyEpistemicStatus,
+  toEpistemicResponse,
+  getEpistemicRules,
+} from "./epistemic-governance";

@@ -20,15 +20,14 @@ export interface QualityProfile {
 }
 
 export function detectQuality(): QualityProfile {
-  const reduced = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  const memory = (
-    navigator as Navigator & {
-      deviceMemory?: number;
-    }
-  ).deviceMemory ?? 4;
+  const memory =
+    (
+      navigator as Navigator & {
+        deviceMemory?: number;
+      }
+    ).deviceMemory ?? 4;
 
   const cores = navigator.hardwareConcurrency ?? 4;
 

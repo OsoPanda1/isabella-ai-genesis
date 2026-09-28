@@ -21,12 +21,7 @@ export const AutomationStatusSchema = z.enum([
 ]);
 export type AutomationStatus = z.infer<typeof AutomationStatusSchema>;
 
-export const AutomationSeveritySchema = z.enum([
-  "info",
-  "warning",
-  "critical",
-  "catastrophic",
-]);
+export const AutomationSeveritySchema = z.enum(["info", "warning", "critical", "catastrophic"]);
 export type AutomationSeverity = z.infer<typeof AutomationSeveritySchema>;
 
 // ============================================================================
@@ -87,14 +82,16 @@ export const FailureEventSchema = z.object({
   symptoms: z.array(z.string().max(256)),
   affectedNodes: z.array(z.string()),
   rootCause: z.string().max(512).optional(),
-  repairPlan: z.array(z.object({
-    step: z.number().int().min(1),
-    action: z.string().max(256),
-    nodeId: z.string(),
-    automated: z.boolean(),
-    humanRequired: z.boolean(),
-    humanInstruction: z.string().max(512).optional(),
-  })),
+  repairPlan: z.array(
+    z.object({
+      step: z.number().int().min(1),
+      action: z.string().max(256),
+      nodeId: z.string(),
+      automated: z.boolean(),
+      humanRequired: z.boolean(),
+      humanInstruction: z.string().max(512).optional(),
+    }),
+  ),
   status: z.enum(["detected", "repairing", "repaired", "escalated", "abandoned"]),
   completedAt: z.string().datetime().optional(),
 });
@@ -127,15 +124,17 @@ export type HumanDescription = z.infer<typeof HumanDescriptionSchema>;
 export const RepairChainSchema = z.object({
   chainId: z.string().uuid(),
   trigger: z.string().max(512),
-  nodes: z.array(z.object({
-    nodeId: z.string(),
-    order: z.number().int().min(1),
-    action: z.string().max(256),
-    status: z.enum(["pending", "executing", "success", "failed", "skipped"]),
-    startedAt: z.string().datetime().optional(),
-    completedAt: z.string().datetime().optional(),
-    error: z.string().max(512).optional(),
-  })),
+  nodes: z.array(
+    z.object({
+      nodeId: z.string(),
+      order: z.number().int().min(1),
+      action: z.string().max(256),
+      status: z.enum(["pending", "executing", "success", "failed", "skipped"]),
+      startedAt: z.string().datetime().optional(),
+      completedAt: z.string().datetime().optional(),
+      error: z.string().max(512).optional(),
+    }),
+  ),
   createdAt: z.string().datetime(),
   completedAt: z.string().datetime().optional(),
   overallStatus: z.enum(["pending", "in_progress", "completed", "failed"]),

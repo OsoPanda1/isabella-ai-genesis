@@ -112,11 +112,7 @@ export function WorkspaceNavbar() {
   return (
     <div className="navbar-content">
       {workspaceTree.map((node) => (
-        <AccordionFolder
-          key={node.id}
-          node={node}
-          onAction={handleAction}
-        />
+        <AccordionFolder key={node.id} node={node} onAction={handleAction} />
       ))}
     </div>
   );

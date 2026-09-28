@@ -7,14 +7,13 @@
 // @ts-nocheck
 import { nodeRequire } from "../node-require";
 import type BetterSqlite3 from "better-sqlite3";
-import type {
-  ApiKeyRecord,
-  ApiKeyRepository,
-  ApiKeyAuditEvent,
-} from "../api-keys";
+import type { ApiKeyRecord, ApiKeyRepository, ApiKeyAuditEvent } from "../api-keys";
 
 type SqliteDatabase = BetterSqlite3.Database;
-type SqliteStatement<BindParameters extends unknown[] = unknown[], Result = unknown> = BetterSqlite3.Statement<BindParameters, Result>;
+type SqliteStatement<
+  BindParameters extends unknown[] = unknown[],
+  Result = unknown,
+> = BetterSqlite3.Statement<BindParameters, Result>;
 
 interface ApiKeyRow {
   id: string;
@@ -87,13 +86,7 @@ export class SqliteApiKeyRepository implements ApiKeyRepository {
     this.stmts.markUsed.run(at, id);
   }
 
-  revoke(
-    id: string,
-    userId: string,
-    tenantId: string,
-    at: string,
-    replacedBy?: string,
-  ): boolean {
+  revoke(id: string, userId: string, tenantId: string, at: string, replacedBy?: string): boolean {
     const result = this.stmts.revoke.run(at, replacedBy ?? null, id, userId, tenantId);
     return result.changes > 0;
   }
@@ -138,7 +131,9 @@ export class SqliteApiKeyRepository implements ApiKeyRepository {
  * ========================================================================== */
 
 function createDatabase(dbPath?: string): SqliteDatabase {
-  const BetterSqlite3Ctor = nodeRequire("better-sqlite3") as new (filename: string) => SqliteDatabase;
+  const BetterSqlite3Ctor = nodeRequire("better-sqlite3") as new (
+    filename: string,
+  ) => SqliteDatabase;
   const path = dbPath || process.env.ISABELLA_DB_PATH || "./data/isabella.db";
   const db = new BetterSqlite3Ctor(path);
   db.pragma("journal_mode = WAL");
@@ -212,9 +207,7 @@ function prepareStatements(db: SqliteDatabase): SqliteApiKeyRepository["stmts"] 
       SET revokedAt = ?, replacedBy = ?
       WHERE id = ? AND userId = ? AND tenantId = ? AND revokedAt IS NULL
     `),
-    deleteKey: db.prepare(
-      "DELETE FROM api_keys WHERE id = ? AND userId = ? AND tenantId = ?",
-    ),
+    deleteKey: db.prepare("DELETE FROM api_keys WHERE id = ? AND userId = ? AND tenantId = ?"),
     insertAudit: db.prepare(`
       INSERT INTO api_key_audit (eventId, event, keyId, userId, tenantId, occurredAt, traceId, reasonCode)
       VALUES (@eventId, @event, @keyId, @userId, @tenantId, @occurredAt, @traceId, @reasonCode)

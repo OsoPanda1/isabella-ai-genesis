@@ -34,9 +34,7 @@ export function MemoryPanel() {
   }, []);
 
   const filtered =
-    selectedScope === "all"
-      ? records
-      : records.filter((r) => r.scope === selectedScope);
+    selectedScope === "all" ? records : records.filter((r) => r.scope === selectedScope);
 
   return (
     <section className="glass rounded-2xl p-4">
@@ -44,9 +42,7 @@ export function MemoryPanel() {
         <h2 className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
           {t("memory.title")}
         </h2>
-        <span className="font-mono text-[10px] text-muted-foreground">
-          {stats.total}
-        </span>
+        <span className="font-mono text-[10px] text-muted-foreground">{stats.total}</span>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
@@ -92,19 +88,14 @@ export function MemoryPanel() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-1.5">
-                  <span
-                    className="text-[10px]"
-                    style={{ color: SCOPE_COLORS[record.scope] }}
-                  >
+                  <span className="text-[10px]" style={{ color: SCOPE_COLORS[record.scope] }}>
                     {SCOPE_ICONS[record.scope]}
                   </span>
                   <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
                     {record.scope}
                   </span>
                 </div>
-                <span className="font-mono text-[9px] text-muted-foreground">
-                  {record.source}
-                </span>
+                <span className="font-mono text-[9px] text-muted-foreground">{record.source}</span>
               </div>
               <p className="mt-1 text-[11px] leading-snug text-foreground/80 line-clamp-2">
                 {record.content}

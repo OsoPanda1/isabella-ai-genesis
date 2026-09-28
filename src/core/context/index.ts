@@ -37,9 +37,7 @@ export function createRequestFlowContext(input: RequestFlowInput): RequestFlowCo
     ? createTenantContext(input.principal.tenantId)
     : createTenantContext("nodo-cero-rdm");
 
-  const principal = input.principal
-    ? createPrincipalContext(input.principal)
-    : undefined;
+  const principal = input.principal ? createPrincipalContext(input.principal) : undefined;
 
   const policy =
     input.principal && input.policy !== undefined
@@ -49,10 +47,7 @@ export function createRequestFlowContext(input: RequestFlowInput): RequestFlowCo
   return { correlation, tenant, principal, policy };
 }
 
-export function deriveChildFlow(
-  parent: RequestFlowContext,
-  suffix = "",
-): RequestFlowContext {
+export function deriveChildFlow(parent: RequestFlowContext, suffix = ""): RequestFlowContext {
   return {
     correlation: childCorrelationSpan(parent.correlation, suffix),
     tenant: parent.tenant,
@@ -71,4 +66,10 @@ export {
   createPolicyDecisionContext,
 };
 
-export type { CorrelationContext, CorrelationInput, PrincipalContext, TenantContext, PolicyDecisionContext };
+export type {
+  CorrelationContext,
+  CorrelationInput,
+  PrincipalContext,
+  TenantContext,
+  PolicyDecisionContext,
+};

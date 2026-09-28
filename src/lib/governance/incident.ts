@@ -10,7 +10,15 @@ export type SeverityLevel = "SEV-1" | "SEV-2" | "SEV-3" | "SEV-4";
 
 export interface IncidentRibbon {
   severity: SeverityLevel;
-  phase: "detecting" | "containing" | "preserving" | "revoking" | "notifying" | "correcting" | "verifying" | "postmortem";
+  phase:
+    | "detecting"
+    | "containing"
+    | "preserving"
+    | "revoking"
+    | "notifying"
+    | "correcting"
+    | "verifying"
+    | "postmortem";
   owner: string;
   summary: string;
   openedAt: string;
@@ -38,7 +46,8 @@ export const INCIDENT_RUNBOOK: IncidentRibbon["phase"][] = [
 export function classifyIncident(summary: string): SeverityLevel {
   const s = summary.toLowerCase();
   if (/(tenant|isolation|ledger|corrupt|integrity|data loss|tamper)/.test(s)) return "SEV-2";
-  if (/(secret|token|key|breach|bypass|auth|financial|funds|payout|exposure)/.test(s)) return "SEV-1";
+  if (/(secret|token|key|breach|bypass|auth|financial|funds|payout|exposure)/.test(s))
+    return "SEV-1";
   if (/(degrad|timeout|policy error|unavailable)/.test(s)) return "SEV-3";
   return "SEV-4";
 }

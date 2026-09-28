@@ -4,7 +4,12 @@
  * CROWN decide: ALLOW, DENY, REVIEW, DEFER
  */
 
-import type { CrownDecision, CrownDecisionResult, RiskLevel, DataClassification } from "../../contracts";
+import type {
+  CrownDecision,
+  CrownDecisionResult,
+  RiskLevel,
+  DataClassification,
+} from "../../contracts";
 
 export interface PolicyContext {
   identity: {
@@ -102,9 +107,8 @@ export class PolicyEngine {
       riskLevel: context.risk.level,
       classification: context.classification,
       policyIds: results.map((r) => r.policyId),
-      reason: results.length > 0
-        ? results.map((r) => r.reason).join("; ")
-        : "No policies triggered",
+      reason:
+        results.length > 0 ? results.map((r) => r.reason).join("; ") : "No policies triggered",
       scopeDenials,
       reviewRequired: finalAction === "review",
       reversible: finalAction !== "deny",

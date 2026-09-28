@@ -7,7 +7,8 @@ import { createHash } from "node:crypto";
 import { appendBlock } from "./bookpi.server";
 
 // ── Ontology ──────────────────────────────────────────────────────────────────
-export type OntologyNodeType = "entity" | "concept" | "relation" | "event" | "territory" | "actor" | "module" | "federation";
+export type OntologyNodeType =
+  "entity" | "concept" | "relation" | "event" | "territory" | "actor" | "module" | "federation";
 
 export interface OntologyNode {
   id: string;
@@ -48,10 +49,15 @@ const events: EOCTEvent[] = [];
 const EVENT_MAX = 2_000;
 
 function uid(seed: string): string {
-  return createHash("sha256").update(seed + Date.now() + Math.random()).digest("hex").slice(0, 16);
+  return createHash("sha256")
+    .update(seed + Date.now() + Math.random())
+    .digest("hex")
+    .slice(0, 16);
 }
 
-export function upsertNode(node: Omit<OntologyNode, "id" | "createdAt" | "updatedAt"> & { id?: string }): OntologyNode {
+export function upsertNode(
+  node: Omit<OntologyNode, "id" | "createdAt" | "updatedAt"> & { id?: string },
+): OntologyNode {
   const now = new Date().toISOString();
   const id = node.id ?? uid(node.label);
   const existing = nodes.get(id);
@@ -61,12 +67,27 @@ export function upsertNode(node: Omit<OntologyNode, "id" | "createdAt" | "update
 }
 
 export function addEdge(from: string, to: string, rel: string, weight = 1.0): OntologyEdge {
-  const e: OntologyEdge = { id: uid(`${from}${to}${rel}`), from, to, rel, weight, createdAt: new Date().toISOString() };
+  const e: OntologyEdge = {
+    id: uid(`${from}${to}${rel}`),
+    from,
+    to,
+    rel,
+    weight,
+    createdAt: new Date().toISOString(),
+  };
   edges.push(e);
   return e;
 }
 
-export function emitEvent(input: { type: string; source: string; target?: string; payload?: Record<string, unknown>; prevState?: string; nextState?: string; traceId?: string }): EOCTEvent {
+export function emitEvent(input: {
+  type: string;
+  source: string;
+  target?: string;
+  payload?: Record<string, unknown>;
+  prevState?: string;
+  nextState?: string;
+  traceId?: string;
+}): EOCTEvent {
   const evt: EOCTEvent = {
     id: uid(input.type + input.source),
     ts: new Date().toISOString(),
@@ -80,7 +101,13 @@ export function emitEvent(input: { type: string; source: string; target?: string
   };
   events.push(evt);
   if (events.length > EVENT_MAX) events.splice(0, events.length - EVENT_MAX);
-  appendBlock({ eventType: "eoct_event", module: "EOCT", action: evt.type, actor: evt.source, data: { eventId: evt.id, target: evt.target } });
+  appendBlock({
+    eventType: "eoct_event",
+    module: "EOCT",
+    action: evt.type,
+    actor: evt.source,
+    data: { eventId: evt.id, target: evt.target },
+  });
   return evt;
 }
 
@@ -117,7 +144,8 @@ const MODULES = [
   { id: "SPIRE", label: "SPIFFE/SPIRE", federation: "F02" },
 ];
 
-for (const f of FEDERATIONS) upsertNode({ id: f.id, type: "federation", label: f.label, federation: f.federation, attrs: {} });
+for (const f of FEDERATIONS)
+  upsertNode({ id: f.id, type: "federation", label: f.label, federation: f.federation, attrs: {} });
 for (const m of MODULES) {
   upsertNode({ id: m.id, type: "module", label: m.label, federation: m.federation, attrs: {} });
   addEdge(m.federation, m.id, "contains", 1.0);
@@ -131,4 +159,8 @@ addEdge("EOCT", "ATLAS-KERNEL", "feeds", 0.9);
 addEdge("GEMET", "ATLAS-KERNEL", "ontology_for", 0.95);
 addEdge("KORIMA", "BOOKPI", "records_decisions", 0.85);
 
-emitEvent({ type: "system.boot", source: "EOCT", payload: { nodes: nodes.size, edges: edges.length } });
+emitEvent({
+  type: "system.boot",
+  source: "EOCT",
+  payload: { nodes: nodes.size, edges: edges.length },
+});

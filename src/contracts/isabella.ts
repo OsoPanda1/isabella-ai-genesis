@@ -6,11 +6,7 @@
 export type IsabellaInputType = "chat" | "event" | "signal" | "api" | "ui";
 
 export type IsabellaMemoryScope =
-  | "immediate"
-  | "session"
-  | "project"
-  | "territorial"
-  | "historical";
+  "immediate" | "session" | "project" | "territorial" | "historical";
 
 export type IsabellaRiskLevel = "low" | "medium" | "high";
 

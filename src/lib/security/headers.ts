@@ -186,11 +186,14 @@ export function sanitizeURL(url: string): string {
 /**
  * Sanitize user input for general use.
  */
-export function sanitizeInput(input: string, options?: {
-  maxLength?: number;
-  allowHTML?: boolean;
-  trimWhitespace?: boolean;
-}): string {
+export function sanitizeInput(
+  input: string,
+  options?: {
+    maxLength?: number;
+    allowHTML?: boolean;
+    trimWhitespace?: boolean;
+  },
+): string {
   const maxLength = options?.maxLength ?? 10000;
   const allowHTML = options?.allowHTML ?? false;
   const trimWhitespace = options?.trimWhitespace ?? true;
@@ -228,8 +231,7 @@ export function isValidEmail(email: string): boolean {
  * Validate a UUID.
  */
 export function isValidUUID(uuid: string): boolean {
-  const uuidRegex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
 }
 
@@ -281,9 +283,7 @@ export function isValidJSON(str: string): boolean {
 /**
  * Get client IP from request headers.
  */
-export function getClientIP(
-  headers: Record<string, string>,
-): string {
+export function getClientIP(headers: Record<string, string>): string {
   return (
     headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
     headers["x-real-ip"] ||

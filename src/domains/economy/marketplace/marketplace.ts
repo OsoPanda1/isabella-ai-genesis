@@ -65,7 +65,9 @@ export function getListing(id: string): MarketplaceListing | null {
 
 export function updateListing(
   id: string,
-  updates: Partial<Pick<MarketplaceListing, "name" | "description" | "price" | "status" | "version">>
+  updates: Partial<
+    Pick<MarketplaceListing, "name" | "description" | "price" | "status" | "version">
+  >,
 ): MarketplaceListing | null {
   const listing = listings.get(id);
   if (!listing) return null;
@@ -99,10 +101,7 @@ export function searchListings(params: {
     if (params.maxPrice !== undefined && listing.price > params.maxPrice) continue;
     if (params.query) {
       const q = params.query.toLowerCase();
-      if (
-        !listing.name.toLowerCase().includes(q) &&
-        !listing.description.toLowerCase().includes(q)
-      )
+      if (!listing.name.toLowerCase().includes(q) && !listing.description.toLowerCase().includes(q))
         continue;
     }
     results.push(listing);
@@ -110,12 +109,8 @@ export function searchListings(params: {
   return results.sort((a, b) => b.usageCount - a.usageCount);
 }
 
-export function getListingsByCreator(
-  creatorId: string,
-  tenantId?: string
-): MarketplaceListing[] {
+export function getListingsByCreator(creatorId: string, tenantId?: string): MarketplaceListing[] {
   return Array.from(listings.values()).filter(
-    (l) =>
-      l.creatorId === creatorId && (!tenantId || l.tenantId === tenantId)
+    (l) => l.creatorId === creatorId && (!tenantId || l.tenantId === tenantId),
   );
 }

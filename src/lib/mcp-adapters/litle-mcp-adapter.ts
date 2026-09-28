@@ -134,15 +134,11 @@ export class LitleMCPAdapterV2 implements MCPAdapterV2 {
     return scoredNodes.map(({ node, score }) => ({
       evidenceId: `litle:${node.nodeId}`,
       repository: "LITLE_LOCAL" as const,
-      persistentId: node.doi
-        ? { type: "doi" as const, value: node.doi }
-        : undefined,
+      persistentId: node.doi ? { type: "doi" as const, value: node.doi } : undefined,
       title: node.title,
       excerpt: node.contentChunk.slice(0, 1000),
       retrievedAt,
-      sourceUrl: node.doi
-        ? `https://doi.org/${node.doi}`
-        : `bookpi://${node.nodeId}`,
+      sourceUrl: node.doi ? `https://doi.org/${node.doi}` : `bookpi://${node.nodeId}`,
       relevance: {
         // Map cosine [-1,1] to [0,1] for relevance
         score: Math.max(0, Math.min(1, (score + 1) / 2)),

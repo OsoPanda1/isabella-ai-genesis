@@ -18,12 +18,7 @@
  * serverless or multi-instance deployments require a distributed repository.
  */
 
-import {
-  createHmac,
-  randomBytes,
-  randomUUID,
-  timingSafeEqual,
-} from "node:crypto";
+import { createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { getNativeSecret, type NativePrincipal } from "./native-auth";
 
 /* ========================================================================== *
@@ -126,13 +121,7 @@ export type SafeApiKeyRecord = Omit<ApiKeyRecord, "keyDigest">;
 
 export interface ApiKeyAuditEvent {
   eventId: string;
-  event:
-    | "created"
-    | "validated"
-    | "validation_failed"
-    | "revoked"
-    | "rotated"
-    | "deleted";
+  event: "created" | "validated" | "validation_failed" | "revoked" | "rotated" | "deleted";
   keyId: string | null;
   userId: string | null;
   tenantId: string | null;
@@ -147,13 +136,7 @@ export interface ApiKeyRepository {
   findById(id: string): ApiKeyRecord | null;
   listByOwner(userId: string, tenantId: string): ApiKeyRecord[];
   markUsed(id: string, at: string): void;
-  revoke(
-    id: string,
-    userId: string,
-    tenantId: string,
-    at: string,
-    replacedBy?: string,
-  ): boolean;
+  revoke(id: string, userId: string, tenantId: string, at: string, replacedBy?: string): boolean;
   delete(id: string, userId: string, tenantId: string): boolean;
   /** Must provide an actual durable transaction in production. */
   transaction<T>(callback: () => T): T;
@@ -208,9 +191,7 @@ const normalizeScopes = (scopes: readonly string[]): ApiKeyScope[] => {
     throw new ApiKeyServiceError("scopes_required");
   }
 
-  const normalized = [...new Set(
-    scopes.map((scope) => assertText(scope, "scope", 80)),
-  )];
+  const normalized = [...new Set(scopes.map((scope) => assertText(scope, "scope", 80)))];
 
   if (normalized.includes("*")) {
     throw new ApiKeyServiceError("wildcard_scope_forbidden", 403);
@@ -223,19 +204,9 @@ const normalizeScopes = (scopes: readonly string[]): ApiKeyScope[] => {
   return normalized.sort() as ApiKeyScope[];
 };
 
-const boundedInteger = (
-  value: unknown,
-  fallback: number,
-  min: number,
-  max: number,
-): number => {
+const boundedInteger = (value: unknown, fallback: number, min: number, max: number): number => {
   if (value === undefined) return fallback;
-  if (
-    typeof value !== "number" ||
-    !Number.isInteger(value) ||
-    value < min ||
-    value > max
-  ) {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < min || value > max) {
     throw new ApiKeyServiceError("number_out_of_range");
   }
   return value;
@@ -286,10 +257,7 @@ const secureEqualDigest = (expectedHex: string, candidate: Buffer): boolean => {
   return expected.length === candidate.length && timingSafeEqual(expected, candidate);
 };
 
-const createRawKey = (
-  id: string,
-  randomBytesFactory: (size: number) => Buffer,
-): string => {
+const createRawKey = (id: string, randomBytesFactory: (size: number) => Buffer): string => {
   const secret = randomBytesFactory(KEY_SECRET_BYTES).toString("base64url");
   return `${KEY_PREFIX}_${id}_${secret}`;
 };
@@ -312,11 +280,7 @@ const statusOf = (record: ApiKeyRecord, now: number): ApiKeyStatus => {
 const principalFor = (record: ApiKeyRecord): NativePrincipal => ({
   sub: record.userId,
   tenantId: record.tenantId,
-  roles: [
-    record.scopes.some((scope) => ADMIN_SCOPES.has(scope))
-      ? "key-admin"
-      : "api-client",
-  ],
+  roles: [record.scopes.some((scope) => ADMIN_SCOPES.has(scope)) ? "key-admin" : "api-client"],
   plan: record.plan,
   scopes: [...record.scopes],
   kind: "api-key",
@@ -456,12 +420,10 @@ export class ApiKeyService {
   list(userId: string, tenantId: string): SafeApiKeyRecord[] {
     const owner = assertText(userId, "userId", 160);
     const tenant = assertText(tenantId, "tenantId", 160);
-    return this.repository
-      .listByOwner(owner, tenant)
-      .map(({ keyDigest: _keyDigest, ...safe }) => ({
-        ...safe,
-        scopes: [...safe.scopes],
-      }));
+    return this.repository.listByOwner(owner, tenant).map(({ keyDigest: _keyDigest, ...safe }) => ({
+      ...safe,
+      scopes: [...safe.scopes],
+    }));
   }
 
   revoke(keyId: string, userId: string, tenantId: string): boolean {
@@ -484,11 +446,7 @@ export class ApiKeyService {
     return changed;
   }
 
-  rotate(
-    keyId: string,
-    userId: string,
-    tenantId: string,
-  ): ApiKeyCreatedResponse | null {
+  rotate(keyId: string, userId: string, tenantId: string): ApiKeyCreatedResponse | null {
     const id = assertText(keyId, "keyId", 100);
     const owner = assertText(userId, "userId", 160);
     const tenant = assertText(tenantId, "tenantId", 160);
@@ -519,13 +477,7 @@ export class ApiKeyService {
         expiresInDays: remainingDays && remainingDays > 0 ? remainingDays : undefined,
       });
 
-      const revoked = this.repository.revoke(
-        old.id,
-        owner,
-        tenant,
-        nowIso(this.now),
-        next.id,
-      );
+      const revoked = this.repository.revoke(old.id, owner, tenant, nowIso(this.now), next.id);
 
       if (!revoked) {
         throw new ApiKeyServiceError("rotation_revoke_failed", 500);
@@ -595,8 +547,12 @@ const service = (): ApiKeyService => {
 };
 
 export const createApiKey = (request: ApiKeyCreateRequest) => service().create(request);
-export const validateApiKey = (rawKey: string, traceId?: string) => service().validate(rawKey, traceId);
+export const validateApiKey = (rawKey: string, traceId?: string) =>
+  service().validate(rawKey, traceId);
 export const listApiKeys = (userId: string, tenantId: string) => service().list(userId, tenantId);
-export const revokeApiKey = (keyId: string, userId: string, tenantId: string) => service().revoke(keyId, userId, tenantId);
-export const rotateApiKey = (keyId: string, userId: string, tenantId: string) => service().rotate(keyId, userId, tenantId);
-export const deleteApiKey = (keyId: string, userId: string, tenantId: string) => service().delete(keyId, userId, tenantId);
+export const revokeApiKey = (keyId: string, userId: string, tenantId: string) =>
+  service().revoke(keyId, userId, tenantId);
+export const rotateApiKey = (keyId: string, userId: string, tenantId: string) =>
+  service().rotate(keyId, userId, tenantId);
+export const deleteApiKey = (keyId: string, userId: string, tenantId: string) =>
+  service().delete(keyId, userId, tenantId);

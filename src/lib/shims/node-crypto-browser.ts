@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars -- server-only shim signatures mirror Node APIs. */
-
 /**
  * Shim de `node:crypto` para el navegador.
  * ---------------------------------------------------------------------------

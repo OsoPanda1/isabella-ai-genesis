@@ -14,10 +14,7 @@ interface NavigationTriggerProps {
   badge?: number;
 }
 
-export function NavigationTrigger({
-  navbarId,
-  badge,
-}: NavigationTriggerProps) {
+export function NavigationTrigger({ navbarId, badge }: NavigationTriggerProps) {
   const { state, toggleNavbar, setPreviousFocus } = useNavigation();
   const config = NAVBAR_CONFIGS[navbarId];
   const isActive = state.activeNavbar === navbarId;
@@ -47,9 +44,7 @@ export function NavigationTrigger({
     >
       <span className="nav-trigger-icon">{config.icon}</span>
 
-      {badge !== undefined && badge > 0 && (
-        <span className="nav-trigger-badge">{badge}</span>
-      )}
+      {badge !== undefined && badge > 0 && <span className="nav-trigger-badge">{badge}</span>}
 
       {isActive && <span className="nav-trigger-indicator" />}
     </button>

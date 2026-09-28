@@ -4,14 +4,20 @@
  * Canonical cycle: Perceive -> Remember -> Policy Gate -> Decide -> Act -> Audit -> Trace
  */
 
-import { IsabellaPerception, IsabellaDecision, IsabellaDecisionToolCall } from "../../../../contracts/isabella";
+import {
+  IsabellaPerception,
+  IsabellaDecision,
+  IsabellaDecisionToolCall,
+} from "../../../../contracts/isabella";
 import { policyGate } from "../../infrastructure/policy-gate";
 import { auditTrace } from "../../infrastructure/audit-tracer";
 import { addMemoryItem, queryMemory } from "../../infrastructure/memory-store";
 import { executeTool } from "../../infrastructure/tools-catalog";
 
 export async function processPerception(perception: IsabellaPerception): Promise<IsabellaDecision> {
-  const traceId = (perception.metadata as any)?.traceId || `trace-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const traceId =
+    (perception.metadata as any)?.traceId ||
+    `trace-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const startTime = Date.now();
 
   // 1. Audit incoming perception event
@@ -29,13 +35,16 @@ export async function processPerception(perception: IsabellaPerception): Promise
   });
 
   // 2. Retrieve relevant memory context based on input
-  const queryStr = typeof (perception.payload as any)?.text === "string" 
-    ? (perception.payload as any).text 
-    : typeof (perception.payload as any)?.query === "string"
-      ? (perception.payload as any).query
-      : "";
-      
-  const relevantMemories = queryStr ? queryMemory({ searchQuery: queryStr, minRelevance: 0.5 }) : [];
+  const queryStr =
+    typeof (perception.payload as any)?.text === "string"
+      ? (perception.payload as any).text
+      : typeof (perception.payload as any)?.query === "string"
+        ? (perception.payload as any).query
+        : "";
+
+  const relevantMemories = queryStr
+    ? queryMemory({ searchQuery: queryStr, minRelevance: 0.5 })
+    : [];
 
   // 3. Policy Gate Evaluation (ARGUS Sentinel)
   const policy = await policyGate(perception);
@@ -114,7 +123,10 @@ export async function processPerception(perception: IsabellaPerception): Promise
   if (requestedTool) {
     const toolCallItem: IsabellaDecisionToolCall = {
       toolName: requestedTool,
-      arguments: (payload.toolArgs || (payload.toolCall as any)?.args || {}) as Record<string, unknown>,
+      arguments: (payload.toolArgs || (payload.toolCall as any)?.args || {}) as Record<
+        string,
+        unknown
+      >,
       status: "running",
     };
 
@@ -123,7 +135,12 @@ export async function processPerception(perception: IsabellaPerception): Promise
     toolCallItem.status = exec.success ? "success" : "error";
     toolCallItem.executionResult = exec.result;
     toolCalls.push(toolCallItem);
-  } else if (queryStr.toLowerCase().includes("territorio") || queryStr.toLowerCase().includes("real del monte") || queryStr.toLowerCase().includes("panteon") || queryStr.toLowerCase().includes("paste")) {
+  } else if (
+    queryStr.toLowerCase().includes("territorio") ||
+    queryStr.toLowerCase().includes("real del monte") ||
+    queryStr.toLowerCase().includes("panteon") ||
+    queryStr.toLowerCase().includes("paste")
+  ) {
     const territoryTool: IsabellaDecisionToolCall = {
       toolName: "rdm_territory_query",
       arguments: { category: "patrimonio", query: queryStr },
@@ -136,9 +153,10 @@ export async function processPerception(perception: IsabellaPerception): Promise
   }
 
   // 5. Generate summary response
-  const summaryText = typeof payload.text === "string"
-    ? `[C.R.O.W.N. Governed Decision] Procesamiento cognitivo ejecutado exitosamente para intención: "${payload.text.substring(0, 80)}..."`
-    : `[C.R.O.W.N. Governed Decision] Percepción tipo [${perception.inputType}] procesada con éxito.`;
+  const summaryText =
+    typeof payload.text === "string"
+      ? `[C.R.O.W.N. Governed Decision] Procesamiento cognitivo ejecutado exitosamente para intención: "${payload.text.substring(0, 80)}..."`
+      : `[C.R.O.W.N. Governed Decision] Percepción tipo [${perception.inputType}] procesada con éxito.`;
 
   const decision: IsabellaDecision = {
     decisionId: `dec-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,

@@ -55,10 +55,7 @@ export async function pgQuery<T = Record<string, unknown>>(
   return result.rows;
 }
 
-export async function pgExecute(
-  text: string,
-  params?: unknown[],
-): Promise<{ rowCount: number }> {
+export async function pgExecute(text: string, params?: unknown[]): Promise<{ rowCount: number }> {
   const p = getPgPool();
   if (!p) throw new Error("PostgreSQL unavailable");
 

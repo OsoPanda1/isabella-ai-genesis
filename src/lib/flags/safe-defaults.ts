@@ -6,9 +6,6 @@ export function getSafeDefault(key: FeatureFlagKey): boolean {
 
 export function getSafeDefaults(): Record<FeatureFlagKey, boolean> {
   return Object.fromEntries(
-    Object.keys(FEATURE_FLAGS).map((key) => [
-      key,
-      getSafeDefault(key as FeatureFlagKey),
-    ]),
+    Object.keys(FEATURE_FLAGS).map((key) => [key, getSafeDefault(key as FeatureFlagKey)]),
   ) as Record<FeatureFlagKey, boolean>;
 }

@@ -50,7 +50,10 @@ export function createCredential(input: MountCredentialInput): ConnectorCredenti
   };
 }
 
-export function rotateCredential(current: ConnectorCredential, newToken: string): ConnectorCredential {
+export function rotateCredential(
+  current: ConnectorCredential,
+  newToken: string,
+): ConnectorCredential {
   return {
     ...current,
     kind: "active",
@@ -68,7 +71,10 @@ export function revokeCredential(current: ConnectorCredential): ConnectorCredent
   };
 }
 
-export function credentialIsUsable(credential: ConnectorCredential | undefined, manifest: ConnectorManifest): boolean {
+export function credentialIsUsable(
+  credential: ConnectorCredential | undefined,
+  manifest: ConnectorManifest,
+): boolean {
   if (!manifest.auth.oauth) return true; // conector sin OAuth no exige token
   if (!credential) return false;
   if (credential.kind !== "active") return false;

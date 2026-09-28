@@ -60,7 +60,7 @@ class SovereignIsabellaProvider implements RuntimeProvider {
       (req.systemPrompt.length +
         req.messages.reduce((s, m) => s + m.content.length, 0) +
         result.reply.length) /
-        3.5
+        3.5,
     );
 
     return {
@@ -98,7 +98,7 @@ class CognitionIsabellaProvider implements RuntimeProvider {
       (req.systemPrompt.length +
         req.messages.reduce((s, m) => s + m.content.length, 0) +
         result.answer.length) /
-        3.5
+        3.5,
     );
 
     return {
@@ -151,7 +151,7 @@ class GeminiProvider implements RuntimeProvider {
         (req.systemPrompt.length +
           req.messages.reduce((s, m) => s + m.content.length, 0) +
           text.length) /
-          3.5
+          3.5,
       );
 
       return {
@@ -215,6 +215,9 @@ export function listProviders(): Array<{ name: string; model: string; available:
   return providers.map((p) => ({
     name: p.name,
     model: p.model,
-    available: p.name === "isabella-sovereign" || p.name === "isabella-cognition" || (p.requiresApiKey ? !!process.env.GEMINI_API_KEY : true),
+    available:
+      p.name === "isabella-sovereign" ||
+      p.name === "isabella-cognition" ||
+      (p.requiresApiKey ? !!process.env.GEMINI_API_KEY : true),
   }));
 }

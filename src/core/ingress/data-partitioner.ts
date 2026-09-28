@@ -103,10 +103,7 @@ function getModuleLoad(moduleId: string): number {
   return (load.active / limit) * 100;
 }
 
-function optimizeRoutes(
-  candidates: IngressRoute[],
-  priority: IngressPriority,
-): IngressRoute[] {
+function optimizeRoutes(candidates: IngressRoute[], priority: IngressPriority): IngressRoute[] {
   if (priority === "critical") return candidates;
 
   return candidates.filter((route) => {
@@ -130,11 +127,12 @@ export function partitionData(params: {
 }): PartitionResult {
   const { dataType, payload, availableRoutes } = params;
 
-  const defaultRoutes: IngressRoute[] = [
-    "orchestrator", "audit-receipt", "bookpi-legacy",
-  ];
+  const defaultRoutes: IngressRoute[] = ["orchestrator", "audit-receipt", "bookpi-legacy"];
 
-  const routes = optimizeRoutes(availableRoutes || defaultRoutes, classifyPriority(dataType, payload));
+  const routes = optimizeRoutes(
+    availableRoutes || defaultRoutes,
+    classifyPriority(dataType, payload),
+  );
   const priority = classifyPriority(dataType, payload);
   const tokens = estimateTokens(payload);
 

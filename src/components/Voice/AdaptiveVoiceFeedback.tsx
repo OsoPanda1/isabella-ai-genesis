@@ -8,10 +8,10 @@ interface AdaptiveVoiceFeedbackProps {
   height?: number;
 }
 
-export const AdaptiveVoiceFeedback: React.FC<AdaptiveVoiceFeedbackProps> = ({ 
-  className = "", 
-  width = 600, 
-  height = 100 
+export const AdaptiveVoiceFeedback: React.FC<AdaptiveVoiceFeedbackProps> = ({
+  className = "",
+  width = 600,
+  height = 100,
 }) => {
   const { state } = useCrown();
   const { isSpeaking, isListening } = state;
@@ -25,11 +25,11 @@ export const AdaptiveVoiceFeedback: React.FC<AdaptiveVoiceFeedbackProps> = ({
     // If not active, clean up and clear canvas
     if (!isSpeaking && !isListening) {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      if (audioContextRef.current && audioContextRef.current.state !== "closed") {
         audioContextRef.current.close().catch(console.error);
       }
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
       }
       const canvas = canvasRef.current;
@@ -73,7 +73,7 @@ export const AdaptiveVoiceFeedback: React.FC<AdaptiveVoiceFeedbackProps> = ({
           const gainNode = audioCtx.createGain();
           oscillator.type = "sine";
           oscillator.frequency.value = 150; // Human vocal fundamental freq
-          
+
           // Modulate gain to simulate speech envelope
           const modulateEnvelope = () => {
             if (!isSpeaking || !gainNode) return;
@@ -84,7 +84,7 @@ export const AdaptiveVoiceFeedback: React.FC<AdaptiveVoiceFeedbackProps> = ({
             gainNode.gain.linearRampToValueAtTime(0.1, now + duration);
             setTimeout(modulateEnvelope, duration * 1000);
           };
-          
+
           oscillator.connect(gainNode);
           gainNode.connect(analyser);
           // Do not connect to destination to avoid playing the simulated tone
@@ -102,11 +102,11 @@ export const AdaptiveVoiceFeedback: React.FC<AdaptiveVoiceFeedbackProps> = ({
 
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      if (audioContextRef.current && audioContextRef.current.state !== "closed") {
         audioContextRef.current.close().catch(console.error);
       }
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
   }, [isSpeaking, isListening]);
@@ -130,7 +130,7 @@ export const AdaptiveVoiceFeedback: React.FC<AdaptiveVoiceFeedbackProps> = ({
 
       ctx.lineWidth = 2;
       // Use Amber when speaking (Isabella), Rose/Emerald when listening (User)
-      ctx.strokeStyle = isSpeaking ? "rgba(245, 158, 11, 0.8)" : "rgba(16, 185, 129, 0.8)"; 
+      ctx.strokeStyle = isSpeaking ? "rgba(245, 158, 11, 0.8)" : "rgba(16, 185, 129, 0.8)";
       ctx.beginPath();
 
       const sliceWidth = (canvas.width * 1.0) / bufferLength;
@@ -170,7 +170,7 @@ export const AdaptiveVoiceFeedback: React.FC<AdaptiveVoiceFeedbackProps> = ({
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
         <div className="w-full h-[1px] bg-emerald-500/10" />
       </div>
-      
+
       {/* Status Badges */}
       <div className="absolute top-2 right-2 flex gap-2">
         {isListening && (

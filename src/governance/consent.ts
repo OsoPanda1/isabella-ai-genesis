@@ -6,7 +6,8 @@
  * ================================================================
  */
 
-export type ConsentScope = "data" | "money" | "identity" | "files" | "memory" | "automation" | "all";
+export type ConsentScope =
+  "data" | "money" | "identity" | "files" | "memory" | "automation" | "all";
 
 export interface ConsentRecord {
   readonly consentId: string;
@@ -78,7 +79,11 @@ export function hasActiveConsent(tenantId: string, userId: string, scope: Consen
   const records = consents.get(key) || [];
   const now = new Date().toISOString();
   return records.some(
-    (r) => r.granted && (r.scope === scope || r.scope === "all") && (!r.expiresAt || r.expiresAt > now) && !r.revokedAt,
+    (r) =>
+      r.granted &&
+      (r.scope === scope || r.scope === "all") &&
+      (!r.expiresAt || r.expiresAt > now) &&
+      !r.revokedAt,
   );
 }
 
@@ -110,8 +115,18 @@ export function checkConsent(
   }
 
   if (classification.level === "high") {
-    return { granted: false, requiresExplicitConsent: true, reason: "Esta acción requiere consentimiento explícito del usuario (riesgo alto).", scope: "all" };
+    return {
+      granted: false,
+      requiresExplicitConsent: true,
+      reason: "Esta acción requiere consentimiento explícito del usuario (riesgo alto).",
+      scope: "all",
+    };
   }
 
-  return { granted: false, requiresExplicitConsent: true, reason: `Acción requiere consentimiento para el ámbito: ${requiredScope}.`, scope: requiredScope };
+  return {
+    granted: false,
+    requiresExplicitConsent: true,
+    reason: `Acción requiere consentimiento para el ámbito: ${requiredScope}.`,
+    scope: requiredScope,
+  };
 }

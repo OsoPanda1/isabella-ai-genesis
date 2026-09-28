@@ -94,12 +94,7 @@ export function NavigationShell({
         <main className="nav-main">{children}</main>
 
         {/* Accessible announcement region */}
-        <div
-          id="nav-announcement"
-          className="sr-only"
-          aria-live="polite"
-          aria-atomic="true"
-        />
+        <div id="nav-announcement" className="sr-only" aria-live="polite" aria-atomic="true" />
       </div>
     </NavigationStateProvider>
   );

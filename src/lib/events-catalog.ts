@@ -199,19 +199,79 @@ export const CANONICAL_EVENT_CATALOG: ReadonlyArray<{
   domain: string;
   description: string;
 }> = [
-  { type: "identity.linked", domain: "Identity", description: "Vinculación de identidad externa (ORCID/GitHub/Zenodo)" },
-  { type: "identity.unlinked", domain: "Identity", description: "Desvinculación auditada de identidad externa" },
-  { type: "documents.created", domain: "Documents", description: "Creación canónica de documento con hash SHA-3" },
-  { type: "documents.versioned", domain: "Documents", description: "Nueva versión inmutable con cadena de hashes" },
-  { type: "documents.state_changed", domain: "Documents", description: "Transición de estado validado/publicado/archivado" },
-  { type: "publications.requested", domain: "Publications", description: "Solicitud de publicación a federados externos" },
-  { type: "publications.doi_reserved", domain: "Publications", description: "Reserva de DOI en Zenodo" },
-  { type: "publications.completed", domain: "Publications", description: "Publicación multi-proveedor completada" },
-  { type: "publications.failed", domain: "Publications", description: "Falla de publicación con reintentos y backoff" },
-  { type: "federations.anchored", domain: "Federation", description: "Anclaje multi-federación con quórum y Merkle root" },
-  { type: "federations.consistency_checked", domain: "Federation", description: "Verificación anti-entropy entre 7 federaciones" },
-  { type: "security.policy_violated", domain: "Security", description: "Decisión OPA con denegación auditada" },
-  { type: "security.incident_detected", domain: "Security", description: "Incidente correlacionado por security-core" },
-  { type: "security.key_rotated", domain: "Security", description: "Rotación de clave Ed25519/PQC" },
-  { type: "backups.completed", domain: "Resilience", description: "Backup inmutable WORM completado" },
+  {
+    type: "identity.linked",
+    domain: "Identity",
+    description: "Vinculación de identidad externa (ORCID/GitHub/Zenodo)",
+  },
+  {
+    type: "identity.unlinked",
+    domain: "Identity",
+    description: "Desvinculación auditada de identidad externa",
+  },
+  {
+    type: "documents.created",
+    domain: "Documents",
+    description: "Creación canónica de documento con hash SHA-3",
+  },
+  {
+    type: "documents.versioned",
+    domain: "Documents",
+    description: "Nueva versión inmutable con cadena de hashes",
+  },
+  {
+    type: "documents.state_changed",
+    domain: "Documents",
+    description: "Transición de estado validado/publicado/archivado",
+  },
+  {
+    type: "publications.requested",
+    domain: "Publications",
+    description: "Solicitud de publicación a federados externos",
+  },
+  {
+    type: "publications.doi_reserved",
+    domain: "Publications",
+    description: "Reserva de DOI en Zenodo",
+  },
+  {
+    type: "publications.completed",
+    domain: "Publications",
+    description: "Publicación multi-proveedor completada",
+  },
+  {
+    type: "publications.failed",
+    domain: "Publications",
+    description: "Falla de publicación con reintentos y backoff",
+  },
+  {
+    type: "federations.anchored",
+    domain: "Federation",
+    description: "Anclaje multi-federación con quórum y Merkle root",
+  },
+  {
+    type: "federations.consistency_checked",
+    domain: "Federation",
+    description: "Verificación anti-entropy entre 7 federaciones",
+  },
+  {
+    type: "security.policy_violated",
+    domain: "Security",
+    description: "Decisión OPA con denegación auditada",
+  },
+  {
+    type: "security.incident_detected",
+    domain: "Security",
+    description: "Incidente correlacionado por security-core",
+  },
+  {
+    type: "security.key_rotated",
+    domain: "Security",
+    description: "Rotación de clave Ed25519/PQC",
+  },
+  {
+    type: "backups.completed",
+    domain: "Resilience",
+    description: "Backup inmutable WORM completado",
+  },
 ];

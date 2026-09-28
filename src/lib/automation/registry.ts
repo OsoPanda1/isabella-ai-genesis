@@ -24,9 +24,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: [],
     dependents: ["B-consent", "C-policy", "F-quantum-gateway"],
     healthCheck: "POST /api/v1/auth/login returns 200 with valid JWT",
-    repairProcedure: "Verify ISABELLA_AUTH_SECRET env var is set. Restart auth middleware. Check JWT expiry.",
-    humanDescription: "La identidad y las sesiones de los usuarios. Si esto falla, nadie puede autenticarse.",
-    developerGuide: "auth.server.ts maneja JWT HS256 con PBKDF2 para passwords. El dev fallback requiere ALLOW_DEV_AUTH_FALLBACK=true explícito.",
+    repairProcedure:
+      "Verify ISABELLA_AUTH_SECRET env var is set. Restart auth middleware. Check JWT expiry.",
+    humanDescription:
+      "La identidad y las sesiones de los usuarios. Si esto falla, nadie puede autenticarse.",
+    developerGuide:
+      "auth.server.ts maneja JWT HS256 con PBKDF2 para passwords. El dev fallback requiere ALLOW_DEV_AUTH_FALLBACK=true explícito.",
   },
   {
     id: "B-consent",
@@ -39,8 +42,10 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependents: ["C-policy"],
     healthCheck: "Consent flow returns authorization token for risky operations",
     repairProcedure: "Verify consent middleware is mounted. Check policy gate configuration.",
-    humanDescription: "El sistema de permisos que pregunta al usuario antes de hacer cosas peligrosas.",
-    developerGuide: "Define consentimiento como parte del pipeline cognitivo. Se evalúa antes de operaciones de riesgo medio/alto.",
+    humanDescription:
+      "El sistema de permisos que pregunta al usuario antes de hacer cosas peligrosas.",
+    developerGuide:
+      "Define consentimiento como parte del pipeline cognitivo. Se evalúa antes de operaciones de riesgo medio/alto.",
   },
   {
     id: "C-policy",
@@ -52,9 +57,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: ["A-identity", "B-consent"],
     dependents: ["F-quantum-gateway", "H-scheduler", "O-cognitive"],
     healthCheck: "evaluateQuantumPolicy returns allow/deny/degraded for test request",
-    repairProcedure: "Check policy rules in policy-engine.ts. Verify scopes are configured. Reset policy audit log if full.",
-    humanDescription: "El guardián que decide qué está permitido y qué no. Evalúa cada operación antes de ejecutarla.",
-    developerGuide: "policy-engine.ts tiene 10 reglas: tenant isolation, scopes, device check, wire limits, shot limits, mode compat, WebAuthn step-up, high-risk auth, secret validation. Audit log in-memory (1000 entries).",
+    repairProcedure:
+      "Check policy rules in policy-engine.ts. Verify scopes are configured. Reset policy audit log if full.",
+    humanDescription:
+      "El guardián que decide qué está permitido y qué no. Evalúa cada operación antes de ejecutarla.",
+    developerGuide:
+      "policy-engine.ts tiene 10 reglas: tenant isolation, scopes, device check, wire limits, shot limits, mode compat, WebAuthn step-up, high-risk auth, secret validation. Audit log in-memory (1000 entries).",
   },
   {
     id: "D-intent",
@@ -62,13 +70,19 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     description: "Planificación de intención cognitiva, routing de ejecución",
     category: "intent",
     complexity: "complex",
-    codeFiles: ["src/lib/isabella-crown.ts", "src/domains/ai/application/handlers/processPerception.ts"],
+    codeFiles: [
+      "src/lib/isabella-crown.ts",
+      "src/domains/ai/application/handlers/processPerception.ts",
+    ],
     dependencies: ["C-policy"],
     dependents: ["O-cognitive", "F-quantum-gateway"],
     healthCheck: "processPerception returns structured response with tool calls",
-    repairProcedure: "Verify CROWN gateway weights are configured. Check preset profiles. Restart cognitive pipeline.",
-    humanDescription: "El cerebro que decide qué módulo usar para responder cada pregunta del usuario.",
-    developerGuide: "El pipeline cognitivo de 6 pasos: Perceive → Remember → Policy Gate → Decide → Act → Audit → Trace. Los presets ajustan pesos de ISA/SOPHIA/ORION/ARGUS/CROWN.",
+    repairProcedure:
+      "Verify CROWN gateway weights are configured. Check preset profiles. Restart cognitive pipeline.",
+    humanDescription:
+      "El cerebro que decide qué módulo usar para responder cada pregunta del usuario.",
+    developerGuide:
+      "El pipeline cognitivo de 6 pasos: Perceive → Remember → Policy Gate → Decide → Act → Audit → Trace. Los presets ajustan pesos de ISA/SOPHIA/ORION/ARGUS/CROWN.",
   },
 
   // ==========================================================================
@@ -84,9 +98,11 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: [],
     dependents: ["F-quantum-gateway", "G-scheduler"],
     healthCheck: "getDeviceRegistry returns 7 devices with status",
-    repairProcedure: "Run smoke test for each provider. Enable/disable based on results. Check env vars for remote providers.",
+    repairProcedure:
+      "Run smoke test for each provider. Enable/disable based on results. Check env vars for remote providers.",
     humanDescription: "El registro de todos los dispositivos de computación cuántica disponibles.",
-    developerGuide: "7 proveedores: local_simulator, lightning, qiskit, braket, rigetti, catalyst, remote_qpu. Smoke test verifica imports y versiones.",
+    developerGuide:
+      "7 proveedores: local_simulator, lightning, qiskit, braket, rigetti, catalyst, remote_qpu. Smoke test verifica imports y versiones.",
   },
   {
     id: "F-quantum-gateway",
@@ -98,9 +114,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: ["C-policy", "E-device-registry", "D-intent"],
     dependents: ["G-scheduler", "H-workers"],
     healthCheck: "POST /api/v1/quantum/execute returns valid response for test circuit",
-    repairProcedure: "Verify orchestrator pipeline is wired. Check Zod contracts load. Restart quantum mesh.",
-    humanDescription: "La puerta de entrada a toda la computación cuántica. Si esto falla, ningún trabajo cuántico se ejecuta.",
-    developerGuide: "El gateway orquesta el pipeline de 13 pasos: validate → authorize → schedule → execute → sign → persist → replicate → reconcile.",
+    repairProcedure:
+      "Verify orchestrator pipeline is wired. Check Zod contracts load. Restart quantum mesh.",
+    humanDescription:
+      "La puerta de entrada a toda la computación cuántica. Si esto falla, ningún trabajo cuántico se ejecuta.",
+    developerGuide:
+      "El gateway orquesta el pipeline de 13 pasos: validate → authorize → schedule → execute → sign → persist → replicate → reconcile.",
   },
   {
     id: "G-scheduler",
@@ -113,8 +132,10 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependents: ["H-workers"],
     healthCheck: "Scheduler queue depth is within limits (< 64)",
     repairProcedure: "Purge expired jobs. Check queue limit config. Verify deadline enforcement.",
-    humanDescription: "El planificador que decide qué trabajo se ejecuta primero y cuándo reintentar si falla.",
-    developerGuide: "Cola FIFO por prioridad con límite de 64. Backoff progresivo: 30s × retryCount. Max 3 reintentos. Jobs expirados se purgan.",
+    humanDescription:
+      "El planificador que decide qué trabajo se ejecuta primero y cuándo reintentar si falla.",
+    developerGuide:
+      "Cola FIFO por prioridad con límite de 64. Backoff progresivo: 30s × retryCount. Max 3 reintentos. Jobs expirados se purgan.",
   },
   {
     id: "H-workers",
@@ -126,9 +147,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: ["G-scheduler", "E-device-registry"],
     dependents: ["I-pennylane", "J-qiskit", "K-braket", "L-rigetti", "M-catalyst", "N-lightning"],
     healthCheck: "Worker heartbeat check returns all workers alive (< 60s stale)",
-    repairProcedure: "Kill hung workers (heartbeat > 60s). Spawn replacements. Check pool limits (min/max per pool).",
-    humanDescription: "El gerente de los procesos que ejecutan los trabajos. Si un worker se congela, lo reemplaza automáticamente.",
-    developerGuide: "6 pools: core, lightning, qiskit, braket, rigetti, catalyst. Cada uno tiene min/max instances, CPU/memory limits. Heartbeat check cada 60s.",
+    repairProcedure:
+      "Kill hung workers (heartbeat > 60s). Spawn replacements. Check pool limits (min/max per pool).",
+    humanDescription:
+      "El gerente de los procesos que ejecutan los trabajos. Si un worker se congela, lo reemplaza automáticamente.",
+    developerGuide:
+      "6 pools: core, lightning, qiskit, braket, rigetti, catalyst. Cada uno tiene min/max instances, CPU/memory limits. Heartbeat check cada 60s.",
   },
   {
     id: "I-pennylane",
@@ -140,9 +164,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: ["H-workers"],
     dependents: [],
     healthCheck: "PennyLane bridge process responds to health check",
-    repairProcedure: "Check Python PennyLane installation. Verify bridge script exists. Restart bridge process.",
-    humanDescription: "El motor principal de computación cuántica. Simula circuitos cuando no hay hardware real.",
-    developerGuide: "Spawns Python child process con policy evaluation, timeout con SIGKILL, stdout/stderr capture. Sin worker pool — un proceso por request.",
+    repairProcedure:
+      "Check Python PennyLane installation. Verify bridge script exists. Restart bridge process.",
+    humanDescription:
+      "El motor principal de computación cuántica. Simula circuitos cuando no hay hardware real.",
+    developerGuide:
+      "Spawns Python child process con policy evaluation, timeout con SIGKILL, stdout/stderr capture. Sin worker pool — un proceso por request.",
   },
   {
     id: "J-qiskit",
@@ -156,7 +183,8 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     healthCheck: "Qiskit import check passes",
     repairProcedure: "Verify IBM_Q_CREDENTIALS env var. Check Qiskit version. Run smoke test.",
     humanDescription: "Conexión con los computadores cuánticos de IBM.",
-    developerGuide: "Provider remoto que requiere credenciales IBM. Circuit breaker con 5 fallos consecutivos.",
+    developerGuide:
+      "Provider remoto que requiere credenciales IBM. Circuit breaker con 5 fallos consecutivos.",
   },
   {
     id: "K-braket",
@@ -170,7 +198,8 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     healthCheck: "Braket import check passes",
     repairProcedure: "Verify AWS_BRAKET_CREDENTIALS env var. Check AWS region. Run smoke test.",
     humanDescription: "Conexión con los computadores cuánticos de Amazon Web Services.",
-    developerGuide: "Provider remoto AWS. Soporta IonQ, Rigetti, Oxford Quantum a través de Braket.",
+    developerGuide:
+      "Provider remoto AWS. Soporta IonQ, Rigetti, Oxford Quantum a través de Braket.",
   },
   {
     id: "L-rigetti",
@@ -198,7 +227,8 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     healthCheck: "Catalyst compilation returns valid artifact",
     repairProcedure: "Check Catalyst version. Verify allowed programs list. Run test compilation.",
     humanDescription: "El compilador que convierte programas cuánticos en ejecutables.",
-    developerGuide: "Compila programas a artifacts ejecutables. Lista de programas permitidos por policy.",
+    developerGuide:
+      "Compila programas a artifacts ejecutables. Lista de programas permitidos por policy.",
   },
   {
     id: "N-lightning",
@@ -212,7 +242,8 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     healthCheck: "Lightning HPC check passes",
     repairProcedure: "Check Lightning installation. Verify HPC access. Run benchmark test.",
     humanDescription: "Acelerador de alto rendimiento para circuitos grandes.",
-    developerGuide: "Requiere scope quantum:lightning adicional. Para circuitos que necesitan más potencia que el simulador local.",
+    developerGuide:
+      "Requiere scope quantum:lightning adicional. Para circuitos que necesitan más potencia que el simulador local.",
   },
 
   // ==========================================================================
@@ -228,9 +259,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: [],
     dependents: ["Q-bookpi", "R-hsm", "T-tee"],
     healthCheck: "generateMLKEMKeyPair returns valid key pair",
-    repairProcedure: "Verify postQuantumCrypto.ts loads without errors. Check hex generation. Test sign/verify cycle.",
-    humanDescription: "La criptografía que protege todo contra computadoras cuánticas futuras. Si esto falla, nada está firmado.",
-    developerGuide: "ML-KEM-768 para key encapsulation, ML-DSA-87 para firmas lattice-based, SLH-DSA-128s para firmas hash-based. LITLE-32 gates evalúan 32 compuertas cuánticas. PROTOTYPE — no certificado para producción.",
+    repairProcedure:
+      "Verify postQuantumCrypto.ts loads without errors. Check hex generation. Test sign/verify cycle.",
+    humanDescription:
+      "La criptografía que protege todo contra computadoras cuánticas futuras. Si esto falla, nada está firmado.",
+    developerGuide:
+      "ML-KEM-768 para key encapsulation, ML-DSA-87 para firmas lattice-based, SLH-DSA-128s para firmas hash-based. LITLE-32 gates evalúan 32 compuertas cuánticas. PROTOTYPE — no certificado para producción.",
   },
   {
     id: "P-litle32",
@@ -242,9 +276,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: ["O-pqc"],
     dependents: ["Q-bookpi"],
     healthCheck: "evaluateLitle32Gates returns 32 evaluations with fidelity > 0.999",
-    repairProcedure: "Verify gate types: HADAMARD, CNOT, PAULI_Z, TOFFOLI, PHASE_SHIFT. Check fidelity calculations.",
-    humanDescription: "Las 32 compuertas cuánticas que validan cada firma. Es el sello de autenticidad cuántica.",
-    developerGuide: "Cada gate tiene gateIndex (1-32), gateType, qubitState (|ψ_i⟩), status (PASSED/ATTESTED), fidelity (0.9992+). Determinista basado en seed del payload.",
+    repairProcedure:
+      "Verify gate types: HADAMARD, CNOT, PAULI_Z, TOFFOLI, PHASE_SHIFT. Check fidelity calculations.",
+    humanDescription:
+      "Las 32 compuertas cuánticas que validan cada firma. Es el sello de autenticidad cuántica.",
+    developerGuide:
+      "Cada gate tiene gateIndex (1-32), gateType, qubitState (|ψ_i⟩), status (PASSED/ATTESTED), fidelity (0.9992+). Determinista basado en seed del payload.",
   },
   {
     id: "Q-bookpi",
@@ -256,9 +293,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: ["O-pqc", "P-litle32"],
     dependents: ["T-tee", "W-federation"],
     healthCheck: "verifyChainIntegrity returns valid: true",
-    repairProcedure: "Walk chain from genesis. Check each block's previousHash matches. Verify PQC dual signatures.",
-    humanDescription: "La cadena de auditoría inmutable. Cada bloque está firmado con criptografía poscuántica dual.",
-    developerGuide: "Append-only. Genesis hash: sha256('bookpi-genesis'). Cada bloque: sha256(prevHash:blockData). Firma dual: ML-DSA-87 + SLH-DSA-128s. Verificación O(n) — sin checkpointing.",
+    repairProcedure:
+      "Walk chain from genesis. Check each block's previousHash matches. Verify PQC dual signatures.",
+    humanDescription:
+      "La cadena de auditoría inmutable. Cada bloque está firmado con criptografía poscuántica dual.",
+    developerGuide:
+      "Append-only. Genesis hash: sha256('bookpi-genesis'). Cada bloque: sha256(prevHash:blockData). Firma dual: ML-DSA-87 + SLH-DSA-128s. Verificación O(n) — sin checkpointing.",
   },
 
   // ==========================================================================
@@ -270,13 +310,20 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     description: "Failover automático, health check, circuit breaker",
     category: "hsm",
     complexity: "critical",
-    codeFiles: ["src/lib/quantum/hsm-client.ts", "src/lib/hsmClient.ts", "src/lib/hsmFailoverMonitor.ts"],
+    codeFiles: [
+      "src/lib/quantum/hsm-client.ts",
+      "src/lib/hsmClient.ts",
+      "src/lib/hsmFailoverMonitor.ts",
+    ],
     dependencies: ["O-pqc"],
     dependents: ["Q-bookpi", "T-tee"],
     healthCheck: "HSM primary and backup both respond to health check",
-    repairProcedure: "Check HSM device connectivity. Verify failover counter. Reset circuit breaker if needed. Check env vars.",
-    humanDescription: "Los módulos de seguridad físicos que firman las operaciones críticas. Si falla el primario, el backup toma control.",
-    developerGuide: "Dual YubiHSM con failover. Per-device failure threshold (default 5). Fallback a software-emergency si ambos fallan. Health check cada 5s.",
+    repairProcedure:
+      "Check HSM device connectivity. Verify failover counter. Reset circuit breaker if needed. Check env vars.",
+    humanDescription:
+      "Los módulos de seguridad físicos que firman las operaciones críticas. Si falla el primario, el backup toma control.",
+    developerGuide:
+      "Dual YubiHSM con failover. Per-device failure threshold (default 5). Fallback a software-emergency si ambos fallan. Health check cada 5s.",
   },
   {
     id: "S-tee",
@@ -288,9 +335,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: ["O-pqc", "R-hsm"],
     dependents: ["Q-bookpi"],
     healthCheck: "generateAttestation returns valid attestation with nonce",
-    repairProcedure: "Verify TEE platform identity. Check nonce generation. Validate signature chain.",
-    humanDescription: "La verificación de que el código se ejecuta en un entorno seguro y no fue manipulado.",
-    developerGuide: "Nonce-based verification, measurement digest checking, signature chain, expiration, platform identity. MOCK — no conectado a SGX/TrustZone/SEV real.",
+    repairProcedure:
+      "Verify TEE platform identity. Check nonce generation. Validate signature chain.",
+    humanDescription:
+      "La verificación de que el código se ejecuta en un entorno seguro y no fue manipulado.",
+    developerGuide:
+      "Nonce-based verification, measurement digest checking, signature chain, expiration, platform identity. MOCK — no conectado a SGX/TrustZone/SEV real.",
   },
 
   // ==========================================================================
@@ -308,7 +358,8 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     healthCheck: "auditTrace returns entry with checksum",
     repairProcedure: "Check buffer size (< 1000). Verify SHA-256 computation. Clear if full.",
     humanDescription: "El registro de cada acción que toma el sistema, con firma criptográfica.",
-    developerGuide: "Buffer in-memory, max 1000 entries. Cada entry tiene SHA-256 checksum. No conectado a BookPI o PostgreSQL.",
+    developerGuide:
+      "Buffer in-memory, max 1000 entries. Cada entry tiene SHA-256 checksum. No conectado a BookPI o PostgreSQL.",
   },
   {
     id: "U-event-bus",
@@ -320,9 +371,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: [],
     dependents: ["V-telemetry", "W-federation", "X-recovery"],
     healthCheck: "getEventBusMetrics returns totalEvents > 0",
-    repairProcedure: "Check handler registration. Verify event hash chain. Clear log if > 5000 events.",
-    humanDescription: "El sistema de comunicación interna entre todos los módulos. Cada evento está encadenado criptográficamente.",
-    developerGuide: "13 tipos de eventos tipados. Hash-chain: each event includes previousEventHash. Max 5000 events in log. Handler errors silently caught.",
+    repairProcedure:
+      "Check handler registration. Verify event hash chain. Clear log if > 5000 events.",
+    humanDescription:
+      "El sistema de comunicación interna entre todos los módulos. Cada evento está encadenado criptográficamente.",
+    developerGuide:
+      "13 tipos de eventos tipados. Hash-chain: each event includes previousEventHash. Max 5000 events in log. Handler errors silently caught.",
   },
   {
     id: "V-telemetry",
@@ -334,9 +388,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: ["U-event-bus"],
     dependents: [],
     healthCheck: "getTelemetrySnapshot returns counters and histograms",
-    repairProcedure: "Check counter overflow. Verify span parent-child relationships. Export metrics if needed.",
-    humanDescription: "Las métricas de rendimiento: cuántas solicitudes, cuánto tardan, cuántos errores hay.",
-    developerGuide: "Counters: requests, jobs, restarts, denials, fallbacks. Histograms: request duration, queue wait. Spans con parent-child. Todo in-memory — no conectado a Prometheus/Grafana.",
+    repairProcedure:
+      "Check counter overflow. Verify span parent-child relationships. Export metrics if needed.",
+    humanDescription:
+      "Las métricas de rendimiento: cuántas solicitudes, cuánto tardan, cuántos errores hay.",
+    developerGuide:
+      "Counters: requests, jobs, restarts, denials, fallbacks. Histograms: request duration, queue wait. Spans con parent-child. Todo in-memory — no conectado a Prometheus/Grafana.",
   },
 
   // ==========================================================================
@@ -352,9 +409,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: [],
     dependents: ["Y-federation", "X-recovery"],
     healthCheck: "PostgreSQL connection returns version",
-    repairProcedure: "Check DATABASE_URL env var. Verify schema migrations. Run connection pool test.",
-    humanDescription: "La base de datos principal que guarda todas las métricas y logs del sistema.",
-    developerGuide: "DB-1 en la matriz políglota. TimescaleDB para time-series. Schemas definidos pero no conectados en runtime.",
+    repairProcedure:
+      "Check DATABASE_URL env var. Verify schema migrations. Run connection pool test.",
+    humanDescription:
+      "La base de datos principal que guarda todas las métricas y logs del sistema.",
+    developerGuide:
+      "DB-1 en la matriz políglota. TimescaleDB para time-series. Schemas definidos pero no conectados en runtime.",
   },
   {
     id: "X-backup",
@@ -367,7 +427,8 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependents: ["X-recovery"],
     healthCheck: "Backup snapshot exists and is verified",
     repairProcedure: "Create new snapshot. Verify hash. Store in encrypted location.",
-    humanDescription: "Las copias de seguridad que permiten recuperar el sistema si algo se pierde.",
+    humanDescription:
+      "Las copias de seguridad que permiten recuperar el sistema si algo se pierde.",
     developerGuide: "Núcleo 21. Toma snapshots del estado del sistema y los verifica con hash.",
   },
 
@@ -384,9 +445,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: ["Q-bookpi", "W-postgresql"],
     dependents: [],
     healthCheck: "Federation replication events are within acceptable lag",
-    repairProcedure: "Check federation node connectivity. Verify quorum (5/7). Compare block hashes across nodes.",
-    humanDescription: "Las 7 copias distribuidas del sistema que se mantienen sincronizadas. Si una falla, las otras 6 siguen funcionando.",
-    developerGuide: "7 federaciones con afinidad por cabezas dodecaédricas. Quórum 5/7 para anclar. Replica solo eventos autorizados.",
+    repairProcedure:
+      "Check federation node connectivity. Verify quorum (5/7). Compare block hashes across nodes.",
+    humanDescription:
+      "Las 7 copias distribuidas del sistema que se mantienen sincronizadas. Si una falla, las otras 6 siguen funcionando.",
+    developerGuide:
+      "7 federaciones con afinidad por cabezas dodecaédricas. Quórum 5/7 para anclar. Replica solo eventos autorizados.",
   },
   {
     id: "Z-recovery",
@@ -398,9 +462,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: ["U-event-bus", "R-hsm", "Q-bookpi"],
     dependents: [],
     healthCheck: "getRecoveryMetrics returns active incidents count",
-    repairProcedure: "Check active incidents. Resolve resolved incidents. Verify recovery actions are documented.",
-    humanDescription: "El sistema que se repara a sí mismo cuando algo falla. Detecta problemas y ejecuta planes de recuperación.",
-    developerGuide: "7 tipos: pennylane_absent, worker_hung, remote_provider_down, hsm_unavailable, tee_unverifiable, bookpi_postgres_down, federation_node_micious. Actions son strings descriptivos — no implementados como código.",
+    repairProcedure:
+      "Check active incidents. Resolve resolved incidents. Verify recovery actions are documented.",
+    humanDescription:
+      "El sistema que se repara a sí mismo cuando algo falla. Detecta problemas y ejecuta planes de recuperación.",
+    developerGuide:
+      "7 tipos: pennylane_absent, worker_hung, remote_provider_down, hsm_unavailable, tee_unverifiable, bookpi_postgres_down, federation_node_micious. Actions son strings descriptivos — no implementados como código.",
   },
 
   // ==========================================================================
@@ -412,13 +479,19 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     description: "6-step pipeline: Perceive → Remember → Policy → Decide → Act → Audit",
     category: "cognitive",
     complexity: "complex",
-    codeFiles: ["src/domains/ai/application/handlers/processPerception.ts", "src/lib/isabella-crown.ts"],
+    codeFiles: [
+      "src/domains/ai/application/handlers/processPerception.ts",
+      "src/lib/isabella-crown.ts",
+    ],
     dependencies: ["D-intent", "C-policy", "T-audit-tracer"],
     dependents: ["AB-multimodal"],
     healthCheck: "processPerception returns structured response",
-    repairProcedure: "Verify CROWN weights. Check preset configuration. Test policy gate. Restart cognitive pipeline.",
-    humanDescription: "El cerebro que procesa cada mensaje del usuario a través de 5 módulos especializados.",
-    developerGuide: "ISA (empatía) + SOPHIA (razonamiento) + ORION (creatividad) + ARGUS (seguridad) + CROWN_GATEWAY (routing). 6 presets: prime, empathic, strategic, sentinel, executor, synergistic.",
+    repairProcedure:
+      "Verify CROWN weights. Check preset configuration. Test policy gate. Restart cognitive pipeline.",
+    humanDescription:
+      "El cerebro que procesa cada mensaje del usuario a través de 5 módulos especializados.",
+    developerGuide:
+      "ISA (empatía) + SOPHIA (razonamiento) + ORION (creatividad) + ARGUS (seguridad) + CROWN_GATEWAY (routing). 6 presets: prime, empathic, strategic, sentinel, executor, synergistic.",
   },
   {
     id: "AB-multimodal",
@@ -430,9 +503,12 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: ["AA-cognitive"],
     dependents: [],
     healthCheck: "Image generation returns valid base64 or URL",
-    repairProcedure: "Check GEMINI_API_KEY. Verify Pollinations API access. Test TTS fallback chain.",
-    humanDescription: "La generación de imágenes, voz y video. Si Gemini no está, usa motores alternativos.",
-    developerGuide: "Image: Gemini Flash Lite → Imagen 3.0 → Pollinations Flux. Voice: Gemini TTS → Web Speech API. Trailer: HTML5 Canvas 60fps + Web Audio.",
+    repairProcedure:
+      "Check GEMINI_API_KEY. Verify Pollinations API access. Test TTS fallback chain.",
+    humanDescription:
+      "La generación de imágenes, voz y video. Si Gemini no está, usa motores alternativos.",
+    developerGuide:
+      "Image: Gemini Flash Lite → Imagen 3.0 → Pollinations Flux. Voice: Gemini TTS → Web Speech API. Trailer: HTML5 Canvas 60fps + Web Audio.",
   },
 
   // ==========================================================================
@@ -450,7 +526,8 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     healthCheck: "GET /api/v1/billing/plans returns plan list",
     repairProcedure: "Check STRIPE_PRICE_* env vars. Verify usage bucket TTL. Test checkout flow.",
     humanDescription: "El sistema de planes de pago que gestiona suscripciones y uso.",
-    developerGuide: "4 planes: Plus, Premium, VIP, Enterprise. Usage buckets con TTL. Mock checkout para dev.",
+    developerGuide:
+      "4 planes: Plus, Premium, VIP, Enterprise. Usage buckets con TTL. Mock checkout para dev.",
   },
   {
     id: "AD-territorial",
@@ -462,18 +539,19 @@ export const AUTOMATION_ATLAS: AutomationNode[] = [
     dependencies: [],
     dependents: ["AA-cognitive"],
     healthCheck: "Territory context returns Real del Monte data",
-    repairProcedure: "Check territory context service. Verify cultural layer data. Update if stale.",
-    humanDescription: "El conocimiento territorial de Real del Monte, Hidalgo. Le da contexto cultural a Isabella.",
-    developerGuide: "Capas culturales, patrimonio, contexto local. Inyectado al pipeline cognitivo para respuestas con arraigo.",
+    repairProcedure:
+      "Check territory context service. Verify cultural layer data. Update if stale.",
+    humanDescription:
+      "El conocimiento territorial de Real del Monte, Hidalgo. Le da contexto cultural a Isabella.",
+    developerGuide:
+      "Capas culturales, patrimonio, contexto local. Inyectado al pipeline cognitivo para respuestas con arraigo.",
   },
 ];
 
 /**
  * Mapa de acceso rápido por ID.
  */
-const atlasMap = new Map<string, AutomationNode>(
-  AUTOMATION_ATLAS.map((node) => [node.id, node]),
-);
+const atlasMap = new Map<string, AutomationNode>(AUTOMATION_ATLAS.map((node) => [node.id, node]));
 
 /**
  * Obtiene un nodo por ID.

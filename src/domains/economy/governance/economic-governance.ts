@@ -15,14 +15,16 @@ export interface PolicyRule {
   evaluate: (event: EconomicEvent) => PolicyVerdict;
 }
 
-export type PolicyVerdict = {
-  decision: "approved";
-  reason?: string;
-} | {
-  decision: "flagged" | "blocked";
-  reason: string;
-  ruleId: string;
-};
+export type PolicyVerdict =
+  | {
+      decision: "approved";
+      reason?: string;
+    }
+  | {
+      decision: "flagged" | "blocked";
+      reason: string;
+      ruleId: string;
+    };
 
 export interface Dispute {
   id: string;
@@ -148,8 +150,18 @@ export function evaluatePolicy(event: EconomicEvent): PolicyVerdict {
   return { decision: "approved" };
 }
 
-export function getActiveRules(): Array<{ id: string; name: string; description: string; enabled: boolean }> {
-  return rules.map((r) => ({ id: r.id, name: r.name, description: r.description, enabled: r.enabled }));
+export function getActiveRules(): Array<{
+  id: string;
+  name: string;
+  description: string;
+  enabled: boolean;
+}> {
+  return rules.map((r) => ({
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    enabled: r.enabled,
+  }));
 }
 
 const disputes = new Map<string, Dispute>();
@@ -174,7 +186,7 @@ export function fileDispute(params: {
 export function resolveDispute(
   disputeId: string,
   resolution: string,
-  outcome: "resolved" | "rejected"
+  outcome: "resolved" | "rejected",
 ): Dispute | null {
   const dispute = disputes.get(disputeId);
   if (!dispute) return null;
@@ -185,7 +197,5 @@ export function resolveDispute(
 }
 
 export function getDisputes(tenantId?: string): Dispute[] {
-  return Array.from(disputes.values()).filter(
-    (d) => !tenantId || d.tenantId === tenantId
-  );
+  return Array.from(disputes.values()).filter((d) => !tenantId || d.tenantId === tenantId);
 }

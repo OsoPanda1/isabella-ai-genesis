@@ -2,14 +2,7 @@ import { useEffect, useState } from "react";
 import { pipeline, type PipelineStage } from "@/lib/agent/pipeline";
 import { t } from "@/i18n";
 
-const STAGES: PipelineStage[] = [
-  "perceive",
-  "remember",
-  "policy",
-  "decide",
-  "act",
-  "audit",
-];
+const STAGES: PipelineStage[] = ["perceive", "remember", "policy", "decide", "act", "audit"];
 
 const STAGE_LABELS: Record<PipelineStage, string> = {
   idle: "IDLE",
@@ -62,11 +55,7 @@ export function PipelineIndicator() {
             <div key={stage} className="flex flex-1 flex-col items-center gap-1.5">
               <div
                 className={`relative flex h-6 w-6 items-center justify-center rounded-full border transition-all duration-500 ${
-                  isActive
-                    ? "scale-110"
-                    : isPast
-                      ? "border-transparent"
-                      : "border-border/50"
+                  isActive ? "scale-110" : isPast ? "border-transparent" : "border-border/50"
                 }`}
                 style={{
                   borderColor: isActive || isPast ? color : undefined,
@@ -83,7 +72,11 @@ export function PipelineIndicator() {
                 <span
                   className="relative z-10 font-mono text-[8px]"
                   style={{
-                    color: isPast ? "var(--background)" : isActive ? color : "var(--muted-foreground)",
+                    color: isPast
+                      ? "var(--background)"
+                      : isActive
+                        ? color
+                        : "var(--muted-foreground)",
                   }}
                 >
                   {i + 1}
@@ -111,9 +104,7 @@ export function PipelineIndicator() {
         </span>
         {(isComplete || isError) && (
           <span
-            className={`font-mono text-[8px] ${
-              isComplete ? "text-electric" : "text-destructive"
-            }`}
+            className={`font-mono text-[8px] ${isComplete ? "text-electric" : "text-destructive"}`}
           >
             {isComplete ? "✓ READY" : "✗ ERROR"}
           </span>

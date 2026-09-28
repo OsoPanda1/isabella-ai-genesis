@@ -101,7 +101,7 @@ export const CodexView: React.FC = () => {
         setSelectedId((current) =>
           current && nextDocuments.some((document) => document.document_uid === current)
             ? current
-            : nextDocuments[0]?.document_uid ?? null,
+            : (nextDocuments[0]?.document_uid ?? null),
         );
       } catch {
         if (!active) return;
@@ -139,7 +139,10 @@ export const CodexView: React.FC = () => {
   if (error) {
     return (
       <main className="mx-auto max-w-5xl px-4 py-12">
-        <div className="rounded-3xl border border-rose-500/30 bg-rose-950/20 p-8 text-center" role="alert">
+        <div
+          className="rounded-3xl border border-rose-500/30 bg-rose-950/20 p-8 text-center"
+          role="alert"
+        >
           <p className="text-sm text-rose-200">{error}</p>
           <button
             type="button"
@@ -172,7 +175,9 @@ export const CodexView: React.FC = () => {
         <section className="mx-auto mt-10 max-w-xl rounded-2xl border border-slate-800 bg-slate-950/70 p-8 text-center">
           <FileText className="mx-auto h-7 w-7 text-slate-500" aria-hidden="true" />
           <h2 className="mt-3 text-base font-semibold text-slate-200">Aún no hay documentos</h2>
-          <p className="mt-1 text-sm text-slate-500">Cuando se publique el primer documento aparecerá aquí.</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Cuando se publique el primer documento aparecerá aquí.
+          </p>
         </section>
       ) : (
         <div className="mt-8 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -202,10 +207,17 @@ export const CodexView: React.FC = () => {
                     className={`w-full rounded-2xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 ${selected ? "border-sky-400/50 bg-sky-400/10 shadow-lg shadow-sky-950/20" : "border-slate-800 bg-slate-950/50 hover:border-slate-700 hover:bg-slate-900/70"}`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className={`rounded-full border px-2 py-0.5 text-[9px] font-medium ${statusClass(state)}`}>
+                      <span
+                        className={`rounded-full border px-2 py-0.5 text-[9px] font-medium ${statusClass(state)}`}
+                      >
                         {statusLabel(state)}
                       </span>
-                      {selected && <ChevronDown className="h-4 w-4 rotate-[-90deg] text-sky-300" aria-hidden="true" />}
+                      {selected && (
+                        <ChevronDown
+                          className="h-4 w-4 rotate-[-90deg] text-sky-300"
+                          aria-hidden="true"
+                        />
+                      )}
                     </div>
                     <p className="mt-2 line-clamp-2 text-sm font-medium leading-snug text-slate-100">
                       {readText(document.title, "Documento sin título")}
@@ -224,7 +236,9 @@ export const CodexView: React.FC = () => {
               <article className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/70 shadow-2xl shadow-black/20">
                 <header className="border-b border-slate-800/80 p-5 sm:p-7">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-full border px-2.5 py-1 text-[10px] font-medium ${statusClass(selectedState)}`}>
+                    <span
+                      className={`rounded-full border px-2.5 py-1 text-[10px] font-medium ${statusClass(selectedState)}`}
+                    >
                       {statusLabel(selectedState)}
                     </span>
                     <span className="text-xs text-slate-500">
@@ -242,7 +256,10 @@ export const CodexView: React.FC = () => {
 
                 <div className="p-5 sm:p-7">
                   <div className="whitespace-pre-wrap text-[15px] leading-8 text-slate-300">
-                    {readText(selectedVersion.content, "Este documento no contiene contenido visible.")}
+                    {readText(
+                      selectedVersion.content,
+                      "Este documento no contiene contenido visible.",
+                    )}
                   </div>
                 </div>
 
@@ -257,7 +274,10 @@ export const CodexView: React.FC = () => {
                       <Lock className="h-3.5 w-3.5 text-slate-500" aria-hidden="true" />
                       Detalles técnicos
                     </span>
-                    <ChevronDown className={`h-4 w-4 transition-transform ${showTechnicalDetails ? "rotate-180" : ""}`} aria-hidden="true" />
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${showTechnicalDetails ? "rotate-180" : ""}`}
+                      aria-hidden="true"
+                    />
                   </button>
 
                   {showTechnicalDetails && (
@@ -265,19 +285,27 @@ export const CodexView: React.FC = () => {
                       <dl className="grid gap-3 text-xs sm:grid-cols-2">
                         <div>
                           <dt className="text-slate-500">Identificador completo</dt>
-                          <dd className="mt-1 break-all font-mono text-slate-300">{selectedDocument.document_uid}</dd>
+                          <dd className="mt-1 break-all font-mono text-slate-300">
+                            {selectedDocument.document_uid}
+                          </dd>
                         </div>
                         <div>
                           <dt className="text-slate-500">Federación</dt>
-                          <dd className="mt-1 break-all font-mono text-slate-300">{readText(selectedDocument.federation_id)}</dd>
+                          <dd className="mt-1 break-all font-mono text-slate-300">
+                            {readText(selectedDocument.federation_id)}
+                          </dd>
                         </div>
                         <div>
                           <dt className="text-slate-500">Hash canónico</dt>
-                          <dd className="mt-1 break-all font-mono text-slate-300">{shortHash(selectedVersion.canonical_hash)}</dd>
+                          <dd className="mt-1 break-all font-mono text-slate-300">
+                            {shortHash(selectedVersion.canonical_hash)}
+                          </dd>
                         </div>
                         <div>
                           <dt className="text-slate-500">Creado por</dt>
-                          <dd className="mt-1 break-all font-mono text-slate-300">{readText(selectedDocument.created_by)}</dd>
+                          <dd className="mt-1 break-all font-mono text-slate-300">
+                            {readText(selectedDocument.created_by)}
+                          </dd>
                         </div>
                       </dl>
                     </div>

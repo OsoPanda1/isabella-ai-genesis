@@ -20,7 +20,12 @@ const governanceTree: NavigationNode[] = [
       { id: "gov-mem-saved", label: "Elementos guardados", type: "section" },
       { id: "gov-mem-prefs", label: "Preferencias", type: "section" },
       { id: "gov-mem-correct", label: "Correcciones", type: "action" },
-      { id: "gov-mem-delete", label: "Eliminar memoria", type: "action", requiresConfirmation: true },
+      {
+        id: "gov-mem-delete",
+        label: "Eliminar memoria",
+        type: "action",
+        requiresConfirmation: true,
+      },
     ],
   },
   {
@@ -42,7 +47,12 @@ const governanceTree: NavigationNode[] = [
     children: [
       { id: "gov-auth-personal", label: "Permisos personales", type: "section" },
       { id: "gov-auth-team", label: "Permisos de equipo", type: "section" },
-      { id: "gov-auth-pending", label: "Acciones pendientes", type: "section", badge: { value: 2, tone: "warning" } },
+      {
+        id: "gov-auth-pending",
+        label: "Acciones pendientes",
+        type: "section",
+        badge: { value: 2, tone: "warning" },
+      },
       { id: "gov-auth-approvals", label: "Aprobaciones", type: "section" },
       { id: "gov-auth-revoke", label: "Revocaciones", type: "action" },
     ],
@@ -80,7 +90,13 @@ const governanceTree: NavigationNode[] = [
       { id: "gov-priv-consent", label: "Consentimientos", type: "section" },
       { id: "gov-priv-usage", label: "Uso de información", type: "section" },
       { id: "gov-priv-download", label: "Descarga de datos", type: "action" },
-      { id: "gov-priv-delete", label: "Eliminación de cuenta", type: "action", requiresConfirmation: true, reversible: false },
+      {
+        id: "gov-priv-delete",
+        label: "Eliminación de cuenta",
+        type: "action",
+        requiresConfirmation: true,
+        reversible: false,
+      },
     ],
   },
   {
@@ -106,11 +122,7 @@ export function GovernanceNavbar() {
   return (
     <div className="navbar-content">
       {governanceTree.map((node) => (
-        <AccordionFolder
-          key={node.id}
-          node={node}
-          onAction={handleAction}
-        />
+        <AccordionFolder key={node.id} node={node} onAction={handleAction} />
       ))}
     </div>
   );

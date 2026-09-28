@@ -18,7 +18,10 @@ export interface CircuitStore {
 }
 
 export class MemoryCircuitStore implements CircuitStore {
-  private readonly store = new Map<string, { record: DistributedCircuitRecord; expiresAt: number }>();
+  private readonly store = new Map<
+    string,
+    { record: DistributedCircuitRecord; expiresAt: number }
+  >();
   private readonly leases = new Map<string, { leaseId: string; expiresAt: number }>();
 
   public async get(key: string): Promise<DistributedCircuitRecord | null> {
@@ -31,14 +34,22 @@ export class MemoryCircuitStore implements CircuitStore {
     return entry.record;
   }
 
-  public async set(key: string, value: DistributedCircuitRecord, ttlSeconds: number): Promise<void> {
+  public async set(
+    key: string,
+    value: DistributedCircuitRecord,
+    ttlSeconds: number,
+  ): Promise<void> {
     this.store.set(key, {
       record: value,
       expiresAt: Date.now() + ttlSeconds * 1000,
     });
   }
 
-  public async acquireHalfOpenLease(key: string, leaseId: string, ttlSeconds: number): Promise<boolean> {
+  public async acquireHalfOpenLease(
+    key: string,
+    leaseId: string,
+    ttlSeconds: number,
+  ): Promise<boolean> {
     const leaseKey = `${key}:lease`;
     const existing = this.leases.get(leaseKey);
     if (existing && Date.now() <= existing.expiresAt) {

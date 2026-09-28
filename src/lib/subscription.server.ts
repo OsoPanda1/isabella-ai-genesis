@@ -63,7 +63,12 @@ export const ISABELLA_PLANS: IsabellaPlan[] = [
     dailyVoiceSeconds: 1800,
     maxAgentSessions: 3,
     stripePriceEnv: "STRIPE_PRICE_PLUS",
-    features: ["Precio introductorio", "Gemini Flash federado", "Voice Studio ampliado", "Historial de sesión"],
+    features: [
+      "Precio introductorio",
+      "Gemini Flash federado",
+      "Voice Studio ampliado",
+      "Historial de sesión",
+    ],
   },
   {
     id: "premium",
@@ -74,7 +79,12 @@ export const ISABELLA_PLANS: IsabellaPlan[] = [
     dailyVoiceSeconds: 5400,
     maxAgentSessions: 8,
     stripePriceEnv: "STRIPE_PRICE_PREMIUM",
-    features: ["Prioridad CROWN", "Imagen Flux/Imagen", "Memoria de proyecto", "Exportación de auditoría"],
+    features: [
+      "Prioridad CROWN",
+      "Imagen Flux/Imagen",
+      "Memoria de proyecto",
+      "Exportación de auditoría",
+    ],
   },
   {
     id: "vip",
@@ -85,7 +95,12 @@ export const ISABELLA_PLANS: IsabellaPlan[] = [
     dailyVoiceSeconds: 14400,
     maxAgentSessions: 20,
     stripePriceEnv: "STRIPE_PRICE_VIP",
-    features: ["Baja latencia", "Agentes programáticos", "Herramientas ORION", "Soporte prioritario"],
+    features: [
+      "Baja latencia",
+      "Agentes programáticos",
+      "Herramientas ORION",
+      "Soporte prioritario",
+    ],
   },
   {
     id: "enterprise",
@@ -96,7 +111,12 @@ export const ISABELLA_PLANS: IsabellaPlan[] = [
     dailyVoiceSeconds: 86400,
     maxAgentSessions: 100,
     stripePriceEnv: "STRIPE_PRICE_ENTERPRISE",
-    features: ["Tenant dedicado", "SLA comercial", "SSO/API keys", "Retención y auditoría avanzada"],
+    features: [
+      "Tenant dedicado",
+      "SLA comercial",
+      "SSO/API keys",
+      "Retención y auditoría avanzada",
+    ],
   },
   {
     id: "custom",
@@ -106,7 +126,12 @@ export const ISABELLA_PLANS: IsabellaPlan[] = [
     dailyImages: Number.MAX_SAFE_INTEGER,
     dailyVoiceSeconds: Number.MAX_SAFE_INTEGER,
     maxAgentSessions: Number.MAX_SAFE_INTEGER,
-    features: ["Contrato a medida", "Despliegue soberano", "Modelos privados/locales", "Jurisdicción territorial"],
+    features: [
+      "Contrato a medida",
+      "Despliegue soberano",
+      "Modelos privados/locales",
+      "Jurisdicción territorial",
+    ],
   },
 ];
 
@@ -143,12 +168,25 @@ export function getUsage(userId: string): UsageBucket {
   const store = getSubscriptionStore();
   const current = store.getBucket(userId, dayKey);
   if (current) return current;
-  const fresh: UsageBucket = { userId, dayKey, messages: 0, images: 0, voiceSeconds: 0, agentSessions: 0, updatedAt: new Date().toISOString() };
+  const fresh: UsageBucket = {
+    userId,
+    dayKey,
+    messages: 0,
+    images: 0,
+    voiceSeconds: 0,
+    agentSessions: 0,
+    updatedAt: new Date().toISOString(),
+  };
   store.saveBucket(fresh);
   return fresh;
 }
 
-export function evaluateUsage(userId: string, capability: MeteredCapability, amount = 1, explicitPlan?: string): UsageDecision {
+export function evaluateUsage(
+  userId: string,
+  capability: MeteredCapability,
+  amount = 1,
+  explicitPlan?: string,
+): UsageDecision {
   const plan = getUserPlan(userId, explicitPlan);
   const usage = getUsage(userId);
   const requested = Math.max(1, Math.ceil(amount));
@@ -177,11 +215,18 @@ export function evaluateUsage(userId: string, capability: MeteredCapability, amo
       agentSessions: Math.max(0, plan.maxAgentSessions - usage.agentSessions),
     },
     upgradeRequired: !allowed,
-    reason: allowed ? undefined : `Límite diario ${capability} alcanzado para el plan ${plan.name}.`,
+    reason: allowed
+      ? undefined
+      : `Límite diario ${capability} alcanzado para el plan ${plan.name}.`,
   };
 }
 
-export function consumeUsage(userId: string, capability: MeteredCapability, amount = 1, explicitPlan?: string): UsageDecision {
+export function consumeUsage(
+  userId: string,
+  capability: MeteredCapability,
+  amount = 1,
+  explicitPlan?: string,
+): UsageDecision {
   const decision = evaluateUsage(userId, capability, amount, explicitPlan);
   if (!decision.allowed) return decision;
   const usage = { ...decision.usage };
@@ -192,17 +237,22 @@ export function consumeUsage(userId: string, capability: MeteredCapability, amou
   if (capability === "agent") usage.agentSessions += requested;
   usage.updatedAt = new Date().toISOString();
   getSubscriptionStore().saveBucket(usage);
-  return { ...decision, usage, remaining: {
-    messages: Math.max(0, decision.plan.dailyMessages - usage.messages),
-    images: Math.max(0, decision.plan.dailyImages - usage.images),
-    voiceSeconds: Math.max(0, decision.plan.dailyVoiceSeconds - usage.voiceSeconds),
-    agentSessions: Math.max(0, decision.plan.maxAgentSessions - usage.agentSessions),
-  }};
+  return {
+    ...decision,
+    usage,
+    remaining: {
+      messages: Math.max(0, decision.plan.dailyMessages - usage.messages),
+      images: Math.max(0, decision.plan.dailyImages - usage.images),
+      voiceSeconds: Math.max(0, decision.plan.dailyVoiceSeconds - usage.voiceSeconds),
+      agentSessions: Math.max(0, decision.plan.maxAgentSessions - usage.agentSessions),
+    },
+  };
 }
 
 export function buildCheckoutUrl(planId: IsabellaPlanId, userId: string): string {
   const plan = planById(planId);
-  const baseUrl = process.env.BILLING_CHECKOUT_BASE_URL || process.env.PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl =
+    process.env.BILLING_CHECKOUT_BASE_URL || process.env.PUBLIC_APP_URL || "http://localhost:3000";
   const priceEnv = plan.stripePriceEnv ? process.env[plan.stripePriceEnv] : undefined;
   // Stripe real: se redirige al endpoint de provider, que crea una Checkout
   // Session auténtica y devuelve su URL para completar el pago.

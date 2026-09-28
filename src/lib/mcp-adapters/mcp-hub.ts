@@ -76,7 +76,12 @@ export async function queryAdapters(
       return { adapterId: adapter.id, ready: true, results, resultCount: results.length };
     } catch (err) {
       log.warn("adapter_query_failed", { adapterId: adapter.id, error: String(err) });
-      return { adapterId: adapter.id, ready: false, results: [] as ReadonlyArray<MCPQueryResultV2>, resultCount: 0 };
+      return {
+        adapterId: adapter.id,
+        ready: false,
+        results: [] as ReadonlyArray<MCPQueryResultV2>,
+        resultCount: 0,
+      };
     }
   });
 

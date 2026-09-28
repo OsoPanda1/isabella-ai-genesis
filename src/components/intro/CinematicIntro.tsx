@@ -358,12 +358,7 @@ function createComets(particleCount: number) {
   ];
 
   return cometDefs.map((def) => {
-    const curve = new THREE.CatmullRomCurve3([
-      def.start,
-      def.controlA,
-      def.controlB,
-      def.end,
-    ]);
+    const curve = new THREE.CatmullRomCurve3([def.start, def.controlA, def.controlB, def.end]);
 
     const trailPositions = new Float32Array(particleCount * 3);
     const trailSizes = new Float32Array(particleCount);
@@ -467,7 +462,8 @@ function createHeart(): THREE.Group {
 
   // Heart shape using curves
   const heartShape = new THREE.Shape();
-  const x = 0, y = 0;
+  const x = 0,
+    y = 0;
   heartShape.moveTo(x, y + 0.35);
   heartShape.bezierCurveTo(x, y + 0.35, x - 0.05, y + 0.5, x - 0.25, y + 0.5);
   heartShape.bezierCurveTo(x - 0.55, y + 0.5, x - 0.55, y + 0.175, x - 0.55, y + 0.175);
@@ -635,12 +631,7 @@ function createInterfaceElements() {
 // UPDATE FUNCTIONS
 // ============================================================================
 
-function updateStarfield2D(
-  stars: THREE.Points,
-  time: number,
-  _delta: number,
-  phase: IntroPhase,
-) {
+function updateStarfield2D(stars: THREE.Points, time: number, _delta: number, phase: IntroPhase) {
   const material = stars.material as THREE.PointsMaterial;
 
   if (phase === "VOID") {
@@ -665,12 +656,7 @@ function updateStarfield2D(
   }
 }
 
-function updateStarfield3D(
-  stars: THREE.Points,
-  time: number,
-  _delta: number,
-  phase: IntroPhase,
-) {
+function updateStarfield3D(stars: THREE.Points, time: number, _delta: number, phase: IntroPhase) {
   const material = stars.material as THREE.PointsMaterial;
 
   if (phase === "VOID") {
@@ -760,13 +746,14 @@ function updateCoreRings(
   }
 }
 
-function updateLogo(
-  logo: THREE.Group,
-  time: number,
-  _delta: number,
-  phase: IntroPhase,
-) {
-  if (phase !== "LOGO_REVEAL" && phase !== "HEARTBEAT" && phase !== "HUMMINGBIRD_ENTRY" && phase !== "HUMMINGBIRD_ASCENT" && phase !== "INTERFACE_REVEAL") {
+function updateLogo(logo: THREE.Group, time: number, _delta: number, phase: IntroPhase) {
+  if (
+    phase !== "LOGO_REVEAL" &&
+    phase !== "HEARTBEAT" &&
+    phase !== "HUMMINGBIRD_ENTRY" &&
+    phase !== "HUMMINGBIRD_ASCENT" &&
+    phase !== "INTERFACE_REVEAL"
+  ) {
     logo.visible = false;
     return;
   }
@@ -798,7 +785,12 @@ function updateHeart(
   phase: IntroPhase,
   heartLight: THREE.PointLight,
 ) {
-  if (phase !== "HEARTBEAT" && phase !== "HUMMINGBIRD_ENTRY" && phase !== "HUMMINGBIRD_ASCENT" && phase !== "INTERFACE_REVEAL") {
+  if (
+    phase !== "HEARTBEAT" &&
+    phase !== "HUMMINGBIRD_ENTRY" &&
+    phase !== "HUMMINGBIRD_ASCENT" &&
+    phase !== "INTERFACE_REVEAL"
+  ) {
     heart.visible = false;
     heartLight.intensity = 0;
     return;
@@ -833,12 +825,7 @@ function updateHeart(
   }
 }
 
-function updateHummingbird(
-  bird: THREE.Group,
-  time: number,
-  _delta: number,
-  phase: IntroPhase,
-) {
+function updateHummingbird(bird: THREE.Group, time: number, _delta: number, phase: IntroPhase) {
   if (phase !== "HUMMINGBIRD_ENTRY" && phase !== "HUMMINGBIRD_ASCENT") {
     bird.visible = false;
     return;

@@ -127,10 +127,7 @@ export class ContextBuilder {
       session: {
         ...defaultSession,
         ...partial.session,
-        sessionId:
-          partial.sessionId ??
-          partial.session?.sessionId ??
-          defaultSession.sessionId,
+        sessionId: partial.sessionId ?? partial.session?.sessionId ?? defaultSession.sessionId,
         lastActivityAt: now,
       },
       project: {
@@ -180,10 +177,7 @@ export class ContextBuilder {
   /**
    * Extract only the minimal context needed for a given intent.
    */
-  extractMinimal(
-    full: ContextFrame,
-    intentCategory: string,
-  ): Partial<ContextFrame> {
+  extractMinimal(full: ContextFrame, intentCategory: string): Partial<ContextFrame> {
     const minimal: Partial<ContextFrame> = {
       session: {
         ...full.session,

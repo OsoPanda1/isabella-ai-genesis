@@ -50,12 +50,7 @@ const CLASSIFICATION_LEVELS = [
   "critical",
 ] as const;
 
-const SENSITIVITY_LEVELS = [
-  "public",
-  "internal",
-  "confidential",
-  "secret",
-] as const;
+const SENSITIVITY_LEVELS = ["public", "internal", "confidential", "secret"] as const;
 
 function toSensitivityMax(classification: string): SensitivityLevel {
   const classIndex = CLASSIFICATION_LEVELS.indexOf(
@@ -189,9 +184,7 @@ export class DualKernel {
         alternatives: hypotheses[0]?.alternatives ?? [],
         risks: hypotheses[0]?.risks ?? [],
         experiments: hypotheses[0]?.experiments ?? [],
-        ...(request.constraints !== undefined
-          ? { constraints: request.constraints }
-          : {}),
+        ...(request.constraints !== undefined ? { constraints: request.constraints } : {}),
       });
 
       /* ─── BETA: Risk Assessment ───────────────────────────── */
@@ -227,9 +220,7 @@ export class DualKernel {
           intent: request.intent,
           requestedCapabilities: request.requestedCapabilities ?? [],
           allowedScopes: identity.scopes,
-          ...(request.constraints !== undefined
-            ? { constraints: request.constraints }
-            : {}),
+          ...(request.constraints !== undefined ? { constraints: request.constraints } : {}),
         });
 
         if (capability) {
@@ -268,8 +259,7 @@ export class DualKernel {
       });
 
       /* ─── BUILD RESPONSE ──────────────────────────────────── */
-      state =
-        governance.result === "review" ? "approval_required" : "completed";
+      state = governance.result === "review" ? "approval_required" : "completed";
 
       const telemetry: TelemetryRecord = {
         traceId: randomUUID().replace(/-/g, "").slice(0, 32),
@@ -286,8 +276,7 @@ export class DualKernel {
           policyDenyTotal: governance.result === "deny" ? 1 : 0,
           reviewRequiredTotal: governance.result === "review" ? 1 : 0,
           scopeDenialTotal: governance.scopeDenials.length,
-          verificationFailureTotal: verification.checks.filter((c) => !c.passed)
-            .length,
+          verificationFailureTotal: verification.checks.filter((c) => !c.passed).length,
           fallbackTotal: 0,
         },
         runtime: {
@@ -315,9 +304,7 @@ export class DualKernel {
       return {
         requestId: request.requestId,
         status: "degraded",
-        answer: `Processing error: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
+        answer: `Processing error: ${error instanceof Error ? error.message : "Unknown error"}`,
         governance: {
           decisionId: randomUUID(),
           result: "defer",

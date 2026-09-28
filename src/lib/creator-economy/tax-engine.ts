@@ -92,7 +92,11 @@ export function isClabeValid(clabe: string): boolean {
  * CFDI 4.0 (Complemento Plataformas Digitales) metadata payload — the
  * document itself is emitted by the certified PAC at month close.
  */
-export function buildCfdiMetadata(creatorRfc: string, period: string, calc: TaxDeductionCalculation) {
+export function buildCfdiMetadata(
+  creatorRfc: string,
+  period: string,
+  calc: TaxDeductionCalculation,
+) {
   return Object.freeze({
     tipoComprobante: "R", // retenciones e información de pagos
     complemento: "plataformasdigitales",

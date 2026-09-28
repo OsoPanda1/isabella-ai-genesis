@@ -17,13 +17,7 @@
 // ============================================================================
 
 export type ProviderId =
-  | "lovable-gateway"
-  | "openai"
-  | "anthropic"
-  | "google"
-  | "ollama"
-  | "local"
-  | "custom";
+  "lovable-gateway" | "openai" | "anthropic" | "google" | "ollama" | "local" | "custom";
 
 export type ApiMode = "chat_completions" | "responses" | "embedding";
 
@@ -95,30 +89,19 @@ export abstract class ProviderTransport {
   abstract readonly name: string;
   abstract readonly apiMode: ApiMode;
 
-  abstract convertMessages(
-    messages: NormalizedMessage[],
-  ): unknown[];
+  abstract convertMessages(messages: NormalizedMessage[]): unknown[];
 
-  abstract convertTools(
-    tools: NormalizedTool[],
-  ): unknown[];
+  abstract convertTools(tools: NormalizedTool[]): unknown[];
 
-  abstract buildRequest(
-    request: ProviderRequest,
-  ): Record<string, unknown>;
+  abstract buildRequest(request: ProviderRequest): Record<string, unknown>;
 
-  abstract normalizeResponse(
-    raw: unknown,
-    provider: ProviderId,
-  ): ProviderResponse;
+  abstract normalizeResponse(raw: unknown, provider: ProviderId): ProviderResponse;
 
   validateResponse(_raw: unknown): boolean {
     return true;
   }
 
-  extractCacheStats(
-    _raw: unknown,
-  ): { cachedTokens: number; creationTokens: number } | null {
+  extractCacheStats(_raw: unknown): { cachedTokens: number; creationTokens: number } | null {
     return null;
   }
 
@@ -276,9 +259,7 @@ class AnthropicTransport extends ProviderTransport {
     return {
       model: request.model,
       system: system?.content,
-      messages: this.convertMessages(
-        request.messages.filter((m) => m.role !== "system"),
-      ),
+      messages: this.convertMessages(request.messages.filter((m) => m.role !== "system")),
       tools: request.tools ? this.convertTools(request.tools) : undefined,
       max_tokens: request.maxTokens ?? 4096,
       temperature: request.temperature ?? 0.7,
@@ -289,26 +270,19 @@ class AnthropicTransport extends ProviderTransport {
   normalizeResponse(raw: unknown, provider: ProviderId): ProviderResponse {
     const data = raw as Record<string, unknown>;
     const content = (data["content"] ?? []) as Array<Record<string, unknown>>;
-    const textBlock = content.find(
-      (b: Record<string, unknown>) => b["type"] === "text",
-    );
+    const textBlock = content.find((b: Record<string, unknown>) => b["type"] === "text");
 
     return {
       content: (textBlock?.["text"] as string) ?? "",
       finishReason: (data["stop_reason"] as string) ?? "end_turn",
       model: (data["model"] as string) ?? "unknown",
       usage: {
-        promptTokens:
-          ((data["usage"] as Record<string, number>)?.["input_tokens"] as number) ??
-          0,
+        promptTokens: ((data["usage"] as Record<string, number>)?.["input_tokens"] as number) ?? 0,
         completionTokens:
-          ((data["usage"] as Record<string, number>)?.["output_tokens"] as number) ??
-          0,
+          ((data["usage"] as Record<string, number>)?.["output_tokens"] as number) ?? 0,
         totalTokens:
-          (((data["usage"] as Record<string, number>)?.["input_tokens"] as number) ??
-            0) +
-          (((data["usage"] as Record<string, number>)?.["output_tokens"] as number) ??
-            0),
+          (((data["usage"] as Record<string, number>)?.["input_tokens"] as number) ?? 0) +
+          (((data["usage"] as Record<string, number>)?.["output_tokens"] as number) ?? 0),
       },
       latencyMs: 0,
       provider,
@@ -355,10 +329,7 @@ export class NODORouter {
     return this.transports.get(provider);
   }
 
-  async route(
-    request: ProviderRequest,
-    provider?: ProviderId,
-  ): Promise<ProviderResponse> {
+  async route(request: ProviderRequest, provider?: ProviderId): Promise<ProviderResponse> {
     const target = provider ?? this.config.defaultProvider;
     const order = [target, ...this.config.fallbacks.filter((p) => p !== target)];
 

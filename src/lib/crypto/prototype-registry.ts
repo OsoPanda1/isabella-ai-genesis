@@ -26,7 +26,8 @@ export type PrototypeCryptoComponent = (typeof PROTOTYPE_CRYPTO_COMPONENTS)[numb
 
 function labModeEnabled(): boolean {
   // Servidor / Node: flag explícito.
-  const nodeEnv = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
+  const nodeEnv = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process
+    ?.env;
   if (nodeEnv?.FEATURE_LAB_MODE === "true") return true;
   // Navegador (Vite): flag explícito únicamente. No se auto-habilita en DEV
   // para no presentar nunca cripto simulada como disponible por defecto.

@@ -8,8 +8,19 @@
  */
 import { randomUUID } from "node:crypto";
 import { createLogger } from "../logger";
-import { AUTOMATION_ATLAS, getAutomationNode, getAffectedChain, getDependencyChain } from "./registry";
-import type { AutomationNode, AutomationStatus, AutomationSeverity, FailureEvent, RepairChain } from "./contracts";
+import {
+  AUTOMATION_ATLAS,
+  getAutomationNode,
+  getAffectedChain,
+  getDependencyChain,
+} from "./registry";
+import type {
+  AutomationNode,
+  AutomationStatus,
+  AutomationSeverity,
+  FailureEvent,
+  RepairChain,
+} from "./contracts";
 
 const log = createLogger("automation-mesh");
 
@@ -70,7 +81,10 @@ const HEALTH_CHECKS: Record<string, () => { ok: boolean; detail: string }> = {
   "Q-bookpi": () => ({ ok: true, detail: "Audit chain integrity verified" }),
   "R-hsm": () => {
     const hasHSM = !!process.env.YUBIHSM_SERIAL;
-    return { ok: true, detail: hasHSM ? "HSM connected" : "HSM simulation mode (dual failover ready)" };
+    return {
+      ok: true,
+      detail: hasHSM ? "HSM connected" : "HSM simulation mode (dual failover ready)",
+    };
   },
   "S-tee": () => ({ ok: true, detail: "TEE attestation mock operational" }),
   "T-audit-tracer": () => ({ ok: true, detail: "Audit buffer operational" }),
@@ -222,9 +236,13 @@ function createFailureEvent(nodeId: string, health: NodeHealth): FailureEvent {
   const dependencyChain = getDependencyChain(nodeId);
 
   const severity: AutomationSeverity =
-    health.consecutiveFailures >= 5 ? "catastrophic" :
-    health.consecutiveFailures >= 3 ? "critical" :
-    health.consecutiveFailures >= 2 ? "warning" : "info";
+    health.consecutiveFailures >= 5
+      ? "catastrophic"
+      : health.consecutiveFailures >= 3
+        ? "critical"
+        : health.consecutiveFailures >= 2
+          ? "warning"
+          : "info";
 
   const repairPlan: FailureEvent["repairPlan"] = [];
 
@@ -292,13 +310,12 @@ const repairChains = new Map<string, RepairChain>();
  * Crea una cadena de reparación que reconecta A + B + C + D + E...
  * cuando un nodo falla.
  */
-export function createRepairChain(
-  triggerNodeId: string,
-  humanDescription: string,
-): RepairChain {
+export function createRepairChain(triggerNodeId: string, humanDescription: string): RepairChain {
   const affected = getAffectedChain(triggerNodeId);
   const dependencies = getDependencyChain(triggerNodeId);
-  const allNodes = [...new Set([...dependencies, ...affected])].filter((id) => id !== triggerNodeId);
+  const allNodes = [...new Set([...dependencies, ...affected])].filter(
+    (id) => id !== triggerNodeId,
+  );
 
   const nodes: RepairChain["nodes"] = allNodes.map((nodeId, index) => ({
     nodeId,
@@ -393,7 +410,9 @@ export function getMeshStatus() {
     offline,
     unknown,
     activeFailures: activeFailures.size,
-    activeRepairChains: Array.from(repairChains.values()).filter((c) => c.overallStatus === "in_progress").length,
+    activeRepairChains: Array.from(repairChains.values()).filter(
+      (c) => c.overallStatus === "in_progress",
+    ).length,
     nodes,
   };
 }

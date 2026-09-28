@@ -50,16 +50,24 @@ export function encryptToken(plaintext: string): { ciphertext: string; iv: strin
 export function decryptToken(ciphertext: string, iv: string, tag: string): string {
   const decipher = createDecipheriv("aes-256-gcm", vaultKey(), Buffer.from(iv, "base64"));
   decipher.setAuthTag(Buffer.from(tag, "base64"));
-  return Buffer.concat([decipher.update(Buffer.from(ciphertext, "base64")), decipher.final()]).toString("utf8");
+  return Buffer.concat([
+    decipher.update(Buffer.from(ciphertext, "base64")),
+    decipher.final(),
+  ]).toString("utf8");
 }
 
 // ---------- Provider registry (minimal scopes, never delete) ----------
 
-export const PROVIDERS: Readonly<Record<ChannelProvider, {
-  authorizationUrl: string;
-  tokenUrl: string;
-  publishScopes: readonly string[];
-}>> = Object.freeze({
+export const PROVIDERS: Readonly<
+  Record<
+    ChannelProvider,
+    {
+      authorizationUrl: string;
+      tokenUrl: string;
+      publishScopes: readonly string[];
+    }
+  >
+> = Object.freeze({
   youtube: Object.freeze({
     authorizationUrl: "https://accounts.google.com/o/oauth2/v2/auth",
     tokenUrl: "https://oauth2.googleapis.com/token",
@@ -173,7 +181,9 @@ export function getDecryptedToken(channelId: string): string | null {
 
 export class ApprovalRequiredError extends Error {
   constructor() {
-    super("USER_APPROVAL_REQUIRED: ninguna publicación externa sin aprobación explícita del creador");
+    super(
+      "USER_APPROVAL_REQUIRED: ninguna publicación externa sin aprobación explícita del creador",
+    );
     this.name = "ApprovalRequiredError";
   }
 }

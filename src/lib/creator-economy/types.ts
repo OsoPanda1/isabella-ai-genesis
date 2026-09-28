@@ -12,9 +12,11 @@ export type Currency = "MXN" | "USD";
 
 export type AssetFormat = "post" | "video" | "audio" | "image" | "guide" | "newsletter";
 export type AssetStatus = "draft" | "review" | "approved" | "scheduled" | "published" | "archived";
-export type OfferType = "service" | "digital_product" | "membership" | "experience_rdm" | "sponsorship";
+export type OfferType =
+  "service" | "digital_product" | "membership" | "experience_rdm" | "sponsorship";
 export type OfferStatus = "hypothesis" | "draft" | "active" | "paused" | "archived";
-export type SkillCategory = "writing" | "video" | "audio" | "visual" | "analytics" | "commerce" | "local_rdm";
+export type SkillCategory =
+  "writing" | "video" | "audio" | "visual" | "analytics" | "commerce" | "local_rdm";
 
 export type AccountType =
   | "customer_cash_clearing"
@@ -29,7 +31,8 @@ export type AccountType =
 
 export type LedgerDirection = "debit" | "credit";
 export type PayoutStatus = "requested" | "approved" | "processing" | "paid" | "failed" | "reversed";
-export type TransactionKind = "gift" | "offer_sale" | "membership" | "credit_purchase" | "payout" | "reversal";
+export type TransactionKind =
+  "gift" | "offer_sale" | "membership" | "credit_purchase" | "payout" | "reversal";
 export type ChannelProvider = "youtube" | "meta" | "tiktok" | "x" | "linkedin" | "wordpress";
 
 // ---------- Plans / Entitlements ----------

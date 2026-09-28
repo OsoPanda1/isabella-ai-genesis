@@ -19,12 +19,36 @@ import { soundManager } from "../../utils/soundEffects";
 import { GeneratedImageItem } from "../../types";
 
 const STYLES = [
-  { id: "cyber_ethereal", label: "Cyber Ethereal", desc: "Aura bioluminiscente, tonos magenta, violeta y cian futurista" },
-  { id: "renaissance_neural", label: "Renaissance Neural", desc: "Claroscuro clásico, elegancia atemporal y finos trazos de luz dorada" },
-  { id: "cosmic_rosegold", label: "Cosmic Rose-Gold", desc: "Destellos de nebulosas cósmicas, texturas de oro rosa y polvo estelar" },
-  { id: "holographic_dream", label: "Holographic Dream", desc: "Patrones holográficos iridiscentes y geometría translúcida fluida" },
-  { id: "sacred_geometry", label: "Sacred Geometry", desc: "Mandalas cuánticos, vectores fractales y armonía áurea" },
-  { id: "cyberpunk_neon", label: "Cyberpunk Noir", desc: "Contraste dramático, neón nocturno y lluvia digital reflejada" },
+  {
+    id: "cyber_ethereal",
+    label: "Cyber Ethereal",
+    desc: "Aura bioluminiscente, tonos magenta, violeta y cian futurista",
+  },
+  {
+    id: "renaissance_neural",
+    label: "Renaissance Neural",
+    desc: "Claroscuro clásico, elegancia atemporal y finos trazos de luz dorada",
+  },
+  {
+    id: "cosmic_rosegold",
+    label: "Cosmic Rose-Gold",
+    desc: "Destellos de nebulosas cósmicas, texturas de oro rosa y polvo estelar",
+  },
+  {
+    id: "holographic_dream",
+    label: "Holographic Dream",
+    desc: "Patrones holográficos iridiscentes y geometría translúcida fluida",
+  },
+  {
+    id: "sacred_geometry",
+    label: "Sacred Geometry",
+    desc: "Mandalas cuánticos, vectores fractales y armonía áurea",
+  },
+  {
+    id: "cyberpunk_neon",
+    label: "Cyberpunk Noir",
+    desc: "Contraste dramático, neón nocturno y lluvia digital reflejada",
+  },
 ];
 
 const ASPECT_RATIOS = [
@@ -88,7 +112,8 @@ export const ImageStudioView: React.FC = () => {
                     Estudio de Síntesis Visual :: ORION Canvas
                   </h2>
                   <p className="text-xs font-mono text-slate-400">
-                    Generación de obras de arte, retratos y visualizaciones estéticas con el motor Isabella ORION
+                    Generación de obras de arte, retratos y visualizaciones estéticas con el motor
+                    Isabella ORION
                   </p>
                 </div>
               </div>
@@ -292,9 +317,7 @@ export const ImageStudioView: React.FC = () => {
                   <span className="px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-sky-300 text-xs font-mono">
                     Síntesis ORION Canvas
                   </span>
-                  <h3 className="text-lg font-bold text-[#F8FAFC] mt-2">
-                    Detalles de la Obra
-                  </h3>
+                  <h3 className="text-lg font-bold text-[#F8FAFC] mt-2">Detalles de la Obra</h3>
                 </div>
 
                 <div className="rounded-xl bg-[#030712]/80 border border-slate-800 p-3.5 space-y-2">
@@ -311,7 +334,9 @@ export const ImageStudioView: React.FC = () => {
                   </div>
                   <div className="rounded-xl bg-[#030712]/60 border border-slate-800 p-2.5">
                     <span className="text-slate-400">Relación de Aspecto:</span>
-                    <p className="text-sky-300 font-semibold mt-0.5">{activeModalImage.aspectRatio || "1:1"}</p>
+                    <p className="text-sky-300 font-semibold mt-0.5">
+                      {activeModalImage.aspectRatio || "1:1"}
+                    </p>
                   </div>
                   <div className="rounded-xl bg-[#030712]/60 border border-slate-800 p-2.5">
                     <span className="text-slate-400">Generador:</span>
@@ -319,13 +344,15 @@ export const ImageStudioView: React.FC = () => {
                       {activeModalImage.source === "gemini"
                         ? "Gemini Neural Imagen"
                         : activeModalImage.source === "orion_flux"
-                        ? "ORION Neural Flux"
-                        : "ORION Canvas Engine"}
+                          ? "ORION Neural Flux"
+                          : "ORION Canvas Engine"}
                     </p>
                   </div>
                   <div className="rounded-xl bg-[#030712]/60 border border-slate-800 p-2.5">
                     <span className="text-slate-400">Hora:</span>
-                    <p className="text-slate-200 font-semibold mt-0.5">{activeModalImage.timestamp}</p>
+                    <p className="text-slate-200 font-semibold mt-0.5">
+                      {activeModalImage.timestamp}
+                    </p>
                   </div>
                 </div>
 

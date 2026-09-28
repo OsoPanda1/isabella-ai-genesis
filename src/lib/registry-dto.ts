@@ -5,11 +5,7 @@
  * These interfaces are what crosses the TanStack RPC boundary and are
  * verified by the contract tests in `tests/contract/registry.test.ts`.
  */
-import type {
-  DocumentRecord,
-  DocumentState,
-  DocumentVersion,
-} from "./document-registry.server";
+import type { DocumentRecord, DocumentState, DocumentVersion } from "./document-registry.server";
 import type { AtlasEvent, AtlasEventType } from "./events-catalog";
 import type { JsonObject } from "./atlas-json";
 

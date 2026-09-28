@@ -131,6 +131,7 @@ export function getTEEStatus() {
     unverified,
     recent: attestationLog.slice(-10),
     verificationService: "isabella-tee-verifier-v1",
-    disclaimer: "TEE attestation is NOT a guarantee. Recent research has shown attacks on certain enclave models.",
+    disclaimer:
+      "TEE attestation is NOT a guarantee. Recent research has shown attacks on certain enclave models.",
   };
 }

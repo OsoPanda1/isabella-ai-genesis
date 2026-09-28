@@ -16,4 +16,8 @@ export * from "./tee-attestation";
 export * from "./telemetry";
 export * from "./recovery";
 export * from "./orchestrator";
-export { QUANTUM_SQL_MIGRATION, QUANTUM_SQL_INDEXES, QUANTUM_SCHEMA_TABLES } from "../../data/quantumMigrations";
+export {
+  QUANTUM_SQL_MIGRATION,
+  QUANTUM_SQL_INDEXES,
+  QUANTUM_SCHEMA_TABLES,
+} from "../../data/quantumMigrations";

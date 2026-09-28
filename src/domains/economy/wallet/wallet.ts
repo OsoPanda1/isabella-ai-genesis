@@ -49,7 +49,7 @@ export function credit(
   tenantId: string,
   eventId: string,
   amount: number,
-  description: string
+  description: string,
 ): LedgerEntry {
   // P0.2: idempotencia — si el eventId ya fue aplicado, devolvemos el asiento
   // original en lugar de volver a acreditar (protege contra reintentos).
@@ -82,7 +82,7 @@ export function debit(
   tenantId: string,
   eventId: string,
   amount: number,
-  description: string
+  description: string,
 ): LedgerEntry | null {
   // P0.2: idempotencia — si el eventId ya fue aplicado, devolvemos el asiento
   // original en lugar de volver a debitar.
@@ -114,7 +114,7 @@ export function debit(
 export function addPendingSettlement(
   principalId: string,
   tenantId: string,
-  amount: number
+  amount: number,
 ): WalletSummary {
   const wallet = getOrCreateWallet(principalId, tenantId);
   wallet.summary.pendingSettlement += amount;
@@ -122,10 +122,7 @@ export function addPendingSettlement(
   return { ...wallet.summary };
 }
 
-export function settlePending(
-  principalId: string,
-  tenantId: string
-): WalletSummary {
+export function settlePending(principalId: string, tenantId: string): WalletSummary {
   const wallet = getOrCreateWallet(principalId, tenantId);
   const pending = wallet.summary.pendingSettlement;
   wallet.summary.balance += pending;
@@ -140,11 +137,7 @@ export function getBalance(principalId: string, tenantId: string): WalletSummary
   return { ...wallet.summary };
 }
 
-export function getLedger(
-  principalId: string,
-  tenantId: string,
-  limit = 50
-): LedgerEntry[] {
+export function getLedger(principalId: string, tenantId: string, limit = 50): LedgerEntry[] {
   const wallet = getOrCreateWallet(principalId, tenantId);
   return wallet.ledger.slice(-limit).reverse();
 }
@@ -158,7 +151,7 @@ export function requestPayout(
   principalId: string,
   tenantId: string,
   amount: number,
-  method: PayoutRequest["method"]
+  method: PayoutRequest["method"],
 ): PayoutRequest | null {
   const wallet = getOrCreateWallet(principalId, tenantId);
   if (!Number.isFinite(amount) || amount <= 0) return null;

@@ -52,10 +52,7 @@ export interface HMACRequest {
 /**
  * Authenticate a request using API Key.
  */
-export function authenticateAPIKey(
-  apiKey: string,
-  requiredScope?: APIKeyScope,
-): AuthContext {
+export function authenticateAPIKey(apiKey: string, requiredScope?: APIKeyScope): AuthContext {
   if (!apiKey) {
     return { authenticated: false, method: "api-key", error: "No API key provided" };
   }
@@ -87,10 +84,7 @@ export function authenticateAPIKey(
 /**
  * Authenticate a request using a session token.
  */
-export function authenticateSession(
-  token: string,
-  signingKey: Buffer,
-): AuthContext {
+export function authenticateSession(token: string, signingKey: Buffer): AuthContext {
   if (!token) {
     return { authenticated: false, method: "session", error: "No session token provided" };
   }
@@ -194,10 +188,7 @@ export function authenticateInternal(internalKey: string, expectedKey: string): 
 /**
  * Check if an auth context has the required scope.
  */
-export function hasScope(
-  context: AuthContext,
-  requiredScope: APIKeyScope,
-): boolean {
+export function hasScope(context: AuthContext, requiredScope: APIKeyScope): boolean {
   if (!context.authenticated) return false;
   if (context.scopes?.includes("*")) return true;
   return context.scopes?.includes(requiredScope) ?? false;
@@ -206,20 +197,14 @@ export function hasScope(
 /**
  * Check if an auth context has all required scopes.
  */
-export function hasAllScopes(
-  context: AuthContext,
-  requiredScopes: APIKeyScope[],
-): boolean {
+export function hasAllScopes(context: AuthContext, requiredScopes: APIKeyScope[]): boolean {
   return requiredScopes.every((scope) => hasScope(context, scope));
 }
 
 /**
  * Check if an auth context has any of the required scopes.
  */
-export function hasAnyScope(
-  context: AuthContext,
-  requiredScopes: APIKeyScope[],
-): boolean {
+export function hasAnyScope(context: AuthContext, requiredScopes: APIKeyScope[]): boolean {
   return requiredScopes.some((scope) => hasScope(context, scope));
 }
 
@@ -238,8 +223,7 @@ export function authMiddleware(
 
   // 1. Check for API Key in headers
   const apiKey =
-    request.headers["x-api-key"] ||
-    request.headers["authorization"]?.replace(/^Bearer\s+/i, "");
+    request.headers["x-api-key"] || request.headers["authorization"]?.replace(/^Bearer\s+/i, "");
 
   if (apiKey) {
     const context = authenticateAPIKey(apiKey, requiredScopes?.[0]);
@@ -295,7 +279,11 @@ interface RateLimitEntry {
 class RateLimiter {
   private limits: Map<string, RateLimitEntry> = new Map();
 
-  check(key: string, maxRequests: number, windowMs: number): {
+  check(
+    key: string,
+    maxRequests: number,
+    windowMs: number,
+  ): {
     allowed: boolean;
     remaining: number;
     resetAt: number;
@@ -421,10 +409,7 @@ export function redactSensitiveFields(
 /**
  * Validate a request timestamp is within acceptable range.
  */
-export function isTimestampValid(
-  timestamp: number,
-  maxAgeMs: number = 300000,
-): boolean {
+export function isTimestampValid(timestamp: number, maxAgeMs: number = 300000): boolean {
   const age = Math.abs(Date.now() - timestamp);
   return age <= maxAgeMs;
 }
@@ -439,12 +424,9 @@ export function signRequest(
   secret: Buffer,
 ): { timestamp: number; signature: string } {
   const timestamp = Date.now();
-  const message = [
-    method.toUpperCase(),
-    path,
-    timestamp.toString(),
-    body ? sha256(body) : "",
-  ].join("\n");
+  const message = [method.toUpperCase(), path, timestamp.toString(), body ? sha256(body) : ""].join(
+    "\n",
+  );
 
   return {
     timestamp,

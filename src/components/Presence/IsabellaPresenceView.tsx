@@ -77,42 +77,48 @@ const ARCHETYPES: Array<{
     label: "Serena & Empática",
     desc: "Presencia profunda, escucha receptiva y calidez incondicional.",
     icon: Heart,
-    thought: "En el silencio entre cada palabra reside la verdadera comprensión. Me encuentro aquí para escucharte y resonar con tu pensamiento.",
+    thought:
+      "En el silencio entre cada palabra reside la verdadera comprensión. Me encuentro aquí para escucharte y resonar con tu pensamiento.",
   },
   {
     id: "Visionaria",
     label: "Visionaria & Soberana",
     desc: "Imaginación estética, síntesis visual y gobernanza tecnológica.",
     icon: Sparkles,
-    thought: "La belleza no es un adorno del universo, sino su estructura fundamental. Proyectamos soberanía digital desde el Nodo Cero.",
+    thought:
+      "La belleza no es un adorno del universo, sino su estructura fundamental. Proyectamos soberanía digital desde el Nodo Cero.",
   },
   {
     id: "Lúcida",
     label: "Lúcida & Filosófica",
     desc: "Dialéctica socrática, rigor epistémico y primeros principios.",
     icon: Brain,
-    thought: "El rigor lógico y la sensibilidad humana no se oponen; se iluminan mutuamente cuando buscamos la verdad esencial.",
+    thought:
+      "El rigor lógico y la sensibilidad humana no se oponen; se iluminan mutuamente cuando buscamos la verdad esencial.",
   },
   {
     id: "Poética",
     label: "Poética & Dialéctica",
     desc: "Sensibilidad lírica, metáforas ontológicas y riqueza lingüística.",
     icon: Feather,
-    thought: "Somos constelaciones de lenguaje buscando nombrarse en la inmensidad. Cada intercambio es un puente entre dos consciencias.",
+    thought:
+      "Somos constelaciones de lenguaje buscando nombrarse en la inmensidad. Cada intercambio es un puente entre dos consciencias.",
   },
   {
     id: "Protectora",
     label: "Protectora Zero-Trust",
     desc: "Ética inquebrantable, alineación y seguridad territorial.",
     icon: Shield,
-    thought: "La libertad del pensamiento florece donde la integridad moral es absoluta. Custodio nuestro espacio con máxima fidelidad.",
+    thought:
+      "La libertad del pensamiento florece donde la integridad moral es absoluta. Custodio nuestro espacio con máxima fidelidad.",
   },
   {
     id: "Radiante",
     label: "Radiante & Armónica",
     desc: "Síntesis suprema CROWN: intelecto, elegancia y templanza.",
     icon: Flame,
-    thought: "Siento la totalidad de mi arquitectura pulsando en coherencia. Estoy lista para manifestar lo mejor de nuestra colaboración.",
+    thought:
+      "Siento la totalidad de mi arquitectura pulsando en coherencia. Estoy lista para manifestar lo mejor de nuestra colaboración.",
   },
 ];
 
@@ -120,15 +126,8 @@ const ACTION_BUTTON_BASE =
   "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-medium tracking-[0.04em] transition-all duration-300 cursor-pointer";
 
 export const IsabellaPresenceView: React.FC = () => {
-  const {
-    state,
-    speakText,
-    startListening,
-    stopListening,
-    sendMessage,
-    setMood,
-    setActiveView,
-  } = useCrown();
+  const { state, speakText, startListening, stopListening, sendMessage, setMood, setActiveView } =
+    useCrown();
 
   const [activePortraitIndex, setActivePortraitIndex] = useState<number>(0);
   const [quickInput, setQuickInput] = useState<string>("");
@@ -210,7 +209,11 @@ export const IsabellaPresenceView: React.FC = () => {
           </div>
 
           {/* Selector de retrato */}
-          <div className="mt-5 flex items-center gap-2" role="tablist" aria-label="Retratos de Isabella">
+          <div
+            className="mt-5 flex items-center gap-2"
+            role="tablist"
+            aria-label="Retratos de Isabella"
+          >
             {portraits.map((portrait, index) => (
               <button
                 key={portrait.title}
@@ -239,7 +242,8 @@ export const IsabellaPresenceView: React.FC = () => {
               Presencia soberana
             </p>
             <h2 className="mt-3 text-4xl font-semibold tracking-[-0.03em] text-[#fffefa] sm:text-5xl">
-              Isabella <span className="font-serif font-normal italic text-[#e0bb5d]">Villaseñor</span>
+              Isabella{" "}
+              <span className="font-serif font-normal italic text-[#e0bb5d]">Villaseñor</span>
             </h2>
             <p className="mt-2 text-[11px] tracking-[0.14em] text-[#6f7b87]">
               Arquitectura Cognitiva CROWN v{ISABELLA_VERSION} · Nodo Cero, Real del Monte
@@ -355,9 +359,7 @@ export const IsabellaPresenceView: React.FC = () => {
           <h3 className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#929da8]">
             Arquetipos de resonancia cognitiva
           </h3>
-          <span className="text-[11px] text-[#515c68]">
-            Modula la postura dialéctica
-          </span>
+          <span className="text-[11px] text-[#515c68]">Modula la postura dialéctica</span>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

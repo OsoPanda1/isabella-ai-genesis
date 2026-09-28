@@ -31,7 +31,7 @@ import {
   Brain,
   Zap,
   Activity,
-  Network
+  Network,
 } from "lucide-react";
 
 type PresentationMode = "dossier" | "slides" | "topology" | "integrity";
@@ -41,28 +41,33 @@ import type { Variants } from "framer-motion";
 
 const fadeInSlide: Variants = {
   initial: { opacity: 0, y: 12, scale: 0.98 },
-  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const } },
-  exit: { opacity: 0, y: -12, scale: 0.98, transition: { duration: 0.25 } }
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const },
+  },
+  exit: { opacity: 0, y: -12, scale: 0.98, transition: { duration: 0.25 } },
 };
 
 const slideTransitionVariants: Variants = {
   enter: (direction: number) => ({
     x: direction > 0 ? 80 : -80,
     opacity: 0,
-    scale: 0.96
+    scale: 0.96,
   }),
   center: {
     x: 0,
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const }
+    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const },
   },
   exit: (direction: number) => ({
     x: direction < 0 ? 80 : -80,
     opacity: 0,
     scale: 0.96,
-    transition: { duration: 0.3 }
-  })
+    transition: { duration: 0.3 },
+  }),
 };
 
 export const PresentationView: React.FC = () => {
@@ -122,7 +127,7 @@ export const PresentationView: React.FC = () => {
 
       speakText(narrativeScript);
     },
-    [speakText]
+    [speakText],
   );
 
   const handleStopNarration = useCallback(() => {
@@ -131,14 +136,17 @@ export const PresentationView: React.FC = () => {
     setNarratingChapterIndex(null);
   }, [stopSpeech]);
 
-  const handleSelectChapter = useCallback((index: number, direction: number = 1) => {
-    soundManager.playBeep(650, 0.02);
-    setSlideDirection(direction);
-    setSelectedChapterIndex(index);
-    if (narratingChapterIndex !== null && narratingChapterIndex !== index) {
-      handleStopNarration();
-    }
-  }, [narratingChapterIndex, handleStopNarration]);
+  const handleSelectChapter = useCallback(
+    (index: number, direction: number = 1) => {
+      soundManager.playBeep(650, 0.02);
+      setSlideDirection(direction);
+      setSelectedChapterIndex(index);
+      if (narratingChapterIndex !== null && narratingChapterIndex !== index) {
+        handleStopNarration();
+      }
+    },
+    [narratingChapterIndex, handleStopNarration],
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -163,7 +171,7 @@ export const PresentationView: React.FC = () => {
     soundManager.playSuccess();
     const fullText = PRESENTATION_CHAPTERS.map(
       (c) =>
-        `# ${c.number}. ${c.title.toUpperCase()}\n*${c.subtitle}*\n\n${c.summary}\n\n${c.content.join("\n\n")}`
+        `# ${c.number}. ${c.title.toUpperCase()}\n*${c.subtitle}*\n\n${c.summary}\n\n${c.content.join("\n\n")}`,
     ).join("\n\n---\n\n");
 
     const headerDossier = `====================================================\nISABELLA VILLASEÑOR AI - MANIFIESTO ARQUITECTÓNICO & DOSSIER FEDERADO\nTAMV Federation (7 Nodos Governed Infrastructure)\nEvaluador: ${EVALUATOR_DECLARATION.evaluator} (${EVALUATOR_DECLARATION.model})\nSHA-256: ${EVALUATOR_DECLARATION.sha256}\n====================================================\n\n${fullText}`;
@@ -182,9 +190,11 @@ export const PresentationView: React.FC = () => {
 
   const handleDownloadMarkdown = () => {
     soundManager.playArrival();
-    const markdownContent = `# ISABELLA VILLASEÑOR AI\n## Auditoría Tecnológica y Arquitectura de Federación TAMV\n\n**SHA-256 Digest:** \`${EVALUATOR_DECLARATION.sha256}\`\n\n` +
+    const markdownContent =
+      `# ISABELLA VILLASEÑOR AI\n## Auditoría Tecnológica y Arquitectura de Federación TAMV\n\n**SHA-256 Digest:** \`${EVALUATOR_DECLARATION.sha256}\`\n\n` +
       PRESENTATION_CHAPTERS.map(
-        (c) => `### ${c.number}. ${c.title}\n*${c.subtitle}*\n\n${c.summary}\n\n${c.content.join("\n\n")}`
+        (c) =>
+          `### ${c.number}. ${c.title}\n*${c.subtitle}*\n\n${c.summary}\n\n${c.content.join("\n\n")}`,
       ).join("\n\n---\n\n");
 
     const blob = new Blob([markdownContent], { type: "text/markdown;charset=utf-8;" });
@@ -229,7 +239,8 @@ export const PresentationView: React.FC = () => {
               Isabella Villaseñor AI
             </h1>
             <p className="text-sm sm:text-base text-slate-300 max-w-3xl leading-relaxed">
-              Infraestructura Cognitiva Territorial, Híbrida y Gobernada de Nodo Cero, RDM Digital y las 7 Federaciones de la Red TAMV.
+              Infraestructura Cognitiva Territorial, Híbrida y Gobernada de Nodo Cero, RDM Digital y
+              las 7 Federaciones de la Red TAMV.
             </p>
           </div>
 
@@ -268,7 +279,11 @@ export const PresentationView: React.FC = () => {
               onClick={handleCopyFullDossier}
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#030712] hover:bg-slate-900 border border-slate-800 text-slate-200 text-xs font-mono transition-all active:scale-95"
             >
-              {isCopied ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
+              {isCopied ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              ) : (
+                <Copy className="w-4 h-4 text-slate-400" />
+              )}
               <span>{isCopied ? "¡Copiado!" : "Copiar Dossier"}</span>
             </button>
 
@@ -298,7 +313,7 @@ export const PresentationView: React.FC = () => {
               { id: "dossier", label: "Dossier Completo", icon: BookOpen },
               { id: "slides", label: "Keynote / Diapositivas", icon: Presentation },
               { id: "topology", label: "Malla Territorial (7 Federaciones)", icon: Network },
-              { id: "integrity", label: "Certificado SHA-256", icon: Fingerprint }
+              { id: "integrity", label: "Certificado SHA-256", icon: Fingerprint },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = mode === tab.id;
@@ -311,7 +326,9 @@ export const PresentationView: React.FC = () => {
                     setMode(tab.id as PresentationMode);
                   }}
                   className={`relative flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-mono font-medium ${
-                    isActive ? "text-white font-bold" : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                    isActive
+                      ? "text-white font-bold"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
                   }`}
                 >
                   {isActive && (
@@ -338,7 +355,11 @@ export const PresentationView: React.FC = () => {
             <span className="text-sky-300 tracking-wider font-semibold">
               {EVALUATOR_DECLARATION.sha256.slice(0, 10)}...{EVALUATOR_DECLARATION.sha256.slice(-8)}
             </span>
-            {isHashCopied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
+            {isHashCopied ? (
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            ) : (
+              <Copy className="w-3.5 h-3.5 text-slate-400" />
+            )}
           </div>
         </div>
       </header>
@@ -347,7 +368,14 @@ export const PresentationView: React.FC = () => {
       <AnimatePresence mode="wait">
         {/* MODO 1: DOSSIER COMPLETO */}
         {mode === "dossier" && (
-          <motion.div key="dossier" variants={fadeInSlide} initial="initial" animate="animate" exit="exit" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <motion.div
+            key="dossier"
+            variants={fadeInSlide}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="grid grid-cols-1 lg:grid-cols-12 gap-6"
+          >
             {/* PANEL IZQUIERDO: ÍNDICE Y BÚSQUEDA */}
             <aside className="lg:col-span-4 flex flex-col gap-4">
               <div className="rounded-3xl border border-slate-800/80 bg-[#080E1A]/90 p-4 backdrop-blur-2xl sticky top-6 max-h-[calc(100vh-120px)] flex flex-col space-y-4">
@@ -400,12 +428,18 @@ export const PresentationView: React.FC = () => {
                           <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-amber-300">
                             {String(chap.number).padStart(2, "0")}
                           </span>
-                          <span className="text-[10px] font-mono text-slate-400 truncate">{chap.category}</span>
+                          <span className="text-[10px] font-mono text-slate-400 truncate">
+                            {chap.category}
+                          </span>
                         </div>
-                        <h4 className={`text-xs font-bold font-mono line-clamp-1 ${isSelected ? "text-white" : "text-slate-300"}`}>
+                        <h4
+                          className={`text-xs font-bold font-mono line-clamp-1 ${isSelected ? "text-white" : "text-slate-300"}`}
+                        >
                           {chap.title}
                         </h4>
-                        <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{chap.subtitle}</p>
+                        <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
+                          {chap.subtitle}
+                        </p>
                       </button>
                     );
                   })}
@@ -457,12 +491,16 @@ export const PresentationView: React.FC = () => {
                       <span className="text-[10px] font-mono text-slate-400 font-bold block uppercase tracking-wider">
                         Síntesis de Arquitectura
                       </span>
-                      <p className="text-sm font-medium text-sky-200 leading-relaxed">{chap.summary}</p>
+                      <p className="text-sm font-medium text-sky-200 leading-relaxed">
+                        {chap.summary}
+                      </p>
                     </div>
 
                     {chap.diagramAscii && (
                       <div className="my-5 p-4 rounded-2xl bg-[#030712] border border-slate-800 overflow-x-auto shadow-inner">
-                        <pre className="font-mono text-xs text-amber-300/90 leading-tight">{chap.diagramAscii}</pre>
+                        <pre className="font-mono text-xs text-amber-300/90 leading-tight">
+                          {chap.diagramAscii}
+                        </pre>
                       </div>
                     )}
 
@@ -474,7 +512,9 @@ export const PresentationView: React.FC = () => {
 
                     {chap.keyQuote && (
                       <blockquote className="my-6 p-5 rounded-2xl bg-gradient-to-r from-blue-950/40 via-slate-900/60 to-amber-950/20 border-l-4 border-amber-400">
-                        <p className="text-sm font-semibold text-amber-100 italic leading-relaxed">«{chap.keyQuote}»</p>
+                        <p className="text-sm font-semibold text-amber-100 italic leading-relaxed">
+                          «{chap.keyQuote}»
+                        </p>
                       </blockquote>
                     )}
                   </article>
@@ -486,7 +526,14 @@ export const PresentationView: React.FC = () => {
 
         {/* MODO 2: SLIDE KEYNOTE */}
         {mode === "slides" && (
-          <motion.div key="slides" variants={fadeInSlide} initial="initial" animate="animate" exit="exit" className="flex flex-col gap-6">
+          <motion.div
+            key="slides"
+            variants={fadeInSlide}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="flex flex-col gap-6"
+          >
             <div className="rounded-3xl border border-slate-800/80 bg-[#080E1A]/95 p-8 sm:p-12 backdrop-blur-2xl shadow-2xl relative min-h-[520px] flex flex-col justify-between overflow-hidden">
               <div className="flex items-center justify-between pb-6 border-b border-slate-800">
                 <div className="flex items-center gap-3">
@@ -505,7 +552,9 @@ export const PresentationView: React.FC = () => {
                   <div className="w-28 bg-[#030712] h-2 rounded-full overflow-hidden border border-slate-800">
                     <div
                       className="h-full bg-gradient-to-r from-blue-500 to-sky-400 transition-all duration-300"
-                      style={{ width: `${((selectedChapterIndex + 1) / PRESENTATION_CHAPTERS.length) * 100}%` }}
+                      style={{
+                        width: `${((selectedChapterIndex + 1) / PRESENTATION_CHAPTERS.length) * 100}%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -526,7 +575,9 @@ export const PresentationView: React.FC = () => {
                       <h2 className="text-3xl sm:text-4xl font-extrabold font-mono text-white leading-tight">
                         {currentChapter.title}
                       </h2>
-                      <h3 className="text-lg text-sky-300 font-mono mt-2 font-medium">{currentChapter.subtitle}</h3>
+                      <h3 className="text-lg text-sky-300 font-mono mt-2 font-medium">
+                        {currentChapter.subtitle}
+                      </h3>
                     </div>
 
                     {currentChapter.keyQuote && (
@@ -547,7 +598,9 @@ export const PresentationView: React.FC = () => {
               </div>
 
               <div className="pt-6 border-t border-slate-800 flex items-center justify-between">
-                <span className="text-xs font-mono text-slate-400">Atajos: Usa ← y → para navegar</span>
+                <span className="text-xs font-mono text-slate-400">
+                  Atajos: Usa ← y → para navegar
+                </span>
 
                 <div className="flex items-center gap-3">
                   <button
@@ -563,7 +616,10 @@ export const PresentationView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() =>
-                      handleSelectChapter(Math.min(PRESENTATION_CHAPTERS.length - 1, selectedChapterIndex + 1), 1)
+                      handleSelectChapter(
+                        Math.min(PRESENTATION_CHAPTERS.length - 1, selectedChapterIndex + 1),
+                        1,
+                      )
                     }
                     disabled={selectedChapterIndex === PRESENTATION_CHAPTERS.length - 1}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-mono font-bold transition-all shadow-md shadow-blue-600/30 disabled:opacity-30"
@@ -579,7 +635,14 @@ export const PresentationView: React.FC = () => {
 
         {/* MODO 3: MALLA TERRITORIAL DE LAS 7 FEDERACIONES */}
         {mode === "topology" && (
-          <motion.div key="topology" variants={fadeInSlide} initial="initial" animate="animate" exit="exit" className="flex flex-col gap-6">
+          <motion.div
+            key="topology"
+            variants={fadeInSlide}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="flex flex-col gap-6"
+          >
             <div className="rounded-3xl border border-slate-800/80 bg-[#080E1A]/95 p-8 backdrop-blur-2xl space-y-8">
               <div>
                 <div className="flex items-center gap-2.5">
@@ -589,26 +652,64 @@ export const PresentationView: React.FC = () => {
                   </h2>
                 </div>
                 <p className="text-sm text-slate-300 mt-2 max-w-3xl">
-                  Orquestación soberana multi-nodo e interconexión territorial con la malla cognitiva de Isabella Villaseñor AI.
+                  Orquestación soberana multi-nodo e interconexión territorial con la malla
+                  cognitiva de Isabella Villaseñor AI.
                 </p>
               </div>
 
               {/* GRID DE NODOS DE FEDERACIÓN */}
               <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
                 {[
-                  { name: "Federación 01", role: "Nodo Cero", status: "Activo", color: "text-amber-400 border-amber-500/40" },
-                  { name: "Federación 02", role: "RDM Digital", status: "Sincronizado", color: "text-sky-400 border-sky-500/40" },
-                  { name: "Federación 03", role: "C.R.O.W.N. Core", status: "Gobernando", color: "text-blue-400 border-blue-500/40" },
-                  { name: "Federación 04", role: "ARGUS Centinela", status: "Zero-Trust", color: "text-emerald-400 border-emerald-500/40" },
-                  { name: "Federación 05", role: "Memoria Local ISA", status: "Soberano", color: "text-purple-400 border-purple-500/40" },
-                  { name: "Federación 06", role: "Inferencia Híbrida", status: "Orquestado", color: "text-cyan-400 border-cyan-500/40" },
-                  { name: "Federación 07", role: "Trazabilidad Logs", status: "Auditado", color: "text-amber-300 border-amber-500/40" }
+                  {
+                    name: "Federación 01",
+                    role: "Nodo Cero",
+                    status: "Activo",
+                    color: "text-amber-400 border-amber-500/40",
+                  },
+                  {
+                    name: "Federación 02",
+                    role: "RDM Digital",
+                    status: "Sincronizado",
+                    color: "text-sky-400 border-sky-500/40",
+                  },
+                  {
+                    name: "Federación 03",
+                    role: "C.R.O.W.N. Core",
+                    status: "Gobernando",
+                    color: "text-blue-400 border-blue-500/40",
+                  },
+                  {
+                    name: "Federación 04",
+                    role: "ARGUS Centinela",
+                    status: "Zero-Trust",
+                    color: "text-emerald-400 border-emerald-500/40",
+                  },
+                  {
+                    name: "Federación 05",
+                    role: "Memoria Local ISA",
+                    status: "Soberano",
+                    color: "text-purple-400 border-purple-500/40",
+                  },
+                  {
+                    name: "Federación 06",
+                    role: "Inferencia Híbrida",
+                    status: "Orquestado",
+                    color: "text-cyan-400 border-cyan-500/40",
+                  },
+                  {
+                    name: "Federación 07",
+                    role: "Trazabilidad Logs",
+                    status: "Auditado",
+                    color: "text-amber-300 border-amber-500/40",
+                  },
                 ].map((fed, idx) => (
                   <div
                     key={idx}
                     className={`rounded-2xl border bg-[#030712] p-4 space-y-2 text-center transition-all hover:scale-[1.03] ${fed.color}`}
                   >
-                    <span className="text-[10px] font-mono font-bold block opacity-70">NODO 0{idx + 1}</span>
+                    <span className="text-[10px] font-mono font-bold block opacity-70">
+                      NODO 0{idx + 1}
+                    </span>
                     <h3 className="text-xs font-bold font-mono text-white">{fed.name}</h3>
                     <p className="text-[11px] font-sans text-slate-400">{fed.role}</p>
                     <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-mono bg-slate-900 text-slate-300 border border-slate-800">
@@ -623,7 +724,14 @@ export const PresentationView: React.FC = () => {
 
         {/* MODO 4: CERTIFICADO SHA-256 Y DECLARACIÓN */}
         {mode === "integrity" && (
-          <motion.div key="integrity" variants={fadeInSlide} initial="initial" animate="animate" exit="exit" className="flex flex-col gap-6">
+          <motion.div
+            key="integrity"
+            variants={fadeInSlide}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="flex flex-col gap-6"
+          >
             <div className="rounded-3xl border border-slate-800/80 bg-[#080E1A]/95 p-8 backdrop-blur-2xl space-y-6">
               <div className="flex items-center justify-between pb-6 border-b border-slate-800">
                 <div className="flex items-center gap-3">
@@ -631,8 +739,12 @@ export const PresentationView: React.FC = () => {
                     <Fingerprint className="w-6 h-6" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold font-mono text-white">Declaración de Integridad Criptográfica</h2>
-                    <p className="text-xs text-slate-400 font-mono mt-0.5">Certificado inmutable de la Red TAMV</p>
+                    <h2 className="text-xl font-bold font-mono text-white">
+                      Declaración de Integridad Criptográfica
+                    </h2>
+                    <p className="text-xs text-slate-400 font-mono mt-0.5">
+                      Certificado inmutable de la Red TAMV
+                    </p>
                   </div>
                 </div>
 
@@ -643,13 +755,19 @@ export const PresentationView: React.FC = () => {
 
               <div className="p-6 rounded-2xl bg-[#030712] border border-emerald-500/30 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-emerald-400">DIGEST SHA-256 DEL DOCUMENTO</span>
+                  <span className="text-xs font-mono font-bold text-emerald-400">
+                    DIGEST SHA-256 DEL DOCUMENTO
+                  </span>
                   <button
                     type="button"
                     onClick={handleCopyHash}
                     className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono transition-all"
                   >
-                    {isHashCopied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {isHashCopied ? (
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
                     <span>{isHashCopied ? "Copiado" : "Copiar"}</span>
                   </button>
                 </div>

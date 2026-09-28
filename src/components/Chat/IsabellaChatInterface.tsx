@@ -55,7 +55,8 @@ export const IsabellaChatInterface: React.FC = () => {
               <Sparkles className="w-3.5 h-3.5 text-blue-400" />
             </h2>
             <p className="text-xs text-slate-400 font-medium font-mono uppercase tracking-wider flex items-center gap-1.5 mt-0.5">
-              <Cpu className="w-3 h-3 text-slate-500" /> Motor Cognitivo • {state.activeHead || "Alpha Prime"}
+              <Cpu className="w-3 h-3 text-slate-500" /> Motor Cognitivo •{" "}
+              {state.activeHead || "Alpha Prime"}
             </p>
           </div>
         </div>
@@ -105,16 +106,15 @@ export const IsabellaChatInterface: React.FC = () => {
               Sistema Cognitivo Activo
             </h3>
             <p className="text-sm text-slate-400 max-w-md text-center leading-relaxed font-light">
-              Canal soberano establecido. Cada interacción está gobernada por la arquitectura CROWN bajo políticas Zero-Trust y trazabilidad BookPI.
+              Canal soberano establecido. Cada interacción está gobernada por la arquitectura CROWN
+              bajo políticas Zero-Trust y trazabilidad BookPI.
             </p>
           </div>
         ) : (
           messages.map((msg, idx) => {
             const isUser = msg.role === "user" || msg.kind === "user_message";
             const isError =
-              msg.role === "argus_alert" ||
-              msg.severity === "high" ||
-              msg.severity === "critical";
+              msg.role === "argus_alert" || msg.severity === "high" || msg.severity === "critical";
 
             return (
               <motion.div
@@ -124,9 +124,7 @@ export const IsabellaChatInterface: React.FC = () => {
                 className={`flex ${isUser ? "justify-end" : "justify-start"} group`}
               >
                 <div
-                  className={`flex gap-4 max-w-[85%] ${
-                    isUser ? "flex-row-reverse" : "flex-row"
-                  }`}
+                  className={`flex gap-4 max-w-[85%] ${isUser ? "flex-row-reverse" : "flex-row"}`}
                 >
                   {!isUser && (
                     <div className="w-9 h-9 rounded-full border border-blue-900/50 shadow-[0_0_10px_rgba(58,134,255,0.1)] overflow-hidden shrink-0 mt-1">

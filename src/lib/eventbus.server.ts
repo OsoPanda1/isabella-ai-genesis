@@ -45,8 +45,7 @@ interface DlqRow {
   parked_at: string;
 }
 
-const SIGNING_KEY =
-  process.env.ATLAS_EVENT_SIGNING_KEY ?? "atlas-dev-event-signing-key";
+const SIGNING_KEY = process.env.ATLAS_EVENT_SIGNING_KEY ?? "atlas-dev-event-signing-key";
 
 const outbox: OutboxRow[] = loadJsonArray<OutboxRow>("eventbus-outbox");
 const processed: ProcessedRow[] = loadJsonArray<ProcessedRow>("eventbus-processed");
@@ -103,9 +102,7 @@ export async function publish<T extends AtlasEventType>(
   const parsed = schema.safeParse(envelope);
   if (!parsed.success) {
     metrics.counter("atlas_event_validation_errors_total").inc({ type: input.type });
-    throw new Error(
-      `Event schema validation failed for ${input.type}: ${parsed.error.message}`,
-    );
+    throw new Error(`Event schema validation failed for ${input.type}: ${parsed.error.message}`);
   }
 
   // Outbox row (would be in same DB transaction as state change in prod)
@@ -146,11 +143,7 @@ async function deliver(row: OutboxRow): Promise<void> {
   const list = handlers.get(row.envelope.event_type as AtlasEventType) ?? [];
   for (const h of list) {
     const serviceName = h.name || "anonymous";
-    if (
-      processed.some(
-        (p) => p.event_id === row.event_id && p.service_name === serviceName,
-      )
-    ) {
+    if (processed.some((p) => p.event_id === row.event_id && p.service_name === serviceName)) {
       continue; // idempotency
     }
     try {
@@ -172,8 +165,7 @@ async function deliver(row: OutboxRow): Promise<void> {
       throw err;
     }
   }
-  if (processed.length > MAX_PROCESSED)
-    processed.splice(0, processed.length - MAX_PROCESSED);
+  if (processed.length > MAX_PROCESSED) processed.splice(0, processed.length - MAX_PROCESSED);
   saveJsonArray("eventbus-processed", processed);
 }
 
@@ -258,7 +250,10 @@ export function bookkeeping() {
 }
 
 export function recentEvents(limit = 50): AtlasEvent[] {
-  return outbox.slice(-limit).reverse().map((r) => r.envelope);
+  return outbox
+    .slice(-limit)
+    .reverse()
+    .map((r) => r.envelope);
 }
 
 export function recentDlq(limit = 20): DlqRow[] {

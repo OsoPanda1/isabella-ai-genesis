@@ -89,11 +89,7 @@ export function ContextNavbar() {
   return (
     <div className="navbar-content">
       {contextTree.map((node) => (
-        <AccordionFolder
-          key={node.id}
-          node={node}
-          onAction={handleAction}
-        />
+        <AccordionFolder key={node.id} node={node} onAction={handleAction} />
       ))}
     </div>
   );

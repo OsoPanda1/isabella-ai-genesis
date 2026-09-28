@@ -40,7 +40,13 @@ class ApiAdapter implements GatewayAdapter {
   }
 
   async transform(event: MessageEvent): Promise<AgentRunRequest> {
-    return { tenantId: event.tenantId, userId: event.userId, sessionId: event.sessionId, input: event.content, channel: "api" };
+    return {
+      tenantId: event.tenantId,
+      userId: event.userId,
+      sessionId: event.sessionId,
+      input: event.content,
+      channel: "api",
+    };
   }
 
   async deliver(result: AgentRunResult): Promise<void> {
@@ -61,7 +67,12 @@ class WebhookAdapter implements GatewayAdapter {
   }
 
   async transform(event: MessageEvent): Promise<AgentRunRequest> {
-    return { tenantId: event.tenantId, userId: event.userId || "webhook-system", input: event.content, channel: "webhook" };
+    return {
+      tenantId: event.tenantId,
+      userId: event.userId || "webhook-system",
+      input: event.content,
+      channel: "webhook",
+    };
   }
 
   async deliver(result: AgentRunResult): Promise<void> {
@@ -78,7 +89,13 @@ class VoiceAdapter implements GatewayAdapter {
   }
 
   async transform(event: MessageEvent): Promise<AgentRunRequest> {
-    return { tenantId: event.tenantId, userId: event.userId, sessionId: event.sessionId, input: event.content, channel: "voice" };
+    return {
+      tenantId: event.tenantId,
+      userId: event.userId,
+      sessionId: event.sessionId,
+      input: event.content,
+      channel: "voice",
+    };
   }
 
   async deliver(result: AgentRunResult): Promise<void> {
@@ -108,7 +125,9 @@ export function getAdapter(channel: ChannelType): GatewayAdapter | undefined {
   return adapters.get(channel);
 }
 
-export async function processMessageEvent(event: MessageEvent): Promise<AgentRunResult | { error: string }> {
+export async function processMessageEvent(
+  event: MessageEvent,
+): Promise<AgentRunResult | { error: string }> {
   const adapter = adapters.get(event.channel);
   if (!adapter) return { error: `No adapter registered for channel '${event.channel}'.` };
 

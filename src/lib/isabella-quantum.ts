@@ -6,12 +6,7 @@
  * `quantum_adapter` y del skill #68 `github_sync_bridge`.
  */
 
-export type QuantumSourceKind =
-  | "framework"
-  | "textbook"
-  | "simulator"
-  | "domain"
-  | "tooling";
+export type QuantumSourceKind = "framework" | "textbook" | "simulator" | "domain" | "tooling";
 
 export interface QuantumSource {
   id: string;
@@ -107,8 +102,7 @@ export const QUANTUM_SOURCES: QuantumSource[] = [
     kind: "tooling",
     language: "TypeScript",
     topics: ["tauri", "solidstart", "mobile"],
-    absorbs:
-      "Empaquetado híbrido escritorio/móvil → referencia para la Terminal CROWN air-gapped.",
+    absorbs: "Empaquetado híbrido escritorio/móvil → referencia para la Terminal CROWN air-gapped.",
     owner: "ORION",
     relevance: 0.35,
   },

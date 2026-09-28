@@ -30,20 +30,60 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { view: "terminal", label: "Terminal", icon: TerminalIcon, title: "Terminal interactiva (Alt+1)" },
-  { view: "presence", label: "Presencia", icon: Heart, title: "Presencia y avatar de Isabella (Alt+2)" },
-  { view: "architecture", label: "Arquitectura", icon: Cpu, title: "Arquitectura cognitiva (Alt+5)" },
-  { view: "presentation", label: "Dossier", icon: Activity, title: "Presentación y auditoría (Alt+7)", desktopOnly: true },
-  { view: "cattleya_finance", label: "Cattleya", icon: Wallet, title: "Cattleya Finance Hub", desktopOnly: true },
-  { view: "quantum_mesh", label: "Quantum", icon: Server, title: "Isabella Quantum Mesh", desktopOnly: true },
-  { view: "hub", label: "Hub RDM", icon: Server, title: "Nodo Cero Hub & API (Alt+8)", desktopOnly: true },
+  {
+    view: "terminal",
+    label: "Terminal",
+    icon: TerminalIcon,
+    title: "Terminal interactiva (Alt+1)",
+  },
+  {
+    view: "presence",
+    label: "Presencia",
+    icon: Heart,
+    title: "Presencia y avatar de Isabella (Alt+2)",
+  },
+  {
+    view: "architecture",
+    label: "Arquitectura",
+    icon: Cpu,
+    title: "Arquitectura cognitiva (Alt+5)",
+  },
+  {
+    view: "presentation",
+    label: "Dossier",
+    icon: Activity,
+    title: "Presentación y auditoría (Alt+7)",
+    desktopOnly: true,
+  },
+  {
+    view: "cattleya_finance",
+    label: "Cattleya",
+    icon: Wallet,
+    title: "Cattleya Finance Hub",
+    desktopOnly: true,
+  },
+  {
+    view: "quantum_mesh",
+    label: "Quantum",
+    icon: Server,
+    title: "Isabella Quantum Mesh",
+    desktopOnly: true,
+  },
+  {
+    view: "hub",
+    label: "Hub RDM",
+    icon: Server,
+    title: "Nodo Cero Hub & API (Alt+8)",
+    desktopOnly: true,
+  },
 ];
 
 const NAV_BUTTON_BASE =
   "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium tracking-[0.03em] transition-all duration-200 whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e0bb5d]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#040507]";
 const NAV_BUTTON_ACTIVE =
   "bg-white/[0.08] text-[#fffefa] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_12px_rgba(224,187,93,0.15)] scale-[1.02]";
-const NAV_BUTTON_IDLE = "text-[#929da8] hover:text-[#e9e4da] hover:bg-white/[0.03] hover:scale-[1.01] active:scale-[0.98]";
+const NAV_BUTTON_IDLE =
+  "text-[#929da8] hover:text-[#e9e4da] hover:bg-white/[0.03] hover:scale-[1.01] active:scale-[0.98]";
 
 const ICON_BUTTON_BASE =
   "flex h-8 w-8 items-center justify-center rounded-full text-[#929da8] transition-all duration-200 hover:bg-white/[0.06] hover:text-[#e9e4da] hover:scale-[1.05] active:scale-[0.95] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e0bb5d]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#040507]";
@@ -84,7 +124,9 @@ export const Header: React.FC = () => {
             <Shield className="h-3.5 w-3.5 shrink-0 text-[#f2ba57]" />
             <span className="truncate">
               {lastInferenceTransition.reason} —{" "}
-              {lastInferenceTransition.toMode === "local_sovereign" ? "Enclave Nodo Cero" : "Gateway Federado"}
+              {lastInferenceTransition.toMode === "local_sovereign"
+                ? "Enclave Nodo Cero"
+                : "Gateway Federado"}
             </span>
           </div>
           <button
@@ -257,7 +299,6 @@ export const Header: React.FC = () => {
           </div>
         </div>
       </div>
-
     </header>
   );
 };

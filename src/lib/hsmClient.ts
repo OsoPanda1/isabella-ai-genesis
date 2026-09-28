@@ -42,7 +42,9 @@ async function sha256Hex(value: string): Promise<string> {
 }
 
 function getEnv(name: string): string | undefined {
-  return typeof import.meta !== "undefined" ? ((import.meta as any).env?.[name] as string | undefined) : undefined;
+  return typeof import.meta !== "undefined"
+    ? ((import.meta as any).env?.[name] as string | undefined)
+    : undefined;
 }
 
 /**
@@ -57,22 +59,45 @@ class HSMClient {
   private eventListeners = new Map<string, Array<(data: unknown) => void>>();
 
   constructor() {
-    this.devices.set("primary", this.createDevice("primary", 1, getEnv("VITE_YUBIHSM_PRIMARY_URL") || "https://hsm1.tamv.mx:12345"));
-    this.devices.set("backup", this.createDevice("backup", 2, getEnv("VITE_YUBIHSM_BACKUP_URL") || "https://hsm2.tamv.mx:12345"));
+    this.devices.set(
+      "primary",
+      this.createDevice(
+        "primary",
+        1,
+        getEnv("VITE_YUBIHSM_PRIMARY_URL") || "https://hsm1.tamv.mx:12345",
+      ),
+    );
+    this.devices.set(
+      "backup",
+      this.createDevice(
+        "backup",
+        2,
+        getEnv("VITE_YUBIHSM_BACKUP_URL") || "https://hsm2.tamv.mx:12345",
+      ),
+    );
     this.setupNetworkListeners();
   }
 
   private createDevice(key: HSMDeviceKey, priority: number, connectorUrl: string): HSMDevice {
     return {
       connectorUrl,
-      authKey: getEnv(key === "primary" ? "VITE_YUBIHSM_PRIMARY_AUTH_KEY" : "VITE_YUBIHSM_BACKUP_AUTH_KEY") || "",
+      authKey:
+        getEnv(
+          key === "primary" ? "VITE_YUBIHSM_PRIMARY_AUTH_KEY" : "VITE_YUBIHSM_BACKUP_AUTH_KEY",
+        ) || "",
       deviceId: priority,
       priority,
       maxRetries: 3,
       healthCheckIntervalMs: 5000,
       circuitBreakerThreshold: 3,
       circuitBreakerResetTimeoutMs: 30000,
-      health: { isConnected: false, lastHealthCheck: 0, consecutiveFailures: 0, circuitBreakerState: "CLOSED", responseTimeMs: 0 },
+      health: {
+        isConnected: false,
+        lastHealthCheck: 0,
+        consecutiveFailures: 0,
+        circuitBreakerState: "CLOSED",
+        responseTimeMs: 0,
+      },
       isActive: priority === 1,
     };
   }
@@ -100,9 +125,19 @@ class HSMClient {
       lastHealthCheck: Date.now(),
       consecutiveFailures: failures,
       responseTimeMs: Date.now() - started,
-      circuitBreakerState: failures >= device.circuitBreakerThreshold ? "OPEN" : isConnected ? "CLOSED" : device.health.circuitBreakerState,
+      circuitBreakerState:
+        failures >= device.circuitBreakerThreshold
+          ? "OPEN"
+          : isConnected
+            ? "CLOSED"
+            : device.health.circuitBreakerState,
     };
-    this.emit("health_check", { device: deviceKey, isConnected, responseTimeMs: device.health.responseTimeMs, consecutiveFailures: failures });
+    this.emit("health_check", {
+      device: deviceKey,
+      isConnected,
+      responseTimeMs: device.health.responseTimeMs,
+      consecutiveFailures: failures,
+    });
   }
 
   private async pingDevice(): Promise<boolean> {
@@ -114,9 +149,17 @@ class HSMClient {
     if (this.isFailingOver) return;
     const primary = this.devices.get("primary")!;
     const backup = this.devices.get("backup")!;
-    if (this.currentDevice === "primary" && (!primary.health.isConnected || primary.health.circuitBreakerState === "OPEN") && backup.health.isConnected) {
+    if (
+      this.currentDevice === "primary" &&
+      (!primary.health.isConnected || primary.health.circuitBreakerState === "OPEN") &&
+      backup.health.isConnected
+    ) {
       await this.failoverTo("backup");
-    } else if (this.currentDevice === "backup" && primary.health.isConnected && primary.health.circuitBreakerState !== "OPEN") {
+    } else if (
+      this.currentDevice === "backup" &&
+      primary.health.isConnected &&
+      primary.health.circuitBreakerState !== "OPEN"
+    ) {
       await this.failoverTo("primary");
     }
   }
@@ -125,8 +168,15 @@ class HSMClient {
     this.isFailingOver = true;
     const from = this.currentDevice;
     this.currentDevice = deviceKey;
-    this.devices.forEach((device, key) => { device.isActive = key === deviceKey; });
-    this.emit("failover", { from, to: deviceKey, timestamp: Date.now(), reason: "automatic_health_check" });
+    this.devices.forEach((device, key) => {
+      device.isActive = key === deviceKey;
+    });
+    this.emit("failover", {
+      from,
+      to: deviceKey,
+      timestamp: Date.now(),
+      reason: "automatic_health_check",
+    });
     this.isFailingOver = false;
   }
 
@@ -149,7 +199,12 @@ class HSMClient {
   async generateAESKey(label: string): Promise<HSMKey> {
     assertPrototypeCrypto("HSM_SIMULATOR");
     const hex = await sha256Hex(`${label}:${Date.now()}:${this.currentDevice}`);
-    return { id: Number.parseInt(hex.slice(0, 6), 16), label, algorithm: "AES256", capabilities: ["encrypt", "decrypt", "wrap", "unwrap"] };
+    return {
+      id: Number.parseInt(hex.slice(0, 6), 16),
+      label,
+      algorithm: "AES256",
+      capabilities: ["encrypt", "decrypt", "wrap", "unwrap"],
+    };
   }
 
   async deriveKey(baseKeyId: number, salt: string): Promise<string> {
@@ -163,7 +218,16 @@ class HSMClient {
   }
 
   getStatus() {
-    return { isConnected: [...this.devices.values()].some((device) => device.health.isConnected), currentDevice: this.currentDevice, timestamp: Date.now(), devices: { primary: { ...this.devices.get("primary")!.health }, backup: { ...this.devices.get("backup")!.health } }, isFailingOver: this.isFailingOver };
+    return {
+      isConnected: [...this.devices.values()].some((device) => device.health.isConnected),
+      currentDevice: this.currentDevice,
+      timestamp: Date.now(),
+      devices: {
+        primary: { ...this.devices.get("primary")!.health },
+        backup: { ...this.devices.get("backup")!.health },
+      },
+      isFailingOver: this.isFailingOver,
+    };
   }
 
   on(event: string, callback: (data: unknown) => void): void {
@@ -177,7 +241,9 @@ class HSMClient {
   private setupNetworkListeners(): void {
     if (typeof window === "undefined") return;
     window.addEventListener("online", () => void this.connect());
-    window.addEventListener("offline", () => this.emit("network_offline", { timestamp: Date.now() }));
+    window.addEventListener("offline", () =>
+      this.emit("network_offline", { timestamp: Date.now() }),
+    );
   }
 }
 

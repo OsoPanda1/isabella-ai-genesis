@@ -25,8 +25,8 @@ const log = createLogger("kill-switch");
 
 let currentState: KillSwitchState = "normal";
 const events: KillSwitchEvent[] = [];
-let rtoMinutes = 30;
-let rpoMinutes = 5;
+const rtoMinutes = 30;
+const rpoMinutes = 5;
 
 // ============================================================================
 // KILL-SWITCH STEPS
@@ -64,7 +64,8 @@ const KILL_SWITCH_STEPS: KillSwitchStep[] = [
     action: "REVOKE_CAPABILITY: Revocar la capability o release comprometida",
     automated: false,
     humanRequired: true,
-    humanInstruction: "Confirme qué capability o release debe ser revocada. La malla identificará las dependencias automáticamente.",
+    humanInstruction:
+      "Confirme qué capability o release debe ser revocada. La malla identificará las dependencias automáticamente.",
   },
   {
     step: 5,
@@ -83,7 +84,8 @@ const KILL_SWITCH_STEPS: KillSwitchStep[] = [
     action: "RESTORE_KNOWN_GOOD: Restaurar la versión conocida buena",
     automated: false,
     humanRequired: true,
-    humanInstruction: "Seleccione la release anterior firmada para restaurar. La malla verificará compatibilidad automáticamente.",
+    humanInstruction:
+      "Seleccione la release anterior firmada para restaurar. La malla verificará compatibilidad automáticamente.",
   },
   {
     step: 8,
@@ -96,7 +98,8 @@ const KILL_SWITCH_STEPS: KillSwitchStep[] = [
     action: "HUMAN_APPROVAL: Esperar aprobación para reanudar",
     automated: false,
     humanRequired: true,
-    humanInstruction: "Revise los resultados del health check. Si todo está nominal, apruebe la reanudación.",
+    humanInstruction:
+      "Revise los resultados del health check. Si todo está nominal, apruebe la reanudación.",
   },
   {
     step: 10,

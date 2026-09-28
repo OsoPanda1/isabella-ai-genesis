@@ -6,12 +6,7 @@
  */
 
 import { DESTRUCTIVE_PATTERNS, SECRET_PATTERNS } from "@/lib/crown";
-import type {
-  AbxAssessment,
-  AbxAuthorization,
-  AbxProposal,
-  AbxRequestContext,
-} from "./types";
+import type { AbxAssessment, AbxAuthorization, AbxProposal, AbxRequestContext } from "./types";
 
 export const ABX_POLICY_VERSION = "abx-1.0.0";
 
@@ -43,15 +38,11 @@ export function authorize(ctx: AbxRequestContext): AbxAuthorization {
     };
   }
 
-  if (
-    ctx.risk === "critical" &&
-    !ctx.requestedCapabilities.includes(HUMAN_APPROVAL_CAPABILITY)
-  ) {
+  if (ctx.risk === "critical" && !ctx.requestedCapabilities.includes(HUMAN_APPROVAL_CAPABILITY)) {
     return {
       allow: false,
       code: "HUMAN_APPROVAL_REQUIRED",
-      detail:
-        "Riesgo crítico sin capacidad human:approval. El humano decide, aprueba y ejecuta.",
+      detail: "Riesgo crítico sin capacidad human:approval. El humano decide, aprueba y ejecuta.",
     };
   }
 

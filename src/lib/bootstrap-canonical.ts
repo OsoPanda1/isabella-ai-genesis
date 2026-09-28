@@ -14,8 +14,8 @@ export async function bootstrapCanonicalDocuments() {
       metadata: {
         version: "6.0.0-DODECAHEDRAL-HEPTAFEDERATED",
         author: "Edwin Oswaldo Castillo Trejo",
-        code: "IVAI-CANON-001"
-      }
+        code: "IVAI-CANON-001",
+      },
     });
 
     // Attempt to bootstrap RFC-0007
@@ -28,11 +28,13 @@ export async function bootstrapCanonicalDocuments() {
       metadata: {
         version: "1.0.0-draft",
         author: "Edwin Oswaldo Castillo Trejo",
-        code: "TAMV-RFC-0007"
-      }
+        code: "TAMV-RFC-0007",
+      },
     });
-    
-    console.log("[Boot] Canonical documents IVAI-CANON-001 and TAMV-RFC-0007 successfully anchored to Document Registry.");
+
+    console.log(
+      "[Boot] Canonical documents IVAI-CANON-001 and TAMV-RFC-0007 successfully anchored to Document Registry.",
+    );
   } catch (error) {
     console.error("[Boot] Error bootstrapping canonical documents:", error);
   }

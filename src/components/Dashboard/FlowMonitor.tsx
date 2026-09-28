@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Activity, Server, Zap, Database, Lock, Cpu, Globe, CheckCircle2, Shield, FileText } from "lucide-react";
+import {
+  Activity,
+  Server,
+  Zap,
+  Database,
+  Lock,
+  Cpu,
+  Globe,
+  CheckCircle2,
+  Shield,
+  FileText,
+} from "lucide-react";
 import { motion } from "motion/react";
 
 const HERMES_MODULES = [
@@ -39,36 +50,44 @@ export const FlowMonitor: React.FC = () => {
       <div className="flex items-center justify-between mb-4 border-b border-slate-800/80 pb-4">
         <div>
           <h3 className="text-slate-200 font-bold text-sm flex items-center gap-2">
-            <Activity className="w-4 h-4 text-cyan-400" /> 
+            <Activity className="w-4 h-4 text-cyan-400" />
             Hermes Core Modules Flow
           </h3>
-          <p className="text-xs text-slate-500 mt-1">Real-time status for the 12 core cognitive modules</p>
+          <p className="text-xs text-slate-500 mt-1">
+            Real-time status for the 12 core cognitive modules
+          </p>
         </div>
         <div className="flex items-center gap-3 text-[10px] font-mono">
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Active Flow</span>
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500"></span> Degraded</span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Active Flow
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span> Degraded
+          </span>
         </div>
       </div>
 
       <div className="relative overflow-x-auto custom-scrollbar pb-4">
         <div className="min-w-[800px] flex items-stretch justify-between gap-2 px-2">
           {tiers.map((tier, tIdx) => {
-            const modsInTier = HERMES_MODULES.filter(m => m.tier === tier);
-            const isTierProcessing = modsInTier.some(m => activeNodes.includes(m.id));
+            const modsInTier = HERMES_MODULES.filter((m) => m.tier === tier);
+            const isTierProcessing = modsInTier.some((m) => activeNodes.includes(m.id));
 
             return (
               <React.Fragment key={tier}>
                 {/* Column of modules */}
                 <div className="flex flex-col gap-3 justify-center w-44 shrink-0">
                   <div className="text-center mb-2">
-                    <span className="text-[10px] font-bold font-mono text-slate-400">TIER {tier}</span>
+                    <span className="text-[10px] font-bold font-mono text-slate-400">
+                      TIER {tier}
+                    </span>
                   </div>
                   {modsInTier.map((mod) => {
                     const isProcessing = activeNodes.includes(mod.id);
                     const isDegraded = mod.status === "degraded";
 
                     return (
-                      <div 
+                      <div
                         key={mod.id}
                         className={`flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 ${
                           isDegraded
@@ -78,16 +97,30 @@ export const FlowMonitor: React.FC = () => {
                               : "bg-[#030712] border-slate-800"
                         }`}
                       >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                          isDegraded ? "bg-amber-900/30 text-amber-400" : isProcessing ? "bg-blue-500/20 text-blue-400" : "bg-slate-800 text-slate-400"
-                        }`}>
-                          {React.isValidElement(mod.icon)
-                            ? React.cloneElement(mod.icon as React.ReactElement<any>, { className: "w-4 h-4" })
-                            : <div className="w-4 h-4">{mod.icon}</div>}
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                            isDegraded
+                              ? "bg-amber-900/30 text-amber-400"
+                              : isProcessing
+                                ? "bg-blue-500/20 text-blue-400"
+                                : "bg-slate-800 text-slate-400"
+                          }`}
+                        >
+                          {React.isValidElement(mod.icon) ? (
+                            React.cloneElement(mod.icon as React.ReactElement<any>, {
+                              className: "w-4 h-4",
+                            })
+                          ) : (
+                            <div className="w-4 h-4">{mod.icon}</div>
+                          )}
                         </div>
                         <div className="text-left">
-                          <div className="text-[9px] uppercase font-mono text-slate-500 mb-0.5">MOD {mod.id.toString().padStart(2, '0')}</div>
-                          <div className={`text-[11px] font-bold leading-tight ${isProcessing && !isDegraded ? 'text-blue-300' : 'text-slate-300'}`}>
+                          <div className="text-[9px] uppercase font-mono text-slate-500 mb-0.5">
+                            MOD {mod.id.toString().padStart(2, "0")}
+                          </div>
+                          <div
+                            className={`text-[11px] font-bold leading-tight ${isProcessing && !isDegraded ? "text-blue-300" : "text-slate-300"}`}
+                          >
                             {mod.name}
                           </div>
                         </div>

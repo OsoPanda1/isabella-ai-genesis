@@ -150,24 +150,16 @@ export class ImmersiveScene {
     this.canvas3D = options.canvas3D;
     this.enableAudio = options.enableAudio ?? true;
     this.audioUrl = options.audioUrl ?? introAudioUrl;
-    this.maxPixelRatio = Math.min(
-      options.maxPixelRatio ?? 1.75,
-      2,
-    );
+    this.maxPixelRatio = Math.min(options.maxPixelRatio ?? 1.75, 2);
     this.targetFrameMs = 1000 / (options.targetFps ?? 60);
     this.reducedMotion =
-      options.reducedMotion ??
-      window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
+      options.reducedMotion ?? window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     this.stars2D = new Starfield2D(this.canvas2D, {
       count: this.reducedMotion
         ? Math.floor(this.quality.starCount2D * 0.45)
         : this.quality.starCount2D,
-      twinkle:
-        !this.reducedMotion &&
-        this.quality.quality !== "low",
+      twinkle: !this.reducedMotion && this.quality.quality !== "low",
     });
 
     this.renderer = this.createRenderer();
@@ -186,15 +178,8 @@ export class ImmersiveScene {
       count: this.reducedMotion
         ? Math.floor(this.quality.starCount3D * 0.45)
         : this.quality.starCount3D,
-      motion: this.reducedMotion
-        ? 0
-        : this.quality.enable4D
-          ? 1
-          : 0,
-      pointScale:
-        this.quality.quality === "high"
-          ? 220
-          : 160,
+      motion: this.reducedMotion ? 0 : this.quality.enable4D ? 1 : 0,
+      pointScale: this.quality.quality === "high" ? 220 : 160,
     });
 
     this.atmosphere.add(this.stars3D.points);
@@ -207,85 +192,46 @@ export class ImmersiveScene {
     const renderer = new THREE.WebGLRenderer({
       canvas: this.canvas3D,
       alpha: true,
-      antialias:
-        this.quality.quality !== "low" &&
-        !this.reducedMotion,
+      antialias: this.quality.quality !== "low" && !this.reducedMotion,
       powerPreference: "high-performance",
       depth: true,
       stencil: false,
       preserveDrawingBuffer: false,
     });
 
-    renderer.setPixelRatio(
-      Math.min(
-        window.devicePixelRatio || 1,
-        this.maxPixelRatio,
-      ),
-    );
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.maxPixelRatio));
 
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
 
-    renderer.domElement.addEventListener(
-      "webglcontextlost",
-      this.onContextLost,
-      false,
-    );
+    renderer.domElement.addEventListener("webglcontextlost", this.onContextLost, false);
 
-    renderer.domElement.addEventListener(
-      "webglcontextrestored",
-      this.onContextRestored,
-      false,
-    );
+    renderer.domElement.addEventListener("webglcontextrestored", this.onContextRestored, false);
 
     return renderer;
   }
 
   private createCamera(): THREE.PerspectiveCamera {
-    const width = Math.max(
-      this.canvas3D.clientWidth,
-      1,
-    );
+    const width = Math.max(this.canvas3D.clientWidth, 1);
 
-    const height = Math.max(
-      this.canvas3D.clientHeight,
-      1,
-    );
+    const height = Math.max(this.canvas3D.clientHeight, 1);
 
-    const camera = new THREE.PerspectiveCamera(
-      54,
-      width / height,
-      0.1,
-      250,
-    );
+    const camera = new THREE.PerspectiveCamera(54, width / height, 0.1, 250);
 
     camera.position.set(0, 0, 42);
     return camera;
   }
 
   private bindEvents(): void {
-    this.canvas3D.addEventListener(
-      "pointermove",
-      this.onPointerMove,
-      { passive: true },
-    );
+    this.canvas3D.addEventListener("pointermove", this.onPointerMove, { passive: true });
 
-    this.canvas3D.addEventListener(
-      "pointerleave",
-      this.onPointerLeave,
-      { passive: true },
-    );
+    this.canvas3D.addEventListener("pointerleave", this.onPointerLeave, { passive: true });
 
-    document.addEventListener(
-      "visibilitychange",
-      this.onVisibilityChange,
-    );
+    document.addEventListener("visibilitychange", this.onVisibilityChange);
 
     if (typeof ResizeObserver !== "undefined") {
-      this.resizeObserver = new ResizeObserver(
-        () => this.resize(),
-      );
+      this.resizeObserver = new ResizeObserver(() => this.resize());
 
       this.resizeObserver.observe(this.canvas3D);
     } else {
@@ -296,31 +242,16 @@ export class ImmersiveScene {
   private resize = (): void => {
     if (this.disposed) return;
 
-    const width = Math.max(
-      this.canvas3D.clientWidth || window.innerWidth,
-      1,
-    );
+    const width = Math.max(this.canvas3D.clientWidth || window.innerWidth, 1);
 
-    const height = Math.max(
-      this.canvas3D.clientHeight || window.innerHeight,
-      1,
-    );
+    const height = Math.max(this.canvas3D.clientHeight || window.innerHeight, 1);
 
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
 
-    this.renderer.setPixelRatio(
-      Math.min(
-        window.devicePixelRatio || 1,
-        this.maxPixelRatio,
-      ),
-    );
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.maxPixelRatio));
 
-    this.renderer.setSize(
-      width,
-      height,
-      false,
-    );
+    this.renderer.setSize(width, height, false);
   };
 
   private ensureAudio(): AudioState | null {
@@ -329,8 +260,7 @@ export class ImmersiveScene {
     }
 
     const listener = this.camera.children.find(
-      (child): child is THREE.AudioListener =>
-        child instanceof THREE.AudioListener,
+      (child): child is THREE.AudioListener => child instanceof THREE.AudioListener,
     );
 
     if (!listener) return null;
@@ -382,9 +312,7 @@ export class ImmersiveScene {
       delay,
       feedback,
       echoFilter,
-      frequencyData: new Uint8Array(
-        analyser.frequencyBinCount,
-      ),
+      frequencyData: new Uint8Array(analyser.frequencyBinCount),
       loaded: false,
       unlocked: false,
       disposed: false,
@@ -403,9 +331,7 @@ export class ImmersiveScene {
       }
 
       const arrayBuffer = await response.arrayBuffer();
-      const buffer = await audio.context.decodeAudioData(
-        arrayBuffer,
-      );
+      const buffer = await audio.context.decodeAudioData(arrayBuffer);
 
       if (audio.disposed || this.disposed) return;
 
@@ -414,11 +340,7 @@ export class ImmersiveScene {
       audio.source.setVolume(0.55);
       audio.loaded = true;
 
-      if (
-        this.running &&
-        audio.unlocked &&
-        !audio.source.isPlaying
-      ) {
+      if (this.running && audio.unlocked && !audio.source.isPlaying) {
         audio.source.play();
       }
     } catch {
@@ -435,11 +357,7 @@ export class ImmersiveScene {
       await audio.context.resume();
       audio.unlocked = true;
 
-      if (
-        audio.loaded &&
-        this.running &&
-        !audio.source.isPlaying
-      ) {
+      if (audio.loaded && this.running && !audio.source.isPlaying) {
         audio.source.play();
       }
 
@@ -454,9 +372,7 @@ export class ImmersiveScene {
 
     if (!audio || audio.disposed) return;
 
-    audio.analyser.getByteFrequencyData(
-      audio.frequencyData,
-    );
+    audio.analyser.getByteFrequencyData(audio.frequencyData);
 
     let bass = 0;
 
@@ -466,11 +382,7 @@ export class ImmersiveScene {
 
     bass /= 6 * 255;
 
-    audio.output.gain.setTargetAtTime(
-      0.035 + bass * 0.02,
-      audio.context.currentTime,
-      0.08,
-    );
+    audio.output.gain.setTargetAtTime(0.035 + bass * 0.02, audio.context.currentTime, 0.08);
 
     this.audioEmitter.position.set(
       Math.sin(elapsed * 0.22) * 12,
@@ -496,25 +408,18 @@ export class ImmersiveScene {
       delta,
     );
 
-    this.atmosphere.rotation.x =
-      this.currentRotationX;
+    this.atmosphere.rotation.x = this.currentRotationX;
 
-    this.atmosphere.rotation.y =
-      this.currentRotationY;
+    this.atmosphere.rotation.y = this.currentRotationY;
 
     if (this.reducedMotion) {
       this.camera.position.set(0, 0, 42);
     } else {
-      this.camera.position.x =
-        Math.sin(elapsed * 0.4) * 0.12 +
-        this.pointerX * 0.55;
+      this.camera.position.x = Math.sin(elapsed * 0.4) * 0.12 + this.pointerX * 0.55;
 
-      this.camera.position.y =
-        Math.cos(elapsed * 0.3) * 0.1 -
-        this.pointerY * 0.55;
+      this.camera.position.y = Math.cos(elapsed * 0.3) * 0.1 - this.pointerY * 0.55;
 
-      this.camera.position.z =
-        42 + Math.sin(elapsed * 0.2) * 0.18;
+      this.camera.position.z = 42 + Math.sin(elapsed * 0.2) * 0.18;
     }
 
     this.camera.lookAt(0, 0, 0);
@@ -523,20 +428,12 @@ export class ImmersiveScene {
   private render = (timestamp: number): void => {
     if (!this.running || this.disposed) return;
 
-    if (
-      timestamp - this.lastFrameAt <
-      this.targetFrameMs * 0.85
-    ) {
-      this.frameId = requestAnimationFrame(
-        this.render,
-      );
+    if (timestamp - this.lastFrameAt < this.targetFrameMs * 0.85) {
+      this.frameId = requestAnimationFrame(this.render);
       return;
     }
 
-    const delta = Math.min(
-      (timestamp - this.previousTimestamp) / 1000 || 0,
-      0.1,
-    );
+    const delta = Math.min((timestamp - this.previousTimestamp) / 1000 || 0, 0.1);
 
     this.previousTimestamp = timestamp;
     this.lastFrameAt = timestamp;
@@ -547,18 +444,13 @@ export class ImmersiveScene {
     this.updateAudio(this.elapsed);
 
     try {
-      this.renderer.render(
-        this.scene,
-        this.camera,
-      );
+      this.renderer.render(this.scene, this.camera);
     } catch {
       this.stop();
       return;
     }
 
-    this.frameId = requestAnimationFrame(
-      this.render,
-    );
+    this.frameId = requestAnimationFrame(this.render);
   };
 
   start(): void {
@@ -571,17 +463,11 @@ export class ImmersiveScene {
     this.stars2D.start();
     this.ensureAudio();
 
-    if (
-      this.audio?.loaded &&
-      this.audio.unlocked &&
-      !this.audio.source.isPlaying
-    ) {
+    if (this.audio?.loaded && this.audio.unlocked && !this.audio.source.isPlaying) {
       this.audio.source.play();
     }
 
-    this.frameId = requestAnimationFrame(
-      this.render,
-    );
+    this.frameId = requestAnimationFrame(this.render);
   }
 
   pause(): void {
@@ -625,11 +511,7 @@ export class ImmersiveScene {
   unmute(): void {
     if (!this.muted) return;
     this.muted = false;
-    if (
-      this.audio?.source &&
-      this.running &&
-      !this.audio.source.isPlaying
-    ) {
+    if (this.audio?.source && this.running && !this.audio.source.isPlaying) {
       this.audio.source.play();
     }
   }
@@ -637,9 +519,7 @@ export class ImmersiveScene {
   set3DOpacity(value: number): void {
     if (this.disposed) return;
 
-    this.stars3D.setOpacity(
-      THREE.MathUtils.clamp(value, 0, 1),
-    );
+    this.stars3D.setOpacity(THREE.MathUtils.clamp(value, 0, 1));
   }
 
   getStatus(): ImmersiveSceneStatus {
@@ -680,20 +560,11 @@ export class ImmersiveScene {
     this.pause();
     this.transition.dispose();
 
-    this.canvas3D.removeEventListener(
-      "pointermove",
-      this.onPointerMove,
-    );
+    this.canvas3D.removeEventListener("pointermove", this.onPointerMove);
 
-    this.canvas3D.removeEventListener(
-      "pointerleave",
-      this.onPointerLeave,
-    );
+    this.canvas3D.removeEventListener("pointerleave", this.onPointerLeave);
 
-    document.removeEventListener(
-      "visibilitychange",
-      this.onVisibilityChange,
-    );
+    document.removeEventListener("visibilitychange", this.onVisibilityChange);
 
     this.resizeObserver?.disconnect();
     window.removeEventListener("resize", this.resize);
@@ -718,15 +589,9 @@ export class ImmersiveScene {
       this.audio = null;
     }
 
-    this.renderer.domElement.removeEventListener(
-      "webglcontextlost",
-      this.onContextLost,
-    );
+    this.renderer.domElement.removeEventListener("webglcontextlost", this.onContextLost);
 
-    this.renderer.domElement.removeEventListener(
-      "webglcontextrestored",
-      this.onContextRestored,
-    );
+    this.renderer.domElement.removeEventListener("webglcontextrestored", this.onContextRestored);
 
     this.stars2D.dispose();
     this.stars3D.dispose();

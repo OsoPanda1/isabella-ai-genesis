@@ -45,10 +45,7 @@ function degrade(reason: string): PolicyDecision {
   };
 }
 
-function allow(
-  role: keyof typeof ROLE_LIMITS,
-  remote: boolean,
-): PolicyDecision {
+function allow(role: keyof typeof ROLE_LIMITS, remote: boolean): PolicyDecision {
   const limits = ROLE_LIMITS[role];
   const requiresApproval = remote || role === "user";
   return {

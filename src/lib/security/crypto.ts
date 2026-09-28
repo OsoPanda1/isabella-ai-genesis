@@ -125,11 +125,7 @@ export function createHMAC512(key: Buffer | string, data: string): string {
 /**
  * Verify an HMAC-SHA512 signature using timing-safe comparison.
  */
-export function verifyHMAC512(
-  key: Buffer | string,
-  data: string,
-  signature: string,
-): boolean {
+export function verifyHMAC512(key: Buffer | string, data: string, signature: string): boolean {
   const expected = createHMAC512(key, data);
   const expectedBuffer = Buffer.from(expected, "hex");
   const actualBuffer = Buffer.from(signature, "hex");
@@ -165,11 +161,7 @@ export function createHMAC256(key: Buffer | string, data: string): string {
 /**
  * Verify an HMAC-SHA256 signature.
  */
-export function verifyHMAC256(
-  key: Buffer | string,
-  data: string,
-  signature: string,
-): boolean {
+export function verifyHMAC256(key: Buffer | string, data: string, signature: string): boolean {
   const expected = createHMAC256(key, data);
   const expectedBuffer = Buffer.from(expected, "hex");
   const actualBuffer = Buffer.from(signature, "hex");
@@ -199,10 +191,7 @@ export interface EncryptionResult {
  * Encrypt data using AES-256-GCM with a 512-byte key.
  * The key is derived using scrypt from a passphrase.
  */
-export function encrypt512(
-  passphrase: string,
-  plaintext: string,
-): EncryptionResult {
+export function encrypt512(passphrase: string, plaintext: string): EncryptionResult {
   const salt = randomBytes(SALT_LENGTH);
   const iv = randomBytes(IV_LENGTH);
   const key = derive512ByteKey(passphrase, salt);
@@ -226,10 +215,7 @@ export function encrypt512(
 /**
  * Decrypt data using AES-256-GCM with a 512-byte key.
  */
-export function decrypt512(
-  passphrase: string,
-  encrypted: EncryptionResult,
-): string {
+export function decrypt512(passphrase: string, encrypted: EncryptionResult): string {
   const salt = Buffer.from(encrypted.salt, "hex");
   const iv = Buffer.from(encrypted.iv, "hex");
   const tag = Buffer.from(encrypted.tag, "hex");
@@ -237,11 +223,7 @@ export function decrypt512(
 
   const aesKey = key.subarray(0, 32);
 
-  const decipher = crypto.createDecipheriv(
-    "aes-256-gcm",
-    aesKey,
-    iv,
-  );
+  const decipher = crypto.createDecipheriv("aes-256-gcm", aesKey, iv);
   decipher.setAuthTag(tag);
 
   let plaintext = decipher.update(encrypted.ciphertext, "hex", "utf8");
@@ -276,11 +258,7 @@ export function hashPassword(password: string): {
 /**
  * Verify a password against a stored hash.
  */
-export function verifyPassword(
-  password: string,
-  storedHash: string,
-  storedSalt: string,
-): boolean {
+export function verifyPassword(password: string, storedHash: string, storedSalt: string): boolean {
   const salt = Buffer.from(storedSalt, "hex");
   const hash = scryptSync(password, salt, 64, {
     N: SCRYPT_COST,
@@ -327,9 +305,7 @@ export function generateSignedToken(
   };
 
   const headerB64 = Buffer.from(JSON.stringify(header)).toString("base64url");
-  const payloadB64 = Buffer.from(JSON.stringify(fullPayload)).toString(
-    "base64url",
-  );
+  const payloadB64 = Buffer.from(JSON.stringify(fullPayload)).toString("base64url");
   const signature = createHMAC512(secret, `${headerB64}.${payloadB64}`);
 
   return `${headerB64}.${payloadB64}.${signature}`;
@@ -354,9 +330,7 @@ export function verifySignedToken(
   }
 
   try {
-    const payload = JSON.parse(
-      Buffer.from(payloadB64, "base64url").toString(),
-    );
+    const payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString());
 
     if (payload.exp && Date.now() > payload.exp) {
       return { valid: false };

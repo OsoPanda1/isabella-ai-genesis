@@ -124,7 +124,9 @@ export function useGlobalShortcuts() {
         toggleSpeechSynthesis();
         const nextState = !state.speechSynthesisEnabled;
         triggerShortcutFeedback(
-          nextState ? "🔊 Narración por Voz: ACTIVADA (Ctrl+Shift+V)" : "🔇 Narración por Voz: SILENCIADA (Ctrl+Shift+V)"
+          nextState
+            ? "🔊 Narración por Voz: ACTIVADA (Ctrl+Shift+V)"
+            : "🔇 Narración por Voz: SILENCIADA (Ctrl+Shift+V)",
         );
         return;
       }
@@ -135,7 +137,7 @@ export function useGlobalShortcuts() {
         toggleSound();
         const nextState = !state.soundEnabled;
         triggerShortcutFeedback(
-          nextState ? "🎵 Efectos de Sonido: ACTIVADOS" : "🔇 Efectos de Sonido: SILENCIADOS"
+          nextState ? "🎵 Efectos de Sonido: ACTIVADOS" : "🔇 Efectos de Sonido: SILENCIADOS",
         );
         return;
       }
@@ -212,7 +214,7 @@ export function useGlobalShortcuts() {
       openShortcutsModal,
       closeShortcutsModal,
       triggerShortcutFeedback,
-    ]
+    ],
   );
 
   useEffect(() => {

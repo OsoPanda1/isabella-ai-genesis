@@ -49,12 +49,7 @@ export { AlphaMemory, alphaMemory } from "./alpha/memory";
 export type { MemoryQuery, MemoryResult } from "./alpha/memory";
 
 export { ResearchEngine, researchEngine } from "./alpha/research";
-export type {
-  ResearchQuery,
-  ResearchResult,
-  ResearchSynthesis,
-  Claim,
-} from "./alpha/research";
+export type { ResearchQuery, ResearchResult, ResearchSynthesis, Claim } from "./alpha/research";
 
 export { HypothesisEngine, hypothesisEngine } from "./alpha/hypothesis";
 export type { Hypothesis } from "./alpha/hypothesis";
@@ -64,11 +59,7 @@ export type { ProposalInput } from "./alpha/proposal";
 
 /* Beta */
 export { IdentityResolver, identityResolver } from "./beta/identity";
-export type {
-  IdentityContext,
-  IdentityVerification,
-  AssuranceLevel,
-} from "./beta/identity";
+export type { IdentityContext, IdentityVerification, AssuranceLevel } from "./beta/identity";
 
 export { ClassificationEngine, classificationEngine } from "./beta/classification";
 export type { ClassificationResult } from "./beta/classification";

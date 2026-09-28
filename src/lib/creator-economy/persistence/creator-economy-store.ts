@@ -42,7 +42,11 @@ export interface CreatorEconomyStore {
   // assets
   insertAsset(asset: ContentAsset): void;
   getAsset(assetId: string): ContentAsset | null;
-  updateAssetStatus(assetId: string, status: ContentAsset["status"], approvedByCreatorAt?: string | null): void;
+  updateAssetStatus(
+    assetId: string,
+    status: ContentAsset["status"],
+    approvedByCreatorAt?: string | null,
+  ): void;
   listAssets(creatorId: string): ContentAsset[];
 
   // offers / gifts
@@ -65,7 +69,12 @@ export interface CreatorEconomyStore {
   // payouts
   insertPayout(payout: PayoutRequest): boolean; // false if idempotencyKey exists
   getPayoutByIdempotencyKey(key: string): PayoutRequest | null;
-  updatePayoutStatus(id: string, status: PayoutStatus, processedAt?: string | null, ref?: string | null): void;
+  updatePayoutStatus(
+    id: string,
+    status: PayoutStatus,
+    processedAt?: string | null,
+    ref?: string | null,
+  ): void;
   listPayouts(creatorId: string): PayoutRequest[];
 
   // social channels
@@ -76,7 +85,11 @@ export interface CreatorEconomyStore {
 
   // scheduled publications
   insertPublication(pub: ScheduledPublication): void;
-  updatePublicationStatus(id: string, status: ScheduledPublication["status"], externalRef?: string | null): void;
+  updatePublicationStatus(
+    id: string,
+    status: ScheduledPublication["status"],
+    externalRef?: string | null,
+  ): void;
   listPublications(creatorId: string): ScheduledPublication[];
 }
 
@@ -290,7 +303,8 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
   }
 
   getProfile(creatorId: string): CreatorProfile | null {
-    const row = this.db.prepare("SELECT * FROM ce_profiles WHERE id = ?").get(creatorId) as Record<string, unknown> | undefined;
+    const row = this.db.prepare("SELECT * FROM ce_profiles WHERE id = ?").get(creatorId) as
+      Record<string, unknown> | undefined;
     if (!row) return null;
     return {
       id: row.id as string,
@@ -301,7 +315,10 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
       audienceSegments: p(row.audienceSegments as string, []),
       availabilityMinutesPerWeek: row.availabilityMinutesPerWeek as number,
       privacyPreferences: p(row.privacyPreferences as string, {
-        showFace: true, allowVoice: true, allowLocation: false, allowExternalPublishing: false,
+        showFace: true,
+        allowVoice: true,
+        allowLocation: false,
+        allowExternalPublishing: false,
       }),
       objectives: p(row.objectives as string, []),
       onboardingStatus: row.onboardingStatus as CreatorProfile["onboardingStatus"],
@@ -336,7 +353,8 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
   }
 
   getKyc(creatorId: string): KycVerificationStatus | null {
-    const row = this.db.prepare("SELECT * FROM ce_kyc WHERE creatorId = ?").get(creatorId) as Record<string, unknown> | undefined;
+    const row = this.db.prepare("SELECT * FROM ce_kyc WHERE creatorId = ?").get(creatorId) as
+      Record<string, unknown> | undefined;
     if (!row) return null;
     return {
       creatorId,
@@ -383,7 +401,9 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
   }
 
   getEntitlement(creatorId: string): Entitlement | null {
-    const row = this.db.prepare("SELECT * FROM ce_entitlements WHERE creatorId = ?").get(creatorId) as Record<string, unknown> | undefined;
+    const row = this.db
+      .prepare("SELECT * FROM ce_entitlements WHERE creatorId = ?")
+      .get(creatorId) as Record<string, unknown> | undefined;
     if (!row) return null;
     return {
       creatorId,
@@ -412,11 +432,16 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
          VALUES (@id,@creatorId,@sourceAssetId,@format,@contentUri,@status,
           @provenance,@hashSHA256,@approvedByCreatorAt,@createdAt,@updatedAt)`,
       )
-      .run({ ...asset, provenance: j(asset.provenance), sourceAssetId: asset.sourceAssetId ?? null });
+      .run({
+        ...asset,
+        provenance: j(asset.provenance),
+        sourceAssetId: asset.sourceAssetId ?? null,
+      });
   }
 
   getAsset(assetId: string): ContentAsset | null {
-    const row = this.db.prepare("SELECT * FROM ce_assets WHERE id = ?").get(assetId) as Record<string, unknown> | undefined;
+    const row = this.db.prepare("SELECT * FROM ce_assets WHERE id = ?").get(assetId) as
+      Record<string, unknown> | undefined;
     return row ? this.rowToAsset(row) : null;
   }
 
@@ -428,7 +453,11 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
       format: row.format as ContentAsset["format"],
       contentUri: row.contentUri as string,
       status: row.status as ContentAsset["status"],
-      provenance: p(row.provenance as string, { generatedBy: "user", transformations: [], createdAt: now() }),
+      provenance: p(row.provenance as string, {
+        generatedBy: "user",
+        transformations: [],
+        createdAt: now(),
+      }),
       hashSHA256: row.hashSHA256 as string,
       approvedByCreatorAt: (row.approvedByCreatorAt as string | null) ?? null,
       createdAt: row.createdAt as string,
@@ -436,7 +465,11 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
     };
   }
 
-  updateAssetStatus(assetId: string, status: ContentAsset["status"], approvedByCreatorAt?: string | null): void {
+  updateAssetStatus(
+    assetId: string,
+    status: ContentAsset["status"],
+    approvedByCreatorAt?: string | null,
+  ): void {
     this.db
       .prepare(
         `UPDATE ce_assets SET status = ?, approvedByCreatorAt = COALESCE(?, approvedByCreatorAt),
@@ -446,7 +479,9 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
   }
 
   listAssets(creatorId: string): ContentAsset[] {
-    const rows = this.db.prepare("SELECT * FROM ce_assets WHERE creatorId = ? ORDER BY createdAt DESC").all(creatorId) as Record<string, unknown>[];
+    const rows = this.db
+      .prepare("SELECT * FROM ce_assets WHERE creatorId = ? ORDER BY createdAt DESC")
+      .all(creatorId) as Record<string, unknown>[];
     return rows.map((r) => this.rowToAsset(r));
   }
 
@@ -464,16 +499,24 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
           sponsorshipDisclosed=excluded.sponsorshipDisclosed`,
       )
       .run({
-        id: offer.id, creatorId: offer.creatorId, tenantId: offer.tenantId,
-        type: offer.type, title: offer.title, description: offer.description,
-        priceAmountMinor: offer.price.amountMinor, priceCurrency: offer.price.currency,
-        status: offer.status, evidence: j(offer.evidence),
-        sponsorshipDisclosed: offer.sponsorshipDisclosed ? 1 : 0, createdAt: offer.createdAt,
+        id: offer.id,
+        creatorId: offer.creatorId,
+        tenantId: offer.tenantId,
+        type: offer.type,
+        title: offer.title,
+        description: offer.description,
+        priceAmountMinor: offer.price.amountMinor,
+        priceCurrency: offer.price.currency,
+        status: offer.status,
+        evidence: j(offer.evidence),
+        sponsorshipDisclosed: offer.sponsorshipDisclosed ? 1 : 0,
+        createdAt: offer.createdAt,
       });
   }
 
   getOffer(offerId: string): MonetizationOffer | null {
-    const row = this.db.prepare("SELECT * FROM ce_offers WHERE id = ?").get(offerId) as Record<string, unknown> | undefined;
+    const row = this.db.prepare("SELECT * FROM ce_offers WHERE id = ?").get(offerId) as
+      Record<string, unknown> | undefined;
     return row ? this.rowToOffer(row) : null;
   }
 
@@ -485,7 +528,10 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
       type: row.type as MonetizationOffer["type"],
       title: row.title as string,
       description: row.description as string,
-      price: { amountMinor: row.priceAmountMinor as number, currency: row.priceCurrency as Currency },
+      price: {
+        amountMinor: row.priceAmountMinor as number,
+        currency: row.priceCurrency as Currency,
+      },
       status: row.status as MonetizationOffer["status"],
       evidence: p(row.evidence as string, { interviews: 0, leads: 0, preorders: 0, sales: 0 }),
       sponsorshipDisclosed: row.sponsorshipDisclosed === 1,
@@ -497,8 +543,14 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
     let sql = "SELECT * FROM ce_offers";
     const conds: string[] = [];
     const args: unknown[] = [];
-    if (creatorId) { conds.push("creatorId = ?"); args.push(creatorId); }
-    if (status) { conds.push("status = ?"); args.push(status); }
+    if (creatorId) {
+      conds.push("creatorId = ?");
+      args.push(creatorId);
+    }
+    if (status) {
+      conds.push("status = ?");
+      args.push(status);
+    }
     if (conds.length) sql += " WHERE " + conds.join(" AND ");
     sql += " ORDER BY createdAt DESC";
     const rows = this.db.prepare(sql).all(...(args as never[])) as Record<string, unknown>[];
@@ -523,15 +575,27 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
     );
     const runAll = this.db.transaction((list: LedgerEntry[]) => {
       for (const e of list) {
-        stmt.run(e.id, e.transactionId, e.tenantId, e.account, e.direction,
-          e.amountMinor, e.currency, e.status, e.memo, e.createdAt);
+        stmt.run(
+          e.id,
+          e.transactionId,
+          e.tenantId,
+          e.account,
+          e.direction,
+          e.amountMinor,
+          e.currency,
+          e.status,
+          e.memo,
+          e.createdAt,
+        );
       }
     });
     runAll(entries);
   }
 
   getEntriesByTransaction(transactionId: string): LedgerEntry[] {
-    const rows = this.db.prepare("SELECT * FROM ce_ledger_entries WHERE transactionId = ?").all(transactionId) as Record<string, unknown>[];
+    const rows = this.db
+      .prepare("SELECT * FROM ce_ledger_entries WHERE transactionId = ?")
+      .all(transactionId) as Record<string, unknown>[];
     return rows.map((r) => ({
       id: r.id as string,
       transactionId: r.transactionId as string,
@@ -583,13 +647,24 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
           remainingCredits, status, inputHash, outputSummary, executedAt)
          VALUES (?,?,?,?,?,?,?,?,?)`,
       )
-      .run(exec.executionId, exec.skillId, exec.creatorId, exec.creditsDeducted,
-        exec.remainingCredits, exec.status, exec.inputHash, exec.outputSummary, exec.executedAt);
+      .run(
+        exec.executionId,
+        exec.skillId,
+        exec.creatorId,
+        exec.creditsDeducted,
+        exec.remainingCredits,
+        exec.status,
+        exec.inputHash,
+        exec.outputSummary,
+        exec.executedAt,
+      );
   }
 
   listSkillExecutions(creatorId: string, limit = 50): SkillExecution[] {
     return this.db
-      .prepare("SELECT * FROM ce_skill_executions WHERE creatorId = ? ORDER BY executedAt DESC LIMIT ?")
+      .prepare(
+        "SELECT * FROM ce_skill_executions WHERE creatorId = ? ORDER BY executedAt DESC LIMIT ?",
+      )
       .all(creatorId, limit) as SkillExecution[];
   }
 
@@ -601,18 +676,36 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
           bankAccountMasked, disbursementReference)
          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       )
-      .run(payout.id, payout.creatorId, payout.currency, payout.requestedMinor, payout.feeMinor,
-        payout.taxWithheldMinor, payout.netPayoutMinor, payout.status, payout.idempotencyKey,
-        payout.requestedAt, payout.processedAt, payout.bankAccountMasked, payout.disbursementReference);
+      .run(
+        payout.id,
+        payout.creatorId,
+        payout.currency,
+        payout.requestedMinor,
+        payout.feeMinor,
+        payout.taxWithheldMinor,
+        payout.netPayoutMinor,
+        payout.status,
+        payout.idempotencyKey,
+        payout.requestedAt,
+        payout.processedAt,
+        payout.bankAccountMasked,
+        payout.disbursementReference,
+      );
     return res.changes > 0;
   }
 
   getPayoutByIdempotencyKey(key: string): PayoutRequest | null {
-    const row = this.db.prepare("SELECT * FROM ce_payouts WHERE idempotencyKey = ?").get(key) as PayoutRequest | undefined;
+    const row = this.db.prepare("SELECT * FROM ce_payouts WHERE idempotencyKey = ?").get(key) as
+      PayoutRequest | undefined;
     return row ?? null;
   }
 
-  updatePayoutStatus(id: string, status: PayoutStatus, processedAt?: string | null, ref?: string | null): void {
+  updatePayoutStatus(
+    id: string,
+    status: PayoutStatus,
+    processedAt?: string | null,
+    ref?: string | null,
+  ): void {
     this.db
       .prepare(
         `UPDATE ce_payouts SET status = ?, processedAt = COALESCE(?, processedAt),
@@ -643,7 +736,8 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
   }
 
   getChannel(channelId: string): SocialChannel | null {
-    const row = this.db.prepare("SELECT * FROM ce_channels WHERE id = ?").get(channelId) as Record<string, unknown> | undefined;
+    const row = this.db.prepare("SELECT * FROM ce_channels WHERE id = ?").get(channelId) as
+      Record<string, unknown> | undefined;
     return row ? this.rowToChannel(row) : null;
   }
 
@@ -665,7 +759,9 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
   }
 
   listChannels(creatorId: string): SocialChannel[] {
-    const rows = this.db.prepare("SELECT * FROM ce_channels WHERE creatorId = ?").all(creatorId) as Record<string, unknown>[];
+    const rows = this.db
+      .prepare("SELECT * FROM ce_channels WHERE creatorId = ?")
+      .all(creatorId) as Record<string, unknown>[];
     return rows.map((r) => this.rowToChannel(r));
   }
 
@@ -680,11 +776,24 @@ class SqliteCreatorEconomyStore implements CreatorEconomyStore {
           status, approvedByCreatorAt, publishedAt, externalRef)
          VALUES (?,?,?,?,?,?,?,?,?)`,
       )
-      .run(pub.id, pub.creatorId, pub.channelId, pub.assetId, pub.scheduledAt,
-        pub.status, pub.approvedByCreatorAt, pub.publishedAt, pub.externalRef);
+      .run(
+        pub.id,
+        pub.creatorId,
+        pub.channelId,
+        pub.assetId,
+        pub.scheduledAt,
+        pub.status,
+        pub.approvedByCreatorAt,
+        pub.publishedAt,
+        pub.externalRef,
+      );
   }
 
-  updatePublicationStatus(id: string, status: ScheduledPublication["status"], externalRef?: string | null): void {
+  updatePublicationStatus(
+    id: string,
+    status: ScheduledPublication["status"],
+    externalRef?: string | null,
+  ): void {
     this.db
       .prepare(
         `UPDATE ce_publications SET status = ?, externalRef = COALESCE(?, externalRef),
@@ -718,16 +827,40 @@ class InMemoryCreatorEconomyStore implements CreatorEconomyStore {
   private channels = new Map<string, SocialChannel>();
   private pubs = new Map<string, ScheduledPublication>();
 
-  upsertProfile(profile: CreatorProfile): void { this.profiles.set(profile.id, structuredClone(profile)); }
-  getProfile(creatorId: string): CreatorProfile | null { const v = this.profiles.get(creatorId); return v ? structuredClone(v) : null; }
-  upsertKyc(kyc: KycVerificationStatus): void { this.kycs.set(kyc.creatorId, structuredClone(kyc)); }
-  getKyc(creatorId: string): KycVerificationStatus | null { const v = this.kycs.get(creatorId); return v ? structuredClone(v) : null; }
-  upsertEntitlement(ent: Entitlement): void { this.ents.set(ent.creatorId, structuredClone(ent)); }
-  getEntitlement(creatorId: string): Entitlement | null { const v = this.ents.get(creatorId); return v ? structuredClone(v) : null; }
+  upsertProfile(profile: CreatorProfile): void {
+    this.profiles.set(profile.id, structuredClone(profile));
+  }
+  getProfile(creatorId: string): CreatorProfile | null {
+    const v = this.profiles.get(creatorId);
+    return v ? structuredClone(v) : null;
+  }
+  upsertKyc(kyc: KycVerificationStatus): void {
+    this.kycs.set(kyc.creatorId, structuredClone(kyc));
+  }
+  getKyc(creatorId: string): KycVerificationStatus | null {
+    const v = this.kycs.get(creatorId);
+    return v ? structuredClone(v) : null;
+  }
+  upsertEntitlement(ent: Entitlement): void {
+    this.ents.set(ent.creatorId, structuredClone(ent));
+  }
+  getEntitlement(creatorId: string): Entitlement | null {
+    const v = this.ents.get(creatorId);
+    return v ? structuredClone(v) : null;
+  }
 
-  insertAsset(asset: ContentAsset): void { this.assets.set(asset.id, structuredClone(asset)); }
-  getAsset(assetId: string): ContentAsset | null { const v = this.assets.get(assetId); return v ? structuredClone(v) : null; }
-  updateAssetStatus(assetId: string, status: ContentAsset["status"], approvedByCreatorAt?: string | null): void {
+  insertAsset(asset: ContentAsset): void {
+    this.assets.set(asset.id, structuredClone(asset));
+  }
+  getAsset(assetId: string): ContentAsset | null {
+    const v = this.assets.get(assetId);
+    return v ? structuredClone(v) : null;
+  }
+  updateAssetStatus(
+    assetId: string,
+    status: ContentAsset["status"],
+    approvedByCreatorAt?: string | null,
+  ): void {
     const a = this.assets.get(assetId);
     if (!a) return;
     a.status = status;
@@ -735,11 +868,18 @@ class InMemoryCreatorEconomyStore implements CreatorEconomyStore {
     a.updatedAt = now();
   }
   listAssets(creatorId: string): ContentAsset[] {
-    return [...this.assets.values()].filter((a) => a.creatorId === creatorId).map((a) => structuredClone(a));
+    return [...this.assets.values()]
+      .filter((a) => a.creatorId === creatorId)
+      .map((a) => structuredClone(a));
   }
 
-  upsertOffer(offer: MonetizationOffer): void { this.offers.set(offer.id, structuredClone(offer)); }
-  getOffer(offerId: string): MonetizationOffer | null { const v = this.offers.get(offerId); return v ? structuredClone(v) : null; }
+  upsertOffer(offer: MonetizationOffer): void {
+    this.offers.set(offer.id, structuredClone(offer));
+  }
+  getOffer(offerId: string): MonetizationOffer | null {
+    const v = this.offers.get(offerId);
+    return v ? structuredClone(v) : null;
+  }
   listOffers(creatorId?: string, status?: MonetizationOffer["status"]): MonetizationOffer[] {
     return [...this.offers.values()]
       .filter((o) => (!creatorId || o.creatorId === creatorId) && (!status || o.status === status))
@@ -752,9 +892,13 @@ class InMemoryCreatorEconomyStore implements CreatorEconomyStore {
     this.txs.set(tx.id, structuredClone(tx));
     return true;
   }
-  insertEntries(entries: LedgerEntry[]): void { this.entries.push(...entries.map((e) => structuredClone(e))); }
+  insertEntries(entries: LedgerEntry[]): void {
+    this.entries.push(...entries.map((e) => structuredClone(e)));
+  }
   getEntriesByTransaction(transactionId: string): LedgerEntry[] {
-    return this.entries.filter((e) => e.transactionId === transactionId).map((e) => structuredClone(e));
+    return this.entries
+      .filter((e) => e.transactionId === transactionId)
+      .map((e) => structuredClone(e));
   }
   getAccountBalance(tenantId: string, account: AccountType): number {
     return this.entries
@@ -769,14 +913,26 @@ class InMemoryCreatorEconomyStore implements CreatorEconomyStore {
   listUnbalancedTransactions(limit = 50): string[] {
     const byTx = new Map<string, number>();
     for (const e of this.entries) {
-      byTx.set(e.transactionId, (byTx.get(e.transactionId) ?? 0) + (e.direction === "debit" ? e.amountMinor : -e.amountMinor));
+      byTx.set(
+        e.transactionId,
+        (byTx.get(e.transactionId) ?? 0) +
+          (e.direction === "debit" ? e.amountMinor : -e.amountMinor),
+      );
     }
-    return [...byTx.entries()].filter(([, d]) => d !== 0).slice(0, limit).map(([id]) => id);
+    return [...byTx.entries()]
+      .filter(([, d]) => d !== 0)
+      .slice(0, limit)
+      .map(([id]) => id);
   }
 
-  insertSkillExecution(exec: SkillExecution): void { this.execs.unshift(structuredClone(exec)); }
+  insertSkillExecution(exec: SkillExecution): void {
+    this.execs.unshift(structuredClone(exec));
+  }
   listSkillExecutions(creatorId: string, limit = 50): SkillExecution[] {
-    return this.execs.filter((e) => e.creatorId === creatorId).slice(0, limit).map((e) => structuredClone(e));
+    return this.execs
+      .filter((e) => e.creatorId === creatorId)
+      .slice(0, limit)
+      .map((e) => structuredClone(e));
   }
 
   insertPayout(payout: PayoutRequest): boolean {
@@ -790,7 +946,12 @@ class InMemoryCreatorEconomyStore implements CreatorEconomyStore {
     const v = id ? this.payouts.get(id) : undefined;
     return v ? structuredClone(v) : null;
   }
-  updatePayoutStatus(id: string, status: PayoutStatus, processedAt?: string | null, ref?: string | null): void {
+  updatePayoutStatus(
+    id: string,
+    status: PayoutStatus,
+    processedAt?: string | null,
+    ref?: string | null,
+  ): void {
     const v = this.payouts.get(id);
     if (!v) return;
     v.status = status;
@@ -798,21 +959,36 @@ class InMemoryCreatorEconomyStore implements CreatorEconomyStore {
     if (ref) v.disbursementReference = ref;
   }
   listPayouts(creatorId: string): PayoutRequest[] {
-    return [...this.payouts.values()].filter((v) => v.creatorId === creatorId).map((v) => structuredClone(v));
+    return [...this.payouts.values()]
+      .filter((v) => v.creatorId === creatorId)
+      .map((v) => structuredClone(v));
   }
 
-  upsertChannel(channel: SocialChannel): void { this.channels.set(channel.id, structuredClone(channel)); }
-  getChannel(channelId: string): SocialChannel | null { const v = this.channels.get(channelId); return v ? structuredClone(v) : null; }
+  upsertChannel(channel: SocialChannel): void {
+    this.channels.set(channel.id, structuredClone(channel));
+  }
+  getChannel(channelId: string): SocialChannel | null {
+    const v = this.channels.get(channelId);
+    return v ? structuredClone(v) : null;
+  }
   listChannels(creatorId: string): SocialChannel[] {
-    return [...this.channels.values()].filter((c) => c.creatorId === creatorId).map((c) => structuredClone(c));
+    return [...this.channels.values()]
+      .filter((c) => c.creatorId === creatorId)
+      .map((c) => structuredClone(c));
   }
   updateChannelStatus(channelId: string, status: SocialChannel["status"]): void {
     const v = this.channels.get(channelId);
     if (v) v.status = status;
   }
 
-  insertPublication(pub: ScheduledPublication): void { this.pubs.set(pub.id, structuredClone(pub)); }
-  updatePublicationStatus(id: string, status: ScheduledPublication["status"], externalRef?: string | null): void {
+  insertPublication(pub: ScheduledPublication): void {
+    this.pubs.set(pub.id, structuredClone(pub));
+  }
+  updatePublicationStatus(
+    id: string,
+    status: ScheduledPublication["status"],
+    externalRef?: string | null,
+  ): void {
     const v = this.pubs.get(id);
     if (!v) return;
     v.status = status;
@@ -820,7 +996,9 @@ class InMemoryCreatorEconomyStore implements CreatorEconomyStore {
     if (status === "published") v.publishedAt = now();
   }
   listPublications(creatorId: string): ScheduledPublication[] {
-    return [...this.pubs.values()].filter((v) => v.creatorId === creatorId).map((v) => structuredClone(v));
+    return [...this.pubs.values()]
+      .filter((v) => v.creatorId === creatorId)
+      .map((v) => structuredClone(v));
   }
 }
 

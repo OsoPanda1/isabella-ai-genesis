@@ -138,7 +138,18 @@ export async function runAgent(req: AgentRunRequest): Promise<AgentRunResult> {
       content: denialResponse,
       timestamp: new Date().toISOString(),
     });
-    return buildResult(session, denialResponse, provider, riskClassification, consentDecision, toolCalls, auditReceipts, t0, 0, false);
+    return buildResult(
+      session,
+      denialResponse,
+      provider,
+      riskClassification,
+      consentDecision,
+      toolCalls,
+      auditReceipts,
+      t0,
+      0,
+      false,
+    );
   }
 
   const conversationMessages = session.messages.map((m) => ({ role: m.role, content: m.content }));
@@ -192,7 +203,8 @@ export async function runAgent(req: AgentRunRequest): Promise<AgentRunResult> {
   }
 
   if (!finalResponse) {
-    finalResponse = "El ciclo de herramientas agotó el límite de iteraciones. Intenta con una consulta más específica.";
+    finalResponse =
+      "El ciclo de herramientas agotó el límite de iteraciones. Intenta con una consulta más específica.";
     truncated = true;
   }
 
@@ -202,7 +214,18 @@ export async function runAgent(req: AgentRunRequest): Promise<AgentRunResult> {
     timestamp: new Date().toISOString(),
   });
 
-  return buildResult(session, finalResponse, provider, riskClassification, consentDecision, toolCalls, auditReceipts, t0, totalTokens, truncated);
+  return buildResult(
+    session,
+    finalResponse,
+    provider,
+    riskClassification,
+    consentDecision,
+    toolCalls,
+    auditReceipts,
+    t0,
+    totalTokens,
+    truncated,
+  );
 }
 
 /* =========================================================================

@@ -30,7 +30,11 @@ export const STRIPE_CATALOG: Record<"plus" | "premium" | "vip" | "enterprise", B
   plus: { label: "Isabella Plus", amountCents: 1500, envVar: "STRIPE_PRICE_PLUS" },
   premium: { label: "Isabella Premium", amountCents: 2249, envVar: "STRIPE_PRICE_PREMIUM" },
   vip: { label: "Isabella VIP", amountCents: 3749, envVar: "STRIPE_PRICE_VIP" },
-  enterprise: { label: "Isabella Enterprise", amountCents: 11250, envVar: "STRIPE_PRICE_ENTERPRISE" },
+  enterprise: {
+    label: "Isabella Enterprise",
+    amountCents: 11250,
+    envVar: "STRIPE_PRICE_ENTERPRISE",
+  },
 };
 
 const PAID_PLANS: Array<keyof typeof STRIPE_CATALOG> = ["plus", "premium", "vip", "enterprise"];
@@ -43,7 +47,10 @@ export function getStripe(): StripeClient {
   const secret = process.env.STRIPE_SECRET_KEY;
   if (!secret) return null;
   try {
-    const StripeModule = nodeRequire("stripe") as unknown as new (apiKey: string, opts?: Record<string, unknown>) => NonNullable<StripeClient>;
+    const StripeModule = nodeRequire("stripe") as unknown as new (
+      apiKey: string,
+      opts?: Record<string, unknown>,
+    ) => NonNullable<StripeClient>;
     stripeClient = new StripeModule(secret, { apiVersion: "2024-06-20" });
   } catch {
     stripeClient = null;
@@ -89,7 +96,10 @@ export async function ensureStripeCatalog(): Promise<boolean> {
       // Precio mensual recurrente; si existe uno con el monto correcto lo
       // reutilizamos, si no creamos uno nuevo.
       const prices = await client.prices.list({ product: product.id, active: true, limit: 100 });
-      let price = prices.data.find((p) => p.unit_amount === spec.amountCents && p.recurring?.interval === "month") ?? null;
+      let price =
+        prices.data.find(
+          (p) => p.unit_amount === spec.amountCents && p.recurring?.interval === "month",
+        ) ?? null;
       if (!price) {
         price = await client.prices.create({
           product: product.id,
@@ -101,7 +111,7 @@ export async function ensureStripeCatalog(): Promise<boolean> {
       process.env[spec.envVar] = price.id;
     } catch (err) {
       // Catálogo parcial no debe tumbar el arranque; se reintenta en runtime.
-      // eslint-disable-next-line no-console
+
       console.warn(`[stripe] catalog sync failed for ${planId}`, err);
     }
   }
@@ -111,7 +121,10 @@ export async function ensureStripeCatalog(): Promise<boolean> {
 }
 
 /** Crea una Checkout Session de Stripe para el plan solicitado. */
-export async function createStripeCheckoutSession(planId: IsabellaPlanId, clientReferenceId: string): Promise<{ url: string } | null> {
+export async function createStripeCheckoutSession(
+  planId: IsabellaPlanId,
+  clientReferenceId: string,
+): Promise<{ url: string } | null> {
   const client = getStripe();
   if (!client) return null;
   if (planId === "free" || planId === "custom") return null;
@@ -121,7 +134,10 @@ export async function createStripeCheckoutSession(planId: IsabellaPlanId, client
   const price = priceFromEnv(planId as keyof typeof STRIPE_CATALOG);
   if (!price) return null;
 
-  const base = process.env.BILLING_CHECKOUT_BASE_URL || process.env.VITE_PUBLIC_APP_URL || "http://localhost:3000";
+  const base =
+    process.env.BILLING_CHECKOUT_BASE_URL ||
+    process.env.VITE_PUBLIC_APP_URL ||
+    "http://localhost:3000";
   try {
     const session = await client.checkout.sessions.create({
       mode: "subscription",
@@ -144,7 +160,10 @@ export async function createStripeCheckoutSession(planId: IsabellaPlanId, client
  * Verifica y procesa un evento de webhook de Stripe.
  * Aplica el plan tras checkout.session.completed.
  */
-export async function handleStripeWebhook(rawBody: string | Buffer, signature: string): Promise<{ received: boolean; error?: string }> {
+export async function handleStripeWebhook(
+  rawBody: string | Buffer,
+  signature: string,
+): Promise<{ received: boolean; error?: string }> {
   const client = getStripe();
   if (!client) return { received: false, error: "stripe_not_configured" };
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -154,14 +173,22 @@ export async function handleStripeWebhook(rawBody: string | Buffer, signature: s
   try {
     event = client.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (err) {
-    return { received: false, error: `webhook_signature_invalid: ${err instanceof Error ? err.message : String(err)}` };
+    return {
+      received: false,
+      error: `webhook_signature_invalid: ${err instanceof Error ? err.message : String(err)}`,
+    };
   }
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    const planId = (session.metadata?.planId ?? session.client_reference_id) as IsabellaPlanId | undefined;
+    const planId = (session.metadata?.planId ?? session.client_reference_id) as
+      IsabellaPlanId | undefined;
     const userId = (session.client_reference_id ?? session.metadata?.userId) as string | undefined;
-    if (userId && planId && (planId === "plus" || planId === "premium" || planId === "vip" || planId === "enterprise")) {
+    if (
+      userId &&
+      planId &&
+      (planId === "plus" || planId === "premium" || planId === "vip" || planId === "enterprise")
+    ) {
       setUserPlan(userId, planId);
     }
   }

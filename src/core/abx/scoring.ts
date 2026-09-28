@@ -42,10 +42,7 @@ export function weightedScore(scores: AbxScores): number {
 /** Calidad agregada de la evidencia: media de quality * fresh. */
 export function evidenceScore(evidence: AbxEvidence[]): number {
   if (evidence.length === 0) return 0;
-  const sum = evidence.reduce(
-    (acc, item) => acc + clamp01(item.quality) * clamp01(item.fresh),
-    0,
-  );
+  const sum = evidence.reduce((acc, item) => acc + clamp01(item.quality) * clamp01(item.fresh), 0);
   return clamp01(sum / evidence.length);
 }
 
@@ -53,16 +50,11 @@ export function evidenceScore(evidence: AbxEvidence[]): number {
 export function consensusScore(values: number[]): number {
   if (values.length <= 1) return 1;
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
-  const variance =
-    values.reduce((acc, v) => acc + (v - mean) ** 2, 0) / values.length;
+  const variance = values.reduce((acc, v) => acc + (v - mean) ** 2, 0) / values.length;
   return clamp01(1 - Math.sqrt(variance) * 2);
 }
 
-export function decideFromScore(
-  score: number,
-  hasIssues: boolean,
-  critical = false,
-): AbxDecision {
+export function decideFromScore(score: number, hasIssues: boolean, critical = false): AbxDecision {
   if (critical) return "escalate";
   if (hasIssues && score >= ABX_THRESHOLDS.repair) return "repair";
   if (score >= ABX_THRESHOLDS.commit) return "commit";

@@ -33,9 +33,7 @@ export function buildProvenance(opts?: Partial<Provenance["provenance"]>): Prove
   };
 }
 
-export function requireHumanReview(
-  highRisk: boolean,
-): Provenance["provenance"]["humanReview"] {
+export function requireHumanReview(highRisk: boolean): Provenance["provenance"]["humanReview"] {
   if (!highRisk) return "not_required";
   return "pending";
 }

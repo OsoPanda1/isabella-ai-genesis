@@ -11,11 +11,7 @@
  */
 
 type AnalyticsEvent =
-  | "PageView"
-  | "AdImpression"
-  | "AdClick"
-  | "AdDismissed"
-  | "CampaignInfoOpened";
+  "PageView" | "AdImpression" | "AdClick" | "AdDismissed" | "CampaignInfoOpened";
 
 type AnalyticsProperties = Record<string, string | number | boolean>;
 
@@ -85,9 +81,7 @@ const loadAdvertisingProvider = async (): Promise<void> => {
   if (providerPromise) return providerPromise;
 
   providerPromise = new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(
-      'script[src*="pixel.idlen.io"]',
-    );
+    const existing = document.querySelector<HTMLScriptElement>('script[src*="pixel.idlen.io"]');
     if (existing) {
       resolve();
       return;

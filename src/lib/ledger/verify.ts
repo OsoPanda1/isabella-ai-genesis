@@ -9,12 +9,7 @@ import type { IntegrityResult, LedgerBlock } from "./contracts";
 
 const HEX_64 = /^[a-f0-9]{64}$/i;
 
-function invalid(
-  block: LedgerBlock,
-  index: number,
-  total: number,
-  code: string,
-): IntegrityResult {
+function invalid(block: LedgerBlock, index: number, total: number, code: string): IntegrityResult {
   return {
     valid: false,
     state: "invalid",

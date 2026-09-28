@@ -89,10 +89,7 @@ export class ClassificationEngine {
     return {
       classification: suggestedClassification,
       confidence: maxWeight > 0 ? maxWeight : 0.5,
-      reason:
-        factors.length > 0
-          ? factors.join("; ")
-          : "No specific classification rules matched",
+      reason: factors.length > 0 ? factors.join("; ") : "No specific classification rules matched",
       factors,
     };
   }
@@ -100,10 +97,7 @@ export class ClassificationEngine {
   /**
    * Check if a classification allows access at the required level.
    */
-  allowsAccess(
-    dataClassification: DataClassification,
-    requiredLevel: DataClassification,
-  ): boolean {
+  allowsAccess(dataClassification: DataClassification, requiredLevel: DataClassification): boolean {
     const levels: DataClassification[] = [
       "public",
       "internal",

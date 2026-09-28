@@ -18,7 +18,12 @@ let useSqlite: boolean | null = null;
 
 function isSqlite(): boolean {
   if (useSqlite !== null) return useSqlite;
-  try { getDatabase(); useSqlite = true; } catch { useSqlite = false; }
+  try {
+    getDatabase();
+    useSqlite = true;
+  } catch {
+    useSqlite = false;
+  }
   return useSqlite;
 }
 
@@ -26,9 +31,13 @@ function loadLastHash(): void {
   if (!isSqlite()) return;
   try {
     const db = getDatabase();
-    const row = db.prepare("SELECT payloadHash FROM quantum_events ORDER BY rowid DESC LIMIT 1").get() as { payloadHash: string } | undefined;
+    const row = db
+      .prepare("SELECT payloadHash FROM quantum_events ORDER BY rowid DESC LIMIT 1")
+      .get() as { payloadHash: string } | undefined;
     if (row) lastEventHash = row.payloadHash;
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 let hashLoaded = false;
@@ -46,7 +55,10 @@ export function emitQuantumEvent<T = unknown>(
     policyVersion?: string;
   },
 ): IsabellaEvent<T> {
-  if (!hashLoaded) { loadLastHash(); hashLoaded = true; }
+  if (!hashLoaded) {
+    loadLastHash();
+    hashLoaded = true;
+  }
 
   const payloadStr = JSON.stringify(data);
   const payloadHash = createHash("sha256").update(payloadStr).digest("hex");
@@ -77,25 +89,51 @@ export function emitQuantumEvent<T = unknown>(
       const db = getDatabase();
       db.prepare(
         `INSERT INTO quantum_events (eventId, eventType, schemaVersion, traceId, requestId, tenantId, subjectId, originCore, targetCore, occurredAt, policyVersion, payloadHash, previousEventHash, data)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).run(
-        event.eventId, event.eventType, event.schemaVersion, event.traceId,
-        event.requestId, event.tenantId, event.subjectId, event.originCore,
-        event.targetCore ?? null, event.occurredAt, event.policyVersion,
-        event.payloadHash, event.previousEventHash ?? null, JSON.stringify(data),
+        event.eventId,
+        event.eventType,
+        event.schemaVersion,
+        event.traceId,
+        event.requestId,
+        event.tenantId,
+        event.subjectId,
+        event.originCore,
+        event.targetCore ?? null,
+        event.occurredAt,
+        event.policyVersion,
+        event.payloadHash,
+        event.previousEventHash ?? null,
+        JSON.stringify(data),
       );
-      import("../persistence/postgres").then(({ pgExecute }) =>
-        pgExecute(
-          `INSERT INTO quantum_events (eventId, eventType, schemaVersion, traceId, requestId, tenantId, subjectId, originCore, targetCore, occurredAt, policyVersion, payloadHash, previousEventHash, data)
+      import("../persistence/postgres")
+        .then(({ pgExecute }) =>
+          pgExecute(
+            `INSERT INTO quantum_events (eventId, eventType, schemaVersion, traceId, requestId, tenantId, subjectId, originCore, targetCore, occurredAt, policyVersion, payloadHash, previousEventHash, data)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
            ON CONFLICT (eventId) DO NOTHING`,
-          [event.eventId, event.eventType, event.schemaVersion, event.traceId,
-           event.requestId, event.tenantId, event.subjectId, event.originCore,
-           event.targetCore ?? null, event.occurredAt, event.policyVersion,
-           event.payloadHash, event.previousEventHash ?? null, JSON.stringify(data)]
-        ).catch(() => {})
-      ).catch(() => {});
-    } catch { /* fall through */ }
+            [
+              event.eventId,
+              event.eventType,
+              event.schemaVersion,
+              event.traceId,
+              event.requestId,
+              event.tenantId,
+              event.subjectId,
+              event.originCore,
+              event.targetCore ?? null,
+              event.occurredAt,
+              event.policyVersion,
+              event.payloadHash,
+              event.previousEventHash ?? null,
+              JSON.stringify(data),
+            ],
+          ).catch(() => {}),
+        )
+        .catch(() => {});
+    } catch {
+      /* fall through */
+    }
   } else {
     fallbackLog.push(event as IsabellaEvent);
     if (fallbackLog.length > MAX_LOG_SIZE) fallbackLog.splice(0, fallbackLog.length - MAX_LOG_SIZE);
@@ -119,9 +157,13 @@ export function getEventBusHealth() {
   if (isSqlite()) {
     try {
       const db = getDatabase();
-      const countRow = db.prepare("SELECT COUNT(*) as cnt FROM quantum_events").get() as { cnt: number };
+      const countRow = db.prepare("SELECT COUNT(*) as cnt FROM quantum_events").get() as {
+        cnt: number;
+      };
       totalEvents = countRow.cnt;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   } else {
     totalEvents = fallbackLog.length;
   }
@@ -143,19 +185,31 @@ export function getEventLog(limit: number = 100): IsabellaEvent[] {
   if (isSqlite()) {
     try {
       const db = getDatabase();
-      const rows = db.prepare(
-        `SELECT eventId, eventType, schemaVersion, traceId, requestId, tenantId, subjectId, originCore, targetCore, occurredAt, policyVersion, payloadHash, previousEventHash, data
-         FROM quantum_events ORDER BY rowid DESC LIMIT ?`
-      ).all(limit) as Array<Record<string, unknown>>;
+      const rows = db
+        .prepare(
+          `SELECT eventId, eventType, schemaVersion, traceId, requestId, tenantId, subjectId, originCore, targetCore, occurredAt, policyVersion, payloadHash, previousEventHash, data
+         FROM quantum_events ORDER BY rowid DESC LIMIT ?`,
+        )
+        .all(limit) as Array<Record<string, unknown>>;
       return rows.map((r) => ({
-        eventId: r.eventId, eventType: r.eventType, schemaVersion: r.schemaVersion,
-        traceId: r.traceId, requestId: r.requestId, tenantId: r.tenantId,
-        subjectId: r.subjectId, originCore: r.originCore, targetCore: r.targetCore,
-        occurredAt: r.occurredAt, policyVersion: r.policyVersion,
-        payloadHash: r.payloadHash, previousEventHash: r.previousEventHash,
+        eventId: r.eventId,
+        eventType: r.eventType,
+        schemaVersion: r.schemaVersion,
+        traceId: r.traceId,
+        requestId: r.requestId,
+        tenantId: r.tenantId,
+        subjectId: r.subjectId,
+        originCore: r.originCore,
+        targetCore: r.targetCore,
+        occurredAt: r.occurredAt,
+        policyVersion: r.policyVersion,
+        payloadHash: r.payloadHash,
+        previousEventHash: r.previousEventHash,
         data: r.data ? JSON.parse(r.data as string) : null,
       })) as IsabellaEvent[];
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
   return fallbackLog.slice(-limit);
 }
@@ -171,15 +225,23 @@ export function getEventBusMetrics() {
   if (isSqlite()) {
     try {
       const db = getDatabase();
-      const countRow = db.prepare("SELECT COUNT(*) as cnt FROM quantum_events").get() as { cnt: number };
+      const countRow = db.prepare("SELECT COUNT(*) as cnt FROM quantum_events").get() as {
+        cnt: number;
+      };
       totalEvents = countRow.cnt;
-      const recent = db.prepare("SELECT eventType FROM quantum_events ORDER BY rowid DESC LIMIT 200").all() as Array<{ eventType: string }>;
-      for (const e of recent) recentEventTypes[e.eventType] = (recentEventTypes[e.eventType] || 0) + 1;
-    } catch { /* fall through */ }
+      const recent = db
+        .prepare("SELECT eventType FROM quantum_events ORDER BY rowid DESC LIMIT 200")
+        .all() as Array<{ eventType: string }>;
+      for (const e of recent)
+        recentEventTypes[e.eventType] = (recentEventTypes[e.eventType] || 0) + 1;
+    } catch {
+      /* fall through */
+    }
   } else {
     totalEvents = fallbackLog.length;
     const recent = fallbackLog.slice(-200);
-    for (const e of recent) recentEventTypes[e.eventType] = (recentEventTypes[e.eventType] || 0) + 1;
+    for (const e of recent)
+      recentEventTypes[e.eventType] = (recentEventTypes[e.eventType] || 0) + 1;
   }
 
   return {

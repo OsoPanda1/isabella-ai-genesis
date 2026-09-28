@@ -125,9 +125,9 @@ export interface RevenueShare {
 }
 
 export const DEFAULT_REVENUE_SHARE: RevenueShare = {
-  userId: 0.50,
+  userId: 0.5,
   platformShare: 0.35,
-  creatorShare: 0.10,
+  creatorShare: 0.1,
   ecosystemShare: 0.05,
 };
 

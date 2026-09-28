@@ -172,9 +172,7 @@ export function computeCircuitHash(circuit: {
 /**
  * Diagnóstico real de un proveedor (import check + version + smoke circuit).
  */
-export async function runSmokeTest(
-  provider: string,
-): Promise<SmokeTestResult> {
+export async function runSmokeTest(provider: string): Promise<SmokeTestResult> {
   const device = getDevice(provider);
   const startedAt = Date.now();
 

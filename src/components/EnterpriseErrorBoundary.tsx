@@ -13,9 +13,9 @@ interface State {
 }
 
 export class EnterpriseErrorBoundary extends Component<Props, State> {
-  public declare state: State;
-  public declare props: Props;
-  public declare setState: Component<Props, State>["setState"];
+  declare public state: State;
+  declare public props: Props;
+  declare public setState: Component<Props, State>["setState"];
 
   constructor(props: Props) {
     super(props);
@@ -45,7 +45,8 @@ export class EnterpriseErrorBoundary extends Component<Props, State> {
           <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
           <h2 className="text-xl font-bold text-red-300 mb-2">Error de Ejecución Sensible</h2>
           <p className="text-slate-400 text-center max-w-lg mb-6">
-            El módulo cognitivo ha experimentado un fallo imprevisto. El cortafuegos ARGUS ha interceptado la propagación.
+            El módulo cognitivo ha experimentado un fallo imprevisto. El cortafuegos ARGUS ha
+            interceptado la propagación.
           </p>
           <div className="bg-[#030712] border border-red-500/10 p-4 rounded-lg text-sm font-mono text-red-400/80 mb-6 max-w-2xl overflow-auto w-full text-left">
             {this.state.error?.toString()}

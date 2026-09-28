@@ -70,25 +70,25 @@ export interface IngressMetrics {
    ========================================================================= */
 
 const ROUTING_TABLE: Record<string, IngressRoute[]> = {
-  "user.action":      ["orchestrator", "audit-receipt", "bookpi-legacy"],
-  "user.query":       ["orchestrator", "context-compressor", "audit-receipt", "bookpi-legacy"],
-  "user.consent":     ["consent", "audit-receipt", "data-rights", "bookpi-legacy"],
-  "tool.execution":   ["tool-dispatch", "audit-receipt", "bookpi-legacy"],
-  "risk.classify":    ["safety", "audit-receipt", "bookpi-legacy"],
-  "memory.write":     ["context-compressor", "data-rights", "audit-receipt", "bookpi-legacy"],
-  "memory.read":      ["orchestrator", "context-compressor", "audit-receipt"],
-  "plan.create":      ["planner", "audit-receipt", "bookpi-legacy"],
-  "plan.execute":     ["planner", "orchestrator", "audit-receipt", "bookpi-legacy"],
-  "skill.register":   ["skill-registry", "audit-receipt", "bookpi-legacy"],
-  "skill.execute":    ["skill-registry", "tool-dispatch", "audit-receipt", "bookpi-legacy"],
-  "prompt.build":     ["prompt-builder", "orchestrator", "audit-receipt"],
+  "user.action": ["orchestrator", "audit-receipt", "bookpi-legacy"],
+  "user.query": ["orchestrator", "context-compressor", "audit-receipt", "bookpi-legacy"],
+  "user.consent": ["consent", "audit-receipt", "data-rights", "bookpi-legacy"],
+  "tool.execution": ["tool-dispatch", "audit-receipt", "bookpi-legacy"],
+  "risk.classify": ["safety", "audit-receipt", "bookpi-legacy"],
+  "memory.write": ["context-compressor", "data-rights", "audit-receipt", "bookpi-legacy"],
+  "memory.read": ["orchestrator", "context-compressor", "audit-receipt"],
+  "plan.create": ["planner", "audit-receipt", "bookpi-legacy"],
+  "plan.execute": ["planner", "orchestrator", "audit-receipt", "bookpi-legacy"],
+  "skill.register": ["skill-registry", "audit-receipt", "bookpi-legacy"],
+  "skill.execute": ["skill-registry", "tool-dispatch", "audit-receipt", "bookpi-legacy"],
+  "prompt.build": ["prompt-builder", "orchestrator", "audit-receipt"],
   "provider.resolve": ["provider-registry", "audit-receipt"],
-  "gateway.message":  ["gateway", "orchestrator", "audit-receipt", "bookpi-legacy"],
-  "audit.log":        ["audit-receipt", "bookpi-legacy"],
-  "data.export":      ["data-rights", "audit-receipt"],
-  "data.delete":      ["data-rights", "consent", "audit-receipt", "bookpi-legacy"],
-  "safety.alert":     ["safety", "audit-receipt", "bookpi-legacy"],
-  "system.health":    ["audit-receipt", "bookpi-legacy"],
+  "gateway.message": ["gateway", "orchestrator", "audit-receipt", "bookpi-legacy"],
+  "audit.log": ["audit-receipt", "bookpi-legacy"],
+  "data.export": ["data-rights", "audit-receipt"],
+  "data.delete": ["data-rights", "consent", "audit-receipt", "bookpi-legacy"],
+  "safety.alert": ["safety", "audit-receipt", "bookpi-legacy"],
+  "system.health": ["audit-receipt", "bookpi-legacy"],
 };
 
 const DEFAULT_ROUTES: IngressRoute[] = ["audit-receipt", "bookpi-legacy"];
@@ -163,17 +163,21 @@ async function deliverToRoute(route: IngressRoute, packet: IngressPacket): Promi
       case "consent":
       case "safety":
       case "data-rights": {
-        emitQuantumEvent("quantum.job.completed" as any, {
-          ingressRoute: route,
-          dataType: packet.dataType,
-          payload: packet.payload,
-        }, {
-          traceId: packet.traceId,
-          requestId: packet.packetId,
-          tenantId: packet.tenantId,
-          subjectId: packet.userId,
-          originCore: 0,
-        });
+        emitQuantumEvent(
+          "quantum.job.completed" as any,
+          {
+            ingressRoute: route,
+            dataType: packet.dataType,
+            payload: packet.payload,
+          },
+          {
+            traceId: packet.traceId,
+            requestId: packet.packetId,
+            tenantId: packet.tenantId,
+            subjectId: packet.userId,
+            originCore: 0,
+          },
+        );
         return true;
       }
 
@@ -182,7 +186,12 @@ async function deliverToRoute(route: IngressRoute, packet: IngressPacket): Promi
           eventType: `ingress.${packet.dataType}`,
           actorId: packet.userId,
           tenantId: packet.tenantId,
-          data: { packetId: packet.packetId, source: packet.source, route, dataType: packet.dataType },
+          data: {
+            packetId: packet.packetId,
+            source: packet.source,
+            route,
+            dataType: packet.dataType,
+          },
         });
         return true;
       }

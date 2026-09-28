@@ -72,7 +72,9 @@ export function planAtLeast(plan: PlanId, required: PlanId): boolean {
 
 const digest = (s: string) => createHash("sha256").update(s).digest("hex");
 
-function defineSkill(s: Omit<SkillDefinition, "modelDigest"> & { frozenPrompt: string }): SkillDefinition {
+function defineSkill(
+  s: Omit<SkillDefinition, "modelDigest"> & { frozenPrompt: string },
+): SkillDefinition {
   const { frozenPrompt, ...rest } = s;
   return Object.freeze({ ...rest, modelDigest: digest(frozenPrompt) });
 }
@@ -98,7 +100,8 @@ export const SKILLS: readonly SkillDefinition[] = Object.freeze([
     id: "skill-rdm-tourism-pack-v1",
     version: "1.0.0",
     name: "RDM Tourism Pack",
-    description: "Itinerarios turísticos y gastronómicos adaptados a comercios locales de Real del Monte.",
+    description:
+      "Itinerarios turísticos y gastronómicos adaptados a comercios locales de Real del Monte.",
     category: "local_rdm",
     planRequired: "premium",
     creditsRequired: 10,
@@ -114,7 +117,8 @@ export const SKILLS: readonly SkillDefinition[] = Object.freeze([
     id: "skill-offer-copy-optimizer-v1",
     version: "1.0.0",
     name: "Offer Copy Optimizer",
-    description: "Redacción de páginas de venta de alta conversión para micro-infoproductos con validación de ofertas.",
+    description:
+      "Redacción de páginas de venta de alta conversión para micro-infoproductos con validación de ofertas.",
     category: "commerce",
     planRequired: "premium",
     creditsRequired: 8,
@@ -146,7 +150,8 @@ export const SKILLS: readonly SkillDefinition[] = Object.freeze([
     id: "skill-quantum-kernel-evaluator-v1",
     version: "1.0.0",
     name: "Quantum Kernel Evaluator",
-    description: "Evaluación de métricas de kernels cuánticos y espacios de Hilbert para modelos predictivos.",
+    description:
+      "Evaluación de métricas de kernels cuánticos y espacios de Hilbert para modelos predictivos.",
     category: "analytics",
     planRequired: "pro",
     creditsRequired: 25,
@@ -162,7 +167,8 @@ export const SKILLS: readonly SkillDefinition[] = Object.freeze([
     id: "skill-data-asset-tokenization-v1",
     version: "1.0.0",
     name: "Data Asset Tokenizer",
-    description: "Estructuración y tokenización de datasets y grafos de conocimiento con procedencia BookPI SHA3-512.",
+    description:
+      "Estructuración y tokenización de datasets y grafos de conocimiento con procedencia BookPI SHA3-512.",
     category: "commerce",
     planRequired: "business",
     creditsRequired: 30,
@@ -178,7 +184,8 @@ export const SKILLS: readonly SkillDefinition[] = Object.freeze([
     id: "skill-legal-contract-eoct-v1",
     version: "1.0.0",
     name: "Legal Contract EOCT Synthesizer",
-    description: "Redacción de contratos de licenciamiento, acuerdos de reparto de regalías y términos con estricta gobernanza EOCT.",
+    description:
+      "Redacción de contratos de licenciamiento, acuerdos de reparto de regalías y términos con estricta gobernanza EOCT.",
     category: "commerce",
     planRequired: "premium",
     creditsRequired: 12,
@@ -191,7 +198,6 @@ export const SKILLS: readonly SkillDefinition[] = Object.freeze([
     frozenPrompt: "legal-contract-eoct-v1::royalty-splits::licensing::sat-compliant",
   }),
 ]);
-
 
 export function getSkill(id: string): SkillDefinition | null {
   return SKILLS.find((s) => s.id === id) ?? null;

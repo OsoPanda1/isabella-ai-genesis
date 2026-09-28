@@ -39,7 +39,11 @@ export class QuantumScheduler {
   /**
    * Encola un job. Lanza error si la cola está llena.
    */
-  enqueue(request: QuantumRequest, priority: JobPriority = "normal", deadlineMs: number = 30_000): QuantumJob {
+  enqueue(
+    request: QuantumRequest,
+    priority: JobPriority = "normal",
+    deadlineMs: number = 30_000,
+  ): QuantumJob {
     if (this.queue.length >= this.maxQueue) {
       this.metrics.totalRejected++;
       throw new Error("QUANTUM_QUEUE_FULL");
@@ -156,8 +160,7 @@ export class QuantumScheduler {
   private sortQueue(): void {
     this.queue.sort(
       (a, b) =>
-        PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority] ||
-        a.enqueuedAt - b.enqueuedAt,
+        PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority] || a.enqueuedAt - b.enqueuedAt,
     );
   }
 }

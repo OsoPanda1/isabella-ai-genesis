@@ -1,9 +1,5 @@
 export type MathematicalPlane =
-  | "cartesian_xz"
-  | "cartesian_xy"
-  | "spherical_near"
-  | "spherical_mid"
-  | "spherical_deep";
+  "cartesian_xz" | "cartesian_xy" | "spherical_near" | "spherical_mid" | "spherical_deep";
 
 export interface GeneratedStar {
   x: number;

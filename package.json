@@ -56,8 +56,10 @@
   "dependencies": {
     "@google/genai": "^2.24.0",
     "@hookform/resolvers": "^5.2.2",
+    "@idlen/chat-sdk": "1.0.5",
     "@neondatabase/serverless": "^1.1.0",
     "@prisma/client": "^7.10.0",
+    "@prisma/client-runtime-utils": "7.10.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.8",

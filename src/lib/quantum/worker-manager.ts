@@ -117,7 +117,10 @@ export function getWorker(workerId: string): WorkerInstance | undefined {
 /**
  * Registra un worker (simulado — en producción sería spawn real con container).
  */
-export function registerWorker(pool: WorkerPool, imageDigest: string = "sha256:local"): WorkerInstance {
+export function registerWorker(
+  pool: WorkerPool,
+  imageDigest: string = "sha256:local",
+): WorkerInstance {
   const config = getPoolConfig(pool);
   if (!config) throw new Error(`Unknown worker pool: ${pool}`);
 

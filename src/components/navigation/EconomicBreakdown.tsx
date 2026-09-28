@@ -110,15 +110,11 @@ export function EconomicBreakdown({ operation }: EconomicBreakdownProps) {
         </div>
         <div className="economic-meta-row">
           <span className="economic-meta-label">Red:</span>
-          <span className="economic-meta-value">
-            {operation.socialNetwork ?? "Directo"}
-          </span>
+          <span className="economic-meta-value">{operation.socialNetwork ?? "Directo"}</span>
         </div>
         <div className="economic-meta-row">
           <span className="economic-meta-label">Estado:</span>
-          <span
-            className={`economic-status ${STATUS_TONES[operation.status]}`}
-          >
+          <span className={`economic-status ${STATUS_TONES[operation.status]}`}>
             {STATUS_LABELS[operation.status]}
           </span>
         </div>
@@ -132,9 +128,7 @@ export function EconomicBreakdown({ operation }: EconomicBreakdownProps) {
         </div>
         <div className="economic-meta-row">
           <span className="economic-meta-label">Autorización:</span>
-          <span className="economic-meta-value">
-            {operation.authorizationId ?? "Ninguna"}
-          </span>
+          <span className="economic-meta-value">{operation.authorizationId ?? "Ninguna"}</span>
         </div>
       </div>
     </div>

@@ -38,20 +38,12 @@ export const GlobalFooter: React.FC = () => {
               <span className="relative flex h-2 w-2">
                 <span
                   className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
-                    isSpeaking
-                      ? "bg-amber-400"
-                      : isProcessing
-                      ? "bg-sky-400"
-                      : "bg-emerald-400"
+                    isSpeaking ? "bg-amber-400" : isProcessing ? "bg-sky-400" : "bg-emerald-400"
                   }`}
                 />
                 <span
                   className={`relative inline-flex h-2 w-2 rounded-full ${
-                    isSpeaking
-                      ? "bg-amber-500"
-                      : isProcessing
-                      ? "bg-sky-500"
-                      : "bg-emerald-500"
+                    isSpeaking ? "bg-amber-500" : isProcessing ? "bg-sky-500" : "bg-emerald-500"
                   }`}
                 />
               </span>
@@ -61,15 +53,15 @@ export const GlobalFooter: React.FC = () => {
                   isSpeaking
                     ? "text-amber-300 animate-pulse font-bold"
                     : isProcessing
-                    ? "text-sky-300 font-bold"
-                    : "text-slate-300"
+                      ? "text-sky-300 font-bold"
+                      : "text-slate-300"
                 }`}
               >
                 {isSpeaking
                   ? "🔊 TRANSMISIÓN DE AUDIO EN VIVO :: SINTETIZADOR VOCAL DE ISABELLA"
                   : isProcessing
-                  ? `⚡ MODULADOR COGNITIVO ACTIVO :: [${activeModuleId || "CROWN"}]`
-                  : "CANAL ACÚSTICO CROWN :: SINTONIZADO EN TIEMPO REAL"}
+                    ? `⚡ MODULADOR COGNITIVO ACTIVO :: [${activeModuleId || "CROWN"}]`
+                    : "CANAL ACÚSTICO CROWN :: SINTONIZADO EN TIEMPO REAL"}
               </span>
             </div>
 

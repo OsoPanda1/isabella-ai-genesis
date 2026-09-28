@@ -34,8 +34,8 @@ export interface FeatureFlagDefinition {
   readonly allowedEnvironments: readonly string[];
 }
 
-export const FEATURE_FLAGS: Readonly<Record<FeatureFlagKey, FeatureFlagDefinition>> =
-  Object.freeze({
+export const FEATURE_FLAGS: Readonly<Record<FeatureFlagKey, FeatureFlagDefinition>> = Object.freeze(
+  {
     tamv_7_federations_routing: {
       key: "tamv_7_federations_routing",
       type: "release",
@@ -114,8 +114,7 @@ export const FEATURE_FLAGS: Readonly<Record<FeatureFlagKey, FeatureFlagDefinitio
       requiresApproval: true,
       allowedEnvironments: ["development", "preview", "staging"],
     },
-  });
-
-export const FEATURE_FLAG_KEYS = Object.freeze(
-  Object.keys(FEATURE_FLAGS) as FeatureFlagKey[],
+  },
 );
+
+export const FEATURE_FLAG_KEYS = Object.freeze(Object.keys(FEATURE_FLAGS) as FeatureFlagKey[]);

@@ -95,9 +95,10 @@ export class VerificationEngine {
       name: "Coherence",
       passed: hasContent && hasStructure,
       score: hasContent && hasStructure ? 1 : 0.5,
-      details: hasContent && hasStructure
-        ? "Response has adequate content and structure"
-        : "Response may be too short or unstructured",
+      details:
+        hasContent && hasStructure
+          ? "Response has adequate content and structure"
+          : "Response may be too short or unstructured",
     };
   }
 
@@ -135,9 +136,7 @@ export class VerificationEngine {
       name: "Reversibility",
       passed: appropriate,
       score: appropriate ? 1 : 0.5,
-      details: reversible
-        ? "Operation is reversible"
-        : "Operation is irreversible but approved",
+      details: reversible ? "Operation is reversible" : "Operation is irreversible but approved",
     };
   }
 
@@ -149,9 +148,8 @@ export class VerificationEngine {
       name: "Provenance",
       passed: hasProvenance && hasHashes,
       score: hasProvenance && hasHashes ? 1 : 0.5,
-      details: hasProvenance && hasHashes
-        ? "Provenance record complete"
-        : "Provenance record incomplete",
+      details:
+        hasProvenance && hasHashes ? "Provenance record complete" : "Provenance record incomplete",
     };
   }
 

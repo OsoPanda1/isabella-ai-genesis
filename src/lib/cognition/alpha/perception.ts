@@ -65,10 +65,7 @@ export class PerceptionEngine {
   /**
    * Process raw input and produce a structured perception.
    */
-  async process(
-    input: string,
-    modality: InputModality = "text",
-  ): Promise<PerceptionResult> {
+  async process(input: string, modality: InputModality = "text"): Promise<PerceptionResult> {
     const normalized = this.normalize(input);
     const language = this.detectLanguage(normalized);
     const intent = this.classifyIntent(normalized);
@@ -189,10 +186,7 @@ export class PerceptionEngine {
     for (const pattern of patterns) {
       const matches = input.match(pattern.regex);
       if (matches && matches.length > 0) {
-        const confidence = Math.min(
-          0.98,
-          pattern.weight * (1 + matches.length * 0.02),
-        );
+        const confidence = Math.min(0.98, pattern.weight * (1 + matches.length * 0.02));
         if (confidence > bestMatch.confidence) {
           bestMatch = { category: pattern.intent, confidence };
         }
@@ -242,10 +236,8 @@ export class PerceptionEngine {
   /* --- Urgency Assessment --- */
 
   private assessUrgency(input: string, entities: Entity[]): UrgencyLevel {
-    const criticalPatterns =
-      /\b(urgente|emergencia|critico|ahora|inmediato|danger|emergency)\b/i;
-    const highPatterns =
-      /\b(importante|prioridad|pronto|rapido|asap|temprano)\b/i;
+    const criticalPatterns = /\b(urgente|emergencia|critico|ahora|inmediato|danger|emergency)\b/i;
+    const highPatterns = /\b(importante|prioridad|pronto|rapido|asap|temprano)\b/i;
     const mediumPatterns = /\bCuando puedas|en breve|pronto|usual\b/i;
 
     if (criticalPatterns.test(input)) return "critical";
@@ -260,8 +252,7 @@ export class PerceptionEngine {
   private analyzeSentiment(input: string): Sentiment {
     const positivePatterns =
       /\b(excelente|genial|perfecto|gracias|bien|me gusta|me encanta|increible)\b/i;
-    const negativePatterns =
-      /\b(malo|terrible|error|fallo|problema|no funciona|furioso|odio)\b/i;
+    const negativePatterns = /\b(malo|terrible|error|fallo|problema|no funciona|furioso|odio)\b/i;
 
     const positive = positivePatterns.test(input);
     const negative = negativePatterns.test(input);
@@ -279,13 +270,10 @@ export class PerceptionEngine {
     intent: { category: IntentCategory },
     entities: Entity[],
   ): RiskLevel {
-    const hasSensitiveEntities = entities.some(
-      (e) => e.type === "email" || e.type === "url",
-    );
+    const hasSensitiveEntities = entities.some((e) => e.type === "email" || e.type === "url");
     const isGovernanceIntent = intent.category === "governance";
     const isSystemIntent = intent.category === "system";
-    const hasCriticalKeywords =
-      /\b(eliminar|borrar|revoke|delete|admin|root)\b/i.test(input);
+    const hasCriticalKeywords = /\b(eliminar|borrar|revoke|delete|admin|root)\b/i.test(input);
 
     if (hasCriticalKeywords && isGovernanceIntent) return "R4_critical";
     if (hasCriticalKeywords) return "R3_high";

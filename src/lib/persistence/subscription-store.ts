@@ -22,14 +22,7 @@ export interface SubscriptionStore {
   readonly mode: "sqlite" | "in-memory";
 }
 
-const PLANS: readonly IsabellaPlanId[] = [
-  "free",
-  "plus",
-  "premium",
-  "vip",
-  "enterprise",
-  "custom",
-];
+const PLANS: readonly IsabellaPlanId[] = ["free", "plus", "premium", "vip", "enterprise", "custom"];
 
 const isPlanId = (value: unknown): value is IsabellaPlanId =>
   typeof value === "string" && (PLANS as readonly string[]).includes(value);
@@ -74,9 +67,7 @@ class SqliteSubscriptionStore implements SubscriptionStore {
     const BetterSqlite3Ctor = nodeRequire("better-sqlite3") as new (
       filename: string,
     ) => SqliteDatabase;
-    this.db = new BetterSqlite3Ctor(
-      dbPath || process.env.ISABELLA_DB_PATH || "./data/isabella.db",
-    );
+    this.db = new BetterSqlite3Ctor(dbPath || process.env.ISABELLA_DB_PATH || "./data/isabella.db");
     this.db.pragma("journal_mode = WAL");
     this.db.pragma("foreign_keys = ON");
     this.db.exec(`

@@ -20,7 +20,12 @@ const monetizationTree: NavigationNode[] = [
       { id: "mon-income", label: "Ingresos actuales", type: "section" },
       { id: "mon-costs", label: "Costos operativos", type: "section" },
       { id: "mon-net", label: "Ingresos netos", type: "section" },
-      { id: "mon-pending", label: "Pagos pendientes", type: "section", badge: { value: 2, tone: "warning" } },
+      {
+        id: "mon-pending",
+        label: "Pagos pendientes",
+        type: "section",
+        badge: { value: 2, tone: "warning" },
+      },
       { id: "mon-balance", label: "Balance por periodo", type: "section" },
     ],
   },
@@ -131,20 +136,14 @@ export function MonetizationNavbar() {
 
   return (
     <div className="navbar-content">
-      <div className="mon-section-title">
-        OPERACIÓN · EXPERIENCIA TERRITORIAL
-      </div>
+      <div className="mon-section-title">OPERACIÓN · EXPERIENCIA TERRITORIAL</div>
 
       <EconomicBreakdown operation={sampleOperation} />
 
       <div className="mon-divider" />
 
       {monetizationTree.map((node) => (
-        <AccordionFolder
-          key={node.id}
-          node={node}
-          onAction={handleAction}
-        />
+        <AccordionFolder key={node.id} node={node} onAction={handleAction} />
       ))}
     </div>
   );

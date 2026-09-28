@@ -22,10 +22,10 @@ export function useLedger(cursor?: string): UseLedgerResult {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(
-          `/api/ledger?cursor=${encodeURIComponent(cursor ?? "")}`,
-          { headers: { Accept: "application/json" }, signal },
-        );
+        const response = await fetch(`/api/ledger?cursor=${encodeURIComponent(cursor ?? "")}`, {
+          headers: { Accept: "application/json" },
+          signal,
+        });
         if (!response.ok) throw new Error(`LEDGER_HTTP_${response.status}`);
         const value = (await response.json()) as LedgerSnapshot;
         setSnapshot(value);

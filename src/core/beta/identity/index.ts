@@ -72,10 +72,7 @@ export class IdentityResolver {
   /**
    * Verify that an identity has the required scopes.
    */
-  verify(
-    identity: IdentityContext,
-    requiredScopes: string[],
-  ): IdentityVerification {
+  verify(identity: IdentityContext, requiredScopes: string[]): IdentityVerification {
     const granted: string[] = [];
     const denied: string[] = [];
 

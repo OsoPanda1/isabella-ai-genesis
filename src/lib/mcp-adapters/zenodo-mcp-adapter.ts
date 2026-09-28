@@ -21,18 +21,22 @@ import type { MCPAdapterV2, MCPQueryContext, MCPQueryResultV2 } from "../claim-r
 // ZENODO RESPONSE VALIDATION
 // ============================================================================
 
-const ZenodoHitSchema = z.object({
-  id: z.number(),
-  doi: z.string().optional(),
-  links: z.object({ html: z.string().url().optional() }).passthrough().optional(),
-  metadata: z.object({
-    title: z.string(),
-    description: z.string().nullish(),
-    publication_date: z.string().optional(),
-    creators: z.array(z.object({ name: z.string() }).passthrough()).optional(),
-    license: z.object({ id: z.string().optional() }).passthrough().optional(),
-  }).passthrough(),
-}).passthrough();
+const ZenodoHitSchema = z
+  .object({
+    id: z.number(),
+    doi: z.string().optional(),
+    links: z.object({ html: z.string().url().optional() }).passthrough().optional(),
+    metadata: z
+      .object({
+        title: z.string(),
+        description: z.string().nullish(),
+        publication_date: z.string().optional(),
+        creators: z.array(z.object({ name: z.string() }).passthrough()).optional(),
+        license: z.object({ id: z.string().optional() }).passthrough().optional(),
+      })
+      .passthrough(),
+  })
+  .passthrough();
 
 type ZenodoHit = z.infer<typeof ZenodoHitSchema>;
 
@@ -117,9 +121,7 @@ export class ZenodoMCPAdapterV2 implements MCPAdapterV2 {
         return {
           evidenceId: `zenodo:${hit.id}`,
           repository: "ZENODO" as const,
-          persistentId: hit.doi
-            ? { type: "doi" as const, value: hit.doi }
-            : undefined,
+          persistentId: hit.doi ? { type: "doi" as const, value: hit.doi } : undefined,
           title,
           excerpt,
           retrievedAt,

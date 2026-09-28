@@ -49,9 +49,7 @@ export function computeRevenueSplit(input: SplitInput): RevenueSplit {
   const processorFeeMinor =
     input.processorFeeMinor ?? quoteStripeFee(input.grossAmountMinor).feeMinor;
   const thirdPartyFeeMinor = input.thirdPartyFeeMinor ?? 0;
-  const chargebackReserveMinor = roundHalfUp(
-    (taxableBaseMinor * CHARGEBACK_RESERVE_PERCENT) / 100,
-  );
+  const chargebackReserveMinor = roundHalfUp((taxableBaseMinor * CHARGEBACK_RESERVE_PERCENT) / 100);
 
   // I_neto = M_bruto − IVA − C_procesamiento − C_terceros − R_reserva (§6.3).
   const netDistributableMinor = Math.max(
@@ -117,16 +115,44 @@ export function splitToLedgerLines(split: RevenueSplit): Array<{
     amountMinor: number;
   }> = [
     { account: "customer_cash_clearing", direction: "debit", amountMinor: cashSettledMinor },
-    { account: "payment_processor_expense", direction: "debit", amountMinor: split.processorFeeMinor },
-    { account: "customer_cash_clearing", direction: "credit", amountMinor: split.processorFeeMinor },
+    {
+      account: "payment_processor_expense",
+      direction: "debit",
+      amountMinor: split.processorFeeMinor,
+    },
+    {
+      account: "customer_cash_clearing",
+      direction: "credit",
+      amountMinor: split.processorFeeMinor,
+    },
     { account: "tax_vat_payable", direction: "credit", amountMinor: split.vatAmountMinor },
-    { account: "chargeback_reserve_held", direction: "credit", amountMinor: split.chargebackReserveMinor },
-    { account: "creator_payable_pending", direction: "credit", amountMinor: split.creatorShareMinor },
-    { account: "platform_revenue_gross", direction: "credit", amountMinor: split.platformShareMinor },
+    {
+      account: "chargeback_reserve_held",
+      direction: "credit",
+      amountMinor: split.chargebackReserveMinor,
+    },
+    {
+      account: "creator_payable_pending",
+      direction: "credit",
+      amountMinor: split.creatorShareMinor,
+    },
+    {
+      account: "platform_revenue_gross",
+      direction: "credit",
+      amountMinor: split.platformShareMinor,
+    },
   ];
   if (split.thirdPartyFeeMinor > 0) {
-    lines.push({ account: "payment_processor_expense", direction: "debit", amountMinor: split.thirdPartyFeeMinor });
-    lines.push({ account: "customer_cash_clearing", direction: "credit", amountMinor: split.thirdPartyFeeMinor });
+    lines.push({
+      account: "payment_processor_expense",
+      direction: "debit",
+      amountMinor: split.thirdPartyFeeMinor,
+    });
+    lines.push({
+      account: "customer_cash_clearing",
+      direction: "credit",
+      amountMinor: split.thirdPartyFeeMinor,
+    });
   }
   return lines.filter((l) => l.amountMinor > 0);
 }

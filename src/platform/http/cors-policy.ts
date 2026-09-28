@@ -24,10 +24,7 @@ export const applyCorsPolicy = (req: VercelRequest, res: VercelResponse): boolea
     return true;
   }
 
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD",
-  );
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD");
   res.setHeader(
     "Access-Control-Allow-Headers",
     "Content-Type, Authorization, X-Trace-ID, X-Request-ID, X-CSRF-Token, x-api-key",

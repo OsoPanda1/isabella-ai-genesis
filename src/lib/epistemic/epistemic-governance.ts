@@ -21,8 +21,10 @@ const HIGH_RISK_DOMAINS: ClaimDomain[] = [
 ];
 
 const DOMAIN_RULES: Record<ClaimDomain, string> = {
-  academic: "Requiere DOI, ORCID del autor, y revisión por pares. La recuperación de Zenodo no constituye verificación.",
-  territorial: "Requiere fuente primaria documentada. Los datos territoriales deben conservar fecha y alcance.",
+  academic:
+    "Requiere DOI, ORCID del autor, y revisión por pares. La recuperación de Zenodo no constituye verificación.",
+  territorial:
+    "Requiere fuente primaria documentada. Los datos territoriales deben conservar fecha y alcance.",
   medical: "Nunca presentar como consejo médico. Requiere evidencia de fuentes reguladas.",
   legal: "Nunca presentar como asesoría legal. Requiere normativa vigente y jurisdicción.",
   financial: "Requiere fuente regulada y fecha de vigencia. No constituye asesoría financiera.",
@@ -51,7 +53,14 @@ export function classifyEpistemicStatus(params: {
   requiresManualReview: boolean;
   domainRule: string;
 } {
-  const { domain, evidenceCount, contradictoryCount, avgRelevance, hasPrimarySource, hasDateAndScope } = params;
+  const {
+    domain,
+    evidenceCount,
+    contradictoryCount,
+    avgRelevance,
+    hasPrimarySource,
+    hasDateAndScope,
+  } = params;
 
   const isHighRisk = HIGH_RISK_DOMAINS.includes(domain);
   const domainRule = DOMAIN_RULES[domain];

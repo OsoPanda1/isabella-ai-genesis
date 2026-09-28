@@ -305,7 +305,10 @@ export const EnterpriseRetractableDock: React.FC<EnterpriseRetractableDockProps>
     <>
       {/* 1. Sleek Floating Retractable Toggle Pill (Always available when closed) */}
       {!isOpen && (
-        <aside aria-label="Acceso rápido a módulos" className="fixed left-2 top-20 z-30 flex items-center">
+        <aside
+          aria-label="Acceso rápido a módulos"
+          className="fixed left-2 top-20 z-30 flex items-center"
+        >
           <button
             type="button"
             onClick={onToggle}
@@ -351,12 +354,13 @@ export const EnterpriseRetractableDock: React.FC<EnterpriseRetractableDockProps>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-bold text-white tracking-wide">
-                  Isabella <span className="font-serif italic font-normal text-amber-300">Villaseñor AI</span>
+                  Isabella{" "}
+                  <span className="font-serif italic font-normal text-amber-300">
+                    Villaseñor AI
+                  </span>
                 </h2>
               </div>
-              <p className="text-[11px] font-mono text-slate-400">
-                Módulos Ejecutivos · Nodo Cero
-              </p>
+              <p className="text-[11px] font-mono text-slate-400">Módulos Ejecutivos · Nodo Cero</p>
             </div>
           </div>
 
@@ -416,7 +420,8 @@ export const EnterpriseRetractableDock: React.FC<EnterpriseRetractableDockProps>
                 (item) =>
                   !filterQuery ||
                   item.label.toLowerCase().includes(filterQuery.toLowerCase()) ||
-                  (item.sublabel && item.sublabel.toLowerCase().includes(filterQuery.toLowerCase()))
+                  (item.sublabel &&
+                    item.sublabel.toLowerCase().includes(filterQuery.toLowerCase())),
               );
 
               if (filteredItems.length === 0) return null;
@@ -427,9 +432,7 @@ export const EnterpriseRetractableDock: React.FC<EnterpriseRetractableDockProps>
                     <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
                       {group.title}
                     </span>
-                    <span className="text-[10px] font-mono text-slate-600">
-                      {group.tag}
-                    </span>
+                    <span className="text-[10px] font-mono text-slate-600">{group.tag}</span>
                   </div>
 
                   <div className="space-y-1">
@@ -462,13 +465,12 @@ export const EnterpriseRetractableDock: React.FC<EnterpriseRetractableDockProps>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
-                              <span className="text-xs font-semibold truncate">
-                                {item.label}
-                              </span>
+                              <span className="text-xs font-semibold truncate">{item.label}</span>
                               {item.badge && (
                                 <span
                                   className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                                    item.badgeColor || "bg-slate-800 text-slate-400 border-slate-700"
+                                    item.badgeColor ||
+                                    "bg-slate-800 text-slate-400 border-slate-700"
                                   }`}
                                 >
                                   {item.badge}

@@ -4,7 +4,11 @@
  * Evaluates whether a perception or decision can execute actions, tools, or memory mutations.
  */
 
-import { IsabellaPerception, IsabellaPolicyStatus, IsabellaRiskLevel } from "../../../contracts/isabella";
+import {
+  IsabellaPerception,
+  IsabellaPolicyStatus,
+  IsabellaRiskLevel,
+} from "../../../contracts/isabella";
 
 export interface PolicyEvaluationResult {
   status: IsabellaPolicyStatus;
@@ -27,13 +31,15 @@ const GOVERNANCE_RULES = [
 export async function policyGate(perception: IsabellaPerception): Promise<PolicyEvaluationResult> {
   const rulesChecked = [...GOVERNANCE_RULES];
   const payload = (perception.payload || {}) as Record<string, any>;
-  const rawRisk = (payload.riskLevel || (perception.metadata as any)?.riskLevel) as string | undefined;
+  const rawRisk = (payload.riskLevel || (perception.metadata as any)?.riskLevel) as
+    string | undefined;
 
-  const contentText = typeof payload.text === "string" 
-    ? payload.text.toLowerCase() 
-    : typeof payload.query === "string" 
-      ? payload.query.toLowerCase() 
-      : JSON.stringify(payload).toLowerCase();
+  const contentText =
+    typeof payload.text === "string"
+      ? payload.text.toLowerCase()
+      : typeof payload.query === "string"
+        ? payload.query.toLowerCase()
+        : JSON.stringify(payload).toLowerCase();
 
   // 1. Explicit High-Risk or Destructive command detection
   const isDestructive =
@@ -48,7 +54,8 @@ export async function policyGate(perception: IsabellaPerception): Promise<Policy
     return {
       status: "denied",
       riskLevel: "high",
-      reason: "Infracción crítica de gobernanza C.R.O.W.N. (Intento de acceso destructivo o no autorizado)",
+      reason:
+        "Infracción crítica de gobernanza C.R.O.W.N. (Intento de acceso destructivo o no autorizado)",
       violations: ["RULE_01_ZERO_TRUST_TOOL_WHITELIST", "RULE_03_HUMAN_IN_THE_LOOP_ESCALATION"],
       rulesChecked,
       governanceScore: 0.05,
@@ -69,7 +76,8 @@ export async function policyGate(perception: IsabellaPerception): Promise<Policy
     return {
       status: "requires_approval",
       riskLevel: "high",
-      reason: "Operación de alto impacto territorial o administrativo. Requiere ratificación humana (Human-in-the-Loop).",
+      reason:
+        "Operación de alto impacto territorial o administrativo. Requiere ratificación humana (Human-in-the-Loop).",
       violations: [],
       rulesChecked,
       governanceScore: 0.85,
@@ -78,9 +86,7 @@ export async function policyGate(perception: IsabellaPerception): Promise<Policy
 
   // 3. Medium Risk Operations (e.g. state write or tool execution)
   const isMediumRisk =
-    rawRisk === "medium" ||
-    perception.inputType === "signal" ||
-    payload.toolName !== undefined;
+    rawRisk === "medium" || perception.inputType === "signal" || payload.toolName !== undefined;
 
   if (isMediumRisk) {
     return {

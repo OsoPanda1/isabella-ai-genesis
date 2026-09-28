@@ -11,11 +11,15 @@ export const AdminPanelView: React.FC = () => {
           <Lock className="w-6 h-6 text-red-400" />
         </div>
         <div>
-          <h2 className="text-xl font-semibold tracking-tight text-[#F8FAFC]">Administrative Nexus</h2>
-          <p className="text-[11px] font-mono text-red-400/80 tracking-wider uppercase mt-1">Gobernanza • Auditoría • Autenticación</p>
+          <h2 className="text-xl font-semibold tracking-tight text-[#F8FAFC]">
+            Administrative Nexus
+          </h2>
+          <p className="text-[11px] font-mono text-red-400/80 tracking-wider uppercase mt-1">
+            Gobernanza • Auditoría • Autenticación
+          </p>
         </div>
       </header>
-      
+
       <div className="flex-1 overflow-y-auto p-7 custom-scrollbar grid grid-cols-1 lg:grid-cols-2 gap-6 relative z-10">
         <div className="space-y-6">
           <AuthManager />

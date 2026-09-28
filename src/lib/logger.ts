@@ -24,8 +24,7 @@ const LEVEL_PRIORITY: Record<LogLevel, number> = { debug: 0, info: 1, warn: 2, e
 
 // Este módulo se comparte entre Express y el navegador; `process` no existe
 // en el bundle Vite del cliente.
-const configuredLogLevel =
-  typeof process !== "undefined" ? process.env.LOG_LEVEL : undefined;
+const configuredLogLevel = typeof process !== "undefined" ? process.env.LOG_LEVEL : undefined;
 const minLevel = LEVEL_PRIORITY[(configuredLogLevel as LogLevel) || "info"] ?? 1;
 
 function emit(entry: LogEntry): void {
@@ -43,16 +42,44 @@ function emit(entry: LogEntry): void {
 export function createLogger(scope: string, defaultMeta?: Record<string, unknown>) {
   return {
     debug(event: string, meta?: Record<string, unknown>) {
-      emit({ level: "debug", event, timestamp: new Date().toISOString(), scope, ...defaultMeta, ...meta });
+      emit({
+        level: "debug",
+        event,
+        timestamp: new Date().toISOString(),
+        scope,
+        ...defaultMeta,
+        ...meta,
+      });
     },
     info(event: string, meta?: Record<string, unknown>) {
-      emit({ level: "info", event, timestamp: new Date().toISOString(), scope, ...defaultMeta, ...meta });
+      emit({
+        level: "info",
+        event,
+        timestamp: new Date().toISOString(),
+        scope,
+        ...defaultMeta,
+        ...meta,
+      });
     },
     warn(event: string, meta?: Record<string, unknown>) {
-      emit({ level: "warn", event, timestamp: new Date().toISOString(), scope, ...defaultMeta, ...meta });
+      emit({
+        level: "warn",
+        event,
+        timestamp: new Date().toISOString(),
+        scope,
+        ...defaultMeta,
+        ...meta,
+      });
     },
     error(event: string, meta?: Record<string, unknown>) {
-      emit({ level: "error", event, timestamp: new Date().toISOString(), scope, ...defaultMeta, ...meta });
+      emit({
+        level: "error",
+        event,
+        timestamp: new Date().toISOString(),
+        scope,
+        ...defaultMeta,
+        ...meta,
+      });
     },
     child(extra: Record<string, unknown>) {
       return createLogger(scope, { ...defaultMeta, ...extra });

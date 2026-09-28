@@ -33,10 +33,7 @@ export async function resolveFlag(
   }
 }
 
-export function assertFlagCanRunInEnvironment(
-  key: FeatureFlagKey,
-  environment: string,
-): void {
+export function assertFlagCanRunInEnvironment(key: FeatureFlagKey, environment: string): void {
   const definition = FEATURE_FLAGS[key];
   if (!definition) {
     throw new Error(`FLAG_NOT_FOUND:${key}`);

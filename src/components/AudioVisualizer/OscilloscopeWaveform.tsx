@@ -1,12 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Activity,
-  Radio,
-  Sparkles,
-  Volume2,
-  Waves,
-  type LucideIcon,
-} from "lucide-react";
+import { Activity, Radio, Sparkles, Volume2, Waves, type LucideIcon } from "lucide-react";
 import { useCrown } from "../../context/CrownContext";
 
 export type OscilloscopeMode = "beam" | "spectrum" | "harmonic" | "particles";
@@ -64,8 +57,7 @@ const MODE_OPTIONS: ReadonlyArray<{
   { mode: "particles", label: "Campo de partículas", Icon: Sparkles },
 ];
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const rgba = (color: Rgb, alpha: number) =>
   `hsla(${color.hue}, ${color.saturation}%, ${color.lightness}%, ${clamp(alpha, 0, 1)})`;
@@ -122,11 +114,10 @@ const getProfile = (
         { hue: 175, saturation: 80, lightness: 58 },
       ],
     };
-    const [primary, secondary] =
-      modulePalette[activeModuleId ?? ""] ?? [
-        { hue: 215, saturation: 92, lightness: 65 },
-        { hue: 45, saturation: 90, lightness: 62 },
-      ];
+    const [primary, secondary] = modulePalette[activeModuleId ?? ""] ?? [
+      { hue: 215, saturation: 92, lightness: 65 },
+      { hue: 45, saturation: 90, lightness: 62 },
+    ];
 
     return {
       label: `PROCESAMIENTO COGNITIVO · ${activeModuleId || "CROWN"}`,
@@ -165,11 +156,7 @@ const getProfile = (
   };
 };
 
-const drawGrid = (
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-) => {
+const drawGrid = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
   ctx.save();
   ctx.strokeStyle = "rgba(255,255,255,0.035)";
   ctx.lineWidth = 1;
@@ -190,11 +177,7 @@ const drawGrid = (
   ctx.restore();
 };
 
-const drawBaseline = (
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  centerY: number,
-) => {
+const drawBaseline = (ctx: CanvasRenderingContext2D, width: number, centerY: number) => {
   ctx.save();
   ctx.strokeStyle = "rgba(255,255,255,0.11)";
   ctx.lineWidth = 1;
@@ -251,41 +234,77 @@ const drawWave = (
   };
 
   if (mode === "beam") {
-    trace(profile.primary, 6, profile.active ? 0.22 : 0.1, height * 0.34, (x) => {
-      const f1 = Math.sin(x * 24 + phase * 2.2);
-      const f2 = Math.sin(x * 48 - phase * 3.1) * 0.4;
-      const f3 = profile.tone === "speaking" ? Math.sin(x * 96 + phase * 4.5) * 0.2 : 0;
-      return f1 + f2 + f3;
-    }, profile.active ? 18 : 6);
-    trace(profile.primary, 2.2, profile.active ? 0.68 : 0.28, height * 0.34, (x) => {
-      const f1 = Math.sin(x * 24 + phase * 2.2);
-      const f2 = Math.sin(x * 48 - phase * 3.1) * 0.4;
-      const f3 = profile.tone === "speaking" ? Math.sin(x * 96 + phase * 4.5) * 0.2 : 0;
-      return f1 + f2 + f3;
-    }, 6);
-    trace(profile.primary, 1.1, profile.active ? 0.95 : 0.5, height * 0.34, (x) => {
-      const f1 = Math.sin(x * 24 + phase * 2.2);
-      const f2 = Math.sin(x * 48 - phase * 3.1) * 0.4;
-      const f3 = profile.tone === "speaking" ? Math.sin(x * 96 + phase * 4.5) * 0.2 : 0;
-      return f1 + f2 + f3;
-    }, 2);
+    trace(
+      profile.primary,
+      6,
+      profile.active ? 0.22 : 0.1,
+      height * 0.34,
+      (x) => {
+        const f1 = Math.sin(x * 24 + phase * 2.2);
+        const f2 = Math.sin(x * 48 - phase * 3.1) * 0.4;
+        const f3 = profile.tone === "speaking" ? Math.sin(x * 96 + phase * 4.5) * 0.2 : 0;
+        return f1 + f2 + f3;
+      },
+      profile.active ? 18 : 6,
+    );
+    trace(
+      profile.primary,
+      2.2,
+      profile.active ? 0.68 : 0.28,
+      height * 0.34,
+      (x) => {
+        const f1 = Math.sin(x * 24 + phase * 2.2);
+        const f2 = Math.sin(x * 48 - phase * 3.1) * 0.4;
+        const f3 = profile.tone === "speaking" ? Math.sin(x * 96 + phase * 4.5) * 0.2 : 0;
+        return f1 + f2 + f3;
+      },
+      6,
+    );
+    trace(
+      profile.primary,
+      1.1,
+      profile.active ? 0.95 : 0.5,
+      height * 0.34,
+      (x) => {
+        const f1 = Math.sin(x * 24 + phase * 2.2);
+        const f2 = Math.sin(x * 48 - phase * 3.1) * 0.4;
+        const f3 = profile.tone === "speaking" ? Math.sin(x * 96 + phase * 4.5) * 0.2 : 0;
+        return f1 + f2 + f3;
+      },
+      2,
+    );
     return;
   }
 
-  trace(profile.secondary, 1.6, profile.active ? 0.62 : 0.22, height * 0.29, (x) =>
-    Math.sin(x * 14 + phase) * Math.cos(x * 8 - phase * 0.6),
+  trace(
+    profile.secondary,
+    1.6,
+    profile.active ? 0.62 : 0.22,
+    height * 0.29,
+    (x) => Math.sin(x * 14 + phase) * Math.cos(x * 8 - phase * 0.6),
   );
 
-  trace({ ...profile.primary, hue: profile.primary.hue + 38 }, 1.1, profile.active ? 0.4 : 0.13, height * 0.23, (x) =>
-    Math.cos(x * 20 - phase * 1.4) * Math.sin(x * 6 + phase * 0.4),
+  trace(
+    { ...profile.primary, hue: profile.primary.hue + 38 },
+    1.1,
+    profile.active ? 0.4 : 0.13,
+    height * 0.23,
+    (x) => Math.cos(x * 20 - phase * 1.4) * Math.sin(x * 6 + phase * 0.4),
   );
 
-  trace(profile.primary, profile.active ? 2.4 : 1.7, profile.active ? 0.94 : 0.48, height * 0.33, (x) => {
-    const carrier = Math.sin(x * 18 + phase * 1.6);
-    const harmonic = Math.sin(x * 36 - phase * 2.4) * (profile.tone === "speaking" ? 0.45 : 0.3);
-    const overtone = profile.tone === "speaking" ? Math.sin(x * 72 + phase * 3.8) * 0.2 : 0;
-    return carrier + harmonic + overtone;
-  }, profile.active ? 14 : 5);
+  trace(
+    profile.primary,
+    profile.active ? 2.4 : 1.7,
+    profile.active ? 0.94 : 0.48,
+    height * 0.33,
+    (x) => {
+      const carrier = Math.sin(x * 18 + phase * 1.6);
+      const harmonic = Math.sin(x * 36 - phase * 2.4) * (profile.tone === "speaking" ? 0.45 : 0.3);
+      const overtone = profile.tone === "speaking" ? Math.sin(x * 72 + phase * 3.8) * 0.2 : 0;
+      return carrier + harmonic + overtone;
+    },
+    profile.active ? 14 : 5,
+  );
 };
 
 const drawSpectrum = (
@@ -302,10 +321,8 @@ const drawSpectrum = (
 
   for (let index = 0; index < BAR_COUNT; index += 1) {
     const target = profile.active
-      ? Math.abs(
-          Math.sin(phase * 2 + index * 0.4) *
-            Math.cos(phase * 0.8 + index * 0.2),
-        ) * (0.82 + ((index * 17) % 11) / 100)
+      ? Math.abs(Math.sin(phase * 2 + index * 0.4) * Math.cos(phase * 0.8 + index * 0.2)) *
+        (0.82 + ((index * 17) % 11) / 100)
       : 0.12 + Math.sin(phase + index * 0.2) * 0.07;
 
     bars[index] += (target - bars[index]) * 0.18;
@@ -315,9 +332,15 @@ const drawSpectrum = (
     const hue = profile.primary.hue + (index / BAR_COUNT) * 42;
     const gradient = ctx.createLinearGradient(0, y, 0, y + barHeight);
 
-    gradient.addColorStop(0, rgba({ hue, saturation: 92, lightness: 70 }, profile.active ? 0.92 : 0.38));
+    gradient.addColorStop(
+      0,
+      rgba({ hue, saturation: 92, lightness: 70 }, profile.active ? 0.92 : 0.38),
+    );
     gradient.addColorStop(0.5, rgba(profile.secondary, profile.active ? 0.68 : 0.24));
-    gradient.addColorStop(1, rgba({ hue, saturation: 92, lightness: 70 }, profile.active ? 0.92 : 0.38));
+    gradient.addColorStop(
+      1,
+      rgba({ hue, saturation: 92, lightness: 70 }, profile.active ? 0.92 : 0.38),
+    );
 
     ctx.fillStyle = gradient;
     ctx.fillRect(x, y, barWidth, barHeight);
@@ -344,7 +367,13 @@ const drawParticles = (
   ctx.beginPath();
   for (let x = 0; x <= width; x += 4) {
     const normalizedX = x / width;
-    const y = centerY + Math.sin(normalizedX * 16 + phase * 1.5) * height * 0.3 * profile.energy * Math.sin(normalizedX * Math.PI);
+    const y =
+      centerY +
+      Math.sin(normalizedX * 16 + phase * 1.5) *
+        height *
+        0.3 *
+        profile.energy *
+        Math.sin(normalizedX * Math.PI);
     if (x === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
@@ -366,7 +395,10 @@ const drawParticles = (
     ctx.save();
     ctx.beginPath();
     ctx.arc(particle.x, particle.y, particle.radius * (profile.active ? 1.45 : 1), 0, TAU);
-    ctx.fillStyle = rgba({ hue, saturation: 92, lightness: 72 }, particle.alpha * (profile.active ? 0.9 : 0.42));
+    ctx.fillStyle = rgba(
+      { hue, saturation: 92, lightness: 72 },
+      particle.alpha * (profile.active ? 0.9 : 0.42),
+    );
     ctx.shadowColor = rgba(profile.primary, 0.65);
     ctx.shadowBlur = 8;
     ctx.fill();
@@ -450,7 +482,16 @@ export const OscilloscopeWaveform: React.FC<OscilloscopeWaveformProps> = ({
       } else if (visualMode === "particles") {
         drawParticles(context, width, logicalHeight, profile, runtime.phase, runtime.particles);
       } else {
-        drawWave(context, width, logicalHeight, centerY, profile, runtime.phase, visualMode, reducedMotion);
+        drawWave(
+          context,
+          width,
+          logicalHeight,
+          centerY,
+          profile,
+          runtime.phase,
+          visualMode,
+          reducedMotion,
+        );
       }
 
       drawBaseline(context, width, centerY);
@@ -490,11 +531,15 @@ export const OscilloscopeWaveform: React.FC<OscilloscopeWaveformProps> = ({
         <div className="flex min-w-0 items-center gap-2">
           <span className="relative flex h-2.5 w-2.5 shrink-0" aria-hidden="true">
             {profile.active && (
-              <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-70 ${statusColor}`} />
+              <span
+                className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-70 ${statusColor}`}
+              />
             )}
             <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${statusColor}`} />
           </span>
-          <span className={`truncate font-semibold uppercase tracking-[0.16em] ${profile.active ? "text-slate-100" : "text-slate-400"}`}>
+          <span
+            className={`truncate font-semibold uppercase tracking-[0.16em] ${profile.active ? "text-slate-100" : "text-slate-400"}`}
+          >
             {profile.label}
           </span>
         </div>
@@ -507,7 +552,11 @@ export const OscilloscopeWaveform: React.FC<OscilloscopeWaveformProps> = ({
           )}
 
           {showControls && (
-            <div className="flex items-center gap-0.5 rounded-lg border border-slate-800 bg-[#081220] p-0.5" role="group" aria-label="Modo de visualización">
+            <div
+              className="flex items-center gap-0.5 rounded-lg border border-slate-800 bg-[#081220] p-0.5"
+              role="group"
+              aria-label="Modo de visualización"
+            >
               {MODE_OPTIONS.map(({ mode, label, Icon }) => {
                 const selected = visualMode === mode;
                 return (

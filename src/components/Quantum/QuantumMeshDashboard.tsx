@@ -1,5 +1,22 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Activity, Shield, Cpu, Zap, Database, Lock, Network, AlertTriangle, CheckCircle, XCircle, Clock, Server, GitBranch, Eye, BarChart3, Radio } from "lucide-react";
+import {
+  Activity,
+  Shield,
+  Cpu,
+  Zap,
+  Database,
+  Lock,
+  Network,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Server,
+  GitBranch,
+  Eye,
+  BarChart3,
+  Radio,
+} from "lucide-react";
 import { authFetch } from "../../lib/auth-client";
 
 interface MeshStatus {
@@ -15,7 +32,12 @@ interface MeshStatus {
     maxQueue: number;
     utilizationPercent: number;
     byPriority: { interactive: number; normal: number; batch: number };
-    metrics: { totalEnqueued: number; totalDequeued: number; totalExpired: number; totalRejected: number };
+    metrics: {
+      totalEnqueued: number;
+      totalDequeued: number;
+      totalExpired: number;
+      totalRejected: number;
+    };
   };
   workers: {
     total: number;
@@ -67,13 +89,21 @@ interface MeshStatus {
 }
 
 const StatusBadge: React.FC<{ ok: boolean; label: string }> = ({ ok, label }) => (
-  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${ok ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}>
+  <span
+    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${ok ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}
+  >
     {ok ? <CheckCircle size={12} /> : <XCircle size={12} />}
     {label}
   </span>
 );
 
-const MetricCard: React.FC<{ icon: React.ReactNode; title: string; value: string | number; subtitle?: string; ok?: boolean }> = ({ icon, title, value, subtitle, ok }) => (
+const MetricCard: React.FC<{
+  icon: React.ReactNode;
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  ok?: boolean;
+}> = ({ icon, title, value, subtitle, ok }) => (
   <div className="bg-[#0a0f1e] border border-[#1e293b] rounded-xl p-4 space-y-2">
     <div className="flex items-center gap-2 text-[#94a3b8] text-xs uppercase tracking-wider">
       {icon}
@@ -135,7 +165,10 @@ export const QuantumMeshDashboard: React.FC = () => {
       <div className="text-center py-20 space-y-4">
         <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto" />
         <p className="text-red-400">{error || "Mesh unavailable"}</p>
-        <button onClick={fetchMesh} className="px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/30 hover:bg-blue-600/30 transition-colors">
+        <button
+          onClick={fetchMesh}
+          className="px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/30 hover:bg-blue-600/30 transition-colors"
+        >
           Retry
         </button>
       </div>
@@ -155,34 +188,72 @@ export const QuantumMeshDashboard: React.FC = () => {
             <Network className="w-5 h-5 text-blue-400" />
             Isabella Quantum Mesh
           </h2>
-          <p className="text-xs text-[#64748b] mt-1">Governed Hybrid Quantum-Classical Execution Platform</p>
+          <p className="text-xs text-[#64748b] mt-1">
+            Governed Hybrid Quantum-Classical Execution Platform
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-[#475569]">Updated {lastRefresh.toLocaleTimeString()}</span>
-          <button onClick={fetchMesh} className="px-3 py-1.5 bg-[#0a0f1e] border border-[#1e293b] text-[#94a3b8] rounded-lg text-xs hover:border-blue-500/40 transition-colors">
+          <button
+            onClick={fetchMesh}
+            className="px-3 py-1.5 bg-[#0a0f1e] border border-[#1e293b] text-[#94a3b8] rounded-lg text-xs hover:border-blue-500/40 transition-colors"
+          >
             Refresh
           </button>
         </div>
       </div>
 
       {/* Status Banner */}
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${chainValid ? "bg-emerald-500/5 border-emerald-500/20" : "bg-red-500/5 border-red-500/20"}`}>
+      <div
+        className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${chainValid ? "bg-emerald-500/5 border-emerald-500/20" : "bg-red-500/5 border-red-500/20"}`}
+      >
         <Shield className={`w-5 h-5 ${chainValid ? "text-emerald-400" : "text-red-400"}`} />
         <div className="flex-1">
-          <span className={`text-sm font-medium ${chainValid ? "text-emerald-400" : "text-red-400"}`}>
+          <span
+            className={`text-sm font-medium ${chainValid ? "text-emerald-400" : "text-red-400"}`}
+          >
             BookPI Chain: {chainValid ? "VALID" : "BROKEN"}
           </span>
           <span className="text-xs text-[#64748b] ml-3">{mesh.bookPI.totalBlocks} blocks</span>
         </div>
-        <StatusBadge ok={mesh.circuitBreaker.open === 0} label={mesh.circuitBreaker.open === 0 ? "All circuits closed" : `${mesh.circuitBreaker.open} circuit(s) open`} />
+        <StatusBadge
+          ok={mesh.circuitBreaker.open === 0}
+          label={
+            mesh.circuitBreaker.open === 0
+              ? "All circuits closed"
+              : `${mesh.circuitBreaker.open} circuit(s) open`
+          }
+        />
       </div>
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <MetricCard icon={<Cpu size={14} />} title="Devices" value={`${enabledCount}/${totalCount}`} ok={enabledCount > 0} />
-        <MetricCard icon={<Server size={14} />} title="Workers" value={mesh.workers.total} subtitle={`${mesh.workers.idle} idle, ${mesh.workers.busy} busy`} ok={mesh.workers.error === 0} />
-        <MetricCard icon={<Clock size={14} />} title="Queue" value={`${mesh.scheduler.queued}/${mesh.scheduler.maxQueue}`} subtitle={`${mesh.scheduler.utilizationPercent}% utilization`} ok={mesh.scheduler.metrics.totalRejected === 0} />
-        <MetricCard icon={<Activity size={14} />} title="Events" value={mesh.eventBus.totalEvents} subtitle={`${mesh.telemetry.activeSpans} active spans`} />
+        <MetricCard
+          icon={<Cpu size={14} />}
+          title="Devices"
+          value={`${enabledCount}/${totalCount}`}
+          ok={enabledCount > 0}
+        />
+        <MetricCard
+          icon={<Server size={14} />}
+          title="Workers"
+          value={mesh.workers.total}
+          subtitle={`${mesh.workers.idle} idle, ${mesh.workers.busy} busy`}
+          ok={mesh.workers.error === 0}
+        />
+        <MetricCard
+          icon={<Clock size={14} />}
+          title="Queue"
+          value={`${mesh.scheduler.queued}/${mesh.scheduler.maxQueue}`}
+          subtitle={`${mesh.scheduler.utilizationPercent}% utilization`}
+          ok={mesh.scheduler.metrics.totalRejected === 0}
+        />
+        <MetricCard
+          icon={<Activity size={14} />}
+          title="Events"
+          value={mesh.eventBus.totalEvents}
+          subtitle={`${mesh.telemetry.activeSpans} active spans`}
+        />
       </div>
 
       {/* Device Registry */}
@@ -202,7 +273,9 @@ export const QuantumMeshDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`text-xs px-2 py-0.5 rounded ${device.trust === "local" ? "bg-blue-500/10 text-blue-400" : device.trust === "qpu" ? "bg-purple-500/10 text-purple-400" : "bg-amber-500/10 text-amber-400"}`}>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded ${device.trust === "local" ? "bg-blue-500/10 text-blue-400" : device.trust === "qpu" ? "bg-purple-500/10 text-purple-400" : "bg-amber-500/10 text-amber-400"}`}
+                >
                   {device.trust}
                 </span>
                 {device.remote && <span className="text-xs text-[#64748b]">REMOTE</span>}
@@ -223,11 +296,17 @@ export const QuantumMeshDashboard: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#94a3b8]">Primary</span>
-              <StatusBadge ok={mesh.hsm.primary.healthy} label={mesh.hsm.primary.healthy ? "Healthy" : "Degraded"} />
+              <StatusBadge
+                ok={mesh.hsm.primary.healthy}
+                label={mesh.hsm.primary.healthy ? "Healthy" : "Degraded"}
+              />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#94a3b8]">Backup</span>
-              <StatusBadge ok={mesh.hsm.backup.healthy} label={mesh.hsm.backup.healthy ? "Healthy" : "Degraded"} />
+              <StatusBadge
+                ok={mesh.hsm.backup.healthy}
+                label={mesh.hsm.backup.healthy ? "Healthy" : "Degraded"}
+              />
             </div>
             <div className="text-xs text-[#64748b]">Active: {mesh.hsm.activeEndpoint}</div>
           </div>
@@ -243,7 +322,9 @@ export const QuantumMeshDashboard: React.FC = () => {
             <div className="text-2xl font-bold text-[#f1f5f9]">{mesh.tee.totalAttestations}</div>
             <div className="flex items-center gap-2">
               <StatusBadge ok={mesh.tee.unverified === 0} label={`${mesh.tee.verified} verified`} />
-              {mesh.tee.unverified > 0 && <StatusBadge ok={false} label={`${mesh.tee.unverified} unverified`} />}
+              {mesh.tee.unverified > 0 && (
+                <StatusBadge ok={false} label={`${mesh.tee.unverified} unverified`} />
+              )}
             </div>
           </div>
         </div>
@@ -257,7 +338,10 @@ export const QuantumMeshDashboard: React.FC = () => {
           <div className="space-y-2">
             <div className="text-2xl font-bold text-[#f1f5f9]">{mesh.recovery.totalIncidents}</div>
             <div className="flex items-center gap-2">
-              <StatusBadge ok={mesh.recovery.active === 0} label={`${mesh.recovery.active} active`} />
+              <StatusBadge
+                ok={mesh.recovery.active === 0}
+                label={`${mesh.recovery.active} active`}
+              />
               <StatusBadge ok={true} label={`${mesh.recovery.resolved} resolved`} />
             </div>
           </div>
@@ -281,7 +365,9 @@ export const QuantumMeshDashboard: React.FC = () => {
           </div>
           <div className="col-span-2">
             <div className="text-xs text-[#64748b]">Last Hash</div>
-            <div className="text-xs font-mono text-[#94a3b8] truncate">{mesh.bookPI.lastBlockHash}</div>
+            <div className="text-xs font-mono text-[#94a3b8] truncate">
+              {mesh.bookPI.lastBlockHash}
+            </div>
           </div>
         </div>
       </div>
@@ -295,7 +381,9 @@ export const QuantumMeshDashboard: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <div>
             <div className="text-xs text-[#64748b]">Total</div>
-            <div className="text-lg font-bold text-[#f1f5f9]">{mesh.circuitBreaker.totalCircuits}</div>
+            <div className="text-lg font-bold text-[#f1f5f9]">
+              {mesh.circuitBreaker.totalCircuits}
+            </div>
           </div>
           <div>
             <div className="text-xs text-[#64748b]">Closed</div>
@@ -311,7 +399,9 @@ export const QuantumMeshDashboard: React.FC = () => {
           </div>
           <div>
             <div className="text-xs text-[#64748b]">Total Failures</div>
-            <div className="text-lg font-bold text-[#f1f5f9]">{mesh.circuitBreaker.totalFailures}</div>
+            <div className="text-lg font-bold text-[#f1f5f9]">
+              {mesh.circuitBreaker.totalFailures}
+            </div>
           </div>
         </div>
       </div>
@@ -325,24 +415,33 @@ export const QuantumMeshDashboard: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <div>
             <div className="text-xs text-[#64748b]">Enqueued</div>
-            <div className="text-lg font-bold text-[#f1f5f9]">{mesh.scheduler.metrics.totalEnqueued}</div>
+            <div className="text-lg font-bold text-[#f1f5f9]">
+              {mesh.scheduler.metrics.totalEnqueued}
+            </div>
           </div>
           <div>
             <div className="text-xs text-[#64748b]">Dequeued</div>
-            <div className="text-lg font-bold text-emerald-400">{mesh.scheduler.metrics.totalDequeued}</div>
+            <div className="text-lg font-bold text-emerald-400">
+              {mesh.scheduler.metrics.totalDequeued}
+            </div>
           </div>
           <div>
             <div className="text-xs text-[#64748b]">Expired</div>
-            <div className="text-lg font-bold text-amber-400">{mesh.scheduler.metrics.totalExpired}</div>
+            <div className="text-lg font-bold text-amber-400">
+              {mesh.scheduler.metrics.totalExpired}
+            </div>
           </div>
           <div>
             <div className="text-xs text-[#64748b]">Rejected</div>
-            <div className="text-lg font-bold text-red-400">{mesh.scheduler.metrics.totalRejected}</div>
+            <div className="text-lg font-bold text-red-400">
+              {mesh.scheduler.metrics.totalRejected}
+            </div>
           </div>
           <div>
             <div className="text-xs text-[#64748b]">By Priority</div>
             <div className="text-xs text-[#94a3b8]">
-              i:{mesh.scheduler.byPriority.interactive} n:{mesh.scheduler.byPriority.normal} b:{mesh.scheduler.byPriority.batch}
+              i:{mesh.scheduler.byPriority.interactive} n:{mesh.scheduler.byPriority.normal} b:
+              {mesh.scheduler.byPriority.batch}
             </div>
           </div>
         </div>
@@ -356,7 +455,10 @@ export const QuantumMeshDashboard: React.FC = () => {
         </div>
         <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
           {Array.from({ length: 24 }, (_, i) => i + 1).map((id) => (
-            <div key={id} className="bg-[#0f172a] rounded-lg p-2 text-center border border-[#1e293b]">
+            <div
+              key={id}
+              className="bg-[#0f172a] rounded-lg p-2 text-center border border-[#1e293b]"
+            >
               <div className="text-xs font-bold text-blue-400">#{String(id).padStart(2, "0")}</div>
             </div>
           ))}

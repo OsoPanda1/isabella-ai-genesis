@@ -8,13 +8,7 @@
 import { ABX_POLICY_VERSION, authorize, policyCheck } from "./policy";
 import { selectHeads } from "./registry";
 import { consensusScore, decideFromScore } from "./scoring";
-import type {
-  AbxAssessment,
-  AbxProposal,
-  AbxRequestContext,
-  AbxResult,
-  AbxRisk,
-} from "./types";
+import type { AbxAssessment, AbxProposal, AbxRequestContext, AbxResult, AbxRisk } from "./types";
 
 export interface AbxInput {
   input: string;
@@ -113,9 +107,7 @@ export async function runAbx(ctx: AbxRequestContext): Promise<AbxResult> {
   const scores = assessments.map((a) => a.weightedScore);
   const average = scores.reduce((a, b) => a + b, 0) / scores.length;
   const consensus = consensusScore(scores);
-  const hasIssues = assessments.some(
-    (a) => a.violations.length > 0 || a.contradictions.length > 0,
-  );
+  const hasIssues = assessments.some((a) => a.violations.length > 0 || a.contradictions.length > 0);
   const critical = ctx.risk === "critical";
   const finalDecision = decideFromScore(average, hasIssues, critical);
 
@@ -123,9 +115,7 @@ export async function runAbx(ctx: AbxRequestContext): Promise<AbxResult> {
   const best = proposals[bestIndex] ?? proposals[0];
 
   const warnings = Array.from(
-    new Set(
-      assessments.flatMap((a) => [...a.violations, ...a.contradictions]),
-    ),
+    new Set(assessments.flatMap((a) => [...a.violations, ...a.contradictions])),
   );
 
   const response =
@@ -143,8 +133,7 @@ export async function runAbx(ctx: AbxRequestContext): Promise<AbxResult> {
     decision: finalDecision,
     response,
     confidence: average,
-    epistemicScore:
-      assessments.reduce((n, a) => n + a.scores.epistemic, 0) / assessments.length,
+    epistemicScore: assessments.reduce((n, a) => n + a.scores.epistemic, 0) / assessments.length,
     safetyScore: Math.min(...assessments.map((a) => a.scores.safety)),
     policyScore: Math.min(...assessments.map((a) => a.scores.policy)),
     consensusScore: consensus,

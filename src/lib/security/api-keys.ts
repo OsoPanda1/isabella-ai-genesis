@@ -146,9 +146,7 @@ export function createAPIKeyRecord(
  * Generate a master key for the system.
  * This is a 512-byte key derived from a passphrase.
  */
-export function generateMasterKey(
-  passphrase: string,
-): { masterKey: Buffer; keyId: string } {
+export function generateMasterKey(passphrase: string): { masterKey: Buffer; keyId: string } {
   const { key: masterKey } = generate512ByteKey(passphrase);
   const keyId = generateSecureUUID();
   return { masterKey, keyId };
@@ -310,9 +308,7 @@ class APIKeyStore {
   }
 
   listActive(): APIKey[] {
-    return this.list().filter(
-      (k) => !k.revoked && (!k.expiresAt || Date.now() < k.expiresAt),
-    );
+    return this.list().filter((k) => !k.revoked && (!k.expiresAt || Date.now() < k.expiresAt));
   }
 
   updateLastUsed(id: string): void {
@@ -401,12 +397,9 @@ export function getAPIKeySummary(): {
 
   return {
     total: all.length,
-    active: all.filter(
-      (k) => !k.revoked && (!k.expiresAt || now < k.expiresAt),
-    ).length,
+    active: all.filter((k) => !k.revoked && (!k.expiresAt || now < k.expiresAt)).length,
     revoked: all.filter((k) => k.revoked).length,
-    expired: all.filter((k) => k.expiresAt !== null && now > k.expiresAt!)
-      .length,
+    expired: all.filter((k) => k.expiresAt !== null && now > k.expiresAt!).length,
   };
 }
 

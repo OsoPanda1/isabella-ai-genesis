@@ -9,16 +9,16 @@ export const APIHealthMonitor: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    
+
     const checkHealth = async () => {
       try {
         const start = performance.now();
         // A simple ping to the local API which would then represent gateway health
         // Alternatively we can ping Gemini directly, but for now we ping our server health
-        const res = await fetch("/api/health").catch(() => null); 
-        
+        const res = await fetch("/api/health").catch(() => null);
+
         const end = performance.now();
-        
+
         if (isMounted) {
           if (res && res.ok) {
             const currentLatency = Math.round(end - start);
@@ -74,18 +74,24 @@ export const APIHealthMonitor: React.FC = () => {
         <div className="bg-black/20 rounded-lg p-3 border border-white/5">
           <div className="text-xs text-slate-500 mb-1">Latencia de Red</div>
           <div className="text-2xl font-light font-mono text-white flex items-baseline gap-1">
-            {latency !== null ? latency : "---"} <span className="text-xs text-slate-500 font-sans">ms</span>
+            {latency !== null ? latency : "---"}{" "}
+            <span className="text-xs text-slate-500 font-sans">ms</span>
           </div>
         </div>
-        
+
         <div className="bg-black/20 rounded-lg p-3 border border-white/5">
           <div className="text-xs text-slate-500 mb-1">Último Pulso</div>
           <div className="text-sm font-light text-slate-300 mt-1.5">
-            {lastCheck.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            {lastCheck.toLocaleTimeString([], {
+              hour12: false,
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })}
           </div>
         </div>
       </div>
-      
+
       <div className="mt-2 text-xs text-slate-500 flex items-center gap-2">
         <Server className="w-3.5 h-3.5" />
         Gateway Zero-Trust Activo

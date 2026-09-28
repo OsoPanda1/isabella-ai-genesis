@@ -13,7 +13,7 @@ export function loadJsonArray<T>(name: string, fallback: T[] = []): T[] {
   if (!existsSync(file)) return [...fallback];
   try {
     const parsed = JSON.parse(readFileSync(file, "utf8"));
-    return Array.isArray(parsed) ? parsed as T[] : [...fallback];
+    return Array.isArray(parsed) ? (parsed as T[]) : [...fallback];
   } catch {
     return [...fallback];
   }

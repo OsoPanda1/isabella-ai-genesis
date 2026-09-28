@@ -72,15 +72,60 @@ export function SidebarNav() {
       label: "Funciones",
       icon: LayoutGrid,
       items: [
-        { id: "terminal", label: "Terminal CROWN", icon: Terminal, action: () => setActiveView("terminal") },
-        { id: "presence", label: "Presencia Isabella", icon: Sparkles, action: () => setActiveView("presence") },
-        { id: "traceability", label: "Trazabilidad & Auditoría", icon: Activity, action: () => setActiveView("traceability") },
-        { id: "architecture", label: "Arquitectura Modular", icon: Box, action: () => setActiveView("architecture") },
-        { id: "synapse", label: "Sinapsis & Red", icon: Network, action: () => setActiveView("synapse") },
-        { id: "telemetry", label: "Telemetría", icon: Monitor, action: () => setActiveView("telemetry") },
-        { id: "image_studio", label: "Estudio de Imagen", icon: ImageIcon, action: () => setActiveView("image_studio") },
-        { id: "voice_studio", label: "Estudio de Voz", icon: Volume2, action: () => setActiveView("voice_studio") },
-        { id: "presentation", label: "Presentación", icon: Layers, action: () => setActiveView("presentation") },
+        {
+          id: "terminal",
+          label: "Terminal CROWN",
+          icon: Terminal,
+          action: () => setActiveView("terminal"),
+        },
+        {
+          id: "presence",
+          label: "Presencia Isabella",
+          icon: Sparkles,
+          action: () => setActiveView("presence"),
+        },
+        {
+          id: "traceability",
+          label: "Trazabilidad & Auditoría",
+          icon: Activity,
+          action: () => setActiveView("traceability"),
+        },
+        {
+          id: "architecture",
+          label: "Arquitectura Modular",
+          icon: Box,
+          action: () => setActiveView("architecture"),
+        },
+        {
+          id: "synapse",
+          label: "Sinapsis & Red",
+          icon: Network,
+          action: () => setActiveView("synapse"),
+        },
+        {
+          id: "telemetry",
+          label: "Telemetría",
+          icon: Monitor,
+          action: () => setActiveView("telemetry"),
+        },
+        {
+          id: "image_studio",
+          label: "Estudio de Imagen",
+          icon: ImageIcon,
+          action: () => setActiveView("image_studio"),
+        },
+        {
+          id: "voice_studio",
+          label: "Estudio de Voz",
+          icon: Volume2,
+          action: () => setActiveView("voice_studio"),
+        },
+        {
+          id: "presentation",
+          label: "Presentación",
+          icon: Layers,
+          action: () => setActiveView("presentation"),
+        },
       ],
     },
     {
@@ -88,14 +133,55 @@ export function SidebarNav() {
       label: "Skills",
       icon: Zap,
       items: [
-        { id: "skill_hook", label: "Hook Generator", icon: Sparkles, action: () => setActiveView("terminal") },
-        { id: "skill_rdm", label: "RDM Tourism Pack", icon: Globe, action: () => setActiveView("terminal") },
-        { id: "skill_copy", label: "Offer Copy Optimizer", icon: MessageSquare, action: () => setActiveView("terminal") },
-        { id: "skill_video", label: "Video Subtitle Aligner", icon: Monitor, action: () => setActiveView("terminal") },
-        { id: "skill_quantum", label: "Quantum Mesh", icon: Box, action: () => setActiveView("quantum_mesh"), badge: "exp" },
-        { id: "skill_language", label: "Lenguaje Atlas", icon: BookOpen, action: () => setActiveView("atlas_language") },
-        { id: "skill_ledger", label: "BookPI Ledger", icon: Database, action: () => setActiveView("ledger_page") },
-        { id: "skill_eoct", label: "EOCT Federación", icon: Network, action: () => setActiveView("eoct_page") },
+        {
+          id: "skill_hook",
+          label: "Hook Generator",
+          icon: Sparkles,
+          action: () => setActiveView("terminal"),
+        },
+        {
+          id: "skill_rdm",
+          label: "RDM Tourism Pack",
+          icon: Globe,
+          action: () => setActiveView("terminal"),
+        },
+        {
+          id: "skill_copy",
+          label: "Offer Copy Optimizer",
+          icon: MessageSquare,
+          action: () => setActiveView("terminal"),
+        },
+        {
+          id: "skill_video",
+          label: "Video Subtitle Aligner",
+          icon: Monitor,
+          action: () => setActiveView("terminal"),
+        },
+        {
+          id: "skill_quantum",
+          label: "Quantum Mesh",
+          icon: Box,
+          action: () => setActiveView("quantum_mesh"),
+          badge: "exp",
+        },
+        {
+          id: "skill_language",
+          label: "Lenguaje Atlas",
+          icon: BookOpen,
+          action: () => setActiveView("atlas_language"),
+        },
+        {
+          id: "skill_ledger",
+          label: "BookPI Ledger",
+          icon: Database,
+          action: () => setActiveView("ledger_page"),
+        },
+        {
+          id: "skill_eoct",
+          label: "EOCT Federación",
+          icon: Network,
+          action: () => setActiveView("eoct_page"),
+        },
       ],
     },
     {
@@ -103,9 +189,24 @@ export function SidebarNav() {
       label: "Chats",
       icon: MessageSquare,
       items: [
-        { id: "chat_main", label: "Conversación principal", icon: MessageSquare, action: () => setActiveView("terminal") },
-        { id: "chat_clear", label: "Limpiar conversación", icon: ChevronDown, action: () => clearMessages() },
-        { id: "chat_shortcuts", label: "Atajos de teclado", icon: Zap, action: () => openShortcutsModal() },
+        {
+          id: "chat_main",
+          label: "Conversación principal",
+          icon: MessageSquare,
+          action: () => setActiveView("terminal"),
+        },
+        {
+          id: "chat_clear",
+          label: "Limpiar conversación",
+          icon: ChevronDown,
+          action: () => clearMessages(),
+        },
+        {
+          id: "chat_shortcuts",
+          label: "Atajos de teclado",
+          icon: Zap,
+          action: () => openShortcutsModal(),
+        },
       ],
     },
     {
@@ -113,10 +214,31 @@ export function SidebarNav() {
       label: "Monetización",
       icon: Coins,
       items: [
-        { id: "mon_plans", label: "Suscripciones", icon: CreditCard, action: () => setActiveView("cattleya_finance") },
-        { id: "mon_wallet", label: "Wallet Digital", icon: CreditCard, action: () => setActiveView("cattleya_finance"), badge: "new" },
-        { id: "mon_market", label: "Marketplace", icon: LayoutGrid, action: () => setActiveView("cattleya_finance") },
-        { id: "mon_gifts", label: "Regalos Digitales", icon: Sparkles, action: () => setActiveView("cattleya_finance") },
+        {
+          id: "mon_plans",
+          label: "Suscripciones",
+          icon: CreditCard,
+          action: () => setActiveView("cattleya_finance"),
+        },
+        {
+          id: "mon_wallet",
+          label: "Wallet Digital",
+          icon: CreditCard,
+          action: () => setActiveView("cattleya_finance"),
+          badge: "new",
+        },
+        {
+          id: "mon_market",
+          label: "Marketplace",
+          icon: LayoutGrid,
+          action: () => setActiveView("cattleya_finance"),
+        },
+        {
+          id: "mon_gifts",
+          label: "Regalos Digitales",
+          icon: Sparkles,
+          action: () => setActiveView("cattleya_finance"),
+        },
       ],
     },
     {
@@ -125,10 +247,30 @@ export function SidebarNav() {
       icon: Settings,
       items: [
         { id: "set_welcome", label: "Intro", icon: BookOpen, action: () => openWelcomeModal() },
-        { id: "set_security", label: "Gobernanza & Seguridad", icon: Database, action: () => openSecurityModal() },
-        { id: "set_sound", label: `Sonido: ${state.soundEnabled ? "on" : "off"}`, icon: Volume2, action: () => toggleSound() },
-        { id: "set_voice", label: `Voz: ${state.speechSynthesisEnabled ? "on" : "off"}`, icon: Volume2, action: () => toggleSpeechSynthesis() },
-        { id: "set_preset", label: `Perfil: ${state.activePreset}`, icon: Layers, action: () => setPreset(state.activePreset === "prime" ? "sentinel" : "prime") },
+        {
+          id: "set_security",
+          label: "Gobernanza & Seguridad",
+          icon: Database,
+          action: () => openSecurityModal(),
+        },
+        {
+          id: "set_sound",
+          label: `Sonido: ${state.soundEnabled ? "on" : "off"}`,
+          icon: Volume2,
+          action: () => toggleSound(),
+        },
+        {
+          id: "set_voice",
+          label: `Voz: ${state.speechSynthesisEnabled ? "on" : "off"}`,
+          icon: Volume2,
+          action: () => toggleSpeechSynthesis(),
+        },
+        {
+          id: "set_preset",
+          label: `Perfil: ${state.activePreset}`,
+          icon: Layers,
+          action: () => setPreset(state.activePreset === "prime" ? "sentinel" : "prime"),
+        },
       ],
     },
   ];
@@ -188,9 +330,7 @@ export function SidebarNav() {
                       >
                         <ItemIcon size={11} className="shrink-0 text-amber-400/70" />
                         <span className="flex-1 truncate">{item.label}</span>
-                        {item.badge && (
-                          <span className="chip chip--gold">{item.badge}</span>
-                        )}
+                        {item.badge && <span className="chip chip--gold">{item.badge}</span>}
                       </button>
                     );
                   })}
@@ -203,9 +343,7 @@ export function SidebarNav() {
 
       {!collapsed && (
         <div className="sidebar-footer">
-          <p className="font-mono text-[9px] text-slate-500">
-            isabella · atlas · v5.3
-          </p>
+          <p className="font-mono text-[9px] text-slate-500">isabella · atlas · v5.3</p>
         </div>
       )}
     </aside>

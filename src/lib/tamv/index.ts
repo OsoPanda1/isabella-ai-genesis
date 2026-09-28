@@ -15,8 +15,4 @@ export {
   type StoredEvent,
 } from "./kernel";
 
-export {
-  FederationBus,
-  federationBus,
-  type FederationStatus,
-} from "./federation";
+export { FederationBus, federationBus, type FederationStatus } from "./federation";

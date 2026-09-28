@@ -6,11 +6,7 @@
  * ================================================================
  */
 
-import type {
-  CrownDecision,
-  EvidenceRecord,
-  ProvenanceRecord,
-} from "../contracts";
+import type { CrownDecision, EvidenceRecord, ProvenanceRecord } from "../contracts";
 
 export interface VerificationResult {
   verified: boolean;
@@ -121,19 +117,14 @@ export class VerificationEngine {
     };
   }
 
-  private checkReversibility(
-    reversible: boolean,
-    governance: CrownDecision,
-  ): VerificationCheck {
+  private checkReversibility(reversible: boolean, governance: CrownDecision): VerificationCheck {
     const appropriate = reversible || governance.result === "allow";
 
     return {
       name: "Reversibility",
       passed: appropriate,
       score: appropriate ? 1 : 0.5,
-      details: reversible
-        ? "Operation is reversible"
-        : "Operation is irreversible but approved",
+      details: reversible ? "Operation is reversible" : "Operation is irreversible but approved",
     };
   }
 
@@ -146,9 +137,7 @@ export class VerificationEngine {
       passed: hasProvenance && hasHashes,
       score: hasProvenance && hasHashes ? 1 : 0.5,
       details:
-        hasProvenance && hasHashes
-          ? "Provenance record complete"
-          : "Provenance record incomplete",
+        hasProvenance && hasHashes ? "Provenance record complete" : "Provenance record incomplete",
     };
   }
 

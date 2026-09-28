@@ -5,7 +5,10 @@ declare module "@idlen/chat-sdk";
 
 declare module "@lovable.dev/cloud-auth-js" {
   export function createLovableAuth(): {
-    signInWithOAuth: (provider: string, options?: Record<string, unknown>) => Promise<{
+    signInWithOAuth: (
+      provider: string,
+      options?: Record<string, unknown>,
+    ) => Promise<{
       redirected?: boolean;
       error?: unknown;
       tokens?: { access_token: string; refresh_token: string };

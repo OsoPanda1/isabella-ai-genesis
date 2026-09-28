@@ -58,16 +58,12 @@ export class MEMORIAStore {
   private readonly maxEntries: number;
   private readonly defaultTtlMs: number;
 
-  constructor(
-    options: { maxEntries?: number; defaultTtlMs?: number } = {},
-  ) {
+  constructor(options: { maxEntries?: number; defaultTtlMs?: number } = {}) {
     this.maxEntries = options.maxEntries ?? 1000;
     this.defaultTtlMs = options.defaultTtlMs ?? 3600000; // 1 hour
   }
 
-  add(
-    entry: Omit<MemoryEntry, "id" | "createdAt" | "tokensEstimate">,
-  ): MemoryEntry {
+  add(entry: Omit<MemoryEntry, "id" | "createdAt" | "tokensEstimate">): MemoryEntry {
     const id = `mem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const now = new Date().toISOString();
     const tokensEstimate = Math.ceil(entry.content.length / 4);
@@ -90,9 +86,7 @@ export class MEMORIAStore {
 
     // Filter expired
     const now = Date.now();
-    results = results.filter(
-      (e) => !e.expiresAt || new Date(e.expiresAt).getTime() > now,
-    );
+    results = results.filter((e) => !e.expiresAt || new Date(e.expiresAt).getTime() > now);
 
     // Filter scope
     if (query.scope && query.scope.length > 0) {
@@ -106,9 +100,7 @@ export class MEMORIAStore {
 
     // Filter tags
     if (query.tags && query.tags.length > 0) {
-      results = results.filter((e) =>
-        query.tags!.some((t) => e.tags.includes(t)),
-      );
+      results = results.filter((e) => query.tags!.some((t) => e.tags.includes(t)));
     }
 
     // Full-text search
@@ -122,10 +114,7 @@ export class MEMORIAStore {
     }
 
     // Sort by creation (newest first)
-    results.sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
+    results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     // Paginate
     const offset = query.offset ?? 0;

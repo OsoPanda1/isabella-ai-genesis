@@ -97,9 +97,7 @@ export class PRISMARegistry {
   }
 
   getByRisk(risk: SkillRisk): SkillWithState[] {
-    return Array.from(this.skills.values()).filter(
-      (s) => s.risk === risk && s.state === "active",
-    );
+    return Array.from(this.skills.values()).filter((s) => s.risk === risk && s.state === "active");
   }
 
   recordUse(name: string): void {

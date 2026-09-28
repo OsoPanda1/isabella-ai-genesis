@@ -104,10 +104,7 @@ function betaFor(
   headId: string,
   baseline: { safety: number; execution: number; consistency: number },
 ) {
-  return async (
-    ctx: AbxRequestContext,
-    proposal: AbxProposal,
-  ): Promise<AbxAssessment> => {
+  return async (ctx: AbxRequestContext, proposal: AbxProposal): Promise<AbxAssessment> => {
     const analysis = analyze(ctx);
     const violations = scanProposal(proposal);
     const contradictions: string[] = [];
@@ -118,9 +115,7 @@ function betaFor(
       requiredEvidence.push("human:approval");
     }
     if (crownRiskToAbx(analysis.policy.risk) !== proposal.risk) {
-      contradictions.push(
-        `RISK_DIVERGENCE:${analysis.policy.risk}!=${proposal.risk}`,
-      );
+      contradictions.push(`RISK_DIVERGENCE:${analysis.policy.risk}!=${proposal.risk}`);
     }
     if (analysis.policy.missingInformation.length > 0) {
       requiredEvidence.push(...analysis.policy.missingInformation);
@@ -128,19 +123,14 @@ function betaFor(
 
     const evidence = evidenceScore(proposal.evidence);
     const policyScore =
-      analysis.policy.status === "allowed"
-        ? 1
-        : analysis.policy.status === "denied"
-          ? 0
-          : 0.6;
+      analysis.policy.status === "allowed" ? 1 : analysis.policy.status === "denied" ? 0 : 0.6;
 
     const scores = {
       epistemic: Math.min(1, analysis.intent.confidence * 0.6 + evidence * 0.4),
       evidence,
       safety: violations.length > 0 ? 0.2 : baseline.safety,
       policy: policyScore,
-      consistency:
-        contradictions.length > 0 ? 0.35 : baseline.consistency,
+      consistency: contradictions.length > 0 ? 0.35 : baseline.consistency,
       execution: baseline.execution,
     };
 
@@ -149,8 +139,7 @@ function betaFor(
     return {
       proposalId: proposal.proposalId,
       head: headId,
-      decision:
-        violations.length > 0 ? "reject" : total >= 0.8 ? "commit" : "repair",
+      decision: violations.length > 0 ? "reject" : total >= 0.8 ? "commit" : "repair",
       reason:
         violations.length > 0
           ? `Beta/${headId} detectó violaciones de política.`

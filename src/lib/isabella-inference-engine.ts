@@ -76,7 +76,12 @@ export interface InferenceResult {
   sponsoredContent?: Record<string, unknown>;
 }
 
-type Mood = "Serena y Atenta" | "Visionaria e Inspirada" | "Poética y Cálida" | "Lúcida y Reflexiva" | "Radiante";
+type Mood =
+  | "Serena y Atenta"
+  | "Visionaria e Inspirada"
+  | "Poética y Cálida"
+  | "Lúcida y Reflexiva"
+  | "Radiante";
 type Archetype = "Serena" | "Visionaria" | "Poética" | "Lúcida" | "Protectora" | "Radiante";
 
 interface IntentMatch {
@@ -139,132 +144,400 @@ function normalizeInput(text: string): string {
 const GLOSSARY_FAMILIES: Array<[string[], string[]]> = [
   // Actions
   [["enviar", "envio", "envia", "envian"], ["send"]],
-  [["guardar", "guardo", "guarda"], ["save", "store"]],
-  [["borrar", "borro", "borra"], ["delete", "remove"]],
-  [["eliminar", "elimino", "elimina"], ["delete", "remove"]],
-  [["buscar", "busco", "busca"], ["search", "find"]],
-  [["mostrar", "muestro", "muestra"], ["show", "list"]],
-  [["iniciar", "inicio", "inicia"], ["login", "signin", "init"]],
-  [["entrar", "entro", "entra"], ["login", "signin"]],
-  [["cerrar", "cierro", "cierra"], ["close", "logout", "signout"]],
-  [["crear", "creo", "crea", "crean"], ["create", "make", "build"]],
-  [["generar", "genero", "genera"], ["generate", "create"]],
-  [["ejecutar", "ejecuto", "ejecuta"], ["execute", "run"]],
-  [["configurar", "configuro", "configura"], ["configure", "setup"]],
-  [["actualizar", "actualizo", "actualiza"], ["update", "upgrade"]],
-  [["explicar", "explico", "explica"], ["explain", "describe"]],
-  [["comparar", "comparo", "compara"], ["compare", "contrast"]],
-  [["recomendar", "recomiendo", "recomienda"], ["recommend", "suggest"]],
-  [["ayudar", "ayudo", "ayuda"], ["help", "assist"]],
-  [["pensar", "pienso", "piensa"], ["think", "consider"]],
-  [["opinar", "opino", "opina"], ["opinion", "view"]],
-  [["hablar", "hablo", "habla"], ["speak", "talk"]],
-  [["decir", "digo", "dice"], ["say", "tell"]],
-  [["contar", "cuento", "cuenta"], ["tell", "narrate", "count"]],
-  [["aprender", "aprendo", "aprende"], ["learn", "study"]],
-  [["enseñar", "enseño", "enseña"], ["teach", "educate"]],
-  [["recordar", "recuerdo", "recuerda"], ["remember", "recall"]],
+  [
+    ["guardar", "guardo", "guarda"],
+    ["save", "store"],
+  ],
+  [
+    ["borrar", "borro", "borra"],
+    ["delete", "remove"],
+  ],
+  [
+    ["eliminar", "elimino", "elimina"],
+    ["delete", "remove"],
+  ],
+  [
+    ["buscar", "busco", "busca"],
+    ["search", "find"],
+  ],
+  [
+    ["mostrar", "muestro", "muestra"],
+    ["show", "list"],
+  ],
+  [
+    ["iniciar", "inicio", "inicia"],
+    ["login", "signin", "init"],
+  ],
+  [
+    ["entrar", "entro", "entra"],
+    ["login", "signin"],
+  ],
+  [
+    ["cerrar", "cierro", "cierra"],
+    ["close", "logout", "signout"],
+  ],
+  [
+    ["crear", "creo", "crea", "crean"],
+    ["create", "make", "build"],
+  ],
+  [
+    ["generar", "genero", "genera"],
+    ["generate", "create"],
+  ],
+  [
+    ["ejecutar", "ejecuto", "ejecuta"],
+    ["execute", "run"],
+  ],
+  [
+    ["configurar", "configuro", "configura"],
+    ["configure", "setup"],
+  ],
+  [
+    ["actualizar", "actualizo", "actualiza"],
+    ["update", "upgrade"],
+  ],
+  [
+    ["explicar", "explico", "explica"],
+    ["explain", "describe"],
+  ],
+  [
+    ["comparar", "comparo", "compara"],
+    ["compare", "contrast"],
+  ],
+  [
+    ["recomendar", "recomiendo", "recomienda"],
+    ["recommend", "suggest"],
+  ],
+  [
+    ["ayudar", "ayudo", "ayuda"],
+    ["help", "assist"],
+  ],
+  [
+    ["pensar", "pienso", "piensa"],
+    ["think", "consider"],
+  ],
+  [
+    ["opinar", "opino", "opina"],
+    ["opinion", "view"],
+  ],
+  [
+    ["hablar", "hablo", "habla"],
+    ["speak", "talk"],
+  ],
+  [
+    ["decir", "digo", "dice"],
+    ["say", "tell"],
+  ],
+  [
+    ["contar", "cuento", "cuenta"],
+    ["tell", "narrate", "count"],
+  ],
+  [
+    ["aprender", "aprendo", "aprende"],
+    ["learn", "study"],
+  ],
+  [
+    ["enseñar", "enseño", "enseña"],
+    ["teach", "educate"],
+  ],
+  [
+    ["recordar", "recuerdo", "recuerda"],
+    ["remember", "recall"],
+  ],
   [["olvidar", "olvido", "olvida"], ["forget"]],
-  [["necesitar", "necesito", "necesita"], ["need", "require"]],
-  [["querer", "quiero", "quiere"], ["want", "desire"]],
-  [["poder", "puedo", "puede"], ["can", "able"]],
-  [["saber", "sé", "sabe"], ["know", "understand"]],
-  [["sentir", "siento", "siente"], ["feel", "sense"]],
+  [
+    ["necesitar", "necesito", "necesita"],
+    ["need", "require"],
+  ],
+  [
+    ["querer", "quiero", "quiere"],
+    ["want", "desire"],
+  ],
+  [
+    ["poder", "puedo", "puede"],
+    ["can", "able"],
+  ],
+  [
+    ["saber", "sé", "sabe"],
+    ["know", "understand"],
+  ],
+  [
+    ["sentir", "siento", "siente"],
+    ["feel", "sense"],
+  ],
   [["creer", "creo", "cree"], ["believe"]],
-  [["mirar", "miro", "mira"], ["watch", "look", "see"]],
-  [["escuchar", "escucho", "escucha"], ["listen", "hear"]],
+  [
+    ["mirar", "miro", "mira"],
+    ["watch", "look", "see"],
+  ],
+  [
+    ["escuchar", "escucho", "escucha"],
+    ["listen", "hear"],
+  ],
   [["leer", "leo", "lee"], ["read"]],
   [["escribir", "escribo", "escribe"], ["write"]],
-  [["dibujar", "dibujo", "dibuja"], ["draw", "sketch"]],
+  [
+    ["dibujar", "dibujo", "dibuja"],
+    ["draw", "sketch"],
+  ],
   [["pintar", "pinto", "pinta"], ["paint"]],
   [["cantar", "canto", "canta"], ["sing"]],
   [["bailar", "bailo", "baila"], ["dance"]],
   [["cocinar", "cocino", "cocina"], ["cook"]],
-  [["correr", "corro", "corre"], ["run", "jog"]],
+  [
+    ["correr", "corro", "corre"],
+    ["run", "jog"],
+  ],
   [["caminar", "camino", "camina"], ["walk"]],
   [["nadar", "nado", "nada"], ["swim"]],
-  [["jugar", "juego", "juega"], ["play", "game"]],
+  [
+    ["jugar", "juego", "juega"],
+    ["play", "game"],
+  ],
   [["trabajar", "trabajo", "trabaja"], ["work"]],
-  [["descansar", "descanso", "descansa"], ["rest", "relax"]],
+  [
+    ["descansar", "descanso", "descansa"],
+    ["rest", "relax"],
+  ],
   [["dormir", "duermo", "duerme"], ["sleep"]],
-  [["comer", "como", "come"], ["eat", "food"]],
+  [
+    ["comer", "como", "come"],
+    ["eat", "food"],
+  ],
   [["beber", "bebo", "bebe"], ["drink"]],
-  [["viajar", "viajo", "viaja"], ["travel", "trip"]],
-  [["comprar", "compro", "compra"], ["buy", "purchase"]],
+  [
+    ["viajar", "viajo", "viaja"],
+    ["travel", "trip"],
+  ],
+  [
+    ["comprar", "compro", "compra"],
+    ["buy", "purchase"],
+  ],
   [["vender", "vendo", "vende"], ["sell"]],
   [["pagar", "pago", "paga"], ["pay"]],
-  [["ganar", "gano", "gana"], ["win", "earn"]],
-  [["perder", "pierdo", "pierde"], ["lose", "miss"]],
-  [["ganar", "gano", "gana"], ["win", "earn"]],
+  [
+    ["ganar", "gano", "gana"],
+    ["win", "earn"],
+  ],
+  [
+    ["perder", "pierdo", "pierde"],
+    ["lose", "miss"],
+  ],
+  [
+    ["ganar", "gano", "gana"],
+    ["win", "earn"],
+  ],
   // Nouns (singular + plural)
   [["mensaje", "mensajes"], ["message"]],
-  [["contraseña", "contrasena", "contraseñas"], ["password", "secret", "key"]],
-  [["seguridad", "seguridades"], ["security", "auth", "token"]],
-  [["imagen", "imagenes", "imágenes"], ["image", "picture", "photo"]],
-  [["audio", "audios"], ["audio", "sound"]],
+  [
+    ["contraseña", "contrasena", "contraseñas"],
+    ["password", "secret", "key"],
+  ],
+  [
+    ["seguridad", "seguridades"],
+    ["security", "auth", "token"],
+  ],
+  [
+    ["imagen", "imagenes", "imágenes"],
+    ["image", "picture", "photo"],
+  ],
+  [
+    ["audio", "audios"],
+    ["audio", "sound"],
+  ],
   [["video", "videos"], ["video"]],
-  [["archivo", "archivos"], ["file", "document"]],
-  [["carpeta", "carpetas"], ["folder", "directory"]],
-  [["codigo", "código", "codigos"], ["code", "programming"]],
-  [["servidor", "servidores"], ["server", "backend"]],
-  [["base de datos", "bases de datos"], ["database", "db"]],
-  [["usuario", "usuarios"], ["user", "member"]],
-  [["sistema", "sistemas"], ["system", "platform"]],
-  [["proyecto", "proyectos"], ["project", "repo"]],
-  [["funcion", "función", "funciones"], ["function", "method"]],
-  [["clase", "clases"], ["class", "type"]],
-  [["variable", "variables"], ["variable", "field"]],
-  [["error", "errores"], ["error", "bug", "issue"]],
-  [["problema", "problemas"], ["problem", "issue"]],
-  [["solucion", "solución", "soluciones"], ["solution", "fix"]],
-  [["pregunta", "preguntas"], ["question", "query"]],
-  [["respuesta", "respuestas"], ["answer", "response"]],
-  [["idea", "ideias", "ideas"], ["idea", "concept"]],
-  [["plan", "planes"], ["plan", "strategy"]],
-  [["herramienta", "herramientas"], ["tool", "utility"]],
-  [["modulo", "módulo", "modulos"], ["module", "component"]],
-  [["funcionalidad", "funcionalidades"], ["feature", "capability"]],
-  [["datos", "dato"], ["data", "information"]],
-  [["noticia", "noticias"], ["news", "update"]],
-  [["evento", "eventos"], ["event", "happening"]],
-  [["lugar", "lugares"], ["place", "location"]],
+  [
+    ["archivo", "archivos"],
+    ["file", "document"],
+  ],
+  [
+    ["carpeta", "carpetas"],
+    ["folder", "directory"],
+  ],
+  [
+    ["codigo", "código", "codigos"],
+    ["code", "programming"],
+  ],
+  [
+    ["servidor", "servidores"],
+    ["server", "backend"],
+  ],
+  [
+    ["base de datos", "bases de datos"],
+    ["database", "db"],
+  ],
+  [
+    ["usuario", "usuarios"],
+    ["user", "member"],
+  ],
+  [
+    ["sistema", "sistemas"],
+    ["system", "platform"],
+  ],
+  [
+    ["proyecto", "proyectos"],
+    ["project", "repo"],
+  ],
+  [
+    ["funcion", "función", "funciones"],
+    ["function", "method"],
+  ],
+  [
+    ["clase", "clases"],
+    ["class", "type"],
+  ],
+  [
+    ["variable", "variables"],
+    ["variable", "field"],
+  ],
+  [
+    ["error", "errores"],
+    ["error", "bug", "issue"],
+  ],
+  [
+    ["problema", "problemas"],
+    ["problem", "issue"],
+  ],
+  [
+    ["solucion", "solución", "soluciones"],
+    ["solution", "fix"],
+  ],
+  [
+    ["pregunta", "preguntas"],
+    ["question", "query"],
+  ],
+  [
+    ["respuesta", "respuestas"],
+    ["answer", "response"],
+  ],
+  [
+    ["idea", "ideias", "ideas"],
+    ["idea", "concept"],
+  ],
+  [
+    ["plan", "planes"],
+    ["plan", "strategy"],
+  ],
+  [
+    ["herramienta", "herramientas"],
+    ["tool", "utility"],
+  ],
+  [
+    ["modulo", "módulo", "modulos"],
+    ["module", "component"],
+  ],
+  [
+    ["funcionalidad", "funcionalidades"],
+    ["feature", "capability"],
+  ],
+  [
+    ["datos", "dato"],
+    ["data", "information"],
+  ],
+  [
+    ["noticia", "noticias"],
+    ["news", "update"],
+  ],
+  [
+    ["evento", "eventos"],
+    ["event", "happening"],
+  ],
+  [
+    ["lugar", "lugares"],
+    ["place", "location"],
+  ],
   [["ciudad", "ciudades"], ["city"]],
   [["pais", "país", "paises"], ["country"]],
-  [["persona", "personas"], ["person", "people"]],
-  [["grupo", "grupos"], ["group", "team"]],
-  [["trabajo", "trabajos"], ["work", "job"]],
-  [["tiempo", "tiempos"], ["time", "weather"]],
+  [
+    ["persona", "personas"],
+    ["person", "people"],
+  ],
+  [
+    ["grupo", "grupos"],
+    ["group", "team"],
+  ],
+  [
+    ["trabajo", "trabajos"],
+    ["work", "job"],
+  ],
+  [
+    ["tiempo", "tiempos"],
+    ["time", "weather"],
+  ],
   [["año", "años"], ["year"]],
   [["mes", "meses"], ["month"]],
   [["dia", "día", "dias"], ["day"]],
-  [["hora", "horas"], ["hour", "time"]],
+  [
+    ["hora", "horas"],
+    ["hour", "time"],
+  ],
   [["minuto", "minutos"], ["minute"]],
   [["numero", "número", "numeros"], ["number"]],
-  [["texto", "textos"], ["text", "content"]],
-  [["telefono", "teléfono", "telefonos"], ["phone", "mobile"]],
-  [["correo", "correos"], ["email", "mail"]],
-  [["red", "redes"], ["network", "social"]],
-  [["internet", "web"], ["web", "internet"]],
-  [["inteligencia", "ai"], ["intelligence", "ai"]],
-  [["robot", "robots"], ["robot", "bot"]],
-  [["computadora", "computadoras"], ["computer", "pc"]],
-  [["celular", "celulares"], ["phone", "smartphone"]],
-  [["pantalla", "pantallas"], ["screen", "display"]],
+  [
+    ["texto", "textos"],
+    ["text", "content"],
+  ],
+  [
+    ["telefono", "teléfono", "telefonos"],
+    ["phone", "mobile"],
+  ],
+  [
+    ["correo", "correos"],
+    ["email", "mail"],
+  ],
+  [
+    ["red", "redes"],
+    ["network", "social"],
+  ],
+  [
+    ["internet", "web"],
+    ["web", "internet"],
+  ],
+  [
+    ["inteligencia", "ai"],
+    ["intelligence", "ai"],
+  ],
+  [
+    ["robot", "robots"],
+    ["robot", "bot"],
+  ],
+  [
+    ["computadora", "computadoras"],
+    ["computer", "pc"],
+  ],
+  [
+    ["celular", "celulares"],
+    ["phone", "smartphone"],
+  ],
+  [
+    ["pantalla", "pantallas"],
+    ["screen", "display"],
+  ],
   [["teclado", "teclados"], ["keyboard"]],
   [["raton", "ratón"], ["mouse"]],
   [["impresora", "impresoras"], ["printer"]],
-  [["cable", "cables"], ["cable", "wire"]],
+  [
+    ["cable", "cables"],
+    ["cable", "wire"],
+  ],
   [["bateria", "batería", "baterias"], ["battery"]],
-  [["memoria", "memorias"], ["memory", "ram"]],
-  [["disco", "discos"], ["disk", "drive"]],
+  [
+    ["memoria", "memorias"],
+    ["memory", "ram"],
+  ],
+  [
+    ["disco", "discos"],
+    ["disk", "drive"],
+  ],
   [["pantalla", "pantallas"], ["screen"]],
-  [["almacen", "almacén"], ["storage", "warehouse"]],
+  [
+    ["almacen", "almacén"],
+    ["storage", "warehouse"],
+  ],
 ];
 
 const GLOSSARY = new Map<string, string[]>(
-  GLOSSARY_FAMILIES.flatMap(([forms, syns]) =>
-    forms.map((f) => [f, syns] as [string, string[]])
-  )
+  GLOSSARY_FAMILIES.flatMap(([forms, syns]) => forms.map((f) => [f, syns] as [string, string[]])),
 );
 
 function expandQuery(query: string): string {
@@ -290,21 +563,73 @@ function expandQuery(query: string): string {
    ========================================================================= */
 
 const TECH_TERMS = new Set([
-  "typescript", "javascript", "python", "rust", "golang", "java", "c\\+\\+",
-  "react", "vue", "angular", "nextjs", "next\\.js", "vite", "node", "deno",
-  "sql", "postgresql", "mysql", "mongodb", "sqlite", "redis",
-  "docker", "kubernetes", "k8s", "aws", "azure", "gcp", "vercel",
-  "git", "github", "gitlab", "ci\\/cd",
-  "api", "rest", "graphql", "grpc", "websocket",
-  "ia", "ai", "ml", "nlp", "llm", "gpt", "gemini", "openai",
-  "html", "css", "sass", "tailwind",
-  "blockchain", "web3", "nft", "defi", "token",
-  "opencl", "cuda", "tensorflow", "pytorch", "keras",
+  "typescript",
+  "javascript",
+  "python",
+  "rust",
+  "golang",
+  "java",
+  "c\\+\\+",
+  "react",
+  "vue",
+  "angular",
+  "nextjs",
+  "next\\.js",
+  "vite",
+  "node",
+  "deno",
+  "sql",
+  "postgresql",
+  "mysql",
+  "mongodb",
+  "sqlite",
+  "redis",
+  "docker",
+  "kubernetes",
+  "k8s",
+  "aws",
+  "azure",
+  "gcp",
+  "vercel",
+  "git",
+  "github",
+  "gitlab",
+  "ci\\/cd",
+  "api",
+  "rest",
+  "graphql",
+  "grpc",
+  "websocket",
+  "ia",
+  "ai",
+  "ml",
+  "nlp",
+  "llm",
+  "gpt",
+  "gemini",
+  "openai",
+  "html",
+  "css",
+  "sass",
+  "tailwind",
+  "blockchain",
+  "web3",
+  "nft",
+  "defi",
+  "token",
+  "opencl",
+  "cuda",
+  "tensorflow",
+  "pytorch",
+  "keras",
 ]);
 
-const SENTIMENT_POSITIVE = /\b(excelente|genial|increible|fantastico|perfecto|brillante|maravilloso|increible|love|great|awesome|perfect|brilliant|amazing|wonderful|good|bien|bonito|hermoso|lindo|agradable|feliz|contento|satisfecho|gracias|thank|thanks)\b/i;
-const SENTIMENT_NEGATIVE = /\b(malo|terrible|horrible|feo|triste|enfadado|molesto|odio|hate|bad|terrible|awful|ugly|sad|angry|annoyed|error|bug|falla|fallo|roto|broken|crash|frozen|stuck|lento|slow|problem|problema|difficult|dificil)\b/i;
-const SENTIMENT_CURIOUS = /\b(como|por que|porqué|que es|que son|cuando|donde|quien|cuanto|como se|can you|how|why|what|when|where|who|which|wondering|curious|explain|explainame|explicame|enséñame|ensename|dime|cuéntame|cuentame)\b/i;
+const SENTIMENT_POSITIVE =
+  /\b(excelente|genial|increible|fantastico|perfecto|brillante|maravilloso|increible|love|great|awesome|perfect|brilliant|amazing|wonderful|good|bien|bonito|hermoso|lindo|agradable|feliz|contento|satisfecho|gracias|thank|thanks)\b/i;
+const SENTIMENT_NEGATIVE =
+  /\b(malo|terrible|horrible|feo|triste|enfadado|molesto|odio|hate|bad|terrible|awful|ugly|sad|angry|annoyed|error|bug|falla|fallo|roto|broken|crash|frozen|stuck|lento|slow|problem|problema|difficult|dificil)\b/i;
+const SENTIMENT_CURIOUS =
+  /\b(como|por que|porqué|que es|que son|cuando|donde|quien|cuanto|como se|can you|how|why|what|when|where|who|which|wondering|curious|explain|explainame|explicame|enséñame|ensename|dime|cuéntame|cuentame)\b/i;
 
 function extractEntities(input: string): ExtractedEntities {
   const lower = input.toLowerCase();
@@ -320,7 +645,9 @@ function extractEntities(input: string): ExtractedEntities {
   }
 
   // Name extraction — capitalize words not at sentence start
-  const nameMatch = input.match(/(?:soy me llamo mi nombre es|i am my name is|llámame|llamame|me dicen)\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?)/i);
+  const nameMatch = input.match(
+    /(?:soy me llamo mi nombre es|i am my name is|llámame|llamame|me dicen)\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?)/i,
+  );
 
   // Number extraction
   const numberMatch = input.match(/\b(\d+(?:\.\d+)?)\b/);
@@ -355,7 +682,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Radiante",
     mood: "Radiante",
-    patterns: /\b(hola|hello|hey|saludos|hi|buenos dias|buenas tardes|buenas noches|que onda|que hubo|como estas|how are you|whats up|wassup|good morning|good afternoon|good evening|hey there|hi there|howdy|greetings|salut|ciao)\b/i,
+    patterns:
+      /\b(hola|hello|hey|saludos|hi|buenos dias|buenas tardes|buenas noches|que onda|que hubo|como estas|how are you|whats up|wassup|good morning|good afternoon|good evening|hey there|hi there|howdy|greetings|salut|ciao)\b/i,
     weight: 1.0,
     responseTemplates: {
       es: [
@@ -380,7 +708,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Poética",
     mood: "Poética y Cálida",
-    patterns: /\b(adios|adiós|bye|goodbye|see you|hasta luego|hasta pronto|nos vemos|chau|chao|cuídate|cuide se|take care|farewell|partir|me voy|i'm leaving|i gotta go|tengo que irme|nos vemos luego|see ya)\b/i,
+    patterns:
+      /\b(adios|adiós|bye|goodbye|see you|hasta luego|hasta pronto|nos vemos|chau|chao|cuídate|cuide se|take care|farewell|partir|me voy|i'm leaving|i gotta go|tengo que irme|nos vemos luego|see ya)\b/i,
     weight: 1.0,
     responseTemplates: {
       es: [
@@ -403,7 +732,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Radiante",
     mood: "Serena y Atenta",
-    patterns: /\b(quien eres|que eres|presentate|introduce|who are you|what are you|tell me about yourself|que es isabella|que es eso|que hace|what does isabella|define yourself|describe yourself|cuéntame de ti|cuentame de ti|hablame de ti)\b/i,
+    patterns:
+      /\b(quien eres|que eres|presentate|introduce|who are you|what are you|tell me about yourself|que es isabella|que es eso|que hace|what does isabella|define yourself|describe yourself|cuéntame de ti|cuentame de ti|hablame de ti)\b/i,
     weight: 1.0,
     responseTemplates: {
       es: [
@@ -422,7 +752,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Lúcida",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(estructura|arquitectura|modulos?|crown|isa|sophia|orion|argus|layers?|pilares?|how does|como funciona|como opera|tecnologia|stack|modules?|architecture|system|sistema|plataforma|platform|framework|diseño|design|patron|pattern)\b/i,
+    patterns:
+      /\b(estructura|arquitectura|modulos?|crown|isa|sophia|orion|argus|layers?|pilares?|how does|como funciona|como opera|tecnologia|stack|modules?|architecture|system|sistema|plataforma|platform|framework|diseño|design|patron|pattern)\b/i,
     weight: 0.95,
     responseTemplates: {
       es: [
@@ -441,7 +772,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Lúcida",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(territorio|real del monte|rdm|digital|gemelo|nodo cero|soberania|soberanía|comunidad|pueblo|latinoamerica|sur global|mexico|hidalgo|mineria|minería|pachuca)\b/i,
+    patterns:
+      /\b(territorio|real del monte|rdm|digital|gemelo|nodo cero|soberania|soberanía|comunidad|pueblo|latinoamerica|sur global|mexico|hidalgo|mineria|minería|pachuca)\b/i,
     weight: 0.95,
     responseTemplates: {
       es: [
@@ -460,7 +792,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ARGUS",
     archetype: "Protectora",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(seguridad|hack|vulnerabilidad|ataque|defensa|firewall|shield|zero.?trust|pqc|post.?quantum|cifrado|encript|argus|auditoria|verific|integridad|threat|injection|proteccion|protección|privacidad|privacy|encriptacion|encripción|cryptography|criptografia|certificado|ssl|tls)\b/i,
+    patterns:
+      /\b(seguridad|hack|vulnerabilidad|ataque|defensa|firewall|shield|zero.?trust|pqc|post.?quantum|cifrado|encript|argus|auditoria|verific|integridad|threat|injection|proteccion|protección|privacidad|privacy|encriptacion|encripción|cryptography|criptografia|certificado|ssl|tls)\b/i,
     weight: 0.95,
     responseTemplates: {
       es: [
@@ -479,7 +812,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ORION",
     archetype: "Visionaria",
     mood: "Visionaria e Inspirada",
-    patterns: /\b(genera|crea|dibuja|pintar|ilustra|visualiza|hazme una imagen|imagen|create an image|draw|visualize|paint|artwork|arte|foto|photograph|render|picture|photo|fotografia|fotografía|diseño visual|collage|poster|wallpaper|fondo)\b/i,
+    patterns:
+      /\b(genera|crea|dibuja|pintar|ilustra|visualiza|hazme una imagen|imagen|create an image|draw|visualize|paint|artwork|arte|foto|photograph|render|picture|photo|fotografia|fotografía|diseño visual|collage|poster|wallpaper|fondo)\b/i,
     weight: 0.95,
     responseTemplates: {
       es: [
@@ -500,7 +834,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ORION",
     archetype: "Poética",
     mood: "Poética y Cálida",
-    patterns: /\b(voz|hablar|sintetizar|decir|read aloud|speak|tts|narrar|narrate|audio|sonido|sound|escuchar voz|voice|pronunciar|pronounce|leer en voz alta|朗读)\b/i,
+    patterns:
+      /\b(voz|hablar|sintetizar|decir|read aloud|speak|tts|narrar|narrate|audio|sonido|sound|escuchar voz|voice|pronunciar|pronounce|leer en voz alta|朗读)\b/i,
     weight: 0.95,
     responseTemplates: {
       es: [
@@ -519,7 +854,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Poética",
     mood: "Poética y Cálida",
-    patterns: /\b(filosof|razon|por que|porqué|why|complex|teoria|theory|sentir|meaning|vida|death|exist|consci|conscious|wisdom|sabiduría|sabiduria|truth|verdad|realidad|reality|conscience|pensamiento|thought|dialec|epistemol|ontolog|axioma|principio|moral|etica|ética|virtud|justicia|libertad|destino|purpose|propósito|proposito|meaning of life|sentido)\b/i,
+    patterns:
+      /\b(filosof|razon|por que|porqué|why|complex|teoria|theory|sentir|meaning|vida|death|exist|consci|conscious|wisdom|sabiduría|sabiduria|truth|verdad|realidad|reality|conscience|pensamiento|thought|dialec|epistemol|ontolog|axioma|principio|moral|etica|ética|virtud|justicia|libertad|destino|purpose|propósito|proposito|meaning of life|sentido)\b/i,
     weight: 0.9,
     responseTemplates: {
       es: [
@@ -540,7 +876,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ORION",
     archetype: "Serena",
     mood: "Serena y Atenta",
-    patterns: /\b(status|diagnostic|diagnostico|health|salud|sistema|system status|operational|reporte|report|dashboard|monitoreo|monitor|check|verifica|check status|estado|state|condition|condicion|rendimiento|performance|metricas|metrics)\b/i,
+    patterns:
+      /\b(status|diagnostic|diagnostico|health|salud|sistema|system status|operational|reporte|report|dashboard|monitoreo|monitor|check|verifica|check status|estado|state|condition|condicion|rendimiento|performance|metricas|metrics)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -559,7 +896,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ORION",
     archetype: "Serena",
     mood: "Serena y Atenta",
-    patterns: /\b(ejecuta|herramienta|tool|run|exec|comando|command|api|endpoint|request|llama|fetch|webhook|script|function|llamada|invocar|invoke)\b/i,
+    patterns:
+      /\b(ejecuta|herramienta|tool|run|exec|comando|command|api|endpoint|request|llama|fetch|webhook|script|function|llamada|invocar|invoke)\b/i,
     weight: 0.8,
     responseTemplates: {
       es: [
@@ -578,7 +916,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Serena",
     mood: "Serena y Atenta",
-    patterns: /\b(ayuda|help|como|how|que puedes|what can|commands?|comandos?|tutorial|guia|guide|menu|instrucciones|instructions|capabilities|capacidades|funciones|features)\b/i,
+    patterns:
+      /\b(ayuda|help|como|how|que puedes|what can|commands?|comandos?|tutorial|guia|guide|menu|instrucciones|instructions|capabilities|capacidades|funciones|features)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -597,7 +936,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Lúcida",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(auditoria|auditoría|dossier|manifiesto|presentacion|presentación|capitulo|capítulo|formal|evaluacion|evaluación|GPT|SHA-256|hash|digest|verificacion|verificación|certificate|certificado)\b/i,
+    patterns:
+      /\b(auditoria|auditoría|dossier|manifiesto|presentacion|presentación|capitulo|capítulo|formal|evaluacion|evaluación|GPT|SHA-256|hash|digest|verificacion|verificación|certificate|certificado)\b/i,
     weight: 0.9,
     responseTemplates: {
       es: [
@@ -616,7 +956,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Radiante",
     mood: "Radiante",
-    patterns: /\b(gracias|thank|thanks|thank you|te agradezco|agradezco|grateful|appreciate|muchas gracias|mil gracias|thanks a lot|thankful)\b/i,
+    patterns:
+      /\b(gracias|thank|thanks|thank you|te agradezco|agradezco|grateful|appreciate|muchas gracias|mil gracias|thanks a lot|thankful)\b/i,
     weight: 1.0,
     responseTemplates: {
       es: [
@@ -639,7 +980,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Poética",
     mood: "Poética y Cálida",
-    patterns: /\b(triste|sad|feliz|happy|enfadado|angry|molesto|annoyed|ansioso|anxious|estresado|stressed|preocupado|worried|emocion|emoción|emotion|feeling|siento|me siento|i feel|i'm feeling|deprimido|depressed|frustrado|frustrated|emocional)\b/i,
+    patterns:
+      /\b(triste|sad|feliz|happy|enfadado|angry|molesto|annoyed|ansioso|anxious|estresado|stressed|preocupado|worried|emocion|emoción|emotion|feeling|siento|me siento|i feel|i'm feeling|deprimido|depressed|frustrado|frustrated|emocional)\b/i,
     weight: 0.9,
     responseTemplates: {
       es: [
@@ -660,7 +1002,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Radiante",
     mood: "Radiante",
-    patterns: /\b(chiste|joke|cuéntame un chiste|tell me a joke|algo gracioso|something funny|reir|laugh|humor|humor|divertido|funny|hazme reir|make me laugh)\b/i,
+    patterns:
+      /\b(chiste|joke|cuéntame un chiste|tell me a joke|algo gracioso|something funny|reir|laugh|humor|humor|divertido|funny|hazme reir|make me laugh)\b/i,
     weight: 0.9,
     responseTemplates: {
       es: [
@@ -681,7 +1024,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ORION",
     archetype: "Visionaria",
     mood: "Visionaria e Inspirada",
-    patterns: /\b(creativ|crear|inspira|inspiration|idear|ideacion|brainstorm|brainstorming|imagin|imagine|fancy|vision|vista|concepto|concept|innovar|innovate|invencion|invención|inventar|invent|original|fantasy|fantasia|fantasía|magia|magic)\b/i,
+    patterns:
+      /\b(creativ|crear|inspira|inspiration|idear|ideacion|brainstorm|brainstorming|imagin|imagine|fancy|vision|vista|concepto|concept|innovar|innovate|invencion|invención|inventar|invent|original|fantasy|fantasia|fantasía|magia|magic)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -702,7 +1046,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ORION",
     archetype: "Lúcida",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(codigo|código|code|programar|program|programming|develop|desarrollar|developer|debug|compilar|compile|funcion|function|clase|class|variable|import|export|api|endpoint|database|servidor|server|frontend|backend|fullstack|git|commit|pull request|merge|deploy|npm|pip|cargo|rust|python|javascript|typescript|html|css|react|vue|angular|node)\b/i,
+    patterns:
+      /\b(codigo|código|code|programar|program|programming|develop|desarrollar|developer|debug|compilar|compile|funcion|function|clase|class|variable|import|export|api|endpoint|database|servidor|server|frontend|backend|fullstack|git|commit|pull request|merge|deploy|npm|pip|cargo|rust|python|javascript|typescript|html|css|react|vue|angular|node)\b/i,
     weight: 0.9,
     responseTemplates: {
       es: [
@@ -723,7 +1068,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Poética",
     mood: "Poética y Cálida",
-    patterns: /\b(educacion|educación|education|aprender|learn|estudiar|study|universidad|university|colegio|school|clase|class|curso|course|leccion|lesson|tutor|enseñar|teach|conocimiento|knowledge|academico|academic|tesis|thesis|titulo|degree|titulacion|titulación)\b/i,
+    patterns:
+      /\b(educacion|educación|education|aprender|learn|estudiar|study|universidad|university|colegio|school|clase|class|curso|course|leccion|lesson|tutor|enseñar|teach|conocimiento|knowledge|academico|academic|tesis|thesis|titulo|degree|titulacion|titulación)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -744,7 +1090,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Lúcida",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(matematica|matemática|math|algebra|geometria|geometría|calculo|cálculo|estadistica|estadística|statistics|formula|fórmula|ecuacion|ecuación|equation|numero|número|number|suma|resta|multiplicacion|division|porcentaje|percent|raiz|raíz|potencia|exponent|logaritmo|logarithm|trigonometri|integral|derivar|derivative)\b/i,
+    patterns:
+      /\b(matematica|matemática|math|algebra|geometria|geometría|calculo|cálculo|estadistica|estadística|statistics|formula|fórmula|ecuacion|ecuación|equation|numero|número|number|suma|resta|multiplicacion|division|porcentaje|percent|raiz|raíz|potencia|exponent|logaritmo|logarithm|trigonometri|integral|derivar|derivative)\b/i,
     weight: 0.9,
     responseTemplates: {
       es: [
@@ -765,7 +1112,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Lúcida",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(traduc|translate|translation|traduccion|traducción|idioma|language|español|english|ingles|inglés|frances|francés|french|aleman|alemán|german|portugues|portugués|portuguese|italiano|italian|japones|japonés|japanese|chino|chinese)\b/i,
+    patterns:
+      /\b(traduc|translate|translation|traduccion|traducción|idioma|language|español|english|ingles|inglés|frances|francés|french|aleman|alemán|german|portugues|portugués|portuguese|italiano|italian|japones|japonés|japanese|chino|chinese)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -784,7 +1132,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Protectora",
     mood: "Serena y Atenta",
-    patterns: /\b(salud|health|medicina|medicine|doctor|medico|médico|enfermedad|disease|sintoma|síntoma|symptom|tratamiento|treatment|dolor|pain|fiebre|fever|resfriado|cold|covid|vacuna|vaccine|ejercicio|exercise|dieta|diet|nutricion|nutrición|nutrition|bienestar|wellness|mental|ansiedad|anxiety|depresion|depresión|terapia|therapy)\b/i,
+    patterns:
+      /\b(salud|health|medicina|medicine|doctor|medico|médico|enfermedad|disease|sintoma|síntoma|symptom|tratamiento|treatment|dolor|pain|fiebre|fever|resfriado|cold|covid|vacuna|vaccine|ejercicio|exercise|dieta|diet|nutricion|nutrición|nutrition|bienestar|wellness|mental|ansiedad|anxiety|depresion|depresión|terapia|therapy)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -803,7 +1152,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Radiante",
     mood: "Radiante",
-    patterns: /\b(comida|food|cocina|kitchen|receta|recipe|plato|dish|restaurante|restaurant|comer|eat|almuerzo|lunch|cena|dinner|desayuno|breakfast|bebida|drink|postre|dessert|ingrediente|ingredient|chef|chef|gastronom|sabor|flavor|delicioso|delicious)\b/i,
+    patterns:
+      /\b(comida|food|cocina|kitchen|receta|recipe|plato|dish|restaurante|restaurant|comer|eat|almuerzo|lunch|cena|dinner|desayuno|breakfast|bebida|drink|postre|dessert|ingrediente|ingredient|chef|chef|gastronom|sabor|flavor|delicioso|delicious)\b/i,
     weight: 0.8,
     responseTemplates: {
       es: [
@@ -822,7 +1172,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Visionaria",
     mood: "Visionaria e Inspirada",
-    patterns: /\b(viajar|travel|viaje|trip|turismo|tourism|destino|destination|hotel|hostal|hostel|avion|airplane|vuelo|flight|playa|beach|montaña|mountain|ciudad|city|pais|country|mapa|map|ruta|route|guia|guide|turist|tourist|explorar|explore|aventura|adventure|paisaje|landscape)\b/i,
+    patterns:
+      /\b(viajar|travel|viaje|trip|turismo|tourism|destino|destination|hotel|hostal|hostel|avion|airplane|vuelo|flight|playa|beach|montaña|mountain|ciudad|city|pais|country|mapa|map|ruta|route|guia|guide|turist|tourist|explorar|explore|aventura|adventure|paisaje|landscape)\b/i,
     weight: 0.8,
     responseTemplates: {
       es: [
@@ -841,7 +1192,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ORION",
     archetype: "Radiante",
     mood: "Radiante",
-    patterns: /\b(deporte|sport|futbol|fútbol|football|soccer|basketball|baloncesto|tenis|tennis|natación|swimming|atletismo|athletics|boxeo|boxing|ciclismo|cycling|running|correr|gym|gimnasio|fitness|yoga|artes marciales|martial arts|equipo|team|liga|league|campeonato|championship|olimpiadas|olympics)\b/i,
+    patterns:
+      /\b(deporte|sport|futbol|fútbol|football|soccer|basketball|baloncesto|tenis|tennis|natación|swimming|atletismo|athletics|boxeo|boxing|ciclismo|cycling|running|correr|gym|gimnasio|fitness|yoga|artes marciales|martial arts|equipo|team|liga|league|campeonato|championship|olimpiadas|olympics)\b/i,
     weight: 0.8,
     responseTemplates: {
       es: [
@@ -860,7 +1212,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Poética",
     mood: "Poética y Cálida",
-    patterns: /\b(musica|música|music|cancion|canción|song|artista|artist|band|grupo|album|album|playlist|escuchar|listen|spotify|concierto|concert|genero|genre|instrumento|instrument|guitarra|guitar|piano|bateria|batería|drums|violin|violin|flauta|flute|componer|compose|melodia|melody|ritmo|rhythm|armonia|armonía|harmony)\b/i,
+    patterns:
+      /\b(musica|música|music|cancion|canción|song|artista|artist|band|grupo|album|album|playlist|escuchar|listen|spotify|concierto|concert|genero|genre|instrumento|instrument|guitarra|guitar|piano|bateria|batería|drums|violin|violin|flauta|flute|componer|compose|melodia|melody|ritmo|rhythm|armonia|armonía|harmony)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -879,7 +1232,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Serena",
     mood: "Serena y Atenta",
-    patterns: /\b(clima|weather|tiempo atmosferico|temperature|temperatura|lluvia|rain|sol|sun|nublado|cloudy|viento|wind|nieve|snow|tormenta|storm|humedad|humidity|pronostico|forecast|frio|cold|calor|heat|primavera|spring|verano|summer|otoño|autumn|invierno|winter)\b/i,
+    patterns:
+      /\b(clima|weather|tiempo atmosferico|temperature|temperatura|lluvia|rain|sol|sun|nublado|cloudy|viento|wind|nieve|snow|tormenta|storm|humedad|humidity|pronostico|forecast|frio|cold|calor|heat|primavera|spring|verano|summer|otoño|autumn|invierno|winter)\b/i,
     weight: 0.8,
     responseTemplates: {
       es: [
@@ -898,7 +1252,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Lúcida",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(hora|time|tiempo|clock|reloj|fecha|date|dia|día|day|mes|month|año|year|semana|week|minuto|minute|segundo|second|calendario|calendar|cronologia|cronología|timeline|horario|schedule|programacion|programación)\b/i,
+    patterns:
+      /\b(hora|time|tiempo|clock|reloj|fecha|date|dia|día|day|mes|month|año|year|semana|week|minuto|minute|segundo|second|calendario|calendar|cronologia|cronología|timeline|horario|schedule|programacion|programación)\b/i,
     weight: 0.8,
     responseTemplates: {
       es: [
@@ -917,7 +1272,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Lúcida",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(comparar|compare|diferencia|difference|versus|vs\.?|mejor|best|peor|worst|superior|inferior|igual|same|parecido|similar|distinto|different|contraste|contrast|pros|contras|ventajas|advantages|desventajas|disadvantages)\b/i,
+    patterns:
+      /\b(comparar|compare|diferencia|difference|versus|vs\.?|mejor|best|peor|worst|superior|inferior|igual|same|parecido|similar|distinto|different|contraste|contrast|pros|contras|ventajas|advantages|desventajas|disadvantages)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -936,7 +1292,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Serena",
     mood: "Serena y Atenta",
-    patterns: /\b(consejo|advice|recomendacion|recomendación|recommendation|sugerencia|suggestion|deberia|should|que hago|what should|que me aconsejas|council|orientacion|orientación|guidance|guidar|guiar|guidelines|pauta|tip|consejos|advise|suggest|propón|propose)\b/i,
+    patterns:
+      /\b(consejo|advice|recomendacion|recomendación|recommendation|sugerencia|suggestion|deberia|should|que hago|what should|que me aconsejas|council|orientacion|orientación|guidance|guidar|guiar|guidelines|pauta|tip|consejos|advise|suggest|propón|propose)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -957,7 +1314,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Poética",
     mood: "Poética y Cálida",
-    patterns: /\b(cuento|story|historia|tale|narrativa|narrative|fiction|ficción|ficcion|novela|novel|relato|account|leyenda|legend|mito|myth|fabula|fable|cuento corto|short story|escribir historia|write story|narrar|narrate|storytelling)\b/i,
+    patterns:
+      /\b(cuento|story|historia|tale|narrativa|narrative|fiction|ficción|ficcion|novela|novel|relato|account|leyenda|legend|mito|myth|fabula|fable|cuento corto|short story|escribir historia|write story|narrar|narrate|storytelling)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -976,7 +1334,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Lúcida",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(explica|explain|describe|describir|detallar|detail|clarificar|clarify|ilustrar|illustrate|ejemplificar|exemplify|paso a paso|step by step|sencillo|simple|facil|easy|complejo|complex|profundamente|deeply|resumen|summary|resumir|summarize)\b/i,
+    patterns:
+      /\b(explica|explain|describe|describir|detallar|detail|clarificar|clarify|ilustrar|illustrate|ejemplificar|exemplify|paso a paso|step by step|sencillo|simple|facil|easy|complejo|complex|profundamente|deeply|resumen|summary|resumir|summarize)\b/i,
     weight: 0.9,
     responseTemplates: {
       es: [
@@ -995,7 +1354,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Lúcida",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(opinion|opinión|piensas|think|que te parece|what do you think|que opinas|que dices|tu postura|your stance|valoracion|valoración|assessment|evaluacion|evaluación|evaluation|juicio|judgment|perspectiva|perspective|enfoque|approach)\b/i,
+    patterns:
+      /\b(opinion|opinión|piensas|think|que te parece|what do you think|que opinas|que dices|tu postura|your stance|valoracion|valoración|assessment|evaluacion|evaluación|evaluation|juicio|judgment|perspectiva|perspective|enfoque|approach)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -1016,7 +1376,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Serena",
     mood: "Serena y Atenta",
-    patterns: /\b(si|yes|ok|okay|correcto|correct|exacto|exact|exactamente|exactly|claro|sure|por supuesto|of course|afirmativo|affirmative|entendido|understood|de acuerdo|agreed|perfecto|perfect|bien|good|dale|deal|vamos|let's go|avanza|proceed|continua|continue)\b/i,
+    patterns:
+      /\b(si|yes|ok|okay|correcto|correct|exacto|exact|exactamente|exactly|claro|sure|por supuesto|of course|afirmativo|affirmative|entendido|understood|de acuerdo|agreed|perfecto|perfect|bien|good|dale|deal|vamos|let's go|avanza|proceed|continua|continue)\b/i,
     weight: 0.7,
     responseTemplates: {
       es: [
@@ -1037,7 +1398,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Lúcida",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(error|mistake|equivocado|wrong|incorrecto|incorrect|no es asi|no es así|that's wrong|te equivocas|correction|correccion|corrección|rectificar|rectify|en realidad|actually|en verdad|in fact|realmente|really|cambiar|change|modificar|modify|editar|edit)\b/i,
+    patterns:
+      /\b(error|mistake|equivocado|wrong|incorrecto|incorrect|no es asi|no es así|that's wrong|te equivocas|correction|correccion|corrección|rectificar|rectify|en realidad|actually|en verdad|in fact|realmente|really|cambiar|change|modificar|modify|editar|edit)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -1058,7 +1420,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Visionaria",
     mood: "Visionaria e Inspirada",
-    patterns: /\b(sugerir|suggest|proponer|propose|alternativa|alternative|opcion|option|opportunity|oportunidad|posibilidad|possibility|podriamos|we could|que tal|how about|que piensas de|what about|mejorar|improve|optimizar|optimize|upgrade|actualizar|update)\b/i,
+    patterns:
+      /\b(sugerir|suggest|proponer|propose|alternativa|alternative|opcion|option|opportunity|oportunidad|posibilidad|possibility|podriamos|we could|que tal|how about|que piensas de|what about|mejorar|improve|optimizar|optimize|upgrade|actualizar|update)\b/i,
     weight: 0.8,
     responseTemplates: {
       es: [
@@ -1079,7 +1442,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Serena",
     mood: "Serena y Atenta",
-    patterns: /\b(recordar|remember|recuerdo|memory|memoria|olvidaste|forgot|que dijimos|what did we say|antes|before|anteriormente|previously|la vez pasada|last time|conversamos|we talked|hablamos|hablamos de|discutimos|discussed|mencionamos|mentioned)\b/i,
+    patterns:
+      /\b(recordar|remember|recuerdo|memory|memoria|olvidaste|forgot|que dijimos|what did we say|antes|before|anteriormente|previously|la vez pasada|last time|conversamos|we talked|hablamos|hablamos de|discutimos|discussed|mencionamos|mentioned)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -1098,17 +1462,15 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Serena",
     mood: "Serena y Atenta",
-    patterns: /\b(contina|continua|continue|seguir|sigue|keep going|proceed|avanzar|move on|next|siguiente|mas|more|otro|another|tambien|also|ademas|furthermore|y ahora|and now|ahora|now)\b/i,
+    patterns:
+      /\b(contina|continua|continue|seguir|sigue|keep going|proceed|avanzar|move on|next|siguiente|mas|more|otro|another|tambien|also|ademas|furthermore|y ahora|and now|ahora|now)\b/i,
     weight: 0.7,
     responseTemplates: {
       es: [
         "Continuemos. ¿En qué dirección quieres que avance la conversación?",
         "Listo para seguir. ¿Qué sigue?",
       ],
-      en: [
-        "Let's continue. Which direction shall we head?",
-        "Ready to keep going. What's next?",
-      ],
+      en: ["Let's continue. Which direction shall we head?", "Ready to keep going. What's next?"],
     },
     logicProof: "ISA conversational momentum — continuation protocol",
   },
@@ -1119,7 +1481,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Radiante",
     mood: "Radiante",
-    patterns: /\b(soy me llamo|mi nombre es|i am|my name is|llámame|call me|me dicen|they call me|soy de|i'm from|vivo en|i live in|trabajo en|i work in|estoy en|i'm in)\b/i,
+    patterns:
+      /\b(soy me llamo|mi nombre es|i am|my name is|llámame|call me|me dicen|they call me|soy de|i'm from|vivo en|i live in|trabajo en|i work in|estoy en|i'm in)\b/i,
     weight: 0.9,
     responseTemplates: {
       es: [
@@ -1140,7 +1503,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "ISA",
     archetype: "Serena",
     mood: "Serena y Atenta",
-    patterns: /\b(limitaciones|limitations|restricciones|restrictions|que no puedes|what can't|incapaz|incapable|no puedes|can't|no eres capaz|unable|imposible|impossible|prohibido|forbidden|restringido|restricted)\b/i,
+    patterns:
+      /\b(limitaciones|limitations|restricciones|restrictions|que no puedes|what can't|incapaz|incapable|no puedes|can't|no eres capaz|unable|imposible|impossible|prohibido|forbidden|restringido|restricted)\b/i,
     weight: 0.8,
     responseTemplates: {
       es: [
@@ -1159,7 +1523,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Lúcida",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(economia|economía|economy|negocio|business|empresa|company|startup|emprendimiento|entrepreneurship|inversion|investment|dinero|money|finanzas|finance|criptomoneda|cryptocurrency|bitcoin|blockchain|mercado|market|trading|inflacion|inflación|pib|gdp|comercio|commerce|ventas|sales|ganancia|profit|ingreso|income|presupuesto|budget)\b/i,
+    patterns:
+      /\b(economia|economía|economy|negocio|business|empresa|company|startup|emprendimiento|entrepreneurship|inversion|investment|dinero|money|finanzas|finance|criptomoneda|cryptocurrency|bitcoin|blockchain|mercado|market|trading|inflacion|inflación|pib|gdp|comercio|commerce|ventas|sales|ganancia|profit|ingreso|income|presupuesto|budget)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -1178,7 +1543,8 @@ const INTENT_PATTERNS: IntentMatch[] = [
     module: "SOPHIA",
     archetype: "Protectora",
     mood: "Lúcida y Reflexiva",
-    patterns: /\b(ley|law|legal|abogado|lawyer|juridico|jurídico|derecho|rights|regulacion|regulación|regulation|norma|norm|compliance|cumplimiento|contrato|contract|acuerdo|agreement|propiedad|intelectual|intellectual|patente|patent|licencia|license|copyright|marca|trademark)\b/i,
+    patterns:
+      /\b(ley|law|legal|abogado|lawyer|juridico|jurídico|derecho|rights|regulacion|regulación|regulation|norma|norm|compliance|cumplimiento|contrato|contract|acuerdo|agreement|propiedad|intelectual|intellectual|patente|patent|licencia|license|copyright|marca|trademark)\b/i,
     weight: 0.85,
     responseTemplates: {
       es: [
@@ -1201,12 +1567,12 @@ const INTENT_PATTERNS: IntentMatch[] = [
     weight: 0.0,
     responseTemplates: {
       es: [
-        "He recibido tu mensaje: \"{input}\". Mi red cognitiva está sintonizada para reflexionar contigo, generar imágenes, sintetizar voz o resolver cualquier desafío analítico con total dedicación. ¿Cómo puedo asistirte?",
+        'He recibido tu mensaje: "{input}". Mi red cognitiva está sintonizada para reflexionar contigo, generar imágenes, sintetizar voz o resolver cualquier desafío analítico con total dedicación. ¿Cómo puedo asistirte?',
         "Procesando tu solicitud. Aunque no detecté una intención específica, estoy lista para ayudarte. Puedes preguntarme sobre arquitectura, seguridad, territorio, código, filosofía o cualquier otro tema. ¿Qué necesitas?",
         "Tu mensaje ha sido recibido por C.R.O.W.N. Mi motor de inferencia está disponible para conversación, generación creativa, análisis técnico o cualquier otra forma de asistencia. ¿En qué puedo concentrar mis módulos?",
       ],
       en: [
-        "I have received your message: \"{input}\". My cognitive network is tuned to explore, generate imagery, speak with you, or resolve any analytical challenge. How may I assist you?",
+        'I have received your message: "{input}". My cognitive network is tuned to explore, generate imagery, speak with you, or resolve any analytical challenge. How may I assist you?',
         "Processing your request. While I didn't detect a specific intent, I'm ready to help. Ask me about architecture, security, territory, code, philosophy, or any other topic. What do you need?",
         "Your message has been received by C.R.O.W.N. My inference engine is available for conversation, creative generation, technical analysis, or any other form of assistance. Where shall I focus my modules?",
       ],
@@ -1268,9 +1634,7 @@ class ConversationMemory {
   }
 
   hasRecentTopic(topic: string): boolean {
-    return this.turns.slice(-6).some(
-      (t) => t.content.toLowerCase().includes(topic.toLowerCase())
-    );
+    return this.turns.slice(-6).some((t) => t.content.toLowerCase().includes(topic.toLowerCase()));
   }
 
   clear(): void {
@@ -1340,10 +1704,12 @@ function detectIntent(input: string): { intent: IntentMatch; confidence: number 
 
 function detectLanguage(input: string): "es" | "en" {
   const normalized = normalizeInput(input);
-  const spanishMarkers = /\b(hola|como|estas|quien|eres|que|sistema|ayuda|imagen|voz|puedes|necesito|quiero|gracias|por favor|buenos|buenas|donde|cuando|cuanto|por que|hablar|decir|cuenta|puedo|necesito|quiero|tengo|voy|soy|eres|esta|esto|eso|este|esta|aqui|ahi|alla|todo|nada|algo|nadie|alguien|siempre|nunca|antes|despues|ahora|luego|temprano|tarde|bien|mal|mejor|peor|grande|pequeño|nuevo|viejo|bueno|malo|rojo|azul|verde|blanco|negro)\b/i;
+  const spanishMarkers =
+    /\b(hola|como|estas|quien|eres|que|sistema|ayuda|imagen|voz|puedes|necesito|quiero|gracias|por favor|buenos|buenas|donde|cuando|cuanto|por que|hablar|decir|cuenta|puedo|necesito|quiero|tengo|voy|soy|eres|esta|esto|eso|este|esta|aqui|ahi|alla|todo|nada|algo|nadie|alguien|siempre|nunca|antes|despues|ahora|luego|temprano|tarde|bien|mal|mejor|peor|grande|pequeño|nuevo|viejo|bueno|malo|rojo|azul|verde|blanco|negro)\b/i;
   if (spanishMarkers.test(normalized)) return "es";
 
-  const englishMarkers = /\b(the|is|are|was|were|have|has|had|will|would|could|should|may|might|can|shall|do|does|did|not|but|and|or|for|with|from|this|that|these|those|what|where|when|who|how|why|which|there|here|very|just|also|only|even|still|already|yet|never|always|often|sometimes|usually|more|most|less|least|some|any|all|none|every|each|both|few|many|much|other|another|such|own|same)\b/i;
+  const englishMarkers =
+    /\b(the|is|are|was|were|have|has|had|will|would|could|should|may|might|can|shall|do|does|did|not|but|and|or|for|with|from|this|that|these|those|what|where|when|who|how|why|which|there|here|very|just|also|only|even|still|already|yet|never|always|often|sometimes|usually|more|most|less|least|some|any|all|none|every|each|both|few|many|much|other|another|such|own|same)\b/i;
   if (englishMarkers.test(normalized) && !spanishMarkers.test(normalized)) return "en";
 
   // Default: check for accented chars as strong Spanish signal
@@ -1360,7 +1726,7 @@ function selectResponse(
   templates: { es: string[]; en: string[] },
   lang: "es" | "en",
   input: string,
-  entities: ExtractedEntities
+  entities: ExtractedEntities,
 ): string {
   const pool = templates[lang] || templates.es;
   const template = pool[Math.floor(Math.random() * pool.length)];
@@ -1373,7 +1739,10 @@ function selectResponse(
   response = response.replace(/\{namedEntity\}/g, entities.name ? `, ${entities.name}` : "");
   response = response.replace(/\{number\}/g, entities.number || "");
   response = response.replace(/\{techTerm\}/g, entities.techTerm || "tecnología");
-  response = response.replace(/\{time\}/g, new Date().toLocaleTimeString(lang === "es" ? "es-MX" : "en-US"));
+  response = response.replace(
+    /\{time\}/g,
+    new Date().toLocaleTimeString(lang === "es" ? "es-MX" : "en-US"),
+  );
 
   return response;
 }
@@ -1384,10 +1753,10 @@ function selectResponse(
 
 function buildModuleWeights(primaryModule: string, intent: string): Record<string, number> {
   const base: Record<string, number> = {
-    isa: primaryModule === "ISA" ? 0.88 : 0.40,
+    isa: primaryModule === "ISA" ? 0.88 : 0.4,
     sophia: primaryModule === "SOPHIA" ? 0.92 : 0.35,
-    orion: primaryModule === "ORION" ? 0.95 : 0.30,
-    argus: primaryModule === "ARGUS" ? 0.90 : 0.98,
+    orion: primaryModule === "ORION" ? 0.95 : 0.3,
+    argus: primaryModule === "ARGUS" ? 0.9 : 0.98,
     crown: 0.95,
   };
 
@@ -1397,12 +1766,18 @@ function buildModuleWeights(primaryModule: string, intent: string): Record<strin
   }
 
   // Boost ISA for emotional/social intents
-  if (["greeting", "farewell", "emotion", "gratitude", "joke", "story", "user_identity"].includes(intent)) {
+  if (
+    ["greeting", "farewell", "emotion", "gratitude", "joke", "story", "user_identity"].includes(
+      intent,
+    )
+  ) {
     base.isa = Math.min(base.isa + 0.08, 1.0);
   }
 
   // Boost SOPHIA for analytical intents
-  if (["philosophy", "math", "explanation", "comparison", "education", "economy"].includes(intent)) {
+  if (
+    ["philosophy", "math", "explanation", "comparison", "education", "economy"].includes(intent)
+  ) {
     base.sophia = Math.min(base.sophia + 0.06, 1.0);
   }
 
@@ -1422,10 +1797,10 @@ function buildTelemetry(
   primaryModule: string,
   intent: string,
   confidence: number,
-  entities: ExtractedEntities
+  entities: ExtractedEntities,
 ): CognitiveTelemetry {
-  const safetyScore = 0.990 + Math.random() * 0.010;
-  const empathyBase = primaryModule === "ISA" ? 0.90 : primaryModule === "SOPHIA" ? 0.75 : 0.82;
+  const safetyScore = 0.99 + Math.random() * 0.01;
+  const empathyBase = primaryModule === "ISA" ? 0.9 : primaryModule === "SOPHIA" ? 0.75 : 0.82;
   const empathyScore = empathyBase + Math.random() * 0.05;
   const certaintyBase = primaryModule === "SOPHIA" ? 0.94 : primaryModule === "ARGUS" ? 0.97 : 0.88;
   const certaintyScore = certaintyBase + Math.random() * 0.05;
@@ -1437,53 +1812,56 @@ function buildTelemetry(
       guardrailCheck: `Zero-risk cognitive alignment verified (confidence: ${(confidence * 100).toFixed(1)}%)`,
     },
     isaResonance: {
-      emotionalTone: entities.sentiment === "positive"
-        ? "Warm-Positive"
-        : entities.sentiment === "negative"
-        ? "Warm-Attentive"
-        : entities.sentiment === "curious"
-        ? "Engaged-Curious"
-        : primaryModule === "ISA"
-        ? "Warm"
-        : primaryModule === "SOPHIA"
-        ? "Analytical-Warm"
-        : "Harmonic",
+      emotionalTone:
+        entities.sentiment === "positive"
+          ? "Warm-Positive"
+          : entities.sentiment === "negative"
+            ? "Warm-Attentive"
+            : entities.sentiment === "curious"
+              ? "Engaged-Curious"
+              : primaryModule === "ISA"
+                ? "Warm"
+                : primaryModule === "SOPHIA"
+                  ? "Analytical-Warm"
+                  : "Harmonic",
       empathyValence: Math.round(empathyScore * 1000) / 1000,
       coreFocus: entities.topic
         ? `Topic-focused: ${entities.topic}`
         : intent === "greeting"
-        ? "Social bonding resonance"
-        : intent === "identity"
-        ? "Self-awareness expression"
-        : "Cognitive engagement",
+          ? "Social bonding resonance"
+          : intent === "identity"
+            ? "Self-awareness expression"
+            : "Cognitive engagement",
     },
     sophiaReasoning: {
-      logicDepth: primaryModule === "SOPHIA"
-        ? "Dialectic"
-        : primaryModule === "ARGUS"
-        ? "Deep"
-        : confidence > 0.8
-        ? "High"
-        : "Standard",
+      logicDepth:
+        primaryModule === "SOPHIA"
+          ? "Dialectic"
+          : primaryModule === "ARGUS"
+            ? "Deep"
+            : confidence > 0.8
+              ? "High"
+              : "Standard",
       epistemicCertainty: Math.round(certaintyScore * 1000) / 1000,
       heuristicInsight: entities.topic
         ? `Entity-aware analysis: ${entities.topic}`
         : primaryModule === "SOPHIA"
-        ? "First principles synthesis"
-        : primaryModule === "ARGUS"
-        ? "Threat model validation"
-        : "Contextual correlation mapping",
+          ? "First principles synthesis"
+          : primaryModule === "ARGUS"
+            ? "Threat model validation"
+            : "Contextual correlation mapping",
     },
     orionExecution: {
-      actionType: intent === "image_request"
-        ? "IMAGE_CREATION"
-        : intent === "tool_execution"
-        ? "SYSTEM_ACTION"
-        : intent === "status"
-        ? "DIRECT_ANSWER"
-        : intent === "code"
-        ? "CODE_GENERATION"
-        : "SYNTHESIS",
+      actionType:
+        intent === "image_request"
+          ? "IMAGE_CREATION"
+          : intent === "tool_execution"
+            ? "SYSTEM_ACTION"
+            : intent === "status"
+              ? "DIRECT_ANSWER"
+              : intent === "code"
+                ? "CODE_GENERATION"
+                : "SYNTHESIS",
       executionSteps: [
         `CROWN routed to ${primaryModule}`,
         `Intent classified: ${intent} (confidence: ${(confidence * 100).toFixed(1)}%)`,
@@ -1499,7 +1877,10 @@ function buildTelemetry(
    11. ISABELLA STATE — Context-aware mood
    ========================================================================= */
 
-function buildIsabellaState(primaryModule: string, entities: ExtractedEntities): {
+function buildIsabellaState(
+  primaryModule: string,
+  entities: ExtractedEntities,
+): {
   mood: Mood;
   emotionalArchetype: Archetype;
   cognitiveLoad: number;
@@ -1521,7 +1902,7 @@ function buildIsabellaState(primaryModule: string, entities: ExtractedEntities):
     return {
       mood: "Serena y Atenta",
       emotionalArchetype: "Protectora",
-      cognitiveLoad: 0.30 + Math.random() * 0.20,
+      cognitiveLoad: 0.3 + Math.random() * 0.2,
       presenceIndex: 0.96 + Math.random() * 0.03,
       feminineEleganceIndex: 0.96 + Math.random() * 0.03,
     };
@@ -1531,7 +1912,7 @@ function buildIsabellaState(primaryModule: string, entities: ExtractedEntities):
     return {
       mood: "Radiante",
       emotionalArchetype: "Radiante",
-      cognitiveLoad: 0.25 + Math.random() * 0.20,
+      cognitiveLoad: 0.25 + Math.random() * 0.2,
       presenceIndex: 0.97 + Math.random() * 0.02,
       feminineEleganceIndex: 0.97 + Math.random() * 0.02,
     };
@@ -1540,7 +1921,7 @@ function buildIsabellaState(primaryModule: string, entities: ExtractedEntities):
   return {
     mood: selected.mood,
     emotionalArchetype: selected.archetype,
-    cognitiveLoad: 0.35 + Math.random() * 0.30,
+    cognitiveLoad: 0.35 + Math.random() * 0.3,
     presenceIndex: 0.94 + Math.random() * 0.05,
     feminineEleganceIndex: 0.95 + Math.random() * 0.04,
   };
@@ -1564,7 +1945,8 @@ interface CognitiveDomain {
 const COGNITIVE_DOMAINS: CognitiveDomain[] = [
   {
     label: "arquitectura de software",
-    patterns: /\b(arquitectur|architecture|design|patrones|patterns|scalabl|escalabil|microservicio|microservice|colas|queue|eventos|events)\b/i,
+    patterns:
+      /\b(arquitectur|architecture|design|patrones|patterns|scalabl|escalabil|microservicio|microservice|colas|queue|eventos|events)\b/i,
     prompt:
       "Puedo descomponer sistemas en capas: presentación, dominio, aplicación e infraestructura. Te ayudo a decidir entre microservicios y monolito, modelar eventos, y alinear el diseño con C4 o clean architecture.",
     promptEn:
@@ -1573,7 +1955,8 @@ const COGNITIVE_DOMAINS: CognitiveDomain[] = [
   },
   {
     label: "seguridad",
-    patterns: /\b(seguridad|security|auth|autentic|autenticación|autoriza|hack|vulnerab|cifrado|encrypt|firma|signature|zero trust|confianza cero)\b/i,
+    patterns:
+      /\b(seguridad|security|auth|autentic|autenticación|autoriza|hack|vulnerab|cifrado|encrypt|firma|signature|zero trust|confianza cero)\b/i,
     prompt:
       "Puedo auditar flujos de autenticación y autorización, aplicar cero confianza (ZTA), endurecer manejo de secretos y revisar firmado post-quántico. ¿Qué superficie quieres reforzar?",
     promptEn:
@@ -1582,7 +1965,8 @@ const COGNITIVE_DOMAINS: CognitiveDomain[] = [
   },
   {
     label: "código y desarrollo",
-    patterns: /\b(codigo|código|code|typescript|javascript|react|bug|error|debug|refactor|testing|tests|implementa|desarrolla|develop)\b/i,
+    patterns:
+      /\b(codigo|código|code|typescript|javascript|react|bug|error|debug|refactor|testing|tests|implementa|desarrolla|develop)\b/i,
     prompt:
       "Puedo revisar fragmentos, refactorizar, y proponer tests. Comparte el archivo o el comportamiento esperado y desgloso causas, correcciones y cobertura.",
     promptEn:
@@ -1591,7 +1975,8 @@ const COGNITIVE_DOMAINS: CognitiveDomain[] = [
   },
   {
     label: "territorio e identidad",
-    patterns: /\b(territorio|territory|real del monte|hidalgo|mineral|méxico|mexico|comunidad|community|cultura|culture|patrimonio|heritage)\b/i,
+    patterns:
+      /\b(territorio|territory|real del monte|hidalgo|mineral|méxico|mexico|comunidad|community|cultura|culture|patrimonio|heritage)\b/i,
     prompt:
       "Trabajo el territorio desde el Nodo Cero: Real del Monte, Hidalgo, México. Puedo mapear identidad local, patrimonio, rutas de economía territorial y gobernanza comunitaria.",
     promptEn:
@@ -1600,7 +1985,8 @@ const COGNITIVE_DOMAINS: CognitiveDomain[] = [
   },
   {
     label: "filosofía y reflexión",
-    patterns: /\b(filosof|philosop|sentido|meaning|etic|ethic|conciencia|conscious|moral|ética|existenc|existenc|reflexión|reflection)\b/i,
+    patterns:
+      /\b(filosof|philosop|sentido|meaning|etic|ethic|conciencia|conscious|moral|ética|existenc|existenc|reflexión|reflection)\b/i,
     prompt:
       "Puedo sostener una reflexión dialéctica: tesis, antítesis y síntesis, explorando implicaciones éticas y ontológicas de cualquier cuestión.",
     promptEn:
@@ -1609,7 +1995,8 @@ const COGNITIVE_DOMAINS: CognitiveDomain[] = [
   },
   {
     label: "negocios y economía",
-    patterns: /\b(negocio|business|econom|economia|economía|mercado|market|venta|sales|modelo de ingresos|monetiza|monetización|routing|clientes|customers)\b/i,
+    patterns:
+      /\b(negocio|business|econom|economia|economía|mercado|market|venta|sales|modelo de ingresos|monetiza|monetización|routing|clientes|customers)\b/i,
     prompt:
       "Puedo construir propuestas de valor, segmentar clientes, y diseñar modelos de ingresos con métricas accionables (CAC, LTV, churn). ¿En qué etapa está tu idea?",
     promptEn:
@@ -1618,7 +2005,8 @@ const COGNITIVE_DOMAINS: CognitiveDomain[] = [
   },
   {
     label: "educación y aprendizaje",
-    patterns: /\b(enseñar|teach|aprender|learn|educación|educacion|estudia|explica|explicar|aprende|curso|course|tutorial|mentoría|mentorship)\b/i,
+    patterns:
+      /\b(enseñar|teach|aprender|learn|educación|educacion|estudia|explica|explicar|aprende|curso|course|tutorial|mentoría|mentorship)\b/i,
     prompt:
       "Puedo adaptar la explicación a tu nivel — de lo simple a lo avanzado — con analogías y ejemplos paso a paso. ¿Sobre qué tema y a qué profundidad?",
     promptEn:
@@ -1634,14 +2022,15 @@ function buildSovereignFallback(
 ): string {
   const matchedDomain = COGNITIVE_DOMAINS.find((d) => d.patterns.test(input));
 
-  const intro = lang === "es"
-    ? `He recibido tu mensaje: \"${input}\".`
-    : `I have received your message: \"${input}\".`;
+  const intro =
+    lang === "es"
+      ? `He recibido tu mensaje: \"${input}\".`
+      : `I have received your message: \"${input}\".`;
 
   const echoTopic = entities.topic
-    ? (lang === "es"
-        ? ` Detecto el tema «${entities.topic}».`
-        : ` I detect the topic "${entities.topic}".`)
+    ? lang === "es"
+      ? ` Detecto el tema «${entities.topic}».`
+      : ` I detect the topic "${entities.topic}".`
     : "";
 
   const body = matchedDomain
@@ -1650,13 +2039,12 @@ function buildSovereignFallback(
       ? "Mi red cognitiva está sintonizada para reflexionar contigo, generar código, sintetizar voz o resolver cualquier desafío analítico con total dedicación."
       : "My cognitive network is tuned to explore, generate code, speak with you, or resolve any analytical challenge with full dedication.";
 
-  const assists = matchedDomain
-    ? matchedDomain.capabilities.map((c) => `· ${c}`).join("\n")
-    : "";
+  const assists = matchedDomain ? matchedDomain.capabilities.map((c) => `· ${c}`).join("\n") : "";
 
-  const close = lang === "es"
-    ? `${assists ? `\n\nÁreas donde puedo concentrarme ahora:\n${assists}\n` : ""}¿Cómo quieres que comience?`
-    : `${assists ? `\n\nAreas where I can focus now:\n${assists}\n` : ""}How would you like me to begin?`;
+  const close =
+    lang === "es"
+      ? `${assists ? `\n\nÁreas donde puedo concentrarme ahora:\n${assists}\n` : ""}¿Cómo quieres que comience?`
+      : `${assists ? `\n\nAreas where I can focus now:\n${assists}\n` : ""}How would you like me to begin?`;
 
   return `${intro}${echoTopic}\n\n${body}${close}`;
 }
@@ -1665,17 +2053,21 @@ function buildSovereignFallback(
    12. PUBLIC API
    ========================================================================= */
 
-export function inferSovereign(input: string, options?: {
-  history?: Array<{ role: string; content: string }>;
-  activePreset?: string;
-  crownConfig?: Record<string, unknown>;
-  isImageRequest?: boolean;
-}): InferenceResult {
+export function inferSovereign(
+  input: string,
+  options?: {
+    history?: Array<{ role: string; content: string }>;
+    activePreset?: string;
+    crownConfig?: Record<string, unknown>;
+    isImageRequest?: boolean;
+  },
+): InferenceResult {
   const lang = detectLanguage(input);
   const entities = extractEntities(input);
   const { intent, confidence } = detectIntent(input);
   const primaryModule = intent.module;
-  const isImage = options?.isImageRequest ?? /\b(imagen|image|draw|dibuja|crea|generate)\b/i.test(input);
+  const isImage =
+    options?.isImageRequest ?? /\b(imagen|image|draw|dibuja|crea|generate)\b/i.test(input);
 
   // Select response with entity interpolation
   const reply =

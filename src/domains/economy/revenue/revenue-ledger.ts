@@ -1,5 +1,11 @@
 import { randomBytes, createHash } from "node:crypto";
-import type { EconomicEvent, RevenueShare, TransactionSource, TransactionStatus, ProvenanceRecord } from "../types";
+import type {
+  EconomicEvent,
+  RevenueShare,
+  TransactionSource,
+  TransactionStatus,
+  ProvenanceRecord,
+} from "../types";
 import { DEFAULT_REVENUE_SHARE } from "../types";
 
 /* ========================================================================== *
@@ -59,7 +65,7 @@ export function recordEconomicEvent(params: {
     currency: params.currency || "USD",
     status: "pending" as TransactionStatus,
     timestamp: new Date().toISOString(),
-    policyDecision: params.policyDecision || "approved" as const,
+    policyDecision: params.policyDecision || ("approved" as const),
     provenance: params.provenance || {
       creatorId: params.principalId,
       createdFrom: "economic_engine",

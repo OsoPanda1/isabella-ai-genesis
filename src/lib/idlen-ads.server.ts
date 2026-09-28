@@ -8,9 +8,7 @@
  * - Impression auto-tracked by getAd()
  * - Click tracked explicitly via trackClick()
  */
-// @ts-expect-error Optional Idlen runtime integration.
 import { IdlenChatAds } from "@idlen/chat-sdk/server";
-// @ts-expect-error Optional Idlen runtime integration.
 import type { ChatAdRequest, ChatContext, ChatAdFormat } from "@idlen/chat-sdk";
 
 const IDLEN_API_KEY = process.env.IDLEN_API_KEY || "";

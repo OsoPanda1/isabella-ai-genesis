@@ -1,9 +1,5 @@
 import { randomBytes, createHash } from "node:crypto";
-import type {
-  Opportunity,
-  OpportunityCategory,
-  Opportunity as OpportunityType,
-} from "../types";
+import type { Opportunity, OpportunityCategory, Opportunity as OpportunityType } from "../types";
 
 /* ========================================================================== *
  * Isabella Opportunity Engine
@@ -14,37 +10,163 @@ import type {
 
 const CATEGORY_TEMPLATES: Record<
   OpportunityCategory,
-  Array<{ title: string; baseRevenue: [number, number]; difficulty: OpportunityType["difficulty"]; ttmDays: number; competition: OpportunityType["competitionLevel"] }>
+  Array<{
+    title: string;
+    baseRevenue: [number, number];
+    difficulty: OpportunityType["difficulty"];
+    ttmDays: number;
+    competition: OpportunityType["competitionLevel"];
+  }>
 > = {
   create: [
-    { title: "Digital content creation services", baseRevenue: [200, 2000], difficulty: "low", ttmDays: 7, competition: "high" },
-    { title: "Custom AI prompts and templates", baseRevenue: [100, 1500], difficulty: "low", ttmDays: 3, competition: "medium" },
-    { title: "Online course production", baseRevenue: [500, 5000], difficulty: "medium", ttmDays: 30, competition: "medium" },
-    { title: "E-book and digital guide creation", baseRevenue: [100, 3000], difficulty: "low", ttmDays: 14, competition: "medium" },
-    { title: "Short-form video production", baseRevenue: [300, 3000], difficulty: "medium", ttmDays: 7, competition: "high" },
+    {
+      title: "Digital content creation services",
+      baseRevenue: [200, 2000],
+      difficulty: "low",
+      ttmDays: 7,
+      competition: "high",
+    },
+    {
+      title: "Custom AI prompts and templates",
+      baseRevenue: [100, 1500],
+      difficulty: "low",
+      ttmDays: 3,
+      competition: "medium",
+    },
+    {
+      title: "Online course production",
+      baseRevenue: [500, 5000],
+      difficulty: "medium",
+      ttmDays: 30,
+      competition: "medium",
+    },
+    {
+      title: "E-book and digital guide creation",
+      baseRevenue: [100, 3000],
+      difficulty: "low",
+      ttmDays: 14,
+      competition: "medium",
+    },
+    {
+      title: "Short-form video production",
+      baseRevenue: [300, 3000],
+      difficulty: "medium",
+      ttmDays: 7,
+      competition: "high",
+    },
   ],
   sell: [
-    { title: "Consulting services marketplace", baseRevenue: [500, 5000], difficulty: "medium", ttmDays: 14, competition: "medium" },
-    { title: "Digital product storefront", baseRevenue: [200, 4000], difficulty: "medium", ttmDays: 21, competition: "high" },
-    { title: "Service-based freelancer profile", baseRevenue: [300, 3000], difficulty: "low", ttmDays: 5, competition: "high" },
-    { title: "Specialized knowledge marketplace", baseRevenue: [400, 6000], difficulty: "high", ttmDays: 30, competition: "low" },
+    {
+      title: "Consulting services marketplace",
+      baseRevenue: [500, 5000],
+      difficulty: "medium",
+      ttmDays: 14,
+      competition: "medium",
+    },
+    {
+      title: "Digital product storefront",
+      baseRevenue: [200, 4000],
+      difficulty: "medium",
+      ttmDays: 21,
+      competition: "high",
+    },
+    {
+      title: "Service-based freelancer profile",
+      baseRevenue: [300, 3000],
+      difficulty: "low",
+      ttmDays: 5,
+      competition: "high",
+    },
+    {
+      title: "Specialized knowledge marketplace",
+      baseRevenue: [400, 6000],
+      difficulty: "high",
+      ttmDays: 30,
+      competition: "low",
+    },
   ],
   recommend: [
-    { title: "Product affiliate recommendations", baseRevenue: [50, 2000], difficulty: "low", ttmDays: 3, competition: "high" },
-    { title: "Service referral partnerships", baseRevenue: [100, 1500], difficulty: "low", ttmDays: 7, competition: "medium" },
-    { title: "Curated recommendation newsletter", baseRevenue: [200, 3000], difficulty: "medium", ttmDays: 14, competition: "medium" },
+    {
+      title: "Product affiliate recommendations",
+      baseRevenue: [50, 2000],
+      difficulty: "low",
+      ttmDays: 3,
+      competition: "high",
+    },
+    {
+      title: "Service referral partnerships",
+      baseRevenue: [100, 1500],
+      difficulty: "low",
+      ttmDays: 7,
+      competition: "medium",
+    },
+    {
+      title: "Curated recommendation newsletter",
+      baseRevenue: [200, 3000],
+      difficulty: "medium",
+      ttmDays: 14,
+      competition: "medium",
+    },
   ],
   serve: [
-    { title: "Automated business services", baseRevenue: [300, 4000], difficulty: "medium", ttmDays: 21, competition: "low" },
-    { title: "Local business consulting", baseRevenue: [500, 5000], difficulty: "medium", ttmDays: 14, competition: "low" },
-    { title: "Technical documentation services", baseRevenue: [200, 2500], difficulty: "low", ttmDays: 7, competition: "medium" },
-    { title: "AI-powered data analysis", baseRevenue: [400, 6000], difficulty: "high", ttmDays: 21, competition: "low" },
+    {
+      title: "Automated business services",
+      baseRevenue: [300, 4000],
+      difficulty: "medium",
+      ttmDays: 21,
+      competition: "low",
+    },
+    {
+      title: "Local business consulting",
+      baseRevenue: [500, 5000],
+      difficulty: "medium",
+      ttmDays: 14,
+      competition: "low",
+    },
+    {
+      title: "Technical documentation services",
+      baseRevenue: [200, 2500],
+      difficulty: "low",
+      ttmDays: 7,
+      competition: "medium",
+    },
+    {
+      title: "AI-powered data analysis",
+      baseRevenue: [400, 6000],
+      difficulty: "high",
+      ttmDays: 21,
+      competition: "low",
+    },
   ],
   build: [
-    { title: "Custom AI agent creation", baseRevenue: [500, 8000], difficulty: "high", ttmDays: 30, competition: "low" },
-    { title: "Automation workflow builder", baseRevenue: [300, 5000], difficulty: "medium", ttmDays: 21, competition: "medium" },
-    { title: "Knowledge pack marketplace", baseRevenue: [200, 4000], difficulty: "medium", ttmDays: 14, competition: "low" },
-    { title: "Reusable skill library", baseRevenue: [100, 3000], difficulty: "medium", ttmDays: 14, competition: "low" },
+    {
+      title: "Custom AI agent creation",
+      baseRevenue: [500, 8000],
+      difficulty: "high",
+      ttmDays: 30,
+      competition: "low",
+    },
+    {
+      title: "Automation workflow builder",
+      baseRevenue: [300, 5000],
+      difficulty: "medium",
+      ttmDays: 21,
+      competition: "medium",
+    },
+    {
+      title: "Knowledge pack marketplace",
+      baseRevenue: [200, 4000],
+      difficulty: "medium",
+      ttmDays: 14,
+      competition: "low",
+    },
+    {
+      title: "Reusable skill library",
+      baseRevenue: [100, 3000],
+      difficulty: "medium",
+      ttmDays: 14,
+      competition: "low",
+    },
   ],
 };
 
@@ -65,18 +187,20 @@ function computeOverallScore(params: {
     difficulty: 0.15,
     ttm: 0.15,
     competition: 0.15,
-    evidence: 0.20,
-    capital: 0.10,
+    evidence: 0.2,
+    capital: 0.1,
   };
-  return Math.round(
-    (params.revenueScore * weights.revenue +
-      params.difficultyScore * weights.difficulty +
-      params.ttmScore * weights.ttm +
-      params.competitionScore * weights.competition +
-      params.evidenceScore * weights.evidence +
-      params.capitalScore * weights.capital) *
-      100
-  ) / 100;
+  return (
+    Math.round(
+      (params.revenueScore * weights.revenue +
+        params.difficultyScore * weights.difficulty +
+        params.ttmScore * weights.ttm +
+        params.competitionScore * weights.competition +
+        params.evidenceScore * weights.evidence +
+        params.capitalScore * weights.capital) *
+        100,
+    ) / 100
+  );
 }
 
 function normalizeRevenue(max: number): number {
@@ -104,12 +228,13 @@ export function discoverOpportunities(
   principalId: string,
   tenantId: string,
   capabilities: string[],
-  categories?: OpportunityCategory[]
+  categories?: OpportunityCategory[],
 ): Opportunity[] {
   const now = new Date().toISOString();
-  const cats = categories && categories.length > 0
-    ? categories
-    : (Object.keys(CATEGORY_TEMPLATES) as OpportunityCategory[]);
+  const cats =
+    categories && categories.length > 0
+      ? categories
+      : (Object.keys(CATEGORY_TEMPLATES) as OpportunityCategory[]);
 
   const opportunities: Opportunity[] = [];
 
@@ -140,7 +265,8 @@ export function discoverOpportunities(
         timeToMarketDays: tmpl.ttmDays,
         competitionLevel: tmpl.competition,
         requiredCapital: 0,
-        riskLevel: tmpl.difficulty === "low" ? "low" : tmpl.difficulty === "medium" ? "medium" : "high",
+        riskLevel:
+          tmpl.difficulty === "low" ? "low" : tmpl.difficulty === "medium" ? "medium" : "high",
         evidenceScore,
         overallScore,
         status: "discovered",

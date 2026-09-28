@@ -51,16 +51,14 @@ export class PolicyEngine {
     {
       id: "territorial_boundary",
       name: "Territorial Data Boundary",
-      condition: (ctx) =>
-        ctx.classification === "critical" || ctx.classification === "restricted",
+      condition: (ctx) => ctx.classification === "critical" || ctx.classification === "restricted",
       action: "review",
       reason: "Sensitive data requires boundary check",
     },
     {
       id: "high_risk_escalation",
       name: "High Risk Escalation",
-      condition: (ctx) =>
-        ctx.risk.level === "R4_critical" || ctx.risk.level === "R3_high",
+      condition: (ctx) => ctx.risk.level === "R4_critical" || ctx.risk.level === "R3_high",
       action: "review",
       reason: "High risk requires human approval",
     },
@@ -74,9 +72,7 @@ export class PolicyEngine {
     {
       id: "governance_protection",
       name: "Governance Protection",
-      condition: (ctx) =>
-        ctx.intent === "governance" &&
-        ctx.identity.assuranceLevel === "none",
+      condition: (ctx) => ctx.intent === "governance" && ctx.identity.assuranceLevel === "none",
       action: "deny",
       reason: "Governance operations require authentication",
     },
@@ -113,10 +109,7 @@ export class PolicyEngine {
     }
 
     for (const cap of context.requestedCapabilities) {
-      if (
-        !context.identity.scopes.includes(cap) &&
-        !context.identity.scopes.includes("*")
-      ) {
+      if (!context.identity.scopes.includes(cap) && !context.identity.scopes.includes("*")) {
         scopeDenials.push(cap);
       }
     }
@@ -128,9 +121,7 @@ export class PolicyEngine {
       classification: context.classification,
       policyIds: results.map((r) => r.policyId),
       reason:
-        results.length > 0
-          ? results.map((r) => r.reason).join("; ")
-          : "No policies triggered",
+        results.length > 0 ? results.map((r) => r.reason).join("; ") : "No policies triggered",
       scopeDenials,
       reviewRequired: finalAction === "review",
       reversible: finalAction !== "deny",

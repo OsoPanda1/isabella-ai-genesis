@@ -220,7 +220,9 @@ export class IsabellaMemory {
 
   purge(): number {
     const before = this.records.length;
-    this.records = this.records.filter((r) => r.scope === "historical" || r.scope === "territorial");
+    this.records = this.records.filter(
+      (r) => r.scope === "historical" || r.scope === "territorial",
+    );
     const removed = before - this.records.length;
     this.save();
     this.notify();

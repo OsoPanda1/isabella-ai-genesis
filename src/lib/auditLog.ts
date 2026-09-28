@@ -29,11 +29,11 @@ export const AuditLog = {
 
       const existingLogsRaw = localStorage.getItem(AUDIT_STORAGE_KEY);
       const existingLogs: AuditEvent[] = existingLogsRaw ? JSON.parse(existingLogsRaw) : [];
-      
+
       const updatedLogs = [event, ...existingLogs].slice(0, 1000); // Keep last 1000 events
-      
+
       localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(updatedLogs));
-      
+
       console.log(`[AUDIT] ${module} - ${action}`, event.id);
     } catch (e) {
       console.error("Failed to record audit log", e);
@@ -49,8 +49,8 @@ export const AuditLog = {
       return [];
     }
   },
-  
+
   clearLogs: () => {
     localStorage.removeItem(AUDIT_STORAGE_KEY);
-  }
+  },
 };

@@ -117,7 +117,8 @@ export class ContextBuilder {
       session: {
         ...this.defaults.session!,
         ...partial.session,
-        sessionId: partial.sessionId ?? partial.session?.sessionId ?? this.defaults.session!.sessionId,
+        sessionId:
+          partial.sessionId ?? partial.session?.sessionId ?? this.defaults.session!.sessionId,
         lastActivityAt: now,
       },
       project: {

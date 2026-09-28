@@ -24,13 +24,7 @@ export function newSpanId(): string {
 }
 
 // ---------- Audit chain ----------
-export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [k: string]: JsonValue };
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
 
 export interface AuditEvent {
   readonly seq: number;
@@ -121,7 +115,10 @@ const labelKey = (l: LabelSet) =>
 
 class Counter {
   private values = new Map<string, number>();
-  constructor(public name: string, public help: string) {}
+  constructor(
+    public name: string,
+    public help: string,
+  ) {}
   inc(labels: LabelSet = {}, by = 1) {
     if (by < 0) throw new Error("counters are monotonic");
     const k = labelKey(labels);
@@ -134,7 +131,10 @@ class Counter {
 
 class Gauge {
   private values = new Map<string, number>();
-  constructor(public name: string, public help: string) {}
+  constructor(
+    public name: string,
+    public help: string,
+  ) {}
   set(value: number, labels: LabelSet = {}) {
     this.values.set(labelKey(labels), value);
   }
@@ -150,14 +150,11 @@ class Histogram {
   constructor(
     public name: string,
     public help: string,
-    public buckets: number[] = [
-      0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10,
-    ],
+    public buckets: number[] = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
   ) {}
   observe(value: number, labels: LabelSet = {}) {
     const k = labelKey(labels);
-    if (!this.bucketCounts.has(k))
-      this.bucketCounts.set(k, new Array(this.buckets.length).fill(0));
+    if (!this.bucketCounts.has(k)) this.bucketCounts.set(k, new Array(this.buckets.length).fill(0));
     const arr = this.bucketCounts.get(k)!;
     for (let i = 0; i < this.buckets.length; i++) {
       if (value <= this.buckets[i]) arr[i]++;
@@ -166,7 +163,12 @@ class Histogram {
     this.counts.set(k, (this.counts.get(k) ?? 0) + 1);
   }
   snapshot() {
-    const out: { labels: string; buckets: { le: number; count: number }[]; sum: number; count: number }[] = [];
+    const out: {
+      labels: string;
+      buckets: { le: number; count: number }[];
+      sum: number;
+      count: number;
+    }[] = [];
     for (const k of this.counts.keys()) {
       out.push({
         labels: k,
@@ -184,24 +186,25 @@ class Registry {
   gauges = new Map<string, Gauge>();
   histograms = new Map<string, Histogram>();
   counter(name: string, _l: LabelSet = {}, help = ""): Counter {
-    if (!this.counters.has(name))
-      this.counters.set(name, new Counter(name, help || name));
+    if (!this.counters.has(name)) this.counters.set(name, new Counter(name, help || name));
     return this.counters.get(name)!;
   }
   gauge(name: string, help = ""): Gauge {
-    if (!this.gauges.has(name))
-      this.gauges.set(name, new Gauge(name, help || name));
+    if (!this.gauges.has(name)) this.gauges.set(name, new Gauge(name, help || name));
     return this.gauges.get(name)!;
   }
   histogram(name: string, help = ""): Histogram {
-    if (!this.histograms.has(name))
-      this.histograms.set(name, new Histogram(name, help || name));
+    if (!this.histograms.has(name)) this.histograms.set(name, new Histogram(name, help || name));
     return this.histograms.get(name)!;
   }
   snapshot() {
     return [
-      ...Array.from(this.counters.values()).flatMap(c => c.snapshot().map(s => ({ name: c.name, type: 'counter', ...s }))),
-      ...Array.from(this.gauges.values()).flatMap(g => g.snapshot().map(s => ({ name: g.name, type: 'gauge', ...s })))
+      ...Array.from(this.counters.values()).flatMap((c) =>
+        c.snapshot().map((s) => ({ name: c.name, type: "counter", ...s })),
+      ),
+      ...Array.from(this.gauges.values()).flatMap((g) =>
+        g.snapshot().map((s) => ({ name: g.name, type: "gauge", ...s })),
+      ),
     ];
   }
   prometheus(): string {
@@ -209,14 +212,12 @@ class Registry {
     for (const c of this.counters.values()) {
       lines.push(`# HELP ${c.name} ${c.help}`);
       lines.push(`# TYPE ${c.name} counter`);
-      for (const s of c.snapshot())
-        lines.push(`${c.name}{${s.labels}} ${s.value}`);
+      for (const s of c.snapshot()) lines.push(`${c.name}{${s.labels}} ${s.value}`);
     }
     for (const g of this.gauges.values()) {
       lines.push(`# HELP ${g.name} ${g.help}`);
       lines.push(`# TYPE ${g.name} gauge`);
-      for (const s of g.snapshot())
-        lines.push(`${g.name}{${s.labels}} ${s.value}`);
+      for (const s of g.snapshot()) lines.push(`${g.name}{${s.labels}} ${s.value}`);
     }
     for (const h of this.histograms.values()) {
       lines.push(`# HELP ${h.name} ${h.help}`);
@@ -284,10 +285,17 @@ export function recentSpans(limit = 50): Span[] {
 }
 
 // ---------- Synthetic AI evaluation hooks (Isabella) ----------
-export function recordAiEvaluation(input: { precision: number; hallucination: number; latencyMs: number; model: string }) {
+export function recordAiEvaluation(input: {
+  precision: number;
+  hallucination: number;
+  latencyMs: number;
+  model: string;
+}) {
   metrics.gauge("atlas_ai_precision").set(input.precision, { model: input.model });
   metrics.gauge("atlas_ai_hallucination_rate").set(input.hallucination, { model: input.model });
-  metrics.histogram("atlas_request_duration_seconds").observe(input.latencyMs / 1000, { op: `ai:${input.model}` });
+  metrics
+    .histogram("atlas_request_duration_seconds")
+    .observe(input.latencyMs / 1000, { op: `ai:${input.model}` });
 }
 
 // ---------- Bootstrap canonical state ----------

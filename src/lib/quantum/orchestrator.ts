@@ -11,18 +11,46 @@ import { randomUUID, createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { QuantumRequestSchema, type QuantumRequest, type QuantumExecutionResult, type Principal, type JobPriority } from "./contracts";
+import {
+  QuantumRequestSchema,
+  type QuantumRequest,
+  type QuantumExecutionResult,
+  type Principal,
+  type JobPriority,
+} from "./contracts";
 import { getDevice, computeCircuitHash, getDeviceRegistry } from "./device-registry";
 import { evaluateQuantumPolicy, recordPolicyDecision } from "./policy-engine";
 import { quantumScheduler } from "./scheduler";
-import { canExecute, recordSuccess, recordFailure, getCircuitBreakerMetrics } from "./circuit-breaker";
-import { getWorkersByPool, assignJob, releaseWorker, registerWorker, getWorkerStatus } from "./worker-manager";
+import {
+  canExecute,
+  recordSuccess,
+  recordFailure,
+  getCircuitBreakerMetrics,
+} from "./circuit-breaker";
+import {
+  getWorkersByPool,
+  assignJob,
+  releaseWorker,
+  registerWorker,
+  getWorkerStatus,
+} from "./worker-manager";
 import { commitQuantumBlock, signQuantumBlock, getBookPIMetrics } from "./bookpi-quantum";
 import { signHSM, getHSMMetrics } from "./hsm-client";
 import { generateAttestation, verifyAttestation, getTEEStatus } from "./tee-attestation";
 import { emitQuantumEvent, getEventBusMetrics } from "./event-bus";
-import { QUANTUM_COUNTERS, QUANTUM_HISTOGRAMS, startSpan, endSpan, getTelemetrySnapshot } from "./telemetry";
-import { handlePennyLaneAbsent, handleWorkerHung, handleRemoteProviderDown, getRecoveryMetrics } from "./recovery";
+import {
+  QUANTUM_COUNTERS,
+  QUANTUM_HISTOGRAMS,
+  startSpan,
+  endSpan,
+  getTelemetrySnapshot,
+} from "./telemetry";
+import {
+  handlePennyLaneAbsent,
+  handleWorkerHung,
+  handleRemoteProviderDown,
+  getRecoveryMetrics,
+} from "./recovery";
 
 interface OrchestratorResult {
   ok: boolean;
@@ -57,9 +85,9 @@ export async function executeQuantumMesh(
     operation: "isabella.quantum.execute",
     attributes: {
       "request.id": request.requestId,
-      "provider": request.provider,
-      "mode": request.mode,
-      "wires": String(request.wires),
+      provider: request.provider,
+      mode: request.mode,
+      wires: String(request.wires),
     },
   });
 
@@ -67,29 +95,65 @@ export async function executeQuantumMesh(
   const parseResult = QuantumRequestSchema.safeParse(request);
   if (!parseResult.success) {
     endSpan(rootSpan.spanId, "error");
-    return buildResult(request, "failed", "schema_validation", startedAt, "Schema validation failed", rootSpan.traceId);
+    return buildResult(
+      request,
+      "failed",
+      "schema_validation",
+      startedAt,
+      "Schema validation failed",
+      rootSpan.traceId,
+    );
   }
 
   // Paso 2: AUTH verify
-  const authSpan = startSpan({ traceId: request.traceId, operation: "auth.verify", parentSpanId: rootSpan.spanId });
+  const authSpan = startSpan({
+    traceId: request.traceId,
+    operation: "auth.verify",
+    parentSpanId: rootSpan.spanId,
+  });
 
   if (principal.tenantId !== request.tenantId) {
     endSpan(authSpan.spanId, "error");
     QUANTUM_COUNTERS.requestsRejected(request.provider, "tenant_mismatch");
-    recordPolicyDecision(request.traceId, { decision: "deny", reason: "TENANT_MISMATCH", maxTimeoutMs: 0, maxWires: 0, maxShots: 0, requiresApproval: false });
+    recordPolicyDecision(request.traceId, {
+      decision: "deny",
+      reason: "TENANT_MISMATCH",
+      maxTimeoutMs: 0,
+      maxWires: 0,
+      maxShots: 0,
+      requiresApproval: false,
+    });
     endSpan(rootSpan.spanId, "error");
-    return buildResult(request, "rejected", "auth_failure", startedAt, "TENANT_MISMATCH", request.traceId);
+    return buildResult(
+      request,
+      "rejected",
+      "auth_failure",
+      startedAt,
+      "TENANT_MISMATCH",
+      request.traceId,
+    );
   }
   endSpan(authSpan.spanId, "ok");
 
   // Paso 3: ARGUS policy evaluation
-  const argusSpan = startSpan({ traceId: request.traceId, operation: "argus.evaluate", parentSpanId: rootSpan.spanId });
+  const argusSpan = startSpan({
+    traceId: request.traceId,
+    operation: "argus.evaluate",
+    parentSpanId: rootSpan.spanId,
+  });
   const device = getDevice(request.provider);
   if (!device) {
     endSpan(argusSpan.spanId, "error");
     QUANTUM_COUNTERS.requestsRejected(request.provider, "device_not_found");
     endSpan(rootSpan.spanId, "error");
-    return buildResult(request, "rejected", "no_device", startedAt, "Device not found in registry", request.traceId);
+    return buildResult(
+      request,
+      "rejected",
+      "no_device",
+      startedAt,
+      "Device not found in registry",
+      request.traceId,
+    );
   }
 
   const policyDecision = evaluateQuantumPolicy(principal, request, device);
@@ -98,46 +162,95 @@ export async function executeQuantumMesh(
 
   if (policyDecision.decision === "deny") {
     QUANTUM_COUNTERS.policyDenial(policyDecision.reason);
-    emitQuantumEvent("quantum.request.rejected", { reason: policyDecision.reason }, {
-      traceId: request.traceId, requestId: request.requestId, tenantId: request.tenantId,
-      subjectId: request.subjectId, originCore: 5, targetCore: 3,
-    });
+    emitQuantumEvent(
+      "quantum.request.rejected",
+      { reason: policyDecision.reason },
+      {
+        traceId: request.traceId,
+        requestId: request.requestId,
+        tenantId: request.tenantId,
+        subjectId: request.subjectId,
+        originCore: 5,
+        targetCore: 3,
+      },
+    );
     endSpan(rootSpan.spanId, "error");
-    return buildResult(request, "rejected", policyDecision.reason, startedAt, policyDecision.reason, request.traceId);
+    return buildResult(
+      request,
+      "rejected",
+      policyDecision.reason,
+      startedAt,
+      policyDecision.reason,
+      request.traceId,
+    );
   }
 
   // Step 4: Idempotency check
-  const idemSpan = startSpan({ traceId: request.traceId, operation: "idempotency.lookup", parentSpanId: rootSpan.spanId });
+  const idemSpan = startSpan({
+    traceId: request.traceId,
+    operation: "idempotency.lookup",
+    parentSpanId: rootSpan.spanId,
+  });
   endSpan(idemSpan.spanId, "ok"); // In-memory: no duplicates
 
   // Step 5: Scheduler enqueue
-  const schedSpan = startSpan({ traceId: request.traceId, operation: "scheduler.enqueue", parentSpanId: rootSpan.spanId });
+  const schedSpan = startSpan({
+    traceId: request.traceId,
+    operation: "scheduler.enqueue",
+    parentSpanId: rootSpan.spanId,
+  });
   const priority = determinePriority(request);
   let job;
   try {
     job = quantumScheduler.enqueue(request, priority, policyDecision.maxTimeoutMs);
     QUANTUM_COUNTERS.jobQueued(request.provider);
     QUANTUM_COUNTERS.requestsAccepted(request.provider, principal.tenantId);
-    emitQuantumEvent("quantum.job.queued", { jobId: job.jobId, priority }, {
-      traceId: request.traceId, requestId: request.requestId, tenantId: request.tenantId,
-      subjectId: request.subjectId, originCore: 5, targetCore: 7,
-    });
+    emitQuantumEvent(
+      "quantum.job.queued",
+      { jobId: job.jobId, priority },
+      {
+        traceId: request.traceId,
+        requestId: request.requestId,
+        tenantId: request.tenantId,
+        subjectId: request.subjectId,
+        originCore: 5,
+        targetCore: 7,
+      },
+    );
   } catch (err) {
     endSpan(schedSpan.spanId, "error");
     endSpan(rootSpan.spanId, "error");
-    return buildResult(request, "failed", "queue_full", startedAt, "QUANTUM_QUEUE_FULL", request.traceId);
+    return buildResult(
+      request,
+      "failed",
+      "queue_full",
+      startedAt,
+      "QUANTUM_QUEUE_FULL",
+      request.traceId,
+    );
   }
   endSpan(schedSpan.spanId, "ok");
 
   // Step 6: Worker start
-  const workerSpan = startSpan({ traceId: request.traceId, operation: "worker.start", parentSpanId: rootSpan.spanId });
+  const workerSpan = startSpan({
+    traceId: request.traceId,
+    operation: "worker.start",
+    parentSpanId: rootSpan.spanId,
+  });
   const circuitCheck = canExecute(request.provider);
   if (!circuitCheck.allowed) {
     endSpan(workerSpan.spanId, "error");
     QUANTUM_COUNTERS.providerUnavailable(request.provider);
     handleRemoteProviderDown(request.provider);
     endSpan(rootSpan.spanId, "error");
-    return buildResult(request, "degraded", "circuit_open", startedAt, circuitCheck.reason || "CIRCUIT_OPEN", request.traceId);
+    return buildResult(
+      request,
+      "degraded",
+      "circuit_open",
+      startedAt,
+      circuitCheck.reason || "CIRCUIT_OPEN",
+      request.traceId,
+    );
   }
 
   // Ensure a worker exists
@@ -149,7 +262,14 @@ export async function executeQuantumMesh(
     } catch {
       endSpan(workerSpan.spanId, "error");
       endSpan(rootSpan.spanId, "error");
-      return buildResult(request, "failed", "worker_pool_full", startedAt, "No workers available", request.traceId);
+      return buildResult(
+        request,
+        "failed",
+        "worker_pool_full",
+        startedAt,
+        "No workers available",
+        request.traceId,
+      );
     }
   }
   const worker = poolWorkers.find((w) => w.status === "idle") || poolWorkers[0];
@@ -157,7 +277,11 @@ export async function executeQuantumMesh(
   endSpan(workerSpan.spanId, "ok");
 
   // Step 7: Provider execute
-  const provSpan = startSpan({ traceId: request.traceId, operation: "provider.execute", parentSpanId: rootSpan.spanId });
+  const provSpan = startSpan({
+    traceId: request.traceId,
+    operation: "provider.execute",
+    parentSpanId: rootSpan.spanId,
+  });
   QUANTUM_COUNTERS.jobStarted(request.provider);
 
   let execResult: Record<string, unknown>;
@@ -174,12 +298,23 @@ export async function executeQuantumMesh(
     releaseWorker(worker.workerId, false);
     endSpan(provSpan.spanId, "error");
     endSpan(rootSpan.spanId, "error");
-    return buildResult(request, "failed", "provider_error", startedAt, String(err), request.traceId);
+    return buildResult(
+      request,
+      "failed",
+      "provider_error",
+      startedAt,
+      String(err),
+      request.traceId,
+    );
   }
   endSpan(provSpan.spanId, "ok");
 
   // Step 8: TEE verify (when applicable)
-  const teeSpan = startSpan({ traceId: request.traceId, operation: "tee.verify", parentSpanId: rootSpan.spanId });
+  const teeSpan = startSpan({
+    traceId: request.traceId,
+    operation: "tee.verify",
+    parentSpanId: rootSpan.spanId,
+  });
   let teeVerified = false;
   if (device.remote) {
     const attestation = generateAttestation({
@@ -188,7 +323,12 @@ export async function executeQuantumMesh(
       policyVersion: request.policyVersion,
     });
     const verification = verifyAttestation(
-      { platformId: `worker-${worker.workerId}`, expectedMeasurement: device.implementation, nonce: attestation.nonce, policyVersion: request.policyVersion },
+      {
+        platformId: `worker-${worker.workerId}`,
+        expectedMeasurement: device.implementation,
+        nonce: attestation.nonce,
+        policyVersion: request.policyVersion,
+      },
       attestation,
     );
     teeVerified = verification.verified;
@@ -196,10 +336,17 @@ export async function executeQuantumMesh(
   endSpan(teeSpan.spanId, teeVerified || !device.remote ? "ok" : "error");
 
   // Step 9: HSM sign
-  const hsmSpan = startSpan({ traceId: request.traceId, operation: "hsm.sign", parentSpanId: rootSpan.spanId });
+  const hsmSpan = startSpan({
+    traceId: request.traceId,
+    operation: "hsm.sign",
+    parentSpanId: rootSpan.spanId,
+  });
   const circuitHash = computeCircuitHash({
-    provider: request.provider, wires: request.wires, mode: request.mode,
-    features: request.features, weights: request.weights,
+    provider: request.provider,
+    wires: request.wires,
+    mode: request.mode,
+    features: request.features,
+    weights: request.weights,
   });
 
   const hsmResult = await signHSM({
@@ -210,7 +357,11 @@ export async function executeQuantumMesh(
   endSpan(hsmSpan.spanId, hsmResult.status !== "error" ? "ok" : "error");
 
   // Step 10: BookPI commit
-  const bookpiSpan = startSpan({ traceId: request.traceId, operation: "bookpi.commit", parentSpanId: rootSpan.spanId });
+  const bookpiSpan = startSpan({
+    traceId: request.traceId,
+    operation: "bookpi.commit",
+    parentSpanId: rootSpan.spanId,
+  });
   const status = (execResult.status as "completed" | "degraded") || "completed";
   const block = commitQuantumBlock({
     requestId: request.requestId,
@@ -226,13 +377,28 @@ export async function executeQuantumMesh(
   endSpan(bookpiSpan.spanId, "ok");
 
   // Step 11: Federation replicate (emit event)
-  const fedSpan = startSpan({ traceId: request.traceId, operation: "federation.replicate", parentSpanId: rootSpan.spanId });
-  emitQuantumEvent("quantum.job.completed", {
-    requestId: request.requestId, status, implementation: device.implementation, circuitHash,
-  }, {
-    traceId: request.traceId, requestId: request.requestId, tenantId: request.tenantId,
-    subjectId: request.subjectId, originCore: 5, targetCore: 23,
+  const fedSpan = startSpan({
+    traceId: request.traceId,
+    operation: "federation.replicate",
+    parentSpanId: rootSpan.spanId,
   });
+  emitQuantumEvent(
+    "quantum.job.completed",
+    {
+      requestId: request.requestId,
+      status,
+      implementation: device.implementation,
+      circuitHash,
+    },
+    {
+      traceId: request.traceId,
+      requestId: request.requestId,
+      tenantId: request.tenantId,
+      subjectId: request.subjectId,
+      originCore: 5,
+      targetCore: 23,
+    },
+  );
   endSpan(fedSpan.spanId, "ok");
 
   // Step 12: Release worker
@@ -304,7 +470,9 @@ function determinePriority(request: QuantumRequest): JobPriority {
   return "normal";
 }
 
-function mapProviderToPool(provider: string): "core" | "lightning" | "qiskit" | "braket" | "rigetti" | "catalyst" {
+function mapProviderToPool(
+  provider: string,
+): "core" | "lightning" | "qiskit" | "braket" | "rigetti" | "catalyst" {
   if (provider.startsWith("lightning")) return "lightning";
   if (provider.startsWith("qiskit")) return "qiskit";
   if (provider.startsWith("braket")) return "braket";
@@ -315,11 +483,19 @@ function mapProviderToPool(provider: string): "core" | "lightning" | "qiskit" | 
 
 // Resolve the bridge script across layouts: source tree (tsx dev), esbuild
 // bundle (dist/), and process cwd fallbacks.
-const BRIDGE_PATH = [
-  path.resolve(import.meta.dirname ?? process.cwd(), "../../../scripts/quantum/isabella_quantum_bridge_v3.py"),
-  path.resolve(import.meta.dirname ?? process.cwd(), "../scripts/quantum/isabella_quantum_bridge_v3.py"),
-  path.resolve(process.cwd(), "scripts/quantum/isabella_quantum_bridge_v3.py"),
-].find((candidate) => existsSync(candidate)) ?? path.resolve(process.cwd(), "scripts/quantum/isabella_quantum_bridge_v3.py");
+const BRIDGE_PATH =
+  [
+    path.resolve(
+      import.meta.dirname ?? process.cwd(),
+      "../../../scripts/quantum/isabella_quantum_bridge_v3.py",
+    ),
+    path.resolve(
+      import.meta.dirname ?? process.cwd(),
+      "../scripts/quantum/isabella_quantum_bridge_v3.py",
+    ),
+    path.resolve(process.cwd(), "scripts/quantum/isabella_quantum_bridge_v3.py"),
+  ].find((candidate) => existsSync(candidate)) ??
+  path.resolve(process.cwd(), "scripts/quantum/isabella_quantum_bridge_v3.py");
 const BRIDGE_TIMEOUT_MS = 30_000;
 
 async function executeProviderLocal(
@@ -376,7 +552,7 @@ async function executeProviderLocal(
     backend: request.provider,
     mode: request.mode,
     wires: request.wires,
-    gates: parsed.gates ?? (request.wires * 3 + 2),
+    gates: parsed.gates ?? request.wires * 3 + 2,
     shots: request.shots,
     expectationValue: parsed.expectation,
     probabilities: parsed.probabilities ?? [],

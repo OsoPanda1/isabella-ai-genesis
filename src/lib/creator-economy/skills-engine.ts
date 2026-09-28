@@ -15,7 +15,10 @@ import { getCreatorEconomyStore } from "./persistence/creator-economy-store";
 import type { Entitlement, SkillExecution } from "./types";
 
 export class InsufficientCreditsError extends Error {
-  constructor(public readonly required: number, public readonly available: number) {
+  constructor(
+    public readonly required: number,
+    public readonly available: number,
+  ) {
     super(`INSUFFICIENT_CREDITS required=${required} available=${available}`);
     this.name = "InsufficientCreditsError";
   }
@@ -54,7 +57,11 @@ export function getOrCreateEntitlement(creatorId: string, tenantId: string): Ent
   return ent;
 }
 
-export function assignPlan(creatorId: string, tenantId: string, planId: keyof typeof PLANS): Entitlement {
+export function assignPlan(
+  creatorId: string,
+  tenantId: string,
+  planId: keyof typeof PLANS,
+): Entitlement {
   const plan = PLANS[planId];
   const ent: Entitlement = {
     creatorId,
@@ -113,7 +120,10 @@ export async function executeSkill(input: {
   }
 
   // Atomic deduction before inference.
-  const deducted: Entitlement = { ...ent, remainingCredits: ent.remainingCredits - skill.creditsRequired };
+  const deducted: Entitlement = {
+    ...ent,
+    remainingCredits: ent.remainingCredits - skill.creditsRequired,
+  };
   store.upsertEntitlement(deducted);
 
   const base: Omit<SkillExecution, "status" | "outputSummary"> = {
@@ -158,7 +168,11 @@ export function refillMonthlyCredits(creatorId: string): Entitlement | null {
   const ent = store.getEntitlement(creatorId);
   if (!ent) return null;
   const plan = PLANS[ent.plan];
-  const next: Entitlement = { ...ent, remainingCredits: plan.monthlyCredits, monthlyCredits: plan.monthlyCredits };
+  const next: Entitlement = {
+    ...ent,
+    remainingCredits: plan.monthlyCredits,
+    monthlyCredits: plan.monthlyCredits,
+  };
   store.upsertEntitlement(next);
   return next;
 }

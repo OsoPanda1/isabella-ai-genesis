@@ -122,18 +122,21 @@ export async function evaluateClaim(params: {
     caveat = "Evidencia relevante contradice la afirmación bajo el mismo alcance.";
   } else if (supporting.length > 0) {
     // Supporting results exist, but retrieval ≠ verification
-    const avgRelevance = supporting.reduce((sum, r) => sum + r.relevance.score, 0) / supporting.length;
+    const avgRelevance =
+      supporting.reduce((sum, r) => sum + r.relevance.score, 0) / supporting.length;
 
     if (avgRelevance > 0.5) {
       evidenceLevel = "insufficient";
       confidence = Math.min(0.7, avgRelevance);
       reasonCode = "INDIRECT_EVIDENCE";
-      caveat = "La fuente recuperada no verifica por sí sola la afirmación. Se requiere revisión manual para claims de alto riesgo.";
+      caveat =
+        "La fuente recuperada no verifica por sí sola la afirmación. Se requiere revisión manual para claims de alto riesgo.";
     } else {
       evidenceLevel = "insufficient";
       confidence = Math.min(0.4, avgRelevance);
       reasonCode = "LOW_RELEVANCE_RETRIEVAL";
-      caveat = "Baja relevancia lexical. La verificación epistémica requiere comparación semántica y revisión humana.";
+      caveat =
+        "Baja relevancia lexical. La verificación epistémica requiere comparación semántica y revisión humana.";
     }
   } else {
     evidenceLevel = "unavailable";

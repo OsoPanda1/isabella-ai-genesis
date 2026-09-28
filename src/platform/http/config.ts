@@ -20,12 +20,7 @@ export interface GatewayConfig {
   readonly trustProxy: boolean;
 }
 
-const intEnv = (
-  value: string | undefined,
-  fallback: number,
-  min: number,
-  max: number,
-): number => {
+const intEnv = (value: string | undefined, fallback: number, min: number, max: number): number => {
   const parsed = Number(value);
   if (!Number.isInteger(parsed)) return fallback;
   return Math.min(max, Math.max(min, parsed));

@@ -38,14 +38,17 @@ export interface FallbackChain {
 const FAILURE_THRESHOLD = 5;
 const RECOVERY_TIMEOUT_MS = 60_000;
 const SUCCESS_THRESHOLD = 3;
-const circuitBreakers = new Map<string, {
-  state: "closed" | "open" | "half-open";
-  failureCount: number;
-  successCount: number;
-  lastFailureTime?: string;
-  nextAttemptTime?: string;
-  totalRequests: number;
-}>();
+const circuitBreakers = new Map<
+  string,
+  {
+    state: "closed" | "open" | "half-open";
+    failureCount: number;
+    successCount: number;
+    lastFailureTime?: string;
+    nextAttemptTime?: string;
+    totalRequests: number;
+  }
+>();
 
 function getCircuitBreaker(moduleId: string) {
   if (!circuitBreakers.has(moduleId)) {
@@ -127,9 +130,7 @@ const FALLBACK_CHAINS: Record<string, IngressRoute[]> = {
   "bookpi-legacy": ["audit-receipt"],
 };
 
-export function resolveWithFallback(
-  primaryRoute: IngressRoute,
-): FallbackChain {
+export function resolveWithFallback(primaryRoute: IngressRoute): FallbackChain {
   const healthy = new Set(getHealthyModules());
   const fallbacks = (FALLBACK_CHAINS[primaryRoute] || []).filter((f) => healthy.has(f as any));
 
@@ -161,19 +162,25 @@ export async function executeWithFallback<T>(
       const result = await execute(fallback);
       recordCircuitSuccess(fallback);
       try {
-      emitQuantumEvent("quantum.job.completed" as any, {
-        event: "fallback_success",
-        primary: primaryRoute,
-        fallback,
-        depth: chain.fallbacks.indexOf(fallback) + 1,
-      }, {
-        traceId: `fallback-${Date.now()}`,
-        requestId: randomUUID(),
-        tenantId: "system",
-        subjectId: "resilience",
-        originCore: 0,
-      });
-      } catch { /* ignore event emit errors */ }
+        emitQuantumEvent(
+          "quantum.job.completed" as any,
+          {
+            event: "fallback_success",
+            primary: primaryRoute,
+            fallback,
+            depth: chain.fallbacks.indexOf(fallback) + 1,
+          },
+          {
+            traceId: `fallback-${Date.now()}`,
+            requestId: randomUUID(),
+            tenantId: "system",
+            subjectId: "resilience",
+            originCore: 0,
+          },
+        );
+      } catch {
+        /* ignore event emit errors */
+      }
       return { result, route: fallback, usedFallback: true };
     } catch {
       recordCircuitFailure(fallback);

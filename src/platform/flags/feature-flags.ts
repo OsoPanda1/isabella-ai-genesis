@@ -102,10 +102,7 @@ export class FeatureFlagService {
 
   public snapshot(context: FlagContext): Record<FeatureFlag, boolean> {
     return Object.fromEntries(
-      Object.keys(FLAGS).map((flag) => [
-        flag,
-        this.isEnabled(flag as FeatureFlag, context),
-      ]),
+      Object.keys(FLAGS).map((flag) => [flag, this.isEnabled(flag as FeatureFlag, context)]),
     ) as Record<FeatureFlag, boolean>;
   }
 }

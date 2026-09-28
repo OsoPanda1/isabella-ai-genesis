@@ -5,7 +5,9 @@ export function QuantumMeshPage() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <header className="panel-header">
         <h1 className="text-2xl font-bold text-white">Quantum Mesh</h1>
-        <p className="text-sm text-slate-400">Red de malla cuántica BookPI · Post-quantum anchors.</p>
+        <p className="text-sm text-slate-400">
+          Red de malla cuántica BookPI · Post-quantum anchors.
+        </p>
       </header>
       <div className="surface-raised frame-platinum">
         <div className="panel-content text-slate-300">

@@ -5,11 +5,21 @@
  * Zero external dependencies. No env vars required.
  * ================================================================
  */
-import { createHmac, createPrivateKey, createPublicKey, generateKeyPairSync, randomBytes, sign, timingSafeEqual, verify } from "node:crypto";
+import {
+  createHmac,
+  createPrivateKey,
+  createPublicKey,
+  generateKeyPairSync,
+  randomBytes,
+  sign,
+  timingSafeEqual,
+  verify,
+} from "node:crypto";
 import { nodeRequire } from "./node-require";
 
 let cachedSecret: string | null = null;
-let cachedEd25519KeyPair: { kid: string; privateKeyPem: string; publicKeyPem: string } | null = null;
+let cachedEd25519KeyPair: { kid: string; privateKeyPem: string; publicKeyPem: string } | null =
+  null;
 
 function base64UrlEncode(data: Buffer | string): string {
   const buf = typeof data === "string" ? Buffer.from(data) : data;
@@ -20,7 +30,7 @@ function base64UrlDecode(input: string): Buffer {
   const normalized = input.replace(/-/g, "+").replace(/_/g, "/");
   return Buffer.from(
     normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "="),
-    "base64"
+    "base64",
   );
 }
 
@@ -55,8 +65,7 @@ function loadPersistedSecret(): string | null {
       )
     `);
     const row = db.prepare("SELECT secret FROM native_auth WHERE id = 'master'").get() as
-      | { secret: string }
-      | undefined;
+      { secret: string } | undefined;
     if (row?.secret) {
       db.close();
       return row.secret;
@@ -64,7 +73,7 @@ function loadPersistedSecret(): string | null {
     const newSecret = generateSecret();
     db.prepare("INSERT INTO native_auth (id, secret, createdAt) VALUES ('master', ?, ?)").run(
       newSecret,
-      new Date().toISOString()
+      new Date().toISOString(),
     );
     db.close();
     return newSecret;
@@ -128,7 +137,6 @@ const JWT_ALGORITHM = "EdDSA";
 const MAX_JWT_LIFETIME_SEC = 24 * 60 * 60; // 24 hours absolute max
 const DEFAULT_JWT_LIFETIME_SEC = 60 * 60; // 1 hour default
 
-
 function getNativeEd25519KeyPair(): { kid: string; privateKeyPem: string; publicKeyPem: string } {
   if (cachedEd25519KeyPair) return cachedEd25519KeyPair;
   if (process.env.NATIVE_JWT_ED25519_PRIVATE_KEY && process.env.NATIVE_JWT_ED25519_PUBLIC_KEY) {
@@ -141,7 +149,9 @@ function getNativeEd25519KeyPair(): { kid: string; privateKeyPem: string; public
   }
   const isProduction = process.env.NODE_ENV === "production" || !!process.env.VERCEL;
   if (isProduction) {
-    throw new Error("NATIVE_JWT_ED25519_PRIVATE_KEY and NATIVE_JWT_ED25519_PUBLIC_KEY are required in production/KMS-backed deployments");
+    throw new Error(
+      "NATIVE_JWT_ED25519_PRIVATE_KEY and NATIVE_JWT_ED25519_PUBLIC_KEY are required in production/KMS-backed deployments",
+    );
   }
   const { privateKey, publicKey } = generateKeyPairSync("ed25519");
   cachedEd25519KeyPair = {
@@ -171,9 +181,15 @@ export function signNativeJwt(opts: SignJwtOptions): string {
     exp: now + expiresInSec,
     jti,
   };
-  const header = base64UrlEncode(JSON.stringify({ alg: JWT_ALGORITHM, typ: "JWT", kid: keyPair.kid }));
+  const header = base64UrlEncode(
+    JSON.stringify({ alg: JWT_ALGORITHM, typ: "JWT", kid: keyPair.kid }),
+  );
   const body = base64UrlEncode(JSON.stringify(payload));
-  const sig = sign(null, Buffer.from(`${header}.${body}`), createPrivateKey(keyPair.privateKeyPem)).toString("base64url");
+  const sig = sign(
+    null,
+    Buffer.from(`${header}.${body}`),
+    createPrivateKey(keyPair.privateKeyPem),
+  ).toString("base64url");
   return `${header}.${body}.${sig}`;
 }
 
@@ -182,13 +198,25 @@ export function verifyNativeJwt(token: string): NativePrincipal | null {
   if (parts.length !== 3) return null;
   const [encodedHeader, encodedPayload, encodedSignature] = parts;
 
-  const header = safeJson<{ alg?: string; typ?: string; kid?: string }>(base64UrlDecode(encodedHeader));
+  const header = safeJson<{ alg?: string; typ?: string; kid?: string }>(
+    base64UrlDecode(encodedHeader),
+  );
   const actual = base64UrlDecode(encodedSignature);
   if (header?.alg === JWT_ALGORITHM) {
     const keyPair = getNativeEd25519KeyPair();
-    if (!verify(null, Buffer.from(`${encodedHeader}.${encodedPayload}`), createPublicKey(keyPair.publicKeyPem), actual)) return null;
+    if (
+      !verify(
+        null,
+        Buffer.from(`${encodedHeader}.${encodedPayload}`),
+        createPublicKey(keyPair.publicKeyPem),
+        actual,
+      )
+    )
+      return null;
   } else if (header?.alg === "HS256" && process.env.ALLOW_LEGACY_HS256_JWT === "true") {
-    const expected = createHmac("sha256", getNativeSecret()).update(`${encodedHeader}.${encodedPayload}`).digest();
+    const expected = createHmac("sha256", getNativeSecret())
+      .update(`${encodedHeader}.${encodedPayload}`)
+      .digest();
     if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
   } else {
     return null;
@@ -238,7 +266,15 @@ export function bootstrapNativeAuth(): {
     tenantId: "nodo-cero-rdm",
     roles: ["admin"],
     plan: "guardian",
-    scopes: ["chat:read", "chat:write", "models:read", "territory:read", "billing:read", "audit:read", "admin:keys"],
+    scopes: [
+      "chat:read",
+      "chat:write",
+      "models:read",
+      "territory:read",
+      "billing:read",
+      "audit:read",
+      "admin:keys",
+    ],
     expiresInSec: 8 * 60 * 60, // 8 hours max, not 1 year
     iss: "isabella-native-auth",
   });
@@ -250,12 +286,7 @@ export function bootstrapNativeAuth(): {
    GUEST SESSION — first-party anonymous session token for the web app
    ========================================================================= */
 
-const GUEST_SCOPE_ALLOWLIST = [
-  "chat:read",
-  "chat:write",
-  "models:read",
-  "territory:read",
-] as const;
+const GUEST_SCOPE_ALLOWLIST = ["chat:read", "chat:write", "models:read", "territory:read"] as const;
 
 export interface GuestSessionOptions {
   sessionId: string;
@@ -274,13 +305,16 @@ export function mintGuestSession(opts: GuestSessionOptions): {
     ? opts.sessionId
     : randomBytes(16).toString("hex");
   const requested = Array.isArray(opts.requestedScopes) ? opts.requestedScopes.map(String) : [];
-  const scopes = requested.length > 0
-    ? requested.filter((s): s is (typeof GUEST_SCOPE_ALLOWLIST)[number] =>
-        (GUEST_SCOPE_ALLOWLIST as readonly string[]).includes(s))
-    : [...GUEST_SCOPE_ALLOWLIST];
-  const plan = typeof opts.requestedPlan === "string" && GUEST_PLANS.has(opts.requestedPlan)
-    ? opts.requestedPlan
-    : "free";
+  const scopes =
+    requested.length > 0
+      ? requested.filter((s): s is (typeof GUEST_SCOPE_ALLOWLIST)[number] =>
+          (GUEST_SCOPE_ALLOWLIST as readonly string[]).includes(s),
+        )
+      : [...GUEST_SCOPE_ALLOWLIST];
+  const plan =
+    typeof opts.requestedPlan === "string" && GUEST_PLANS.has(opts.requestedPlan)
+      ? opts.requestedPlan
+      : "free";
   const expiresInSec = 12 * 60 * 60; // 12 hours
 
   const token = signNativeJwt({

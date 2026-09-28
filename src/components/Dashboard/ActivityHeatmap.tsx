@@ -50,9 +50,9 @@ export const ActivityHeatmap: React.FC = () => {
   const areaD = `${pathD} L ${points[points.length - 1].x} ${paddingY + chartHeight} L ${points[0].x} ${paddingY + chartHeight} Z`;
 
   return (
-      <div className="bg-[#0B1221] border border-slate-800 p-5 rounded-2xl flex flex-col w-full h-full min-h-[300px] shadow-xl">
-        <DemoDataNotice />
-        <div className="flex items-center justify-between mb-4">
+    <div className="bg-[#0B1221] border border-slate-800 p-5 rounded-2xl flex flex-col w-full h-full min-h-[300px] shadow-xl">
+      <DemoDataNotice />
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-slate-200 font-bold text-sm flex items-center gap-2">
             <Activity className="w-4 h-4 text-amber-400" />
@@ -171,12 +171,8 @@ export const ActivityHeatmap: React.FC = () => {
               transform: "translateX(-50%)",
             }}
           >
-            <div className="font-mono text-[10px] text-slate-400">
-              {mockData[hoveredIdx].time}
-            </div>
-            <div className="font-bold text-amber-300">
-              Carga: {mockData[hoveredIdx].load} ops/s
-            </div>
+            <div className="font-mono text-[10px] text-slate-400">{mockData[hoveredIdx].time}</div>
+            <div className="font-bold text-amber-300">Carga: {mockData[hoveredIdx].load} ops/s</div>
           </div>
         )}
       </div>

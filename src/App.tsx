@@ -65,81 +65,79 @@ type ViewDefinition = {
  */
 const IsabellaTerminal = lazyNamed(
   () => import("./components/Terminal/IsabellaTerminal"),
-  "IsabellaTerminal"
+  "IsabellaTerminal",
 );
 
 const IsabellaPresenceView = lazyNamed(
   () => import("./components/Presence/IsabellaPresenceView"),
-  "IsabellaPresenceView"
+  "IsabellaPresenceView",
 );
 
 const TraceabilityDashboard = lazyNamed(
   () => import("./components/Traceability/TraceabilityDashboard"),
-  "TraceabilityDashboard"
+  "TraceabilityDashboard",
 );
 
 const ImageStudioView = lazyNamed(
   () => import("./components/Studio/ImageStudioView"),
-  "ImageStudioView"
+  "ImageStudioView",
 );
 
 const VoiceStudioView = lazyNamed(
   () => import("./components/Studio/VoiceStudioView"),
-  "VoiceStudioView"
+  "VoiceStudioView",
 );
 
-const Cockpit = lazyNamed(
-  () => import("./components/Dashboard/Cockpit"),
-  "Cockpit"
-);
+const Cockpit = lazyNamed(() => import("./components/Dashboard/Cockpit"), "Cockpit");
 
 const SynapticFlowDiagram = lazyNamed(
   () => import("./components/Dashboard/SynapticFlowDiagram"),
-  "SynapticFlowDiagram"
+  "SynapticFlowDiagram",
 );
 
 const PresentationView = lazyNamed(
   () => import("./components/Presentation/PresentationView"),
-  "PresentationView"
+  "PresentationView",
 );
 
 const IsabellaHubView = lazyNamed(
   () => import("./components/Hub/IsabellaHubView"),
-  "IsabellaHubView"
+  "IsabellaHubView",
 );
 
-const CodexView = lazyNamed(
-  () => import("./components/Codex/CodexView"),
-  "CodexView"
-);
+const CodexView = lazyNamed(() => import("./components/Codex/CodexView"), "CodexView");
 
 const CattleyaFinanceView = lazyNamed(
   () => import("./components/Dashboard/CattleyaFinanceView"),
-  "CattleyaFinanceView"
+  "CattleyaFinanceView",
 );
 
-const QuantumMeshDashboard = lazy(
-  () => import("./components/Quantum/QuantumMeshDashboard")
-);
+const QuantumMeshDashboard = lazy(() => import("./components/Quantum/QuantumMeshDashboard"));
 
 /*
  * Los modales no bloquean el primer bundle.
  * Se importan al abrirse, no antes.
  */
-const AtlasLanguagePage = lazyNamed(() => import("./components/Pages/AtlasLanguagePage"), "AtlasLanguagePage");
-const QuantumMeshPage = lazyNamed(() => import("./components/Pages/QuantumMeshPage"), "QuantumMeshPage");
+const AtlasLanguagePage = lazyNamed(
+  () => import("./components/Pages/AtlasLanguagePage"),
+  "AtlasLanguagePage",
+);
+const QuantumMeshPage = lazyNamed(
+  () => import("./components/Pages/QuantumMeshPage"),
+  "QuantumMeshPage",
+);
 const LedgerPage = lazyNamed(() => import("./components/Pages/LedgerPage"), "LedgerPage");
 const EoctPage = lazyNamed(() => import("./components/Pages/EoctPage"), "EoctPage");
 const SidebarNav = lazyNamed(() => import("./components/Sidebar/SidebarNav"), "SidebarNav");
 
 const KeyboardShortcutsModal = lazyNamed(
   () => import("./components/Shortcuts/KeyboardShortcutsModal"),
-  "KeyboardShortcutsModal"
+  "KeyboardShortcutsModal",
 );
 
 const SecurityGovernanceModal = lazyNamed(
   () => import("./components/Security/SecurityGovernanceModal"),
-  "SecurityGovernanceModal"
+  "SecurityGovernanceModal",
 );
 
 /*
@@ -156,7 +154,7 @@ const SecurityGovernanceModal = lazyNamed(
  */
 function lazyNamed<T extends Record<string, ComponentType<any>>>(
   importer: () => Promise<T>,
-  exportName: keyof T
+  exportName: keyof T,
 ) {
   return lazy(async () => {
     const module = await importer();
@@ -181,10 +179,7 @@ type ViewErrorBoundaryState = {
   hasError: boolean;
 };
 
-class ViewErrorBoundary extends React.Component<
-  ViewErrorBoundaryProps,
-  ViewErrorBoundaryState
-> {
+class ViewErrorBoundary extends React.Component<ViewErrorBoundaryProps, ViewErrorBoundaryState> {
   declare readonly props: Readonly<ViewErrorBoundaryProps>;
   declare setState: React.Component<ViewErrorBoundaryProps, ViewErrorBoundaryState>["setState"];
 
@@ -204,15 +199,12 @@ class ViewErrorBoundary extends React.Component<
           message: error.message,
           componentStack: info.componentStack,
         },
-      })
+      }),
     );
   }
 
   public componentDidUpdate(previousProps: ViewErrorBoundaryProps) {
-    if (
-      previousProps.viewLabel !== this.props.viewLabel &&
-      this.state.hasError
-    ) {
+    if (previousProps.viewLabel !== this.props.viewLabel && this.state.hasError) {
       this.setState({ hasError: false });
     }
   }
@@ -224,11 +216,7 @@ class ViewErrorBoundary extends React.Component<
   public render() {
     if (this.state.hasError) {
       return (
-        <section
-          className="empty-state"
-          role="alert"
-          aria-labelledby="view-error-title"
-        >
+        <section className="empty-state" role="alert" aria-labelledby="view-error-title">
           <div className="max-w-md">
             <p className="identity-mark">Continuidad operativa</p>
 
@@ -237,15 +225,11 @@ class ViewErrorBoundary extends React.Component<
             </h1>
 
             <p className="text-muted mt-2 text-sm leading-6">
-              La arquitectura principal permanece disponible. Puedes intentar
-              cargar de nuevo este espacio sin perder la navegación.
+              La arquitectura principal permanece disponible. Puedes intentar cargar de nuevo este
+              espacio sin perder la navegación.
             </p>
 
-            <button
-              type="button"
-              className="btn btn-secondary mt-5"
-              onClick={this.handleRetry}
-            >
+            <button type="button" className="btn btn-secondary mt-5" onClick={this.handleRetry}>
               Reintentar módulo
             </button>
           </div>
@@ -429,7 +413,7 @@ const VIEW_REGISTRY: Record<ActiveView, ViewDefinition> = {
     description: "Monitoreo en vivo de los 5 módulos cognitivos CROWN.",
     component: lazyNamed(
       () => import("./components/Pages/CognitiveTelemetryPage"),
-      "CognitiveTelemetryPage"
+      "CognitiveTelemetryPage",
     ),
   },
 
@@ -521,16 +505,17 @@ function MainContent() {
   useEffect(() => {
     if (introDone) return;
     const timer = setTimeout(() => {
-      try { localStorage.setItem("isabella_intro_done", "1"); } catch { /* ignore */ }
+      try {
+        localStorage.setItem("isabella_intro_done", "1");
+      } catch {
+        /* ignore */
+      }
       setIntroDone(true);
     }, 60_000);
     return () => clearTimeout(timer);
   }, [introDone]);
 
-  const view = useMemo(
-    () => VIEW_REGISTRY[activeView] ?? VIEW_REGISTRY.terminal,
-    [activeView]
-  );
+  const view = useMemo(() => VIEW_REGISTRY[activeView] ?? VIEW_REGISTRY.terminal, [activeView]);
 
   const ActiveViewComponent = view.component;
 
@@ -545,12 +530,16 @@ function MainContent() {
           id: view.id,
           label: view.label,
         },
-      })
+      }),
     );
   }, [view.id, view.label]);
 
   const completeIntro = () => {
-    try { localStorage.setItem("isabella_intro_done", "1"); } catch { /* ignore */ }
+    try {
+      localStorage.setItem("isabella_intro_done", "1");
+    } catch {
+      /* ignore */
+    }
     setIntroDone(true);
   };
 
@@ -558,6 +547,7 @@ function MainContent() {
     return (
       <IsabellaCinematicExperience
         isOpen
+        enableCinematic={false}
         onEnter={completeIntro}
         onClose={completeIntro}
       />
@@ -576,12 +566,7 @@ function MainContent() {
 
   return (
     <>
-      <main
-        id="main-content"
-        className="app-main"
-        tabIndex={-1}
-        aria-labelledby="view-title"
-      >
+      <main id="main-content" className="app-main" tabIndex={-1} aria-labelledby="view-title">
         <div className="page-container">
           {/*
            * Presencia y Terminal llevan su propio héroe; la cabecera genérica
@@ -601,9 +586,7 @@ function MainContent() {
                     {view.label}
                   </h1>
 
-                  <p className="text-muted mt-2 max-w-2xl text-sm leading-6">
-                    {view.description}
-                  </p>
+                  <p className="text-muted mt-2 max-w-2xl text-sm leading-6">{view.description}</p>
                 </div>
 
                 <span className="badge badge-success">
@@ -650,17 +633,14 @@ function MainContent() {
 
         {isShortcutsOpen ? (
           <KeyboardShortcutsModal
-            {...{ isOpen: isShortcutsOpen, onClose: closeShortcutsModal } as any}
+            {...({ isOpen: isShortcutsOpen, onClose: closeShortcutsModal } as any)}
           />
         ) : null}
 
         <SecurityGovernanceModal />
       </Suspense>
 
-      <ShortcutToast
-        message={lastShortcutTriggered}
-        onDismiss={clearShortcutFeedback}
-      />
+      <ShortcutToast message={lastShortcutTriggered} onDismiss={clearShortcutFeedback} />
     </>
   );
 }
@@ -676,7 +656,8 @@ function getOrCreateVisitorId(): string {
     const key = "isab_statsig_vid";
     const existing = localStorage.getItem(key);
     if (existing) return existing;
-    const id = crypto.randomUUID?.() ?? `vis-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const id =
+      crypto.randomUUID?.() ?? `vis-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     localStorage.setItem(key, id);
     return id;
   } catch {

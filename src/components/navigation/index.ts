@@ -15,10 +15,7 @@ export { WorkspaceNavbar } from "./WorkspaceNavbar";
 export { GovernanceNavbar } from "./GovernanceNavbar";
 export { MonetizationNavbar } from "./MonetizationNavbar";
 export { EconomicBreakdown } from "./EconomicBreakdown";
-export {
-  NavigationStateProvider,
-  useNavigation,
-} from "./NavigationStateProvider";
+export { NavigationStateProvider, useNavigation } from "./NavigationStateProvider";
 export type {
   NavigationNode,
   NavigationNodeType,

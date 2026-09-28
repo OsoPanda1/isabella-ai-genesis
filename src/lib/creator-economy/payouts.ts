@@ -63,8 +63,18 @@ export function maturePendingBalances(input: {
     idempotencyKey: input.idempotencyKey,
     currency: input.currency,
     lines: [
-      { account: "creator_payable_pending", direction: "debit", amountMinor: input.amountMinor, memo: "mature T+90" },
-      { account: "creator_payable_available", direction: "credit", amountMinor: input.amountMinor, memo: "mature T+90" },
+      {
+        account: "creator_payable_pending",
+        direction: "debit",
+        amountMinor: input.amountMinor,
+        memo: "mature T+90",
+      },
+      {
+        account: "creator_payable_available",
+        direction: "credit",
+        amountMinor: input.amountMinor,
+        memo: "mature T+90",
+      },
     ],
   });
 }
@@ -92,12 +102,18 @@ export function requestPayout(input: {
     throw new PayoutGateError("KYS_REQUIRED", "Se requiere verificación KYS Level 2 completa");
   }
   if (!kyc.bankAccountVerified || !kyc.clabeHolderNameMatch) {
-    throw new PayoutGateError("BANK_NOT_VERIFIED", "Cuenta bancaria no verificada a nombre del titular");
+    throw new PayoutGateError(
+      "BANK_NOT_VERIFIED",
+      "Cuenta bancaria no verificada a nombre del titular",
+    );
   }
 
   const threshold = PAYOUT_THRESHOLD_MINOR[input.currency];
   if (input.amountMinor < threshold) {
-    throw new PayoutGateError("BELOW_THRESHOLD", `Umbral mínimo: ${threshold} minor ${input.currency}`);
+    throw new PayoutGateError(
+      "BELOW_THRESHOLD",
+      `Umbral mínimo: ${threshold} minor ${input.currency}`,
+    );
   }
 
   const available = getAvailableBalanceMinor(input.tenantId);
@@ -114,8 +130,18 @@ export function requestPayout(input: {
     idempotencyKey: `payout-ledger:${input.idempotencyKey}`,
     currency: input.currency,
     lines: [
-      { account: "creator_payable_available", direction: "debit", amountMinor: input.amountMinor, memo: "payout request" },
-      { account: "customer_cash_clearing", direction: "credit", amountMinor: input.amountMinor, memo: "payout in-flight" },
+      {
+        account: "creator_payable_available",
+        direction: "debit",
+        amountMinor: input.amountMinor,
+        memo: "payout request",
+      },
+      {
+        account: "customer_cash_clearing",
+        direction: "credit",
+        amountMinor: input.amountMinor,
+        memo: "payout in-flight",
+      },
     ],
   });
   if (posted.alreadyExisted) {
@@ -161,7 +187,12 @@ export function buildPayoutBatch(status: PayoutRequest["status"] = "requested"):
 
 /** Mark a payout as dispersed (R-01 paso 5). */
 export function markPayoutPaid(id: string, disbursementReference: string): void {
-  getCreatorEconomyStore().updatePayoutStatus(id, "paid", new Date().toISOString(), disbursementReference);
+  getCreatorEconomyStore().updatePayoutStatus(
+    id,
+    "paid",
+    new Date().toISOString(),
+    disbursementReference,
+  );
 }
 
 export function markPayoutFailed(id: string): void {

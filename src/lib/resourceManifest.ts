@@ -1,4 +1,8 @@
-import { ISABELLA_AVATAR_PRIMARY, ISABELLA_MEDALLION_IMAGE, ISABELLA_PORTRAITS } from "../data/isabellaAvatar";
+import {
+  ISABELLA_AVATAR_PRIMARY,
+  ISABELLA_MEDALLION_IMAGE,
+  ISABELLA_PORTRAITS,
+} from "../data/isabellaAvatar";
 
 export interface ResourceItem {
   id: string;
@@ -43,7 +47,7 @@ export const RESOURCE_MANIFEST: ResourceItem[] = [
     type: "model",
     url: "/models/orion_vision_flux.bin", // Simulated Vision model
     priority: "low",
-  }
+  },
 ];
 
 export class ResourcePreloader {
@@ -59,7 +63,8 @@ export class ResourcePreloader {
   }
 
   private static notifyListeners() {
-    const progress = this.totalHighPriority === 0 ? 100 : (this.loadedCount / this.totalHighPriority) * 100;
+    const progress =
+      this.totalHighPriority === 0 ? 100 : (this.loadedCount / this.totalHighPriority) * 100;
     this.listeners.forEach((l) => l(progress));
   }
 
@@ -106,7 +111,7 @@ export class ResourcePreloader {
           .catch(() => {
             // Even if model doesn't exist locally, we resolve to avoid blocking UI
             // In a real scenario we might stream the model chunks into IndexedDB
-            setTimeout(resolve, 500); 
+            setTimeout(resolve, 500);
           });
       } else {
         resolve();

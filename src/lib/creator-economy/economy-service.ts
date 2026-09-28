@@ -22,9 +22,36 @@ import type { AccountType, LedgerDirection } from "./types";
 // ---------- Gift catalog (seeded, §6.2) ----------
 
 export const GIFT_CATALOG: readonly GiftDefinition[] = Object.freeze([
-  Object.freeze({ id: "gift-paste-dorado", name: "Paste Dorado", iconUrl: "/gifts/paste.svg", priceMinor: 5_000, currency: "MXN", creatorSharePercent: 85, dailyPurchaseLimit: 50, enabled: true }),
-  Object.freeze({ id: "gift-reloj-monumental", name: "Reloj Monumental", iconUrl: "/gifts/reloj.svg", priceMinor: 10_000, currency: "MXN", creatorSharePercent: 85, dailyPurchaseLimit: 25, enabled: true }),
-  Object.freeze({ id: "gift-mina-de-plata", name: "Mina de Plata", iconUrl: "/gifts/mina.svg", priceMinor: 50_000, currency: "MXN", creatorSharePercent: 85, dailyPurchaseLimit: 5, enabled: true }),
+  Object.freeze({
+    id: "gift-paste-dorado",
+    name: "Paste Dorado",
+    iconUrl: "/gifts/paste.svg",
+    priceMinor: 5_000,
+    currency: "MXN",
+    creatorSharePercent: 85,
+    dailyPurchaseLimit: 50,
+    enabled: true,
+  }),
+  Object.freeze({
+    id: "gift-reloj-monumental",
+    name: "Reloj Monumental",
+    iconUrl: "/gifts/reloj.svg",
+    priceMinor: 10_000,
+    currency: "MXN",
+    creatorSharePercent: 85,
+    dailyPurchaseLimit: 25,
+    enabled: true,
+  }),
+  Object.freeze({
+    id: "gift-mina-de-plata",
+    name: "Mina de Plata",
+    iconUrl: "/gifts/mina.svg",
+    priceMinor: 50_000,
+    currency: "MXN",
+    creatorSharePercent: 85,
+    dailyPurchaseLimit: 5,
+    enabled: true,
+  }),
 ]);
 
 export function getGift(id: string): GiftDefinition | null {
@@ -44,7 +71,10 @@ export interface RiskHoldEvent {
   detectedAt: string;
 }
 
-export function evaluateGiftVelocity(dailyGiftMinor: number, baselineMinor: number): RiskHoldEvent | null {
+export function evaluateGiftVelocity(
+  dailyGiftMinor: number,
+  baselineMinor: number,
+): RiskHoldEvent | null {
   if (baselineMinor > 0 && dailyGiftMinor > baselineMinor * VELOCITY_SPIKE_FACTOR) {
     return {
       kind: "RISK_HOLD_EVENT",
@@ -81,9 +111,7 @@ export function purchaseGift(input: {
   const ent = store.getEntitlement(input.creatorId);
   if (!ent || !ent.canReceiveGifts) throw new Error("CREATOR_CANNOT_RECEIVE_GIFTS");
 
-  const appStoreFee = input.channel === "app_store"
-    ? Math.floor((gift.priceMinor * 30) / 100)
-    : 0;
+  const appStoreFee = input.channel === "app_store" ? Math.floor((gift.priceMinor * 30) / 100) : 0;
 
   const split = computeRevenueSplit({
     grossAmountMinor: gift.priceMinor,
@@ -181,9 +209,8 @@ export function purchaseOffer(input: {
   const plan = ent?.plan ?? "free";
   void PLANS[plan];
 
-  const appStoreFee = input.channel === "app_store"
-    ? Math.floor((offer.price.amountMinor * 30) / 100)
-    : 0;
+  const appStoreFee =
+    input.channel === "app_store" ? Math.floor((offer.price.amountMinor * 30) / 100) : 0;
 
   const split = computeRevenueSplit({
     grossAmountMinor: offer.price.amountMinor,
@@ -236,7 +263,12 @@ export function submitKyc(input: {
 
   const kyc: KycVerificationStatus = {
     creatorId: input.creatorId,
-    level: rfcOk && clabeOk && (input.eFirmaValid ?? false) ? "level_2_full" : rfcOk ? "level_1_basic" : "none",
+    level:
+      rfcOk && clabeOk && (input.eFirmaValid ?? false)
+        ? "level_2_full"
+        : rfcOk
+          ? "level_1_basic"
+          : "none",
     rfcSubmitted: Boolean(input.rfc),
     rfcValidated: rfcOk,
     eFirmaValid: input.eFirmaValid ?? false,
