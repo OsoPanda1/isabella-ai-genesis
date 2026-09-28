@@ -188,6 +188,9 @@ importers:
       framer-motion:
         specifier: ^13.4.4
         version: 13.4.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      h3:
+        specifier: 2.0.1-rc.31
+        version: 2.0.1-rc.31(crossws@0.4.12(srvx@0.11.22))(ocache@0.1.5)
       input-otp:
         specifier: ^1.4.2
         version: 1.5.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)

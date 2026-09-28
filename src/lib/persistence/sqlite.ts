@@ -1,4 +1,6 @@
 // @ts-nocheck
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import { nodeRequire } from "../node-require";
 import type BetterSqlite3 from "better-sqlite3";
 
@@ -20,6 +22,7 @@ export function getDatabase(): InstanceType<typeof BetterSqlite3> {
   try {
     const BetterSqlite3Constructor = nodeRequire("better-sqlite3") as typeof BetterSqlite3;
     const dbPath = process.env.ISABELLA_DB_PATH || "./data/isabella.db";
+    mkdirSync(dirname(dbPath), { recursive: true });
     db = new BetterSqlite3Constructor(dbPath);
     db.pragma("journal_mode = WAL");
     db.pragma("foreign_keys = ON");

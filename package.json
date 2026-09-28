@@ -120,6 +120,7 @@
     "embla-carousel-react": "^8.6.0",
     "express": "^5.2.1",
     "framer-motion": "^13.4.4",
+    "h3": "2.0.1-rc.31",
     "input-otp": "^1.4.2",
     "jspdf": "^4.2.1",
     "lenis": "^1.2.3",
