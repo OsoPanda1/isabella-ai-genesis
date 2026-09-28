@@ -5,6 +5,8 @@
  */
 
 // @ts-nocheck
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import { nodeRequire } from "../node-require";
 import type BetterSqlite3 from "better-sqlite3";
 import type { ApiKeyRecord, ApiKeyRepository, ApiKeyAuditEvent } from "../api-keys";
@@ -135,6 +137,7 @@ function createDatabase(dbPath?: string): SqliteDatabase {
     filename: string,
   ) => SqliteDatabase;
   const path = dbPath || process.env.ISABELLA_DB_PATH || "./data/isabella.db";
+  mkdirSync(dirname(path), { recursive: true });
   const db = new BetterSqlite3Ctor(path);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");

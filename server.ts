@@ -1,6 +1,7 @@
 import express from "express";
+import { fromNodeMiddleware } from "h3";
 import path from "path";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import dotenv from "dotenv";
 import { createHash } from "node:crypto";
 import { processPerception } from "./src/domains/ai/application/handlers/processPerception";
@@ -127,7 +128,11 @@ const log = createLogger("server");
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 export { app };
-export default app;
+
+// Nitro/H3 must adapt the native Node request and response before invoking
+// Express 5. Passing the Express app directly makes Express assign `req.res`
+// on H3's read-only request facade and crashes every request.
+export default fromNodeMiddleware(app);
 
 // ─── API KEY SERVICE INIT ─────────────────────────────────────────
 try {
@@ -2418,10 +2423,15 @@ async function startServer() {
       }
     });
   } else {
-    const distPath = path.join(process.cwd(), "dist");
+    const distPath = path.join(process.cwd(), ".output", "public");
+    const legacyDistPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
+    app.use(express.static(legacyDistPath));
     app.get("/{*splat}", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+      const indexPath = existsSync(path.join(distPath, "index.html"))
+      ? path.join(distPath, "index.html")
+      : path.join(process.cwd(), "index.html");
+    res.sendFile(indexPath);
     });
     app.post("/{*splat}", (req, res) => {
       res.status(404).json({ ok: false, error: "API route not found" });
