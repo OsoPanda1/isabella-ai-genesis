@@ -164,11 +164,11 @@ describe("TINA BookPI ledger + plugins", () => {
     expect(e1.previousHash).toBeNull();
     expect(e2.previousHash).toBe(e1.hash);
     expect(book.verifyChain()).toBe(true);
-    const tampered = book.list()[0] as TinaBookEvent;
+    const tampered = book.list()[0];
     tampered.timestamp = "2099-01-01T00:00:00.000Z";
     // The public list is a defensive copy; mutating it must not affect the ledger.
     expect(book.verifyChain()).toBe(true);
-    const internal = book.list()[0] as TinaBookEvent;
+    const internal = book.list()[0];
     expect(internal.timestamp).not.toBe("2099-01-01T00:00:00.000Z");
     book.list().length;
   });
