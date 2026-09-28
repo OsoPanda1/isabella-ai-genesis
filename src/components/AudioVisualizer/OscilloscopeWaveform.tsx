@@ -445,26 +445,41 @@ export const OscilloscopeWaveform: React.FC<OscilloscopeWaveformProps> = ({
     if (!context) return;
 
     let frameId = 0;
+    let resizeFrameId: number | null = null;
     let disposed = false;
     let width = DEFAULT_WIDTH;
     let logicalHeight = Math.max(20, height);
+    let pixelWidth = 0;
+    let pixelHeight = 0;
 
     const resize = () => {
+      resizeFrameId = null;
+      if (disposed) return;
       const rect = canvas.getBoundingClientRect();
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      width = Math.max(1, rect.width || DEFAULT_WIDTH);
-      logicalHeight = Math.max(20, height);
-      canvas.width = Math.floor(width * ratio);
-      canvas.height = Math.floor(logicalHeight * ratio);
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      const nextWidth = Math.max(1, rect.width || DEFAULT_WIDTH);
+      const nextHeight = Math.max(20, height);
+      const nextPixelWidth = Math.floor(nextWidth * ratio);
+      const nextPixelHeight = Math.floor(nextHeight * ratio);
+      if (nextPixelWidth === pixelWidth && nextPixelHeight === pixelHeight) return;
 
-      const runtime = runtimeRef.current;
-      runtime.particles = createParticles(width, logicalHeight);
+      width = nextWidth;
+      logicalHeight = nextHeight;
+      pixelWidth = nextPixelWidth;
+      pixelHeight = nextPixelHeight;
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      runtimeRef.current.particles = createParticles(width, logicalHeight);
     };
 
-    const observer = new ResizeObserver(resize);
-    observer.observe(canvas);
-    resize();
+    const queueResize = () => {
+      if (resizeFrameId !== null) return;
+      resizeFrameId = requestAnimationFrame(resize);
+    };
+    const observer = new ResizeObserver(queueResize);
+    observer.observe(canvas.parentElement ?? canvas);
+    queueResize();
 
     const render = () => {
       if (disposed) return;

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 
 export interface ComponentMetric {
   componentName: string;
@@ -19,6 +19,11 @@ class PerformanceRegistry {
   private componentMetrics = new Map<string, ComponentMetric>();
   private eventMetrics: EventMetric[] = [];
   private listeners = new Set<() => void>();
+  private revision = 0;
+
+  getRevision(): number {
+    return this.revision;
+  }
 
   getComponentMetrics(): ComponentMetric[] {
     return Array.from(this.componentMetrics.values());
@@ -79,6 +84,7 @@ class PerformanceRegistry {
   }
 
   private notify() {
+    this.revision += 1;
     this.listeners.forEach((l) => l());
   }
 }
@@ -90,7 +96,6 @@ export const perfRegistry = new PerformanceRegistry();
  * Records mount times, update counts, render speeds, and tracks asynchronous event latencies.
  */
 export function usePerformanceMonitor(componentName: string) {
-  const renderCountRef = useRef(0);
   const startTimeRef = useRef(performance.now());
 
   // Set the start of the render cycle
@@ -98,19 +103,8 @@ export function usePerformanceMonitor(componentName: string) {
 
   useEffect(() => {
     const duration = performance.now() - startTimeRef.current;
-    const isMount = renderCountRef.current === 0;
-    renderCountRef.current += 1;
-
     perfRegistry.recordRender(componentName, duration);
 
-    // Styled console logs following Isabella's aesthetic
-    const color = isMount ? "#00FFC2" : "#6E66F9";
-    console.log(
-      `%c[PERF] ${componentName} %c| ${isMount ? "MOUNT" : "RENDER #" + renderCountRef.current} | %c${duration.toFixed(2)}ms`,
-      `color: ${color}; font-weight: bold; font-family: monospace;`,
-      "color: #888888; font-family: monospace;",
-      "color: #FFF; font-weight: bold; font-family: monospace;",
-    );
   });
 
   const startTrack = useCallback((eventName: string) => {
@@ -118,12 +112,9 @@ export function usePerformanceMonitor(componentName: string) {
     return () => {
       const duration = performance.now() - start;
       perfRegistry.recordEvent(eventName, duration);
-      console.log(
-        `%c[PERF-EVENT] ${eventName} %c| DURATION | %c${duration.toFixed(2)}ms`,
-        "color: #FBBF24; font-weight: bold; font-family: monospace;",
-        "color: #888888; font-family: monospace;",
-        "color: #FFF; font-weight: bold; font-family: monospace;",
-      );
+      if (import.meta.env.DEV) {
+        console.debug(`[PERF-EVENT] ${eventName}: ${duration.toFixed(2)}ms`);
+      }
     };
   }, []);
 
@@ -136,15 +127,15 @@ export function usePerformanceMonitor(componentName: string) {
  * Custom hook to retrieve active performance metrics and subscribe to real-time telemetry updates.
  */
 export function usePerformanceStats() {
-  const [stats, setStats] = useState(() => perfRegistry.getComponentMetrics());
-  const [events, setEvents] = useState(() => perfRegistry.getEventMetrics());
+  const snapshot = useSyncExternalStore(
+    (listener) => perfRegistry.subscribe(listener),
+    () => perfRegistry.getRevision(),
+    () => 0,
+  );
 
-  useEffect(() => {
-    return perfRegistry.subscribe(() => {
-      setStats(perfRegistry.getComponentMetrics());
-      setEvents(perfRegistry.getEventMetrics());
-    });
-  }, []);
-
-  return { stats, events };
+  return {
+    stats: perfRegistry.getComponentMetrics(),
+    events: perfRegistry.getEventMetrics(),
+    revision: snapshot,
+  };
 }
