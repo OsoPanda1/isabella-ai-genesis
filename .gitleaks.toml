@@ -1,0 +1,21 @@
+title = "Isabella gitleaks policy"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documented examples, test fixtures, and imported read-only source trees"
+paths = [
+  '''^\.merge-sources/''',
+  '''^user_read_only_context/''',
+  '''^docs/_archive/''',
+  '''^docs/security/ISABELLA-API-KEYS\.md$''',
+  '''^tests?/.*''',
+  '''^test/.*''',
+  '''^contrib/jdr-generator/.*''',
+]
+regexes = [
+  '''isk_(live|stage|test)_01f3a9b7c2d1_<secret>''',
+  '''sk_test_(x|abc)''',
+  '''local-(dev|root)-only''',
+]
