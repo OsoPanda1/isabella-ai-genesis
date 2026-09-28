@@ -2495,6 +2495,57 @@
   font-family: var(--font-mono);
   letter-spacing: 0.06em;
 }
+
+/* Isabella focus shell: quieter surfaces, clearer hierarchy, less ornament. */
+.isabella-shell {
+  --isabella-bg: #090b0f;
+  --isabella-panel: rgba(17, 20, 25, 0.82);
+  --isabella-panel-strong: rgba(22, 26, 32, 0.92);
+  --isabella-line: rgba(255, 255, 255, 0.085);
+  --isabella-line-soft: rgba(255, 255, 255, 0.055);
+  --isabella-text: #f2f3f5;
+  --isabella-muted: #9a9fa9;
+  --isabella-accent: #b7d8c6;
+  background:
+    radial-gradient(ellipse 760px 500px at 52% -18%, rgba(105, 145, 126, 0.1), transparent 62%),
+    var(--isabella-bg) !important;
+}
+
+.isabella-shell .starfield,
+.isabella-shell [class*="starfield"] { opacity: 0.2; }
+.isabella-shell .isabella-sidebar {
+  width: min(17rem, 25vw);
+  border-color: var(--isabella-line-soft);
+  background: rgba(11, 13, 17, 0.78);
+  box-shadow: inset -1px 0 rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(24px);
+}
+.isabella-shell .isabella-workspace { background: transparent; }
+.isabella-shell .isabella-topbar {
+  min-height: 4.4rem;
+  border-color: var(--isabella-line-soft);
+  background: rgba(9, 11, 15, 0.74);
+}
+.isabella-shell .isabella-topbar h1 { color: var(--isabella-text); font-family: var(--font-sans); letter-spacing: -0.025em; text-transform: none; }
+.isabella-shell .isabella-topbar p { color: var(--isabella-muted); letter-spacing: 0.02em; }
+.isabella-shell .isabella-content { background: linear-gradient(180deg, rgba(255,255,255,0.012), transparent 25%); }
+.isabella-shell .isabella-chat-surface {
+  border-color: var(--isabella-line);
+  border-radius: 1.35rem;
+  background: linear-gradient(180deg, rgba(22, 26, 32, 0.68), rgba(12, 15, 19, 0.74));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24), inset 0 1px rgba(255, 255, 255, 0.035);
+}
+.isabella-shell .crystal-glow-electric,
+.isabella-shell .crystal-glow-crown,
+.isabella-shell .crystal-glow-emerald { box-shadow: none; }
+.isabella-shell .glass { border-color: var(--isabella-line); background-color: var(--isabella-panel); }
+.isabella-shell button { transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease; }
+.isabella-shell button:hover { transform: translateY(-1px); }
+
+@media (max-width: 820px) {
+  .isabella-shell .isabella-sidebar { width: 100%; height: auto; min-height: 4.5rem; }
+  .isabella-shell .isabella-content { padding: 0.75rem; }
+}
 .boot-fallback__action {
   display: inline-flex;
   align-items: center;
