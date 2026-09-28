@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "tanstack-start",
+  "framework": null,
   "buildCommand": "pnpm run build",
-  "outputDirectory": ".vercel/output",
   "installCommand": "pnpm install --frozen-lockfile",
+  "outputDirectory": ".vercel/output",
   "headers": [
     {
       "source": "/(.*)",

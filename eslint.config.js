@@ -11,6 +11,8 @@ export default tseslint.config(
   {
     ignores: [
       "dist",
+      ".merge-sources",
+      ".merge-sources/**/*",
       ".output",
       ".vercel",
       ".vinxi",
@@ -33,7 +35,7 @@ export default tseslint.config(
   firebaseRulesPlugin.configs["flat/recommended"],
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ["**/*.{ts,tsx}"],
+    files: ["src/**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,

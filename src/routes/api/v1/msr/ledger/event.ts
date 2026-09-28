@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/v1/msr/ledger/event")({
         const blockHash = createHash("sha3-512")
           .update(`${eventId}:${payloadHash}:${previousHash}`)
           .digest("hex");
-        let bookpiLogged = false;
+        let appendAccepted: boolean;
         try {
           const repo = createBookpiPostgresRepository();
           const r = await repo.append({
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/api/v1/msr/ledger/event")({
             tokens: 0,
             status: "settled",
           });
-          bookpiLogged = !!r.success;
+          appendAccepted = r.success === true;
         } catch (e) {
           console.error(
             `[msr:ledger:${eventId}] append falló`,
@@ -61,7 +61,7 @@ export const Route = createFileRoute("/api/v1/msr/ledger/event")({
             },
           );
         }
-        if (!bookpiLogged) {
+        if (!appendAccepted) {
           return new Response(
             JSON.stringify({
               schemaVersion: "v1",
@@ -106,7 +106,7 @@ export const Route = createFileRoute("/api/v1/msr/ledger/event")({
               signatureStatus: "NOT_VERIFIED",
               epistemicState: "E2",
               committedAt: new Date().toISOString(),
-              bookpiLogged,
+              bookpiLogged: appendAccepted,
             },
             error: null,
           }),

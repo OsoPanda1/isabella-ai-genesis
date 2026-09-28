@@ -168,3 +168,62 @@ export const KILL_SWITCH = {
   memory: createMemoryKillSwitchStore,
   postgres: createPostgresKillSwitchStore,
 };
+
+// Compatibility facade for the governed HTTP control plane. These functions are
+// intentionally process-local; durable capability shutdown remains fail-closed
+// through the stores above and can be wired by the production control plane.
+export interface KillSwitchEvent {
+  id: string;
+  trigger: string;
+  severity: string;
+  status: "active" | "resolved";
+  stepsCompleted: number;
+  createdAt: string;
+  resolvedAt?: string;
+  approvedBy?: string;
+}
+
+const compatibilityEvents = new Map<string, KillSwitchEvent>();
+
+export function activateKillSwitch(trigger: string, severity = "SEV-2"): KillSwitchEvent {
+  const id = `ks-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const event: KillSwitchEvent = {
+    id,
+    trigger: trigger.slice(0, 512),
+    severity: severity.slice(0, 32),
+    status: "active",
+    stepsCompleted: 0,
+    createdAt: new Date().toISOString(),
+  };
+  compatibilityEvents.set(id, event);
+  return event;
+}
+
+export function executeNextStep(eventId: string): KillSwitchEvent | null {
+  const event = compatibilityEvents.get(eventId);
+  if (!event || event.status !== "active") return null;
+  const updated = { ...event, stepsCompleted: event.stepsCompleted + 1 };
+  compatibilityEvents.set(eventId, updated);
+  return updated;
+}
+
+export function resolveKillSwitch(eventId: string, approvedBy: string): boolean {
+  const event = compatibilityEvents.get(eventId);
+  if (!event || event.status !== "active" || !approvedBy.trim()) return false;
+  compatibilityEvents.set(eventId, {
+    ...event,
+    status: "resolved",
+    approvedBy: approvedBy.slice(0, 256),
+    resolvedAt: new Date().toISOString(),
+  });
+  return true;
+}
+
+export function getKillSwitchStatus(): { active: boolean; events: number } {
+  const events = [...compatibilityEvents.values()];
+  return { active: events.some((event) => event.status === "active"), events: events.length };
+}
+
+export function getKillSwitchEvents(): KillSwitchEvent[] {
+  return [...compatibilityEvents.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}

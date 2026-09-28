@@ -240,6 +240,7 @@ export type EnvVarProvider =
   | "supabase"
   | "stripe"
   | "gemini"
+  | "mux"
   | "openai"
   | "redis"
   | "crown"
@@ -509,6 +510,25 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
     forbidden: [],
     provider: "self",
     criticality: "MEDIUM",
+  },
+  {
+    name: "MUX_TOKEN_ID",
+    visibility: "secret",
+    required: [],
+    forbidden: [],
+    provider: "mux",
+    criticality: "MEDIUM",
+    description: "Identificador de token Mux para operaciones server-side.",
+  },
+  {
+    name: "MUX_TOKEN_SECRET",
+    visibility: "secret",
+    required: [],
+    forbidden: [],
+    provider: "mux",
+    criticality: "HIGH",
+    rotation: "90d",
+    description: "Secreto de token Mux para operaciones server-side.",
   },
   {
     name: "MUX_INTRO_ASSET_ID",

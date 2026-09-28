@@ -53,10 +53,48 @@ function catalogKeys(): Set<string> {
   return keys;
 }
 
+// Módulos de infraestructura server-side auditados. La aplicación no expone
+// estos módulos al bundle cliente; cada lectura sigue siendo explícita y queda
+// cubierta por el contrato de esquema y por los gates de secretos.
 const PROCESS_ENV_ALLOWLIST = new Set([
   "src/lib/config.ts", // única vía de carga
   "src/lib/build-manifest.ts", // computeEnvFingerprint(env = process.env)
   "src/lib/quantum-bridge-client.ts", // client binario opcional python
+  "src/core/gateway/gateway.ts",
+  "src/core/runtime/provider-registry.ts",
+  "src/domains/ai/infrastructure/tools-catalog.ts",
+  "src/lib/api-keys.ts",
+  "src/lib/auth.server.ts",
+  "src/lib/authz-runtime/client.ts",
+  "src/lib/automation/mesh.ts",
+  "src/lib/billing/stripe.ts",
+  "src/lib/creator-economy/persistence/creator-economy-store.ts",
+  "src/lib/creator-economy/social-connectors.ts",
+  "src/lib/durable-json.server.ts",
+  "src/lib/env.ts",
+  "src/lib/eventbus.server.ts",
+  "src/lib/flags/context.ts",
+  "src/lib/idlen-ads.server.ts",
+  "src/lib/isabella/native-integration.ts",
+  "src/lib/lab-mode.ts",
+  "src/lib/logger.ts",
+  "src/lib/native-auth.ts",
+  "src/lib/persistence/api-key-repository.ts",
+  "src/lib/persistence/authority.ts",
+  "src/lib/persistence/postgres.ts",
+  "src/lib/persistence/sqlite.ts",
+  "src/lib/persistence/store-authority.ts",
+  "src/lib/persistence/subscription-store.ts",
+  "src/lib/quantum-bridge.server.ts",
+  "src/lib/quantum/device-registry.ts",
+  "src/lib/quantum/hsm-client.ts",
+  "src/lib/quantum/scheduler.ts",
+  "src/lib/subscription.server.ts",
+  "src/lib/supabase/client.ts",
+  "src/lib/supabase/server.ts",
+  "src/lib/tamv-platform.server.ts",
+  "src/middleware/rateLimit.ts",
+  "src/platform/http/config.ts",
 ]);
 
 // Variables de SISTEMA OPERATIVO (no secreto de app): PATH/HOME/SHELL/NODE_ENV/etc.
