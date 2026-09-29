@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import type { IsabellaPlanId } from "../subscription.server";
-import { setUserPlan, saveSubscriptionPlan } from "../subscription.server";
+import { saveSubscriptionPlan } from "../persistence/subscription-store";
 import { nodeRequire } from "../node-require";
 import { claimWebhookEvent, markWebhookFailed, markWebhookProcessed } from "../economic-events";
 import { createHash } from "node:crypto";
@@ -30,7 +30,10 @@ export function getStripe(): StripeClient {
   const secret = process.env.STRIPE_SECRET_KEY;
   if (!secret) return null;
   try {
-    const StripeModule = nodeRequire("stripe") as unknown as new (apiKey: string, opts?: Record<string, unknown>) => NonNullable<StripeClient>;
+    const StripeModule = nodeRequire("stripe") as unknown as new (
+      apiKey: string,
+      opts?: Record<string, unknown>,
+    ) => NonNullable<StripeClient>;
     stripeClient = new StripeModule(secret, { apiVersion: "2024-06-20" });
   } catch {
     stripeClient = null;
@@ -38,7 +41,9 @@ export function getStripe(): StripeClient {
   return stripeClient;
 }
 
-export function stripeEnabled(): boolean { return Boolean(process.env.STRIPE_SECRET_KEY && getStripe()); }
+export function stripeEnabled(): boolean {
+  return Boolean(process.env.STRIPE_SECRET_KEY && getStripe());
+}
 
 function priceFromEnv(planId: keyof typeof STRIPE_CATALOG): PriceObject | null {
   const client = getStripe();
@@ -60,9 +65,13 @@ export async function ensureStripeCatalog(): Promise<boolean> {
       let product = products.data.find((p) => p.name === spec.label) ?? null;
       if (!product) product = await client.products.create({ name: spec.label, active: true });
       const prices = await client.prices.list({ product: product.id, active: true, limit: 100 });
-      let price = prices.data.find(
-        (p) => p.unit_amount === spec.amountCents && p.currency === "usd" && p.recurring?.interval === "month",
-      ) ?? null;
+      let price =
+        prices.data.find(
+          (p) =>
+            p.unit_amount === spec.amountCents &&
+            p.currency === "usd" &&
+            p.recurring?.interval === "month",
+        ) ?? null;
       if (!price) {
         price = await client.prices.create({
           product: product.id,
@@ -92,7 +101,10 @@ export async function createStripeCheckoutSession(
   const price = priceFromEnv(planId as keyof typeof STRIPE_CATALOG);
   if (!price) return null;
 
-  const base = process.env.BILLING_CHECKOUT_BASE_URL || process.env.VITE_PUBLIC_APP_URL || "http://localhost:3000";
+  const base =
+    process.env.BILLING_CHECKOUT_BASE_URL ||
+    process.env.VITE_PUBLIC_APP_URL ||
+    "http://localhost:3000";
   const stableIdempotencyKey =
     idempotencyKey?.trim() ||
     `checkout:${createHash("sha256").update(`${clientReferenceId}:${planId}`).digest("hex")}`;
@@ -137,7 +149,9 @@ export async function handleStripeWebhook(
     provider: "stripe",
     providerEventId: event.id,
     eventType: event.type,
-    payloadHash: createHash("sha256").update(Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(rawBody)).digest("hex"),
+    payloadHash: createHash("sha256")
+      .update(Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(rawBody))
+      .digest("hex"),
   });
   if (claim.status === "duplicate" || claim.status === "in_progress") return { received: true };
   if (claim.status === "error") return { received: false, error: "webhook_claim_failed" };
@@ -145,14 +159,19 @@ export async function handleStripeWebhook(
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
-      const planId = (session.metadata?.planId ?? session.client_reference_id) as IsabellaPlanId | undefined;
-      const userId = (session.client_reference_id ?? session.metadata?.userId) as string | undefined;
+      const planId =
+        (session.metadata?.planId ?? session.client_reference_id) as IsabellaPlanId | undefined;
+      const userId =
+        (session.client_reference_id ?? session.metadata?.userId) as string | undefined;
       if (
         userId &&
         planId &&
-        (planId === "plus" || planId === "premium" || planId === "vip" || planId === "enterprise")
+        (planId === "plus" ||
+          planId === "premium" ||
+          planId === "vip" ||
+          planId === "enterprise")
       ) {
-        setUserPlan(userId, planId);\n        await saveSubscriptionPlan(userId, planId);
+        await saveSubscriptionPlan(userId, planId);
       }
     }
     await markWebhookProcessed(claim.id);
