@@ -8,7 +8,7 @@
 - Incluye `SHA`, `reproducción`, `impacto`, `mitigación propuesta`.
 
 ## Secretos
-- `CROWN_POLICY_SIGNING_KEY` rotado `2026-09-23` a `9183...` (64 hex) tras exposición `C869...` en `README` `11fdb69`. Historial considerado comprometido. `Vercel Secret Manager` es autoridad. `test/security/secret-exposure.test.ts` verde.
+- `CROWN_POLICY_SIGNING_KEY` fue rotado después de un incidente histórico documentado. El valor comprometido no se reproduce en documentación ni código; el historial antiguo permanece tratado como comprometido hasta una eventual migración de historial coordinada. `Vercel Secret Manager` es la autoridad de secretos.
 
 ## Gates
 - `gitleaks` + `CodeQL` en PRs (`secret-scan.yml`, `sast.yml`)
@@ -16,4 +16,4 @@
 - `SLSA` provenance pendiente
 
 ## Estado
-Ver `production-capabilities.json` y `docs/evidence/c70ea56.json` — `100%` implementación verificable en `2ab7a0b`, `62%` despliegue hasta `Neon/Stripe/HSM` vivo.
+La preparación de producción se declara únicamente cuando exista evidencia ejecutable del commit, del entorno objetivo, de seguridad, de datos y de recuperación. Este documento no contiene porcentajes de certificación.
