@@ -111,6 +111,7 @@ describe("production authority (6 autoridades)", () => {
     vi.stubEnv("AEGIS_AUDIT_SECRET", "0123456789abcdef0123456789abcdef");
     vi.stubEnv("BOOKPI_SIGNING_KEY", "0123456789abcdef0123456789abcdef");
     vi.stubEnv("BOOKPI_SIGNATURE_ALGORITHM", "ECDSA-P384");
+    vi.stubEnv("FEDERATION_SIGNING_KEYS_JSON", '{"F1":"k","F2":"k","F3":"k","F4":"k"}');
     vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_1234567890abcdef");
     vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test_1234567890");
     vi.stubEnv("PROVISION_OWNER_TOKEN", "provision-owner-test-token");
