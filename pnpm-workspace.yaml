@@ -1,9 +1,0 @@
-onlyBuiltDependencies:
-  - "@firebase/util"
-  - "@prisma/client"
-  - "@prisma/engines"
-  - "braintrust"
-  - "core-js"
-  - "esbuild"
-  - "prisma"
-  - "protobufjs"
