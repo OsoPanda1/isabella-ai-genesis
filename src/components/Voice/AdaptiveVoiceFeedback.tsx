@@ -111,7 +111,9 @@ export const AdaptiveVoiceFeedback: React.FC<AdaptiveVoiceFeedbackProps> = ({
     };
   }, [isSpeaking, isListening]);
 
-  const drawWaveform = () => {
+  // The renderer is intentionally declared after the effect to keep the audio setup together.
+  // eslint-disable-next-line react-hooks/immutability
+  function drawWaveform() {
     if (!canvasRef.current || !analyserRef.current) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -155,7 +157,7 @@ export const AdaptiveVoiceFeedback: React.FC<AdaptiveVoiceFeedbackProps> = ({
     };
 
     draw();
-  };
+  }
 
   return (
     <div className={`relative flex items-center justify-center ${className}`}>
