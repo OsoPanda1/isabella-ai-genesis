@@ -7,7 +7,7 @@ import {
   type NavTabId,
 } from "@/components/isabella/CrystalNavigation";
 
-import CinematicIntro from "@/components/isabella/CinematicIntro";
+import { IsabellaCinematicExperience } from "@/components/Welcome/IsabellaCinematicExperience";
 const CommandLine = lazy(() =>
   import("@/components/isabella/CommandLine").then((m) => ({
     default: m.CommandLine,
@@ -117,7 +117,12 @@ function IndexClient() {
   if (!introDone) {
     return (
       <Suspense fallback={<ClientFallback label="Inicializando experiencia Isabella…" />}>
-        <CinematicIntro onComplete={handleIntroComplete} />
+        <IsabellaCinematicExperience
+          isOpen
+          enableCinematic
+          onEnter={handleIntroComplete}
+          onClose={handleIntroComplete}
+        />
       </Suspense>
     );
   }

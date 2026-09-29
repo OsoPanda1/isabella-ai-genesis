@@ -6,6 +6,7 @@
  * Los paneles se despliegan desde sus lados correspondientes.
  */
 
+import { Search, UserRound } from "lucide-react";
 import type { ReactNode } from "react";
 import { NavigationStateProvider } from "./NavigationStateProvider";
 import { NavigationTrigger } from "./NavigationTrigger";
@@ -32,31 +33,32 @@ export function NavigationShell({
     <NavigationStateProvider>
       <div className="nav-shell">
         {/* Top bar */}
-        <header className="nav-topbar">
-          <div className="nav-topbar-left">
-            <span className="nav-topbar-logo">◉</span>
-            <span className="nav-topbar-brand">Isabella</span>
-            <span className="nav-topbar-separator">·</span>
-            <span className="nav-topbar-context">
-              {projectName} · {territory}
+        <header className="sticky top-0 z-30 mx-auto flex w-full max-w-[1440px] flex-wrap items-center justify-between gap-4 border-b border-white/10 bg-background/80 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-10">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-amber-200/25 bg-amber-100/10 text-lg text-amber-100 shadow-[0_0_30px_rgba(245,158,11,0.15)]" aria-hidden="true">
+              ◉
             </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold tracking-[0.16em] text-foreground uppercase">Isabella</p>
+              <p className="truncate text-[11px] tracking-wide text-muted-foreground">{projectName} · {territory}</p>
+            </div>
           </div>
 
-          <div className="nav-topbar-center">
-            <button className="nav-search-trigger" aria-label="Buscar">
-              <span className="nav-search-icon">⌕</span>
-              <span className="nav-search-label">Buscar</span>
-            </button>
-          </div>
+          <button className="group order-3 flex w-full items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 text-left text-sm text-muted-foreground transition hover:border-amber-200/30 hover:bg-white/[0.08] hover:text-foreground sm:order-none sm:max-w-xs" aria-label="Buscar">
+            <Search className="size-4 shrink-0 transition group-hover:text-amber-100" aria-hidden="true" />
+            <span className="flex-1">Buscar en Isabella</span>
+            <kbd className="hidden rounded border border-white/10 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:inline">⌘K</kbd>
+          </button>
 
-          <div className="nav-topbar-right">
-            <span className="nav-topbar-status">
-              <span className="status-dot active" />
+          <div className="flex items-center gap-3">
+            <span className="hidden items-center gap-2 rounded-full border border-emerald-300/15 bg-emerald-300/5 px-3 py-1.5 text-xs text-emerald-100 sm:flex">
+              <span className="size-1.5 rounded-full bg-emerald-300 shadow-[0_0_10px_rgba(110,231,183,0.9)]" aria-hidden="true" />
               Activo
             </span>
-            <button className="nav-topbar-user" aria-label="Perfil de usuario">
-              <span className="user-avatar">{userName.charAt(0)}</span>
-              <span className="user-name">{userName}</span>
+            <button className="group flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] p-1.5 pr-3 transition hover:border-amber-200/30 hover:bg-white/[0.08]" aria-label={`Perfil de usuario: ${userName}`}>
+              <span className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-100 to-amber-500 text-sm font-semibold text-stone-950">{userName.charAt(0).toUpperCase()}</span>
+              <span className="hidden text-sm text-foreground sm:inline">{userName}</span>
+              <UserRound className="hidden size-3.5 text-muted-foreground transition group-hover:text-amber-100 sm:block" aria-hidden="true" />
             </button>
           </div>
         </header>

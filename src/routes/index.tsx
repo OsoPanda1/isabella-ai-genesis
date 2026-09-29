@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Suspense, useEffect, useState } from "react";
 import { EmergencyModeView } from "@/components/isabella/EmergencyModeView";
 import IsabellaClientApp from "@/components/isabella/IsabellaClientApp";
+import { CrownProvider } from "@/context/CrownContext";
 
 const TITLE = "Isabella Villaseñor AI — FGAIS";
 const DESC =
@@ -118,7 +119,9 @@ export function Index() {
 
   return (
     <Suspense fallback={<LandingFallback />}>
-      <IsabellaClientApp />
+      <CrownProvider>
+        <IsabellaClientApp />
+      </CrownProvider>
     </Suspense>
   );
 }
