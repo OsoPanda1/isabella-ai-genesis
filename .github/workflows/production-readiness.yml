@@ -78,6 +78,7 @@ jobs:
 
   # =========================================================================
   # JOB 2: Rust Core Engine (Wasmtime + LITLE Engine)
+
   # =========================================================================
   rust-core:
     name: Rust Core (Wasmtime + LITLE Engine)
@@ -147,7 +148,10 @@ jobs:
           fetch-depth: 0
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
 
       - name: Setup Node.js ${{ env.DEFAULT_NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -332,6 +336,9 @@ jobs:
       name: production
       url: https://isabella-mexa.vercel.app
     steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
       - name: Aggregate readiness checks
         run: |
           echo "Aggregating readiness signals..."
