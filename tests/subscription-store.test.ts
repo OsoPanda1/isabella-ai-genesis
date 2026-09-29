@@ -41,34 +41,34 @@ describe("subscription store semantics", () => {
 });
 
 describe("engine persists consumption", () => {
-  it("consumeUsage changes survive re-reads", () => {
-    const before = getUsage("persistence-user");
+  it("consumeUsage changes survive re-reads", async () => {
+    const before = await getUsage("persistence-user");
     expect(before.messages).toBe(0);
-    consumeUsage("persistence-user", "chat", 2);
-    expect(getUsage("persistence-user").messages).toBe(2);
-    consumeUsage("persistence-user", "chat", 3);
-    expect(getUsage("persistence-user").messages).toBe(5);
+    await consumeUsage("persistence-user", "chat", 2);
+    expect((await getUsage("persistence-user")).messages).toBe(2);
+    await consumeUsage("persistence-user", "chat", 3);
+    expect((await getUsage("persistence-user")).messages).toBe(5);
   });
 
-  it("evaluateUsage never mutates stored state", () => {
-    consumeUsage("eval-user", "chat", 2);
-    evaluateUsage("eval-user", "chat", 1000);
-    expect(getUsage("eval-user").messages).toBe(2);
+  it("evaluateUsage never mutates stored state", async () => {
+    await consumeUsage("eval-user", "chat", 2);
+    await evaluateUsage("eval-user", "chat", 1000);
+    expect((await getUsage("eval-user")).messages).toBe(2);
   });
 
-  it("plan upgrades apply immediately across reads", () => {
-    expect(getUserPlan("upgrade-user").id).toBe("free");
-    setUserPlan("upgrade-user", "vip");
-    expect(getUserPlan("upgrade-user").id).toBe("vip");
+  it("plan upgrades apply immediately across reads", async () => {
+    expect((await import("../src/lib/subscription.server")).getUserPlanAsync("upgrade-user")).resolves.toMatchObject({ id: "free" });
+    await import("../src/lib/persistence/subscription-store").then(({ saveSubscriptionPlan }) => saveSubscriptionPlan("upgrade-user", "vip"));
+    await expect((await import("../src/lib/subscription.server")).getUserPlanAsync("upgrade-user")).resolves.toMatchObject({ id: "vip" });
   });
 
-  it("quota exhaustion blocks with an upgrade signal", () => {
+  it("quota exhaustion blocks with an upgrade signal", async () => {
     const user = "quota-bound-user";
-    let decision = consumeUsage(user, "chat", 30, "free");
+    let decision = await consumeUsage(user, "chat", 30, "free");
     expect(decision.allowed).toBe(false);
     expect(decision.upgradeRequired).toBe(true);
-    decision = consumeUsage(user, "chat", 25, "free");
+    decision = await consumeUsage(user, "chat", 25, "free");
     expect(decision.allowed).toBe(true);
-    expect(getUsage(user).messages).toBe(25);
+    expect((await getUsage(user)).messages).toBe(25);
   });
 });
