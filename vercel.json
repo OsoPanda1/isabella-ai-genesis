@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "pnpm run build",
+  "buildCommand": "NITRO_PRESET=vercel pnpm run build",
   "installCommand": "pnpm install --frozen-lockfile",
-  "outputDirectory": ".output",
+  "outputDirectory": ".vercel/output",
   "headers": [
     {
       "source": "/(.*)",
