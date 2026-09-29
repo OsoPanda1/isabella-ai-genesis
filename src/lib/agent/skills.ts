@@ -62,7 +62,7 @@ export interface SkillWithStatus extends SkillDefinition {
 const STORAGE_KEY = "isabella.skills.v1";
 
 function generateId(): string {
-  return `skill-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  return `skill-${crypto.randomUUID()}`;
 }
 
 function nowIso(): string {
