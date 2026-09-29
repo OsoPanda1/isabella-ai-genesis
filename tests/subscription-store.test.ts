@@ -6,8 +6,8 @@
  * quotas survive restarts instead of resetting on redeploy.
  */
 import { describe, it, expect, beforeEach } from "vitest";
-import { getSubscriptionStore, resetSubscriptionStore } from "../src/lib/persistence/subscription-store";
-import { consumeUsage, evaluateUsage, getUserPlan, getUsage, setUserPlan } from "../src/lib/subscription.server";
+import { getSubscriptionStore, resetSubscriptionStore, saveSubscriptionPlan } from "../src/lib/persistence/subscription-store";
+import { consumeUsage, evaluateUsage, getUserPlanAsync, getUsage } from "../src/lib/subscription.server";
 
 beforeEach(() => {
   process.env.ISABELLA_PERSISTENCE = "memory";
@@ -57,9 +57,9 @@ describe("engine persists consumption", () => {
   });
 
   it("plan upgrades apply immediately across reads", async () => {
-    expect((await import("../src/lib/subscription.server")).getUserPlanAsync("upgrade-user")).resolves.toMatchObject({ id: "free" });
-    await import("../src/lib/persistence/subscription-store").then(({ saveSubscriptionPlan }) => saveSubscriptionPlan("upgrade-user", "vip"));
-    await expect((await import("../src/lib/subscription.server")).getUserPlanAsync("upgrade-user")).resolves.toMatchObject({ id: "vip" });
+    await expect(getUserPlanAsync("upgrade-user")).resolves.toMatchObject({ id: "free" });
+    await saveSubscriptionPlan("upgrade-user", "vip");
+    await expect(getUserPlanAsync("upgrade-user")).resolves.toMatchObject({ id: "vip" });
   });
 
   it("quota exhaustion blocks with an upgrade signal", async () => {
