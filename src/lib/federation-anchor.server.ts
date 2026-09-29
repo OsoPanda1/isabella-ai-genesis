@@ -6,22 +6,13 @@
  * el servicio emite federations.anchored y federations.consistency_checked.
  */
 
-import { createHash, createHmac } from "node:crypto";
+import { createHash, createHmac, randomUUID } from "node:crypto";
+import { config } from "./config";
 import { publish } from "./eventbus.server";
 import { metrics, recordAudit } from "./atlas-kernel.server";
 
 export const FEDERATIONS = ["F1", "F2", "F3", "F4", "F5", "F6", "F7"] as const;
 export type FederationId = (typeof FEDERATIONS)[number];
-
-const KEYS: Record<FederationId, string> = {
-  F1: "atlas-fed-key-identidad",
-  F2: "atlas-fed-key-conocimiento",
-  F3: "atlas-fed-key-publicacion",
-  F4: "atlas-fed-key-infraestructura",
-  F5: "atlas-fed-key-seguridad",
-  F6: "atlas-fed-key-observabilidad",
-  F7: "atlas-fed-key-ia",
-};
 
 interface AnchorRecord {
   anchor_id: string;
@@ -67,15 +58,22 @@ export async function anchorDocument(input: {
   const ts = new Date().toISOString();
   const signatures: AnchorRecord["signatures"] = [];
 
-  // Simulated availability: 6/7 federations sign by default, F5 fails 15% of the time
+  const rawKeys = config().FEDERATION_SIGNING_KEYS_JSON;
+  if (!rawKeys) throw new Error("FEDERATION_SIGNING_KEYS_JSON is required for federation anchoring");
+  let keys: Partial<Record<FederationId, string>>;
+  try {
+    keys = JSON.parse(rawKeys) as Partial<Record<FederationId, string>>;
+  } catch {
+    throw new Error("FEDERATION_SIGNING_KEYS_JSON must be valid JSON");
+  }
   for (const fed of FEDERATIONS) {
-    const available = fed === "F5" ? Math.random() > 0.15 : Math.random() > 0.03;
-    if (!available) continue;
-    const sig = createHmac("sha256", KEYS[fed]).update(input.hash).digest("hex");
+    const key = keys[fed];
+    if (!key) throw new Error(`Missing signing key for ${fed}`);
+    const sig = createHmac("sha256", key).update(input.hash).digest("hex");
     signatures.push({
       federation_id: fed,
       hash: input.hash,
-      signature: `ed25519-sim:${sig.slice(0, 32)}`,
+      signature: `hmac-sha256:${sig}`,
       timestamp: ts,
     });
   }
