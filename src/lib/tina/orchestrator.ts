@@ -11,6 +11,18 @@ import { normalizeComplexity, type TinaComplexityScore, type TinaRoute } from ".
 import { buildTinaCacheKeySync, type TinaCacheInput } from "./cache";
 import { ISABELLA_TINA_MEMBER, TINA_CATEGORY_ID } from "./category";
 
+export interface TinaToolCapability {
+  token: string;
+  toolId: string;
+  expiresAt: number;
+  scopes: string[];
+}
+
+export interface TinaToolAdapter {
+  toolId: string;
+  execute: (input: { text: string; tenantId: string; principalId: string }) => Promise<unknown>;
+}
+
 export interface TinaExecuteInput {
   text: string;
   complexity: Partial<TinaComplexityScore>;
@@ -69,6 +81,9 @@ export class TinaOrchestrator {
   }
 
   async execute(input: TinaExecuteInput): Promise<TinaExecuteResult> {
+    if (input.adapter && (!input.capability || input.capability.toolId !== input.adapter.toolId || input.capability.expiresAt <= Date.now() || !input.capability.scopes.includes("tool:execute"))) {
+      return { status: "blocked_or_review", route: routeTina(normalizeComplexity(input.complexity)), category: TINA_CATEGORY_ID, member: ISABELLA_TINA_MEMBER.systemId, execution: { executed: false, reason: "ETHICAL_BLOCK", detail: "Capability token ausente, expirado o sin scope tool:execute." } };
+    }
     const complexity = normalizeComplexity(input.complexity);
     const route = routeTina(complexity);
 
