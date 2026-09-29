@@ -48,7 +48,9 @@ const namespaces: DaoNamespace[] = [];
 const proposals: DaoProposal[] = [];
 const voteLog: DaoVote[] = [];
 
-function uid(_seed: string): string {\n  return randomUUID().replaceAll("-", "").slice(0, 16);\n}
+function uid(_seed: string): string {
+  return randomUUID().replaceAll("-", "").slice(0, 16);
+}
 
 // Seed canonical namespaces
 const SEED_NS: Omit<DaoNamespace, "id" | "createdAt">[] = [
