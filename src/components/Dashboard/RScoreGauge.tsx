@@ -4,8 +4,6 @@ import { Activity } from "lucide-react";
 export const RScoreGauge: React.FC = () => {
   const R: number | null = null;
 
-  const R = 0.25 * params.C + 0.25 * params.S + 0.2 * params.F + 0.15 * params.P + 0.15 * params.U;
-
   const mode = "UNVERIFIED (sin telemetría)";
   const color = "text-slate-400";
   const strokeColor = "#64748b";
