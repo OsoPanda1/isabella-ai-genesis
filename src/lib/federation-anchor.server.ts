@@ -81,9 +81,7 @@ export async function anchorDocument(input: {
   const required = 4;
   const root = merkleRoot(signatures.map((s) => s.signature));
   const anchor: AnchorRecord = {
-    anchor_id: `ANCH-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1e6)
-      .toString(36)
-      .toUpperCase()}`,
+    anchor_id: `ANCH-${randomUUID()}`,
     document_uid: input.document_uid,
     merkle_root: root,
     signatures,
