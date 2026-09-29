@@ -1022,10 +1022,11 @@ export async function handleIsabellaChat(
           .join(",")}`,
       );
     }
-    return sseFromText(
-      localScan.verdict === "deny" ? OUTPUT_GATE_REFUSAL : fallback.answer,
-      headers,
-    );
+    const degradedAnswer =
+      localScan.verdict === "deny"
+        ? OUTPUT_GATE_REFUSAL
+        : `[MODO DEGRADADO — SIN PROVEEDOR COGNITIVO EXTERNO]\n\n${fallback.answer}`;
+    return sseFromText(degradedAnswer, headers);
   } catch (fallbackError) {
     logError(
       `[ISABELLA_SOVEREIGN_FALLBACK] trace=${context.traceId} error=${fallbackError instanceof Error ? fallbackError.message : "unknown"}`,
