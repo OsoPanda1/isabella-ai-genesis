@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: OWASP ZAP baseline scan
-        uses: zaproxy/action-baseline@4a8b8f4f0a0c4d0a4f5e6b5c4e8f0d5e2c1b9a7f
+        uses: zaproxy/action-baseline@8e809c982d8155eda2594e5732ae1b580ed276f9
         with:
           target: ${{ vars.STAGING_URL }}
           fail_action: true
