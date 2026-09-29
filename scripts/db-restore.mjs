@@ -11,10 +11,11 @@
  *  - rollback completo ante cualquier error.
  */
 
-import { readFileSync } from "node:fs";
+import { chmodSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { SNAPSHOT_TABLES, verifySnapshot } from "./db-snapshot-lib.mjs";
+import { decryptBackup, isEncryptedBackup } from "./db-backup-crypto.mjs";
 
 const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 

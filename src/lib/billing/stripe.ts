@@ -1,20 +1,9 @@
-/* ============================================================================
- * Isabella Stripe Billing Gateway
- *
- * Integración real con la API de Stripe Checkout (no mock). El catálogo se
- * sincroniza desde el arranque: crea/recupera los productos y sus precios de
- * suscripción mensual, de modo que NO hace falta poblar STRIPE_PRICE_* a mano.
- *
- * Precios objetivo (25% por debajo del promedio de mercado, USD/mes):
- *   Plus $15.00 · Premium $22.49 · VIP $37.49 · Enterprise $112.50
- *
- * El pago se procesa por Stripe (Checkout Session) y el webhook aplica el plan
- * con setUserPlan tras checkout.session.completed.
- * ============================================================================ */
 import type Stripe from "stripe";
 import type { IsabellaPlanId } from "../subscription.server";
-import { setUserPlan } from "../subscription.server";
+import { saveSubscriptionPlan } from "../persistence/subscription-store";
 import { nodeRequire } from "../node-require";
+import { claimWebhookEvent, markWebhookFailed, markWebhookProcessed } from "../economic-events";
+import { createHash } from "node:crypto";
 
 type StripeClient = Stripe | null;
 type PriceObject = Stripe.Price;
@@ -25,20 +14,14 @@ export interface BillingAmount {
   envVar: string;
 }
 
-/** Catálogo canónico: montos en centavos (USD), 25% bajo promedio de mercado. */
 export const STRIPE_CATALOG: Record<"plus" | "premium" | "vip" | "enterprise", BillingAmount> = {
   plus: { label: "Isabella Plus", amountCents: 1500, envVar: "STRIPE_PRICE_PLUS" },
   premium: { label: "Isabella Premium", amountCents: 2249, envVar: "STRIPE_PRICE_PREMIUM" },
   vip: { label: "Isabella VIP", amountCents: 3749, envVar: "STRIPE_PRICE_VIP" },
-  enterprise: {
-    label: "Isabella Enterprise",
-    amountCents: 11250,
-    envVar: "STRIPE_PRICE_ENTERPRISE",
-  },
+  enterprise: { label: "Isabella Enterprise", amountCents: 11250, envVar: "STRIPE_PRICE_ENTERPRISE" },
 };
 
 const PAID_PLANS: Array<keyof typeof STRIPE_CATALOG> = ["plus", "premium", "vip", "enterprise"];
-
 let stripeClient: StripeClient = null;
 let catalogReady = false;
 
@@ -66,39 +49,28 @@ function priceFromEnv(planId: keyof typeof STRIPE_CATALOG): PriceObject | null {
   const client = getStripe();
   if (!client) return null;
   const priceId = process.env[STRIPE_CATALOG[planId].envVar];
-  if (!priceId) return null;
-  return { id: priceId } as PriceObject;
+  return priceId ? ({ id: priceId } as PriceObject) : null;
 }
 
-/**
- * Crea/recupera el producto y su precio mensual para cada plan. Sincroniza el
- * monto objetivo y persiste los IDs en process.env[STRIPE_PRICE_*] para que el
- * resto del runtime los pueda leer. Idempotente.
- */
 export async function ensureStripeCatalog(): Promise<boolean> {
   const client = getStripe();
   if (!client) return false;
   if (catalogReady) return true;
 
+  let allReady = true;
   for (const planId of PAID_PLANS) {
     const spec = STRIPE_CATALOG[planId];
     try {
-      // Producto activo por etiqueta estable (evita duplicados entre arranques).
-      const products = await client.products.list({
-        active: true,
-        limit: 100,
-      });
+      const products = await client.products.list({ active: true, limit: 100 });
       let product = products.data.find((p) => p.name === spec.label) ?? null;
-      if (!product) {
-        product = await client.products.create({ name: spec.label, active: true });
-      }
-
-      // Precio mensual recurrente; si existe uno con el monto correcto lo
-      // reutilizamos, si no creamos uno nuevo.
+      if (!product) product = await client.products.create({ name: spec.label, active: true });
       const prices = await client.prices.list({ product: product.id, active: true, limit: 100 });
       let price =
         prices.data.find(
-          (p) => p.unit_amount === spec.amountCents && p.recurring?.interval === "month",
+          (p) =>
+            p.unit_amount === spec.amountCents &&
+            p.currency === "usd" &&
+            p.recurring?.interval === "month",
         ) ?? null;
       if (!price) {
         price = await client.prices.create({
@@ -109,28 +81,23 @@ export async function ensureStripeCatalog(): Promise<boolean> {
         });
       }
       process.env[spec.envVar] = price.id;
-    } catch (err) {
-      // Catálogo parcial no debe tumbar el arranque; se reintenta en runtime.
-
-      console.warn(`[stripe] catalog sync failed for ${planId}`, err);
+    } catch {
+      allReady = false;
     }
   }
 
-  catalogReady = true;
-  return true;
+  catalogReady = allReady;
+  return allReady;
 }
 
-/** Crea una Checkout Session de Stripe para el plan solicitado. */
 export async function createStripeCheckoutSession(
   planId: IsabellaPlanId,
   clientReferenceId: string,
+  idempotencyKey?: string,
 ): Promise<{ url: string } | null> {
   const client = getStripe();
-  if (!client) return null;
-  if (planId === "free" || planId === "custom") return null;
-  if (!(planId in STRIPE_CATALOG)) return null;
-
-  await ensureStripeCatalog();
+  if (!client || planId === "free" || planId === "custom" || !(planId in STRIPE_CATALOG)) return null;
+  if (!(await ensureStripeCatalog())) return null;
   const price = priceFromEnv(planId as keyof typeof STRIPE_CATALOG);
   if (!price) return null;
 
@@ -138,28 +105,30 @@ export async function createStripeCheckoutSession(
     process.env.BILLING_CHECKOUT_BASE_URL ||
     process.env.VITE_PUBLIC_APP_URL ||
     "http://localhost:3000";
+  const stableIdempotencyKey =
+    idempotencyKey?.trim() ||
+    `checkout:${createHash("sha256").update(`${clientReferenceId}:${planId}`).digest("hex")}`;
   try {
-    const session = await client.checkout.sessions.create({
-      mode: "subscription",
-      line_items: [{ price: price.id, quantity: 1 }],
-      client_reference_id: clientReferenceId,
-      metadata: { planId, userId: clientReferenceId },
-      success_url: `${base}/billing/result?session_id={CHECKOUT_SESSION_ID}&status=success`,
-      cancel_url: `${base}/billing/result?status=cancelled`,
-      allow_promotion_codes: true,
-      billing_address_collection: "auto",
-      payment_method_collection: "if_required",
-    });
+    const session = await client.checkout.sessions.create(
+      {
+        mode: "subscription",
+        line_items: [{ price: price.id, quantity: 1 }],
+        client_reference_id: clientReferenceId,
+        metadata: { planId, userId: clientReferenceId },
+        success_url: `${base}/billing/result?session_id={CHECKOUT_SESSION_ID}&status=success`,
+        cancel_url: `${base}/billing/result?status=cancelled`,
+        allow_promotion_codes: true,
+        billing_address_collection: "auto",
+        payment_method_collection: "if_required",
+      },
+      { idempotencyKey: stableIdempotencyKey },
+    );
     return session.url ? { url: session.url } : null;
   } catch {
     return null;
   }
 }
 
-/**
- * Verifica y procesa un evento de webhook de Stripe.
- * Aplica el plan tras checkout.session.completed.
- */
 export async function handleStripeWebhook(
   rawBody: string | Buffer,
   signature: string,
@@ -172,25 +141,43 @@ export async function handleStripeWebhook(
   let event: Stripe.Event;
   try {
     event = client.webhooks.constructEvent(rawBody, signature, webhookSecret);
-  } catch (err) {
-    return {
-      received: false,
-      error: `webhook_signature_invalid: ${err instanceof Error ? err.message : String(err)}`,
-    };
+  } catch {
+    return { received: false, error: "webhook_signature_invalid" };
   }
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
-    const planId = (session.metadata?.planId ?? session.client_reference_id) as
-      IsabellaPlanId | undefined;
-    const userId = (session.client_reference_id ?? session.metadata?.userId) as string | undefined;
-    if (
-      userId &&
-      planId &&
-      (planId === "plus" || planId === "premium" || planId === "vip" || planId === "enterprise")
-    ) {
-      setUserPlan(userId, planId);
+  const claim = await claimWebhookEvent({
+    provider: "stripe",
+    providerEventId: event.id,
+    eventType: event.type,
+    payloadHash: createHash("sha256")
+      .update(Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(rawBody))
+      .digest("hex"),
+  });
+  if (claim.status === "duplicate" || claim.status === "in_progress") return { received: true };
+  if (claim.status === "error") return { received: false, error: "webhook_claim_failed" };
+
+  try {
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const planId =
+        (session.metadata?.planId ?? session.client_reference_id) as IsabellaPlanId | undefined;
+      const userId =
+        (session.client_reference_id ?? session.metadata?.userId) as string | undefined;
+      if (
+        userId &&
+        planId &&
+        (planId === "plus" ||
+          planId === "premium" ||
+          planId === "vip" ||
+          planId === "enterprise")
+      ) {
+        await saveSubscriptionPlan(userId, planId);
+      }
     }
+    await markWebhookProcessed(claim.id);
+    return { received: true };
+  } catch {
+    await markWebhookFailed(claim.id, "stripe_webhook_processing_failed").catch(() => undefined);
+    return { received: false, error: "webhook_processing_failed" };
   }
-  return { received: true };
 }
