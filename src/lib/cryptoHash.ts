@@ -25,7 +25,7 @@ export async function createCrystalsLatamvBlock(
 ): Promise<CrystalsLatamvChain> {
   const previousHash = previousBlock?.blockHash || "GENESIS_CRYSTALS_LATAMV";
   const chainDepth = (previousBlock?.chainDepth || 0) + 1;
-  const nonce = Math.floor(Math.random() * 1_000_000_000);
+  const nonceBytes = new Uint32Array(1);\n  crypto.getRandomValues(nonceBytes);\n  const nonce = nonceBytes[0] % 1_000_000_000;
   const merkleRoot = (await hashSHA3_512(`${previousHash}:${data}`)).slice(0, 64);
   const blockHash = (
     await hashSHA3_512(`${previousHash}:${merkleRoot}:${nonce}:${chainDepth}`)
