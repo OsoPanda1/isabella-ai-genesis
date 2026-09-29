@@ -55,6 +55,10 @@ export default defineConfig(({ command }) => {
               if (id.includes("@tanstack")) return "vendor-tanstack";
               if (id.includes("react") || id.includes("react-dom")) return "vendor-react";
               if (id.includes("@radix-ui")) return "vendor-radix";
+              if (id.includes("three") || id.includes("@react-three")) return "vendor-3d";
+              if (id.includes("recharts")) return "vendor-charts";
+              if (id.includes("lucide-react")) return "vendor-icons";
+              if (id.includes("framer-motion")) return "vendor-motion";
               return "vendor";
             }
             return undefined;

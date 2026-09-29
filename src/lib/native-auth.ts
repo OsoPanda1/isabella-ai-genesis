@@ -15,6 +15,8 @@ import {
   timingSafeEqual,
   verify,
 } from "node:crypto";
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import { nodeRequire } from "./node-require";
 
 let cachedSecret: string | null = null;
@@ -54,6 +56,7 @@ function loadPersistedSecret(): string | null {
   try {
     const Database = nodeRequire("better-sqlite3") as any;
     const dbPath = process.env.ISABELLA_DB_PATH || "./data/isabella.db";
+    mkdirSync(dirname(dbPath), { recursive: true });
     const db = new Database(dbPath);
     db.pragma("journal_mode = WAL");
     db.exec(`

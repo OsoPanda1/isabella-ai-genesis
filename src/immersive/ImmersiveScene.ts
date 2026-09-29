@@ -82,6 +82,8 @@ export class ImmersiveScene {
   private stars3D: Starfield3D;
   private audio: AudioState | null = null;
   private resizeObserver: ResizeObserver | null = null;
+  private resizeFrameId: number | null = null;
+  private lastSize = { width: 0, height: 0 };
 
   private frameId: number | null = null;
   private running = false;
@@ -231,9 +233,16 @@ export class ImmersiveScene {
     document.addEventListener("visibilitychange", this.onVisibilityChange);
 
     if (typeof ResizeObserver !== "undefined") {
-      this.resizeObserver = new ResizeObserver(() => this.resize());
+      const resizeTarget = this.canvas3D.parentElement ?? this.canvas3D;
+      this.resizeObserver = new ResizeObserver(() => {
+        if (this.resizeFrameId !== null) return;
+        this.resizeFrameId = requestAnimationFrame(() => {
+          this.resizeFrameId = null;
+          this.resize();
+        });
+      });
 
-      this.resizeObserver.observe(this.canvas3D);
+      this.resizeObserver.observe(resizeTarget);
     } else {
       window.addEventListener("resize", this.resize);
     }
@@ -245,6 +254,9 @@ export class ImmersiveScene {
     const width = Math.max(this.canvas3D.clientWidth || window.innerWidth, 1);
 
     const height = Math.max(this.canvas3D.clientHeight || window.innerHeight, 1);
+
+    if (width === this.lastSize.width && height === this.lastSize.height) return;
+    this.lastSize = { width, height };
 
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
@@ -566,8 +578,10 @@ export class ImmersiveScene {
 
     document.removeEventListener("visibilitychange", this.onVisibilityChange);
 
-    this.resizeObserver?.disconnect();
-    window.removeEventListener("resize", this.resize);
+  this.resizeObserver?.disconnect();
+  if (this.resizeFrameId !== null) cancelAnimationFrame(this.resizeFrameId);
+  this.resizeFrameId = null;
+  window.removeEventListener("resize", this.resize);
 
     if (this.audio) {
       this.audio.disposed = true;
