@@ -6,10 +6,11 @@ import { DEFAULT_SHOT_CARDS, routeModel } from "@/lib/video-x/contracts";
 import type { InferenceRequest } from "@/lib/video-x/types";
 import { PrincipalContext } from "@/lib/principal-context";
 import { SecuritySystem } from "@/lib/security";
+import { resolveTrustedClientIp } from "@/lib/trusted-client-ip";
 
 /** Rate limit por IP (L3): la ruta ejecuta inferencia con costo. */
 function videoXRateLimit(request: Request): Response | null {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const ip = resolveTrustedClientIp(request);
   const rateLimit = SecuritySystem.checkRateLimit(`video-x:${ip}`, 30);
   if (rateLimit.allowed) return null;
   return new Response(JSON.stringify({ success: false, error: "RATE_LIMITED" }), {
