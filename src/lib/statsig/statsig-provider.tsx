@@ -1,25 +1,17 @@
-import React, { createContext, useContext, ReactNode } from "react";
+import * as React from "react";
+import type { ReactNode } from "react";
 
-interface StatsigContextType {
-  userId: string;
+export interface StatsigProviderProps {
+  userId?: string;
+  children?: ReactNode;
 }
 
-const StatsigContext = createContext<StatsigContextType>({ userId: "anonymous" });
-
-export function StatsigProvider({
-  userId,
-  children,
-}: {
-  userId: string;
-  children: ReactNode;
-}) {
-  return (
-    <StatsigContext.Provider value={{ userId }}>
-      {children}
-    </StatsigContext.Provider>
-  );
+/**
+ * Stub provider — Statsig integration is optional for sovereign deployments.
+ * Passes children through without side effects.
+ */
+export function StatsigProvider({ children }: StatsigProviderProps) {
+  return <>{children}</>;
 }
 
-export function useStatsig() {
-  return useContext(StatsigContext);
-}
+export default StatsigProvider;

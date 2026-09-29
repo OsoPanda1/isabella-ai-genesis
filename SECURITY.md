@@ -1,19 +1,32 @@
-# Security Policy — Isabella Villaseñor AI
+# Security Policy — Isabella AI Genesis
 
-**Contacto:** `security@tamvonlinenetwork-7731` + `https://github.com/OsoPanda1/isabella-ai-genesis/security/advisories/new`
-**PGP:** ver `SECURITY-KEYS.md` (próximo)
+## Responsible disclosure
+Do not publish an undisclosed vulnerability in a public issue.
 
-## Reporte responsable
-- No publiques secretos en issues públicos. Usa `Security Advisories` privado.
-- Incluye `SHA`, `reproducción`, `impacto`, `mitigación propuesta`.
+Use GitHub Security Advisories for private reporting:
+https://github.com/OsoPanda1/isabella-ai-tina/security/advisories/new
 
-## Secretos
-- `CROWN_POLICY_SIGNING_KEY` fue rotado después de un incidente histórico documentado. El valor comprometido no se reproduce en documentación ni código; el historial antiguo permanece tratado como comprometido hasta una eventual migración de historial coordinada. `Vercel Secret Manager` es la autoridad de secretos.
+Include the affected component, reproducible steps, impact, and proposed mitigation when available. Never include live credentials, tokens, private keys, personal data, or production secrets in the report.
 
-## Gates
-- `gitleaks` + `CodeQL` en PRs (`secret-scan.yml`, `sast.yml`)
-- `pnpm audit` + `SBOM` (`scripts/sbom.mjs`) por release
-- `SLSA` provenance pendiente
+## Secret compromise
+A credential exposed in source control, logs, CI output, or an external integration is treated as compromised. Revoke or rotate it immediately, invalidate dependent sessions where applicable, and review relevant audit events.
 
-## Estado
-La preparación de producción se declara únicamente cuando exista evidencia ejecutable del commit, del entorno objetivo, de seguridad, de datos y de recuperación. Este documento no contiene porcentajes de certificación.
+## Security controls
+- Dependency audit and dependency review
+- Secret scanning and CodeQL
+- Trivy filesystem/container scanning
+- SBOM generation and verification
+- Signed release/image artifacts
+- Production preflight and integrity gates
+- Authentication, authorization, tenant isolation and rate/quota controls
+- Webhook signature verification and durable event claims
+
+## Fix lifecycle
+1. Reproduce and classify the issue.
+2. Contain affected functionality when necessary.
+3. Implement and test the remediation.
+4. Verify the fix with the relevant gate.
+5. Rotate credentials if exposure occurred.
+6. Publish remediation details when disclosure is appropriate.
+
+Security status is not certified merely by this document; production claims require executable evidence from the target environment.
