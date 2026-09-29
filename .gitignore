@@ -43,7 +43,7 @@ SECRETS.md
 # DATOS LOCALES / PERSISTENCIA / AUDITORÍA / BACKUPS
 # ---------------------------------------------------------------------------
 # Fallback local de la base soberana (ejecución sin Supabase configurado)
-data/
+/data/
 isabella_sovereign_db.json
 # Almacenes locales de memoria, ledger BookPI y auditoría (append-only)
 isabella_memory_store.json
