@@ -61,7 +61,6 @@ function getDirectRedis(): RedisLike | null {
       enableReadyCheck: true,
       retryStrategy: () => null,
     });
-    void (directClient as unknown as { connect?: () => Promise<unknown> }).connect?.().catch?.(() => undefined);
     return directClient;
   } catch (error) {
     directClientError = error;
@@ -78,7 +77,11 @@ setInterval(() => {
 
 function clientKey(req: Request): string {
   let principal: ReturnType<typeof currentPrincipal> | null = null;
-  try { principal = currentPrincipal(req); } catch { /* anonymous */ }
+  try {
+    principal = currentPrincipal(req);
+  } catch {
+    // Anonymous requests are keyed by the socket/proxy-normalized Express IP.
+  }
   const tenant = principal?.tenantId || "anonymous";
   const subject =
     principal?.sub ||
@@ -137,17 +140,15 @@ function memoryIncrement(key: string): Bucket {
 
 export async function rateLimit(req: Request, res: Response, next: NextFunction) {
   const parsedLimit = Number(process.env.RATE_LIMIT_PER_MINUTE || DEFAULT_LIMIT);
-  const limit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.floor(parsedLimit) : DEFAULT_LIMIT;
+  const limit =
+    Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.floor(parsedLimit) : DEFAULT_LIMIT;
   try {
     const bucket = await redisIncrement(clientKey(req));
     if (!bucket && requireDistributed()) {
       res.setHeader("X-RateLimit-Backend", "redis-required");
       return res.status(503).json({
         ok: false,
-        error: {
-          code: "RATE_LIMIT_BACKEND_REQUIRED",
-          message: "Distributed rate limiting is unavailable.",
-        },
+        error: { code: "RATE_LIMIT_BACKEND_REQUIRED", message: "Distributed rate limiting is unavailable." },
       });
     }
     const effective = bucket ?? memoryIncrement(clientKey(req));
@@ -179,7 +180,7 @@ export async function rateLimit(req: Request, res: Response, next: NextFunction)
   }
 }
 
-export async function quotaGate(
+export function quotaGate(
   capability: MeteredCapability,
   amountFactory?: (req: Request) => number,
 ) {
