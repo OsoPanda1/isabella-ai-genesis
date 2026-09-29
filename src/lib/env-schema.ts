@@ -124,6 +124,14 @@ export const envSchema = z
     X402_PAYMENT_VAULT_ADDRESS: optionalString(),
     // --- FEDERATION SIGNING ---
     FEDERATION_SIGNING_KEYS_JSON: optionalString(),
+    // --- ATTESTATION SIGNATURES (RSA-2048 / SHA-256 / PKCS#1 v1.5) ---
+    // Firma externa verificable. La firma NO es clave: se verifica contra la
+    // clave pública PEM y el payload almacenados en ISABELLA_ATTESTATION_DIR.
+    // Fail-closed: sin clave pública o payload, la ranura queda NO VERIFICADA.
+    ISABELLA_ATTESTATION_DIR: optionalString(),
+    ISABELLA_ATTESTATION_1_SIGNATURE: optionalString(),
+    ISABELLA_ATTESTATION_2_SIGNATURE: optionalString(),
+    ISABELLA_ATTESTATION_3_SIGNATURE: optionalString(),
     // --- REDIS ---
     REDIS_URL: optionalString(),
     REDIS_TOKEN: optionalString(),
@@ -457,7 +465,8 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
     provider: "self",
     criticality: "CRITICAL",
     rotation: "90d",
-    description: "JSON object containing one independent HMAC signing secret per federation (F1..F7).",
+    description:
+      "JSON object containing one independent HMAC signing secret per federation (F1..F7).",
   },
   {
     name: "REDIS_URL",
@@ -665,6 +674,49 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
     provider: "self",
     criticality: "MEDIUM",
     description: "Endpoint RFC 3161 para sellado temporal externo (opcional).",
+  },
+  {
+    name: "ISABELLA_ATTESTATION_DIR",
+    visibility: "public",
+    required: [],
+    forbidden: [],
+    provider: "self",
+    criticality: "MEDIUM",
+    description:
+      "Directorio local (gitignored) con <slot>.pub.pem y <slot>.payload.txt de las atestaciones RSA-2048.",
+  },
+  {
+    name: "ISABELLA_ATTESTATION_1_SIGNATURE",
+    visibility: "secret",
+    required: [],
+    forbidden: [],
+    provider: "self",
+    criticality: "HIGH",
+    rotation: "180d",
+    description:
+      "Firma RSA-2048/SHA-256/PKCS#1 v1.5 en base64 de la ranura 1. Se verifica contra 1.pub.pem + 1.payload.txt.",
+  },
+  {
+    name: "ISABELLA_ATTESTATION_2_SIGNATURE",
+    visibility: "secret",
+    required: [],
+    forbidden: [],
+    provider: "self",
+    criticality: "HIGH",
+    rotation: "180d",
+    description:
+      "Firma RSA-2048/SHA-256/PKCS#1 v1.5 en base64 de la ranura 2. Se verifica contra 2.pub.pem + 2.payload.txt.",
+  },
+  {
+    name: "ISABELLA_ATTESTATION_3_SIGNATURE",
+    visibility: "secret",
+    required: [],
+    forbidden: [],
+    provider: "self",
+    criticality: "HIGH",
+    rotation: "180d",
+    description:
+      "Firma RSA-2048/SHA-256/PKCS#1 v1.5 en base64 de la ranura 3. Se verifica contra 3.pub.pem + 3.payload.txt.",
   },
   {
     name: "GITHUB_WEBHOOK_SECRET",
