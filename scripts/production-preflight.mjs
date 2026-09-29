@@ -93,7 +93,15 @@ for (const script of [
 const nvm = readFileSync(resolve(root, ".nvmrc"), "utf8").trim();
 if (nvm !== "24.11.0") errors.push(".nvmrc must pin Node 24.11.0");
 const vercel = JSON.parse(readFileSync(resolve(root, "vercel.json"), "utf8"));
-if (vercel.framework !== "tanstack-start") errors.push("vercel.framework must be tanstack-start");
+const vercelUsesNitroPreset =
+  vercel.framework === null &&
+  typeof vercel.buildCommand === "string" &&
+  vercel.buildCommand.includes("NITRO_PRESET=vercel");
+const vercelUsesTanStackPreset = vercel.framework === "tanstack-start";
+if (!vercelUsesNitroPreset && !vercelUsesTanStackPreset)
+  errors.push(
+    "vercel.json must use either tanstack-start framework or the canonical Nitro Vercel preset",
+  );
 if (vercel.installCommand !== "pnpm install --frozen-lockfile")
   errors.push(
     "Vercel installCommand must use pnpm install --frozen-lockfile for deterministic production installs",
