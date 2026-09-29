@@ -6557,5 +6557,4717 @@
     "nonce": 163,
     "hash": "006b23ad2c5cac0c5a0dfa5cf8814c637e3587f1d80808860687f25bb4bcf994",
     "cid": "bafyrei2dkmTNcd1AxHxz1fpixVVcsBLjP5p833"
+  },
+  {
+    "index": 423,
+    "timestamp": "2026-09-28T23:42:13.339Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "a34491fa63631d61",
+      "context": "boot"
+    },
+    "prevHash": "006b23ad2c5cac0c5a0dfa5cf8814c637e3587f1d80808860687f25bb4bcf994",
+    "nonce": 8,
+    "hash": "00383b43a7453231e913c57e85f13c982d7294c9b76b5662536d71f30897cb69",
+    "cid": "bafyreirjRWiWTb9B1DX3g2ssFveh5tdQUoxgTy"
+  },
+  {
+    "index": 424,
+    "timestamp": "2026-09-28T23:42:13.353Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "223e890cfb02cd07"
+    },
+    "prevHash": "00383b43a7453231e913c57e85f13c982d7294c9b76b5662536d71f30897cb69",
+    "nonce": 634,
+    "hash": "0058c2325212372af549a6b4fe141b1b48cebcd4389087dd8cef14d17c68dc03",
+    "cid": "bafyrei2MVv5pmHSkxeVot1iu13wicHAqAzhjX8"
+  },
+  {
+    "index": 425,
+    "timestamp": "2026-09-28T23:42:18.174Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "b50eda5012a000aa",
+      "context": "boot"
+    },
+    "prevHash": "0058c2325212372af549a6b4fe141b1b48cebcd4389087dd8cef14d17c68dc03",
+    "nonce": 462,
+    "hash": "007e5cc0175cbd2f04455a6515f0cdeb073e82c8c7863ac8c0ecadd3bd14d571",
+    "cid": "bafyrei2vkpP7C4DARwut8oP6N4HZcwvkUEWmKj"
+  },
+  {
+    "index": 426,
+    "timestamp": "2026-09-28T23:42:18.191Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "94b27c923330cd18"
+    },
+    "prevHash": "007e5cc0175cbd2f04455a6515f0cdeb073e82c8c7863ac8c0ecadd3bd14d571",
+    "nonce": 242,
+    "hash": "001ffed5eb7170f2e696cadea5b51e4918f5f53e457f33794ef7ae1bb47c23c7",
+    "cid": "bafyreiVJDuVGFMALEEt6NCVdQJZh5uU5TLKBua"
+  },
+  {
+    "index": 427,
+    "timestamp": "2026-09-28T23:42:22.615Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "3bcd7674cd55b8eb",
+      "context": "boot"
+    },
+    "prevHash": "001ffed5eb7170f2e696cadea5b51e4918f5f53e457f33794ef7ae1bb47c23c7",
+    "nonce": 295,
+    "hash": "00273683e16cd46fad715f72486a7b627b4d2d2a1a25a715bd08a6d957ad3bdc",
+    "cid": "bafyreibgSxqn8WGjff2wKB23aTkGoEQPXtFRsb"
+  },
+  {
+    "index": 428,
+    "timestamp": "2026-09-28T23:42:22.628Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "c70422ffc92e775a"
+    },
+    "prevHash": "00273683e16cd46fad715f72486a7b627b4d2d2a1a25a715bd08a6d957ad3bdc",
+    "nonce": 5,
+    "hash": "0001f80517474e5e433b43b55ad71c6ab570e35a4e04e59458a6055333ee03f6",
+    "cid": "bafyrei2jzY3sfeMyHRSebMEuAtf5AazCFh3ZnA"
+  },
+  {
+    "index": 429,
+    "timestamp": "2026-09-28T23:42:26.833Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "2a9a9bffe7c9460f",
+      "context": "boot"
+    },
+    "prevHash": "0001f80517474e5e433b43b55ad71c6ab570e35a4e04e59458a6055333ee03f6",
+    "nonce": 274,
+    "hash": "00288308009ee6b8dca5c49d374f2606a764bea2540946c7d23b8f8a0605828a",
+    "cid": "bafyreicq5Lw4AK2ayWg1BYrGj6S3tc3U5mJMAT"
+  },
+  {
+    "index": 430,
+    "timestamp": "2026-09-28T23:42:26.848Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "7c4daa3445b1abfb"
+    },
+    "prevHash": "00288308009ee6b8dca5c49d374f2606a764bea2540946c7d23b8f8a0605828a",
+    "nonce": 502,
+    "hash": "003df322ecac59d56c4afc4bcb620f640e0e7b02ea0e06bd309ff5cc355be269",
+    "cid": "bafyreiwnk6qpTsL8uofi4TgaJAqycs22ichaW5"
+  },
+  {
+    "index": 431,
+    "timestamp": "2026-09-28T23:42:31.337Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9d7947cec47bc0d8",
+      "context": "boot"
+    },
+    "prevHash": "003df322ecac59d56c4afc4bcb620f640e0e7b02ea0e06bd309ff5cc355be269",
+    "nonce": 319,
+    "hash": "00c1b521cb32cfb89938273c93f075ef838ea189b4c009db95cd996995671974",
+    "cid": "bafyrei3xKKozemAGsued1XwdYcw21fbZRm8vAT"
+  },
+  {
+    "index": 432,
+    "timestamp": "2026-09-28T23:42:31.351Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "f445fc9d77a49695"
+    },
+    "prevHash": "00c1b521cb32cfb89938273c93f075ef838ea189b4c009db95cd996995671974",
+    "nonce": 156,
+    "hash": "00f97dca77b85b01f9c011b6cb62cb92234eda95b10d268369ef3ca9bea3bb57",
+    "cid": "bafyrei4oenRPhuD1sEyxuCcgHArSWuhUSeKi24"
+  },
+  {
+    "index": 433,
+    "timestamp": "2026-09-28T23:42:36.306Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "f848df9c6e8b7a95",
+      "context": "boot"
+    },
+    "prevHash": "00f97dca77b85b01f9c011b6cb62cb92234eda95b10d268369ef3ca9bea3bb57",
+    "nonce": 51,
+    "hash": "00e79451e9cbb4c3a1b64f5b2b5c54035cfd1edbcd02b95fd899b84d60a5c476",
+    "cid": "bafyrei4XoykUc8gZMmPKoLXC97Djc9zBjt3MhT"
+  },
+  {
+    "index": 434,
+    "timestamp": "2026-09-28T23:42:36.324Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "52defc25854a4043"
+    },
+    "prevHash": "00e79451e9cbb4c3a1b64f5b2b5c54035cfd1edbcd02b95fd899b84d60a5c476",
+    "nonce": 739,
+    "hash": "009c3ab86ea73856fa31b0455841b0af882c618863cd1e4c790dad43417338ef",
+    "cid": "bafyrei3PAs4LGr4G4jmdECv4djaMZ9dnFPcYdE"
+  },
+  {
+    "index": 435,
+    "timestamp": "2026-09-28T23:42:41.010Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "2b581c814c554582",
+      "context": "boot"
+    },
+    "prevHash": "009c3ab86ea73856fa31b0455841b0af882c618863cd1e4c790dad43417338ef",
+    "nonce": 448,
+    "hash": "005db5b0ee050231b013475bdb1cd933a160abe31225c14ee5e6a6f756610b42",
+    "cid": "bafyrei2RstSgkFQsyQNuow3oWDMbfpVqyY7ZXg"
+  },
+  {
+    "index": 436,
+    "timestamp": "2026-09-28T23:42:41.033Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "efac94ae61cedf05"
+    },
+    "prevHash": "005db5b0ee050231b013475bdb1cd933a160abe31225c14ee5e6a6f756610b42",
+    "nonce": 309,
+    "hash": "002a5621aa5d7cd28020d3bac96a8c319ffd06355853ac7df69294b740754794",
+    "cid": "bafyreieSfp7uKUzNKcaBdF6Q6QnTykpXq3As27"
+  },
+  {
+    "index": 437,
+    "timestamp": "2026-09-28T23:42:45.767Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "68e624a3d483c66b",
+      "context": "boot"
+    },
+    "prevHash": "002a5621aa5d7cd28020d3bac96a8c319ffd06355853ac7df69294b740754794",
+    "nonce": 204,
+    "hash": "0008c0584c77b8b6bc76a9823f3b5e0f6f5602b671ba2ece2f143052031279c6",
+    "cid": "bafyrei8juUMrAWoaTb33ZwsFhxMUHWrbFq2fcR"
+  },
+  {
+    "index": 438,
+    "timestamp": "2026-09-28T23:42:45.783Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "00f44767efebd846"
+    },
+    "prevHash": "0008c0584c77b8b6bc76a9823f3b5e0f6f5602b671ba2ece2f143052031279c6",
+    "nonce": 22,
+    "hash": "0089f9dde27cb7d23eccea0781a78c66b452531438cb9ae6fb08055d8579f38a",
+    "cid": "bafyrei372YrdKYJcec697Xa3LbrBq2HTVuE5Tc"
+  },
+  {
+    "index": 439,
+    "timestamp": "2026-09-28T23:42:50.203Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "532a8c3bc6624081",
+      "context": "boot"
+    },
+    "prevHash": "0089f9dde27cb7d23eccea0781a78c66b452531438cb9ae6fb08055d8579f38a",
+    "nonce": 36,
+    "hash": "0050c822982b3822444bdf8bf4a068069e461aa2b1bfc8583e65c12caf486984",
+    "cid": "bafyrei2ESjzQnC7JRZWxMrsAEzphuuP9DqqjMP"
+  },
+  {
+    "index": 440,
+    "timestamp": "2026-09-28T23:42:50.218Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "80d7de2a9a022db2"
+    },
+    "prevHash": "0050c822982b3822444bdf8bf4a068069e461aa2b1bfc8583e65c12caf486984",
+    "nonce": 6,
+    "hash": "00353685b5afe0cd2f7eff2f6161c7c897db3f0e9ccbf780bb455eb5aacdea5f",
+    "cid": "bafyreip4azF8zC71csY5sPDC2rJQqy14rms4Gu"
+  },
+  {
+    "index": 441,
+    "timestamp": "2026-09-28T23:42:58.280Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "efa75c100419ea0e",
+      "context": "boot"
+    },
+    "prevHash": "00353685b5afe0cd2f7eff2f6161c7c897db3f0e9ccbf780bb455eb5aacdea5f",
+    "nonce": 120,
+    "hash": "00fa0180c3d9b0722e1c48146e2f36fc331426d198189230604ca243d6b17d06",
+    "cid": "bafyrei4p7B8a7NgbhcPZiskByP4oZKYFg7dMLW"
+  },
+  {
+    "index": 442,
+    "timestamp": "2026-09-28T23:42:58.295Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "1785bec11f42f916"
+    },
+    "prevHash": "00fa0180c3d9b0722e1c48146e2f36fc331426d198189230604ca243d6b17d06",
+    "nonce": 36,
+    "hash": "007fa7b33476f72b6a07851aa3df98e726c8bc24dced658e901483d28526162b",
+    "cid": "bafyrei2wu8ZLHMMx2G7Rir7zfLpXki32JnJLLi"
+  },
+  {
+    "index": 443,
+    "timestamp": "2026-09-28T23:43:04.307Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "a84761c40333945e",
+      "context": "boot"
+    },
+    "prevHash": "007fa7b33476f72b6a07851aa3df98e726c8bc24dced658e901483d28526162b",
+    "nonce": 441,
+    "hash": "002be777d063da168f6cad69d9290a6b631455e83242f26851b21a43448eca0e",
+    "cid": "bafyreifq5zwrNwk9NnifGr1vDjzRKdfFqg7zUm"
+  },
+  {
+    "index": 444,
+    "timestamp": "2026-09-28T23:43:04.325Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "1ef6996ad42ebc3b"
+    },
+    "prevHash": "002be777d063da168f6cad69d9290a6b631455e83242f26851b21a43448eca0e",
+    "nonce": 2,
+    "hash": "009dcf9eb80e039ec28b60a98b1eebc2151f320d973976c8e6f41991f849610c",
+    "cid": "bafyrei3QZzequmxC35h7tLz2uNeLtPwiXgXrZa"
+  },
+  {
+    "index": 445,
+    "timestamp": "2026-09-28T23:43:09.507Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "fc6258455c81cbbf",
+      "context": "boot"
+    },
+    "prevHash": "009dcf9eb80e039ec28b60a98b1eebc2151f320d973976c8e6f41991f849610c",
+    "nonce": 288,
+    "hash": "001c9b01bedf3ba2a3d631d9e8d780417265b78066a74931535e90818a7acad4",
+    "cid": "bafyreiSJLKGjSW5GrKwqTsifFZ8RNTvdNV3cwh"
+  },
+  {
+    "index": 446,
+    "timestamp": "2026-09-28T23:43:09.533Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "764da7c7a13593d4"
+    },
+    "prevHash": "001c9b01bedf3ba2a3d631d9e8d780417265b78066a74931535e90818a7acad4",
+    "nonce": 117,
+    "hash": "002e667110d358b2be0527095647b8607b0847c62f7cf44bda0e412703ce5ab1",
+    "cid": "bafyreii37vEB9EBKFiF7ZZ9ABKhd1u5kuzZDLb"
+  },
+  {
+    "index": 447,
+    "timestamp": "2026-09-28T23:43:14.230Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9ea36f848cfb0f46",
+      "context": "boot"
+    },
+    "prevHash": "002e667110d358b2be0527095647b8607b0847c62f7cf44bda0e412703ce5ab1",
+    "nonce": 77,
+    "hash": "00ab0c2a0d1e49185f7a0aab9e367aa8f679055af55dd370b4c96270878f5eda",
+    "cid": "bafyrei3cGy5Yb7eLHv2ptPzx8tuaZEzdLrBLGi"
+  },
+  {
+    "index": 448,
+    "timestamp": "2026-09-28T23:43:14.246Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "2ef2aca4c9cc6834"
+    },
+    "prevHash": "00ab0c2a0d1e49185f7a0aab9e367aa8f679055af55dd370b4c96270878f5eda",
+    "nonce": 29,
+    "hash": "00983f8ed79c470110e1b7f5faaef8e965e46478e8afd1046043d9acbe966a0b",
+    "cid": "bafyrei3Keeiw25HvA58a3KWznrgLpr1jrDHR77"
+  },
+  {
+    "index": 449,
+    "timestamp": "2026-09-28T23:43:18.770Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "e8935574915101e2",
+      "context": "boot"
+    },
+    "prevHash": "00983f8ed79c470110e1b7f5faaef8e965e46478e8afd1046043d9acbe966a0b",
+    "nonce": 106,
+    "hash": "00cb2464bc7a87159fd7eeef3c79d48ab9453d3d4a91a84317e62b1faa91dd06",
+    "cid": "bafyrei46fH6ipD1mhPaUNxuAxvMYB8DcD9oi7v"
+  },
+  {
+    "index": 450,
+    "timestamp": "2026-09-28T23:43:18.795Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "0f6825810136c41c"
+    },
+    "prevHash": "00cb2464bc7a87159fd7eeef3c79d48ab9453d3d4a91a84317e62b1faa91dd06",
+    "nonce": 216,
+    "hash": "0094a17028efb9db105077419db23546d12e05bbb221e9da86161050d0df592b",
+    "cid": "bafyrei3GT5hMQVCF1xXVCuaNKQR6CK7QFZFUsX"
+  },
+  {
+    "index": 451,
+    "timestamp": "2026-09-28T23:43:23.388Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "07349dd21c4669a5",
+      "context": "boot"
+    },
+    "prevHash": "0094a17028efb9db105077419db23546d12e05bbb221e9da86161050d0df592b",
+    "nonce": 8,
+    "hash": "001e4fa575127fa81093f34d2155669a483c214fd458677fa2f55617692c383a",
+    "cid": "bafyreiTopnF8kBr7Uq3DWST51qsZcHo2oTfZ2w"
+  },
+  {
+    "index": 452,
+    "timestamp": "2026-09-28T23:43:23.412Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "b391d88265a9483f"
+    },
+    "prevHash": "001e4fa575127fa81093f34d2155669a483c214fd458677fa2f55617692c383a",
+    "nonce": 76,
+    "hash": "00df0f28cf1879bccd78e84ef615c751b45a998e288e48a7755d1e1d27673a29",
+    "cid": "bafyrei4QGw6cn99S25EBJiddnUebr6iZn22pmN"
+  },
+  {
+    "index": 453,
+    "timestamp": "2026-09-28T23:43:27.812Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "a3e009d1622b140d",
+      "context": "boot"
+    },
+    "prevHash": "00df0f28cf1879bccd78e84ef615c751b45a998e288e48a7755d1e1d27673a29",
+    "nonce": 22,
+    "hash": "00ed5f2a2480dc319700802a3e933d04223b5781816b234a23663292bcefbed3",
+    "cid": "bafyrei4cw6q6ySHXJ5oBfdrk54UdhQCnRWanwM"
+  },
+  {
+    "index": 454,
+    "timestamp": "2026-09-28T23:43:27.830Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "676b78aeaf77f541"
+    },
+    "prevHash": "00ed5f2a2480dc319700802a3e933d04223b5781816b234a23663292bcefbed3",
+    "nonce": 192,
+    "hash": "00e0bfd17eaca5c2b2cca12f2fe355b4095d7faf16f60d10ce030f8e78d39783",
+    "cid": "bafyrei4RmdJU5n9HLsAj26kpKRVjML9jzCT5nZ"
+  },
+  {
+    "index": 455,
+    "timestamp": "2026-09-28T23:43:32.861Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "1539d4b13e1d37f9",
+      "context": "boot"
+    },
+    "prevHash": "00e0bfd17eaca5c2b2cca12f2fe355b4095d7faf16f60d10ce030f8e78d39783",
+    "nonce": 202,
+    "hash": "004db34cf7f639b228a717c49bf05c757c4371469931a73990602aba63893a72",
+    "cid": "bafyrei2BigShsx4Wm3Ndkxt35wfEsxCZjqs3vs"
+  },
+  {
+    "index": 456,
+    "timestamp": "2026-09-28T23:43:32.885Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "766ab6cfe47a22c6"
+    },
+    "prevHash": "004db34cf7f639b228a717c49bf05c757c4371469931a73990602aba63893a72",
+    "nonce": 141,
+    "hash": "00021dbfc20a452df6f5328be85e73da9de125e13fb747b9fdf0cf2075d36a6b",
+    "cid": "bafyrei2sZ1aYYVaTqTamBp47VXn6Q7bs2jhkvc"
+  },
+  {
+    "index": 457,
+    "timestamp": "2026-09-28T23:43:37.486Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "cc9c33e51e8b1679",
+      "context": "boot"
+    },
+    "prevHash": "00021dbfc20a452df6f5328be85e73da9de125e13fb747b9fdf0cf2075d36a6b",
+    "nonce": 203,
+    "hash": "0092c32555d35e3bd43747bd450d0da6f66c4cc368c8b501cd9859fabd575d2c",
+    "cid": "bafyrei3EoFA7pkyrBtEGdj5igx6wJtTBVomVx3"
+  },
+  {
+    "index": 458,
+    "timestamp": "2026-09-28T23:43:37.504Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "92388310dc0d20f4"
+    },
+    "prevHash": "0092c32555d35e3bd43747bd450d0da6f66c4cc368c8b501cd9859fabd575d2c",
+    "nonce": 506,
+    "hash": "009e391a91908be43e02182a43e42a5657ba051ba39e18c3c47f47f08a0ee120",
+    "cid": "bafyrei3Qw8YhiozGwn97CYSwr8qmVHaY4TKgtQ"
+  },
+  {
+    "index": 459,
+    "timestamp": "2026-09-28T23:43:41.633Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "d6999b8256568a0f",
+      "context": "boot"
+    },
+    "prevHash": "009e391a91908be43e02182a43e42a5657ba051ba39e18c3c47f47f08a0ee120",
+    "nonce": 11,
+    "hash": "008b1cbb466a9a3179b7dd63a683c32ce93c99bbe3e4d5f197004d1a9eee0a6e",
+    "cid": "bafyrei382qBTfbiVQ6HHWXr6jM5cjtmbDXJkUn"
+  },
+  {
+    "index": 460,
+    "timestamp": "2026-09-28T23:43:41.650Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "ecf3b6d7c897e2ca"
+    },
+    "prevHash": "008b1cbb466a9a3179b7dd63a683c32ce93c99bbe3e4d5f197004d1a9eee0a6e",
+    "nonce": 213,
+    "hash": "00bbda84edca6285d7b37b7586b829fc19262027e37530cf714dab1ab028e431",
+    "cid": "bafyrei3s93UoFuPWGysSZSAk8ocUGcFy6fkjxj"
+  },
+  {
+    "index": 461,
+    "timestamp": "2026-09-28T23:43:45.820Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "44c058ed3219ef94",
+      "context": "boot"
+    },
+    "prevHash": "00bbda84edca6285d7b37b7586b829fc19262027e37530cf714dab1ab028e431",
+    "nonce": 427,
+    "hash": "009deea992bfa5a03eeea35a93c4131331a1fb50d882bac1ee70f81f52fd6472",
+    "cid": "bafyrei3QgDR89crPKTEURDAAs5HDRSb7eF5mVQ"
+  },
+  {
+    "index": 462,
+    "timestamp": "2026-09-28T23:43:45.840Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "db0af8c136b35c24"
+    },
+    "prevHash": "009deea992bfa5a03eeea35a93c4131331a1fb50d882bac1ee70f81f52fd6472",
+    "nonce": 415,
+    "hash": "00f3ee2ed89ad79e50f1ee7968ceb6a56d565f448ba590071c1c520948c4fb02",
+    "cid": "bafyrei4ijXmannymCa2F9BeXRrTZNcS15PyxQJ"
+  },
+  {
+    "index": 463,
+    "timestamp": "2026-09-28T23:43:50.445Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "4d1498e21d446237",
+      "context": "boot"
+    },
+    "prevHash": "00f3ee2ed89ad79e50f1ee7968ceb6a56d565f448ba590071c1c520948c4fb02",
+    "nonce": 132,
+    "hash": "0099cb33d0c49bb31795a0a3805c624084aa3749dca9f4d70c760c23a9591907",
+    "cid": "bafyrei3M1vkyeHbNMqksbpCVhZYC2iBDidUoSN"
+  },
+  {
+    "index": 464,
+    "timestamp": "2026-09-28T23:43:50.471Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "7c8ee7ea43acd244"
+    },
+    "prevHash": "0099cb33d0c49bb31795a0a3805c624084aa3749dca9f4d70c760c23a9591907",
+    "nonce": 71,
+    "hash": "00dec1ba855645bd00359275de2cbeedc934e9ec542e155f15178b1f11a7cad7",
+    "cid": "bafyrei4Q1RE16use1QehW55fvU8gKQ5dWokUH1"
+  },
+  {
+    "index": 465,
+    "timestamp": "2026-09-28T23:43:55.197Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "cd7880e84b09eb7f",
+      "context": "boot"
+    },
+    "prevHash": "00dec1ba855645bd00359275de2cbeedc934e9ec542e155f15178b1f11a7cad7",
+    "nonce": 582,
+    "hash": "00dfca4ccbf4f4117b43dd20c7f903d34abcf78e72bf3d4be92034486a5a1e23",
+    "cid": "bafyrei4QvRydaiviciZ19NCrL63cX819n5GBpP"
+  },
+  {
+    "index": 466,
+    "timestamp": "2026-09-28T23:43:55.234Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "d4234c541313f036"
+    },
+    "prevHash": "00dfca4ccbf4f4117b43dd20c7f903d34abcf78e72bf3d4be92034486a5a1e23",
+    "nonce": 829,
+    "hash": "00edb75f0ed0ac7f1607649a48a40ceb974a1d8140f00880b9c9ea083c6e1eeb",
+    "cid": "bafyrei4dEmwFvLaVMqgXCGYnhGDRzkcmqjUvKp"
+  },
+  {
+    "index": 467,
+    "timestamp": "2026-09-28T23:43:59.984Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9880302a59cff6ee",
+      "context": "boot"
+    },
+    "prevHash": "00edb75f0ed0ac7f1607649a48a40ceb974a1d8140f00880b9c9ea083c6e1eeb",
+    "nonce": 101,
+    "hash": "0084ad2e198462f3b6f9dd3c3cf6699f46e93df2f7fab03b54983e49b3bae6ac",
+    "cid": "bafyrei32LhwQH2XNeZDf73yikp9rYnBrmiZq2r"
+  },
+  {
+    "index": 468,
+    "timestamp": "2026-09-28T23:44:00.006Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "4b8b06a22afbf8cf"
+    },
+    "prevHash": "0084ad2e198462f3b6f9dd3c3cf6699f46e93df2f7fab03b54983e49b3bae6ac",
+    "nonce": 180,
+    "hash": "00fbd67b37d16891d930af25b2529e9cdbf3533f06229a39d2752a2608774025",
+    "cid": "bafyrei4qj9Rh4MJsgTat7JYj3E9yL8ZtEfhdXo"
+  },
+  {
+    "index": 469,
+    "timestamp": "2026-09-28T23:44:04.614Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "eb648c4568a861d0",
+      "context": "boot"
+    },
+    "prevHash": "00fbd67b37d16891d930af25b2529e9cdbf3533f06229a39d2752a2608774025",
+    "nonce": 63,
+    "hash": "0097de3f9222f7fdbd512ab71f357826cef41034769455df6f470e40bf74dbf4",
+    "cid": "bafyrei3KK9ptTGooruMuMY9KKye7JCpvu1W7RJ"
+  },
+  {
+    "index": 470,
+    "timestamp": "2026-09-28T23:44:04.633Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "5bed31f453884d71"
+    },
+    "prevHash": "0097de3f9222f7fdbd512ab71f357826cef41034769455df6f470e40bf74dbf4",
+    "nonce": 293,
+    "hash": "00db69184e4c3a4bf0447133a5f802ed37b2d2447ed2a054ded7f09e58631c3b",
+    "cid": "bafyrei4M3mjw6j3vNbfyhFMxqRWNBgqN5Uc2Fx"
+  },
+  {
+    "index": 471,
+    "timestamp": "2026-09-28T23:44:09.184Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "c81d0dce7fd75fac",
+      "context": "boot"
+    },
+    "prevHash": "00db69184e4c3a4bf0447133a5f802ed37b2d2447ed2a054ded7f09e58631c3b",
+    "nonce": 108,
+    "hash": "0040c3c0297116396911d73a660da2706ef22e7d4f6f41224c7ddebe485ef559",
+    "cid": "bafyreizH8pLzkDTYXoEi2s6xKyqTXEs6b15zHg"
+  },
+  {
+    "index": 472,
+    "timestamp": "2026-09-28T23:44:09.201Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "bc10149a58ad1315"
+    },
+    "prevHash": "0040c3c0297116396911d73a660da2706ef22e7d4f6f41224c7ddebe485ef559",
+    "nonce": 697,
+    "hash": "006d19caaa91958859c3dc8d8e9fd48eb33b328fea0c68f12d0c37e71470363d",
+    "cid": "bafyrei2fVNrZha9zFcfA1s1dZvCUeyj2M1D1yM"
+  },
+  {
+    "index": 473,
+    "timestamp": "2026-09-28T23:44:13.521Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "4775ca8a4d12b3ea",
+      "context": "boot"
+    },
+    "prevHash": "006d19caaa91958859c3dc8d8e9fd48eb33b328fea0c68f12d0c37e71470363d",
+    "nonce": 330,
+    "hash": "00a6ad38a6167bbf0f2010ed1c6e0500fb373c8d808bcaa85842e14a23af3bfb",
+    "cid": "bafyrei3YQm8bujUfATrzkMDmw1uitCFWPkQJwf"
+  },
+  {
+    "index": 474,
+    "timestamp": "2026-09-28T23:44:13.546Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "225290d1313942aa"
+    },
+    "prevHash": "00a6ad38a6167bbf0f2010ed1c6e0500fb373c8d808bcaa85842e14a23af3bfb",
+    "nonce": 375,
+    "hash": "00b62e7075acac653212851ae0b5dd3465e31e14580f869fcd4923d3b8720bdf",
+    "cid": "bafyrei3n85wFwsMroy2yjCDX2J7am4xSF8KhEu"
+  },
+  {
+    "index": 475,
+    "timestamp": "2026-09-28T23:44:17.982Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "394bf92dd834aba9",
+      "context": "boot"
+    },
+    "prevHash": "00b62e7075acac653212851ae0b5dd3465e31e14580f869fcd4923d3b8720bdf",
+    "nonce": 364,
+    "hash": "0052962783c2fb46003163fc7cef967efd89476e2199fc272f210a89a3c64b1e",
+    "cid": "bafyrei2G3KQhyYCypk1AKAjAxA89WHZ1c9k96i"
+  },
+  {
+    "index": 476,
+    "timestamp": "2026-09-28T23:44:18.005Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "8e680247c8ad45e1"
+    },
+    "prevHash": "0052962783c2fb46003163fc7cef967efd89476e2199fc272f210a89a3c64b1e",
+    "nonce": 701,
+    "hash": "00356da810ef0f42f62935357258c72f1846fed6a4264b43bf84ca436652a4ef",
+    "cid": "bafyreipFdjisipX78NJQDzWNfu6VXpA6211zjk"
+  },
+  {
+    "index": 477,
+    "timestamp": "2026-09-28T23:44:22.409Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "54a9fd264463fa65",
+      "context": "boot"
+    },
+    "prevHash": "00356da810ef0f42f62935357258c72f1846fed6a4264b43bf84ca436652a4ef",
+    "nonce": 192,
+    "hash": "001eae797284bb879618a917a470566a8647f9a8d4ff4a02d7cc621d8b44e4ef",
+    "cid": "bafyreiU8pqaMdW2rsAxPEnuAL2it4HFd3RYUvW"
+  },
+  {
+    "index": 478,
+    "timestamp": "2026-09-28T23:44:22.431Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "f47cfdacbd095c76"
+    },
+    "prevHash": "001eae797284bb879618a917a470566a8647f9a8d4ff4a02d7cc621d8b44e4ef",
+    "nonce": 400,
+    "hash": "007ef64ccc2e7b34c660a0c2db7c896193fdc0fc240885dbcbcfdebcda6d0402",
+    "cid": "bafyrei2wHasyz58GZYQvKw1DsqqLUSaGwSCTqP"
+  },
+  {
+    "index": 479,
+    "timestamp": "2026-09-28T23:44:26.848Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "0d4fc9bab8c58fd2",
+      "context": "boot"
+    },
+    "prevHash": "007ef64ccc2e7b34c660a0c2db7c896193fdc0fc240885dbcbcfdebcda6d0402",
+    "nonce": 379,
+    "hash": "000cfe7cfacaffdeea333074168a388de5c4efe971b2a94a8c50609610ee30a6",
+    "cid": "bafyreiCVYEWZnckrZU8RDFRPVCC3DKNZ2jRJif"
+  },
+  {
+    "index": 480,
+    "timestamp": "2026-09-28T23:44:26.877Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "8b3f9fac9deda07e"
+    },
+    "prevHash": "000cfe7cfacaffdeea333074168a388de5c4efe971b2a94a8c50609610ee30a6",
+    "nonce": 451,
+    "hash": "0015a08120cb38c93a43111f290e5d066bdcd482dddb384d8543ce897dd6f202",
+    "cid": "bafyreiL8NEevGMf15ezNhsBiLzg213n56F3wCX"
+  },
+  {
+    "index": 481,
+    "timestamp": "2026-09-28T23:44:31.579Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "716e6ad4da86a05a",
+      "context": "boot"
+    },
+    "prevHash": "0015a08120cb38c93a43111f290e5d066bdcd482dddb384d8543ce897dd6f202",
+    "nonce": 218,
+    "hash": "00f98fd46d884bca9518037303f038c6a57fec3edfe39d5e7637f73236b3eeb7",
+    "cid": "bafyrei4oiQ4c3n26TCRNk9KyzfFq38R3dZsPhi"
+  },
+  {
+    "index": 482,
+    "timestamp": "2026-09-28T23:44:31.602Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "3d7d867ad35e6dee"
+    },
+    "prevHash": "00f98fd46d884bca9518037303f038c6a57fec3edfe39d5e7637f73236b3eeb7",
+    "nonce": 494,
+    "hash": "00408d6cd4ce7e9b1317bb483ca25a78ce20b213c437e12c5b9fd0a79514692d",
+    "cid": "bafyreiz6FTyKh7DvuHKLihVw74wXTaQpBTo291"
+  },
+  {
+    "index": 483,
+    "timestamp": "2026-09-28T23:44:35.924Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "8f491cca37fdadb8",
+      "context": "boot"
+    },
+    "prevHash": "00408d6cd4ce7e9b1317bb483ca25a78ce20b213c437e12c5b9fd0a79514692d",
+    "nonce": 347,
+    "hash": "00e50129ba307d7951258fba33f2be8808205fb64b6547a5c7494e5b262920a9",
+    "cid": "bafyrei4VXuGX4fyMkbHPYqQYXCSUBZ6VRtHNTq"
+  },
+  {
+    "index": 484,
+    "timestamp": "2026-09-28T23:44:35.948Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "487482d4517b613b"
+    },
+    "prevHash": "00e50129ba307d7951258fba33f2be8808205fb64b6547a5c7494e5b262920a9",
+    "nonce": 272,
+    "hash": "00a8c4370143d92ae078e746b8bac5782e62ac2f408c0aff1cbdeb193c5c3d94",
+    "cid": "bafyrei3aFxdcuFYE7ynfSsFqb3X5q6YoKivRR3"
+  },
+  {
+    "index": 485,
+    "timestamp": "2026-09-28T23:44:40.782Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "6a465b33467a4eaf",
+      "context": "boot"
+    },
+    "prevHash": "00a8c4370143d92ae078e746b8bac5782e62ac2f408c0aff1cbdeb193c5c3d94",
+    "nonce": 474,
+    "hash": "00a12ee98015888618db13f90e5ccd4e5c2413b58fdfc087d81f57ab59785c58",
+    "cid": "bafyrei3TYyX5i2Exbymmt7HdnS9pGMmzFzJk2j"
+  },
+  {
+    "index": 486,
+    "timestamp": "2026-09-28T23:44:40.810Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "c661158600d5609a"
+    },
+    "prevHash": "00a12ee98015888618db13f90e5ccd4e5c2413b58fdfc087d81f57ab59785c58",
+    "nonce": 195,
+    "hash": "00cecc23c0bff6ea7f18c72924b15c7eb812d92b6f85a8bd4e4397d7e8b10384",
+    "cid": "bafyrei49tmzxcRbCYHRU6G2Ek7XqgyrFVGxTNe"
+  },
+  {
+    "index": 487,
+    "timestamp": "2026-09-28T23:47:22.899Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "814233194c068cec",
+      "context": "boot"
+    },
+    "prevHash": "00cecc23c0bff6ea7f18c72924b15c7eb812d92b6f85a8bd4e4397d7e8b10384",
+    "nonce": 387,
+    "hash": "00e780889c5195db76dffde84f23c0e5ae7e848a8486d275a90cf895702cc9b7",
+    "cid": "bafyrei4Xk1oQ7gaAfDgXJjnbwito3nbTSVbENm"
+  },
+  {
+    "index": 488,
+    "timestamp": "2026-09-28T23:47:22.913Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "a5d9008db22b6fb5"
+    },
+    "prevHash": "00e780889c5195db76dffde84f23c0e5ae7e848a8486d275a90cf895702cc9b7",
+    "nonce": 205,
+    "hash": "00b05050c1b756ae5717df1fa0485f99fcf59c14b7f4f0d37ac71d4f0bb59e50",
+    "cid": "bafyrei3gw6oPzpufWC2mmqZiTjD8ssGAMRrptA"
+  },
+  {
+    "index": 489,
+    "timestamp": "2026-09-28T23:47:27.314Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "54aaf7a178ffdf71",
+      "context": "boot"
+    },
+    "prevHash": "00b05050c1b756ae5717df1fa0485f99fcf59c14b7f4f0d37ac71d4f0bb59e50",
+    "nonce": 393,
+    "hash": "00c2bf1b47494768ea011f71d990a1d31171ecdee07c3df4ccbc39beed69d4c1",
+    "cid": "bafyrei3yEcsRumgLojvZAV3BmEnfpLuc3qdLUD"
+  },
+  {
+    "index": 490,
+    "timestamp": "2026-09-28T23:47:27.333Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "eb1301e632acfe8d"
+    },
+    "prevHash": "00c2bf1b47494768ea011f71d990a1d31171ecdee07c3df4ccbc39beed69d4c1",
+    "nonce": 691,
+    "hash": "005fd45e7c6b620de7412901af31377c3cd84bd9eff6f46d0df9ab2539fe445d",
+    "cid": "bafyrei2TkdFPnYTrmATJrFZ8gxEiVMJYwyvpUY"
+  },
+  {
+    "index": 491,
+    "timestamp": "2026-09-28T23:47:31.811Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "6afe0f9b475e9cf3",
+      "context": "boot"
+    },
+    "prevHash": "005fd45e7c6b620de7412901af31377c3cd84bd9eff6f46d0df9ab2539fe445d",
+    "nonce": 324,
+    "hash": "003111cb61e3f64aeeea9706c53af20865baf8a9896f08c3135c61b30d15dbd2",
+    "cid": "bafyreikQ3bVopeYH7anjMmvoBtMZjpswB4ha1V"
+  },
+  {
+    "index": 492,
+    "timestamp": "2026-09-28T23:47:31.826Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "6eeb24571590de93"
+    },
+    "prevHash": "003111cb61e3f64aeeea9706c53af20865baf8a9896f08c3135c61b30d15dbd2",
+    "nonce": 298,
+    "hash": "003e34bd551f14ea970569d35c10d89eacacae6166c2e31e5f26391dbb766e91",
+    "cid": "bafyreix1tWy7Q1oEzBh6cyezzapfEwt2GPu18Q"
+  },
+  {
+    "index": 493,
+    "timestamp": "2026-09-28T23:47:36.170Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "c26accac98fd7668",
+      "context": "boot"
+    },
+    "prevHash": "003e34bd551f14ea970569d35c10d89eacacae6166c2e31e5f26391dbb766e91",
+    "nonce": 66,
+    "hash": "0088ccd143af6f590aff735242b133666766b523e5a4ebb83258de0c4268eaaf",
+    "cid": "bafyrei35zEAtQiqZVLBKdBg1j3TfkV7WWkUNRn"
+  },
+  {
+    "index": 494,
+    "timestamp": "2026-09-28T23:47:36.182Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "8e8b5c3906a2a89a"
+    },
+    "prevHash": "0088ccd143af6f590aff735242b133666766b523e5a4ebb83258de0c4268eaaf",
+    "nonce": 79,
+    "hash": "00c1e0f5b95cdfc1e214bede4b1a18c06533b1254f587878fe3913a59ca77448",
+    "cid": "bafyrei3xU7ANWQy3FtGxWG3U5BQ1EyTUNjQRum"
+  },
+  {
+    "index": 495,
+    "timestamp": "2026-09-28T23:47:40.457Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "c32d9f575ba65e18",
+      "context": "boot"
+    },
+    "prevHash": "00c1e0f5b95cdfc1e214bede4b1a18c06533b1254f587878fe3913a59ca77448",
+    "nonce": 342,
+    "hash": "00996cea3532614e5209d0ff7ce9af50282e60f3f6eb9f6d166d0f42879a7e70",
+    "cid": "bafyrei3Lh2z1Z7wQiRcrbp6AaHSsKU3okrjhic"
+  },
+  {
+    "index": 496,
+    "timestamp": "2026-09-28T23:47:40.472Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "6a3e9b6ba67dbf7e"
+    },
+    "prevHash": "00996cea3532614e5209d0ff7ce9af50282e60f3f6eb9f6d166d0f42879a7e70",
+    "nonce": 237,
+    "hash": "0002675ecc8cc86eeb4e320abd3b7a1474ab9a8092e0fad7905b2ac58bfdd61a",
+    "cid": "bafyrei38JcLpunRFhG2NSFjMT4sa8etBgdBBU7"
+  },
+  {
+    "index": 497,
+    "timestamp": "2026-09-28T23:47:44.880Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "f78a48b70acd89ca",
+      "context": "boot"
+    },
+    "prevHash": "0002675ecc8cc86eeb4e320abd3b7a1474ab9a8092e0fad7905b2ac58bfdd61a",
+    "nonce": 504,
+    "hash": "00da2a4b5959836d7fd5989a18c4ad198b9083bcc2b8307df663110d42e49dea",
+    "cid": "bafyrei4KwtkqL4ei9aYB5iQzWHMBw85jcUb6Up"
+  },
+  {
+    "index": 498,
+    "timestamp": "2026-09-28T23:47:44.903Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "fcf710d6b678ffda"
+    },
+    "prevHash": "00da2a4b5959836d7fd5989a18c4ad198b9083bcc2b8307df663110d42e49dea",
+    "nonce": 122,
+    "hash": "00c5f53c7164cf60dab1b8224c6380f960a6a8654b8816f7eda2fc5398636bb3",
+    "cid": "bafyrei425MMqj7EA9Xk6sw7YBCXwwLaQLCFC1H"
+  },
+  {
+    "index": 499,
+    "timestamp": "2026-09-28T23:47:49.472Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "e56ca471bc9e12a4",
+      "context": "boot"
+    },
+    "prevHash": "00c5f53c7164cf60dab1b8224c6380f960a6a8654b8816f7eda2fc5398636bb3",
+    "nonce": 516,
+    "hash": "007988f0a84128f982f32c175d00a9781915ebbc2c20892eae7f8627dade8a56",
+    "cid": "bafyrei2rVCFBoWpL3Y9bHC871nXs9RnGwFYnPG"
+  },
+  {
+    "index": 500,
+    "timestamp": "2026-09-28T23:47:49.489Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "196832edf1c2e601"
+    },
+    "prevHash": "007988f0a84128f982f32c175d00a9781915ebbc2c20892eae7f8627dade8a56",
+    "nonce": 217,
+    "hash": "006e6995aa72d5a6b77cb821b49f6041463cbc3591399f5da0801e92152f13a5",
+    "cid": "bafyrei2gefKSeJ1Rkv4nkmFWaBeUEXXGRGgHNr"
+  },
+  {
+    "index": 501,
+    "timestamp": "2026-09-28T23:47:53.668Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "166417be94eb4159",
+      "context": "boot"
+    },
+    "prevHash": "006e6995aa72d5a6b77cb821b49f6041463cbc3591399f5da0801e92152f13a5",
+    "nonce": 55,
+    "hash": "00e9f626145f9d947fffd9dbc89fd12824ac2e27cf722eb0ba9a6dcd9fd67f1b",
+    "cid": "bafyrei4ZvAxX9zVXmJSQrrfeAcYuuAE7pKXp77"
+  },
+  {
+    "index": 502,
+    "timestamp": "2026-09-28T23:47:53.688Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "fb42b65afd94a339"
+    },
+    "prevHash": "00e9f626145f9d947fffd9dbc89fd12824ac2e27cf722eb0ba9a6dcd9fd67f1b",
+    "nonce": 0,
+    "hash": "00dbc3657e139715b7352c9f4916102a5b9338d568c14cbba7f26f826e6e1209",
+    "cid": "bafyrei4MMsC72FDQH8nQ6J6aBm3iEpUAXm6qYy"
+  },
+  {
+    "index": 503,
+    "timestamp": "2026-09-28T23:47:57.735Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "b4a744b3758bbaed",
+      "context": "boot"
+    },
+    "prevHash": "00dbc3657e139715b7352c9f4916102a5b9338d568c14cbba7f26f826e6e1209",
+    "nonce": 10,
+    "hash": "008bd88ff87e92c17eb6c22ea2dfbf94072a5bdbb2e327389906cfc844178600",
+    "cid": "bafyrei38gU5kWZzh4dYFraY87pgCqDhdTNYCQd"
+  },
+  {
+    "index": 504,
+    "timestamp": "2026-09-28T23:47:57.757Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "dac236c238f8a84c"
+    },
+    "prevHash": "008bd88ff87e92c17eb6c22ea2dfbf94072a5bdbb2e327389906cfc844178600",
+    "nonce": 57,
+    "hash": "001fed3213c995734b89fac79b27b7d8848d6145a73dad26cb0a608b425d200c",
+    "cid": "bafyreiVEgu9tz5jDNJXdcPCdVKB5QgVURsS3oZ"
+  },
+  {
+    "index": 505,
+    "timestamp": "2026-09-28T23:48:02.139Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "c0b3d1432de7707b",
+      "context": "boot"
+    },
+    "prevHash": "001fed3213c995734b89fac79b27b7d8848d6145a73dad26cb0a608b425d200c",
+    "nonce": 346,
+    "hash": "0074de8ee298876207aeeb89e2c0766688187066ecbcda7564915401a3f554b8",
+    "cid": "bafyrei2nMsaFvrfZxWDV5VoWbVJfxJqFUVFSDe"
+  },
+  {
+    "index": 506,
+    "timestamp": "2026-09-28T23:48:02.160Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "eadd4f907353fd75"
+    },
+    "prevHash": "0074de8ee298876207aeeb89e2c0766688187066ecbcda7564915401a3f554b8",
+    "nonce": 5,
+    "hash": "004d819e0d3b3adffdd3f569712a7e73f103aa96f892e747a109fc7ae30bb178",
+    "cid": "bafyrei2BYj3TTZsuYbocPNb21Kd5RqPxmUUVAC"
+  },
+  {
+    "index": 507,
+    "timestamp": "2026-09-28T23:48:06.332Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "7655271c3b17bf8e",
+      "context": "boot"
+    },
+    "prevHash": "004d819e0d3b3adffdd3f569712a7e73f103aa96f892e747a109fc7ae30bb178",
+    "nonce": 111,
+    "hash": "00012fbe5d32d534ff83836a38c2b679dd3a43ee741f648c15cacecaf43d9b30",
+    "cid": "bafyrei23rzrWNMogvFAvFiygMa7u5SwQAckvYn"
+  },
+  {
+    "index": 508,
+    "timestamp": "2026-09-28T23:48:06.347Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "21eb1a4bd533dc45"
+    },
+    "prevHash": "00012fbe5d32d534ff83836a38c2b679dd3a43ee741f648c15cacecaf43d9b30",
+    "nonce": 211,
+    "hash": "00a911be34ba3b5071a19f5f4ea3cbd24af27553403f8f87cb317e6dc2546c64",
+    "cid": "bafyrei3aXVdqAbHtsj8ds675rTkh8K4gaT6nGA"
+  },
+  {
+    "index": 509,
+    "timestamp": "2026-09-28T23:48:16.234Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "cc74fb09d59b7b4e",
+      "context": "boot"
+    },
+    "prevHash": "00a911be34ba3b5071a19f5f4ea3cbd24af27553403f8f87cb317e6dc2546c64",
+    "nonce": 31,
+    "hash": "00b95e4ac84d7ef9017f9ebd2aa25cf0871e49e305b91c68bf019f24c681a498",
+    "cid": "bafyrei3pwZUp3SpUnFyoZYyggFHZqxXrUaUP4u"
+  },
+  {
+    "index": 510,
+    "timestamp": "2026-09-28T23:48:16.283Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "d521e6c18761bd9e"
+    },
+    "prevHash": "00b95e4ac84d7ef9017f9ebd2aa25cf0871e49e305b91c68bf019f24c681a498",
+    "nonce": 10,
+    "hash": "002d9efb3565adb428ef9128079bd8926948693cf9314da8fd3447e6290b9c00",
+    "cid": "bafyreihM9rzTvfp1d9yR4aHKopxFBBhSHUF9pf"
+  },
+  {
+    "index": 511,
+    "timestamp": "2026-09-28T23:48:19.605Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "4d16c19eedc7801b",
+      "context": "boot"
+    },
+    "prevHash": "002d9efb3565adb428ef9128079bd8926948693cf9314da8fd3447e6290b9c00",
+    "nonce": 17,
+    "hash": "00878d13d30f2054491960190d486c40f530cd17bc08488f8fb9116e31ee826c",
+    "cid": "bafyrei34tAGb8MjFccMacsEgsQCkHvn2dY9yod"
+  },
+  {
+    "index": 512,
+    "timestamp": "2026-09-28T23:48:19.717Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "22fb6adf87e05617"
+    },
+    "prevHash": "00878d13d30f2054491960190d486c40f530cd17bc08488f8fb9116e31ee826c",
+    "nonce": 63,
+    "hash": "00305d84331807e403a5750fe7744b1eceadddee0b8d04e15bb165f8e6070717",
+    "cid": "bafyreijmvUCSZQNBNcfoZBk8Gpmz1NTBPwVXb5"
+  },
+  {
+    "index": 513,
+    "timestamp": "2026-09-28T23:48:22.966Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "2d037eb1f25ae6a2",
+      "context": "boot"
+    },
+    "prevHash": "00305d84331807e403a5750fe7744b1eceadddee0b8d04e15bb165f8e6070717",
+    "nonce": 33,
+    "hash": "00932fc88f5709f650763a1f278910aa8701296723d7101e893b76c8872027c7",
+    "cid": "bafyrei3FB1hpMeZHtp33CsQoNfgS6DPHdr3G7W"
+  },
+  {
+    "index": 514,
+    "timestamp": "2026-09-28T23:48:23.272Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "6117e73ccbc27f23"
+    },
+    "prevHash": "00932fc88f5709f650763a1f278910aa8701296723d7101e893b76c8872027c7",
+    "nonce": 901,
+    "hash": "00e49d922164e63d2ffec546530a83669b14ab28d233565ce6eaab74836194ad",
+    "cid": "bafyrei4VBwqvuoDHkp8GyK4QnKh3MhRW1Nw1pH"
+  },
+  {
+    "index": 515,
+    "timestamp": "2026-09-28T23:48:24.157Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "846c81e68d7a9b4d",
+      "context": "boot"
+    },
+    "prevHash": "00e49d922164e63d2ffec546530a83669b14ab28d233565ce6eaab74836194ad",
+    "nonce": 39,
+    "hash": "005e8959957a247f8ebcaf2a434b372c9b062d307738fc863c4899397a79f619",
+    "cid": "bafyrei2ScJGL88V4mUnxy34PeJZcKA4Ls5oT7T"
+  },
+  {
+    "index": 516,
+    "timestamp": "2026-09-28T23:48:24.209Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "8238905bc29b9a83"
+    },
+    "prevHash": "005e8959957a247f8ebcaf2a434b372c9b062d307738fc863c4899397a79f619",
+    "nonce": 214,
+    "hash": "00b481fefbbfc2c40b04f6cd690503fd6f13e597e5a1ae57e3203c60d007db34",
+    "cid": "bafyrei3keEizjJgErPPAgg2kqMwW16caMVCwZ8"
+  },
+  {
+    "index": 517,
+    "timestamp": "2026-09-28T23:48:24.571Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "cc376888f4a2febf",
+      "context": "boot"
+    },
+    "prevHash": "00b481fefbbfc2c40b04f6cd690503fd6f13e597e5a1ae57e3203c60d007db34",
+    "nonce": 378,
+    "hash": "006932c5230c89a0e9d652cf26b282254d51d0bfa512e1956b54a3759fcf1b17",
+    "cid": "bafyrei2c3CbD6MHtBmf2yfschAJUWCtPixS1Yr"
+  },
+  {
+    "index": 518,
+    "timestamp": "2026-09-28T23:48:24.642Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "cb1d627ed970c79b"
+    },
+    "prevHash": "006932c5230c89a0e9d652cf26b282254d51d0bfa512e1956b54a3759fcf1b17",
+    "nonce": 84,
+    "hash": "00db98bf88587b6ff79276ed708e2d78dce3b7a491d570a4759a8f03d5a63347",
+    "cid": "bafyrei4MDKYpkQVGaxyTKbRA3g6LQFsssCKfcW"
+  },
+  {
+    "index": 519,
+    "timestamp": "2026-09-28T23:48:25.109Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9b5bcfe3b298dcc4",
+      "context": "boot"
+    },
+    "prevHash": "00db98bf88587b6ff79276ed708e2d78dce3b7a491d570a4759a8f03d5a63347",
+    "nonce": 749,
+    "hash": "00a47df8c14e3a33b27357b4a56c8df13bee46f91419fb1a2416f2a99bd3dd6b",
+    "cid": "bafyrei3WUhjhy39xj59LLok9oJBafki3e5usPs"
+  },
+  {
+    "index": 520,
+    "timestamp": "2026-09-28T23:48:25.193Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "2c239e9cd2f85a55"
+    },
+    "prevHash": "00a47df8c14e3a33b27357b4a56c8df13bee46f91419fb1a2416f2a99bd3dd6b",
+    "nonce": 519,
+    "hash": "006e4130fbb5cde91ebdaa4be7093d1cd962f44ecbb03b5e9fc6cc7953f3483f",
+    "cid": "bafyrei2gWZt9bSKjY2gAKXhZQqvPnyD5uWMttz"
+  },
+  {
+    "index": 521,
+    "timestamp": "2026-09-28T23:48:25.465Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "e10a4dcb764a5589",
+      "context": "boot"
+    },
+    "prevHash": "006e4130fbb5cde91ebdaa4be7093d1cd962f44ecbb03b5e9fc6cc7953f3483f",
+    "nonce": 138,
+    "hash": "00ce1f70150fa6d605b2b46c350724a9c1e353546283eb4146d18530d50b34ab",
+    "cid": "bafyrei49JAvSussQZ9Hy1NroRjKxgvSruuVnzF"
+  },
+  {
+    "index": 522,
+    "timestamp": "2026-09-28T23:48:25.534Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "ed2868a4cee3082d"
+    },
+    "prevHash": "00ce1f70150fa6d605b2b46c350724a9c1e353546283eb4146d18530d50b34ab",
+    "nonce": 247,
+    "hash": "00a2bead003798cb1627495d3a242925658b5169bd6effb375e0645f7b052f9a",
+    "cid": "bafyrei3Uw5Rj3URYv5Syz2BGc9ffnbWqTJfZFu"
+  },
+  {
+    "index": 523,
+    "timestamp": "2026-09-28T23:48:26.065Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "361ef6be1fd37846",
+      "context": "boot"
+    },
+    "prevHash": "00a2bead003798cb1627495d3a242925658b5169bd6effb375e0645f7b052f9a",
+    "nonce": 975,
+    "hash": "00b6ad71a860d04d9c0859df86e0be38529574388732cd814136767744b9d7fb",
+    "cid": "bafyrei3nZXwNweep6mHijtxBg9JqJP15jk3oHz"
+  },
+  {
+    "index": 524,
+    "timestamp": "2026-09-28T23:48:26.126Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "4a4ed49d752e1f59"
+    },
+    "prevHash": "00b6ad71a860d04d9c0859df86e0be38529574388732cd814136767744b9d7fb",
+    "nonce": 116,
+    "hash": "008d87a5a615bafd7943986d7c04a0031ac998fd25b534c52a799136896f3f08",
+    "cid": "bafyrei3AAqzUG6RXJmYRxCNQJ8wTWm5egATedm"
+  },
+  {
+    "index": 525,
+    "timestamp": "2026-09-28T23:48:26.426Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "b13a6dec0d5fadf2",
+      "context": "boot"
+    },
+    "prevHash": "008d87a5a615bafd7943986d7c04a0031ac998fd25b534c52a799136896f3f08",
+    "nonce": 39,
+    "hash": "001eb6cb49d7e0c5b699043d432c9d016804c7e0f23cf651505fe72dbf4e93f7",
+    "cid": "bafyreiUAVXWDbzNexdVsKBxHQV2qaDZVFzPt7h"
+  },
+  {
+    "index": 526,
+    "timestamp": "2026-09-28T23:48:26.501Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "bdaed40291043666"
+    },
+    "prevHash": "001eb6cb49d7e0c5b699043d432c9d016804c7e0f23cf651505fe72dbf4e93f7",
+    "nonce": 124,
+    "hash": "0058166f21a12d33dc72c57f7e7c7a690ffefc3a68d93fed592bdbd6b539cfbb",
+    "cid": "bafyrei2LuVvWKXdhgaCgHbFpjwLNY6WcgEEyvf"
+  },
+  {
+    "index": 527,
+    "timestamp": "2026-09-28T23:48:26.658Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "3d8b0fca0419d9cb",
+      "context": "boot"
+    },
+    "prevHash": "0058166f21a12d33dc72c57f7e7c7a690ffefc3a68d93fed592bdbd6b539cfbb",
+    "nonce": 979,
+    "hash": "0089f73fbacf7183c63ac7aa35c7a7eacb42436deab4da7efd9da362db6b0a64",
+    "cid": "bafyrei3722S6ENr3Abjbauq8QuGkURuM4Ge47z"
+  },
+  {
+    "index": 528,
+    "timestamp": "2026-09-28T23:48:26.743Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "ea1d31c2955d8492"
+    },
+    "prevHash": "0089f73fbacf7183c63ac7aa35c7a7eacb42436deab4da7efd9da362db6b0a64",
+    "nonce": 214,
+    "hash": "003bcc7e2b5d7338cd4c9abeae12a3d01ccb12a02f55e6e1dcbcca944b4bd61d",
+    "cid": "bafyreiutQisQ8G8rM1FwPbdqPjPvtF1kTpuh8S"
+  },
+  {
+    "index": 529,
+    "timestamp": "2026-09-28T23:49:51.299Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9cc97b937033b5b2",
+      "context": "boot"
+    },
+    "prevHash": "003bcc7e2b5d7338cd4c9abeae12a3d01ccb12a02f55e6e1dcbcca944b4bd61d",
+    "nonce": 130,
+    "hash": "00152b725a3107f078dddc2e3da9a8ae35ed6db7faf478dd5f0d275c0e40034a",
+    "cid": "bafyreiKiuqLCv2oPxCT89ijfxUmbtPqmjneqUi"
+  },
+  {
+    "index": 530,
+    "timestamp": "2026-09-28T23:49:51.314Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "7c25486db291e631"
+    },
+    "prevHash": "00152b725a3107f078dddc2e3da9a8ae35ed6db7faf478dd5f0d275c0e40034a",
+    "nonce": 92,
+    "hash": "003d9d26a1751ecab5c33742751b7396ba342166714a87d9b6c0a61fb8a6d0bb",
+    "cid": "bafyreiwVWotDNnCwPidPLFAE5he2FPVEcjB35z"
+  },
+  {
+    "index": 531,
+    "timestamp": "2026-09-28T23:49:58.993Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9c110afff0ab8e59",
+      "context": "boot"
+    },
+    "prevHash": "003d9d26a1751ecab5c33742751b7396ba342166714a87d9b6c0a61fb8a6d0bb",
+    "nonce": 129,
+    "hash": "007298f9196e73950c62778985351ac68130410578fb646e570fe58184d68f4d",
+    "cid": "bafyrei2kMLbzw8ZG12jPM19cnC6iXcRv3HyQCr"
+  },
+  {
+    "index": 532,
+    "timestamp": "2026-09-28T23:49:59.006Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "80c1bd9b33bde688"
+    },
+    "prevHash": "007298f9196e73950c62778985351ac68130410578fb646e570fe58184d68f4d",
+    "nonce": 297,
+    "hash": "00e54338761f901b1890ee44b0236a8e5e230c85017cf20390ba8f6cd1a029ad",
+    "cid": "bafyrei4Vm8xwAR39hVpv2vogjdC8S2ZU2xv4UE"
+  },
+  {
+    "index": 533,
+    "timestamp": "2026-09-28T23:50:04.542Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "d81b681f93047fb5",
+      "context": "boot"
+    },
+    "prevHash": "00e54338761f901b1890ee44b0236a8e5e230c85017cf20390ba8f6cd1a029ad",
+    "nonce": 411,
+    "hash": "00dc34da78dd97e95ddef7a44b21c6649ebdc2902b45522546eb4cc8259613c7",
+    "cid": "bafyrei4MkbkK8NJsFqxo6AuNBEaJDV5ZfpsGwD"
+  },
+  {
+    "index": 534,
+    "timestamp": "2026-09-28T23:50:04.561Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "46ddaa68924b087d"
+    },
+    "prevHash": "00dc34da78dd97e95ddef7a44b21c6649ebdc2902b45522546eb4cc8259613c7",
+    "nonce": 123,
+    "hash": "0026437847714cc804313586adca1a90646d5172afa38dc354a8d815753d4a04",
+    "cid": "bafyreiaqkNxygSp6zo4rjrw45zVfGb2Pp9eqGi"
+  },
+  {
+    "index": 535,
+    "timestamp": "2026-09-28T23:50:09.812Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "e31090d358b22d61",
+      "context": "boot"
+    },
+    "prevHash": "0026437847714cc804313586adca1a90646d5172afa38dc354a8d815753d4a04",
+    "nonce": 336,
+    "hash": "002390d64eaaa6002e15d56d9574e8fdf154e78f8fb998e62f2d4136c172d10a",
+    "cid": "bafyreiYTN6eDyy7SAUrvWMu9ZeRjMFAxZ6XRKJ"
+  },
+  {
+    "index": 536,
+    "timestamp": "2026-09-28T23:50:09.827Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "ebccee0542478262"
+    },
+    "prevHash": "002390d64eaaa6002e15d56d9574e8fdf154e78f8fb998e62f2d4136c172d10a",
+    "nonce": 790,
+    "hash": "00b30de71720926f9ace742e01b8163900f340daa65153f64de833d0c7b5052e",
+    "cid": "bafyrei3jMgPgRMKe4DAHPg7bC28pySQXQFzQze"
+  },
+  {
+    "index": 537,
+    "timestamp": "2026-09-28T23:50:15.134Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "e71bea4d52abe788",
+      "context": "boot"
+    },
+    "prevHash": "00b30de71720926f9ace742e01b8163900f340daa65153f64de833d0c7b5052e",
+    "nonce": 113,
+    "hash": "00d05c51f1cfdb2091bd272376b165fb83538a938c0a28c3a071c6dd66cdf88b",
+    "cid": "bafyrei4BGxkXLmTvEd3WqJXH5koUVGDC3FocR8"
+  },
+  {
+    "index": 538,
+    "timestamp": "2026-09-28T23:50:15.148Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "4f1b5ce83c107f70"
+    },
+    "prevHash": "00d05c51f1cfdb2091bd272376b165fb83538a938c0a28c3a071c6dd66cdf88b",
+    "nonce": 201,
+    "hash": "002120053563cd4ca50b9f35813e2fbfac00710222c5204c8f0f3b9e88b58a92",
+    "cid": "bafyreiWJAhrRT36UKGt4YXbGEk6D6WjwwMfcUC"
+  },
+  {
+    "index": 539,
+    "timestamp": "2026-09-28T23:50:19.906Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "bf791b57068ef1df",
+      "context": "boot"
+    },
+    "prevHash": "002120053563cd4ca50b9f35813e2fbfac00710222c5204c8f0f3b9e88b58a92",
+    "nonce": 388,
+    "hash": "0087fc92ba40d35f48174bbe262b28a6a0e7510a0aa12f78546a576519b2a24c",
+    "cid": "bafyrei35GW2pLV5QXqtP6McAZY3VAvoh4c1z24"
+  },
+  {
+    "index": 540,
+    "timestamp": "2026-09-28T23:50:19.923Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "7a0a1b6b8b6858f6"
+    },
+    "prevHash": "0087fc92ba40d35f48174bbe262b28a6a0e7510a0aa12f78546a576519b2a24c",
+    "nonce": 117,
+    "hash": "006679833132b1790ecc9bd56257ea4ca267a83dfb719918a8e85640cce0733a",
+    "cid": "bafyrei2ZdVKLtpGLCbiH6PnyxSXuyh8nHcVpXy"
+  },
+  {
+    "index": 541,
+    "timestamp": "2026-09-28T23:50:25.410Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "fda8d43d9a0fc000",
+      "context": "boot"
+    },
+    "prevHash": "006679833132b1790ecc9bd56257ea4ca267a83dfb719918a8e85640cce0733a",
+    "nonce": 195,
+    "hash": "002b00c9f092acf43538debd2ebfdf4c28f886ed5a06467cbf06515027cde308",
+    "cid": "bafyreif2s8Wq6wVqZLeDC9bhTPRx243X5rYWb5"
+  },
+  {
+    "index": 542,
+    "timestamp": "2026-09-28T23:50:25.428Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "ce75a90d79e441c3"
+    },
+    "prevHash": "002b00c9f092acf43538debd2ebfdf4c28f886ed5a06467cbf06515027cde308",
+    "nonce": 55,
+    "hash": "00de56d030206b45bc7989dba5935b9f10b910dc28e296873e8afb2229df562a",
+    "cid": "bafyrei4PdzhBc9QvFjMQh33fbcX2yjDtu7hxjB"
+  },
+  {
+    "index": 543,
+    "timestamp": "2026-09-28T23:50:31.330Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "03413b2c52375121",
+      "context": "boot"
+    },
+    "prevHash": "00de56d030206b45bc7989dba5935b9f10b910dc28e296873e8afb2229df562a",
+    "nonce": 77,
+    "hash": "004b46b1e7256cb9c64616da44b54dc90b8dfc07c18dff672371044294e19f33",
+    "cid": "bafyrei29aKzQVMYPN1MKstAPzBJpZTzdrvrXJ8"
+  },
+  {
+    "index": 544,
+    "timestamp": "2026-09-28T23:50:31.349Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "b5cc00a6af2d5418"
+    },
+    "prevHash": "004b46b1e7256cb9c64616da44b54dc90b8dfc07c18dff672371044294e19f33",
+    "nonce": 456,
+    "hash": "00ac938cb49a21beaaba7be292ba0d6fad5c03493fcd8006fe2b280f5b72bce8",
+    "cid": "bafyrei3ddPckYEbeKpbPRQCPsx1uDTeqbU61j6"
+  },
+  {
+    "index": 545,
+    "timestamp": "2026-09-28T23:50:36.016Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "48b4c3ff31a8b5b4",
+      "context": "boot"
+    },
+    "prevHash": "00ac938cb49a21beaaba7be292ba0d6fad5c03493fcd8006fe2b280f5b72bce8",
+    "nonce": 256,
+    "hash": "002f7d44810f9d6c09d6f80e1ad63b6840a4ab07513f8b3cc85e6a7f266bdebf",
+    "cid": "bafyreiizzLCXjpEXKE16wNhQBwkCgBY8skvB2m"
+  },
+  {
+    "index": 546,
+    "timestamp": "2026-09-28T23:50:36.033Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "cc9bde0d8576954f"
+    },
+    "prevHash": "002f7d44810f9d6c09d6f80e1ad63b6840a4ab07513f8b3cc85e6a7f266bdebf",
+    "nonce": 48,
+    "hash": "006f8e0f355eb2f0c67b4922d626be94169a959a64f69cfb3b1241430f44d8ed",
+    "cid": "bafyrei2hfGMV4JPonT7yUpyis1yzM1A31Br3wW"
+  },
+  {
+    "index": 547,
+    "timestamp": "2026-09-28T23:50:40.839Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "a873f284d579fb73",
+      "context": "boot"
+    },
+    "prevHash": "006f8e0f355eb2f0c67b4922d626be94169a959a64f69cfb3b1241430f44d8ed",
+    "nonce": 258,
+    "hash": "00c6214f540adb142c46265f980784d55e945db9a90e668da2c4ec3ee5a2d105",
+    "cid": "bafyrei42EBZynx1hCr95FMoftVjMn7FT9GWq3S"
+  },
+  {
+    "index": 548,
+    "timestamp": "2026-09-28T23:50:40.858Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "a3dc5821235dd178"
+    },
+    "prevHash": "00c6214f540adb142c46265f980784d55e945db9a90e668da2c4ec3ee5a2d105",
+    "nonce": 2,
+    "hash": "00f923270284c7c2199237f5d551586893313b4990387355799f2b2cb0cab6dd",
+    "cid": "bafyrei4oLd44qCyqatG5fjjNEc7y9ETPUEjBK6"
+  },
+  {
+    "index": 549,
+    "timestamp": "2026-09-28T23:50:45.806Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "521b244cd864b70b",
+      "context": "boot"
+    },
+    "prevHash": "00f923270284c7c2199237f5d551586893313b4990387355799f2b2cb0cab6dd",
+    "nonce": 582,
+    "hash": "004911b3c7252daede749edf35c34d1fe0144d409b813e8afc70c1bc2a7ba69a",
+    "cid": "bafyrei27d7rMMjUJuTrUSqmeZL2sYvcTwSYRgf"
+  },
+  {
+    "index": 550,
+    "timestamp": "2026-09-28T23:50:45.832Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "297961d80ea271a5"
+    },
+    "prevHash": "004911b3c7252daede749edf35c34d1fe0144d409b813e8afc70c1bc2a7ba69a",
+    "nonce": 59,
+    "hash": "007d0e67ee6102baef4d0c034677a35c3f20ccab031f2dcafb88ccc459dba508",
+    "cid": "bafyrei2ubpkfCRZLsMyoPVk52EGSDZ3f5SMS2m"
+  },
+  {
+    "index": 551,
+    "timestamp": "2026-09-28T23:50:50.598Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "b8a29c1fedf393b3",
+      "context": "boot"
+    },
+    "prevHash": "007d0e67ee6102baef4d0c034677a35c3f20ccab031f2dcafb88ccc459dba508",
+    "nonce": 1057,
+    "hash": "00ad0304cb23ec3d9f17133fb36016634d986659fe1aaadaeca420f89fd77ada",
+    "cid": "bafyrei3e1j52ywE7CopHgL7KsbQYbSsiNpmjRQ"
+  },
+  {
+    "index": 552,
+    "timestamp": "2026-09-28T23:50:50.622Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "4c107066a08829c6"
+    },
+    "prevHash": "00ad0304cb23ec3d9f17133fb36016634d986659fe1aaadaeca420f89fd77ada",
+    "nonce": 77,
+    "hash": "00cb466fa2392fcfaca59a405b03946ce0a8973148dff7afe88d17ebc42bc2fd",
+    "cid": "bafyrei46n6jHBxwWeKiYkf1pCvLv6gGeWzuqeQ"
+  },
+  {
+    "index": 553,
+    "timestamp": "2026-09-28T23:50:55.611Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "007c78ebdb2a494f",
+      "context": "boot"
+    },
+    "prevHash": "00cb466fa2392fcfaca59a405b03946ce0a8973148dff7afe88d17ebc42bc2fd",
+    "nonce": 868,
+    "hash": "005cae5106a79c39c5d263a908249940305ac4a8c4a00eb53c8969d5f65721e5",
+    "cid": "bafyrei2Qy7bk3r15Kdi8ct9fB9oPxks3S4R7on"
+  },
+  {
+    "index": 554,
+    "timestamp": "2026-09-28T23:50:55.640Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "00d5d602959ec638"
+    },
+    "prevHash": "005cae5106a79c39c5d263a908249940305ac4a8c4a00eb53c8969d5f65721e5",
+    "nonce": 448,
+    "hash": "007258168577c2b53b8a3a8611dfe1cab8b75a849671e255f2511ea11f87e5a4",
+    "cid": "bafyrei2k8LXuLxBVAuejvQQ3yQJPL8N3T9mBkj"
+  },
+  {
+    "index": 555,
+    "timestamp": "2026-09-28T23:51:01.124Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "ed2f12b57a69e98c",
+      "context": "boot"
+    },
+    "prevHash": "007258168577c2b53b8a3a8611dfe1cab8b75a849671e255f2511ea11f87e5a4",
+    "nonce": 21,
+    "hash": "00084532042b6f06490e09f90513aa401ed1f8fb1a0d1250524222d7b18d1014",
+    "cid": "bafyrei8KEGpDjLCa3vDPWbYrM1qgkK2jQRoS1X"
+  },
+  {
+    "index": 556,
+    "timestamp": "2026-09-28T23:51:01.146Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "5de782f088c4b5c3"
+    },
+    "prevHash": "00084532042b6f06490e09f90513aa401ed1f8fb1a0d1250524222d7b18d1014",
+    "nonce": 262,
+    "hash": "004d4e6b8671d86cbdfe3352cade8292fba392090087a4957e8a9d4229ccf479",
+    "cid": "bafyrei2BNU3d2R2gPpG2zxexcWRA7GX97XS34Y"
+  },
+  {
+    "index": 557,
+    "timestamp": "2026-09-28T23:51:06.310Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "5c28df9acf273185",
+      "context": "boot"
+    },
+    "prevHash": "004d4e6b8671d86cbdfe3352cade8292fba392090087a4957e8a9d4229ccf479",
+    "nonce": 276,
+    "hash": "00243f685a722e797952580dcd54a3c978972aa97864be1e9ef89627b1de75a5",
+    "cid": "bafyreiZ4LtjHCcuTjFmcMHgx4fZUEzm3NKGVam"
+  },
+  {
+    "index": 558,
+    "timestamp": "2026-09-28T23:51:06.332Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "81db53f7c742a9d9"
+    },
+    "prevHash": "00243f685a722e797952580dcd54a3c978972aa97864be1e9ef89627b1de75a5",
+    "nonce": 311,
+    "hash": "0009945d852ca282200f56521d221ecff8d8d8b69e5102cf8e5bc6b397733176",
+    "cid": "bafyrei9UPVjhoA2vysHrCjssZcGXx8qrgcqRPE"
+  },
+  {
+    "index": 559,
+    "timestamp": "2026-09-28T23:51:11.396Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "7e25a77fda292ad2",
+      "context": "boot"
+    },
+    "prevHash": "0009945d852ca282200f56521d221ecff8d8d8b69e5102cf8e5bc6b397733176",
+    "nonce": 179,
+    "hash": "006fb7e9e05f43d8e14982926151ce2c7e0c8ab827012c3536b89880ed0d5f35",
+    "cid": "bafyrei2hoemVVeP58cTeBGqV6m1iQGZJJm8ahW"
+  },
+  {
+    "index": 560,
+    "timestamp": "2026-09-28T23:51:11.421Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "ef114b67ede38cc8"
+    },
+    "prevHash": "006fb7e9e05f43d8e14982926151ce2c7e0c8ab827012c3536b89880ed0d5f35",
+    "nonce": 1001,
+    "hash": "00c9216e45453c5323775a440164a8c24682f1440e5e72336e749af07e2c1b69",
+    "cid": "bafyrei44t6PaTEN481XsAdphMEadgxDp87gELG"
+  },
+  {
+    "index": 561,
+    "timestamp": "2026-09-28T23:51:16.941Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "49989b7f0cd22eba",
+      "context": "boot"
+    },
+    "prevHash": "00c9216e45453c5323775a440164a8c24682f1440e5e72336e749af07e2c1b69",
+    "nonce": 68,
+    "hash": "006c63671c8211cc1f400d69d3df5f2b39c159dd3de680c55cb391eb240e55e1",
+    "cid": "bafyrei2erqCT77hiKsWuNoK858ynKANsDEJQMJ"
+  },
+  {
+    "index": 562,
+    "timestamp": "2026-09-28T23:51:16.957Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "c9b2684870ec20a8"
+    },
+    "prevHash": "006c63671c8211cc1f400d69d3df5f2b39c159dd3de680c55cb391eb240e55e1",
+    "nonce": 140,
+    "hash": "006964809b48aefd794f526d5c2ac0e06bb20da7ff9d4327b3932b746b104dd0",
+    "cid": "bafyrei2cDAZWWkxvG3gZ8G6JCDaUZNMSzSpqaM"
+  },
+  {
+    "index": 563,
+    "timestamp": "2026-09-28T23:51:21.599Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "f6b8cb255245e146",
+      "context": "boot"
+    },
+    "prevHash": "006964809b48aefd794f526d5c2ac0e06bb20da7ff9d4327b3932b746b104dd0",
+    "nonce": 542,
+    "hash": "0008af32cf5424dc36b52c76901ea5f7048c6d62df30ac027e2668a949817ff3",
+    "cid": "bafyrei8gUCie11m7gEwZdZHuA1FtUJta4pD35v"
+  },
+  {
+    "index": 564,
+    "timestamp": "2026-09-28T23:51:21.620Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "ee0be38e6e1a8b20"
+    },
+    "prevHash": "0008af32cf5424dc36b52c76901ea5f7048c6d62df30ac027e2668a949817ff3",
+    "nonce": 320,
+    "hash": "009635381a82dd752077dd9d66061c3464a79b7017a6ff5a6939779ff7c2283e",
+    "cid": "bafyrei3HqzHv14cYbjj8Ri12NpihJbkGp4moDY"
+  },
+  {
+    "index": 565,
+    "timestamp": "2026-09-28T23:51:26.220Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "8fe56baf633bb43f",
+      "context": "boot"
+    },
+    "prevHash": "009635381a82dd752077dd9d66061c3464a79b7017a6ff5a6939779ff7c2283e",
+    "nonce": 111,
+    "hash": "004f6e93cf0c6d33dc12abef099a5d9f4324e79224d1d1f10cd6d9115aec66f4",
+    "cid": "bafyrei2DFW3Xd4UPAqSTKrXMCFqsLm8U9Zx9ei"
+  },
+  {
+    "index": 566,
+    "timestamp": "2026-09-28T23:51:26.240Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "5af5886684b2f64e"
+    },
+    "prevHash": "004f6e93cf0c6d33dc12abef099a5d9f4324e79224d1d1f10cd6d9115aec66f4",
+    "nonce": 363,
+    "hash": "00aa83e742ec6b7eb1a27c598ad8f0306062c70be315cb9cebca3995d6a506bc",
+    "cid": "bafyrei3bofWE5Vd75gYXSidP5E3w6sYMrmkAqj"
+  },
+  {
+    "index": 567,
+    "timestamp": "2026-09-28T23:51:31.239Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9f8c436cae76e334",
+      "context": "boot"
+    },
+    "prevHash": "00aa83e742ec6b7eb1a27c598ad8f0306062c70be315cb9cebca3995d6a506bc",
+    "nonce": 187,
+    "hash": "009af1825402b305c73aacac78c89ec485af8c635a127c93290c18826ef0231a",
+    "cid": "bafyrei3N2u5q54WWej961J2m3hSnfokA3Ljozv"
+  },
+  {
+    "index": 568,
+    "timestamp": "2026-09-28T23:51:31.268Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "92ab142b339a58e8"
+    },
+    "prevHash": "009af1825402b305c73aacac78c89ec485af8c635a127c93290c18826ef0231a",
+    "nonce": 136,
+    "hash": "0030c36fce87742665c8e40655fcb54407b651daa753864961dd634254211869",
+    "cid": "bafyreik8Lx6dz7jnaazRinddrLQ6UzPWYTT7mE"
+  },
+  {
+    "index": 569,
+    "timestamp": "2026-09-28T23:51:36.608Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "51f514c6507f97c2",
+      "context": "boot"
+    },
+    "prevHash": "0030c36fce87742665c8e40655fcb54407b651daa753864961dd634254211869",
+    "nonce": 427,
+    "hash": "00723ad1e7b7e88a886f2b41012daaf0b58b8a64c9ba26dcdf2b51c39f7cedc6",
+    "cid": "bafyrei2k2UPeKggEeJGjfZFc3pNiWjXGe6G5fW"
+  },
+  {
+    "index": 570,
+    "timestamp": "2026-09-28T23:51:36.632Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "7580a06b8d9c6c5c"
+    },
+    "prevHash": "00723ad1e7b7e88a886f2b41012daaf0b58b8a64c9ba26dcdf2b51c39f7cedc6",
+    "nonce": 185,
+    "hash": "009ee7f903467fa9f56153c0f035c8540c6c6015665242698a640c1949bbbb2d",
+    "cid": "bafyrei3RYAowxy6r3SMy66rWEosHrggs29BWQ8"
+  },
+  {
+    "index": 571,
+    "timestamp": "2026-09-28T23:51:41.899Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "a6bca6f68ee88967",
+      "context": "boot"
+    },
+    "prevHash": "009ee7f903467fa9f56153c0f035c8540c6c6015665242698a640c1949bbbb2d",
+    "nonce": 317,
+    "hash": "0013ae7423c40681425567cbcd4f706b5f7ce841ba1ad35062a9368c79ca1603",
+    "cid": "bafyreiJQa594xGMiW5qQrfq3m9FnFeYTCqUkBt"
+  },
+  {
+    "index": 572,
+    "timestamp": "2026-09-28T23:51:41.923Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "32ccfdce1c8e5bf6"
+    },
+    "prevHash": "0013ae7423c40681425567cbcd4f706b5f7ce841ba1ad35062a9368c79ca1603",
+    "nonce": 121,
+    "hash": "0013808c274951029e14eb3a582e86b18a13aea6e3b8268ddff4634499180a23",
+    "cid": "bafyreiJFNZqzvnyej47Ue8uHqUbRLipnFEK1CH"
+  },
+  {
+    "index": 573,
+    "timestamp": "2026-09-28T23:51:47.324Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "3b33614a430280bc",
+      "context": "boot"
+    },
+    "prevHash": "0013808c274951029e14eb3a582e86b18a13aea6e3b8268ddff4634499180a23",
+    "nonce": 219,
+    "hash": "00f1acda9754a1cef5a77f9c8c12853f1aff694a3e73c77e19bb7faa6a06ccbb",
+    "cid": "bafyrei4gjrG66XF8nAUsgBZxig9N3KGXZcmXas"
+  },
+  {
+    "index": 574,
+    "timestamp": "2026-09-28T23:51:47.346Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "79478dc669a19143"
+    },
+    "prevHash": "00f1acda9754a1cef5a77f9c8c12853f1aff694a3e73c77e19bb7faa6a06ccbb",
+    "nonce": 156,
+    "hash": "0061e1d2ae04f29b39e1de27541436cecb5bed883a1c7ca838c1c205ff3023ed",
+    "cid": "bafyrei2VZut8bYioJiAMGHFysav2mA3Pbsq3HG"
+  },
+  {
+    "index": 575,
+    "timestamp": "2026-09-28T23:55:21.126Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "3f3528e4fa509348",
+      "context": "boot"
+    },
+    "prevHash": "0061e1d2ae04f29b39e1de27541436cecb5bed883a1c7ca838c1c205ff3023ed",
+    "nonce": 45,
+    "hash": "005c3dd61dac03e92e04e25041a82a6fc7f2265fd9e14f28adf79a4370dc035b",
+    "cid": "bafyrei2QaaPyTKaCv5qTyLGBp86MCoZeo9dw6L"
+  },
+  {
+    "index": 576,
+    "timestamp": "2026-09-28T23:55:21.139Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "8298453d47f7ca4b"
+    },
+    "prevHash": "005c3dd61dac03e92e04e25041a82a6fc7f2265fd9e14f28adf79a4370dc035b",
+    "nonce": 682,
+    "hash": "00ea78d0214f14e008a9fdb91468157bcf4072e6d4217d676605376628c625dd",
+    "cid": "bafyrei4aNMVQ6QXJjmevzw7mxdTeqPygQsEFnz"
+  },
+  {
+    "index": 577,
+    "timestamp": "2026-09-28T23:55:25.642Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "a489f23ebcd3a281",
+      "context": "boot"
+    },
+    "prevHash": "00ea78d0214f14e008a9fdb91468157bcf4072e6d4217d676605376628c625dd",
+    "nonce": 153,
+    "hash": "00f8eae7430fb155ccaa27cc60800d1f3a5950fc653ce16337b752222bad4e96",
+    "cid": "bafyrei4o9MM9P9UMpen6MSBFcgi7gDrDP21QvX"
+  },
+  {
+    "index": 578,
+    "timestamp": "2026-09-28T23:55:25.655Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "3ea76c8180d41022"
+    },
+    "prevHash": "00f8eae7430fb155ccaa27cc60800d1f3a5950fc653ce16337b752222bad4e96",
+    "nonce": 148,
+    "hash": "00ec590dd5c7106e69ed48ab918fd454838f4a6321e25f25727f60986a7766ac",
+    "cid": "bafyrei4c2agCTSaWnFt6YE4okFcpwYAyoDMoVo"
+  },
+  {
+    "index": 579,
+    "timestamp": "2026-09-28T23:55:29.952Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "aeee727848f36a06",
+      "context": "boot"
+    },
+    "prevHash": "00ec590dd5c7106e69ed48ab918fd454838f4a6321e25f25727f60986a7766ac",
+    "nonce": 588,
+    "hash": "00e7f46459a4ee8c93e11b5f483d5db092fcec0108f62f6b2fac3d2996af9646",
+    "cid": "bafyrei4Y9EGHcwRvZE6bxXJ4txXLgrasL5xoVA"
+  },
+  {
+    "index": 580,
+    "timestamp": "2026-09-28T23:55:29.965Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "5844914220d3403c"
+    },
+    "prevHash": "00e7f46459a4ee8c93e11b5f483d5db092fcec0108f62f6b2fac3d2996af9646",
+    "nonce": 787,
+    "hash": "002f79813890f861df62b474df737631ef72b1557ff8628a5b3cc0f74c163eea",
+    "cid": "bafyreiizEbrCzkKyMaYG6BGTaJ5KN4Kp3M6zzr"
+  },
+  {
+    "index": 581,
+    "timestamp": "2026-09-28T23:55:34.304Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "ce4ab62ac75161ba",
+      "context": "boot"
+    },
+    "prevHash": "002f79813890f861df62b474df737631ef72b1557ff8628a5b3cc0f74c163eea",
+    "nonce": 328,
+    "hash": "00b47dafc9581198ab22028f26bf16c52f217cb5a4baf0f08e07fce8f9b25234",
+    "cid": "bafyrei3kdNeFQaB7NVeNr3eD9t2d9TEQhkUpBB"
+  },
+  {
+    "index": 582,
+    "timestamp": "2026-09-28T23:55:34.318Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "f2d6637ea3db9767"
+    },
+    "prevHash": "00b47dafc9581198ab22028f26bf16c52f217cb5a4baf0f08e07fce8f9b25234",
+    "nonce": 671,
+    "hash": "00e147fb454b0911bd278172e76fbb2e1f9e2ab6944e71659790ad260a301365",
+    "cid": "bafyrei4SEujva7pGspjoRUaC3w8K1RwC8cKmBJ"
+  },
+  {
+    "index": 583,
+    "timestamp": "2026-09-28T23:55:38.536Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "d74dd3d43d56f49f",
+      "context": "boot"
+    },
+    "prevHash": "00e147fb454b0911bd278172e76fbb2e1f9e2ab6944e71659790ad260a301365",
+    "nonce": 229,
+    "hash": "00cf0015358f3fbcc1e28a27c66da7b20a0c6653925d25d4591bad78ad24587e",
+    "cid": "bafyrei4A5BfWzUADbR5xj8M9TvJFF7pZE5ce5g"
+  },
+  {
+    "index": 584,
+    "timestamp": "2026-09-28T23:55:38.548Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "6565bc53308feabf"
+    },
+    "prevHash": "00cf0015358f3fbcc1e28a27c66da7b20a0c6653925d25d4591bad78ad24587e",
+    "nonce": 3,
+    "hash": "0095b131d4f846d7ef9034388cf4f09c295cd11857b3d9641410352340ef4db9",
+    "cid": "bafyrei3HPXxAHQ5ihEtM5ARr8cwefrnvANNcRz"
+  },
+  {
+    "index": 585,
+    "timestamp": "2026-09-28T23:55:42.890Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "a9043274d6270d34",
+      "context": "boot"
+    },
+    "prevHash": "0095b131d4f846d7ef9034388cf4f09c295cd11857b3d9641410352340ef4db9",
+    "nonce": 115,
+    "hash": "00766718fa9a53e000ace358208fa0ce614ad6219e20dc81df315e1653838ba5",
+    "cid": "bafyrei2oiXXN6LVUmZMcskMQYf141bUoyGam5d"
+  },
+  {
+    "index": 586,
+    "timestamp": "2026-09-28T23:55:42.904Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "57ea3c05c35ff0f3"
+    },
+    "prevHash": "00766718fa9a53e000ace358208fa0ce614ad6219e20dc81df315e1653838ba5",
+    "nonce": 34,
+    "hash": "00e3484a01eba5d66f282ad703482c22100ac5affbaf57e92d606ded1b700ffe",
+    "cid": "bafyrei4U1ZbKmbQpHpn6K3GcgfkbDAmSLmJ7ZR"
+  },
+  {
+    "index": 587,
+    "timestamp": "2026-09-28T23:55:47.088Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "96361d6f343bb5fb",
+      "context": "boot"
+    },
+    "prevHash": "00e3484a01eba5d66f282ad703482c22100ac5affbaf57e92d606ded1b700ffe",
+    "nonce": 297,
+    "hash": "0043808ec62347c773b504ba6fb3135aa1fe92406ec446035ebb6807f16c2085",
+    "cid": "bafyrei22hZLkqJFkMexKdc23zCYxGGZ2wriHpz"
+  },
+  {
+    "index": 588,
+    "timestamp": "2026-09-28T23:55:47.102Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "c35929920a883cd9"
+    },
+    "prevHash": "0043808ec62347c773b504ba6fb3135aa1fe92406ec446035ebb6807f16c2085",
+    "nonce": 176,
+    "hash": "00c21bbe3d9d2ed89b65536381d8b7372ba32f10f91ad1b112ec94e497bdb713",
+    "cid": "bafyrei3xftKX2nDEkGmC5x9WkYkMGXTe1ybGay"
+  },
+  {
+    "index": 589,
+    "timestamp": "2026-09-28T23:55:51.221Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "f1e2da6181b14cdb",
+      "context": "boot"
+    },
+    "prevHash": "00c21bbe3d9d2ed89b65536381d8b7372ba32f10f91ad1b112ec94e497bdb713",
+    "nonce": 61,
+    "hash": "002e9ef41b8fa3cf73d117abd52c93ed8c6170efff767832ab5628da0dd2091b",
+    "cid": "bafyreiiESgLUS8nTvSJrPNNHfCXZjoMDVKn3bi"
+  },
+  {
+    "index": 590,
+    "timestamp": "2026-09-28T23:55:51.235Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "85457bf1a2ccf245"
+    },
+    "prevHash": "002e9ef41b8fa3cf73d117abd52c93ed8c6170efff767832ab5628da0dd2091b",
+    "nonce": 541,
+    "hash": "00fee00798f6d9cb907064271f9780894d54289af96cffa023b673a4c6ad1ccd",
+    "cid": "bafyrei4tQwow7MYWd4CY7pYLe5xKUfvufL4c4d"
+  },
+  {
+    "index": 591,
+    "timestamp": "2026-09-29T01:39:28.682Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9632adf9ab23395b",
+      "context": "boot"
+    },
+    "prevHash": "00fee00798f6d9cb907064271f9780894d54289af96cffa023b673a4c6ad1ccd",
+    "nonce": 142,
+    "hash": "0070f965bd5d68fa20fd81d2a4629d488fc8b1bfaf120a2d9d86e141711c7aee",
+    "cid": "bafyrei2iv4wEZMYiXrJSwsMN5mr3BcmeiviDCW"
+  },
+  {
+    "index": 592,
+    "timestamp": "2026-09-29T01:39:28.691Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "8dee034a3a22d1a6"
+    },
+    "prevHash": "0070f965bd5d68fa20fd81d2a4629d488fc8b1bfaf120a2d9d86e141711c7aee",
+    "nonce": 702,
+    "hash": "008f2a3d298a7482b6509e471e1c93f26f17306cc2bf0d4a24732278d2e3cde5",
+    "cid": "bafyrei3BciiLYJ1b3AdY7ersJRyycefU9pZ6s1"
+  },
+  {
+    "index": 593,
+    "timestamp": "2026-09-29T01:39:32.018Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "8de43e5dab758365",
+      "context": "boot"
+    },
+    "prevHash": "008f2a3d298a7482b6509e471e1c93f26f17306cc2bf0d4a24732278d2e3cde5",
+    "nonce": 568,
+    "hash": "0064e35e76f1201e80de14e5c97778ac0e692ea2a2c969eec2a481590dd1942b",
+    "cid": "bafyrei2YE7GNPWszDfrHnruk3HfYcuG6pnZXpk"
+  },
+  {
+    "index": 594,
+    "timestamp": "2026-09-29T01:39:32.029Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "18b9828c4cbd5eb4"
+    },
+    "prevHash": "0064e35e76f1201e80de14e5c97778ac0e692ea2a2c969eec2a481590dd1942b",
+    "nonce": 207,
+    "hash": "00f8539b2343d8f13994cf9b71ab465a9304aaa68063fecfa0e1786166f11d8c",
+    "cid": "bafyrei4nd32ReSSkHqTG9S33p9uWjkVt4RCCw1"
+  },
+  {
+    "index": 595,
+    "timestamp": "2026-09-29T01:39:35.221Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "e1152cb82bf6d72b",
+      "context": "boot"
+    },
+    "prevHash": "00f8539b2343d8f13994cf9b71ab465a9304aaa68063fecfa0e1786166f11d8c",
+    "nonce": 61,
+    "hash": "00eb20cd2db843750a1ebe9469ac8f4f6eb3a14f3f90e04d942a8f8b748b81ef",
+    "cid": "bafyrei4ax1nqpZ68m6amekBGp2UZugghs6Zyi8"
+  },
+  {
+    "index": 596,
+    "timestamp": "2026-09-29T01:39:35.228Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "fec61cee23267e55"
+    },
+    "prevHash": "00eb20cd2db843750a1ebe9469ac8f4f6eb3a14f3f90e04d942a8f8b748b81ef",
+    "nonce": 632,
+    "hash": "00063c61e8cfa9e46065a2a50c8088046a9d254cc43c71df7c51eb0b00d0eb59",
+    "cid": "bafyrei6WsaLkgN9TF42inAykt18roiwWxcFsQ9"
+  },
+  {
+    "index": 597,
+    "timestamp": "2026-09-29T01:39:38.461Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "c7d0b49181b308b4",
+      "context": "boot"
+    },
+    "prevHash": "00063c61e8cfa9e46065a2a50c8088046a9d254cc43c71df7c51eb0b00d0eb59",
+    "nonce": 799,
+    "hash": "00849980f3f84fd102bddfaa3704ec330ea3d78a50323401b9316b8a644d0623",
+    "cid": "bafyrei32GmGTeC5a8ZFPMoQrV2QAFWRRKgdV8D"
+  },
+  {
+    "index": 598,
+    "timestamp": "2026-09-29T01:39:38.474Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "0a20a464bbd2b57e"
+    },
+    "prevHash": "00849980f3f84fd102bddfaa3704ec330ea3d78a50323401b9316b8a644d0623",
+    "nonce": 555,
+    "hash": "0019975945153801d9ab0ae91ad0c2d2b3a719ed5fe6f56939a7332b31b94eb7",
+    "cid": "bafyreiPdiPP2rwszJx19nJ1bJDLPbh9czD5Aav"
+  },
+  {
+    "index": 599,
+    "timestamp": "2026-09-29T01:39:41.848Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "664589f05829c3b4",
+      "context": "boot"
+    },
+    "prevHash": "0019975945153801d9ab0ae91ad0c2d2b3a719ed5fe6f56939a7332b31b94eb7",
+    "nonce": 356,
+    "hash": "009ade1e647f04998f57881deb1c8a548eb878e69597c52dc2bd37bd94fb5c91",
+    "cid": "bafyrei3My1jeuPT6Axzc3pwcHYHDXEhimMy6fL"
+  },
+  {
+    "index": 600,
+    "timestamp": "2026-09-29T01:39:41.858Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "1c7a64280e241074"
+    },
+    "prevHash": "009ade1e647f04998f57881deb1c8a548eb878e69597c52dc2bd37bd94fb5c91",
+    "nonce": 41,
+    "hash": "00f8a99b276333ac1492540e64b7a3521ca539ffa96e6d99499ff34644adf32d",
+    "cid": "bafyrei4nvGVBhjcbb9Bn5hs5X6XG7cphs6Vc9u"
+  },
+  {
+    "index": 601,
+    "timestamp": "2026-09-29T01:39:44.929Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "affb7df58b0a4d40",
+      "context": "boot"
+    },
+    "prevHash": "00f8a99b276333ac1492540e64b7a3521ca539ffa96e6d99499ff34644adf32d",
+    "nonce": 1021,
+    "hash": "0013833b744f5246a8294acfadeb621e9fd1650fcfcaf5d84b5509b9ff4b43d1",
+    "cid": "bafyreiJFumXXoauLUfN2oFPbNZcDANDn2rfynW"
+  },
+  {
+    "index": 602,
+    "timestamp": "2026-09-29T01:39:44.944Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "1315c43225a9818a"
+    },
+    "prevHash": "0013833b744f5246a8294acfadeb621e9fd1650fcfcaf5d84b5509b9ff4b43d1",
+    "nonce": 54,
+    "hash": "008d89621bf5f03e58c5a7da249fb31d851abca740a331c9c624f978081496bb",
+    "cid": "bafyrei3ABCAkHTE5RVFqc5HeWmpA93MUGvhTgK"
+  },
+  {
+    "index": 603,
+    "timestamp": "2026-09-29T01:39:48.114Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "5afe01be6b7ac955",
+      "context": "boot"
+    },
+    "prevHash": "008d89621bf5f03e58c5a7da249fb31d851abca740a331c9c624f978081496bb",
+    "nonce": 128,
+    "hash": "00c52d977b106f6c2c33aaca5c5e6ef072ea07e222ffc83538d90b03623a1ec6",
+    "cid": "bafyrei41PMAaLXQozrAqw4fpqnz4GuqnxMjkCt"
+  },
+  {
+    "index": 604,
+    "timestamp": "2026-09-29T01:39:48.124Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "6aeddbfd7c919498"
+    },
+    "prevHash": "00c52d977b106f6c2c33aaca5c5e6ef072ea07e222ffc83538d90b03623a1ec6",
+    "nonce": 731,
+    "hash": "0093e50f9a7237b5c9c9875385a09dc4e65230b090067a2fcbbd24682df58dcb",
+    "cid": "bafyrei3FoLSocZ92kx15D1qoXbk2fXh1C2GZJq"
+  },
+  {
+    "index": 605,
+    "timestamp": "2026-09-29T01:39:51.195Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "597545046553e1a0",
+      "context": "boot"
+    },
+    "prevHash": "0093e50f9a7237b5c9c9875385a09dc4e65230b090067a2fcbbd24682df58dcb",
+    "nonce": 22,
+    "hash": "004e9374d80833a5e832a5e96b0d7860fe8b0e3ee50dcd74a39327bb95202d66",
+    "cid": "bafyrei2CVbVz5bYppje6goEvT7doQvNn3oSWtL"
+  },
+  {
+    "index": 606,
+    "timestamp": "2026-09-29T01:39:51.205Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "bc38a33d7a447efa"
+    },
+    "prevHash": "004e9374d80833a5e832a5e96b0d7860fe8b0e3ee50dcd74a39327bb95202d66",
+    "nonce": 47,
+    "hash": "00a0bf432d5547e2af834ae89cf39cb14f084b46e29483c9877a9697ce952f78",
+    "cid": "bafyrei3TAby4RtcLuxfueqrq63JXwxUBxZjLmY"
+  },
+  {
+    "index": 607,
+    "timestamp": "2026-09-29T01:39:54.371Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "1f5716e310633872",
+      "context": "boot"
+    },
+    "prevHash": "00a0bf432d5547e2af834ae89cf39cb14f084b46e29483c9877a9697ce952f78",
+    "nonce": 64,
+    "hash": "00db0bfdcd591fe03f958109ed739ef3153d43b2946922ea8a4360e2e8cbabd1",
+    "cid": "bafyrei4Lj7j3hmeMu7WMkaPw7x3PX7CKAptnBt"
+  },
+  {
+    "index": 608,
+    "timestamp": "2026-09-29T01:39:54.381Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "6e1ee75255bb2368"
+    },
+    "prevHash": "00db0bfdcd591fe03f958109ed739ef3153d43b2946922ea8a4360e2e8cbabd1",
+    "nonce": 1031,
+    "hash": "0087c397e1c1a1d3542959ea4c98a69dff105a29659304fd23c01ad9ceb132dd",
+    "cid": "bafyrei3555qG9BuFyBEJoHmSRAqwq7GEixNv1N"
+  },
+  {
+    "index": 609,
+    "timestamp": "2026-09-29T01:39:57.559Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "b49b03b34a9e0fc9",
+      "context": "boot"
+    },
+    "prevHash": "0087c397e1c1a1d3542959ea4c98a69dff105a29659304fd23c01ad9ceb132dd",
+    "nonce": 174,
+    "hash": "005c74d5079b006c8a9ff6980bbc22fa0cae986b10d15e4abab5643beaf8b423",
+    "cid": "bafyrei2QmbY8YtYWLAGkt7bPoxX7cnDapEYaUs"
+  },
+  {
+    "index": 610,
+    "timestamp": "2026-09-29T01:39:57.571Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "30e3675edee06211"
+    },
+    "prevHash": "005c74d5079b006c8a9ff6980bbc22fa0cae986b10d15e4abab5643beaf8b423",
+    "nonce": 235,
+    "hash": "00e2915bdc1a57c14bd4abf8b93c6c04de39bd599e56083761bf5ff71dd00008",
+    "cid": "bafyrei4TNueHu89yAntZnjPaN5zAEQvLawQF3r"
+  },
+  {
+    "index": 611,
+    "timestamp": "2026-09-29T01:40:00.654Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "b06e4e3df11a3be5",
+      "context": "boot"
+    },
+    "prevHash": "00e2915bdc1a57c14bd4abf8b93c6c04de39bd599e56083761bf5ff71dd00008",
+    "nonce": 185,
+    "hash": "008d3ff79ae44034ed0ad5614c68aa97ef1b807364dc9a1665a7e64d8177ddb1",
+    "cid": "bafyrei39vUxKCb3cn4ec8ibCpTAMKXUxpdhuLB"
+  },
+  {
+    "index": 612,
+    "timestamp": "2026-09-29T01:40:00.667Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "886f0fded98f760e"
+    },
+    "prevHash": "008d3ff79ae44034ed0ad5614c68aa97ef1b807364dc9a1665a7e64d8177ddb1",
+    "nonce": 113,
+    "hash": "00de8619ae39b5afe6bc844d3d2cafeffa418f3349f680b02fc46872a5aace89",
+    "cid": "bafyrei4PoUFGbAsXpyXyLPx9ve9BuWJ8DcbdHp"
+  },
+  {
+    "index": 613,
+    "timestamp": "2026-09-29T01:40:04.052Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9328f79de0de861f",
+      "context": "boot"
+    },
+    "prevHash": "00de8619ae39b5afe6bc844d3d2cafeffa418f3349f680b02fc46872a5aace89",
+    "nonce": 10,
+    "hash": "00b8f9acadad9b6743f9d25375aa3f061eabb66f75451ada941c1f8b420ad007",
+    "cid": "bafyrei3pbQ92xzhPztPqfFunh6sshhXgypXuZZ"
+  },
+  {
+    "index": 614,
+    "timestamp": "2026-09-29T01:40:04.072Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "ac8525ff468a8413"
+    },
+    "prevHash": "00b8f9acadad9b6743f9d25375aa3f061eabb66f75451ada941c1f8b420ad007",
+    "nonce": 39,
+    "hash": "00c45a11f78f72780271ca3068e729250b42003eda22a065fe0e74cfb2242734",
+    "cid": "bafyrei3zexwTTCXvYbcgFzkhjBKNZSd4EEXfuG"
+  },
+  {
+    "index": 615,
+    "timestamp": "2026-09-29T01:40:07.394Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "b2c9421130fe1001",
+      "context": "boot"
+    },
+    "prevHash": "00c45a11f78f72780271ca3068e729250b42003eda22a065fe0e74cfb2242734",
+    "nonce": 427,
+    "hash": "00a7cd844ec5d80231bde7d56a746135470a27928700ccee6237f65e74c8c829",
+    "cid": "bafyrei3ZQXbcSP21nWKHWPRKFkvGwgGkCeGadr"
+  },
+  {
+    "index": 616,
+    "timestamp": "2026-09-29T01:40:07.410Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "a10f66a371c3a5fa"
+    },
+    "prevHash": "00a7cd844ec5d80231bde7d56a746135470a27928700ccee6237f65e74c8c829",
+    "nonce": 685,
+    "hash": "0077e8e2d0382741ba6d9624d8e25da659f1b4ce2a8e1b6d00a51e1d2a37f942",
+    "cid": "bafyrei2q3q1vBDzNcXySFSdE8CRtGzNfnhJYqk"
+  },
+  {
+    "index": 617,
+    "timestamp": "2026-09-29T01:40:10.663Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "ce22d272e699a4aa",
+      "context": "boot"
+    },
+    "prevHash": "0077e8e2d0382741ba6d9624d8e25da659f1b4ce2a8e1b6d00a51e1d2a37f942",
+    "nonce": 69,
+    "hash": "0044f412b8be2bb62d6a5bf532a9c651c251a960a7dca6ab61a847d71e2f8187",
+    "cid": "bafyrei23yzxXamPf35NAceeiwcXT8V77houTo8"
+  },
+  {
+    "index": 618,
+    "timestamp": "2026-09-29T01:40:10.677Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "02806ad04c1359ef"
+    },
+    "prevHash": "0044f412b8be2bb62d6a5bf532a9c651c251a960a7dca6ab61a847d71e2f8187",
+    "nonce": 113,
+    "hash": "00c779399445a9486ca89d28f5e3a486889cbe1364876e0577ff4c32160f4fa2",
+    "cid": "bafyrei43R6RaksGSe5HKaYd2gGKHueSAFQJjS9"
+  },
+  {
+    "index": 619,
+    "timestamp": "2026-09-29T01:40:13.820Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "c6c8543924664539",
+      "context": "boot"
+    },
+    "prevHash": "00c779399445a9486ca89d28f5e3a486889cbe1364876e0577ff4c32160f4fa2",
+    "nonce": 143,
+    "hash": "000a7270c730b2413a2239d93f1c9e032880814dcb20fe0924a8004b4df68d70",
+    "cid": "bafyreiAEtNcwk5gREvMwkArGsvyQqqr7EuRer8"
+  },
+  {
+    "index": 620,
+    "timestamp": "2026-09-29T01:40:13.837Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "4aaafb35d03c7bd7"
+    },
+    "prevHash": "000a7270c730b2413a2239d93f1c9e032880814dcb20fe0924a8004b4df68d70",
+    "nonce": 9,
+    "hash": "00a5b6dde0ce3a1d018dc500e76f4939ddad23a5f0e23e966ee5aec0bdfd2a9e",
+    "cid": "bafyrei3XZQ67Curyh8cWVkRD8BBSxL6MF4nQTH"
+  },
+  {
+    "index": 621,
+    "timestamp": "2026-09-29T01:40:16.895Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "09cd59a2a575c38f",
+      "context": "boot"
+    },
+    "prevHash": "00a5b6dde0ce3a1d018dc500e76f4939ddad23a5f0e23e966ee5aec0bdfd2a9e",
+    "nonce": 9,
+    "hash": "00187fa8e27f4af846e9833bbd3f76cc38cfbaf9d28d6eeb6208c8fbddc49f4b",
+    "cid": "bafyreiNffwegbRbAyZT7U6zCJf6P2CV9Myor9E"
+  },
+  {
+    "index": 622,
+    "timestamp": "2026-09-29T01:40:16.909Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "2a6c77e4e0fa3289"
+    },
+    "prevHash": "00187fa8e27f4af846e9833bbd3f76cc38cfbaf9d28d6eeb6208c8fbddc49f4b",
+    "nonce": 34,
+    "hash": "0072623be755c68d6656324a0c0aeb913dc16ade0eeb92df65209f1e2e87feab",
+    "cid": "bafyrei2kANSt1tYehuEovTxsEH3UrYAX5y1dmS"
+  },
+  {
+    "index": 623,
+    "timestamp": "2026-09-29T01:40:20.018Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "f05e9cb51a6014a7",
+      "context": "boot"
+    },
+    "prevHash": "0072623be755c68d6656324a0c0aeb913dc16ade0eeb92df65209f1e2e87feab",
+    "nonce": 195,
+    "hash": "00fbcabe1242e761ccdd78aa04e60ebd953e7a8cad21438537bc0a6477781d06",
+    "cid": "bafyrei4qgo14RJtY1sxxoM8JZSoa8SgrSc4iih"
+  },
+  {
+    "index": 624,
+    "timestamp": "2026-09-29T01:40:20.033Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "8fe031286c5e360a"
+    },
+    "prevHash": "00fbcabe1242e761ccdd78aa04e60ebd953e7a8cad21438537bc0a6477781d06",
+    "nonce": 27,
+    "hash": "007538a7445a26c6c61b082f9830be256f20158d5f1c4188f913ca30404ba9db",
+    "cid": "bafyrei2nfvdPjyVLfki88yQicLF6zNpatYgMpn"
+  },
+  {
+    "index": 625,
+    "timestamp": "2026-09-29T01:40:22.952Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "1ae3f6e9d320500d",
+      "context": "boot"
+    },
+    "prevHash": "007538a7445a26c6c61b082f9830be256f20158d5f1c4188f913ca30404ba9db",
+    "nonce": 661,
+    "hash": "0077e34411f5b3865a714c48593e99ff870ddfed3eafea60cdf92e68f3f258af",
+    "cid": "bafyrei2q2hhfiQ723f2ZP9UtsUBwcpfha6Lbnd"
+  },
+  {
+    "index": 626,
+    "timestamp": "2026-09-29T01:40:22.966Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "168e89cb102f270c"
+    },
+    "prevHash": "0077e34411f5b3865a714c48593e99ff870ddfed3eafea60cdf92e68f3f258af",
+    "nonce": 169,
+    "hash": "006c223af3d6b6e2721e7bae5be8e5a7bf8a62cb3bca64521f8bf8dd85e3286f",
+    "cid": "bafyrei2edmnca8QEKVWtPcG8fh55LxbkzTXtfX"
+  },
+  {
+    "index": 627,
+    "timestamp": "2026-09-29T01:40:26.155Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "40150b6ab2cdba78",
+      "context": "boot"
+    },
+    "prevHash": "006c223af3d6b6e2721e7bae5be8e5a7bf8a62cb3bca64521f8bf8dd85e3286f",
+    "nonce": 38,
+    "hash": "0060936f3ecdcd97d5f1a0fb02507737850465c38e4d0422deb9a53d9a6b978b",
+    "cid": "bafyrei2UQujzqPZom5piBENDydWChvNKyzoZPS"
+  },
+  {
+    "index": 628,
+    "timestamp": "2026-09-29T01:40:26.170Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "172e53e79752f354"
+    },
+    "prevHash": "0060936f3ecdcd97d5f1a0fb02507737850465c38e4d0422deb9a53d9a6b978b",
+    "nonce": 5,
+    "hash": "007d4a65d9b883798ba7326682e298158077de9cf7b264778f67f9195d78d6ae",
+    "cid": "bafyrei2uoqxUKp67p4LWqHAinnNsmp5QXdgQv4"
+  },
+  {
+    "index": 629,
+    "timestamp": "2026-09-29T01:40:29.269Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "fa975138445a8bef",
+      "context": "boot"
+    },
+    "prevHash": "007d4a65d9b883798ba7326682e298158077de9cf7b264778f67f9195d78d6ae",
+    "nonce": 100,
+    "hash": "00005b89037e88ee9cebb4168e0c81b8ab4fb61838a2da173507d0fe561744c3",
+    "cid": "bafyreiKLnkcwE4vtNuibcj8XatHe8bW7HszqU2"
+  },
+  {
+    "index": 630,
+    "timestamp": "2026-09-29T01:40:29.290Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "79416c7fd1ffb331"
+    },
+    "prevHash": "00005b89037e88ee9cebb4168e0c81b8ab4fb61838a2da173507d0fe561744c3",
+    "nonce": 325,
+    "hash": "00c073b820e996bb197f901bccc1899235fcbe839050c0f7095bd5d27d514385",
+    "cid": "bafyrei3wCvUAiXFPL7T9TCfDQMckZjsWNK67m9"
+  },
+  {
+    "index": 631,
+    "timestamp": "2026-09-29T01:40:32.370Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "1071e2eb0edb9ca0",
+      "context": "boot"
+    },
+    "prevHash": "00c073b820e996bb197f901bccc1899235fcbe839050c0f7095bd5d27d514385",
+    "nonce": 430,
+    "hash": "00f5ddfa6fa290e222195af419ba7c04b7b604bfde9f4cf7cfddbb04a124ccfa",
+    "cid": "bafyrei4kSsinvLyu5W8CbHKC54a5RetVHoAwVa"
+  },
+  {
+    "index": 632,
+    "timestamp": "2026-09-29T01:40:32.384Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "c69cdc7b90f6598d"
+    },
+    "prevHash": "00f5ddfa6fa290e222195af419ba7c04b7b604bfde9f4cf7cfddbb04a124ccfa",
+    "nonce": 173,
+    "hash": "00b640aeb16b60d3951f3c82bab87f3386d7ee33eb1ac3c97ee299104f5ef575",
+    "cid": "bafyrei3nBjx7DVdFKoM84FnkCMngEdi4tfpjis"
+  },
+  {
+    "index": 633,
+    "timestamp": "2026-09-29T01:40:35.452Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "0eccda6e81368253",
+      "context": "boot"
+    },
+    "prevHash": "00b640aeb16b60d3951f3c82bab87f3386d7ee33eb1ac3c97ee299104f5ef575",
+    "nonce": 13,
+    "hash": "006462c772425ee989b52c281c0490ba2dcf50c589184012d92e98f7fa4917af",
+    "cid": "bafyrei2XnLqiLDpHwWTzyr64DbZ6xLduwp97MC"
+  },
+  {
+    "index": 634,
+    "timestamp": "2026-09-29T01:40:35.465Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "befd79cb11a0cd1d"
+    },
+    "prevHash": "006462c772425ee989b52c281c0490ba2dcf50c589184012d92e98f7fa4917af",
+    "nonce": 46,
+    "hash": "00b3fd450207f7fb8123cd008ff49b6ad76c05badc4552102fd647424461b72c",
+    "cid": "bafyrei3kBeE5SjjHJ6X49SrduPJu5QiJr6QJUE"
+  },
+  {
+    "index": 635,
+    "timestamp": "2026-09-29T01:40:38.623Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "5c2fdf465fab64cd",
+      "context": "boot"
+    },
+    "prevHash": "00b3fd450207f7fb8123cd008ff49b6ad76c05badc4552102fd647424461b72c",
+    "nonce": 549,
+    "hash": "0068221849ca561e81d2ce7cc1eb68eb2383c431c921ac91fe68159974e17f9d",
+    "cid": "bafyrei2b6ZfB5gqKDymuQ2vDLENF7zqFHjb2CG"
+  },
+  {
+    "index": 636,
+    "timestamp": "2026-09-29T01:40:38.644Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "99c2f18de064d843"
+    },
+    "prevHash": "0068221849ca561e81d2ce7cc1eb68eb2383c431c921ac91fe68159974e17f9d",
+    "nonce": 212,
+    "hash": "001aed5a3ca360a903cf1fd061dbf61ea7a9700c414b929e0f5744ca2b59e5ca",
+    "cid": "bafyreiQpF2gjnHyP5EK2VLXGsnZbsUDqZjb5Nn"
+  },
+  {
+    "index": 637,
+    "timestamp": "2026-09-29T01:40:41.908Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "8813019485b710da",
+      "context": "boot"
+    },
+    "prevHash": "001aed5a3ca360a903cf1fd061dbf61ea7a9700c414b929e0f5744ca2b59e5ca",
+    "nonce": 175,
+    "hash": "008e95bcdc6a966f6a52dd25791da25a8eac2768a5cf950e836d465dfef9c03d",
+    "cid": "bafyrei3B6xtQ6haGHz6vr4Uk57D4QZr8SNYxw1"
+  },
+  {
+    "index": 638,
+    "timestamp": "2026-09-29T01:40:41.926Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "a8857e66a35896e0"
+    },
+    "prevHash": "008e95bcdc6a966f6a52dd25791da25a8eac2768a5cf950e836d465dfef9c03d",
+    "nonce": 536,
+    "hash": "00edb7a8a9d6c073040a3521881d74edf97c119bc35f03cb92d438f74bb86018",
+    "cid": "bafyrei4dEqH4dkNVLJvJQ9rwBKwEjtAdaYA5SC"
+  },
+  {
+    "index": 639,
+    "timestamp": "2026-09-29T01:40:45.196Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "d4a3b1aff4549f22",
+      "context": "boot"
+    },
+    "prevHash": "00edb7a8a9d6c073040a3521881d74edf97c119bc35f03cb92d438f74bb86018",
+    "nonce": 45,
+    "hash": "00dbe1478128160d2a26f3e39c7d4bdf03b812b708cafbcdcd51c353a1525b91",
+    "cid": "bafyrei4MTrUnqLGZSLuvPizVi5KcFFiRHjCYFn"
+  },
+  {
+    "index": 640,
+    "timestamp": "2026-09-29T01:40:45.211Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "820c43aa41bf0762"
+    },
+    "prevHash": "00dbe1478128160d2a26f3e39c7d4bdf03b812b708cafbcdcd51c353a1525b91",
+    "nonce": 142,
+    "hash": "004acdbd3aabc8cd696177e71f51cc8d7610654a4ab400190b542a6d930ccbc8",
+    "cid": "bafyrei29A6HbEyBbGRuTiQqoUsRbCtxXRhZbZT"
+  },
+  {
+    "index": 641,
+    "timestamp": "2026-09-29T01:42:15.780Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9718700aa9dc85aa",
+      "context": "boot"
+    },
+    "prevHash": "004acdbd3aabc8cd696177e71f51cc8d7610654a4ab400190b542a6d930ccbc8",
+    "nonce": 11,
+    "hash": "00b52cdaf71f6b60be477197f8672d4b2939749c1a22d993556401fedc1d83b5",
+    "cid": "bafyrei3mEUPYDxqsKTKJBDKHTHgnwDe93Jznbq"
+  },
+  {
+    "index": 642,
+    "timestamp": "2026-09-29T01:42:15.804Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "18047121f6d15e2d"
+    },
+    "prevHash": "00b52cdaf71f6b60be477197f8672d4b2939749c1a22d993556401fedc1d83b5",
+    "nonce": 95,
+    "hash": "00db81971ba3fb698896135e486a9264ade4bf8f623a83d91ef099c7c95ecd2b",
+    "cid": "bafyrei4M8gR87E6XqEJwwpNpFSDM2Hxx89MSaP"
+  },
+  {
+    "index": 643,
+    "timestamp": "2026-09-29T01:42:19.449Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "ce67ac41a57c7706",
+      "context": "boot"
+    },
+    "prevHash": "00db81971ba3fb698896135e486a9264ade4bf8f623a83d91ef099c7c95ecd2b",
+    "nonce": 497,
+    "hash": "0039a0c434bcf7b3017e5e401e84adbb55d6f615b134e061233346b4ac01d09e",
+    "cid": "bafyreisy4GnEqr4DgoUSxyfUrR1NP67Bf1TjuJ"
+  },
+  {
+    "index": 644,
+    "timestamp": "2026-09-29T01:42:19.467Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "5f918083aad332ed"
+    },
+    "prevHash": "0039a0c434bcf7b3017e5e401e84adbb55d6f615b134e061233346b4ac01d09e",
+    "nonce": 12,
+    "hash": "001ea6b81c9e4fdd3cb9385eec2c3b54caf8978962e667e38ed07b622f60d57e",
+    "cid": "bafyreiU7Gi8jzao7gsxH7e6DK6HLPq2SRSsanp"
+  },
+  {
+    "index": 645,
+    "timestamp": "2026-09-29T01:42:22.751Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "103704468f8a2112",
+      "context": "boot"
+    },
+    "prevHash": "001ea6b81c9e4fdd3cb9385eec2c3b54caf8978962e667e38ed07b622f60d57e",
+    "nonce": 474,
+    "hash": "005a0cc248657fc87fc474cce8aff065ac9d5435b5fd73270aa4e4709b0ba35a",
+    "cid": "bafyrei2Ne9kytCtDikTZJuSE64QFPs8pBHrthQ"
+  },
+  {
+    "index": 646,
+    "timestamp": "2026-09-29T01:42:22.776Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "a6a51039aa691314"
+    },
+    "prevHash": "005a0cc248657fc87fc474cce8aff065ac9d5435b5fd73270aa4e4709b0ba35a",
+    "nonce": 3,
+    "hash": "00fc2e25fc229bfad169f780f557c65a4b51e18b77a9a9058d6a72f650b6d38c",
+    "cid": "bafyrei4r2iG6bNgY4sHkB6qJJM9hGAhsy68nma"
+  },
+  {
+    "index": 647,
+    "timestamp": "2026-09-29T01:42:26.136Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "4cf88328f1b7acc5",
+      "context": "boot"
+    },
+    "prevHash": "00fc2e25fc229bfad169f780f557c65a4b51e18b77a9a9058d6a72f650b6d38c",
+    "nonce": 119,
+    "hash": "004538da0fa0fdc0eb6827a7290286a32e7826a76470e01f12922d432df8fc94",
+    "cid": "bafyrei24DnH89CrijZyen1ZKH4xtvdJdBAbxE3"
+  },
+  {
+    "index": 648,
+    "timestamp": "2026-09-29T01:42:26.153Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "502dab44ca9ba0bb"
+    },
+    "prevHash": "004538da0fa0fdc0eb6827a7290286a32e7826a76470e01f12922d432df8fc94",
+    "nonce": 50,
+    "hash": "00120f07a1e56049ba46b20091656cd087c85871291c7f4fda02a88d482ff3c1",
+    "cid": "bafyreiGyLAg3nJzTe8qqBBfp4N4rgd5ii1hmB9"
+  },
+  {
+    "index": 649,
+    "timestamp": "2026-09-29T01:42:29.581Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "18269fc417b4ea58",
+      "context": "boot"
+    },
+    "prevHash": "00120f07a1e56049ba46b20091656cd087c85871291c7f4fda02a88d482ff3c1",
+    "nonce": 1,
+    "hash": "001cff9241e9867d0d176567550115beb3338c4cd3a9b53c8719b06066a68dd6",
+    "cid": "bafyreiSeV3G5bxnhcuuuKmkqqbQPgvhWJiMnPR"
+  },
+  {
+    "index": 650,
+    "timestamp": "2026-09-29T01:42:29.597Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "1552e5da95a80e59"
+    },
+    "prevHash": "001cff9241e9867d0d176567550115beb3338c4cd3a9b53c8719b06066a68dd6",
+    "nonce": 152,
+    "hash": "00388df9c4f46078258de01028f07ce12e18d090f5d7dec365bb8427b581d3ef",
+    "cid": "bafyreis1zkjKUbDx7KxBLFXPoi8zjvcyFHrCTb"
+  },
+  {
+    "index": 651,
+    "timestamp": "2026-09-29T01:42:32.760Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "65ed121d08f593a7",
+      "context": "boot"
+    },
+    "prevHash": "00388df9c4f46078258de01028f07ce12e18d090f5d7dec365bb8427b581d3ef",
+    "nonce": 95,
+    "hash": "00a677a7974526ba3f5045f9777c1ac430beb1413b40fd0333ab50cf171f7138",
+    "cid": "bafyrei3YE2bkhjFPCSa8Sg6eWL5zhdVzZExXyh"
+  },
+  {
+    "index": 652,
+    "timestamp": "2026-09-29T01:42:32.780Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "5d2817a9e04db34d"
+    },
+    "prevHash": "00a677a7974526ba3f5045f9777c1ac430beb1413b40fd0333ab50cf171f7138",
+    "nonce": 489,
+    "hash": "004b65e304ce833201d182d81b4cb31e8d9b2dbf061c4e9bd9955dd616dcdf2f",
+    "cid": "bafyrei29gaVRsJ3L8y9wy8r3MhsLi9XHBbEV9Y"
+  },
+  {
+    "index": 653,
+    "timestamp": "2026-09-29T01:42:36.198Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "dbb70029db52866c",
+      "context": "boot"
+    },
+    "prevHash": "004b65e304ce833201d182d81b4cb31e8d9b2dbf061c4e9bd9955dd616dcdf2f",
+    "nonce": 119,
+    "hash": "001ab8b024c5f29101d43a4dae062bf6bc097c42f012a78ae5a44fbb6dc9936a",
+    "cid": "bafyreiQdgyyRiQZ1tu9Hg9aHpdRe7yuxFMB6df"
+  },
+  {
+    "index": 654,
+    "timestamp": "2026-09-29T01:42:36.219Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "f0d28111b52f9975"
+    },
+    "prevHash": "001ab8b024c5f29101d43a4dae062bf6bc097c42f012a78ae5a44fbb6dc9936a",
+    "nonce": 196,
+    "hash": "0029253bc8753c92eb7994c3facf04076136279125634a31e4980ce5987aff40",
+    "cid": "bafyreidPaQA9Bcax3X8QSpXtNT7npqF3sjPUgY"
+  },
+  {
+    "index": 655,
+    "timestamp": "2026-09-29T01:42:39.728Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "70b5cc6fbd67ce9b",
+      "context": "boot"
+    },
+    "prevHash": "0029253bc8753c92eb7994c3facf04076136279125634a31e4980ce5987aff40",
+    "nonce": 183,
+    "hash": "0049ded946b9aaab00f7eb92ff6ee19c1be8dc01241f10b9aa7fc8907323a81d",
+    "cid": "bafyrei28LDzL7z624FDK58M2go5Liw2kLjwwi5"
+  },
+  {
+    "index": 656,
+    "timestamp": "2026-09-29T01:42:39.749Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "6f8f349145567ca8"
+    },
+    "prevHash": "0049ded946b9aaab00f7eb92ff6ee19c1be8dc01241f10b9aa7fc8907323a81d",
+    "nonce": 235,
+    "hash": "001961b6a0efa86cad8e4957c574acb086f33020da1c83dca6807ef92d25d8e2",
+    "cid": "bafyreiPSy4EabZKZ1DATbqY1jDVY6Yxfvczh43"
+  },
+  {
+    "index": 657,
+    "timestamp": "2026-09-29T02:35:48.910Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "73ee2c8e656b591f",
+      "context": "boot"
+    },
+    "prevHash": "001961b6a0efa86cad8e4957c574acb086f33020da1c83dca6807ef92d25d8e2",
+    "nonce": 250,
+    "hash": "0040bcfaaae493895fb4976659e221591f6288b10edfbfc46d723f35e3018b51",
+    "cid": "bafyreizFn81TBroXDFvrXWRBQie4swfMJAeZeC"
+  },
+  {
+    "index": 658,
+    "timestamp": "2026-09-29T02:35:48.922Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "b833e2be02b406cf"
+    },
+    "prevHash": "0040bcfaaae493895fb4976659e221591f6288b10edfbfc46d723f35e3018b51",
+    "nonce": 187,
+    "hash": "00d9aff932f36d695be0ea5f8d1bfb9ff334404299dc59e5aba3fe4b89b3a22f",
+    "cid": "bafyrei4KXPBqcxdCuy2WK3vHTknMJKNiLLQSoP"
+  },
+  {
+    "index": 659,
+    "timestamp": "2026-09-29T02:35:52.410Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "c5e3f8007843a994",
+      "context": "boot"
+    },
+    "prevHash": "00d9aff932f36d695be0ea5f8d1bfb9ff334404299dc59e5aba3fe4b89b3a22f",
+    "nonce": 283,
+    "hash": "0061bd511b5a8aa92af3548c806557aaf0f140754ad862c802eea8604bb76936",
+    "cid": "bafyrei2VSbczGWsmJYeCosfv1S19LZtFkFrAES"
+  },
+  {
+    "index": 660,
+    "timestamp": "2026-09-29T02:35:52.421Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "7fb5011512b3b79a"
+    },
+    "prevHash": "0061bd511b5a8aa92af3548c806557aaf0f140754ad862c802eea8604bb76936",
+    "nonce": 87,
+    "hash": "00d50e8ebbe33f9fa374711730aeea94552f57d918211d3405c240226bc58ce4",
+    "cid": "bafyrei4FRriWpqEF25it8bTw1LmqBaT5KiDpFu"
+  },
+  {
+    "index": 661,
+    "timestamp": "2026-09-29T02:35:55.969Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "993eb32d0329eb1c",
+      "context": "boot"
+    },
+    "prevHash": "00d50e8ebbe33f9fa374711730aeea94552f57d918211d3405c240226bc58ce4",
+    "nonce": 65,
+    "hash": "00cf0b1925e80d0167cc03feb823b0f103ca06d0f50be817a0dce6953ea64f6c",
+    "cid": "bafyrei4A7PgVWbccJHiFe62jXw4dYKSapbbFGr"
+  },
+  {
+    "index": 662,
+    "timestamp": "2026-09-29T02:35:55.978Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "9eb149799f28a0fa"
+    },
+    "prevHash": "00cf0b1925e80d0167cc03feb823b0f103ca06d0f50be817a0dce6953ea64f6c",
+    "nonce": 303,
+    "hash": "000593a93fde0b5e68bf880fbe634ad82fa055d55dc1b24a00ca4a6e2d189520",
+    "cid": "bafyrei5w4kuqfw2XXisruowqQfuHd3jfw4XY52"
+  },
+  {
+    "index": 663,
+    "timestamp": "2026-09-29T02:35:59.314Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "a0ba5e3e68fb4be9",
+      "context": "boot"
+    },
+    "prevHash": "000593a93fde0b5e68bf880fbe634ad82fa055d55dc1b24a00ca4a6e2d189520",
+    "nonce": 645,
+    "hash": "0046c28236c74f0e25cca786fdb0df1fb67d1808f6b16835c973d7a7d641b5a0",
+    "cid": "bafyrei25afDRzCGcsYTdx2xuQfjp9JeNP6D4AD"
+  },
+  {
+    "index": 664,
+    "timestamp": "2026-09-29T02:35:59.324Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "7f865b4d8c5f7486"
+    },
+    "prevHash": "0046c28236c74f0e25cca786fdb0df1fb67d1808f6b16835c973d7a7d641b5a0",
+    "nonce": 313,
+    "hash": "003fb73fc34a2aafeaa5bc15f5c6fae4c05d763f91ab1f75eca4e90ca6f5083a",
+    "cid": "bafyreiyMLPZrtiTngTATnajAhN3NT64cku5wwm"
+  },
+  {
+    "index": 665,
+    "timestamp": "2026-09-29T02:36:02.550Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "3e74ba88f9ada35e",
+      "context": "boot"
+    },
+    "prevHash": "003fb73fc34a2aafeaa5bc15f5c6fae4c05d763f91ab1f75eca4e90ca6f5083a",
+    "nonce": 39,
+    "hash": "008c6c1b3f8e9fe25304d5cbf141c169ae31cec2fdca3f26a4b1aff9e765a15c",
+    "cid": "bafyrei39C2nY2RxUKta1ifdFtCNv1Ji34onPnB"
+  },
+  {
+    "index": 666,
+    "timestamp": "2026-09-29T02:36:02.560Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "e7c060e64856521f"
+    },
+    "prevHash": "008c6c1b3f8e9fe25304d5cbf141c169ae31cec2fdca3f26a4b1aff9e765a15c",
+    "nonce": 101,
+    "hash": "008e760d900f0ceb4e49b109e86d2b2b254b0ded4ba1b72680b1c59c6513da1b",
+    "cid": "bafyrei3Azcf8hocQykv1R3WFjrYXvniTKTT8Ca"
+  },
+  {
+    "index": 667,
+    "timestamp": "2026-09-29T02:36:05.869Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "de1467a4ba74dc13",
+      "context": "boot"
+    },
+    "prevHash": "008e760d900f0ceb4e49b109e86d2b2b254b0ded4ba1b72680b1c59c6513da1b",
+    "nonce": 568,
+    "hash": "0032eb1a5ba7a2530d7cab0d630d2266998dbb77bef4429393f1aec3c630727d",
+    "cid": "bafyrein2tDPQMrzqiRnwwzUhS3xn1zaENxHck8"
+  },
+  {
+    "index": 668,
+    "timestamp": "2026-09-29T02:36:05.881Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "b3e187af6c2c60eb"
+    },
+    "prevHash": "0032eb1a5ba7a2530d7cab0d630d2266998dbb77bef4429393f1aec3c630727d",
+    "nonce": 102,
+    "hash": "007600ee7b29e10b912e072e78b1716642a747a3d8099f422ae10b657f91a5d2",
+    "cid": "bafyrei2oN4BsWw72DKZZy1CGnaKwikdFaCTsvb"
+  },
+  {
+    "index": 669,
+    "timestamp": "2026-09-29T02:36:08.987Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "42e6523b0d995ee8",
+      "context": "boot"
+    },
+    "prevHash": "007600ee7b29e10b912e072e78b1716642a747a3d8099f422ae10b657f91a5d2",
+    "nonce": 5,
+    "hash": "00acbf9e54c725ac3a20aab72692c6e6d7090679d9e1548d9494eedabdae988b",
+    "cid": "bafyrei3dnDmaEeBBtLNBtJSXrpP93PUvuvTMYB"
+  },
+  {
+    "index": 670,
+    "timestamp": "2026-09-29T02:36:08.996Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "7d0114005dc03731"
+    },
+    "prevHash": "00acbf9e54c725ac3a20aab72692c6e6d7090679d9e1548d9494eedabdae988b",
+    "nonce": 82,
+    "hash": "00881be0e96330a6a1ff23ad3116af8a9d41c9f5ca3d1b9a725925f2f8f2f9b7",
+    "cid": "bafyrei35NmrNtZtrDqvkkVXUPjQ4jZCy8YF3uf"
+  },
+  {
+    "index": 671,
+    "timestamp": "2026-09-29T02:36:12.445Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "641ee996d142f480",
+      "context": "boot"
+    },
+    "prevHash": "00881be0e96330a6a1ff23ad3116af8a9d41c9f5ca3d1b9a725925f2f8f2f9b7",
+    "nonce": 206,
+    "hash": "00afa326cfcfcf34073bb2a7061d1e91afeac09badf85e7c24d0e402298832dc",
+    "cid": "bafyrei3gLQMTyc23bKyrDtxEbWtmcPGaaceSmD"
+  },
+  {
+    "index": 672,
+    "timestamp": "2026-09-29T02:36:12.460Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "a382df6e9fc291f1"
+    },
+    "prevHash": "00afa326cfcfcf34073bb2a7061d1e91afeac09badf85e7c24d0e402298832dc",
+    "nonce": 169,
+    "hash": "00df2b2ca9317ed449eed340639f99cd98217b8b31c2b88416e7f9d26f3beb2e",
+    "cid": "bafyrei4QNYgJ7HXyympr3iw4WhyQ6xhRdcTWtQ"
+  },
+  {
+    "index": 673,
+    "timestamp": "2026-09-29T02:36:16.061Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "ab34a6e3e6bab240",
+      "context": "boot"
+    },
+    "prevHash": "00df2b2ca9317ed449eed340639f99cd98217b8b31c2b88416e7f9d26f3beb2e",
+    "nonce": 72,
+    "hash": "00dff64109401dbea7bca9e13acab572ea6d0bc7bec0f71572d4e06178a4b740",
+    "cid": "bafyrei4R5Eo5YHR5gEhMNyvu2SfBc4NbAVDAgZ"
+  },
+  {
+    "index": 674,
+    "timestamp": "2026-09-29T02:36:16.071Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "6c32f5165d039d26"
+    },
+    "prevHash": "00dff64109401dbea7bca9e13acab572ea6d0bc7bec0f71572d4e06178a4b740",
+    "nonce": 744,
+    "hash": "00907c41fbd46884ac6433969d72fa93920b695975a7c148bb4abc0ba2241482",
+    "cid": "bafyrei3CnT3a9jugPnqADrsd97JCwHPCciwwom"
+  },
+  {
+    "index": 675,
+    "timestamp": "2026-09-29T02:36:19.345Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9772aa469ab7cc20",
+      "context": "boot"
+    },
+    "prevHash": "00907c41fbd46884ac6433969d72fa93920b695975a7c148bb4abc0ba2241482",
+    "nonce": 608,
+    "hash": "00f885a6f1a8f19251d9e58d3533651572a65217110eb21a818befa32fc5dca7",
+    "cid": "bafyrei4no4eFi7RrQJr5h2eE3BWNw4GWnxhq1s"
+  },
+  {
+    "index": 676,
+    "timestamp": "2026-09-29T02:36:19.358Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "b797c7b31637d739"
+    },
+    "prevHash": "00f885a6f1a8f19251d9e58d3533651572a65217110eb21a818befa32fc5dca7",
+    "nonce": 219,
+    "hash": "00b7f6205ecd1cce04b38fe883a11bae2d7c38397b790b8e1e3762a50e6126da",
+    "cid": "bafyrei3ohPmPm6pAv1zqsYa9ZVRRcupc8do1gK"
+  },
+  {
+    "index": 677,
+    "timestamp": "2026-09-29T02:36:22.780Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "7d95a0e3af4fac71",
+      "context": "boot"
+    },
+    "prevHash": "00b7f6205ecd1cce04b38fe883a11bae2d7c38397b790b8e1e3762a50e6126da",
+    "nonce": 87,
+    "hash": "00732649ae25c0e5372ef192625f5d3403434c67c63ae2b4b121cdebd3ed7b7a",
+    "cid": "bafyrei2kqeuuU2pquusmV9QmZFK45bwAm6ChiF"
+  },
+  {
+    "index": 678,
+    "timestamp": "2026-09-29T02:36:22.793Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "9d424f201aa93217"
+    },
+    "prevHash": "00732649ae25c0e5372ef192625f5d3403434c67c63ae2b4b121cdebd3ed7b7a",
+    "nonce": 186,
+    "hash": "00137bbe3ae0b50cb02c37e8318a7f2597442fb5e20d02d3c8655cb9df460167",
+    "cid": "bafyreiJEQjRZHc6ZjXK5Bbei2RN2mFa9PRFnmW"
+  },
+  {
+    "index": 679,
+    "timestamp": "2026-09-29T02:36:26.255Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "c94ec3e3205172cc",
+      "context": "boot"
+    },
+    "prevHash": "00137bbe3ae0b50cb02c37e8318a7f2597442fb5e20d02d3c8655cb9df460167",
+    "nonce": 42,
+    "hash": "0098f45bda4bede7f288173d0a08778bd5cc36753c195ceacee38ca022977029",
+    "cid": "bafyrei3LGsvbxQQ4agMZCyJkhVHxkkSfV2D6aK"
+  },
+  {
+    "index": 680,
+    "timestamp": "2026-09-29T02:36:26.268Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "f58c275bc46255a0"
+    },
+    "prevHash": "0098f45bda4bede7f288173d0a08778bd5cc36753c195ceacee38ca022977029",
+    "nonce": 681,
+    "hash": "00d34b5fd118ba274f666987094795ec9558cd25b2fee9791b4e708da77ea23b",
+    "cid": "bafyrei4DsTEF3rP7Q86xQVF28m9K5sFEyevMYy"
+  },
+  {
+    "index": 681,
+    "timestamp": "2026-09-29T02:36:29.575Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "012392a119f986fe",
+      "context": "boot"
+    },
+    "prevHash": "00d34b5fd118ba274f666987094795ec9558cd25b2fee9791b4e708da77ea23b",
+    "nonce": 157,
+    "hash": "003fcd3023603df76f423f4f81d7a5bb58953f41558c6dea3382e4e8d81e8cb5",
+    "cid": "bafyreiyRjMdiqBGj2zxLXRT9j2uj7yVMajDkVy"
+  },
+  {
+    "index": 682,
+    "timestamp": "2026-09-29T02:36:29.587Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "8a886a923ba1981c"
+    },
+    "prevHash": "003fcd3023603df76f423f4f81d7a5bb58953f41558c6dea3382e4e8d81e8cb5",
+    "nonce": 572,
+    "hash": "00c64db34f68bddf5b8dce43da467a4dea20b4b089e8a1b6e3a15c0d93025f14",
+    "cid": "bafyrei42P5TeZh7Zxb8cAuki8qMfs88C6nHVdB"
+  },
+  {
+    "index": 683,
+    "timestamp": "2026-09-29T02:36:32.689Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "a8560b333f85ce65",
+      "context": "boot"
+    },
+    "prevHash": "00c64db34f68bddf5b8dce43da467a4dea20b4b089e8a1b6e3a15c0d93025f14",
+    "nonce": 360,
+    "hash": "000a0bf6d53ac74194e16e24ab8843b0c41a80909bdd25237d29446b45e0e22a",
+    "cid": "bafyrei9tMRwXHU1oqjybx1Uf9BkeJDGpy2ukUd"
+  },
+  {
+    "index": 684,
+    "timestamp": "2026-09-29T02:36:32.702Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "50c1061652f9dbbe"
+    },
+    "prevHash": "000a0bf6d53ac74194e16e24ab8843b0c41a80909bdd25237d29446b45e0e22a",
+    "nonce": 454,
+    "hash": "00305428c575cea7bf8754d5b17b7f5ebdb71589a06038e951347c5a902a31e4",
+    "cid": "bafyreijk3iyHvB6drNt16UfVbVeoHCrLGyTYnT"
+  },
+  {
+    "index": 685,
+    "timestamp": "2026-09-29T02:36:36.294Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "cf1ecfe12d3b6d9b",
+      "context": "boot"
+    },
+    "prevHash": "00305428c575cea7bf8754d5b17b7f5ebdb71589a06038e951347c5a902a31e4",
+    "nonce": 240,
+    "hash": "00c27036e2d988419d987044733a3cd4b437ddf158d9dc065c76316abc6ea621",
+    "cid": "bafyrei3xxp1nhjn3c79w8Tf2nnQoHpvB6fSfVv"
+  },
+  {
+    "index": 686,
+    "timestamp": "2026-09-29T02:36:36.308Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "4685880c245bf558"
+    },
+    "prevHash": "00c27036e2d988419d987044733a3cd4b437ddf158d9dc065c76316abc6ea621",
+    "nonce": 54,
+    "hash": "00f8df88f0f15a4f9b1256f7a987a114da754d3cea76457049e5e8d8161666fb",
+    "cid": "bafyrei4o75EC8yV6dY4AnNZPT3qHSErmnnBe5w"
+  },
+  {
+    "index": 687,
+    "timestamp": "2026-09-29T02:36:39.638Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "198d218d4a90a380",
+      "context": "boot"
+    },
+    "prevHash": "00f8df88f0f15a4f9b1256f7a987a114da754d3cea76457049e5e8d8161666fb",
+    "nonce": 114,
+    "hash": "0037d12e824a68b30060210c2d4d92b76be607f7cccd472baaa4a61b29938f48",
+    "cid": "bafyreirNAfECPYSRn1dKWjS6uNEdrAKtaxK9aQ"
+  },
+  {
+    "index": 688,
+    "timestamp": "2026-09-29T02:36:39.653Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "7fcb212535083d31"
+    },
+    "prevHash": "0037d12e824a68b30060210c2d4d92b76be607f7cccd472baaa4a61b29938f48",
+    "nonce": 425,
+    "hash": "009c1c43eb3780149d4c2c032b7f0e80ed75bed8770dbc7f5e24986d0de32001",
+    "cid": "bafyrei3P4m7uRPAXdipsxjvfnowUfvXcJUoJ3w"
+  },
+  {
+    "index": 689,
+    "timestamp": "2026-09-29T02:36:42.804Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "76eae6e2521488ab",
+      "context": "boot"
+    },
+    "prevHash": "009c1c43eb3780149d4c2c032b7f0e80ed75bed8770dbc7f5e24986d0de32001",
+    "nonce": 219,
+    "hash": "00282d45fe1828decea9f0b9999024516fa022135a8cae9cddee2d200a9a33f0",
+    "cid": "bafyreicXthSKDYQNfYzg58vBJVieFJpPyWZhCd"
+  },
+  {
+    "index": 690,
+    "timestamp": "2026-09-29T02:36:42.817Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "7d07d381f44dc77c"
+    },
+    "prevHash": "00282d45fe1828decea9f0b9999024516fa022135a8cae9cddee2d200a9a33f0",
+    "nonce": 173,
+    "hash": "00ff9d730b1b16018dd0e6ee31f58cfcd1451c0b7cc8a20f65a91da487367654",
+    "cid": "bafyrei4u4uBD3URZbyBzTZHpn6Nv347qwtWGfp"
+  },
+  {
+    "index": 691,
+    "timestamp": "2026-09-29T02:36:45.980Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "e0e8f646fc6bcbd1",
+      "context": "boot"
+    },
+    "prevHash": "00ff9d730b1b16018dd0e6ee31f58cfcd1451c0b7cc8a20f65a91da487367654",
+    "nonce": 81,
+    "hash": "00ee48d7162aac10eea74f2615f1f597a5a125dde65e3cba6fb03018c5d01846",
+    "cid": "bafyrei4djvXFUExMiCNDoRNqE8Bb4yKRkhWjFR"
+  },
+  {
+    "index": 692,
+    "timestamp": "2026-09-29T02:36:45.993Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "1cb101b7fbbafefe"
+    },
+    "prevHash": "00ee48d7162aac10eea74f2615f1f597a5a125dde65e3cba6fb03018c5d01846",
+    "nonce": 209,
+    "hash": "00dd9b0cb3294a886ef86f45a44771f97f6f35ef64ae9c706e8075de9665c773",
+    "cid": "bafyrei4NzNaCcPTVeJPZ9ki6BRyd1m6JiCsQeK"
+  },
+  {
+    "index": 693,
+    "timestamp": "2026-09-29T02:36:49.034Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "1ee213e7c62c7e5a",
+      "context": "boot"
+    },
+    "prevHash": "00dd9b0cb3294a886ef86f45a44771f97f6f35ef64ae9c706e8075de9665c773",
+    "nonce": 132,
+    "hash": "00383b31126c7d8e7053b13708e2d7e00a9ff1fece0c041847fdf645cfc6032d",
+    "cid": "bafyreirjQfnqPc98QgFczFHRufetoRMpHYxkHd"
+  },
+  {
+    "index": 694,
+    "timestamp": "2026-09-29T02:36:49.047Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "019b44213d2687ce"
+    },
+    "prevHash": "00383b31126c7d8e7053b13708e2d7e00a9ff1fece0c041847fdf645cfc6032d",
+    "nonce": 114,
+    "hash": "0084caa13c24825905de431dfea0589e80d9a5015ec457050c021b6e92661a47",
+    "cid": "bafyrei32ScC9UrAK8CjExJJL6SgoC4Vqm8cBeT"
+  },
+  {
+    "index": 695,
+    "timestamp": "2026-09-29T02:36:52.127Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "45efa32bac8ad8b7",
+      "context": "boot"
+    },
+    "prevHash": "0084caa13c24825905de431dfea0589e80d9a5015ec457050c021b6e92661a47",
+    "nonce": 143,
+    "hash": "006c83dd14e63e14d80873251618e18faaeca5537116aebb3b9206d716c801d6",
+    "cid": "bafyrei2eyLSpoiSS3ziDENEkFDPNV7kgZn2oSG"
+  },
+  {
+    "index": 696,
+    "timestamp": "2026-09-29T02:36:52.142Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "055d506fea7327b3"
+    },
+    "prevHash": "006c83dd14e63e14d80873251618e18faaeca5537116aebb3b9206d716c801d6",
+    "nonce": 75,
+    "hash": "00ab366cc046919f28ffb5fc6cdb8fab1ebdf1c56078cc8554ca55e224cdb492",
+    "cid": "bafyrei3cRSDUJqS4e8bkq3hG8tMgtBHyhUSDGz"
+  },
+  {
+    "index": 697,
+    "timestamp": "2026-09-29T02:36:55.726Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "ab590faa7813313a",
+      "context": "boot"
+    },
+    "prevHash": "00ab366cc046919f28ffb5fc6cdb8fab1ebdf1c56078cc8554ca55e224cdb492",
+    "nonce": 57,
+    "hash": "004bcdeab7595edfe0f4067b408f65753c3469bce74b15c7c86fedb04963ab69",
+    "cid": "bafyrei2A3RVQFKEwP1CRgdwE9boyZMJTihJ58T"
+  },
+  {
+    "index": 698,
+    "timestamp": "2026-09-29T02:36:55.740Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "50cd396e2c680e6f"
+    },
+    "prevHash": "004bcdeab7595edfe0f4067b408f65753c3469bce74b15c7c86fedb04963ab69",
+    "nonce": 39,
+    "hash": "006ca3c868bf02a1c788bc53066c449b28fc021d75def8c7ab73bdc9bb279036",
+    "cid": "bafyrei2f5jQ9bravnTf7tyjVusdsSL7a4zEzwB"
+  },
+  {
+    "index": 699,
+    "timestamp": "2026-09-29T02:37:06.634Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "ef42bea53236b974",
+      "context": "boot"
+    },
+    "prevHash": "006ca3c868bf02a1c788bc53066c449b28fc021d75def8c7ab73bdc9bb279036",
+    "nonce": 105,
+    "hash": "005dd37d3f926c67f722721a153dc49f129b67fc329679a3e0fa799e3f94256e",
+    "cid": "bafyrei2RyrkFdQRmKJwQGop7MDQtFPWLuHTfUY"
+  },
+  {
+    "index": 700,
+    "timestamp": "2026-09-29T02:37:07.013Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "9cb9f9f05c6a45a6"
+    },
+    "prevHash": "005dd37d3f926c67f722721a153dc49f129b67fc329679a3e0fa799e3f94256e",
+    "nonce": 26,
+    "hash": "007171f0f1ab656a13708526a5e00226294b43a68a433e910b9801e2d596bef8",
+    "cid": "bafyrei2jLDrLzB1d79TfffvZnc5RAGNy3ecPua"
+  },
+  {
+    "index": 701,
+    "timestamp": "2026-09-29T02:45:19.397Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "c908c9ee7a3d8b3d",
+      "context": "boot"
+    },
+    "prevHash": "007171f0f1ab656a13708526a5e00226294b43a68a433e910b9801e2d596bef8",
+    "nonce": 4,
+    "hash": "00315951e2725a0f3074cca6c5e36a787b8cab6e09ab90f1369b815fc50f506f",
+    "cid": "bafyreikeNqYFxeDeyKvov8uMhiK68cU88QiSQG"
+  },
+  {
+    "index": 702,
+    "timestamp": "2026-09-29T02:45:19.406Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "72dd56780c5950bd"
+    },
+    "prevHash": "00315951e2725a0f3074cca6c5e36a787b8cab6e09ab90f1369b815fc50f506f",
+    "nonce": 91,
+    "hash": "0057f49748cb6a3242d5aa2c2447dfa442f01da28cacd7bdcab569d0fa70632f",
+    "cid": "bafyrei2LnicN93iaaHs4oUznjmse2uTAAY2cTi"
+  },
+  {
+    "index": 703,
+    "timestamp": "2026-09-29T02:45:23.963Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "873cce01c573cde3",
+      "context": "boot"
+    },
+    "prevHash": "0057f49748cb6a3242d5aa2c2447dfa442f01da28cacd7bdcab569d0fa70632f",
+    "nonce": 346,
+    "hash": "006abc82879c3052b431f24854267c0ec19ca5f0354662c8224cbed93e9af59c",
+    "cid": "bafyrei2dQ6VSbhKyVnLVr6Hz3NHsFGHp72hLEE"
+  },
+  {
+    "index": 704,
+    "timestamp": "2026-09-29T02:45:23.973Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "b3647ea1050b37f7"
+    },
+    "prevHash": "006abc82879c3052b431f24854267c0ec19ca5f0354662c8224cbed93e9af59c",
+    "nonce": 673,
+    "hash": "0008d73b5636a9063bf2ee16fdcbd4b6f129571cdf438fbac030b7be470cf47d",
+    "cid": "bafyrei8pVTN5kcZz3wVCn4N4zjFf12efFBsAHD"
+  },
+  {
+    "index": 705,
+    "timestamp": "2026-09-29T02:45:27.337Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9f6ff402b0f63100",
+      "context": "boot"
+    },
+    "prevHash": "0008d73b5636a9063bf2ee16fdcbd4b6f129571cdf438fbac030b7be470cf47d",
+    "nonce": 735,
+    "hash": "00a5b96c5ec12e6c4c7616da96c31604d81e63259cebb37adc10d3c6a60fa61c",
+    "cid": "bafyrei3XZuoQK2Yfng3uURXCp1E3YfsDhkLwA4"
+  },
+  {
+    "index": 706,
+    "timestamp": "2026-09-29T02:45:27.352Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "29fe79791a6bb868"
+    },
+    "prevHash": "00a5b96c5ec12e6c4c7616da96c31604d81e63259cebb37adc10d3c6a60fa61c",
+    "nonce": 16,
+    "hash": "00a4da3b0e0936dd0e16f3c38075799ebf602bc6c387ed8c492728b98d120e3d",
+    "cid": "bafyrei3WoBwKenorGbj5BSYTFTaaLRqHyzT8vK"
+  },
+  {
+    "index": 707,
+    "timestamp": "2026-09-29T02:45:31.006Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "53e5ef91305b9f96",
+      "context": "boot"
+    },
+    "prevHash": "00a4da3b0e0936dd0e16f3c38075799ebf602bc6c387ed8c492728b98d120e3d",
+    "nonce": 29,
+    "hash": "0047bfbc08ce26bf557e068b0c84a405705166094be9474b893cd7c8089c16a1",
+    "cid": "bafyrei26TQ7Yx3AyZPvbY3zXESgjAgtend1C9K"
+  },
+  {
+    "index": 708,
+    "timestamp": "2026-09-29T02:45:31.018Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "7aedd2399294cfb0"
+    },
+    "prevHash": "0047bfbc08ce26bf557e068b0c84a405705166094be9474b893cd7c8089c16a1",
+    "nonce": 522,
+    "hash": "00b6de41aa27371a9d00cbcd929dcbb305e668dd3b5098c1cee1913124e1a160",
+    "cid": "bafyrei3njKDhYQuD3XCmTYDM7y4uFWM9gGVqY7"
+  },
+  {
+    "index": 709,
+    "timestamp": "2026-09-29T02:45:34.953Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "540771a82e71099c",
+      "context": "boot"
+    },
+    "prevHash": "00b6de41aa27371a9d00cbcd929dcbb305e668dd3b5098c1cee1913124e1a160",
+    "nonce": 118,
+    "hash": "00c48db1b0a51a5407948dbd7e520db5255f25901a7b375e8d31c14221dc9b11",
+    "cid": "bafyrei3zqJtotMz4qFrjFZEDdDKAmqaKBhWKd6"
+  },
+  {
+    "index": 710,
+    "timestamp": "2026-09-29T02:45:34.966Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "c52f93745a7eee54"
+    },
+    "prevHash": "00c48db1b0a51a5407948dbd7e520db5255f25901a7b375e8d31c14221dc9b11",
+    "nonce": 190,
+    "hash": "0024ddd56e78eaef7cb1fac041263fc5d9283e7f4da4d1c5a38d534bf05d4b35",
+    "cid": "bafyreiZc64bssgDci3kVoS7mptp9EN6exaqQDD"
+  },
+  {
+    "index": 711,
+    "timestamp": "2026-09-29T02:45:38.750Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "178aaa34e7f2a07f",
+      "context": "boot"
+    },
+    "prevHash": "0024ddd56e78eaef7cb1fac041263fc5d9283e7f4da4d1c5a38d534bf05d4b35",
+    "nonce": 200,
+    "hash": "00e1594cb9e9221323a507765485c27c09914db675493910677625569a444edd",
+    "cid": "bafyrei4SJP1LBXvdUUg8AV9MfnwMpXLef71zac"
+  },
+  {
+    "index": 712,
+    "timestamp": "2026-09-29T02:45:38.763Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "fc363392ba88f0f9"
+    },
+    "prevHash": "00e1594cb9e9221323a507765485c27c09914db675493910677625569a444edd",
+    "nonce": 10,
+    "hash": "00b92035f977e4b36449aada0d410b3b0a195a48d2f52e9da70bdbe53985ed84",
+    "cid": "bafyrei3pj7zd6pQbHn9sdj6XfTXccPR8frR8z6"
+  },
+  {
+    "index": 713,
+    "timestamp": "2026-09-29T02:45:42.565Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "0672fd50602190de",
+      "context": "boot"
+    },
+    "prevHash": "00b92035f977e4b36449aada0d410b3b0a195a48d2f52e9da70bdbe53985ed84",
+    "nonce": 10,
+    "hash": "004786b2d4278fc8f885f909fdcd7943878c6f8bc9e8aa84317bc806d506c46c",
+    "cid": "bafyrei26FyGBmDy4AMdhE1aRA9N1xQV5fjZbAU"
+  },
+  {
+    "index": 714,
+    "timestamp": "2026-09-29T02:45:42.580Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "17788d0cafa8df56"
+    },
+    "prevHash": "004786b2d4278fc8f885f909fdcd7943878c6f8bc9e8aa84317bc806d506c46c",
+    "nonce": 313,
+    "hash": "0090a67c909292d4b13e8ebab939276a8cd102abefb76ade3e41d307dff2d014",
+    "cid": "bafyrei3Cvup817ZksPsaSFAewYqhuCQc74bAsZ"
+  },
+  {
+    "index": 715,
+    "timestamp": "2026-09-29T02:45:46.288Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "6f09040ab385601b",
+      "context": "boot"
+    },
+    "prevHash": "0090a67c909292d4b13e8ebab939276a8cd102abefb76ade3e41d307dff2d014",
+    "nonce": 8,
+    "hash": "007806623f6df7db4282ddb3017c957b00470d8529d239de266632d97dba8ab0",
+    "cid": "bafyrei2q9jq3esauM63yVx7dQEc1Y3KDXECk2r"
+  },
+  {
+    "index": 716,
+    "timestamp": "2026-09-29T02:45:46.298Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "f0beff77d20c2c80"
+    },
+    "prevHash": "007806623f6df7db4282ddb3017c957b00470d8529d239de266632d97dba8ab0",
+    "nonce": 260,
+    "hash": "00d336cd4e143ff426362fc1b95f010a585dd831ffd6fc530fc4d8e0e6970fa6",
+    "cid": "bafyrei4DoL9No1pqjByNBck4SmLCSWUsLFLYKP"
+  },
+  {
+    "index": 717,
+    "timestamp": "2026-09-29T02:45:50.256Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "0611d276089b7cac",
+      "context": "boot"
+    },
+    "prevHash": "00d336cd4e143ff426362fc1b95f010a585dd831ffd6fc530fc4d8e0e6970fa6",
+    "nonce": 80,
+    "hash": "00aa8b2f3fdc036283dd59227f29cc2b62c46fd2aaaa5ecf23f28c6c6480a1a3",
+    "cid": "bafyrei3bq88A3Fz7b2Eu6439kZX3vey1VDREtq"
+  },
+  {
+    "index": 718,
+    "timestamp": "2026-09-29T02:45:50.272Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "0826a8cd5242265e"
+    },
+    "prevHash": "00aa8b2f3fdc036283dd59227f29cc2b62c46fd2aaaa5ecf23f28c6c6480a1a3",
+    "nonce": 308,
+    "hash": "007afd5845a1de7e695bea51d915368a6f70ba22b5a7bf64a828e936d4c8f2a8",
+    "cid": "bafyrei2smpCQrcan8V7tpLfTvreN3LdZChf4Bg"
+  },
+  {
+    "index": 719,
+    "timestamp": "2026-09-29T03:31:38.798Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "fb7318436bacd6c4",
+      "context": "boot"
+    },
+    "prevHash": "007afd5845a1de7e695bea51d915368a6f70ba22b5a7bf64a828e936d4c8f2a8",
+    "nonce": 42,
+    "hash": "001bc49916292b8b55452486c04c805e673af1225b629d1bcefd6a9a00c779e0",
+    "cid": "bafyreiRZNXxrkr8eeEFcifZ3n139EtG6Xz63u7"
+  },
+  {
+    "index": 720,
+    "timestamp": "2026-09-29T03:31:38.807Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "497397fd36214fa8"
+    },
+    "prevHash": "001bc49916292b8b55452486c04c805e673af1225b629d1bcefd6a9a00c779e0",
+    "nonce": 156,
+    "hash": "00fa7b98730c05035300c379d0a0a0e212a0b37e276c10dc50ebca70fe48902b",
+    "cid": "bafyrei4pXe3dD1cf2sfpsJcXvwYoKkTdvk1H5c"
+  },
+  {
+    "index": 721,
+    "timestamp": "2026-09-29T03:31:41.929Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "7b59190d45c6dba6",
+      "context": "boot"
+    },
+    "prevHash": "00fa7b98730c05035300c379d0a0a0e212a0b37e276c10dc50ebca70fe48902b",
+    "nonce": 290,
+    "hash": "00fbc60e69da5cc4748e439e800742306c201ec3a6495d31780162cbfdae938a",
+    "cid": "bafyrei4qfrYL1WeqSq8GETuVBiVpLLyjbar6W6"
+  },
+  {
+    "index": 722,
+    "timestamp": "2026-09-29T03:31:41.939Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "ca7429159280c4da"
+    },
+    "prevHash": "00fbc60e69da5cc4748e439e800742306c201ec3a6495d31780162cbfdae938a",
+    "nonce": 89,
+    "hash": "0096e7fffb79a119b71ec9e41898a8a8e9c3ddce9ac521f173c99644ffe7894a",
+    "cid": "bafyrei3JTp1xt4tqMZxA1URsW6ptUW7jwZ8JAF"
+  },
+  {
+    "index": 723,
+    "timestamp": "2026-09-29T03:31:45.190Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9db6039b153dbd16",
+      "context": "boot"
+    },
+    "prevHash": "0096e7fffb79a119b71ec9e41898a8a8e9c3ddce9ac521f173c99644ffe7894a",
+    "nonce": 94,
+    "hash": "00fece53e788668f757b776121ea9633bca13622e394d0c221b1829681841fae",
+    "cid": "bafyrei4tMQ5s6by15XjaPQLnVGKrdeJqqRmKVv"
+  },
+  {
+    "index": 724,
+    "timestamp": "2026-09-29T03:31:45.200Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "739c8cc172ae330f"
+    },
+    "prevHash": "00fece53e788668f757b776121ea9633bca13622e394d0c221b1829681841fae",
+    "nonce": 38,
+    "hash": "0074a38fde144f5c51e0878d468bee832c782c28ea294610dd69858971d15702",
+    "cid": "bafyrei2nA3wcFTAWfj19nd2zRA5xt1eeYk9ZLE"
+  },
+  {
+    "index": 725,
+    "timestamp": "2026-09-29T03:31:48.568Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "349c041d49930367",
+      "context": "boot"
+    },
+    "prevHash": "0074a38fde144f5c51e0878d468bee832c782c28ea294610dd69858971d15702",
+    "nonce": 26,
+    "hash": "004e5f3dc7687d289e7a60d641428b8b2e44696f04902f8307963dc36eae2e68",
+    "cid": "bafyrei2CK8g9NoSKvhhKeJde71ZRTEP8oNRTnQ"
+  },
+  {
+    "index": 726,
+    "timestamp": "2026-09-29T03:31:48.579Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "c1aff0b530467551"
+    },
+    "prevHash": "004e5f3dc7687d289e7a60d641428b8b2e44696f04902f8307963dc36eae2e68",
+    "nonce": 68,
+    "hash": "00ede2b378459462efe26fce1ac72cf1adcc283f904967e6316d9a99efbc23be",
+    "cid": "bafyrei4dPTVsjbgtFEMtefe2HK6TSwfXXuuiK5"
   }
 ]

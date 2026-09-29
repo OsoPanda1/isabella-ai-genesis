@@ -102,7 +102,9 @@ export const IsabellaHubView: React.FC = () => {
       if (data.ok && Array.isArray(data.logs)) {
         setAuditLogs(data.logs);
       }
-    } catch {}
+    } catch (error) {
+      console.error("Failed to load Isabella audit logs", error);
+    }
   };
 
   const fetchMemories = async () => {
@@ -113,7 +115,9 @@ export const IsabellaHubView: React.FC = () => {
       if (data.ok && Array.isArray(data.memories)) {
         setMemories(data.memories);
       }
-    } catch {}
+    } catch (error) {
+      console.error("Failed to load Isabella memories", error);
+    }
   };
 
   const fetchTools = async () => {
@@ -124,7 +128,9 @@ export const IsabellaHubView: React.FC = () => {
       if (data.ok && Array.isArray(data.tools)) {
         setTools(data.tools);
       }
-    } catch {}
+    } catch (error) {
+      console.error("Failed to load Isabella tools", error);
+    }
   };
 
   useEffect(() => {
@@ -226,7 +232,9 @@ export const IsabellaHubView: React.FC = () => {
       let parsedArgs = {};
       try {
         parsedArgs = JSON.parse(toolSandboxArgs);
-      } catch {}
+      } catch (error) {
+        console.warn("Invalid tool arguments; using an empty object", error);
+      }
 
       const res = await authFetch("/api/v1/isabella/tools/execute", {
         method: "POST",
@@ -276,7 +284,8 @@ export const IsabellaHubView: React.FC = () => {
         fetchMemories();
         fetchAuditLogs();
       }
-    } catch {
+    } catch (error) {
+      console.error("Failed to add Isabella memory", error);
     } finally {
       setIsAddingMem(false);
     }

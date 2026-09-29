@@ -7,7 +7,7 @@ import {
   type NavTabId,
 } from "@/components/isabella/CrystalNavigation";
 
-import CinematicIntro from "@/components/isabella/CinematicIntro";
+import { IsabellaCinematicExperience } from "@/components/Welcome/IsabellaCinematicExperience";
 const CommandLine = lazy(() =>
   import("@/components/isabella/CommandLine").then((m) => ({
     default: m.CommandLine,
@@ -117,7 +117,12 @@ function IndexClient() {
   if (!introDone) {
     return (
       <Suspense fallback={<ClientFallback label="Inicializando experiencia Isabella…" />}>
-        <CinematicIntro onComplete={handleIntroComplete} />
+        <IsabellaCinematicExperience
+          isOpen
+          enableCinematic
+          onEnter={handleIntroComplete}
+          onClose={handleIntroComplete}
+        />
       </Suspense>
     );
   }
@@ -226,12 +231,12 @@ function IsabellaInterface() {
 
   return (
     <Suspense fallback={<ClientFallback />}>
-      <div className="relative flex min-h-screen bg-background text-foreground transition-all duration-300">
+      <div className="isabella-shell relative flex min-h-screen bg-background text-foreground transition-colors duration-300">
         <Starfield />
 
         <aside
           id="isabella-sidebar"
-          className={`glass sticky top-0 z-30 flex h-screen flex-col justify-between border-r border-border/20 transition-all duration-300 ease-out ${
+          className={`isabella-sidebar glass sticky top-0 z-30 flex h-screen flex-col justify-between border-r border-border/20 transition-all duration-300 ease-out ${
             isSidebarOpen ? "w-[310px]" : "w-[75px]"
           }`}
           aria-label="Navegación Isabella"
@@ -304,8 +309,8 @@ function IsabellaInterface() {
           </div>
         </aside>
 
-        <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
-          <header className="hairline shrink-0 bg-background/40 backdrop-blur-xl">
+        <div className="isabella-workspace flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
+          <header className="isabella-topbar hairline shrink-0 bg-background/70 backdrop-blur-xl">
             <div className="flex items-center justify-between gap-4 px-6 py-3.5 sm:px-8">
               <div className="flex items-center gap-3">
                 <span className="size-2 animate-pulse rounded-full bg-emerald-400" />
@@ -368,11 +373,11 @@ function IsabellaInterface() {
             </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <main className="isabella-content flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
             {activeTab === "terminal" && (
               <div className="mx-auto grid h-full max-w-[1450px] items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
                 <section className="flex min-w-0 flex-col gap-4">
-                  <div className="glass min-h-[56vh] flex-1 overflow-y-auto rounded-3xl p-1 crystal-glow-electric">
+                  <div className="isabella-chat-surface glass min-h-[56vh] flex-1 overflow-y-auto rounded-[1.35rem] border-border/30 p-1 shadow-surface">
                     <MessageStream
                       messages={isabella.messages}
                       onRetry={() => {

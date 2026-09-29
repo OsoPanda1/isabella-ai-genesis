@@ -1,6 +1,14 @@
 export const SCHEMA_TABLES = [
-  { name: "isabella_memories", scope: "tenant/session", purpose: "Tenant-scoped hierarchical memory." },
-  { name: "isabella_audit_logs", scope: "tenant", purpose: "Append-only governance and audit events." },
+  {
+    name: "isabella_memories",
+    scope: "tenant/session",
+    purpose: "Tenant-scoped hierarchical memory.",
+  },
+  {
+    name: "isabella_audit_logs",
+    scope: "tenant",
+    purpose: "Append-only governance and audit events.",
+  },
   { name: "isabella_decisions", scope: "tenant", purpose: "Policy and decision records." },
   { name: "isabella_tool_runs", scope: "tenant", purpose: "Authorized tool execution outcomes." },
 ] as const;

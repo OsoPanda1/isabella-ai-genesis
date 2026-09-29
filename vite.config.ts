@@ -42,6 +42,11 @@ export default defineConfig(({ command }) => {
       host: "0.0.0.0",
       port: 3000,
       strictPort: true,
+      // Nitro/TanStack owns the preview transport. Disable both Vite's HMR
+      // client and its websocket server so preview restarts cannot leave a
+      // stale client trying to reconnect to the colliding port 24678.
+      hmr: false,
+      ws: false,
     },
     build: {
       target: "esnext",

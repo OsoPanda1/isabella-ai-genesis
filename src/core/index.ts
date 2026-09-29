@@ -80,20 +80,8 @@ export type { VerificationResult, VerificationCheck } from "./beta/verification"
 export { DualKernel, dualKernel } from "./dual-kernel";
 
 // Public orchestration facade used by the HTTP control plane.
-export {
-  runAgent,
-  listSessions,
-  getSessionHistory,
-} from "./orchestrator/orchestrator";
-export {
-  createPlan,
-  activatePlan,
-  listPlans,
-} from "./planner/planner";
-export {
-  listSkills,
-  registerSkill,
-  enableSkill,
-} from "./skills/skill-registry";
+export { runAgent, listSessions, getSessionHistory } from "./orchestrator/orchestrator";
+export { createPlan, activatePlan, listPlans } from "./planner/planner";
+export { listSkills, registerSkill, enableSkill } from "./skills/skill-registry";
 export { listProviders } from "./runtime/provider-registry";
 export { processMessageEvent } from "./gateway/gateway";

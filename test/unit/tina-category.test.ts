@@ -8,7 +8,7 @@ import { chooseTinaPath, routeTina, classifyAndRouteTina } from "@/lib/tina/rout
 import { normalizeComplexity, type TinaComplexityScore } from "@/lib/tina/types";
 import { auditTinaContent, sha256Hex } from "@/lib/tina/ethical";
 import { buildTinaCacheKeySync } from "@/lib/tina/cache";
-import { TinaBookPI } from "@/lib/tina/ledger";
+import { TinaBookPI, type TinaBookEvent } from "@/lib/tina/ledger";
 import { TinaPluginRegistry } from "@/lib/tina/plugins";
 import { createTinaOrchestrator } from "@/lib/tina/orchestrator";
 import { TINA_CATEGORY } from "@/lib/skills/tina-category";

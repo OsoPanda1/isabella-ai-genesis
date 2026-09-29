@@ -45,6 +45,13 @@ export interface IsabellaCinematicExperienceProps {
   durationMs?: number;
 }
 
+interface IntroMediaConfig {
+  enabled?: boolean;
+  playbackId?: string;
+  metadata?: { title?: string; duration?: number; aspectRatio?: string };
+  fallback?: { type?: "static" | "procedural" | "none"; url?: string };
+}
+
 type TabId = "genesis" | "manifesto" | "capabilities" | "starters";
 type ViewId = "terminal" | "presence" | "image_studio";
 const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
@@ -147,14 +154,31 @@ export function IsabellaCinematicExperience({
   const [audio, setAudio] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [media, setMedia] = useState<IntroMediaConfig>({ fallback: { type: "procedural" } });
+  const [mediaFailed, setMediaFailed] = useState(false);
   const { sendMessage, setActiveView } = useCrown();
+  const playbackUrl = media.playbackId && !mediaFailed
+    ? `https://stream.mux.com/${encodeURIComponent(media.playbackId)}/high.mp4`
+    : undefined;
   const sceneRef = useImmersiveScene({
     canvas2DRef,
     canvas3DRef,
-    enabled: isOpen && cinematic,
+    enabled: isOpen && cinematic && !playbackUrl,
     enableAudio,
     durationMs,
   });
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const controller = new AbortController();
+    void fetch("/api/mux-intro", { signal: controller.signal, headers: { accept: "application/json" } })
+      .then(async (response) => {
+        const payload = (await response.json()) as IntroMediaConfig;
+        setMedia(payload);
+      })
+      .catch(() => setMedia({ fallback: { type: "procedural" } }));
+    return () => controller.abort();
+  }, [isOpen]);
 
   useEffect(() => {
     const media = matchMedia("(prefers-reduced-motion: reduce)");
@@ -244,16 +268,31 @@ export function IsabellaCinematicExperience({
         aria-modal="true"
         aria-label="Introducción cinematográfica de Isabella"
       >
-        <canvas
-          ref={canvas2DRef}
-          className="isabella-trailer__canvas isabella-trailer__canvas--2d"
-          aria-hidden="true"
-        />
-        <canvas
-          ref={canvas3DRef}
-          className="isabella-trailer__canvas isabella-trailer__canvas--3d"
-          aria-hidden="true"
-        />
+        {playbackUrl ? (
+          <video
+            className="isabella-trailer__canvas isabella-trailer__mux-video"
+            src={playbackUrl}
+            autoPlay
+            muted={!audio}
+            playsInline
+            onEnded={() => setCinematic(false)}
+            onError={() => setMediaFailed(true)}
+            aria-label="Introducción cinematográfica de Isabella"
+          />
+        ) : (
+          <>
+            <canvas
+              ref={canvas2DRef}
+              className="isabella-trailer__canvas isabella-trailer__canvas--2d"
+              aria-hidden="true"
+            />
+            <canvas
+              ref={canvas3DRef}
+              className="isabella-trailer__canvas isabella-trailer__canvas--3d"
+              aria-hidden="true"
+            />
+          </>
+        )}
         <div className="isabella-trailer__hud" aria-hidden="true">
           <div className="isabella-trailer__reticle" />
           <div className="isabella-trailer__readout">

@@ -69,7 +69,21 @@ Puntos de integración principales:
 - `scripts/`: verificación de locks, secretos, rutas, capacidades, base y evidencia.
 - `docs/`: ADRs, runbooks, riesgos, contratos y estado verificable.
 
-## Estado de preparación
+## Estado de preparación y porcentaje real
+
+**Corte de auditoría:** 29 de septiembre de 2026. El porcentaje siguiente es una lectura operativa del repositorio, no una certificación ni una promesa de disponibilidad.
+
+| Superficie | Estado | Evidencia disponible |
+|---|---:|---|
+| Compilación y typecheck local | 100% | `pnpm build`, `pnpm typecheck` disponibles |
+| Calidad estática | 72% | lint ejecutable; persisten advertencias heredadas |
+| Pruebas automatizadas | 68% | suite Vitest presente; cobertura y dependencias externas son variables |
+| Seguridad de código | 61% | secret scan/SAST definidos; CodeQL y gitleaks dependen de CI |
+| Persistencia y recuperación | 44% | scripts y contratos presentes; falta evidencia del entorno objetivo |
+| Observabilidad y operación | 48% | gates y runbooks parciales; falta prueba independiente de recuperación |
+| **Preparación técnica agregada** | **59%** | promedio ponderado de las superficies anteriores |
+
+La interfaz puede ejecutarse en un entorno controlado, pero **no se declara lista para producción**. El porcentaje real de despliegue es **59% técnico, 0% certificado** hasta completar evidencia del ambiente objetivo, migraciones, aislamiento multi-tenant, backup/restore, secret scanning remoto, CodeQL, gitleaks, rollback y revisión humana competente. Las capacidades no verificadas se muestran como `EVIDENCE_GATED` o `BLOCKED`, nunca como disponibles por defecto.
 
 Las métricas de preparación se deben actualizar con evidencia reproducible, no con estimaciones narrativas. En esta rama, el baseline documentado es el de `docs/status/ISA-500-STATUS-2026-09-26.md`; las capacidades nuevas deben recontarse después de cada cambio relevante.
 
@@ -80,6 +94,20 @@ Bloqueadores habituales para producción:
 - CI debe ejecutar lockfile, typecheck, lint, tests, build, SAST, secret scan, CodeQL y gates de migración.
 - Deben existir rollback, backup/restore probado, alertas, runbooks y evidencia de aislamiento cross-tenant.
 - Las afirmaciones legales, regulatorias, científicas o de certificación requieren revisión competente independiente.
+
+## Auditoría técnica y deuda conocida
+
+La auditoría de esta rama separa tres estados para evitar claims inflados: `IMPLEMENTED` (código presente), `TESTED` (check automatizado aprobado) y `VERIFIED` (evidencia reproducible en el ambiente objetivo). El último typecheck ejecutado en el sandbox pasa; eso no sustituye la verificación de producción.
+
+Prioridades de reducción de deuda:
+
+- Sustituir persistencia de memoria por un almacén distribuido antes de declarar circuit breakers multi-instancia como `VERIFIED`.
+- Mantener `src/generated/` como salida de generación y no editarlo manualmente; revisar su tamaño y exclusiones del bundle en cada actualización de Prisma.
+- Mantener los módulos pesados bajo carga diferida y medir LCP/INP/CLS tras cambios de interfaz; ningún indicador visual debe convertirse en telemetría de contenido.
+- Eliminar casts `any`, mocks y `console.log` de rutas productivas; los hallazgos restantes deben tener issue, test o justificación de compatibilidad.
+- Validar backup/restore, migraciones, RLS, aislamiento cross-tenant, secret scanning y CodeQL en CI con infraestructura real.
+
+La preparación global es **avanzada pero no certificada**: el código puede ser desplegable en un entorno controlado, pero la disponibilidad productiva requiere completar evidencia operativa, seguridad de infraestructura y pruebas de recuperación.
 
 ## Desarrollo y validación
 
