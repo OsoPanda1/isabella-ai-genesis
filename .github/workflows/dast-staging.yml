@@ -1,0 +1,26 @@
+name: DAST — staging
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 1 * * 1"
+  workflow_run:
+    workflows: ["Isabella Genesis — Security Gate"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  zap-baseline:
+    if: ${{ vars.STAGING_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@8e809c982d8155eda2594e5732ae1b580ed276f9
+        with:
+          target: ${{ vars.STAGING_URL }}
+          fail_action: true
+          allow_issue_writing: false
+          artifact_name: zap-staging-${{ github.run_id }}
