@@ -121,7 +121,8 @@ export const REAL_DEL_MONTE_HERITAGE_ENTITIES: TerritoryHeritageEntity[] = [
 class TerritoryContextService {
   private static instance: TerritoryContextService;
 
-  // Baseline values are intentionally stable and must not be presented as live sensor data.\n  private currentTelemetry: TerritorySensorsTelemetry = {
+  // Baseline values are intentionally stable and must not be presented as live sensor data.
+  private currentTelemetry: TerritorySensorsTelemetry = {
     temperatureCelsius: 14.4,
     humidityPercent: 72,
     barometricPressureHpa: 738,
