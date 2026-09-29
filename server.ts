@@ -2407,7 +2407,10 @@ async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      // The Express server owns the preview HTTP listener; Vite cannot attach
+      // its standalone HMR WebSocket here. Disable the client injection in
+      // middleware mode to prevent reconnect errors in hosted previews.
+      server: { middlewareMode: true, hmr: false },
       appType: "custom",
     });
     app.use(vite.middlewares);
