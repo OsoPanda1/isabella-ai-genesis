@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import type { IsabellaPlanId } from "../subscription.server";
-import { setUserPlan } from "../subscription.server";
+import { setUserPlan, saveSubscriptionPlan } from "../subscription.server";
 import { nodeRequire } from "../node-require";
 import { claimWebhookEvent, markWebhookFailed, markWebhookProcessed } from "../economic-events";
 import { createHash } from "node:crypto";
@@ -152,7 +152,7 @@ export async function handleStripeWebhook(
         planId &&
         (planId === "plus" || planId === "premium" || planId === "vip" || planId === "enterprise")
       ) {
-        setUserPlan(userId, planId);
+        setUserPlan(userId, planId);\n        await saveSubscriptionPlan(userId, planId);
       }
     }
     await markWebhookProcessed(claim.id);
