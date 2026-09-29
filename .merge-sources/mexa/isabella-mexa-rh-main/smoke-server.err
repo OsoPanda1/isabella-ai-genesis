@@ -1,2 +1,0 @@
-$ tsx server.ts
-{"level":"warn","event":"automation_failure_detected","timestamp":"2026-08-30T09:05:44.480Z","scope":"automation-mesh","nodeId":"A-identity","severity":"critical","affectedNodes":11,"repairSteps":3}

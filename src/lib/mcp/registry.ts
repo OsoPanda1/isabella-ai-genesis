@@ -93,15 +93,8 @@ const auditQueue: AuditEntry[] = [];
 const AUDIT_MAX = 500;
 
 function randomUUID(): string {
-  if (typeof globalThis !== "undefined") {
-    const g = globalThis as unknown as { crypto?: { randomUUID?: () => string } };
-    if (g.crypto && typeof g.crypto.randomUUID === "function") return g.crypto.randomUUID();
-  }
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  throw new Error("Cryptographically secure random source unavailable");
 }
 
 export function registerConnector(raw: unknown): ConnectorManifest {

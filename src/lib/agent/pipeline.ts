@@ -53,7 +53,7 @@ export interface PipelineResult {
 }
 
 function generateRequestId(): string {
-  return `req-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  return `req-${crypto.randomUUID()}`;
 }
 
 function nowIso(): string {
@@ -127,7 +127,7 @@ export class IsabellaPipeline {
     });
     stageTimings.perceive = perceiveMs;
 
-    const traceId = `tr-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+    const traceId = `tr-${crypto.randomUUID()}`;
 
     // Stage 2: Remember
     this.setStage("remember");

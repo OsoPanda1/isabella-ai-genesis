@@ -122,6 +122,8 @@ export const envSchema = z
     BOOKPI_SIGNING_KEY: optionalMinString(32),
     // x402 USDC recipient. Required and validated before live settlement.
     X402_PAYMENT_VAULT_ADDRESS: optionalString(),
+    // --- FEDERATION SIGNING ---
+    FEDERATION_SIGNING_KEYS_JSON: optionalString(),
     // --- REDIS ---
     REDIS_URL: optionalString(),
     REDIS_TOKEN: optionalString(),
@@ -446,6 +448,16 @@ export const ENV_VAR_CATALOG: EnvVarDescriptor[] = [
     forbidden: [],
     provider: "bookpi",
     criticality: "HIGH",
+  },
+  {
+    name: "FEDERATION_SIGNING_KEYS_JSON",
+    visibility: "secret",
+    required: ["staging", "production"],
+    forbidden: [],
+    provider: "self",
+    criticality: "CRITICAL",
+    rotation: "90d",
+    description: "JSON object containing one independent HMAC signing secret per federation (F1..F7).",
   },
   {
     name: "REDIS_URL",

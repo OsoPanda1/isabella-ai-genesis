@@ -121,6 +121,7 @@ export const REAL_DEL_MONTE_HERITAGE_ENTITIES: TerritoryHeritageEntity[] = [
 class TerritoryContextService {
   private static instance: TerritoryContextService;
 
+  // Baseline values are intentionally stable and must not be presented as live sensor data.
   private currentTelemetry: TerritorySensorsTelemetry = {
     temperatureCelsius: 14.4,
     humidityPercent: 72,
@@ -132,12 +133,8 @@ class TerritoryContextService {
   };
 
   private constructor() {
-    // Periodically update subtle simulated telemetry
-    if (typeof window !== "undefined") {
-      setInterval(() => {
-        this.updateTelemetryFluctuations();
-      }, 15000);
-    }
+    // No synthetic telemetry in production. This service exposes a documented
+    // territorial baseline until a real sensor provider is connected.
   }
 
   public static getInstance(): TerritoryContextService {
@@ -147,27 +144,7 @@ class TerritoryContextService {
     return TerritoryContextService.instance;
   }
 
-  private updateTelemetryFluctuations() {
-    const tempDelta = (Math.random() - 0.5) * 0.4;
-    const humidityDelta = (Math.random() - 0.5) * 2;
-    const latencyDelta = (Math.random() - 0.5) * 0.3;
 
-    this.currentTelemetry = {
-      ...this.currentTelemetry,
-      temperatureCelsius: parseFloat(
-        Math.max(10, Math.min(22, this.currentTelemetry.temperatureCelsius + tempDelta)).toFixed(1),
-      ),
-      humidityPercent: Math.round(
-        Math.max(40, Math.min(95, this.currentTelemetry.humidityPercent + humidityDelta)),
-      ),
-      nodeMeshLatencyMs: parseFloat(
-        Math.max(
-          0.8,
-          Math.min(4.5, this.currentTelemetry.nodeMeshLatencyMs + latencyDelta),
-        ).toFixed(1),
-      ),
-    };
-  }
 
   public getSnapshot(): TerritoryContextSnapshot {
     return {

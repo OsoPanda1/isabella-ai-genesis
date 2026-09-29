@@ -68,11 +68,10 @@ const CRITICAL_PATTERNS = [
     description: "Potential secret in code",
   },
   {
-    pattern: /DATABASE_URL|SUPABASE_URL|JWT_SECRET|STRIPE_SECRET/gi,
+    pattern: /(?:DATABASE_URL|SUPABASE_URL|JWT_SECRET|STRIPE_SECRET)\s*=\s*["'][^"']+/gi,
     severity: "CRITICAL",
-    description: "Hardcoded environment variable name",
-  },
-];
+    description: "Hardcoded environment secret value",
+  },];
 
 const LANGUAGE_EXTENSIONS: Record<string, string> = {
   ".ts": "typescript",

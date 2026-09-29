@@ -4,7 +4,7 @@
  * Registers structured audit events, trace IDs, and cryptographic verification logs.
  */
 
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { IsabellaAuditLog } from "../../../contracts/isabella";
 import { getDatabase } from "../../../lib/persistence/sqlite";
 
@@ -39,8 +39,8 @@ export async function auditTrace(payload: AuditTraceParams): Promise<{
   timestamp: string;
 }> {
   const traceId =
-    payload.traceId || `trace-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-  const auditId = `audit-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    payload.traceId || `trace-${randomUUID()}`;
+  const auditId = `audit-${randomUUID()}`;
   const now = new Date().toISOString();
 
   const checksum = `sha256_${createHash("sha256")

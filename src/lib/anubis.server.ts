@@ -3,7 +3,7 @@
  * Implements DEKATEOTL hard-stops, anomaly scoring, rate-window tracking,
  * and ML-DSA-87 PQC signature attestation.
  */
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { appendBlock } from "./bookpi.server";
 import type { PQCSignatureResult } from "./postQuantumCrypto";
 
@@ -79,11 +79,11 @@ export function recordSeguimiento(input: {
 }): Seguimiento {
   const tid =
     input.traceId ??
-    createHash("sha256").update(`${Date.now()}${Math.random()}`).digest("hex").slice(0, 16);
+    createHash("sha256").update(randomUUID()).digest("hex").slice(0, 16);
   const pqcProof = _signMLDSA87Legacy(`${input.radar}:${input.action}:${tid}`);
 
   const s: Seguimiento = {
-    id: createHash("sha256").update(`${Date.now()}${Math.random()}`).digest("hex").slice(0, 16),
+    id: createHash("sha256").update(randomUUID()).digest("hex").slice(0, 16),
     radar: input.radar,
     timestamp: new Date().toISOString(),
     level: input.level,
@@ -165,7 +165,7 @@ export function evaluatePolicy(input: {
   let score = 0;
   const tid =
     input.traceId ??
-    createHash("sha256").update(`${Date.now()}${Math.random()}`).digest("hex").slice(0, 32);
+    createHash("sha256").update(randomUUID()).digest("hex").slice(0, 32);
 
   if (input.content) {
     for (const p of HARD_STOP_PATTERNS) {

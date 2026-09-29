@@ -76,7 +76,7 @@ export function registerEpisode(
   emotionalState?: string,
 ): Episode {
   const id = createHash("sha256")
-    .update(`${Date.now()}${Math.random()}`)
+    .update(crypto.randomUUID())
     .digest("hex")
     .slice(0, 16);
   const ep: Episode = {
