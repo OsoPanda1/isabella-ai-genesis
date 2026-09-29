@@ -104,7 +104,6 @@ export function usePerformanceMonitor(componentName: string) {
   useEffect(() => {
     const duration = performance.now() - startTimeRef.current;
     perfRegistry.recordRender(componentName, duration);
-
   });
 
   const startTrack = useCallback((eventName: string) => {

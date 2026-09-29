@@ -2497,7 +2497,9 @@
 }
 
 /* Isabella focus shell: quieter surfaces, clearer hierarchy, less ornament. */
-.isabella-shell {
+  .isabella-shell {
+    --isabella-accent: #8dd8c2;
+    --isabella-accent-soft: rgba(141, 216, 194, 0.12);
   --isabella-bg: #090b0f;
   --isabella-panel: rgba(17, 20, 25, 0.82);
   --isabella-panel-strong: rgba(22, 26, 32, 0.92);

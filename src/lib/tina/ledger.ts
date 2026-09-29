@@ -12,7 +12,9 @@ export interface TinaBookEvent {
   previousHash: string | null;
 }
 
-function canonicalBody(event: Pick<TinaBookEvent, "type" | "timestamp" | "payload" | "previousHash">): string {
+function canonicalBody(
+  event: Pick<TinaBookEvent, "type" | "timestamp" | "payload" | "previousHash">,
+): string {
   return JSON.stringify({
     type: event.type,
     timestamp: event.timestamp,

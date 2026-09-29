@@ -226,7 +226,7 @@ function IsabellaInterface() {
 
   return (
     <Suspense fallback={<ClientFallback />}>
-      <div className="isabella-shell relative flex min-h-screen bg-background text-foreground transition-all duration-300">
+      <div className="isabella-shell relative flex min-h-screen bg-background text-foreground transition-colors duration-300">
         <Starfield />
 
         <aside
@@ -305,7 +305,7 @@ function IsabellaInterface() {
         </aside>
 
         <div className="isabella-workspace flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
-          <header className="isabella-topbar hairline shrink-0 bg-background/40 backdrop-blur-xl">
+          <header className="isabella-topbar hairline shrink-0 bg-background/70 backdrop-blur-xl">
             <div className="flex items-center justify-between gap-4 px-6 py-3.5 sm:px-8">
               <div className="flex items-center gap-3">
                 <span className="size-2 animate-pulse rounded-full bg-emerald-400" />
@@ -372,7 +372,7 @@ function IsabellaInterface() {
             {activeTab === "terminal" && (
               <div className="mx-auto grid h-full max-w-[1450px] items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
                 <section className="flex min-w-0 flex-col gap-4">
-                  <div className="isabella-chat-surface glass min-h-[56vh] flex-1 overflow-y-auto rounded-3xl p-1 crystal-glow-electric">
+                  <div className="isabella-chat-surface glass min-h-[56vh] flex-1 overflow-y-auto rounded-[1.35rem] border-border/30 p-1 shadow-surface">
                     <MessageStream
                       messages={isabella.messages}
                       onRetry={() => {

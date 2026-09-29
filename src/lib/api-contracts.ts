@@ -1,22 +1,20 @@
 import { z } from "zod";
-import {
-  CognitiveProcessSchema,
-  ImageGenSchema,
-  TTSSchema,
-} from "./gemini-validator";
+import { CognitiveProcessSchema, ImageGenSchema, TTSSchema } from "./gemini-validator";
 
 export { CognitiveProcessSchema, ImageGenSchema, TTSSchema };
 
-export const PerceptionInputSchema = z.object({
-  sessionId: z.string().min(1).max(256).optional(),
-  actorId: z.string().min(1).max(256).optional(),
-  territoryId: z.string().min(1).max(256).optional(),
-  inputType: z.string().min(1).max(64).optional(),
-  payload: z.record(z.string(), z.unknown()).optional(),
-  text: z.string().max(50_000).optional(),
-  timestamp: z.string().datetime().optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
-}).passthrough();
+export const PerceptionInputSchema = z
+  .object({
+    sessionId: z.string().min(1).max(256).optional(),
+    actorId: z.string().min(1).max(256).optional(),
+    territoryId: z.string().min(1).max(256).optional(),
+    inputType: z.string().min(1).max(64).optional(),
+    payload: z.record(z.string(), z.unknown()).optional(),
+    text: z.string().max(50_000).optional(),
+    timestamp: z.string().datetime().optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+  })
+  .passthrough();
 
 export const AgentLeaseSchema = z.object({
   leaseDurationMinutes: z.number().int().min(1).max(1_440).optional(),
@@ -31,29 +29,39 @@ export const AgentChatSchema = z.object({
   contextPayload: z.record(z.string(), z.unknown()).optional().default({}),
 });
 
-export const IdlenClickSchema = z.object({
-  placement: z.string().min(1).max(128),
-  campaignId: z.string().max(256).optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
-}).passthrough();
+export const IdlenClickSchema = z
+  .object({
+    placement: z.string().min(1).max(128),
+    campaignId: z.string().max(256).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+  })
+  .passthrough();
 
-export const CheckoutSchema = z.object({
-  planId: z.string().min(1).max(128).optional(),
-  plan: z.string().min(1).max(128).optional(),
-}).passthrough();
+export const CheckoutSchema = z
+  .object({
+    planId: z.string().min(1).max(128).optional(),
+    plan: z.string().min(1).max(128).optional(),
+  })
+  .passthrough();
 
-export const QuantumExecuteSchema = z.object({
-  provider: z.string().max(256).optional(),
-  repository: z.string().max(512).optional(),
-  mode: z.string().max(128).optional(),
-  wires: z.number().int().min(1).max(64).optional(),
-  shots: z.number().int().min(1).max(1_000_000).nullable().optional(),
-  features: z.array(z.number().finite()).max(10_000).optional(),
-  weights: z.array(z.number().finite()).max(10_000).optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
-}).passthrough();
+export const QuantumExecuteSchema = z
+  .object({
+    provider: z.string().max(256).optional(),
+    repository: z.string().max(512).optional(),
+    mode: z.string().max(128).optional(),
+    wires: z.number().int().min(1).max(64).optional(),
+    shots: z.number().int().min(1).max(1_000_000).nullable().optional(),
+    features: z.array(z.number().finite()).max(10_000).optional(),
+    weights: z.array(z.number().finite()).max(10_000).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+  })
+  .passthrough();
 
-export function validateBody<T extends z.ZodTypeAny>(schema: T, req: { body?: unknown }, res: { status: (code: number) => { json: (body: unknown) => unknown } }): z.infer<T> | null {
+export function validateBody<T extends z.ZodTypeAny>(
+  schema: T,
+  req: { body?: unknown },
+  res: { status: (code: number) => { json: (body: unknown) => unknown } },
+): z.infer<T> | null {
   const result = schema.safeParse(req.body);
   if (result.success) return result.data;
   res.status(400).json({ ok: false, error: "Invalid request body", issues: result.error.issues });

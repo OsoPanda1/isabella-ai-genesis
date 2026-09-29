@@ -578,10 +578,10 @@ export class ImmersiveScene {
 
     document.removeEventListener("visibilitychange", this.onVisibilityChange);
 
-  this.resizeObserver?.disconnect();
-  if (this.resizeFrameId !== null) cancelAnimationFrame(this.resizeFrameId);
-  this.resizeFrameId = null;
-  window.removeEventListener("resize", this.resize);
+    this.resizeObserver?.disconnect();
+    if (this.resizeFrameId !== null) cancelAnimationFrame(this.resizeFrameId);
+    this.resizeFrameId = null;
+    window.removeEventListener("resize", this.resize);
 
     if (this.audio) {
       this.audio.disposed = true;
