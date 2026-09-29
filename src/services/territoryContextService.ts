@@ -144,8 +144,6 @@ class TerritoryContextService {
     return TerritoryContextService.instance;
   }
 
-
-
   public getSnapshot(): TerritoryContextSnapshot {
     return {
       timestamp: new Date().toISOString(),

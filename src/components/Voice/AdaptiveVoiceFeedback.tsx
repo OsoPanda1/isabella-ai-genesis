@@ -21,6 +21,55 @@ export const AdaptiveVoiceFeedback: React.FC<AdaptiveVoiceFeedbackProps> = ({
   const animationRef = useRef<number>(0);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // Declared before the effect so the compiler sees the access in `initAudio`
+  // happen after the declaration; a post-effect declaration makes
+  // `react-hooks/immutability` report "accessed before it is declared".
+  function drawWaveform() {
+    if (!canvasRef.current || !analyserRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const analyser = analyserRef.current;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const draw = () => {
+      animationRef.current = requestAnimationFrame(draw);
+      analyser.getByteTimeDomainData(dataArray);
+
+      ctx.fillStyle = "rgba(3, 7, 18, 0.2)"; // Slate-950 with opacity for motion trail
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.lineWidth = 2;
+      // Use Amber when speaking (Isabella), Rose/Emerald when listening (User)
+      ctx.strokeStyle = isSpeaking ? "rgba(245, 158, 11, 0.8)" : "rgba(16, 185, 129, 0.8)";
+      ctx.beginPath();
+
+      const sliceWidth = (canvas.width * 1.0) / bufferLength;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = (v * canvas.height) / 2;
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          // Add a bit of smoothing/bezier curves for organic look
+          ctx.lineTo(x, y);
+        }
+
+        x += sliceWidth;
+      }
+
+      ctx.lineTo(canvas.width, canvas.height / 2);
+      ctx.stroke();
+    };
+
+    draw();
+  }
+
   useEffect(() => {
     // If not active, clean up and clear canvas
     if (!isSpeaking && !isListening) {
@@ -110,54 +159,6 @@ export const AdaptiveVoiceFeedback: React.FC<AdaptiveVoiceFeedbackProps> = ({
       }
     };
   }, [isSpeaking, isListening]);
-
-  // The renderer is intentionally declared after the effect to keep the audio setup together.
-  // eslint-disable-next-line react-hooks/immutability
-  function drawWaveform() {
-    if (!canvasRef.current || !analyserRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const analyser = analyserRef.current;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const draw = () => {
-      animationRef.current = requestAnimationFrame(draw);
-      analyser.getByteTimeDomainData(dataArray);
-
-      ctx.fillStyle = "rgba(3, 7, 18, 0.2)"; // Slate-950 with opacity for motion trail
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.lineWidth = 2;
-      // Use Amber when speaking (Isabella), Rose/Emerald when listening (User)
-      ctx.strokeStyle = isSpeaking ? "rgba(245, 158, 11, 0.8)" : "rgba(16, 185, 129, 0.8)";
-      ctx.beginPath();
-
-      const sliceWidth = (canvas.width * 1.0) / bufferLength;
-      let x = 0;
-
-      for (let i = 0; i < bufferLength; i++) {
-        const v = dataArray[i] / 128.0;
-        const y = (v * canvas.height) / 2;
-
-        if (i === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          // Add a bit of smoothing/bezier curves for organic look
-          ctx.lineTo(x, y);
-        }
-
-        x += sliceWidth;
-      }
-
-      ctx.lineTo(canvas.width, canvas.height / 2);
-      ctx.stroke();
-    };
-
-    draw();
-  }
 
   return (
     <div className={`relative flex items-center justify-center ${className}`}>

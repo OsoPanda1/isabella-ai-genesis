@@ -59,7 +59,8 @@ export async function anchorDocument(input: {
   const signatures: AnchorRecord["signatures"] = [];
 
   const rawKeys = config().FEDERATION_SIGNING_KEYS_JSON;
-  if (!rawKeys) throw new Error("FEDERATION_SIGNING_KEYS_JSON is required for federation anchoring");
+  if (!rawKeys)
+    throw new Error("FEDERATION_SIGNING_KEYS_JSON is required for federation anchoring");
   let keys: Partial<Record<FederationId, string>>;
   try {
     keys = JSON.parse(rawKeys) as Partial<Record<FederationId, string>>;
