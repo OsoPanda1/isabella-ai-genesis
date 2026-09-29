@@ -118,7 +118,7 @@ export function recordDataStorage(params: {
   const expires = new Date(Date.now() + maxAge * 86_400_000).toISOString();
 
   const record: DataRetrievalRecord = {
-    recordId: `data-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    recordId: `data-${Date.now()}-${crypto.randomUUID()}`,
     category: params.category,
     tenantId: params.tenantId,
     userId: params.userId,
