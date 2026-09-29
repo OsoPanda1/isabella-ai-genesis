@@ -43,7 +43,7 @@ async function getHandler(): Promise<ExpressHandler> {
 }
 
 const generateTraceId = (): string =>
-  `isabella-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  `isabella-${crypto.randomUUID()}`;
 
 export default async function handler(
   req: VercelRequest,
