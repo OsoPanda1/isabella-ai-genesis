@@ -547,7 +547,7 @@ function MainContent() {
     return (
       <IsabellaCinematicExperience
         isOpen
-        enableCinematic={false}
+        enableCinematic
         onEnter={completeIntro}
         onClose={completeIntro}
       />

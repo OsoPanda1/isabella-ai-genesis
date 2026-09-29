@@ -203,11 +203,18 @@
 }
 
 /* Capas duales de la intro inmersiva (2D de fondo, 3D encima) */
-.isabella-trailer__canvas--2d {
-  z-index: 1;
-}
+ .isabella-trailer__canvas--2d {
+   z-index: 1;
+ }
 
-.isabella-trailer__canvas--3d {
+ .isabella-trailer__mux-video {
+   z-index: 1;
+   object-fit: cover;
+   opacity: 0.86;
+   filter: saturate(0.82) contrast(1.08) brightness(0.72);
+ }
+
+ .isabella-trailer__canvas--3d {
   z-index: 2;
   opacity: 0.9;
 }
