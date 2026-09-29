@@ -271,19 +271,59 @@
         "test/unit/decision-repository.test.ts"
       ],
       "notes": "Decisiones en tabla append-only (isabella_decisions, triggers prevent_bookpi_mutation) con cadena SHA3-512 verificada antes de insertar, reenvio idempotente y verifyChain. execution-authority persiste el ALLOW antes del despacho (si la cadena no escribeable no se ejecuta, stage audit) y DENY/REVIEW best-effort. 8 tests locales. production_safe=false hasta aplicar la migracion en el ambiente."
+    },
+    {
+      "name": "evidence.canonical_digest",
+      "status": "verified",
+      "production_safe": true,
+      "readiness_percent": 100,
+      "last_verified": "2026-09-29T00:00:00Z",
+      "evidence": [
+        "src/lib/digest.ts",
+        "test/unit/digest.test.ts"
+      ],
+      "notes": "SHA-256 en TypeScript puro (sin node:crypto en el cliente). 25 tests: vectores FIPS 180-4 y paridad bit a bit contra node:crypto. Integridad de artefactos; NO es firma: la firma se delega en KMS/HSM o en una biblioteca criptografica validada."
+    },
+    {
+      "name": "security.attestation_signatures",
+      "status": "implemented",
+      "production_safe": false,
+      "readiness_percent": 60,
+      "last_verified": null,
+      "evidence": [
+        "src/lib/signatures/attestation.server.ts",
+        "scripts/attestation-keygen.mjs",
+        "src/lib/env-schema.ts",
+        "src/lib/secret-redactor.ts",
+        "test/unit/attestation-signature.test.ts",
+        "docs/security/ATTESTATION-SIGNATURES.md"
+      ],
+      "notes": "RSA-2048/SHA-256/PKCS#1 sobre 3 ranuras de evidencia; 18 tests con un par efimero. production_safe=false porque ese par no se exporto: sin la clave publica del operador, pnpm attestation:verify devuelve MISSING_PUBLIC_KEY. No es criptografia operativa hasta que el operador aporte su clave PEM."
+    },
+    {
+      "name": "evidence.presentation_dossier",
+      "status": "implemented",
+      "production_safe": false,
+      "readiness_percent": 50,
+      "last_verified": null,
+      "evidence": [
+        "src/data/presentationData.ts",
+        "src/components/Presentation/PresentationView.tsx"
+      ],
+      "notes": "26 capitulos canonicos con digest calculado en runtime sobre JSON canonico y evaluationState explicito 'pending'. Sin pruebas dedicadas: production_safe=false hasta anadir un test unitario de canonicidad."
     }
   ],
   "test_summary": {
     "status": "passed",
-    "run_date": "2026-09-27",
+    "run_date": "2026-09-29",
     "runner": "vitest run (local, pnpm test)",
-    "total_tests": 783,
-    "passing_tests": 770,
+    "total_tests": 811,
+    "passing_tests": 798,
     "failing_tests": 0,
     "skipped_tests": 13,
-    "suites_passed": 128,
+    "suites_passed": 131,
     "suites_skipped": 2,
-    "note": "Conteos de la ejecucion local real del 2026-09-27 tras el gate de salida ISA-140/175, governance absorbido, la fusion de los PRs #388/#389 con la auditoria de rutas corregida, la constitucion OPA/espejo TS (11 pruebas de paridad) y el registro bibliografico ORCID (6 pruebas de integridad). Segunda corrida del mismo dia: lint 35 warnings a 0 (tipado estricto en dual-kernel/verificacion/stripe + shims de ruta para /api/v1/language/profile y /api/v1/quantum/telemetry, antes 404) y +2 pruebas de contracto de env SSOT de .env.example. Skips = gated sin TEST_DATABASE_URL u otros."
+    "note": "Corrida local real del 2026-09-29 tras destrabar security:scan (eslint.security.mjs no registraba eslint-plugin-react-hooks), pasar pnpm lint de 22 errores a 0, reponer 4 tests de contrato rotos (FEDERATION_SIGNING_KEYS_JSON en release.yml y en los fixtures), normalizar el casing de directorios (ui/navigation/quantum) y anadir digest SHA-256, atestaciones de evidencia y dossier de presentacion. 13 skips = gateados sin TEST_DATABASE_URL u otros."
   },
   "deployment_tiers": {
     "tier_0_predeployment": {
