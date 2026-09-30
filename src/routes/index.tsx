@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Suspense, useEffect, useState } from "react";
 import { EmergencyModeView } from "@/components/isabella/EmergencyModeView";
 import IsabellaClientApp from "@/components/isabella/IsabellaClientApp";
+import { IsabellaCinematicExperience } from "@/components/Welcome/IsabellaCinematicExperience";
 
 const TITLE = "Isabella Villaseñor AI — FGAIS";
 const DESC =
@@ -43,6 +44,22 @@ export function LandingFallback() {
         </p>
       </section>
     </main>
+  );
+}
+
+function IsabellaEntryExperience() {
+  const [phase, setPhase] = useState<"welcome" | "cinematic" | "app">("welcome");
+
+  if (phase === "app") return <IsabellaClientApp />;
+
+  return (
+    <IsabellaCinematicExperience
+      isOpen
+      enableCinematic={phase === "cinematic"}
+      enableAudio
+      onEnter={() => setPhase(phase === "welcome" ? "cinematic" : "app")}
+      onClose={() => setPhase("app")}
+    />
   );
 }
 
@@ -118,7 +135,7 @@ export function Index() {
 
   return (
     <Suspense fallback={<LandingFallback />}>
-      <IsabellaClientApp />
+      <IsabellaEntryExperience />
     </Suspense>
   );
 }
