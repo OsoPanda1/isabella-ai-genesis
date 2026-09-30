@@ -4,10 +4,11 @@
  * Uso: DATABASE_URL=... node scripts/db-backup.mjs ./backups/isabella.json
  */
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import pg from "pg";
 import { SNAPSHOT_TABLES, buildManifest } from "./db-snapshot-lib.mjs";
+import { encryptBackup } from "./db-backup-crypto.mjs";
 
 const outputPath = process.argv[2];
 const databaseUrl = process.env.DATABASE_URL;

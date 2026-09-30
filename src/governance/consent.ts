@@ -46,7 +46,7 @@ export function grantConsent(params: {
   expiresAt?: string;
 }): ConsentRecord {
   const record: ConsentRecord = {
-    consentId: `consent-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    consentId: `consent-${crypto.randomUUID()}`,
     tenantId: params.tenantId,
     userId: params.userId,
     scope: params.scope,

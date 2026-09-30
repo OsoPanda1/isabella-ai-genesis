@@ -64,7 +64,7 @@ export class MEMORIAStore {
   }
 
   add(entry: Omit<MemoryEntry, "id" | "createdAt" | "tokensEstimate">): MemoryEntry {
-    const id = `mem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const id = `mem-${crypto.randomUUID()}`;
     const now = new Date().toISOString();
     const tokensEstimate = Math.ceil(entry.content.length / 4);
 

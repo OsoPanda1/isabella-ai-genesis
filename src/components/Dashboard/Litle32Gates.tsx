@@ -1,18 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Lock } from "lucide-react";
 
 export const Litle32Gates: React.FC = () => {
-  const [gates, setGates] = useState<boolean[]>(Array(32).fill(true));
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Randomly flicker some gates to simulate active evaluation
-      setGates((prev) =>
-        prev.map((state) => (Math.random() > 0.95 ? !state : Math.random() > 0.8 ? true : state)),
-      );
-    }, 400);
-    return () => clearInterval(interval);
-  }, []);
+  const gates = Array(32).fill("unverified" as const);
 
   const groups = [
     { name: "Integrity (01-08)", start: 0, end: 8 },
@@ -46,11 +36,11 @@ export const Litle32Gates: React.FC = () => {
                 <div
                   key={idx}
                   className={`h-4 flex-1 rounded-sm transition-colors duration-300 ${
-                    isActive
+                    isActive === "passed"
                       ? "bg-emerald-500/20 border border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.15)]"
-                      : "bg-amber-500/80 border border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+                      : "bg-slate-800/70 border border-slate-700"
                   }`}
-                  title={`Gate ${String(g.start + idx + 1).padStart(2, "0")} - ${isActive ? "PASSED" : "EVALUATING"}`}
+                  title={`Gate ${String(g.start + idx + 1).padStart(2, "0")} - ${isActive === "passed" ? "PASSED" : "UNVERIFIED"}`}
                 />
               ))}
             </div>

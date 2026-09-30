@@ -943,7 +943,7 @@ const PQC_DISABLED_ATTESTATION = { status: "unavailable", reason: "pqc_prototype
 app.post("/api/v1/isabella/agent/lease", rateLimit, authenticate, requireScope("agent:lease"), pdpAuthorize("agent:lease"), quotaGate("agent"), (req, res) => {
   const parsed = validateBody(AgentLeaseSchema, req, res);
   if (!parsed) return;
-  const sessionId = `isabella-agent-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+  const sessionId = `isabella-agent-${crypto.randomUUID()}`;
   const durationMinutes = parsed.leaseDurationMinutes || 60;
   const now = new Date();
   const expiresAt = new Date(now.getTime() + durationMinutes * 60000);
@@ -1106,7 +1106,7 @@ function buildGenerativeArtworkUrl(prompt: string, style = "cyber_ethereal", asp
   const height = aspectRatio === "16:9" ? 720 : aspectRatio === "9:16" ? 1280 : aspectRatio === "4:3" ? 768 : 1024;
   
   // Deterministic yet diverse seed per prompt (cryptographically random component)
-  const seed = Math.abs(cleanPrompt.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) + Math.floor(Math.random() * 1000000));
+  const seed = Math.abs(cleanPrompt.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0));
 
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(enrichedPrompt)}?width=${width}&height=${height}&nologo=true&enhance=true&seed=${seed}&model=flux`;
 }

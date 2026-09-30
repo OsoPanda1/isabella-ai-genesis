@@ -1,21 +1,14 @@
-title = "Isabella gitleaks policy"
+title = "Isabella Genesis — controlled secret scanning"
 
 [extend]
 useDefault = true
 
+# A retired credential was present in historical repository material before rotation.
+# This exact value is allowlisted narrowly so historical scanning remains active for
+# every other secret. The live application and documentation must never contain it.
 [allowlist]
-description = "Documented examples, test fixtures, and imported read-only source trees"
-paths = [
-  '''^\.merge-sources/''',
-  '''^user_read_only_context/''',
-  '''^docs/_archive/''',
-  '''^docs/security/ISABELLA-API-KEYS\.md$''',
-  '''^tests?/.*''',
-  '''^test/.*''',
-  '''^contrib/jdr-generator/.*''',
-]
+description = "Known retired CROWN credential from historical incident; exact value only"
+regexTarget = "secret"
 regexes = [
-  '''isk_(live|stage|test)_01f3a9b7c2d1_<secret>''',
-  '''sk_test_(x|abc)''',
-  '''local-(dev|root)-only''',
+  '''C869C1B14A8938785A9438060AD878711124F416'''
 ]

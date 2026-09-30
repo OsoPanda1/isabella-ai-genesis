@@ -3,7 +3,7 @@
  * Proposals, voting, treasury, namespace management.
  * Federation: F-03 Gobernanza
  */
-import { createHash } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { appendBlock } from "./bookpi.server";
 import { recordSeguimiento } from "./anubis.server";
 
@@ -48,11 +48,8 @@ const namespaces: DaoNamespace[] = [];
 const proposals: DaoProposal[] = [];
 const voteLog: DaoVote[] = [];
 
-function uid(s: string) {
-  return createHash("sha256")
-    .update(s + Date.now() + Math.random())
-    .digest("hex")
-    .slice(0, 16);
+function uid(_seed: string): string {
+  return randomUUID().replaceAll("-", "").slice(0, 16);
 }
 
 // Seed canonical namespaces
@@ -119,11 +116,7 @@ for (const p of SEED_PROPS) {
     ...p,
     id: uid(p.title),
     status: "active",
-    votes: {
-      yes: Math.floor(Math.random() * 20 + 5),
-      no: Math.floor(Math.random() * 8),
-      abstain: Math.floor(Math.random() * 3),
-    },
+    votes: { yes: 0, no: 0, abstain: 0 },
     voterIds: new Set(),
     createdAt: new Date().toISOString(),
   });
@@ -135,7 +128,7 @@ export function listNamespaces(): DaoNamespace[] {
 
 export function listProposals(namespaceId?: string): DaoProposal[] {
   const src = namespaceId ? proposals.filter((p) => p.namespaceId === namespaceId) : proposals;
-  return src.map((p) => ({ ...p, voterIds: undefined as any }));
+  return src.map((p) => ({ ...p, voterIds: new Set() }));
 }
 
 export function createProposal(
@@ -169,7 +162,7 @@ export function createProposal(
     action: "DAO_PROPOSAL_CREATED",
     details: { proposalId: p.id, authorId, title },
   });
-  return { ...p, voterIds: undefined as any };
+  return { ...p, voterIds: new Set() };
 }
 
 export function castVote(
@@ -209,7 +202,7 @@ export function castVote(
     details: { proposalId, voterId, choice },
   });
 
-  return { proposal: { ...p, voterIds: undefined as any }, vote: v };
+  return { proposal: { ...p, voterIds: new Set() }, vote: v };
 }
 
 export function daoStats() {

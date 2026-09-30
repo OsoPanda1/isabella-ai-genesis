@@ -22,19 +22,16 @@ const MutatingRequestSchema = z.object({
 
 function parseCookies(header: unknown): Record<string, string> {
   if (typeof header !== "string") return {};
-  return Object.fromEntries(
-    header
-      .split(";")
-      .map((part) => {
-        const [name, ...rest] = part.trim().split("=");
-        try {
-          return [name, decodeURIComponent(rest.join("="))];
-        } catch {
-          return [name, ""];
-        }
-      })
-      .filter(([name]) => Boolean(name)),
-  );
+  const out: Record<string, string> = {};
+  for (const part of header.split(";")) {
+    const trimmed = part.trim();
+    const eq = trimmed.indexOf("=");
+    if (eq <= 0) continue;
+    const name = trimmed.slice(0, eq).trim();
+    const value = trimmed.slice(eq + 1);
+    try { out[name] = decodeURIComponent(value); } catch { out[name] = value; }
+  }
+  return out;
 }
 
 function constantTimeTextEqual(a: string, b: string): boolean {
@@ -53,15 +50,13 @@ export function issueCsrfToken(_req: Request, res: Response) {
   return res.json({ ok: true, csrfToken: token, expiresInSec: 7200 });
 }
 
-// Bootstrap endpoints that issue the first Bearer credential: they are the
-// entry point of the auth flow, so a CSRF cookie cannot exist yet. They mint
-// low-privilege guest tokens only; no cookie-backed state is mutated.
 const CSRF_EXEMPT_PATHS = new Set(["/api/v1/auth/session", "/api/v1/auth/native/bootstrap"]);
 
 export function csrfProtection(req: Request, res: Response, next: NextFunction) {
   if (SAFE_METHODS.has(req.method)) return next();
-  if (String(req.headers.authorization || "").startsWith("Bearer ")) return next();
-  if (req.headers["x-api-key"]) return next();
+  // Bearer-authenticated requests are not dependent on browser cookies for
+  // authorization, so the double-submit CSRF token is unnecessary.
+  if (String(req.headers.authorization || "").trim().toLowerCase().startsWith("bearer ")) return next();
   if (CSRF_EXEMPT_PATHS.has(req.path)) return next();
 
   const cookies = parseCookies(req.headers.cookie);
@@ -98,19 +93,16 @@ function inspectPromptPayload(value: unknown, path = "$", findings: string[] = [
 }
 
 export function promptInjectionGuard(req: Request, res: Response, next: NextFunction) {
-  const parsed = MutatingRequestSchema.safeParse({
-    body: req.body,
-    method: req.method,
-    path: req.path,
-  });
-  if (!parsed.success)
-    return res.status(400).json({ ok: false, error: "Malformed request envelope." });
+  const parsed = MutatingRequestSchema.safeParse({ body: req.body, method: req.method, path: req.path });
+  if (!parsed.success) return res.status(400).json({ ok: false, error: "Malformed request envelope." });
   if (SAFE_METHODS.has(req.method)) return next();
   const findings = inspectPromptPayload(req.body);
   if (findings.length > 0) {
-    return res
-      .status(400)
-      .json({ ok: false, error: "Potential prompt injection content rejected.", fields: findings });
+    return res.status(400).json({
+      ok: false,
+      error: "Potential prompt injection content rejected.",
+      fields: findings.slice(0, 32),
+    });
   }
   return next();
 }

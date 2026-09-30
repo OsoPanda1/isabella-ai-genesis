@@ -25,7 +25,7 @@ export class JobStore {
 
   public create(dto: CreateJobDto): IsabellaJob {
     const job: IsabellaJob = {
-      id: `job_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+      id: `job_${crypto.randomUUID()}`,
       type: dto.type,
       status: "PENDING",
       payload: dto.payload,

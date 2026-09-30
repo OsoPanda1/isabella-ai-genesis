@@ -106,7 +106,7 @@ export class ESCUDOPerimeter {
   private auditLog: AuditEvent[] = [];
 
   authorize(request: AuthorizationRequest): AuthorizationResult {
-    const auditId = `audit-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const auditId = `audit-${crypto.randomUUID()}`;
 
     // Check authentication
     if (!request.context.authenticated) {
