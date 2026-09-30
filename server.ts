@@ -4,6 +4,7 @@ import path from "path";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import dotenv from "dotenv";
 import { createHash } from "node:crypto";
+import { generateTraceId } from "./src/lib/logger";
 import { processPerception } from "./src/domains/ai/application/handlers/processPerception";
 import { getRecentAuditLogs, auditTrace } from "./src/domains/ai/infrastructure/audit-tracer";
 import { queryMemory, getAllMemories, addMemoryItem } from "./src/domains/ai/infrastructure/memory-store";
@@ -176,11 +177,30 @@ app.use(
 );
 app.disable("x-powered-by");
 app.use((req, res, next) => {
+  const traceId = String(req.headers["x-request-id"] || generateTraceId()).slice(0, 128);
+  const startedAt = performance.now();
+  res.setHeader("X-Request-ID", traceId);
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), geolocation=(), payment=(), usb=()");
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+    res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains");
+  }
+  res.setHeader(
+    "Content-Security-Policy-Report-Only",
+    "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; connect-src 'self' https: wss:; font-src 'self' data: https:;",
+  );
+  res.once("finish", () => {
+    log.info("http_request_completed", {
+      traceId,
+      method: req.method,
+      path: req.path,
+      status: res.statusCode,
+      durationMs: Math.round((performance.now() - startedAt) * 100) / 100,
+    });
+  });
   next();
 });
 app.get("/api/v1/security/csrf-token", issueCsrfToken);

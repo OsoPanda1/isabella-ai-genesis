@@ -27,7 +27,11 @@ function parseCookies(header: unknown): Record<string, string> {
       .split(";")
       .map((part) => {
         const [name, ...rest] = part.trim().split("=");
-        return [name, decodeURIComponent(rest.join("="))];
+        try {
+          return [name, decodeURIComponent(rest.join("="))];
+        } catch {
+          return [name, ""];
+        }
       })
       .filter(([name]) => Boolean(name)),
   );
