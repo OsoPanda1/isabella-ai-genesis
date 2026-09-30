@@ -2419,7 +2419,10 @@ async function startServer() {
 
       try {
         const template = readFileSync(path.join(process.cwd(), "index.html"), "utf8");
-        const html = await vite.transformIndexHtml(req.originalUrl, template);
+        const html = (await vite.transformIndexHtml(req.originalUrl, template)).replace(
+          /<script[^>]+src=["']\/?@vite\/client["'][^>]*><\/script>/gi,
+          "",
+        );
         res.status(200).type("html").send(html);
       } catch (error) {
         next(error);
