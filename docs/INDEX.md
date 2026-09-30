@@ -38,6 +38,20 @@
 - `docs/ml/DRIFT.md` — drift y fairness ML
 - `docs/governance/01-FGAIS-Governance-Constitution.md` — charter FGAIS
 
+## Registros de decisión de arquitectura (ADR)
+
+| ADR | Documento | Ubicación | Estado |
+|-----|-----------|-----------|--------|
+| ADR-011 | Blueprint Maestro v2.0 — adaptación al stack TypeScript | `docs/architecture/ADR-011-blueprint-maestro-v2-adaptacion-ts.md` | Aceptado (2026-09-17) |
+| ADR-012 | Evidence Ledger — bitácora append-only encadenada por hash | `docs/architecture/ADR-012-evidence-ledger.md` | Aceptado (2026-09-26) |
+| ADR-001 … ADR-010 | 16 registros históricos | `docs/_archive/architecture/` | Históricos; varios aceptados el 2026-09-05 |
+
+> **Colisión de numeración (abierta):** `docs/_archive/architecture/` conserva dos
+> series paralelas que reutilizan los números 001–005 y 008 (p. ej.
+> `ADR-001-source-of-truth.md` frente a `ADR-001-authorization-plane.md`).
+> Renumerarlas exige un ADR nuevo; hasta entonces no se promueven al canon y no
+> deben citarse como autoridad sin revisar vigencia.
+
 ## Archivo histórico
 
 `docs/_archive/**` conserva ADRs, auditorías, unificaciones previas y documentos
