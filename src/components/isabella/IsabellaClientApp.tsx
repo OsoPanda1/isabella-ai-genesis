@@ -311,9 +311,9 @@ function IsabellaInterface() {
 
         <div className="isabella-workspace flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
           <header className="isabella-topbar hairline shrink-0 bg-background/70 backdrop-blur-xl">
-            <div className="flex items-center justify-between gap-4 px-6 py-3.5 sm:px-8">
-              <div className="flex items-center gap-3">
-                <span className="size-2 animate-pulse rounded-full bg-emerald-400" />
+            <div className="isabella-command-strip flex items-center justify-between gap-4 px-6 py-3.5 sm:px-8">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="isabella-status-orb size-2 shrink-0 animate-pulse rounded-full bg-emerald-400" />
                 <div>
                   <h1 className="font-mono text-[13px] font-bold uppercase leading-none tracking-wider text-platinum">
                     Isabella C.R.O.W.N. Terminal
@@ -331,6 +331,12 @@ function IsabellaInterface() {
                     {activeTab === "findarepo" && "Ranking Global de Agentes (Findarepo)"}
                   </p>
                 </div>
+              </div>
+
+              <div className="hidden items-center gap-2 xl:flex" aria-label="Estado del sistema">
+                <span className="isabella-topbar-chip"><span className="size-1.5 rounded-full bg-emerald-400" /> CROWN ONLINE</span>
+                <span className="isabella-topbar-chip">LAT 42MS</span>
+                <span className="isabella-topbar-chip isabella-topbar-chip--accent">NODO 0 / HGO</span>
               </div>
 
               {activeTab === "terminal" && (
@@ -378,6 +384,11 @@ function IsabellaInterface() {
               <div className="mx-auto grid h-full max-w-[1450px] items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
                 <section className="flex min-w-0 flex-col gap-4">
                   <div className="isabella-chat-surface glass min-h-[56vh] flex-1 overflow-y-auto rounded-[1.35rem] border-border/30 p-1 shadow-surface">
+                    <div className="isabella-surface-label px-5 pb-1 pt-4">
+                      <span>Canal cognitivo</span>
+                      <span className="isabella-live-line" aria-hidden="true" />
+                      <span className="text-emerald-300/80">ENCRIPTADO</span>
+                    </div>
                     <MessageStream
                       messages={isabella.messages}
                       onRetry={() => {
