@@ -112,7 +112,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     cfg.NODE_ENV === "production" ||
     cfg.ISABELLA_RUNTIME_MODE === "production" ||
     cfg.ISABELLA_RUNTIME_MODE === "staging" ||
-    cfg.NODE_ENV === "test" && cfg.ISABELLA_RUNTIME_MODE !== "development";
+    (cfg.NODE_ENV === "test" && cfg.ISABELLA_RUNTIME_MODE !== "development");
 
   // Layer 0: httpOnly cookie (preferred — immune to XSS)
   const cookies = parseCookies(req.headers.cookie);

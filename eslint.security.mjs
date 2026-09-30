@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import security from "eslint-plugin-security";
+import reactHooks from "eslint-plugin-react-hooks";
 
 const SECRET_PATTERN =
   /\b(?:sk|pk|secret|token|password|passwd|api[_-]?key|access[_-]?key|private[_-]?key|isabella_sovereign_security_secret)[-\w]*\b\s*[:=]\s*['"][A-Za-z0-9_\-\.\/\+]{16,}['"]/i;
@@ -59,9 +60,17 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
-    plugins: { security },
+    // The plugin must be registered so `react-hooks/*` disable directives in
+    // source files resolve here too; without it eslint exits with "Definition for
+    // rule ... was not found" and `pnpm security:scan` fails for a non-security
+    // reason. React-specific rules are diagnostics of the main lint profile, so
+    // they are not enforced by this security-only profile.
+    plugins: { security, "react-hooks": reactHooks },
     rules: {
       ...security.configs.recommended.rules,
+      "react-hooks/rules-of-hooks": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "react-hooks/immutability": "off",
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-empty-object-type": "off",

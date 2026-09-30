@@ -334,9 +334,13 @@ function IsabellaInterface() {
               </div>
 
               <div className="hidden items-center gap-2 xl:flex" aria-label="Estado del sistema">
-                <span className="isabella-topbar-chip"><span className="size-1.5 rounded-full bg-emerald-400" /> CROWN ONLINE</span>
+                <span className="isabella-topbar-chip">
+                  <span className="size-1.5 rounded-full bg-emerald-400" /> CROWN ONLINE
+                </span>
                 <span className="isabella-topbar-chip">LAT 42MS</span>
-                <span className="isabella-topbar-chip isabella-topbar-chip--accent">NODO 0 / HGO</span>
+                <span className="isabella-topbar-chip isabella-topbar-chip--accent">
+                  NODO 0 / HGO
+                </span>
               </div>
 
               {activeTab === "terminal" && (

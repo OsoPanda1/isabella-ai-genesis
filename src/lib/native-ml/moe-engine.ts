@@ -8,7 +8,7 @@ export interface MoeExpertArtifact {
   datasetVersion: string;
   license: string;
   capacity: number;
-  execute: (input: number[]) => number[];
+  execute: (input: number[]) => number[] | Promise<number[]>;
 }
 
 export interface MoeGateDecision {
@@ -50,7 +50,13 @@ function softmax(logits: number[]): number[] {
 }
 
 function validateArtifact(expert: MoeExpertArtifact): void {
-  if (!expert.expertId || !expert.version || !expert.modelHash || !expert.datasetId || !expert.license) {
+  if (
+    !expert.expertId ||
+    !expert.version ||
+    !expert.modelHash ||
+    !expert.datasetId ||
+    !expert.license
+  ) {
     throw new Error(`moe_expert_artifact_invalid:${expert.expertId || "unknown"}`);
   }
   if (!Number.isInteger(expert.capacity) || expert.capacity < 1) {
@@ -80,7 +86,12 @@ export function createMoERoute(
       if (logits.length !== experts.length) throw new Error("moe_logit_count_mismatch");
       const weights = softmax(logits);
       return experts
-        .map((expert, index) => ({ expertId: expert.expertId, logit: logits[index]!, weight: weights[index]!, rank: index }))
+        .map((expert, index) => ({
+          expertId: expert.expertId,
+          logit: logits[index]!,
+          weight: weights[index]!,
+          rank: index,
+        }))
         .sort((a, b) => b.weight - a.weight || a.expertId.localeCompare(b.expertId))
         .slice(0, topK)
         .map((item, index) => ({ ...item, rank: index }));

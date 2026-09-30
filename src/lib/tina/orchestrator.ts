@@ -33,6 +33,8 @@ export interface TinaExecuteInput {
   policyVersion?: string;
   knowledgeVersion?: string;
   modelVersion?: string;
+  adapter?: TinaToolAdapter;
+  capability?: TinaToolCapability;
 }
 
 export type TinaExecuteStatus =
@@ -81,8 +83,24 @@ export class TinaOrchestrator {
   }
 
   async execute(input: TinaExecuteInput): Promise<TinaExecuteResult> {
-    if (input.adapter && (!input.capability || input.capability.toolId !== input.adapter.toolId || input.capability.expiresAt <= Date.now() || !input.capability.scopes.includes("tool:execute"))) {
-      return { status: "blocked_or_review", route: routeTina(normalizeComplexity(input.complexity)), category: TINA_CATEGORY_ID, member: ISABELLA_TINA_MEMBER.systemId, execution: { executed: false, reason: "ETHICAL_BLOCK", detail: "Capability token ausente, expirado o sin scope tool:execute." } };
+    if (
+      input.adapter &&
+      (!input.capability ||
+        input.capability.toolId !== input.adapter.toolId ||
+        input.capability.expiresAt <= Date.now() ||
+        !input.capability.scopes.includes("tool:execute"))
+    ) {
+      return {
+        status: "blocked_or_review",
+        route: routeTina(normalizeComplexity(input.complexity)),
+        category: TINA_CATEGORY_ID,
+        member: ISABELLA_TINA_MEMBER.systemId,
+        execution: {
+          executed: false,
+          reason: "ETHICAL_BLOCK",
+          detail: "Capability token ausente, expirado o sin scope tool:execute.",
+        },
+      };
     }
     const complexity = normalizeComplexity(input.complexity);
     const route = routeTina(complexity);

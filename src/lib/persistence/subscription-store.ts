@@ -43,7 +43,9 @@ const isPlanId = (value: unknown): value is IsabellaPlanId =>
   typeof value === "string" && (PLANS as readonly string[]).includes(value);
 
 function productionLike(): boolean {
-  const mode = String(process.env.ISABELLA_RUNTIME_MODE ?? "").trim().toLowerCase();
+  const mode = String(process.env.ISABELLA_RUNTIME_MODE ?? "")
+    .trim()
+    .toLowerCase();
   return process.env.NODE_ENV === "production" || mode === "production" || mode === "staging";
 }
 
@@ -118,7 +120,9 @@ class PostgresSubscriptionStore implements SubscriptionStore {
       statement_timeout: 10_000,
       idleTimeoutMillis: 30_000,
     });
-    this.pool.on("error", (error) => console.error("[subscription-store] postgres pool error", error));
+    this.pool.on("error", (error) =>
+      console.error("[subscription-store] postgres pool error", error),
+    );
   }
 
   private async ensureSchema(): Promise<void> {
@@ -142,7 +146,9 @@ class PostgresSubscriptionStore implements SubscriptionStore {
   }
 
   getBucket(userId: string, dayKey: string): UsageBucket {
-    throw new Error("getBucket on postgres requires async access; use subscription server async path");
+    throw new Error(
+      "getBucket on postgres requires async access; use subscription server async path",
+    );
   }
 
   saveBucket(_bucket: UsageBucket): void {
@@ -150,7 +156,9 @@ class PostgresSubscriptionStore implements SubscriptionStore {
   }
 
   getPlan(userId: string): IsabellaPlanId | null {
-    throw new Error("getPlan on postgres requires async access; use subscription server async path");
+    throw new Error(
+      "getPlan on postgres requires async access; use subscription server async path",
+    );
   }
 
   savePlan(_userId: string, _planId: IsabellaPlanId): void {
@@ -267,7 +275,9 @@ class SqliteSubscriptionStore implements SubscriptionStore {
   private db: SqliteDatabase;
 
   constructor(dbPath?: string) {
-    const BetterSqlite3Ctor = nodeRequire("better-sqlite3") as new (filename: string) => SqliteDatabase;
+    const BetterSqlite3Ctor = nodeRequire("better-sqlite3") as new (
+      filename: string,
+    ) => SqliteDatabase;
     this.db = new BetterSqlite3Ctor(dbPath || process.env.ISABELLA_DB_PATH || "./data/isabella.db");
     this.db.pragma("journal_mode = WAL");
     this.db.pragma("foreign_keys = ON");
@@ -291,33 +301,40 @@ class SqliteSubscriptionStore implements SubscriptionStore {
   }
 
   getBucket(userId: string, dayKey: string): UsageBucket | null {
-    const row = this.db.prepare(
-      "SELECT userId, dayKey, messages, images, voiceSeconds, agentSessions, updatedAt FROM subscription_usage WHERE userId = ? AND dayKey = ?",
-    ).get(userId, dayKey) as BucketRow | undefined;
+    const row = this.db
+      .prepare(
+        "SELECT userId, dayKey, messages, images, voiceSeconds, agentSessions, updatedAt FROM subscription_usage WHERE userId = ? AND dayKey = ?",
+      )
+      .get(userId, dayKey) as UsageBucket | undefined;
     return row ? { ...row } : null;
   }
 
   saveBucket(bucket: UsageBucket): void {
-    this.db.prepare(
-      `INSERT INTO subscription_usage (userId, dayKey, messages, images, voiceSeconds, agentSessions, updatedAt)
+    this.db
+      .prepare(
+        `INSERT INTO subscription_usage (userId, dayKey, messages, images, voiceSeconds, agentSessions, updatedAt)
        VALUES (@userId, @dayKey, @messages, @images, @voiceSeconds, @agentSessions, @updatedAt)
        ON CONFLICT (userId, dayKey) DO UPDATE SET
          messages=excluded.messages, images=excluded.images, voiceSeconds=excluded.voiceSeconds,
          agentSessions=excluded.agentSessions, updatedAt=excluded.updatedAt`,
-    ).run(bucket);
+      )
+      .run(bucket);
   }
 
   getPlan(userId: string): IsabellaPlanId | null {
-    const row = this.db.prepare("SELECT planId FROM subscription_plans WHERE userId = ?").get(userId) as
-      | { planId: string } | undefined;
+    const row = this.db
+      .prepare("SELECT planId FROM subscription_plans WHERE userId = ?")
+      .get(userId) as { planId: string } | undefined;
     return row && isPlanId(row.planId) ? row.planId : null;
   }
 
   savePlan(userId: string, planId: IsabellaPlanId): void {
-    this.db.prepare(
-      `INSERT INTO subscription_plans (userId, planId, updatedAt) VALUES (?, ?, ?)
+    this.db
+      .prepare(
+        `INSERT INTO subscription_plans (userId, planId, updatedAt) VALUES (?, ?, ?)
        ON CONFLICT (userId) DO UPDATE SET planId=excluded.planId, updatedAt=excluded.updatedAt`,
-    ).run(userId, planId, new Date().toISOString());
+      )
+      .run(userId, planId, new Date().toISOString());
   }
 
   async tryConsume(
@@ -382,7 +399,8 @@ export async function getSubscriptionBucket(
   dayKey: string,
 ): Promise<UsageBucket | null> {
   const store = getSubscriptionStore();
-  if (store.mode === "postgres") return (store as PostgresSubscriptionStore).getBucketAsync(userId, dayKey);
+  if (store.mode === "postgres")
+    return (store as PostgresSubscriptionStore).getBucketAsync(userId, dayKey);
   return store.getBucket(userId, dayKey);
 }
 
@@ -394,7 +412,8 @@ export async function getSubscriptionPlan(userId: string): Promise<IsabellaPlanI
 
 export async function saveSubscriptionPlan(userId: string, planId: IsabellaPlanId): Promise<void> {
   const store = getSubscriptionStore();
-  if (store.mode === "postgres") return (store as PostgresSubscriptionStore).savePlanAsync(userId, planId);
+  if (store.mode === "postgres")
+    return (store as PostgresSubscriptionStore).savePlanAsync(userId, planId);
   store.savePlan(userId, planId);
 }
 

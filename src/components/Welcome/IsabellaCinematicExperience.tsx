@@ -157,9 +157,10 @@ export function IsabellaCinematicExperience({
   const [media, setMedia] = useState<IntroMediaConfig>({ fallback: { type: "procedural" } });
   const [mediaFailed, setMediaFailed] = useState(false);
   const { sendMessage, setActiveView } = useCrown();
-  const playbackUrl = media.playbackId && !mediaFailed
-    ? `https://stream.mux.com/${encodeURIComponent(media.playbackId)}/high.mp4`
-    : undefined;
+  const playbackUrl =
+    media.playbackId && !mediaFailed
+      ? `https://stream.mux.com/${encodeURIComponent(media.playbackId)}/high.mp4`
+      : undefined;
   const sceneRef = useImmersiveScene({
     canvas2DRef,
     canvas3DRef,
@@ -171,7 +172,10 @@ export function IsabellaCinematicExperience({
   useEffect(() => {
     if (!isOpen) return;
     const controller = new AbortController();
-    void fetch("/api/mux-intro", { signal: controller.signal, headers: { accept: "application/json" } })
+    void fetch("/api/mux-intro", {
+      signal: controller.signal,
+      headers: { accept: "application/json" },
+    })
       .then(async (response) => {
         const payload = (await response.json()) as IntroMediaConfig;
         setMedia(payload);

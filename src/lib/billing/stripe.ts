@@ -18,7 +18,11 @@ export const STRIPE_CATALOG: Record<"plus" | "premium" | "vip" | "enterprise", B
   plus: { label: "Isabella Plus", amountCents: 1500, envVar: "STRIPE_PRICE_PLUS" },
   premium: { label: "Isabella Premium", amountCents: 2249, envVar: "STRIPE_PRICE_PREMIUM" },
   vip: { label: "Isabella VIP", amountCents: 3749, envVar: "STRIPE_PRICE_VIP" },
-  enterprise: { label: "Isabella Enterprise", amountCents: 11250, envVar: "STRIPE_PRICE_ENTERPRISE" },
+  enterprise: {
+    label: "Isabella Enterprise",
+    amountCents: 11250,
+    envVar: "STRIPE_PRICE_ENTERPRISE",
+  },
 };
 
 const PAID_PLANS: Array<keyof typeof STRIPE_CATALOG> = ["plus", "premium", "vip", "enterprise"];
@@ -96,7 +100,8 @@ export async function createStripeCheckoutSession(
   idempotencyKey?: string,
 ): Promise<{ url: string } | null> {
   const client = getStripe();
-  if (!client || planId === "free" || planId === "custom" || !(planId in STRIPE_CATALOG)) return null;
+  if (!client || planId === "free" || planId === "custom" || !(planId in STRIPE_CATALOG))
+    return null;
   if (!(await ensureStripeCatalog())) return null;
   const price = priceFromEnv(planId as keyof typeof STRIPE_CATALOG);
   if (!price) return null;
@@ -159,17 +164,14 @@ export async function handleStripeWebhook(
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
-      const planId =
-        (session.metadata?.planId ?? session.client_reference_id) as IsabellaPlanId | undefined;
-      const userId =
-        (session.client_reference_id ?? session.metadata?.userId) as string | undefined;
+      const planId = (session.metadata?.planId ?? session.client_reference_id) as
+        IsabellaPlanId | undefined;
+      const userId = (session.client_reference_id ?? session.metadata?.userId) as
+        string | undefined;
       if (
         userId &&
         planId &&
-        (planId === "plus" ||
-          planId === "premium" ||
-          planId === "vip" ||
-          planId === "enterprise")
+        (planId === "plus" || planId === "premium" || planId === "vip" || planId === "enterprise")
       ) {
         await saveSubscriptionPlan(userId, planId);
       }

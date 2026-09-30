@@ -263,7 +263,8 @@ export function createExecutionAuthority(opts?: {
           sensitivity: params.sensitivity ?? "internal",
           purpose: params.purpose ?? "tool-execution",
           consentRequired: false,
-          consentGranted: params.consentGranted ?? true,
+          // Fail-closed: no se afirma consentimiento que nadie otorgo.
+          consentGranted: params.consentGranted ?? false,
           ownerId: params.ownerId,
           provenance: [`execution:${ctx.traceId}`],
         });

@@ -211,7 +211,11 @@ export async function storeArtifact(input: {
   const uid = userData.user?.id;
   if (!uid) throw new Error("Identidad no autenticada");
   if (!(input.blob instanceof Blob)) throw new Error("Archivo inválido.");
-  if (!Number.isFinite(input.blob.size) || input.blob.size <= 0 || input.blob.size > MAX_ARTIFACT_BYTES) {
+  if (
+    !Number.isFinite(input.blob.size) ||
+    input.blob.size <= 0 ||
+    input.blob.size > MAX_ARTIFACT_BYTES
+  ) {
     throw new Error("Archivo excede el límite de 8 MB o está vacío.");
   }
   const allowedMimes = ARTIFACT_MIME_ALLOWLIST[input.kind];

@@ -381,6 +381,35 @@ const CAPABILITIES = [
     runtime: "prebuild falla ante VITE_* secret-like; advierte no declaradas; 4 tests verdes.",
     status: "real",
   },
+  {
+    capability: "Digest canónico SHA-256 (TypeScript puro)",
+    sources: ["src/lib/digest.ts"],
+    tests: ["test/unit/digest.test.ts"],
+    runtime:
+      "25 tests: vectores FIPS 180-4 y paridad bit a bit contra node:crypto; sin node:crypto en el lado cliente.",
+    status: "real",
+  },
+  {
+    capability: "Atestaciones de evidencia RSA-2048/PKCS#1",
+    sources: [
+      "src/lib/signatures/attestation.server.ts",
+      "scripts/attestation-keygen.mjs",
+      "src/lib/env-schema.ts",
+      "src/lib/secret-redactor.ts",
+    ],
+    tests: ["test/unit/attestation-signature.test.ts"],
+    runtime:
+      "18 tests de firma/verificación con par efímero; pnpm attestation:verify devuelve MISSING_PUBLIC_KEY sin la clave pública del operador.",
+    status: "evidence-gated",
+  },
+  {
+    capability: "Dossier de presentación canónico (26 capítulos)",
+    sources: ["src/data/presentationData.ts", "src/components/Presentation/PresentationView.tsx"],
+    tests: [],
+    runtime:
+      "Digest calculado en runtime sobre JSON canónico; evaluationState explícito 'pending'. Sin pruebas dedicadas.",
+    status: "manual",
+  },
 ];
 
 let missing = [];

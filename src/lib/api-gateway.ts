@@ -28,11 +28,7 @@ export class ApiGateway {
     const bodyMethods = new Set(["POST", "PUT", "PATCH"]);
     const maxBodyBytes = config().INPUT_MAX_BODY_BYTES;
     const contentLength = Number(request.headers.get("content-length") ?? 0);
-    if (
-      bodyMethods.has(method) &&
-      Number.isFinite(contentLength) &&
-      contentLength > maxBodyBytes
-    ) {
+    if (bodyMethods.has(method) && Number.isFinite(contentLength) && contentLength > maxBodyBytes) {
       return new Response(JSON.stringify({ error: "Payload excede el límite permitido." }), {
         status: 413,
         headers,
@@ -85,10 +81,19 @@ export class ApiGateway {
         }
         parsedData = validation.data!;
       } catch (error) {
-        const status = error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "BODY_TOO_LARGE" ? 413 : 400;
+        const status =
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          (error as { code?: string }).code === "BODY_TOO_LARGE"
+            ? 413
+            : 400;
         return new Response(
           JSON.stringify({
-            error: status === 413 ? "Payload excede el límite permitido." : "Payload corrupto detectado por la puerta de enlace.",
+            error:
+              status === 413
+                ? "Payload excede el límite permitido."
+                : "Payload corrupto detectado por la puerta de enlace.",
           }),
           { status, headers },
         );

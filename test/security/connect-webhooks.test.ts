@@ -215,21 +215,21 @@ describe("connect webhooks: replay window de Slack (ISA-201)", () => {
   });
 });
 
-describe("connect webhooks: proveedores sin esquema verificable (ISA-213)", () => {
-  it("denies Linear webhooks instead of trusting unverifiable payloads", async () => {
+describe("connect webhooks: rechazo de firmas inválidas (ISA-213)", () => {
+  it("rejects a Linear webhook whose signature is not a valid HMAC", async () => {
     const store = new InMemoryWebhookEventStore();
     const response = await webhook(
       request("{}", {
         "x-vercel-connect-event-id": EVENT_ID,
-        "x-linear-signature": "whatever",
+        "linear-signature": "whatever",
       }),
       "linear",
       { store, env: env() },
     );
-    expect(response.status).toBe(501);
+    expect(response.status).toBe(401);
     expect(await readJson(response)).toMatchObject({
       accepted: false,
-      error: "WEBHOOK_SIGNATURE_UNSUPPORTED",
+      error: "WEBHOOK_SIGNATURE_INVALID",
     });
   });
 });

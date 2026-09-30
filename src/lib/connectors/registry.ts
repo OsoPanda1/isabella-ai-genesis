@@ -64,7 +64,11 @@ function origin(request: Request): string {
   if (environment.VERCEL_URL) {
     return `https://${environment.VERCEL_URL}`;
   }
-  if (environment.NODE_ENV === "production" || environment.ISABELLA_RUNTIME_MODE === "production" || environment.ISABELLA_RUNTIME_MODE === "staging") {
+  if (
+    environment.NODE_ENV === "production" ||
+    environment.ISABELLA_RUNTIME_MODE === "production" ||
+    environment.ISABELLA_RUNTIME_MODE === "staging"
+  ) {
     throw new Error("CONNECT_ORIGIN_UNAVAILABLE");
   }
   const configured = environment.PUBLIC_URL;

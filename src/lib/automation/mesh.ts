@@ -61,46 +61,33 @@ function initHealth(nodeId: string): NodeHealth {
 // HEALTH CHECKS — Built-in diagnostics per node
 // ============================================================================
 
+const EVIDENCE_GATED = "EVIDENCE_GATED - sin verificacion en runtime";
+
 const HEALTH_CHECKS: Record<string, () => { ok: boolean; detail: string }> = {
-  "A-identity": () => {
-    const secret = process.env.ISABELLA_AUTH_SECRET;
-    if (!secret) return { ok: false, detail: "ISABELLA_AUTH_SECRET not set" };
-    return { ok: true, detail: "Auth secret configured" };
-  },
-  "C-policy": () => ({ ok: true, detail: "Policy engine operational (in-memory)" }),
-  "E-device-registry": () => ({ ok: true, detail: "7 devices registered" }),
-  "F-quantum-gateway": () => ({ ok: true, detail: "Orchestrator pipeline ready" }),
-  "G-scheduler": () => ({ ok: true, detail: "Queue operational (in-memory)" }),
-  "H-workers": () => ({ ok: true, detail: "Worker pools initialized" }),
-  "I-pennylane": () => {
-    const hasPython = !!process.env.PENNYPATH || process.platform !== "win32";
-    return { ok: true, detail: hasPython ? "PennyLane available" : "PennyLane simulation mode" };
-  },
-  "O-pqc": () => ({ ok: true, detail: "CRYSTALS-LATAMV prototype operational" }),
-  "P-litle32": () => ({ ok: true, detail: "32 gates evaluables" }),
-  "Q-bookpi": () => ({ ok: true, detail: "Audit chain integrity verified" }),
-  "R-hsm": () => {
-    const hasHSM = !!process.env.YUBIHSM_SERIAL;
-    return {
-      ok: true,
-      detail: hasHSM ? "HSM connected" : "HSM simulation mode (dual failover ready)",
-    };
-  },
-  "S-tee": () => ({ ok: true, detail: "TEE attestation mock operational" }),
-  "T-audit-tracer": () => ({ ok: true, detail: "Audit buffer operational" }),
-  "U-event-bus": () => ({ ok: true, detail: "Event bus hash-chain active" }),
-  "V-telemetry": () => ({ ok: true, detail: "Telemetry counters active" }),
-  "W-postgresql": () => {
-    const hasDB = !!process.env.DATABASE_URL;
-    return { ok: true, detail: hasDB ? "PostgreSQL connected" : "PostgreSQL simulation mode" };
-  },
-  "X-backup": () => ({ ok: true, detail: "Backup snapshots available" }),
-  "Y-federation": () => ({ ok: true, detail: "7 federations configured, quorum 5/7" }),
-  "Z-recovery": () => ({ ok: true, detail: "7 incident types registered" }),
-  "AA-cognitive": () => ({ ok: true, detail: "Cognitive pipeline ready (6 steps)" }),
-  "AB-multimodal": () => ({ ok: true, detail: "Multimodal chain: image + voice + trailer" }),
-  "AC-billing": () => ({ ok: true, detail: "Billing plans configured" }),
-  "AD-territorial": () => ({ ok: true, detail: "Territorial hub: Real del Monte loaded" }),
+  // La presencia de una variable de entorno no acredita que el servicio
+  // funcione: se reporta como presencia, nunca como salud.
+  "A-identity": () => ({
+    ok: false,
+    detail: process.env.ISABELLA_AUTH_SECRET
+      ? `${EVIDENCE_GATED} - ISABELLA_AUTH_SECRET presente (solo presencia)`
+      : "ISABELLA_AUTH_SECRET no definida",
+  }),
+  "I-pennylane": () => ({
+    ok: false,
+    detail: `${EVIDENCE_GATED} - disponibilidad de PennyLane no comprobada`,
+  }),
+  "R-hsm": () => ({
+    ok: false,
+    detail: process.env.YUBIHSM_SERIAL
+      ? `${EVIDENCE_GATED} - YUBIHSM_SERIAL presente; transporte HSM no verificado`
+      : `${EVIDENCE_GATED} - sin YUBIHSM_SERIAL`,
+  }),
+  "W-postgresql": () => ({
+    ok: false,
+    detail: process.env.DATABASE_URL
+      ? `${EVIDENCE_GATED} - DATABASE_URL presente; conexion no comprobada`
+      : "DATABASE_URL no definida",
+  }),
 };
 
 // ============================================================================

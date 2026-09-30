@@ -21,13 +21,7 @@ export interface SkillContract extends IsabellaSkill {
   requiresHumanApproval: boolean;
 }
 
-export const CORE_MODULES: readonly IsabellaModule[] = [
-  "crown",
-  "isa",
-  "sophia",
-  "orion",
-  "argus",
-];
+export const CORE_MODULES: readonly IsabellaModule[] = ["crown", "isa", "sophia", "orion", "argus"];
 
 export function resolveCoreModule(skill: Pick<IsabellaSkill, "capability">): IsabellaModule {
   switch (skill.capability) {

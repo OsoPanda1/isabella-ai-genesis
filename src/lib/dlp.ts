@@ -4,7 +4,7 @@
  * a governed application boundary. It is deliberately conservative: it does
  * not claim to replace provider-side DLP.
  */
-import const DLP_PATTERNS = {
+const DLP_PATTERNS = {
   privateKey: /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/i,
   jwt: /\beyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\b/,
   stripeSecret: /\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{12,}\b/,
@@ -19,19 +19,39 @@ import const DLP_PATTERNS = {
 } as const;
 
 export type DlpSeverity = "high" | "critical";
-export interface DlpFinding { type: keyof typeof DLP_PATTERNS; severity: DlpSeverity; }
+export interface DlpFinding {
+  type: keyof typeof DLP_PATTERNS;
+  severity: DlpSeverity;
+}
 
 export function inspectDlp(value: unknown, maxBytes = 2_000_000): DlpFinding[] {
   let textValue: string;
-  try { textValue = typeof value === "string" ? value : JSON.stringify(value); }
-  catch { return [{ type: "privateKey", severity: "critical" }]; }
+  try {
+    textValue = typeof value === "string" ? value : JSON.stringify(value);
+  } catch {
+    return [{ type: "privateKey", severity: "critical" }];
+  }
   if (Buffer.byteLength(textValue, "utf8") > maxBytes) {
     return [{ type: "privateKey", severity: "critical" }];
   }
   const findings: DlpFinding[] = [];
-  for (const [type, pattern] of Object.entries(DLP_PATTERNS) as Array<[keyof typeof DLP_PATTERNS, RegExp]>) {
+  for (const [type, pattern] of Object.entries(DLP_PATTERNS) as Array<
+    [keyof typeof DLP_PATTERNS, RegExp]
+  >) {
     if (pattern.test(textValue)) {
-      findings.push({ type, severity: ["privateKey","jwt","stripeSecret","stripeWebhook","googleApiKey","githubToken"].includes(type) ? "critical" : "high" });
+      findings.push({
+        type,
+        severity: [
+          "privateKey",
+          "jwt",
+          "stripeSecret",
+          "stripeWebhook",
+          "googleApiKey",
+          "githubToken",
+        ].includes(type)
+          ? "critical"
+          : "high",
+      });
     }
   }
   return findings;

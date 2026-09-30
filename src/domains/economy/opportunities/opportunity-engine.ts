@@ -241,7 +241,8 @@ export function discoverOpportunities(
   for (const cat of cats) {
     const templates = CATEGORY_TEMPLATES[cat] || [];
     for (const tmpl of templates) {
-      const evidenceScore = Math.round((0.5 + Math.random() * 0.5) * 100) / 100;
+      // Sin evidencia registrada para plantillas: fail-closed en 0, no aleatorio.
+      const evidenceScore = 0;
       const overallScore = computeOverallScore({
         revenueScore: normalizeRevenue(tmpl.baseRevenue[1]),
         difficultyScore: difficultyScore(tmpl.difficulty),
@@ -280,7 +281,8 @@ export function discoverOpportunities(
 }
 
 export function scoreOpportunity(opp: Opportunity): Opportunity {
-  const evidenceScore = Math.round((0.5 + Math.random() * 0.5) * 100) / 100;
+  // Sin evidencia registrada: fail-closed en 0, no aleatorio.
+  const evidenceScore = 0;
   const overallScore = computeOverallScore({
     revenueScore: normalizeRevenue(opp.estimatedRevenueMax),
     difficultyScore: difficultyScore(opp.difficulty),

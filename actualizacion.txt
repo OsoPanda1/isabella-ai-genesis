@@ -159,7 +159,7 @@ Actualmente existen múltiples representaciones:
 docs/api/openapi.yaml
 docs/api/route-catalog.md
 docs/api/scopes-catalog.md
-jdr-generator/openapi/isabella-jdr-v1.yaml
+contrib/jdr-generator/openapi/isabella-jdr-v1.yaml
 src/lib/api-contracts.ts
 
 Esto requiere resolver:
@@ -183,7 +183,7 @@ Compatibility
 CI debe detectar:
 
 implementation ≠ OpenAPI
-VI. jdr-generator/openapi/isabella-jdr-v1.yaml
+VI. contrib/jdr-generator/openapi/isabella-jdr-v1.yaml
 
 Revisar si representa:
 

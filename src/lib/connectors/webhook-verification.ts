@@ -27,7 +27,11 @@ export type WebhookFailureCode =
   | "WEBHOOK_PAYLOAD_TOO_LARGE";
 
 export type WebhookVerificationResult =
-  | { ok: true; scheme: "hmac-sha256-gh" | "hmac-sha256-slack-v0" | "hmac-sha256-linear"; timestampSeconds?: number }
+  | {
+      ok: true;
+      scheme: "hmac-sha256-gh" | "hmac-sha256-slack-v0" | "hmac-sha256-linear";
+      timestampSeconds?: number;
+    }
   | { ok: false; code: WebhookFailureCode };
 
 interface VerificationInput {
@@ -112,14 +116,13 @@ function verifyLinear(input: VerificationInput): WebhookVerificationResult {
     const parsed = JSON.parse(rawBody) as Record<string, unknown>;
     const value = parsed.webhookTimestamp;
     if (typeof value === "number" && Number.isFinite(value)) bodyTimestampMs = value;
-    else if (typeof value === "string" && /^\\d{10,16}$/.test(value)) bodyTimestampMs = Number(value);
+    else if (typeof value === "string" && /^\d{10,16}$/.test(value))
+      bodyTimestampMs = Number(value);
   } catch {
     return { ok: false, code: "WEBHOOK_SIGNATURE_INVALID" };
   }
 
-  const headerTimestampMs = /^\\d{10,16}$/.test(headerTimestamp)
-    ? Number(headerTimestamp)
-    : null;
+  const headerTimestampMs = /^\d{10,16}$/.test(headerTimestamp) ? Number(headerTimestamp) : null;
   if (bodyTimestampMs === null) bodyTimestampMs = headerTimestampMs;
   if (bodyTimestampMs === null) return { ok: false, code: "WEBHOOK_TIMESTAMP_REPLAY" };
 

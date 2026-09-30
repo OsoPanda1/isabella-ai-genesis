@@ -26,18 +26,18 @@ export interface InferenceInput {
 
 export interface CognitiveTelemetry {
   readonly argusSafety: {
-    readonly status: "CLEAR" | "FLAGGED" | "ELEVATED";
-    readonly integrityScore: number;
+    readonly status: "CLEAR" | "FLAGGED" | "ELEVATED" | "EVIDENCE_GATED";
+    readonly integrityScore: number | null;
     readonly guardrailCheck: string;
   };
   readonly isaResonance: {
     readonly emotionalTone: string;
-    readonly empathyValence: number;
+    readonly empathyValence: number | null;
     readonly coreFocus: string;
   };
   readonly sophiaReasoning: {
     readonly logicDepth: string;
-    readonly epistemicCertainty: number;
+    readonly epistemicCertainty: number | null;
     readonly heuristicInsight: string;
   };
   readonly orionExecution: {
@@ -1799,17 +1799,16 @@ function buildTelemetry(
   confidence: number,
   entities: ExtractedEntities,
 ): CognitiveTelemetry {
-  const safetyScore = 0.99 + Math.random() * 0.01;
-  const empathyBase = primaryModule === "ISA" ? 0.9 : primaryModule === "SOPHIA" ? 0.75 : 0.82;
-  const empathyScore = empathyBase + Math.random() * 0.05;
-  const certaintyBase = primaryModule === "SOPHIA" ? 0.94 : primaryModule === "ARGUS" ? 0.97 : 0.88;
-  const certaintyScore = certaintyBase + Math.random() * 0.05;
-
+  // Honestidad operacional (resolución de saneamiento 2026-09-30, AGENTS §0.1).
+  // Este motor es local y de plantillas: no invoca ARGUS, SOPHIA ni ORION en
+  // runtime, así que no existe evidencia de ninguna de estas medidas. Los scores
+  // quedan en null y el estado se declara EVIDENCE_GATED. Antes se fabricaban
+  // con Math.random() y se presentaban como hechos verificados.
   return {
     argusSafety: {
-      status: "CLEAR",
-      integrityScore: Math.round(safetyScore * 1000) / 1000,
-      guardrailCheck: `Zero-risk cognitive alignment verified (confidence: ${(confidence * 100).toFixed(1)}%)`,
+      status: "EVIDENCE_GATED",
+      integrityScore: null,
+      guardrailCheck: `Sin verificación ARGUS en runtime — evaluación local de plantillas (intención: ${intent}, confianza del clasificador: ${(confidence * 100).toFixed(1)}%)`,
     },
     isaResonance: {
       emotionalTone:
@@ -1824,7 +1823,7 @@ function buildTelemetry(
                 : primaryModule === "SOPHIA"
                   ? "Analytical-Warm"
                   : "Harmonic",
-      empathyValence: Math.round(empathyScore * 1000) / 1000,
+      empathyValence: null,
       coreFocus: entities.topic
         ? `Topic-focused: ${entities.topic}`
         : intent === "greeting"
@@ -1842,7 +1841,7 @@ function buildTelemetry(
             : confidence > 0.8
               ? "High"
               : "Standard",
-      epistemicCertainty: Math.round(certaintyScore * 1000) / 1000,
+      epistemicCertainty: null,
       heuristicInsight: entities.topic
         ? `Entity-aware analysis: ${entities.topic}`
         : primaryModule === "SOPHIA"
@@ -1868,13 +1867,20 @@ function buildTelemetry(
         entities.topic ? `Entity detected: ${entities.topic}` : "No specific entity",
         "Response synthesized",
       ],
-      resourceUtilization: "Optimized",
+      resourceUtilization: "Sin medición de recursos en runtime",
     },
   };
 }
 
 /* =========================================================================
    11. ISABELLA STATE — Context-aware mood
+
+   NOTA (saneamiento 2026-09-30): estos tres campos son estado de presentación
+   interno, no mediciones. Antes se rellenaban con Math.random(), lo que
+   (a) fabricaba varianza y (b) impedia el cache determinista de
+   src/lib/isabella/double-pipeline.ts:162, que rechaza funciones con
+   Math.random. Se fijan de forma determinista y no se muestran como porcentaje
+   de desempeño en la UI.
    ========================================================================= */
 
 function buildIsabellaState(
@@ -1902,9 +1908,9 @@ function buildIsabellaState(
     return {
       mood: "Serena y Atenta",
       emotionalArchetype: "Protectora",
-      cognitiveLoad: 0.3 + Math.random() * 0.2,
-      presenceIndex: 0.96 + Math.random() * 0.03,
-      feminineEleganceIndex: 0.96 + Math.random() * 0.03,
+      cognitiveLoad: 0.4,
+      presenceIndex: 0.96,
+      feminineEleganceIndex: 0.96,
     };
   }
 
@@ -1912,18 +1918,18 @@ function buildIsabellaState(
     return {
       mood: "Radiante",
       emotionalArchetype: "Radiante",
-      cognitiveLoad: 0.25 + Math.random() * 0.2,
-      presenceIndex: 0.97 + Math.random() * 0.02,
-      feminineEleganceIndex: 0.97 + Math.random() * 0.02,
+      cognitiveLoad: 0.3,
+      presenceIndex: 0.97,
+      feminineEleganceIndex: 0.97,
     };
   }
 
   return {
     mood: selected.mood,
     emotionalArchetype: selected.archetype,
-    cognitiveLoad: 0.35 + Math.random() * 0.3,
-    presenceIndex: 0.94 + Math.random() * 0.05,
-    feminineEleganceIndex: 0.95 + Math.random() * 0.04,
+    cognitiveLoad: 0.5,
+    presenceIndex: 0.96,
+    feminineEleganceIndex: 0.97,
   };
 }
 

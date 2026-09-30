@@ -77,9 +77,7 @@ export function recordSeguimiento(input: {
   traceId?: string;
   anomalyScore?: number;
 }): Seguimiento {
-  const tid =
-    input.traceId ??
-    createHash("sha256").update(randomUUID()).digest("hex").slice(0, 16);
+  const tid = input.traceId ?? createHash("sha256").update(randomUUID()).digest("hex").slice(0, 16);
   const pqcProof = _signMLDSA87Legacy(`${input.radar}:${input.action}:${tid}`);
 
   const s: Seguimiento = {
@@ -163,9 +161,7 @@ export function evaluatePolicy(input: {
 }): PolicyResult {
   const reasons: string[] = [];
   let score = 0;
-  const tid =
-    input.traceId ??
-    createHash("sha256").update(randomUUID()).digest("hex").slice(0, 32);
+  const tid = input.traceId ?? createHash("sha256").update(randomUUID()).digest("hex").slice(0, 32);
 
   if (input.content) {
     for (const p of HARD_STOP_PATTERNS) {

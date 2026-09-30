@@ -217,7 +217,10 @@ export const CattleyaFinanceView: React.FC = () => {
         setSecurityState((prev) => ({
           ...prev,
           sessionToken: sessionToken.slice(0, 64),
-          biometricVerified: biometricAvailable || true,
+          // El operador anterior forzaba el resultado a true y fabricaba una
+          // verificacion biometrica inexistente. Fail-closed: solo true si
+          // WebAuthn resolvio.
+          biometricVerified: biometricAvailable,
           hsmConnected: hsmStatus.isConnected,
           hsmDevice: hsmStatus.currentDevice,
           teeAttestation,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smoke tests for Isabella Quantum Bridge v3."""
+"""Smoke tests for Isabella Quantum Bridge (scripto canonico)."""
 from __future__ import annotations
 
 import json
@@ -8,7 +8,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-BRIDGE = Path(__file__).with_name("isabella_quantum_bridge_v3.py")
+BRIDGE = Path(__file__).with_name("isabella_quantum_bridge.py")
 
 
 def run(payload: dict) -> dict:

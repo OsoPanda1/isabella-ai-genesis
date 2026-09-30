@@ -38,8 +38,7 @@ export async function auditTrace(payload: AuditTraceParams): Promise<{
   traceId: string;
   timestamp: string;
 }> {
-  const traceId =
-    payload.traceId || `trace-${randomUUID()}`;
+  const traceId = payload.traceId || `trace-${randomUUID()}`;
   const auditId = `audit-${randomUUID()}`;
   const now = new Date().toISOString();
 

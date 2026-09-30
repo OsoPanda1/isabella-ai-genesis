@@ -182,11 +182,6 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                     {msg.isabellaState && (
                       <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
                         <span className="text-amber-300 font-medium">{msg.isabellaState.mood}</span>
-                        <span>•</span>
-                        <span>
-                          Elegancia:{" "}
-                          {((msg.isabellaState.feminineEleganceIndex || 0.99) * 100).toFixed(0)}%
-                        </span>
                       </div>
                     )}
                   </div>
@@ -304,19 +299,19 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                 (() => {
                   const telemetry = {
                     argusSafety: msg.cognitiveTelemetry.argusSafety ?? {
-                      status: "UNKNOWN",
+                      status: "EVIDENCE_GATED",
                       guardrailCheck: "No disponible",
-                      integrityScore: 0,
+                      integrityScore: null,
                     },
                     isaResonance: msg.cognitiveTelemetry.isaResonance ?? {
                       emotionalTone: "neutral",
                       coreFocus: "No disponible",
-                      empathyValence: 0,
+                      empathyValence: null,
                     },
                     sophiaReasoning: msg.cognitiveTelemetry.sophiaReasoning ?? {
                       logicDepth: 0,
                       heuristicInsight: "No disponible",
-                      epistemicCertainty: 0,
+                      epistemicCertainty: null,
                     },
                     orionExecution: msg.cognitiveTelemetry.orionExecution ?? {
                       actionType: "none",
@@ -374,7 +369,9 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                               </p>
                               <div className="text-[10px] text-slate-400">
                                 Integridad:{" "}
-                                {((telemetry.argusSafety.integrityScore ?? 0) * 100).toFixed(1)}%
+                                {telemetry.argusSafety.integrityScore == null
+                                  ? "EVIDENCE_GATED (sin evidencia)"
+                                  : `${(telemetry.argusSafety.integrityScore * 100).toFixed(1)}%`}
                               </div>
                             </div>
 
@@ -393,7 +390,9 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                               </p>
                               <div className="text-[10px] text-slate-400">
                                 Valencia empática:{" "}
-                                {((telemetry.isaResonance.empathyValence ?? 0) * 100).toFixed(0)}%
+                                {telemetry.isaResonance.empathyValence == null
+                                  ? "EVIDENCE_GATED (sin evidencia)"
+                                  : `${(telemetry.isaResonance.empathyValence * 100).toFixed(0)}%`}
                               </div>
                             </div>
 
@@ -412,10 +411,9 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                               </p>
                               <div className="text-[10px] text-slate-400">
                                 Certeza epistémica:{" "}
-                                {(
-                                  (telemetry.sophiaReasoning.epistemicCertainty ?? 0) * 100
-                                ).toFixed(1)}
-                                %
+                                {telemetry.sophiaReasoning.epistemicCertainty == null
+                                  ? "EVIDENCE_GATED (sin evidencia)"
+                                  : `${(telemetry.sophiaReasoning.epistemicCertainty * 100).toFixed(1)}%`}
                               </div>
                             </div>
 

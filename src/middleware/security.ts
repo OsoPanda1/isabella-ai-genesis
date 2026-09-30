@@ -29,7 +29,11 @@ function parseCookies(header: unknown): Record<string, string> {
     if (eq <= 0) continue;
     const name = trimmed.slice(0, eq).trim();
     const value = trimmed.slice(eq + 1);
-    try { out[name] = decodeURIComponent(value); } catch { out[name] = value; }
+    try {
+      out[name] = decodeURIComponent(value);
+    } catch {
+      out[name] = value;
+    }
   }
   return out;
 }
@@ -56,7 +60,13 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction) 
   if (SAFE_METHODS.has(req.method)) return next();
   // Bearer-authenticated requests are not dependent on browser cookies for
   // authorization, so the double-submit CSRF token is unnecessary.
-  if (String(req.headers.authorization || "").trim().toLowerCase().startsWith("bearer ")) return next();
+  if (
+    String(req.headers.authorization || "")
+      .trim()
+      .toLowerCase()
+      .startsWith("bearer ")
+  )
+    return next();
   if (CSRF_EXEMPT_PATHS.has(req.path)) return next();
 
   const cookies = parseCookies(req.headers.cookie);
@@ -93,8 +103,13 @@ function inspectPromptPayload(value: unknown, path = "$", findings: string[] = [
 }
 
 export function promptInjectionGuard(req: Request, res: Response, next: NextFunction) {
-  const parsed = MutatingRequestSchema.safeParse({ body: req.body, method: req.method, path: req.path });
-  if (!parsed.success) return res.status(400).json({ ok: false, error: "Malformed request envelope." });
+  const parsed = MutatingRequestSchema.safeParse({
+    body: req.body,
+    method: req.method,
+    path: req.path,
+  });
+  if (!parsed.success)
+    return res.status(400).json({ ok: false, error: "Malformed request envelope." });
   if (SAFE_METHODS.has(req.method)) return next();
   const findings = inspectPromptPayload(req.body);
   if (findings.length > 0) {

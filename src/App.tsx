@@ -112,7 +112,7 @@ const CattleyaFinanceView = lazyNamed(
   "CattleyaFinanceView",
 );
 
-const QuantumMeshDashboard = lazy(() => import("./components/Quantum/QuantumMeshDashboard"));
+const QuantumMeshDashboard = lazy(() => import("./components/quantum/QuantumMeshDashboard"));
 
 /*
  * Los modales no bloquean el primer bundle.
