@@ -3,6 +3,10 @@
 > **Regla:** este índice es el único punto de entrada a la documentación viva.
 > Todo lo demás en `docs/_archive/` es histórico: no citar como autoridad sin revisar vigencia.
 > Cifras y versiones: `package.json` (SSOT) + `production-capabilities.json` + `AGENTS.md`.
+>
+> **Custodia y estado:** [`docs/README.md`](README.md) registra propósito, propietario,
+> estado y última revisión de los 93 documentos vivos. Este archivo describe *qué leer*;
+> aquél describe *quién lo mantiene y si sigue vigente*.
 
 ## Canon vivo (leer en este orden)
 
@@ -44,6 +48,8 @@
 |-----|-----------|-----------|--------|
 | ADR-011 | Blueprint Maestro v2.0 — adaptación al stack TypeScript | `docs/architecture/ADR-011-blueprint-maestro-v2-adaptacion-ts.md` | Aceptado (2026-09-17) |
 | ADR-012 | Evidence Ledger — bitácora append-only encadenada por hash | `docs/architecture/ADR-012-evidence-ledger.md` | Aceptado (2026-09-26) |
+| ADR-013 | Propiedad canónica del generador JDR | `docs/architecture/ADR-013-jdr-generator-propiedad.md` | Aceptado (2026-09-30) |
+| ADR-014 | Consolidación del kernel cognitivo canónico | `docs/architecture/ADR-014-canonical-cognitive-kernel.md` | Propuesto (2026-09-30) |
 | ADR-001 … ADR-010 | 16 registros históricos | `docs/_archive/architecture/` | Históricos; varios aceptados el 2026-09-05 |
 
 > **Colisión de numeración (abierta):** `docs/_archive/architecture/` conserva dos

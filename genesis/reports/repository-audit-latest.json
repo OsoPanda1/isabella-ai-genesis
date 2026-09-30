@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-09-29T11:27:27.791Z",
-  "trackedFiles": 1631,
+  "generatedAt": "2026-09-30T10:36:14.309Z",
+  "trackedFiles": 1568,
   "codeFiles": 1129,
   "documentationFiles": 181,
   "riskSignals": {
     "todo": 329,
-    "mocks": 283,
+    "mocks": 280,
     "consoleLogs": 160
   },
   "canonicalEntrypoints": {
