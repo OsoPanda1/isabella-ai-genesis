@@ -139,6 +139,41 @@ describe("contrato de entorno", () => {
     expect(missing, `claves sin descriptor: ${missing.join(", ")}`).toEqual([]);
   });
 
+  it("toda clave leida de process.env esta documentada en .env.example", () => {
+    const example = exampleKeys();
+    const missing = new Map<string, string>();
+    const walk = (dir: string): void => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name === "generated") continue;
+          walk(full);
+          continue;
+        }
+        if (!/\.(ts|tsx)$/.test(entry.name)) continue;
+        const content = readFileSync(full, "utf8");
+        if (!content.includes("process.env")) continue;
+        const relative = full.slice(root.length + 1).replace(/\\/g, "/");
+        if (!PROCESS_ENV_ALLOWLIST.has(relative)) continue;
+        for (const line of content.split("\n")) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
+          for (const match of trimmed.matchAll(/process\.env(?:\.([A-Z0-9_]+)|\[["']([A-Z0-9_]+)["']\])/g)) {
+            const key = match[1] ?? match[2];
+            if (OS_ENV_ALLOWLIST.has(key) || example.has(key)) continue;
+            if (!missing.has(key)) missing.set(key, relative);
+          }
+        }
+      }
+    };
+    walk(join(root, "src"));
+    const report = [...missing]
+      .map(([key, file]) => `${key} (${file})`)
+      .sort()
+      .join(", ");
+    expect(missing.size, `claves leidas sin documentar: ${report}`).toBe(0);
+  });
+
   it("process.env directo solo en módulos autorizados", () => {
     const offenders: string[] = [];
     const walk = (dir: string): void => {
