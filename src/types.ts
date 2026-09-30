@@ -187,11 +187,12 @@ export interface RoutingDecision {
    05. TELEMETRÍA COGNITIVA
    ============================================================================ */
 
-export type ArgusSafetyStatus = "CLEAR" | "FLAGGED" | "ELEVATED" | "BLOCKED";
+export type ArgusSafetyStatus = "CLEAR" | "FLAGGED" | "ELEVATED" | "BLOCKED" | "EVIDENCE_GATED";
 
 export interface ArgusSafetyTelemetry {
   status: ArgusSafetyStatus;
-  integrityScore?: Percentage;
+  /** null = sin evidencia; no se fabrica un score. */
+  integrityScore?: Percentage | null;
   guardrailSummary?: string;
   guardrailCheck?: string;
   evaluatedAt?: ISODateTime;
@@ -199,14 +200,16 @@ export interface ArgusSafetyTelemetry {
 
 export interface IsaResonanceTelemetry {
   emotionalTone: string;
-  empathyValence?: Ratio;
+  /** null = sin evidencia; no se fabrica un score. */
+  empathyValence?: Ratio | null;
   focusSummary?: string;
   coreFocus?: string;
 }
 
 export interface SophiaReasoningTelemetry {
   logicDepthLabel?: "shallow" | "standard" | "deep" | "extended";
-  epistemicCertainty?: Percentage;
+  /** null = sin evidencia; no se fabrica un score. */
+  epistemicCertainty?: Percentage | null;
   insightSummary?: string;
   logicDepth?: string;
   heuristicInsight?: string;

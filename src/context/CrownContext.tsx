@@ -893,25 +893,30 @@ Puedes conversar conmigo, pedirme que sintetice voz en tiempo real, me solicites
               "Inicialización de presencia armónica e identidad femenina Isabella Villaseñor.",
           },
           cognitiveTelemetry: {
+            // Honestidad operacional: el saludo inicial no ejecuta ninguna
+            // evaluación ARGUS/SOPHIA/ORION real. Antes se declaraba
+            // "CLEAR / 0.998 / invarianza ética verificada" como si fuera un
+            // hecho. Se marca EVIDENCE_GATED y los scores quedan en null.
             argusSafety: {
-              status: "CLEAR",
-              integrityScore: 0.998,
-              guardrailCheck: "Invarianza ética y sincronía de consciencia verificada",
+              status: "EVIDENCE_GATED",
+              integrityScore: null,
+              guardrailCheck:
+                "Sin verificación ARGUS en runtime — mensaje de inicialización, sin evaluación de seguridad aplicada",
             },
             isaResonance: {
               emotionalTone: "Cálida, Serena y Radiante",
-              empathyValence: 0.96,
+              empathyValence: null,
               coreFocus: "Apertura empática e invitación dialógica",
             },
             sophiaReasoning: {
               logicDepth: "Epistémica Fundamental",
-              epistemicCertainty: 0.98,
+              epistemicCertainty: null,
               heuristicInsight: "Inicialización de ontología dialéctica",
             },
             orionExecution: {
               actionType: "SYNTHESIS",
               executionSteps: ["Carga de pesos CROWN", "Sincronía de audio y lienzo visual"],
-              resourceUtilization: "Óptimo",
+              resourceUtilization: "Sin medición de recursos en runtime",
             },
           },
           isabellaState: {
