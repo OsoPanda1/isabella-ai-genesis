@@ -487,15 +487,15 @@ const BRIDGE_PATH =
   [
     path.resolve(
       import.meta.dirname ?? process.cwd(),
-      "../../../scripts/quantum/isabella_quantum_bridge_v3.py",
+      "../../../scripts/quantum/isabella_quantum_bridge.py",
     ),
     path.resolve(
       import.meta.dirname ?? process.cwd(),
-      "../scripts/quantum/isabella_quantum_bridge_v3.py",
+      "../scripts/quantum/isabella_quantum_bridge.py",
     ),
-    path.resolve(process.cwd(), "scripts/quantum/isabella_quantum_bridge_v3.py"),
+    path.resolve(process.cwd(), "scripts/quantum/isabella_quantum_bridge.py"),
   ].find((candidate) => existsSync(candidate)) ??
-  path.resolve(process.cwd(), "scripts/quantum/isabella_quantum_bridge_v3.py");
+  path.resolve(process.cwd(), "scripts/quantum/isabella_quantum_bridge.py");
 const BRIDGE_TIMEOUT_MS = 30_000;
 
 async function executeProviderLocal(

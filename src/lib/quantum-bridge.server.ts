@@ -38,7 +38,7 @@ const DEFAULT_TIMEOUT_MS = Number(process.env.QUANTUM_BRIDGE_TIMEOUT_MS || 12_00
 const PYTHON = process.env.PYTHON_BIN || (process.platform === "win32" ? "python" : "python3");
 const SCRIPT =
   process.env.QUANTUM_BRIDGE_SCRIPT ||
-  join(process.cwd(), "scripts", "quantum", "isabella_quantum_bridge_v6.py");
+  join(process.cwd(), "scripts", "quantum", "isabella_quantum_bridge.py");
 
 export function evaluateQuantumPolicy(
   input: QuantumBridgeRequest,
