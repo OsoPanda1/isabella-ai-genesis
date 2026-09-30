@@ -1,31 +1,53 @@
 /**
- * Native persistence for subscription quota and plan assignments.
+ * Durable subscription/usage persistence.
  *
- * Single-node deployments keep billing state in SQLite (WAL); throwaway
- * environments degrade to memory without changing the engine semantics.
- * The store only persists shaped records — plans resolve from the static
- * catalog, usage resets daily by key structure.
+ * Production/staging MUST use PostgreSQL. SQLite and in-memory stores are
+ * intentionally limited to local development/test environments.
  */
-
-// @ts-nocheck
+import { Pool } from "pg";
 import { nodeRequire } from "../node-require";
 import type BetterSqlite3 from "better-sqlite3";
-import type { IsabellaPlanId, UsageBucket } from "../subscription.server";
+import type { IsabellaPlanId, MeteredCapability, UsageBucket } from "../subscription.server";
 
 type SqliteDatabase = BetterSqlite3.Database;
+
+export interface UsageLimits {
+  dailyMessages: number;
+  dailyImages: number;
+  dailyVoiceSeconds: number;
+  maxAgentSessions: number;
+}
+
+export interface UsageMutationResult {
+  allowed: boolean;
+  usage: UsageBucket;
+}
 
 export interface SubscriptionStore {
   getBucket(userId: string, dayKey: string): UsageBucket | null;
   saveBucket(bucket: UsageBucket): void;
   getPlan(userId: string): IsabellaPlanId | null;
   savePlan(userId: string, planId: IsabellaPlanId): void;
-  readonly mode: "sqlite" | "in-memory";
+  tryConsume(
+    userId: string,
+    dayKey: string,
+    capability: MeteredCapability,
+    amount: number,
+    limits: UsageLimits,
+  ): Promise<UsageMutationResult>;
+  readonly mode: "postgres" | "sqlite" | "in-memory";
 }
 
 const PLANS: readonly IsabellaPlanId[] = ["free", "plus", "premium", "vip", "enterprise", "custom"];
-
 const isPlanId = (value: unknown): value is IsabellaPlanId =>
   typeof value === "string" && (PLANS as readonly string[]).includes(value);
+
+function productionLike(): boolean {
+  const mode = String(process.env.ISABELLA_RUNTIME_MODE ?? "")
+    .trim()
+    .toLowerCase();
+  return process.env.NODE_ENV === "production" || mode === "production" || mode === "staging";
+}
 
 class InMemorySubscriptionStore implements SubscriptionStore {
   readonly mode = "in-memory" as const;
@@ -47,16 +69,205 @@ class InMemorySubscriptionStore implements SubscriptionStore {
   savePlan(userId: string, planId: IsabellaPlanId): void {
     this.plans.set(userId, planId);
   }
+
+  async tryConsume(
+    userId: string,
+    dayKey: string,
+    capability: MeteredCapability,
+    amount: number,
+    limits: UsageLimits,
+  ): Promise<UsageMutationResult> {
+    const current =
+      this.getBucket(userId, dayKey) ??
+      ({
+        userId,
+        dayKey,
+        messages: 0,
+        images: 0,
+        voiceSeconds: 0,
+        agentSessions: 0,
+        updatedAt: new Date().toISOString(),
+      } satisfies UsageBucket);
+    const next = { ...current };
+    const requested = Math.max(1, Math.ceil(amount));
+    if (capability === "chat" || capability === "tool") next.messages += requested;
+    if (capability === "image") next.images += requested;
+    if (capability === "voice") next.voiceSeconds += requested;
+    if (capability === "agent") next.agentSessions += requested;
+    const allowed =
+      next.messages <= limits.dailyMessages &&
+      next.images <= limits.dailyImages &&
+      next.voiceSeconds <= limits.dailyVoiceSeconds &&
+      next.agentSessions <= limits.maxAgentSessions;
+    if (allowed) {
+      next.updatedAt = new Date().toISOString();
+      this.saveBucket(next);
+    }
+    return { allowed, usage: allowed ? next : current };
+  }
 }
 
-interface BucketRow {
-  userId: string;
-  dayKey: string;
-  messages: number;
-  images: number;
-  voiceSeconds: number;
-  agentSessions: number;
-  updatedAt: string;
+class PostgresSubscriptionStore implements SubscriptionStore {
+  readonly mode = "postgres" as const;
+  private readonly pool: Pool;
+
+  constructor(databaseUrl: string) {
+    if (!databaseUrl) throw new Error("DATABASE_URL required for production quota persistence");
+    this.pool = new Pool({
+      connectionString: databaseUrl,
+      max: 10,
+      connectionTimeoutMillis: 10_000,
+      statement_timeout: 10_000,
+      idleTimeoutMillis: 30_000,
+    });
+    this.pool.on("error", (error) =>
+      console.error("[subscription-store] postgres pool error", error),
+    );
+  }
+
+  private async ensureSchema(): Promise<void> {
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS subscription_usage (
+        user_id TEXT NOT NULL,
+        day_key TEXT NOT NULL,
+        messages BIGINT NOT NULL DEFAULT 0,
+        images BIGINT NOT NULL DEFAULT 0,
+        voice_seconds BIGINT NOT NULL DEFAULT 0,
+        agent_sessions BIGINT NOT NULL DEFAULT 0,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        PRIMARY KEY (user_id, day_key)
+      );
+      CREATE TABLE IF NOT EXISTS subscription_plans (
+        user_id TEXT PRIMARY KEY,
+        plan_id TEXT NOT NULL DEFAULT 'free',
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+  }
+
+  getBucket(userId: string, dayKey: string): UsageBucket {
+    throw new Error(
+      "getBucket on postgres requires async access; use subscription server async path",
+    );
+  }
+
+  saveBucket(_bucket: UsageBucket): void {
+    throw new Error("saveBucket on postgres is async-only; use tryConsume");
+  }
+
+  getPlan(userId: string): IsabellaPlanId | null {
+    throw new Error(
+      "getPlan on postgres requires async access; use subscription server async path",
+    );
+  }
+
+  savePlan(_userId: string, _planId: IsabellaPlanId): void {
+    throw new Error("savePlan on postgres is async-only");
+  }
+
+  async getBucketAsync(userId: string, dayKey: string): Promise<UsageBucket | null> {
+    await this.ensureSchema();
+    const { rows } = await this.pool.query(
+      `SELECT user_id, day_key, messages, images, voice_seconds, agent_sessions, updated_at
+       FROM subscription_usage WHERE user_id=$1 AND day_key=$2`,
+      [userId, dayKey],
+    );
+    const row = rows[0];
+    return row
+      ? {
+          userId: String(row.user_id),
+          dayKey: String(row.day_key),
+          messages: Number(row.messages),
+          images: Number(row.images),
+          voiceSeconds: Number(row.voice_seconds),
+          agentSessions: Number(row.agent_sessions),
+          updatedAt: new Date(row.updated_at).toISOString(),
+        }
+      : null;
+  }
+
+  async getPlanAsync(userId: string): Promise<IsabellaPlanId | null> {
+    await this.ensureSchema();
+    const { rows } = await this.pool.query(
+      "SELECT plan_id FROM subscription_plans WHERE user_id=$1",
+      [userId],
+    );
+    const plan = rows[0]?.plan_id;
+    return isPlanId(plan) ? plan : null;
+  }
+
+  async savePlanAsync(userId: string, planId: IsabellaPlanId): Promise<void> {
+    await this.ensureSchema();
+    await this.pool.query(
+      `INSERT INTO subscription_plans(user_id,plan_id,updated_at) VALUES($1,$2,NOW())
+       ON CONFLICT(user_id) DO UPDATE SET plan_id=EXCLUDED.plan_id,updated_at=NOW()`,
+      [userId, planId],
+    );
+  }
+
+  async tryConsume(
+    userId: string,
+    dayKey: string,
+    capability: MeteredCapability,
+    amount: number,
+    limits: UsageLimits,
+  ): Promise<UsageMutationResult> {
+    await this.ensureSchema();
+    const client = await this.pool.connect();
+    const requested = Math.max(1, Math.ceil(amount));
+    try {
+      await client.query("BEGIN");
+      await client.query(
+        `INSERT INTO subscription_usage(user_id,day_key) VALUES($1,$2)
+         ON CONFLICT(user_id,day_key) DO NOTHING`,
+        [userId, dayKey],
+      );
+      const { rows } = await client.query(
+        `SELECT user_id,day_key,messages,images,voice_seconds,agent_sessions,updated_at
+         FROM subscription_usage WHERE user_id=$1 AND day_key=$2 FOR UPDATE`,
+        [userId, dayKey],
+      );
+      const row = rows[0];
+      if (!row) throw new Error("subscription_usage row unavailable");
+      const current: UsageBucket = {
+        userId: String(row.user_id),
+        dayKey: String(row.day_key),
+        messages: Number(row.messages),
+        images: Number(row.images),
+        voiceSeconds: Number(row.voice_seconds),
+        agentSessions: Number(row.agent_sessions),
+        updatedAt: new Date(row.updated_at).toISOString(),
+      };
+      const next = { ...current };
+      if (capability === "chat" || capability === "tool") next.messages += requested;
+      if (capability === "image") next.images += requested;
+      if (capability === "voice") next.voiceSeconds += requested;
+      if (capability === "agent") next.agentSessions += requested;
+      const allowed =
+        next.messages <= limits.dailyMessages &&
+        next.images <= limits.dailyImages &&
+        next.voiceSeconds <= limits.dailyVoiceSeconds &&
+        next.agentSessions <= limits.maxAgentSessions;
+      if (!allowed) {
+        await client.query("COMMIT");
+        return { allowed: false, usage: current };
+      }
+      next.updatedAt = new Date().toISOString();
+      await client.query(
+        `UPDATE subscription_usage
+         SET messages=$3,images=$4,voice_seconds=$5,agent_sessions=$6,updated_at=NOW()
+         WHERE user_id=$1 AND day_key=$2`,
+        [userId, dayKey, next.messages, next.images, next.voiceSeconds, next.agentSessions],
+      );
+      await client.query("COMMIT");
+      return { allowed: true, usage: next };
+    } catch (error) {
+      await client.query("ROLLBACK").catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
 }
 
 class SqliteSubscriptionStore implements SubscriptionStore {
@@ -81,7 +292,6 @@ class SqliteSubscriptionStore implements SubscriptionStore {
         updatedAt TEXT NOT NULL,
         PRIMARY KEY (userId, dayKey)
       );
-
       CREATE TABLE IF NOT EXISTS subscription_plans (
         userId TEXT PRIMARY KEY,
         planId TEXT NOT NULL DEFAULT 'free',
@@ -92,10 +302,10 @@ class SqliteSubscriptionStore implements SubscriptionStore {
 
   getBucket(userId: string, dayKey: string): UsageBucket | null {
     const row = this.db
-      .prepare<[string, string], BucketRow>(
+      .prepare(
         "SELECT userId, dayKey, messages, images, voiceSeconds, agentSessions, updatedAt FROM subscription_usage WHERE userId = ? AND dayKey = ?",
       )
-      .get(userId, dayKey);
+      .get(userId, dayKey) as UsageBucket | undefined;
     return row ? { ...row } : null;
   }
 
@@ -103,42 +313,62 @@ class SqliteSubscriptionStore implements SubscriptionStore {
     this.db
       .prepare(
         `INSERT INTO subscription_usage (userId, dayKey, messages, images, voiceSeconds, agentSessions, updatedAt)
-         VALUES (@userId, @dayKey, @messages, @images, @voiceSeconds, @agentSessions, @updatedAt)
-         ON CONFLICT (userId, dayKey) DO UPDATE SET
-           messages = excluded.messages,
-           images = excluded.images,
-           voiceSeconds = excluded.voiceSeconds,
-           agentSessions = excluded.agentSessions,
-           updatedAt = excluded.updatedAt`,
+       VALUES (@userId, @dayKey, @messages, @images, @voiceSeconds, @agentSessions, @updatedAt)
+       ON CONFLICT (userId, dayKey) DO UPDATE SET
+         messages=excluded.messages, images=excluded.images, voiceSeconds=excluded.voiceSeconds,
+         agentSessions=excluded.agentSessions, updatedAt=excluded.updatedAt`,
       )
-      .run({
-        userId: bucket.userId,
-        dayKey: bucket.dayKey,
-        messages: bucket.messages,
-        images: bucket.images,
-        voiceSeconds: bucket.voiceSeconds,
-        agentSessions: bucket.agentSessions,
-        updatedAt: bucket.updatedAt,
-      });
+      .run(bucket);
   }
 
   getPlan(userId: string): IsabellaPlanId | null {
     const row = this.db
-      .prepare<[string], { planId: string }>(
-        "SELECT planId FROM subscription_plans WHERE userId = ?",
-      )
-      .get(userId);
+      .prepare("SELECT planId FROM subscription_plans WHERE userId = ?")
+      .get(userId) as { planId: string } | undefined;
     return row && isPlanId(row.planId) ? row.planId : null;
   }
 
   savePlan(userId: string, planId: IsabellaPlanId): void {
     this.db
       .prepare(
-        `INSERT INTO subscription_plans (userId, planId, updatedAt)
-         VALUES (?, ?, ?)
-         ON CONFLICT (userId) DO UPDATE SET planId = excluded.planId, updatedAt = excluded.updatedAt`,
+        `INSERT INTO subscription_plans (userId, planId, updatedAt) VALUES (?, ?, ?)
+       ON CONFLICT (userId) DO UPDATE SET planId=excluded.planId, updatedAt=excluded.updatedAt`,
       )
       .run(userId, planId, new Date().toISOString());
+  }
+
+  async tryConsume(
+    userId: string,
+    dayKey: string,
+    capability: MeteredCapability,
+    amount: number,
+    limits: UsageLimits,
+  ): Promise<UsageMutationResult> {
+    const current = this.getBucket(userId, dayKey) ?? {
+      userId,
+      dayKey,
+      messages: 0,
+      images: 0,
+      voiceSeconds: 0,
+      agentSessions: 0,
+      updatedAt: new Date().toISOString(),
+    };
+    const requested = Math.max(1, Math.ceil(amount));
+    const next = { ...current };
+    if (capability === "chat" || capability === "tool") next.messages += requested;
+    if (capability === "image") next.images += requested;
+    if (capability === "voice") next.voiceSeconds += requested;
+    if (capability === "agent") next.agentSessions += requested;
+    const allowed =
+      next.messages <= limits.dailyMessages &&
+      next.images <= limits.dailyImages &&
+      next.voiceSeconds <= limits.dailyVoiceSeconds &&
+      next.agentSessions <= limits.maxAgentSessions;
+    if (allowed) {
+      next.updatedAt = new Date().toISOString();
+      this.saveBucket(next);
+    }
+    return { allowed, usage: allowed ? next : current };
   }
 }
 
@@ -146,6 +376,12 @@ let activeStore: SubscriptionStore | null = null;
 
 export function getSubscriptionStore(): SubscriptionStore {
   if (activeStore) return activeStore;
+  if (productionLike()) {
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) throw new Error("subscription_store_unavailable: DATABASE_URL required");
+    activeStore = new PostgresSubscriptionStore(databaseUrl);
+    return activeStore;
+  }
   if (process.env.ISABELLA_PERSISTENCE === "memory") {
     activeStore = new InMemorySubscriptionStore();
     return activeStore;
@@ -158,7 +394,29 @@ export function getSubscriptionStore(): SubscriptionStore {
   return activeStore;
 }
 
-/** Test hook: reset the singleton so scenarios can isolate stores. */
+export async function getSubscriptionBucket(
+  userId: string,
+  dayKey: string,
+): Promise<UsageBucket | null> {
+  const store = getSubscriptionStore();
+  if (store.mode === "postgres")
+    return (store as PostgresSubscriptionStore).getBucketAsync(userId, dayKey);
+  return store.getBucket(userId, dayKey);
+}
+
+export async function getSubscriptionPlan(userId: string): Promise<IsabellaPlanId | null> {
+  const store = getSubscriptionStore();
+  if (store.mode === "postgres") return (store as PostgresSubscriptionStore).getPlanAsync(userId);
+  return store.getPlan(userId);
+}
+
+export async function saveSubscriptionPlan(userId: string, planId: IsabellaPlanId): Promise<void> {
+  const store = getSubscriptionStore();
+  if (store.mode === "postgres")
+    return (store as PostgresSubscriptionStore).savePlanAsync(userId, planId);
+  store.savePlan(userId, planId);
+}
+
 export function resetSubscriptionStore(): void {
   activeStore = null;
 }

@@ -1,5 +1,81 @@
 @import "tailwindcss";
 
+/* Isabella executive surface: quiet precision over decorative noise. */
+.isabella-shell {
+  background:
+    radial-gradient(circle at 78% -12%, color-mix(in srgb, var(--color-electric-500) 10%, transparent), transparent 34rem),
+    radial-gradient(circle at 18% 112%, color-mix(in srgb, var(--color-gold-400) 7%, transparent), transparent 28rem),
+    var(--color-void-975);
+}
+
+.isabella-sidebar {
+  background: linear-gradient(180deg, rgba(10, 16, 25, 0.92), rgba(4, 7, 12, 0.96));
+  box-shadow: 18px 0 56px rgba(0, 0, 0, 0.18), inset -1px 0 rgba(255, 255, 255, 0.045);
+}
+
+.isabella-command-strip {
+  min-height: 4.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.065);
+  background: linear-gradient(90deg, rgba(10, 15, 23, 0.88), rgba(10, 15, 23, 0.62));
+}
+
+.isabella-topbar-chip,
+.isabella-surface-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: color-mix(in srgb, var(--color-platinum-300) 78%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.isabella-topbar-chip {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 0.42rem 0.68rem;
+}
+
+.isabella-topbar-chip--accent {
+  border-color: color-mix(in srgb, var(--color-gold-400) 32%, transparent);
+  color: var(--color-gold-200);
+}
+
+.isabella-status-orb {
+  box-shadow: 0 0 0 4px rgba(46, 182, 125, 0.08), 0 0 18px rgba(46, 182, 125, 0.6);
+}
+
+.isabella-chat-surface {
+  background: linear-gradient(145deg, rgba(18, 25, 36, 0.76), rgba(7, 10, 16, 0.72));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.055), 0 24px 70px rgba(0, 0, 0, 0.25);
+}
+
+.isabella-surface-label {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  justify-content: flex-start;
+}
+
+.isabella-surface-label > span:first-child {
+  color: var(--color-platinum-200);
+}
+
+.isabella-live-line {
+  width: 3.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-electric-400), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .isabella-status-orb { animation: none; }
+}
+
+@media (max-width: 720px) {
+  .isabella-command-strip { min-height: 4.25rem; }
+}
+
 /*
  * ============================================================================
  * ISABELLA VILLASEÑOR AI — ENTERPRISE COGNITIVE DESIGN SYSTEM v5.3

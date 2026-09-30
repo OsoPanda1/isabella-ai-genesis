@@ -903,6 +903,17 @@ export const Route = createFileRoute("/api/db")({
           }
 
           if (action === "user-login") {
+            const runtime = config();
+            if (
+              runtime.NODE_ENV === "production" ||
+              runtime.ISABELLA_RUNTIME_MODE === "production" ||
+              runtime.ISABELLA_RUNTIME_MODE === "staging"
+            ) {
+              return new Response(JSON.stringify({ error: "native_auth_disabled" }), {
+                status: 403,
+                headers,
+              });
+            }
             const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
             const loginSchema = z.object({
               email: z.string().email(),

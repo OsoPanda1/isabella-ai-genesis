@@ -193,6 +193,12 @@ export interface ArtifactRow {
 }
 
 const BUCKET = "isabella-artifacts";
+const MAX_ARTIFACT_BYTES = 8 * 1024 * 1024;
+const ARTIFACT_MIME_ALLOWLIST: Record<ArtifactRow["kind"], readonly string[]> = {
+  image: ["image/png", "image/jpeg", "image/webp", "image/gif"],
+  audio: ["audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4", "audio/webm"],
+};
+const SAFE_EXTENSION = /^[a-z0-9]{1,8}$/i;
 
 export async function storeArtifact(input: {
   kind: "image" | "audio";
@@ -204,8 +210,20 @@ export async function storeArtifact(input: {
   const { data: userData } = await supabase.auth.getUser();
   const uid = userData.user?.id;
   if (!uid) throw new Error("Identidad no autenticada");
-
-  const path = `${uid}/${input.kind}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${input.extension}`;
+  if (!(input.blob instanceof Blob)) throw new Error("Archivo inválido.");
+  if (
+    !Number.isFinite(input.blob.size) ||
+    input.blob.size <= 0 ||
+    input.blob.size > MAX_ARTIFACT_BYTES
+  ) {
+    throw new Error("Archivo excede el límite de 8 MB o está vacío.");
+  }
+  const allowedMimes = ARTIFACT_MIME_ALLOWLIST[input.kind];
+  if (!allowedMimes.includes(input.blob.type.toLowerCase())) {
+    throw new Error("Content-Type de archivo no permitido.");
+  }
+  if (!SAFE_EXTENSION.test(input.extension)) throw new Error("Extensión de archivo inválida.");
+  const path = `${uid}/${input.kind}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${input.extension.toLowerCase()}`;
   const upload = await supabase.storage
     .from(BUCKET)
     .upload(path, input.blob, { contentType: input.blob.type, upsert: false });

@@ -27,7 +27,11 @@ export type WebhookFailureCode =
   | "WEBHOOK_PAYLOAD_TOO_LARGE";
 
 export type WebhookVerificationResult =
-  | { ok: true; scheme: "hmac-sha256-gh" | "hmac-sha256-slack-v0" }
+  | {
+      ok: true;
+      scheme: "hmac-sha256-gh" | "hmac-sha256-slack-v0" | "hmac-sha256-linear";
+      timestampSeconds?: number;
+    }
   | { ok: false; code: WebhookFailureCode };
 
 interface VerificationInput {
@@ -96,6 +100,50 @@ function verifySlack(input: VerificationInput): WebhookVerificationResult {
   return { ok: true, scheme: "hmac-sha256-slack-v0" };
 }
 
+function verifyLinear(input: VerificationInput): WebhookVerificationResult {
+  const { rawBody, headers, secret, nowSeconds } = input;
+  if (!secret) return { ok: false, code: "WEBHOOK_SECRET_NOT_CONFIGURED" };
+
+  const signature = header(headers, "linear-signature");
+  const headerTimestamp = header(headers, "linear-timestamp");
+  if (!signature) return { ok: false, code: "WEBHOOK_SIGNATURE_MISSING" };
+  if (!/^[0-9a-f]{64}$/i.test(signature)) {
+    return { ok: false, code: "WEBHOOK_SIGNATURE_INVALID" };
+  }
+
+  let bodyTimestampMs: number | null = null;
+  try {
+    const parsed = JSON.parse(rawBody) as Record<string, unknown>;
+    const value = parsed.webhookTimestamp;
+    if (typeof value === "number" && Number.isFinite(value)) bodyTimestampMs = value;
+    else if (typeof value === "string" && /^\d{10,16}$/.test(value))
+      bodyTimestampMs = Number(value);
+  } catch {
+    return { ok: false, code: "WEBHOOK_SIGNATURE_INVALID" };
+  }
+
+  const headerTimestampMs = /^\d{10,16}$/.test(headerTimestamp) ? Number(headerTimestamp) : null;
+  if (bodyTimestampMs === null) bodyTimestampMs = headerTimestampMs;
+  if (bodyTimestampMs === null) return { ok: false, code: "WEBHOOK_TIMESTAMP_REPLAY" };
+
+  if (headerTimestampMs !== null && Math.abs(headerTimestampMs - bodyTimestampMs) > 1000) {
+    return { ok: false, code: "WEBHOOK_SIGNATURE_INVALID" };
+  }
+
+  const now = nowSeconds ?? Math.floor(Date.now() / 1000);
+  const sentAtSeconds = bodyTimestampMs / 1000;
+  if (Math.abs(now - sentAtSeconds) > 60) {
+    return { ok: false, code: "WEBHOOK_TIMESTAMP_REPLAY" };
+  }
+
+  const expected = createHmac("sha256", secret).update(rawBody, "utf8").digest("hex");
+  if (!safeEqualHex(expected, signature.toLowerCase())) {
+    return { ok: false, code: "WEBHOOK_SIGNATURE_INVALID" };
+  }
+
+  return { ok: true, scheme: "hmac-sha256-linear", timestampSeconds: sentAtSeconds };
+}
+
 export function verifyWebhookSignature(input: VerificationInput): WebhookVerificationResult {
   if (input.byteLength > WEBHOOK_MAX_BYTES) return { ok: false, code: "WEBHOOK_PAYLOAD_TOO_LARGE" };
   switch (input.provider) {
@@ -104,9 +152,7 @@ export function verifyWebhookSignature(input: VerificationInput): WebhookVerific
     case "slack":
       return verifySlack(input);
     case "linear":
-      // Linear no publica un esquema de firma verificable en este contrato:
-      // no se afirma verificación que no existe (ISA-213).
-      return { ok: false, code: "WEBHOOK_SIGNATURE_UNSUPPORTED" };
+      return verifyLinear(input);
     default:
       return { ok: false, code: "WEBHOOK_SIGNATURE_UNSUPPORTED" };
   }
@@ -118,6 +164,7 @@ export function resolveWebhookEventId(headers: Headers): string {
     header(headers, "x-github-delivery") ||
     header(headers, "x-slack-request-id") ||
     header(headers, "x-vercel-connect-event-id") ||
+    header(headers, "linear-delivery") ||
     ""
   );
 }

@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { getNativeSecret, verifyNativeJwt, type NativePrincipal } from "./native-auth";
 import { validateApiKey, type ApiKeyScope } from "./api-keys";
+import { config } from "./config";
 
 export type IsabellaRole = "viewer" | "citizen" | "operator" | "admin" | "system";
 
@@ -101,7 +102,17 @@ function parseCookies(header: unknown): Record<string, string> {
  *   4. Dev fallback (non-production only)
  */
 export function authenticate(req: Request, res: Response, next: NextFunction) {
-  const isProduction = process.env.NODE_ENV === "production" || !!process.env.VERCEL;
+  let cfg: ReturnType<typeof config>;
+  try {
+    cfg = config();
+  } catch {
+    return res.status(503).json({ ok: false, error: "Authentication configuration unavailable." });
+  }
+  const isProduction =
+    cfg.NODE_ENV === "production" ||
+    cfg.ISABELLA_RUNTIME_MODE === "production" ||
+    cfg.ISABELLA_RUNTIME_MODE === "staging" ||
+    (cfg.NODE_ENV === "test" && cfg.ISABELLA_RUNTIME_MODE !== "development");
 
   // Layer 0: httpOnly cookie (preferred — immune to XSS)
   const cookies = parseCookies(req.headers.cookie);
@@ -156,7 +167,13 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
   }
 
   // Layer 4: Dev fallback (non-production only) — explicit, non-wildcard scopes
-  if (!isProduction) {
+  if (
+    !isProduction &&
+    cfg.NODE_ENV === "development" &&
+    cfg.ISABELLA_RUNTIME_MODE === "development" &&
+    cfg.AUTH_DEV_SESSION_ENABLED === true &&
+    cfg.VERCEL !== true
+  ) {
     req.principal = {
       sub: "dev-local",
       tenantId: "nodo-cero-rdm",

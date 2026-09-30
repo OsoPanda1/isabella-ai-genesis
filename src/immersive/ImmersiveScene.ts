@@ -25,7 +25,7 @@ import { Starfield3D } from "./Starfield3D";
 import { Starfield2D } from "./Starfield2D";
 import { detectQuality } from "./quality";
 import { TransitionController } from "./TransitionController";
-import introAudioUrl from "../assets/images/intro-audio.mp3";
+import introAudioUrl from "../assets/background-audio.mp3";
 
 export interface ImmersiveSceneOptions {
   canvas2D: HTMLCanvasElement;

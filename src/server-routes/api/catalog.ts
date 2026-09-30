@@ -4,6 +4,7 @@ import { CATALOG_ENTRIES } from "@/lib/api-catalog";
 import { routeRequest } from "@/lib/crown";
 import { SecuritySystem } from "@/lib/security";
 import { PrincipalContext } from "@/lib/principal-context";
+import { resolveTrustedClientIp } from "@/lib/trusted-client-ip";
 
 const executeSchema = z.object({
   id: z.string(),
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/api/catalog")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const ip = request.headers.get("x-forwarded-for") || "local_client";
+        const ip = resolveTrustedClientIp(request);
         const rateLimit = SecuritySystem.checkRateLimit(ip, 60); // 60 search requests/min allowed
         if (!rateLimit.allowed) {
           const headers = SecuritySystem.injectSecureHeaders(

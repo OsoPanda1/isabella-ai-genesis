@@ -1,12 +1,17 @@
 /**
- * Isabella Subscription & Quota Engine
- * Operative freemium controls for C.R.O.W.N. inference, voice and visual services.
+ * Isabella Subscription & Quota Engine.
  *
- * State lives behind getSubscriptionStore(): SQLite on a single node,
- * memory where better-sqlite3 is unavailable. Quotas survive restarts.
+ * Production/staging quota state is authoritative in PostgreSQL. Local
+ * development/test may use SQLite or memory stores.
  */
 import { createHash } from "node:crypto";
-import { getSubscriptionStore } from "./persistence/subscription-store";
+import {
+  getSubscriptionStore,
+  getSubscriptionBucket,
+  getSubscriptionPlan,
+  saveSubscriptionPlan,
+  type UsageLimits,
+} from "./persistence/subscription-store";
 
 export type IsabellaPlanId = "free" | "plus" | "premium" | "vip" | "enterprise" | "custom";
 export type MeteredCapability = "chat" | "voice" | "image" | "tool" | "agent";
@@ -138,37 +143,49 @@ export const ISABELLA_PLANS: IsabellaPlan[] = [
 function todayKey(now = new Date()): string {
   return now.toISOString().slice(0, 10);
 }
-
 function resetAtIso(now = new Date()): string {
   const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
   return next.toISOString();
 }
-
 export function stableUserId(raw?: string): string {
   const candidate = raw?.trim() || "anonymous";
   return createHash("sha256").update(candidate).digest("hex").slice(0, 20);
 }
-
 export function planById(planId?: string): IsabellaPlan {
   return ISABELLA_PLANS.find((plan) => plan.id === planId) || ISABELLA_PLANS[0];
 }
 
 export function setUserPlan(userId: string, planId: IsabellaPlanId): IsabellaPlan {
   const plan = planById(planId);
-  getSubscriptionStore().savePlan(userId, plan.id);
+  void saveSubscriptionPlan(userId, plan.id);
   return plan;
 }
 
 export function getUserPlan(userId: string, explicitPlan?: string): IsabellaPlan {
-  return planById(explicitPlan || getSubscriptionStore().getPlan(userId) || undefined);
+  // Explicit plan may only be used when supplied by an already-authenticated
+  // server-side principal. The billing middleware never trusts a client value.
+  const plan = explicitPlan || undefined;
+  if (plan) return planById(plan);
+  // Synchronous API retained for local callers. Production plan resolution is
+  // performed asynchronously by consumeUsage/getUsage before a quota mutation.
+  const store = getSubscriptionStore();
+  if (store.mode === "postgres") return ISABELLA_PLANS[0];
+  return planById(store.getPlan(userId) || undefined);
 }
 
-export function getUsage(userId: string): UsageBucket {
+export async function getUserPlanAsync(
+  userId: string,
+  explicitPlan?: string,
+): Promise<IsabellaPlan> {
+  if (explicitPlan) return planById(explicitPlan);
+  return planById((await getSubscriptionPlan(userId)) || undefined);
+}
+
+export async function getUsage(userId: string): Promise<UsageBucket> {
   const dayKey = todayKey();
-  const store = getSubscriptionStore();
-  const current = store.getBucket(userId, dayKey);
+  const current = await getSubscriptionBucket(userId, dayKey);
   if (current) return current;
-  const fresh: UsageBucket = {
+  return {
     userId,
     dayKey,
     messages: 0,
@@ -177,32 +194,15 @@ export function getUsage(userId: string): UsageBucket {
     agentSessions: 0,
     updatedAt: new Date().toISOString(),
   };
-  store.saveBucket(fresh);
-  return fresh;
 }
 
-export function evaluateUsage(
-  userId: string,
-  capability: MeteredCapability,
-  amount = 1,
-  explicitPlan?: string,
+function decision(
+  plan: IsabellaPlan,
+  usage: UsageBucket,
+  allowed = true,
+  capability: MeteredCapability = "chat",
+  reason?: string,
 ): UsageDecision {
-  const plan = getUserPlan(userId, explicitPlan);
-  const usage = getUsage(userId);
-  const requested = Math.max(1, Math.ceil(amount));
-  const next = { ...usage };
-
-  if (capability === "chat" || capability === "tool") next.messages += requested;
-  if (capability === "image") next.images += requested;
-  if (capability === "voice") next.voiceSeconds += requested;
-  if (capability === "agent") next.agentSessions += requested;
-
-  const allowed =
-    next.messages <= plan.dailyMessages &&
-    next.images <= plan.dailyImages &&
-    next.voiceSeconds <= plan.dailyVoiceSeconds &&
-    next.agentSessions <= plan.maxAgentSessions;
-
   return {
     allowed,
     plan,
@@ -215,38 +215,55 @@ export function evaluateUsage(
       agentSessions: Math.max(0, plan.maxAgentSessions - usage.agentSessions),
     },
     upgradeRequired: !allowed,
-    reason: allowed
-      ? undefined
-      : `Límite diario ${capability} alcanzado para el plan ${plan.name}.`,
+    reason:
+      reason ??
+      (allowed ? undefined : `Límite diario ${capability} alcanzado para el plan ${plan.name}.`),
   };
 }
 
-export function consumeUsage(
+export async function evaluateUsage(
   userId: string,
   capability: MeteredCapability,
   amount = 1,
   explicitPlan?: string,
-): UsageDecision {
-  const decision = evaluateUsage(userId, capability, amount, explicitPlan);
-  if (!decision.allowed) return decision;
-  const usage = { ...decision.usage };
+): Promise<UsageDecision> {
+  const plan = await getUserPlanAsync(userId, explicitPlan);
+  const usage = await getUsage(userId);
+  const next = { ...usage };
   const requested = Math.max(1, Math.ceil(amount));
-  if (capability === "chat" || capability === "tool") usage.messages += requested;
-  if (capability === "image") usage.images += requested;
-  if (capability === "voice") usage.voiceSeconds += requested;
-  if (capability === "agent") usage.agentSessions += requested;
-  usage.updatedAt = new Date().toISOString();
-  getSubscriptionStore().saveBucket(usage);
-  return {
-    ...decision,
-    usage,
-    remaining: {
-      messages: Math.max(0, decision.plan.dailyMessages - usage.messages),
-      images: Math.max(0, decision.plan.dailyImages - usage.images),
-      voiceSeconds: Math.max(0, decision.plan.dailyVoiceSeconds - usage.voiceSeconds),
-      agentSessions: Math.max(0, decision.plan.maxAgentSessions - usage.agentSessions),
-    },
+  if (capability === "chat" || capability === "tool") next.messages += requested;
+  if (capability === "image") next.images += requested;
+  if (capability === "voice") next.voiceSeconds += requested;
+  if (capability === "agent") next.agentSessions += requested;
+  const allowed =
+    next.messages <= plan.dailyMessages &&
+    next.images <= plan.dailyImages &&
+    next.voiceSeconds <= plan.dailyVoiceSeconds &&
+    next.agentSessions <= plan.maxAgentSessions;
+  return decision(plan, usage, allowed, capability);
+}
+
+export async function consumeUsage(
+  userId: string,
+  capability: MeteredCapability,
+  amount = 1,
+  explicitPlan?: string,
+): Promise<UsageDecision> {
+  const plan = await getUserPlanAsync(userId, explicitPlan);
+  const limits: UsageLimits = {
+    dailyMessages: plan.dailyMessages,
+    dailyImages: plan.dailyImages,
+    dailyVoiceSeconds: plan.dailyVoiceSeconds,
+    maxAgentSessions: plan.maxAgentSessions,
   };
+  const result = await getSubscriptionStore().tryConsume(
+    userId,
+    todayKey(),
+    capability,
+    amount,
+    limits,
+  );
+  return decision(plan, result.usage, result.allowed, capability);
 }
 
 export function buildCheckoutUrl(planId: IsabellaPlanId, userId: string): string {
@@ -254,15 +271,12 @@ export function buildCheckoutUrl(planId: IsabellaPlanId, userId: string): string
   const baseUrl =
     process.env.BILLING_CHECKOUT_BASE_URL || process.env.PUBLIC_APP_URL || "http://localhost:3000";
   const priceEnv = plan.stripePriceEnv ? process.env[plan.stripePriceEnv] : undefined;
-  // Stripe real: se redirige al endpoint de provider, que crea una Checkout
-  // Session auténtica y devuelve su URL para completar el pago.
   if (process.env.STRIPE_SECRET_KEY) {
     const url = new URL("/api/v1/billing/checkout/provider", baseUrl);
     url.searchParams.set("plan", plan.id);
-    url.searchParams.set("user", userId);
+    url.searchParams.set("user", stableUserId(userId));
     if (priceEnv) url.searchParams.set("price", priceEnv);
     return url.toString();
   }
-  // Stripe no configurado: contacto comercial (sin checkout simulado).
   return `${baseUrl.replace(/\/$/, "")}/billing/contact?plan=${encodeURIComponent(plan.id)}`;
 }

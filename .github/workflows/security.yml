@@ -7,6 +7,7 @@ on:
     branches: [main]
   schedule:
     - cron: "0 0 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,6 +26,7 @@ jobs:
   security:
     name: Static, dependency and secret security
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -55,6 +57,12 @@ jobs:
       - name: Dependency audit
         run: pnpm audit --audit-level=high
 
+      - name: Dependency review for pull requests
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
       - name: TruffleHog — verified secrets only
         uses: trufflesecurity/trufflehog@4b7d1d3a6827691637eff750b6482042e06462d0
         with:
@@ -79,9 +87,25 @@ jobs:
           sarif_file: trivy-results.sarif
           category: trivy-security-scan
 
+      - name: Generate SBOM
+        run: pnpm sbom
+
+      - name: Verify SBOM
+        run: pnpm sbom:verify
+
+      - name: Upload SBOM evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: sbom.json
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 9
+
   codeql:
     name: CodeQL
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       security-events: write

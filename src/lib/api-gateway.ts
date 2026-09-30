@@ -3,18 +3,11 @@ import { PrincipalContext } from "./principal-context";
 import { evaluateAuthorization, type AuthorizationContext } from "./authorization";
 import type { Resource, Action } from "./permission-matrix";
 import { runWithIdentity } from "./identity-context";
+import { resolveTrustedClientIp } from "./trusted-client-ip";
+import { parseSafeJsonBody } from "./input-limits";
+import { config } from "./config";
 
-/**
- * SOVEREIGN API GATEWAY (src/lib/api-gateway.ts)
- * -----------------------------------------------------------------
- * Coordina autenticación, resolución de principal, aislamiento multi-tenant,
- * validación de esquema, rate-limiting, filtrado de amenazas y auditoría
- * para todas las rutas públicas del ecosistema de Isabella AI.
- */
 export class ApiGateway {
-  /**
-   * Pipeline de ejecución unificado para APIs soberanas.
-   */
   public static async handle<T>(
     request: Request,
     resource: Resource,
@@ -33,7 +26,7 @@ export class ApiGateway {
     );
     const method = request.method.toUpperCase();
     const bodyMethods = new Set(["POST", "PUT", "PATCH"]);
-    const maxBodyBytes = 512 * 1024;
+    const maxBodyBytes = config().INPUT_MAX_BODY_BYTES;
     const contentLength = Number(request.headers.get("content-length") ?? 0);
     if (bodyMethods.has(method) && Number.isFinite(contentLength) && contentLength > maxBodyBytes) {
       return new Response(JSON.stringify({ error: "Payload excede el límite permitido." }), {
@@ -42,24 +35,20 @@ export class ApiGateway {
       });
     }
 
-    // 1. Autenticación y resolución de Principal Context
     const authResult = await PrincipalContext.authorize(request);
-    if (!authResult.success) {
-      return authResult.response;
-    }
-
+    if (!authResult.success) return authResult.response;
     const { context } = authResult;
+    const clientIp = resolveTrustedClientIp(request);
 
-    // 2. Control de acceso centralizado (RBAC/ABAC/Tenant Isolation)
     const authReq: AuthorizationContext = {
       tenant_id: context.tenantId,
       subject_id: context.userId,
-      action: action,
-      resource: resource,
+      action,
+      resource,
       role: context.role,
       authenticated: true,
       context: {
-        ip_address: request.headers.get("x-forwarded-for") ?? "127.0.0.1",
+        ip_address: clientIp,
         user_agent: request.headers.get("user-agent") ?? "unknown",
         timestamp: new Date(),
       },
@@ -69,39 +58,48 @@ export class ApiGateway {
     if (!decisionResult.allow) {
       return new Response(
         JSON.stringify({
-          error: `Acceso Denegado: Privilegios insuficientes para la operación (${resource}:${action}).`,
+          error: "Acceso Denegado: Privilegios insuficientes para la operación.",
           traceId: context.traceId,
         }),
         { status: 403, headers },
       );
     }
 
-    // 3. Procesamiento seguro de payload de entrada
     let parsedData: T = {} as T;
     if (bodyMethods.has(method)) {
       try {
-        const rawBody = await request.clone().json();
+        const rawBody = await parseSafeJsonBody(request.clone());
         const validation = schema.safeParse(rawBody);
         if (!validation.success) {
           return new Response(
             JSON.stringify({
-              error: `Validación de entrada fallida: ${validation.error?.message || "Esquema inválido"}`,
+              error: "Validación de entrada fallida.",
+              details: validation.error?.message || "Esquema inválido",
             }),
             { status: 400, headers },
           );
         }
         parsedData = validation.data!;
-      } catch {
+      } catch (error) {
+        const status =
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          (error as { code?: string }).code === "BODY_TOO_LARGE"
+            ? 413
+            : 400;
         return new Response(
           JSON.stringify({
-            error: "Payload corrupto detectado por la puerta de enlace.",
+            error:
+              status === 413
+                ? "Payload excede el límite permitido."
+                : "Payload corrupto detectado por la puerta de enlace.",
           }),
-          { status: 400, headers },
+          { status, headers },
         );
       }
     }
 
-    // 4. Delegación a la lógica de negocio final (con identidad en request-context)
     return runWithIdentity(context.toRequestIdentity(), () => handler(context, parsedData));
   }
 }

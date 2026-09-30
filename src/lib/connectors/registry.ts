@@ -47,20 +47,34 @@ function subject(context: PrincipalContext) {
 }
 
 function origin(request: Request): string {
+  void request;
   const environment = config() as typeof config extends () => infer T
     ? T & Record<string, string | undefined>
     : never;
   if (environment.NODE_ENV !== "production" && environment.V0_RUNTIME_URL) {
-    return environment.V0_RUNTIME_URL;
+    const url = new URL(environment.V0_RUNTIME_URL);
+    if (url.protocol !== "https:" && environment.NODE_ENV !== "development") {
+      throw new Error("CONNECT_ORIGIN_MUST_USE_HTTPS");
+    }
+    return url.origin;
   }
   if (environment.VERCEL_PROJECT_PRODUCTION_URL) {
     return `https://${environment.VERCEL_PROJECT_PRODUCTION_URL}`;
   }
-  if (environment.VERCEL_URL) return `https://${environment.VERCEL_URL}`;
-  const forwardedHost = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  const forwardedProto = request.headers.get("x-forwarded-proto") ?? "https";
-  if (!forwardedHost) throw new Error("CONNECT_ORIGIN_UNAVAILABLE");
-  return `${forwardedProto}://${forwardedHost}`;
+  if (environment.VERCEL_URL) {
+    return `https://${environment.VERCEL_URL}`;
+  }
+  if (
+    environment.NODE_ENV === "production" ||
+    environment.ISABELLA_RUNTIME_MODE === "production" ||
+    environment.ISABELLA_RUNTIME_MODE === "staging"
+  ) {
+    throw new Error("CONNECT_ORIGIN_UNAVAILABLE");
+  }
+  const configured = environment.PUBLIC_URL;
+  if (!configured) throw new Error("CONNECT_ORIGIN_UNAVAILABLE");
+  const url = new URL(configured);
+  return url.origin;
 }
 
 export async function beginAuthorization(
