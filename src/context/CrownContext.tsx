@@ -894,9 +894,9 @@ Puedes conversar conmigo, pedirme que sintetice voz en tiempo real, me solicites
           },
           cognitiveTelemetry: {
             // Honestidad operacional: el saludo inicial no ejecuta ninguna
-            // evaluación ARGUS/SOPHIA/ORION real. Antes se declaraba
-            // "CLEAR / 0.998 / invarianza ética verificada" como si fuera un
-            // hecho. Se marca EVIDENCE_GATED y los scores quedan en null.
+            // evaluación ARGUS/SOPHIA/ORION real. Antes declaraba estado CLEAR
+            // con score 0.998 y un guardrail como si fuera un hecho. Se marca
+            // EVIDENCE_GATED y los scores quedan en null.
             argusSafety: {
               status: "EVIDENCE_GATED",
               integrityScore: null,

@@ -99,6 +99,37 @@ for (const check of checks) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Global scan: literales que afirman verificacion, salud o consentimiento sin
+// comprobacion en runtime. Aplica a TODO src/**, no a una lista de archivos,
+// para que ninguna ruta nueva pueda reintroducirlos. La lista es corta a
+// proposito: solo lo que ya se corrigio una vez y no debe volver.
+// ---------------------------------------------------------------------------
+const FABRICATED_CLAIMS = [
+  [/Zero-risk/i, "afirma riesgo cero sin evaluacion"],
+  [/Invarianza \u00e9tica y sincron\u00eda/i, "afirma verificacion etica inexistente"],
+  [/TEE attestation mock/i, "presenta atestacion TEE simulada como operativa"],
+  [/Audit chain integrity verified/i, "afirma integridad de cadena verificada sin comprobarla"],
+  [/simulation mode/i, "reporta modo simulado como estado de servicio"],
+  [/consentGranted\s*:\s*[^,\n]*\?\?\s*true/i, "consentimiento por defecto concedido (fail-open)"],
+  [/biometricVerified\s*:\s*[^,\n]*\|\|\s*true/i, "verificacion biometrica forzada a true"],
+];
+
+for (const file of walk(resolve(root, "src"))) {
+  if (!/\.(ts|tsx)$/.test(file)) continue;
+  const rel = relative(root, file);
+  let content;
+  try {
+    content = readFileSync(file, "utf8");
+  } catch (error) {
+    errors.push(`Global claim scan: unreadable ${rel}: ${error.message}`);
+    continue;
+  }
+  for (const [pattern, why] of FABRICATED_CLAIMS) {
+    if (pattern.test(content)) errors.push(`Fabricated claim (${why}): ${pattern} in ${rel}`);
+  }
+}
+
 // Generated Genesis manifests are evidence, not fixtures. Reject zero/empty lock
 // hashes in committed manifests so stale fake evidence cannot be certified.
 const manifestsRoot = resolve(root, "genesis/manifests");
@@ -128,7 +159,7 @@ if (errors.length) {
 }
 
 console.log(
-  "PRODUCTION INTEGRITY GATE PASSED: no known P0 synthetic-runtime, CLI-stub, or placeholder-evidence patterns detected.",
+  "PRODUCTION INTEGRITY GATE PASSED: no known P0 synthetic-runtime, CLI-stub, placeholder-evidence or fabricated-claim patterns detected.",
 );
 
 function statSafe(path) {

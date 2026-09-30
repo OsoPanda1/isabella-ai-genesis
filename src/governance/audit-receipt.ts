@@ -49,7 +49,10 @@ export function auditReceipt(params: {
     sessionId: params.sessionId,
     riskLevel: params.riskLevel,
     consentRequired: params.consentRequired ?? false,
-    consentGranted: params.consentGranted ?? true,
+    // Fail-closed: sin consentimiento explicito no se registra como concedido.
+    // Antes el default era `true`, lo que contaba como otorgado cualquier
+    // consentimiento omitido cuando consentRequired era true.
+    consentGranted: params.consentGranted ?? false,
     toolName: params.toolName,
     success: params.success,
     executionMs: params.executionMs,
