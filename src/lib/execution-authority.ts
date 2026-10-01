@@ -437,7 +437,7 @@ export function createExecutionAuthority(opts?: {
         if (!opts?.decisionStore) return null;
         try {
           await recordDecision(opts.decisionStore, {
-            id: `dec_${randomUUID().replace(/-/g, "")}`,
+            id: randomUUID(),
             tenantId: request.tenantId,
             actorId: request.actorId,
             authority: "execution-authority",

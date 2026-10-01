@@ -1,13 +1,14 @@
 /**
- * ================================================================
- * ISABELLA VILLASEÑOR AI — RUNTIME PROVIDER REGISTRY (Module 6)
- * LLM provider abstraction. Resolves which provider/model to use.
- * Sovereign engine is primary. Gemini is optional lazy fallback.
- * ================================================================
+ * ISABELLA — canonical runtime provider registry.
+ *
+ * One provider boundary for the Dual Kernel and optional external models.
+ * Runtime configuration is read only through config(); no direct process.env
+ * access is allowed outside the configuration boundary.
  */
 
-import { inferSovereign } from "../../lib/isabella-inference-engine";
-import { dualKernel, createRequestId } from "../../lib/cognition";
+import { GoogleGenAI } from "@google/genai";
+import { config } from "../../lib/config";
+import { dualKernel, createRequestId } from "../dual-kernel";
 
 export interface InferenceRequest {
   readonly systemPrompt: string;
@@ -15,6 +16,8 @@ export interface InferenceRequest {
   readonly tools?: string[];
   readonly temperature?: number;
   readonly maxTokens?: number;
+  readonly tenantId?: string;
+  readonly actorId?: string;
 }
 
 export interface InferenceResult {
@@ -22,6 +25,7 @@ export interface InferenceResult {
   readonly tokensUsed: number;
   readonly model: string;
   readonly provider: string;
+  readonly degraded?: boolean;
   readonly toolCalls?: Array<{
     readonly name: string;
     readonly arguments: Record<string, unknown>;
@@ -37,75 +41,52 @@ export interface RuntimeProvider {
   infer(req: InferenceRequest): Promise<InferenceResult>;
 }
 
-/* =========================================================================
-   BUILT-IN PROVIDERS — Sovereign first, Gemini optional
-   ========================================================================= */
+function lastUserMessage(req: InferenceRequest): string {
+  return req.messages.filter((message) => message.role === "user").at(-1)?.content?.trim() ?? "";
+}
 
-class SovereignIsabellaProvider implements RuntimeProvider {
-  readonly name = "isabella-sovereign";
-  readonly model = "isabella-sovereign-v1";
-  readonly contextWindowLimit = 32_000;
-  readonly supportsTools = false;
-  readonly requiresApiKey = false;
+function estimateTokens(req: InferenceRequest, output: string): number {
+  const inputChars = req.systemPrompt.length + req.messages.reduce((sum, message) => sum + message.content.length, 0);
+  return Math.max(0, Math.ceil((inputChars + output.length) / 3.5));
+}
 
-  async infer(req: InferenceRequest): Promise<InferenceResult> {
-    const lastUser = req.messages.filter((m) => m.role === "user").pop();
-    const input = lastUser?.content || "";
+function boundedTemperature(value: number | undefined): number {
+  if (value === undefined) return 0.7;
+  if (!Number.isFinite(value)) throw new Error("INVALID_TEMPERATURE");
+  return Math.min(2, Math.max(0, value));
+}
 
-    const result = inferSovereign(input, {
-      history: req.messages.map((m) => ({ role: m.role, content: m.content })),
-    });
-
-    const estimatedTokens = Math.ceil(
-      (req.systemPrompt.length +
-        req.messages.reduce((s, m) => s + m.content.length, 0) +
-        result.reply.length) /
-        3.5,
-    );
-
-    return {
-      text: result.reply,
-      tokensUsed: Math.ceil(estimatedTokens),
-      model: this.model,
-      provider: this.name,
-    };
-  }
+function boundedTokens(value: number | undefined): number {
+  if (value === undefined) return 4096;
+  if (!Number.isInteger(value) || value < 1 || value > 32000) throw new Error("INVALID_MAX_TOKENS");
+  return value;
 }
 
 class CognitionIsabellaProvider implements RuntimeProvider {
   readonly name = "isabella-cognition";
   readonly model = "isabella-dual-kernel-v1";
-  readonly contextWindowLimit = 32_000;
+  readonly contextWindowLimit = 32000;
   readonly supportsTools = true;
   readonly requiresApiKey = false;
 
   async infer(req: InferenceRequest): Promise<InferenceResult> {
-    const lastUser = req.messages.filter((m) => m.role === "user").pop();
-    const input = lastUser?.content || "";
-
+    const input = lastUserMessage(req);
     const result = await dualKernel.process({
       requestId: createRequestId(),
-      tenantId: "rdm-digital-hub",
-      actorId: "user",
+      tenantId: req.tenantId ?? "tenant-dev",
+      actorId: req.actorId ?? "runtime",
       federationId: 5,
       intent: input,
       mode: "chat",
       context: { memoryEnabled: true },
       requestedCapabilities: req.tools ?? [],
     });
-
-    const estimatedTokens = Math.ceil(
-      (req.systemPrompt.length +
-        req.messages.reduce((s, m) => s + m.content.length, 0) +
-        result.answer.length) /
-        3.5,
-    );
-
     return {
       text: result.answer,
-      tokensUsed: Math.ceil(estimatedTokens),
+      tokensUsed: estimateTokens(req, result.answer),
       model: this.model,
       provider: this.name,
+      degraded: result.status === "degraded",
     };
   }
 }
@@ -113,111 +94,87 @@ class CognitionIsabellaProvider implements RuntimeProvider {
 class GeminiProvider implements RuntimeProvider {
   readonly name = "gemini";
   readonly model = "gemini-3.7-flash";
-  readonly contextWindowLimit = 1_000_000;
+  readonly contextWindowLimit = 1000000;
   readonly supportsTools = true;
   readonly requiresApiKey = true;
 
   async infer(req: InferenceRequest): Promise<InferenceResult> {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = config().GEMINI_API_KEY;
     if (!apiKey) {
       return {
-        text: "Gemini no disponible (API key no configurada). Operando con motor soberano.",
+        text: "Gemini no disponible (API key no configurada).",
         tokensUsed: 0,
         model: this.model,
         provider: this.name,
+        degraded: true,
       };
     }
 
+    const genai = new GoogleGenAI({ apiKey });
     try {
-      const { GoogleGenAI } = await import("@google/genai");
-      const genai = new GoogleGenAI({ apiKey });
-      const contents = req.messages.map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      }));
-
       const response = await genai.models.generateContent({
         model: this.model,
-        contents,
+        contents: req.messages.map((message) => ({
+          role: message.role === "assistant" ? "model" : "user",
+          parts: [{ text: message.content }],
+        })),
         config: {
           systemInstruction: req.systemPrompt,
-          temperature: req.temperature ?? 0.7,
-          maxOutputTokens: req.maxTokens ?? 4096,
+          temperature: boundedTemperature(req.temperature),
+          maxOutputTokens: boundedTokens(req.maxTokens),
         },
       });
-
-      const text = response.text || "";
-      const estimatedTokens = Math.ceil(
-        (req.systemPrompt.length +
-          req.messages.reduce((s, m) => s + m.content.length, 0) +
-          text.length) /
-          3.5,
-      );
-
+      const text = response.text?.trim() ?? "";
       return {
         text,
-        tokensUsed: Math.ceil(estimatedTokens),
+        tokensUsed: estimateTokens(req, text),
         model: this.model,
         provider: this.name,
+        degraded: false,
       };
     } catch {
       return {
-        text: "Error en la inferencia con Gemini. Operando con motor soberano.",
+        text: "Gemini no está disponible en este momento.",
         tokensUsed: 0,
         model: this.model,
         provider: this.name,
+        degraded: true,
       };
     }
   }
 }
 
-/* =========================================================================
-   PROVIDER REGISTRY — Sovereign is default
-   ========================================================================= */
-
-const providers: RuntimeProvider[] = [
-  new CognitionIsabellaProvider(),
-  new SovereignIsabellaProvider(),
-  new GeminiProvider(),
-];
+const providers: RuntimeProvider[] = [new CognitionIsabellaProvider(), new GeminiProvider()];
 
 export function registerProvider(provider: RuntimeProvider): void {
-  const idx = providers.findIndex((p) => p.name === provider.name);
-  if (idx >= 0) providers[idx] = provider;
+  const existing = providers.findIndex((candidate) => candidate.name === provider.name);
+  if (existing >= 0) providers[existing] = provider;
   else providers.unshift(provider);
 }
 
 export function resolveRuntimeProvider(preferred?: string): RuntimeProvider {
   if (preferred) {
-    const match = providers.find((p) => p.name === preferred);
-    if (match) return match;
+    const match = providers.find((provider) => provider.name === preferred);
+    if (match && (!match.requiresApiKey || isProviderAvailable(match))) return match;
   }
 
-  // Sovereign is always first choice — no API key needed
-  // (cognition es el motor alpha/beta/dual-kernel, más inteligente)
-  const sovereign = providers.find((p) => p.name === "isabella-cognition");
-  if (sovereign) return sovereign;
+  const cognition = providers.find((provider) => provider.name === "isabella-cognition");
+  if (cognition) return cognition;
 
-  const legacySovereign = providers.find((p) => p.name === "isabella-sovereign");
-  if (legacySovereign) return legacySovereign;
+  const available = providers.find(isProviderAvailable);
+  if (available) return available;
+  throw new Error("NO_RUNTIME_PROVIDER_AVAILABLE");
+}
 
-  // Gemini only if API key is present
-  if (process.env.GEMINI_API_KEY) {
-    const gemini = providers.find((p) => p.name === "gemini");
-    if (gemini) return gemini;
-  }
-
-  // Ultimate fallback
-  return providers[0];
+function isProviderAvailable(provider: RuntimeProvider): boolean {
+  if (!provider.requiresApiKey) return true;
+  return provider.name === "gemini" ? Boolean(config().GEMINI_API_KEY) : false;
 }
 
 export function listProviders(): Array<{ name: string; model: string; available: boolean }> {
-  return providers.map((p) => ({
-    name: p.name,
-    model: p.model,
-    available:
-      p.name === "isabella-sovereign" ||
-      p.name === "isabella-cognition" ||
-      (p.requiresApiKey ? !!process.env.GEMINI_API_KEY : true),
+  return providers.map((provider) => ({
+    name: provider.name,
+    model: provider.model,
+    available: isProviderAvailable(provider),
   }));
 }

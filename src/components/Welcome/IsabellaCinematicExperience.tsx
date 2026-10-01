@@ -282,7 +282,16 @@ export function IsabellaCinematicExperience({
             muted={!audio}
             playsInline
             poster={`https://image.mux.com/${playbackId}/thumbnail.webp?width=1920&fit_mode=preserve`}
-            onEnded={() => setCinematic(false)}
+            onTimeUpdate={(event) => {
+              const currentTime = (event.currentTarget as HTMLMediaElement).currentTime;
+              if (Number.isFinite(currentTime)) {
+                setElapsed(Math.min(durationMs, currentTime * 1000));
+              }
+            }}
+            onEnded={() => {
+              setElapsed(durationMs);
+              setCinematic(false);
+            }}
             onError={() => setMediaFailed(true)}
             aria-label="Introducción cinematográfica de Isabella"
           />

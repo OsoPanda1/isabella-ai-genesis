@@ -167,9 +167,9 @@ export const envSchema = z
     // --- REDACTION ---
     REDACT_EXTRA_KEYS: z.string().default(""),
     // --- INPUT LIMITS ---
-    INPUT_MAX_BODY_BYTES: coercedInt(262144),
+    INPUT_MAX_BODY_BYTES: coercedInt(12 * 1024 * 1024),
     INPUT_MAX_MESSAGES: coercedInt(200),
-    INPUT_MAX_ATTACHMENT_BYTES: coercedInt(10485760),
+    INPUT_MAX_ATTACHMENT_BYTES: coercedInt(8 * 1024 * 1024),
     INPUT_MAX_TOOLS_PER_REQUEST: coercedInt(20),
     // --- API KEYS ---
     API_KEY_HASH_SECRET: optionalMinString(16),

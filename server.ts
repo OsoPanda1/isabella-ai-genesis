@@ -74,6 +74,10 @@ import {
   resolveKillSwitch,
   getKillSwitchStatus,
   getKillSwitchEvents,
+  resolveCanonicalKillSwitchEvent,
+  activateCanonicalKillSwitch,
+  canonicalKillSwitchStatus,
+  resolveKillCapabilityFromTrigger,
 } from "./src/lib/kill-switch";
 import { evaluateClaim, toEpistemicFormat, getClaimRadarMetrics } from "./src/lib/claim-radar";
 import { classifyEpistemicStatus, getEpistemicRules } from "./src/lib/epistemic";
@@ -175,7 +179,7 @@ if (process.env.ISABELLA_AUTHZ_EXPORT_NATIVE_KEY === "true") {
 
 app.use(
   express.json({
-    limit: "10mb",
+    limit: "12mb",
     // Conserva el buffer crudo (requerido para verificar firmas de webhook de
     // Stripe) sin romper el parsing JSON de las demás rutas.
     verify: (req, _res, buf) => {
@@ -1860,18 +1864,40 @@ app.post("/api/v1/automation/resolve/:nodeId", authenticate, (req, res) => {
 // KILL-SWITCH ENDPOINTS (Section 18.3)
 // ============================================================================
 
-app.get("/api/v1/kill-switch/status", authenticate, (_req, res) => {
-  res.json({ ok: true, data: getKillSwitchStatus() });
+app.get("/api/v1/kill-switch/status", authenticate, async (_req, res) => {
+  try {
+    res.json({ ok: true, data: await canonicalKillSwitchStatus() });
+  } catch {
+    res.status(503).json({ ok: false, error: "Kill-switch state unavailable." });
+  }
 });
 
-app.post("/api/v1/kill-switch/activate", authenticate, requireRole("admin"), (req, res) => {
-  const { trigger, severity } = req.body;
-  if (!trigger || typeof trigger !== "string") {
-    res.status(400).json({ ok: false, error: "trigger string required" });
+app.post("/api/v1/kill-switch/activate", authenticate, requireRole("admin"), async (req, res) => {
+  const { trigger, severity, capability } = req.body;
+  if (!trigger || typeof trigger !== "string" || trigger.length > 512) {
+    res.status(400).json({ ok: false, error: "trigger string required (1-512)" });
     return;
   }
-  const event = activateKillSwitch(trigger, severity || "SEV-2");
-  res.json({ ok: true, data: event });
+  if (severity !== undefined && (typeof severity !== "string" || severity.length > 32)) {
+    res.status(400).json({ ok: false, error: "severity must be a string of at most 32 characters" });
+    return;
+  }
+  const selectedCapability =
+    typeof capability === "string" && capability.trim()
+      ? capability
+      : resolveKillCapabilityFromTrigger(trigger);
+  try {
+    const event = activateKillSwitch(trigger, severity || "SEV-2", selectedCapability);
+    await activateCanonicalKillSwitch({
+      trigger,
+      severity: severity || "SEV-2",
+      capability: selectedCapability,
+      actorId: String(currentPrincipal(req).sub),
+    });
+    res.json({ ok: true, data: event });
+  } catch {
+    res.status(503).json({ ok: false, error: "Kill-switch activation failed; capability remains fail-closed." });
+  }
 });
 
 app.post("/api/v1/kill-switch/:eventId/step", authenticate, requireRole("admin"), (req, res) => {
@@ -1883,14 +1909,18 @@ app.post("/api/v1/kill-switch/:eventId/step", authenticate, requireRole("admin")
   res.json({ ok: true, data: event });
 });
 
-app.post("/api/v1/kill-switch/:eventId/resolve", authenticate, requireRole("admin"), (req, res) => {
+app.post("/api/v1/kill-switch/:eventId/resolve", authenticate, requireRole("admin"), async (req, res) => {
   const { approvedBy } = req.body;
-  if (!approvedBy || typeof approvedBy !== "string") {
-    res.status(400).json({ ok: false, error: "approvedBy string required" });
+  if (!approvedBy || typeof approvedBy !== "string" || approvedBy.length > 256) {
+    res.status(400).json({ ok: false, error: "approvedBy string required (1-256)" });
     return;
   }
-  const resolved = resolveKillSwitch(req.params.eventId, approvedBy);
-  res.json({ ok: resolved, message: resolved ? "Kill-switch resolved" : "Event not found or already resolved" });
+  try {
+    const state = await resolveCanonicalKillSwitchEvent(req.params.eventId, approvedBy);
+    res.json({ ok: true, state, message: "Kill-switch resolved" });
+  } catch {
+    res.status(404).json({ ok: false, error: "Event not found or not active" });
+  }
 });
 
 app.get("/api/v1/kill-switch/events", authenticate, (_req, res) => {

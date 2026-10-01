@@ -82,7 +82,7 @@ export async function handleNativeComprehension(
     memory: output.memory,
     riskDetected: output.riskDetected,
     latencyMs: output.latencyMs,
-    chainHash: output.chainHash,
+    auditDigest: output.auditDigest,
     locale: validation.data.locale,
     responseMode: validation.data.responseMode,
   });
