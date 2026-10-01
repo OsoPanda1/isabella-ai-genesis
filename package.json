@@ -22,7 +22,7 @@
     "attestation:verify": "node scripts/attestation-keygen.mjs --all --verify",
     "audit:repository": "node scripts/repository-audit.mjs",
     "audit:routes": "node scripts/genesis-route-audit.mjs",
-    "build": "vite build",
+    "build": "vite build && node scripts/generate-client-shell.mjs",
     "build:dev": "node scripts/check-env.mjs && vite build --mode development",
     "build:production": "NODE_ENV=production vite build",
     "capabilities": "node scripts/capability-matrix.mjs --check",
