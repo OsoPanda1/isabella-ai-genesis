@@ -258,6 +258,31 @@ export function executeNextStep(eventId: string): KillSwitchEvent | null {
   return updated;
 }
 
+export async function resolveCanonicalKillSwitchEvent(
+  eventId: string,
+  approvedBy: string,
+): Promise<KillSwitchState> {
+  const event = compatibilityEvents.get(eventId);
+  if (!event) throw new Error("Kill-switch event no encontrado.");
+  if (!approvedBy.trim()) throw new Error("approvedBy obligatorio.");
+  const state = await releaseCanonicalKillSwitch(event.capability, approvedBy);
+  compatibilityEvents.set(eventId, {
+    ...event,
+    status: "resolved",
+    approvedBy: approvedBy.slice(0, 256),
+    resolvedAt: new Date().toISOString(),
+  });
+  return state;
+}
+
+export async function canonicalKillSwitchStatus(): Promise<{
+  active: boolean;
+  states: KillSwitchState[];
+}> {
+  const states = await listCanonicalKillSwitchStates();
+  return { active: states.some((state) => state.engaged), states };
+}
+
 export function resolveKillSwitch(eventId: string, approvedBy: string): boolean {
   const event = compatibilityEvents.get(eventId);
   if (!event || event.status !== "active" || !approvedBy.trim()) return false;
