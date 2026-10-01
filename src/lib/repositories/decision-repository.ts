@@ -31,21 +31,36 @@ export interface DecisionLedgerDeps {
 
 let poolQuery: DecisionQuery | null = null;
 let poolClose: (() => Promise<void>) | null = null;
+let poolInit: Promise<DecisionQuery> | null = null;
 
 async function resolveQuery(deps?: DecisionLedgerDeps): Promise<DecisionQuery> {
   if (deps?.query) return deps.query;
   if (poolQuery) return poolQuery;
-  const url = config().DATABASE_URL;
-  if (!url) {
-    throw new Error(
-      "DECISION_LEDGER_UNAVAILABLE: DATABASE_URL ausente; isabella_decisions no es alcanzable.",
-    );
-  }
-  const { Pool } = await import("pg");
-  const pool = new Pool({ connectionString: url, max: 2 });
-  poolQuery = (text, values) => pool.query(text, values);
-  poolClose = () => pool.end();
-  return poolQuery;
+  if (poolInit) return poolInit;
+
+  poolInit = (async () => {
+    const url = config().DATABASE_URL;
+    if (!url) {
+      throw new Error(
+        "DECISION_LEDGER_UNAVAILABLE: DATABASE_URL ausente; isabella_decisions no es alcanzable.",
+      );
+    }
+    const { Pool } = await import("pg");
+    const candidate = new Pool({ connectionString: url, max: 2 });
+    const query: DecisionQuery = (text, values) => candidate.query(text, values);
+    const close = async () => {
+      await candidate.end();
+    };
+    poolQuery = query;
+    poolClose = close;
+    poolInit = null;
+    return query;
+  })().catch((error) => {
+    poolInit = null;
+    throw error;
+  });
+
+  return poolInit;
 }
 
 /** Cierra el pool (sólo para shutdown/tests). */
@@ -53,6 +68,7 @@ export async function closeDecisionPool(): Promise<void> {
   const close = poolClose;
   poolQuery = null;
   poolClose = null;
+  poolInit = null;
   if (close) await close().catch(() => undefined);
 }
 
@@ -94,7 +110,8 @@ export function createPostgresDecisionLedger(deps?: DecisionLedgerDeps): LedgerS
       `SELECT record_hash
          FROM public.isabella_decisions
         WHERE tenant_id = $1
-        ORDER BY created_at DESC, id DESC
+          AND record_hash IS NOT NULL
+        ORDER BY append_seq DESC
         LIMIT 1`,
       [tenantId],
     );
@@ -176,19 +193,27 @@ export function createPostgresDecisionLedger(deps?: DecisionLedgerDeps): LedgerS
       `SELECT * FROM (
          SELECT * FROM public.isabella_decisions
           WHERE tenant_id = $1
-          ORDER BY created_at DESC, id DESC
+            AND record_hash IS NOT NULL
+          ORDER BY append_seq DESC
           LIMIT $2
        ) recent
-       ORDER BY created_at ASC, id ASC`,
+       ORDER BY append_seq ASC`,
       [tenantId, limit],
     );
     let previous: string | null = null;
     let checked = 0;
     for (const row of rows) {
       const record = mapRow(row);
-      if (previous === null) previous = record.previousHash;
-      if (record.previousHash !== previous) return { ok: false, checked };
-      previous = record.recordHash;
+      const { recordHash, ...base } = record;
+      if (previous === null) {
+        previous = record.previousHash;
+      } else if (record.previousHash !== previous) {
+        return { ok: false, checked };
+      }
+      if (record.recordHash !== (await import("../governance/decision-ledger")).hashRecord(base)) {
+        return { ok: false, checked };
+      }
+      previous = recordHash;
       checked += 1;
     }
     return { ok: true, checked };
