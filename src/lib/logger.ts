@@ -1,94 +1,39 @@
-type LogLevel = "debug" | "info" | "warn" | "error";
-
-function getRandomUUID(): string {
-  if (typeof globalThis !== "undefined") {
-    const g = globalThis as unknown as { crypto?: { randomUUID?: () => string } };
-    if (g.crypto && typeof g.crypto.randomUUID === "function") return g.crypto.randomUUID();
-  }
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+export interface Logger {
+  info: (message: string, context?: Record<string, unknown>) => void;
+  warn: (message: string, context?: Record<string, unknown>) => void;
+  error: (message: string, context?: Record<string, unknown>) => void;
+  debug: (message: string, context?: Record<string, unknown>) => void;
 }
 
-interface LogEntry {
-  level: LogLevel;
-  event: string;
-  timestamp: string;
-  traceId?: string;
-  [key: string]: unknown;
-}
-
-const LEVEL_PRIORITY: Record<LogLevel, number> = { debug: 0, info: 1, warn: 2, error: 3 };
-
-// Este módulo se comparte entre Express y el navegador; `process` no existe
-// en el bundle Vite del cliente.
-const configuredLogLevel = typeof process !== "undefined" ? process.env.LOG_LEVEL : undefined;
-const minLevel = LEVEL_PRIORITY[(configuredLogLevel as LogLevel) || "info"] ?? 1;
-
-function emit(entry: LogEntry): void {
-  if (LEVEL_PRIORITY[entry.level] < minLevel) return;
-  const json = JSON.stringify(entry);
-  if (entry.level === "error") {
-    console.error(json);
-  } else if (entry.level === "warn") {
-    console.warn(json);
-  } else {
-    console.log(json);
-  }
-}
-
-export function createLogger(scope: string, defaultMeta?: Record<string, unknown>) {
+export function createLogger(moduleName: string): Logger {
   return {
-    debug(event: string, meta?: Record<string, unknown>) {
-      emit({
-        level: "debug",
-        event,
-        timestamp: new Date().toISOString(),
-        scope,
-        ...defaultMeta,
-        ...meta,
-      });
+    info: (msg, ctx) => {
+      if (ctx) {
+        console.info(`[${moduleName}] ${msg}`, ctx);
+      } else {
+        console.info(`[${moduleName}] ${msg}`);
+      }
     },
-    info(event: string, meta?: Record<string, unknown>) {
-      emit({
-        level: "info",
-        event,
-        timestamp: new Date().toISOString(),
-        scope,
-        ...defaultMeta,
-        ...meta,
-      });
+    warn: (msg, ctx) => {
+      if (ctx) {
+        console.warn(`[${moduleName}] ${msg}`, ctx);
+      } else {
+        console.warn(`[${moduleName}] ${msg}`);
+      }
     },
-    warn(event: string, meta?: Record<string, unknown>) {
-      emit({
-        level: "warn",
-        event,
-        timestamp: new Date().toISOString(),
-        scope,
-        ...defaultMeta,
-        ...meta,
-      });
+    error: (msg, ctx) => {
+      if (ctx) {
+        console.error(`[${moduleName}] ${msg}`, ctx);
+      } else {
+        console.error(`[${moduleName}] ${msg}`);
+      }
     },
-    error(event: string, meta?: Record<string, unknown>) {
-      emit({
-        level: "error",
-        event,
-        timestamp: new Date().toISOString(),
-        scope,
-        ...defaultMeta,
-        ...meta,
-      });
-    },
-    child(extra: Record<string, unknown>) {
-      return createLogger(scope, { ...defaultMeta, ...extra });
+    debug: (msg, ctx) => {
+      if (ctx) {
+        console.debug(`[${moduleName}] ${msg}`, ctx);
+      } else {
+        console.debug(`[${moduleName}] ${msg}`);
+      }
     },
   };
 }
-
-export function generateTraceId(): string {
-  return `isabella-${getRandomUUID()}`;
-}
-
-export const logger = createLogger("isabella");

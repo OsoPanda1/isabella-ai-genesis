@@ -24,6 +24,7 @@ import {
   SecurityGovernanceLevel,
   TerminalMessage,
   VoiceSettings,
+  MessageFeedbackRating,
 } from "../types";
 import { soundManager } from "../utils/soundEffects";
 import { selectBestFemaleVoice } from "../utils/voiceUtils";
@@ -351,7 +352,16 @@ type CrownAction =
   | { type: "ADD_TOKENS"; payload: number }
   | { type: "SET_SHORTCUT_FEEDBACK"; payload: string | null }
   | { type: "SET_INFERENCE_TRANSITION"; payload: InferenceTransitionEvent | null }
-  | { type: "TOGGLE_MODAL"; payload: { modal: keyof CrownState["modals"]; open: boolean } };
+  | { type: "TOGGLE_MODAL"; payload: { modal: keyof CrownState["modals"]; open: boolean } }
+  | {
+      type: "UPDATE_MESSAGE_FEEDBACK";
+      payload: {
+        messageId: string;
+        rating: MessageFeedbackRating | null;
+        category?: string;
+        notes?: string;
+      };
+    };
 
 function crownReducer(state: CrownState, action: CrownAction): CrownState {
   switch (action.type) {
@@ -465,6 +475,21 @@ function crownReducer(state: CrownState, action: CrownAction): CrownState {
       return { ...state, lastInferenceTransition: action.payload };
     case "TOGGLE_MODAL":
       return { ...state, modals: { ...state.modals, [action.payload.modal]: action.payload.open } };
+    case "UPDATE_MESSAGE_FEEDBACK":
+      return {
+        ...state,
+        messages: state.messages.map((m) =>
+          m.id === action.payload.messageId
+            ? {
+                ...m,
+                feedback: action.payload.rating,
+                feedbackTimestamp: action.payload.rating ? new Date().toISOString() : undefined,
+                feedbackCategory: action.payload.category ?? m.feedbackCategory,
+                feedbackNotes: action.payload.notes ?? m.feedbackNotes,
+              }
+            : m,
+        ),
+      };
     default:
       return state;
   }
@@ -769,6 +794,12 @@ interface CrownContextValue {
   openTrailer: () => void;
   openCinematicIntro: () => void;
   closeCinematicIntro: () => void;
+  submitMessageFeedback: (
+    messageId: string,
+    rating: MessageFeedbackRating,
+    details?: { category?: string; notes?: string },
+  ) => void;
+  removeMessageFeedback: (messageId: string) => void;
 }
 
 const CrownContext = createContext<CrownContextValue | undefined>(undefined);
@@ -1670,6 +1701,56 @@ Puedes conversar conmigo, pedirme que sintetice voz en tiempo real, me solicites
   const openCinematicIntro = useCallback(() => setCinematicIntroOpen(true), []);
   const closeCinematicIntro = useCallback(() => setCinematicIntroOpen(false), []);
 
+  const submitMessageFeedback = useCallback(
+    (
+      messageId: string,
+      rating: MessageFeedbackRating,
+      details?: { category?: string; notes?: string },
+    ) => {
+      soundManager.playBeep(rating === "up" ? 1100 : 540, 0.04);
+      dispatch({
+        type: "UPDATE_MESSAGE_FEEDBACK",
+        payload: {
+          messageId,
+          rating,
+          category: details?.category,
+          notes: details?.notes,
+        },
+      });
+
+      try {
+        const stored = localStorage.getItem("isabella_model_feedback_log");
+        const list = stored ? JSON.parse(stored) : [];
+        const msg = state.messages.find((m) => m.id === messageId);
+        list.push({
+          messageId,
+          rating,
+          category: details?.category,
+          notes: details?.notes,
+          timestamp: new Date().toISOString(),
+          role: msg?.role,
+          primaryModule: msg?.routingDecision?.primaryModule,
+          routingRationale: msg?.routingDecision?.routingRationale,
+          engine: msg?.engine,
+        });
+        localStorage.setItem("isabella_model_feedback_log", JSON.stringify(list.slice(-100)));
+      } catch {
+        // quota/private browsing fallback
+      }
+    },
+    [state.messages],
+  );
+
+  const removeMessageFeedback = useCallback((messageId: string) => {
+    dispatch({
+      type: "UPDATE_MESSAGE_FEEDBACK",
+      payload: {
+        messageId,
+        rating: null,
+      },
+    });
+  }, []);
+
   // ─── Context Value (memorized) ───
 
   const value = useMemo<CrownContextValue>(
@@ -1735,6 +1816,8 @@ Puedes conversar conmigo, pedirme que sintetice voz en tiempo real, me solicites
       openTrailer,
       openCinematicIntro,
       closeCinematicIntro,
+      submitMessageFeedback,
+      removeMessageFeedback,
     }),
     [
       state,
@@ -1774,6 +1857,8 @@ Puedes conversar conmigo, pedirme que sintetice voz en tiempo real, me solicites
       openTrailer,
       openCinematicIntro,
       closeCinematicIntro,
+      submitMessageFeedback,
+      removeMessageFeedback,
     ],
   );
 

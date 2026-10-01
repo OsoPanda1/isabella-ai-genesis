@@ -21,7 +21,6 @@ import {
   ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
-import { FixedSizeList, type ListChildComponentProps } from "react-window";
 import { DemoDataNotice } from "../DemoDataNotice";
 import { verifyLedger } from "../../lib/ledger/verify";
 import { useLedger } from "../../lib/ledger/useLedger";
@@ -134,20 +133,19 @@ function HashField({
   );
 }
 
-interface LedgerItemData {
-  blocks: LedgerBlock[];
-  selectedSeq: number | null;
+function BlockRow({
+  block,
+  selected,
+  onSelect,
+}: {
+  block: LedgerBlock;
+  selected: boolean;
   onSelect: (seq: number) => void;
-}
-
-function BlockRow({ index, style, data }: ListChildComponentProps<LedgerItemData>) {
-  const { blocks, selectedSeq, onSelect } = data;
-  const block = blocks[index];
-  const selected = selectedSeq === block.seq;
+}) {
   const badge = OP_BADGES[block.operation] ?? FALLBACK_BADGE;
 
   return (
-    <div style={style} className="pb-2">
+    <div className="pb-2">
       <button
         type="button"
         aria-pressed={selected}
@@ -242,7 +240,6 @@ export const IsabellaLedgerConsole: React.FC = () => {
   }, [blocks]);
 
   const listHeight = Math.min(LIST_MAX_HEIGHT, Math.max(blocks.length, 1) * (ROW_HEIGHT + 8));
-  const itemData: LedgerItemData = { blocks, selectedSeq, onSelect: setSelectedSeq };
   const originBadge = ORIGIN_BADGE[origin];
 
   return (
@@ -399,16 +396,19 @@ export const IsabellaLedgerConsole: React.FC = () => {
                 <Database className="h-3.5 w-3.5" /> Cadena de bloques
               </h3>
               {blocks.length > 0 && (
-                <FixedSizeList
-                  height={listHeight}
-                  itemCount={blocks.length}
-                  itemSize={ROW_HEIGHT + 8}
-                  width="100%"
-                  itemData={itemData}
-                  overscanCount={4}
+                <div
+                  className="space-y-2 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-800"
+                  style={{ maxHeight: listHeight }}
                 >
-                  {BlockRow}
-                </FixedSizeList>
+                  {blocks.map((block) => (
+                    <BlockRow
+                      key={block.seq}
+                      block={block}
+                      selected={selectedSeq === block.seq}
+                      onSelect={setSelectedSeq}
+                    />
+                  ))}
+                </div>
               )}
             </div>
 

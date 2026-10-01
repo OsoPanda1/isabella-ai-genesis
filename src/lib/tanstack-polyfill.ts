@@ -1,17 +1,24 @@
-export function useServerFn(fnObj: any) {
-  return async (args?: any) => {
-    const { data } = args || {};
-    const res = await fetch(fnObj.endpoint, {
-      method: fnObj.method,
-      headers: { "Content-Type": "application/json" },
-      body: fnObj.method === "POST" ? JSON.stringify(data || {}) : undefined,
-    });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+/**
+ * Polyfill for TanStack Start / React useServerFn in client-side SPA mode
+ */
+export function useServerFn<TArgs extends any[], TReturn>(
+  fn: (...args: TArgs) => Promise<TReturn> | TReturn,
+): (...args: TArgs) => Promise<TReturn> {
+  return async (...args: TArgs): Promise<TReturn> => {
+    try {
+      return await fn(...args);
+    } catch (err) {
+      console.warn("[tanstack-polyfill] server function fallback:", err);
+      throw err;
+    }
   };
 }
 
-export function createServerFn(opts: any) {
-  // We don't use this on the client, but it's here just in case
-  return opts;
+export function createServerFn<TArgs extends any[], TReturn>(
+  _options: Record<string, unknown>,
+  handler: (...args: TArgs) => Promise<TReturn> | TReturn,
+): (...args: TArgs) => Promise<TReturn> {
+  return async (...args: TArgs): Promise<TReturn> => {
+    return await handler(...args);
+  };
 }

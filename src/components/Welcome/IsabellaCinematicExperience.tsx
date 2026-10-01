@@ -30,6 +30,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
+import MuxPlayer from "@mux/mux-player-react";
 import { useCrown } from "../../context/CrownContext";
 import { soundManager } from "../../utils/soundEffects";
 import { ISABELLA_MEDALLION_IMAGE } from "../../data/isabellaAvatar";
@@ -158,14 +159,13 @@ export function IsabellaCinematicExperience({
   const [mediaFailed, setMediaFailed] = useState(false);
   const [permissionsAccepted, setPermissionsAccepted] = useState(false);
   const { sendMessage, setActiveView } = useCrown();
-  const playbackUrl =
-    media.playbackId && !mediaFailed
-      ? `https://stream.mux.com/${encodeURIComponent(media.playbackId)}/high.mp4`
-      : undefined;
+  // Mux entrega el mismo playbackId como HLS adaptativo, MP4 Enhanced y
+  // thumbnails; MuxPlayer negocia el mejor rendimiento según la conexión.
+  const playbackId = media.playbackId && !mediaFailed ? media.playbackId : undefined;
   const sceneRef = useImmersiveScene({
     canvas2DRef,
     canvas3DRef,
-    enabled: isOpen && cinematic && !playbackUrl,
+    enabled: isOpen && cinematic && !playbackId,
     enableAudio,
     durationMs,
   });
@@ -273,13 +273,15 @@ export function IsabellaCinematicExperience({
         aria-modal="true"
         aria-label="Introducción cinematográfica de Isabella"
       >
-        {playbackUrl ? (
-          <video
+        {playbackId ? (
+          <MuxPlayer
             className="isabella-trailer__canvas isabella-trailer__mux-video"
-            src={playbackUrl}
+            playbackId={playbackId}
+            streamType="on-demand"
             autoPlay
             muted={!audio}
             playsInline
+            poster={`https://image.mux.com/${playbackId}/thumbnail.webp?width=1920&fit_mode=preserve`}
             onEnded={() => setCinematic(false)}
             onError={() => setMediaFailed(true)}
             aria-label="Introducción cinematográfica de Isabella"

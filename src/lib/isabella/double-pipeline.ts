@@ -37,6 +37,17 @@ export interface DoublePipelineHistoryPoint {
   totalB: number;
 }
 
+export interface LatencyDriftMetrics {
+  meanTurboMs: number;
+  meanRegularMs: number;
+  driftDeltaMs: number;
+  driftPercentage: number;
+  sampleCountTurbo: number;
+  sampleCountRegular: number;
+  p95TurboMs: number;
+  p95RegularMs: number;
+}
+
 export interface DoublePipelineSnapshot {
   timestamp: string;
   activePipeline: PipelineId;
@@ -50,6 +61,9 @@ export interface DoublePipelineSnapshot {
   turboModeEnabled?: boolean;
   turboSpeedupFactor?: number;
   parallelSavingsMs?: number;
+  turboLatencies?: number[];
+  regularLatencies?: number[];
+  latencyDrift?: LatencyDriftMetrics;
 }
 
 /**
