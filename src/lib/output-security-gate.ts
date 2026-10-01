@@ -118,7 +118,11 @@ export function evaluateOutputSecurity(text: string): OutputSecurityResult {
   }
 }
 
-function extractFrameContent(payload: string): string | null {
+type ParsedFrame =
+  | { valid: true; content: string | null }
+  | { valid: false; reason: string };
+
+function parseFrame(payload: string): ParsedFrame {
   try {
     const event = JSON.parse(payload) as {
       choices?: Array<{ delta?: { content?: unknown }; message?: { content?: unknown } }>;
@@ -126,10 +130,26 @@ function extractFrameContent(payload: string): string | null {
     };
     const candidate =
       event.choices?.[0]?.delta?.content ?? event.choices?.[0]?.message?.content ?? event.content;
-    return typeof candidate === "string" && candidate ? candidate : null;
+    if (candidate === undefined || candidate === null || candidate === "") {
+      return { valid: true, content: null };
+    }
+    return typeof candidate === "string"
+      ? { valid: true, content: candidate }
+      : { valid: false, reason: "content no es string" };
   } catch {
-    return null;
+    return { valid: false, reason: "JSON SSE inválido o truncado" };
   }
+}
+
+function malformedFrameResult(reason: string): OutputSecurityResult {
+  return {
+    verdict: "deny",
+    findings: [{
+      code: "MALFORMED_SSE_FRAME",
+      severity: "critical",
+      message: "Marco SSE rechazado por el gate de salida: " + reason + ".",
+    }],
+  };
 }
 
 export interface OutputGateDecision {
@@ -153,16 +173,15 @@ export interface OutputGateTracker {
  * Rastreador de acumulación para emisión incremental: cada `push` re-evalúa
  * la ventana acumulada (cubre secretos partidos entre chunks).
  */
+const OUTPUT_INCREMENTAL_OVERLAP = 1024;
+
 export function createOutputGateTracker(onDecision?: OutputGateDecision): OutputGateTracker {
-  let accumulated = "";
+  let tail = "";
   return {
     push(chunk: string): OutputSecurityResult {
-      accumulated += chunk;
-      const window =
-        accumulated.length > OUTPUT_SCAN_WINDOW
-          ? accumulated.slice(-OUTPUT_SCAN_WINDOW)
-          : accumulated;
+      const window = (tail + chunk).slice(-OUTPUT_INCREMENTAL_OVERLAP);
       const result = evaluateOutputSecurity(window);
+      tail = window;
       if (result.verdict !== "allow") onDecision?.(result);
       return result;
     },
@@ -216,9 +235,20 @@ export function gateOpenAiSseStream(
           emit(sse("[DONE]"));
           return true;
         }
-        const content = extractFrameContent(payload);
-        if (content && !handleContent(content)) return false;
-        emit(`${line}\n\n`);
+        const parsed = parseFrame(payload);
+        if (!parsed.valid) {
+          const result = malformedFrameResult(parsed.reason);
+          onDecision?.(result);
+          denied = true;
+          void reader.cancel().catch(() => undefined);
+          emit(outputGateRefusalFrame(result));
+          emit(sse("[DONE]"));
+          controller.close();
+          return false;
+        }
+        if (parsed.content && !handleContent(parsed.content)) return false;
+        emit(line + "\n\n");
+        return true;
         return true;
       };
 
