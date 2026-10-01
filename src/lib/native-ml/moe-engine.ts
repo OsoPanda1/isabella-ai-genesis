@@ -106,14 +106,21 @@ export async function executeMoE(
   logits: number[],
 ): Promise<MoeExecutionResult> {
   const selected = route.route(input, logits);
-  const capacity = Math.max(1, Math.floor(route.experts[0]!.capacity * route.capacityFactor));
+  const capacityByExpert = new Map(
+    route.experts.map((expert) => [
+      expert.expertId,
+      Math.max(1, Math.floor(expert.capacity * route.capacityFactor)),
+    ]),
+  );
   let overflow = false;
   let fallbackUsed = false;
   const outputs: Array<{ expertId: string; weight: number; output: number[] }> = [];
 
   for (const decision of selected) {
     const expert = route.registry.get(decision.expertId)!;
-    if (outputs.length >= capacity) {
+    const capacity = capacityByExpert.get(expert.expertId) ?? 1;
+    const expertOutputCount = outputs.filter((item) => item.expertId === expert.expertId).length;
+    if (expertOutputCount >= capacity) {
       overflow = true;
       continue;
     }
