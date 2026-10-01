@@ -129064,5 +129064,31 @@
     "attempts": 1,
     "status": "published",
     "published_at": "2026-10-01T02:54:49.251Z"
+  },
+  {
+    "event_id": "evt_mup43ia4_9bf5f92278ae",
+    "envelope": {
+      "event_id": "evt_mup43ia4_9bf5f92278ae",
+      "event_type": "documents.created",
+      "timestamp": "2026-10-01T05:46:56.716Z",
+      "actor_id": "kernel.bootstrap",
+      "federation_id": "TAMV-NODO-0",
+      "hash_before": null,
+      "hash_after": "1d30e05f725ba6d43b9e6f62cd996d9b34b9e17271535c09ad8e509d218c8faa",
+      "payload": {
+        "document_uid": "ATLAS-DOC-TAMV-NODO-0-CANON-MUP43IA35B5522FC16-1d30e05f",
+        "federation_id": "TAMV-NODO-0",
+        "namespace": "CANON",
+        "title": "ISABELLA VILLASEÑOR AI - Documento Canónico",
+        "created_by": "kernel.bootstrap",
+        "version": 1,
+        "canonical_hash": "1d30e05f725ba6d43b9e6f62cd996d9b34b9e17271535c09ad8e509d218c8faa"
+      },
+      "signature": "hmac-sha256:473f4c6c972ddb6c5371082adeecafe11b9aea1356e9369c78e8d35fd3ca1783"
+    },
+    "inserted_at": "2026-10-01T05:46:56.716Z",
+    "attempts": 1,
+    "status": "published",
+    "published_at": "2026-10-01T05:46:56.845Z"
   }
 ]

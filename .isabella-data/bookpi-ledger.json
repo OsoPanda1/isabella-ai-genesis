@@ -21159,5 +21159,36 @@
     "nonce": 88,
     "hash": "00bd9553fa9173dae160243e04baf34f055c48d320c105d787e4f90f1e3d3465",
     "cid": "bafyrei3tfmeDATMhbt5WezCVQ4Q5FeLPqRJGUS"
+  },
+  {
+    "index": 1365,
+    "timestamp": "2026-10-01T05:46:56.166Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "ac7f13ee84d3b559",
+      "context": "boot"
+    },
+    "prevHash": "00bd9553fa9173dae160243e04baf34f055c48d320c105d787e4f90f1e3d3465",
+    "nonce": 239,
+    "hash": "00e84a581887f8e726cd9b85a0f0c2eb0a2c87ffbb99c46c04dc5363f98d84f1",
+    "cid": "bafyrei4YSTAjngijTSJhbNzBX5VCcUbNAaZsSj"
+  },
+  {
+    "index": 1366,
+    "timestamp": "2026-10-01T05:46:56.183Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "56799b46e0c27887"
+    },
+    "prevHash": "00e84a581887f8e726cd9b85a0f0c2eb0a2c87ffbb99c46c04dc5363f98d84f1",
+    "nonce": 206,
+    "hash": "00419c8277d4add90b864c283b5d33dcf3664fa005e2efd9bed5479fb96cee1c",
+    "cid": "bafyrei212ZuokYD9xcDm9zH4Sg2ezdReY6qBLf"
   }
 ]
