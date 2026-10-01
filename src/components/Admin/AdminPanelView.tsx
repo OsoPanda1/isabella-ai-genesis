@@ -1,5 +1,5 @@
 import React from "react";
-import { LedgerInspector } from "./LedgerInspector";
+import { IsabellaLedgerConsole } from "../Ledger/IsabellaLedgerConsole";
 import { AuthManager } from "./AuthManager";
 import { Shield, Lock } from "lucide-react";
 
@@ -25,7 +25,7 @@ export const AdminPanelView: React.FC = () => {
           <AuthManager />
         </div>
         <div className="space-y-6">
-          <LedgerInspector />
+          <IsabellaLedgerConsole />
         </div>
       </div>
     </div>
