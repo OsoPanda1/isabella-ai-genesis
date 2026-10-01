@@ -175,7 +175,7 @@ if (process.env.ISABELLA_AUTHZ_EXPORT_NATIVE_KEY === "true") {
 
 app.use(
   express.json({
-    limit: "10mb",
+    limit: "12mb",
     // Conserva el buffer crudo (requerido para verificar firmas de webhook de
     // Stripe) sin romper el parsing JSON de las demás rutas.
     verify: (req, _res, buf) => {
