@@ -27,14 +27,14 @@ export interface NativeComprehensionOutput {
   memory: { hits: number; topHit: string | null };
   riskDetected: boolean;
   latencyMs: number;
-  chainHash: string;
+  auditDigest: string;
 }
 
 export function runNativeComprehension(input: NativeComprehensionInput): NativeComprehensionOutput {
   const runtime = config();
   const mode = runtime.ISABELLA_RUNTIME_MODE;
   const productionLike =
-    runtime.NODE_ENV === "production" || mode === "production" || mode === "staging";
+    mode === "production" || mode === "staging";
   const started = performance.now();
   // NCUA debe reconocer cualquier proveedor cognitivo autorizado. La versión
   // anterior solo consideraba Gemini y marcaba mantenimiento aunque Groq/XAI
@@ -51,7 +51,7 @@ export function runNativeComprehension(input: NativeComprehensionInput): NativeC
     tenantId: input.tenantId,
   });
   const latencyMs = Number((performance.now() - started).toFixed(1));
-  const chainHash = createHash("sha256")
+  const auditDigest = createHash("sha256")
     .update(result.chain.map((record) => record.hash).join("+"))
     .digest("hex");
   return {
@@ -73,6 +73,6 @@ export function runNativeComprehension(input: NativeComprehensionInput): NativeC
     memory: { hits: result.memory.hits, topHit: result.memory.topHit },
     riskDetected: result.riskDetected,
     latencyMs,
-    chainHash,
+    auditDigest,
   };
 }
