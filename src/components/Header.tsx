@@ -79,9 +79,9 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const NAV_BUTTON_BASE =
-  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium tracking-[0.03em] transition-all duration-200 whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e0bb5d]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#040507]";
+  "flex min-h-9 items-center gap-2 rounded-xl px-3 py-2 text-[11px] font-medium tracking-[0.02em] transition-all duration-200 whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e0bb5d]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#040507]";
 const NAV_BUTTON_ACTIVE =
-  "bg-white/[0.08] text-[#fffefa] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_12px_rgba(224,187,93,0.15)] scale-[1.02]";
+  "bg-[#e0bb5d]/[0.12] text-[#fffefa] shadow-[inset_0_0_0_1px_rgba(224,187,93,.22),0_8px_20px_rgba(224,187,93,.08)]";
 const NAV_BUTTON_IDLE =
   "text-[#929da8] hover:text-[#e9e4da] hover:bg-white/[0.03] hover:scale-[1.01] active:scale-[0.98]";
 
@@ -183,9 +183,10 @@ export const Header: React.FC = () => {
 
           {/* Primary navigation */}
           <nav
-            className="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-full border border-white/[0.05] bg-white/[0.02] px-1.5 py-1.5"
+            className="isabella-primary-nav flex min-w-0 max-w-full items-center gap-1 overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#0b1017]/90 p-1.5 shadow-[0_12px_32px_rgba(0,0,0,.22)] backdrop-blur-xl"
             aria-label="Navegación principal"
           >
+            <span className="hidden px-2 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-[#778592] xl:inline">Módulos</span>
             <button
               type="button"
               onClick={() => {

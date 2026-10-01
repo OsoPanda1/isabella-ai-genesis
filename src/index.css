@@ -9,9 +9,23 @@
 }
 
 .isabella-sidebar {
-  background: linear-gradient(180deg, rgba(10, 16, 25, 0.92), rgba(4, 7, 12, 0.96));
+  background: linear-gradient(180deg, rgba(10, 16, 25, 0.96), rgba(4, 7, 12, 0.98));
   box-shadow: 18px 0 56px rgba(0, 0, 0, 0.18), inset -1px 0 rgba(255, 255, 255, 0.045);
 }
+
+.isabella-nav,
+.isabella-primary-nav { scrollbar-width: thin; scrollbar-color: rgba(183, 203, 214, .18) transparent; }
+.isabella-primary-nav::-webkit-scrollbar { height: 3px; }
+.isabella-primary-nav::-webkit-scrollbar-thumb { background: rgba(224,187,93,.28); border-radius: 999px; }
+.isabella-nav-heading { display: flex; align-items: center; gap: .65rem; margin: 0 .35rem .7rem; color: rgba(202, 213, 219, .42); font: 600 .57rem/1 var(--font-mono); letter-spacing: .2em; text-transform: uppercase; }
+.isabella-nav-rule { height: 1px; flex: 1; background: linear-gradient(90deg, rgba(217,180,91,.42), transparent); }
+.isabella-nav-groups { display: flex; flex-direction: column; gap: .8rem; }
+.isabella-nav-group { display: flex; flex-direction: column; gap: .25rem; }
+.isabella-nav-group-trigger { border: 1px solid transparent; font: 600 .62rem/1.2 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.isabella-nav-group-trigger:hover { border-color: rgba(183,203,214,.1); background: rgba(255,255,255,.035); color: var(--color-platinum-100); }
+.isabella-nav-group [role="group"] { display: flex; flex-direction: column; gap: .25rem; animation: rise .2s ease-out both; }
+.isabella-nav-group [data-nav-item] { min-height: 2.55rem; border: 1px solid transparent; border-radius: .7rem; font: 500 .69rem/1.25 var(--font-sans); letter-spacing: .01em; }
+.isabella-nav-group [data-nav-item][aria-current="page"] { box-shadow: inset 3px 0 var(--color-gold-400), 0 8px 26px rgba(0,0,0,.16); }
 
 .isabella-command-strip {
   min-height: 4.75rem;
