@@ -103,30 +103,34 @@ export function createPostgresDecisionLedger(deps?: DecisionLedgerDeps): LedgerS
 
   async function append(record: DecisionRecord): Promise<void> {
     const run = await resolveQuery(deps);
-    // Reenvío idempotente: si el registro ya está, no hay nada que corregir.
-    const duplicate = await run(
-      `SELECT 1 FROM public.isabella_decisions
-        WHERE tenant_id = $1 AND record_hash = $2
-        LIMIT 1`,
-      [record.tenantId, record.recordHash],
-    );
-    if (duplicate.rows[0]) return;
-    const expected = (await latestHash(record.tenantId)) ?? "GENESIS";
-    if (record.previousHash !== expected) {
-      throw new Error(
-        `DECISION_CHAIN_MISMATCH: previousHash ${record.previousHash} no coincide con el último record_hash ${expected}.`,
-      );
-    }
+
+    /*
+     * Un único statement = una única transacción implícita en PostgreSQL.
+     * El advisory lock se adquiere antes de leer la punta de la cadena y se
+     * mantiene durante la inserción, evitando forks por escritores concurrentes.
+     */
     const { rows } = await run(
-      `INSERT INTO public.isabella_decisions
+      `WITH tenant_lock AS (
+         SELECT pg_advisory_xact_lock(hashtextextended($1, 0))
+       ),
+       latest AS (
+         SELECT record_hash
+           FROM public.isabella_decisions
+          WHERE tenant_id = $1
+          ORDER BY recorded_at DESC, id DESC
+          LIMIT 1
+       )
+       INSERT INTO public.isabella_decisions
          (id, tenant_id, actor_id, authority, capability, policy, risk, model_id,
           input_hash, output_hash, result, previous_hash, record_hash, evidence_ids, recorded_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb, $15)
+       SELECT $2, $1, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb, $15
+         FROM tenant_lock
+        WHERE $12 = COALESCE((SELECT record_hash FROM latest), 'GENESIS')
        ON CONFLICT (tenant_id, record_hash) DO NOTHING
        RETURNING id`,
       [
-        record.id,
         record.tenantId,
+        record.id,
         record.actorId,
         record.authority,
         record.capability,
@@ -142,10 +146,25 @@ export function createPostgresDecisionLedger(deps?: DecisionLedgerDeps): LedgerS
         record.timestamp,
       ],
     );
-    if (!rows[0]) {
-      // Reenvío idempotente del mismo registro: no es un fallo de integridad.
-      return;
-    }
+
+    /*
+     * La ausencia de RETURNING puede significar idempotencia por conflicto o
+     * rechazo por mismatch de cadena. Se distingue para no ocultar corrupción.
+     */
+    if (rows[0]) return;
+    const duplicate = await run(
+      `SELECT 1
+         FROM public.isabella_decisions
+        WHERE tenant_id = $1 AND record_hash = $2
+        LIMIT 1`,
+      [record.tenantId, record.recordHash],
+    );
+    if (duplicate.rows[0]) return;
+
+    const expected = (await latestHash(record.tenantId)) ?? "GENESIS";
+    throw new Error(
+      `DECISION_CHAIN_MISMATCH: previousHash ${record.previousHash} no coincide con el último record_hash ${expected}.`,
+    );
   }
 
   async function verifyChain(
