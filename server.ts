@@ -2494,9 +2494,16 @@ process.on("uncaughtException", (err: Error) => {
   process.exit(1);
 });
 
-// Vite middleware & Static Serving
-async function startServer() {
-  if (process.env.NODE_ENV !== "production") {
+  // Vite middleware & Static Serving
+  async function startServer() {
+    const nativeEnvironment = {
+      auth: Boolean(process.env.AUTH_JWT_SECRET || process.env.JWT),
+      mux: Boolean(process.env.MUX_TOKEN_ID && process.env.MUX_TOKEN_SECRET),
+      redirect: Boolean(process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL),
+    };
+    log.info("native_environment_ready", nativeEnvironment);
+
+    if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       // The Express server owns the preview HTTP listener; Vite cannot attach

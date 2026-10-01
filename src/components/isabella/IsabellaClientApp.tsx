@@ -321,7 +321,7 @@ function IsabellaInterface() {
                   <p className="mt-0.5 font-mono text-[9.5px] uppercase tracking-widest text-muted-foreground">
                     {activeTab === "terminal" &&
                       `                    Canal gobernado: ${isabella.preset.name} · Decisión humana`}
-                    {activeTab === "cli" && "Consola Retro Directa"}
+                    {activeTab === "cli" && "Consola de Operaciones Directa"}
                     {activeTab === "governance" && "Gobernanza y Salud de Módulos Cognitivos"}
                     {activeTab === "catalog" && "Gobernanza de APIs e Invocaciones"}
                     {activeTab === "monetization" && "Tablero de Consumo Soberano"}

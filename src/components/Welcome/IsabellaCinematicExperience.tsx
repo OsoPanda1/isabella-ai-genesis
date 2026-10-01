@@ -157,6 +157,7 @@ export function IsabellaCinematicExperience({
   const [reducedMotion, setReducedMotion] = useState(false);
   const [media, setMedia] = useState<IntroMediaConfig>({ fallback: { type: "procedural" } });
   const [mediaFailed, setMediaFailed] = useState(false);
+  const [permissionsAccepted, setPermissionsAccepted] = useState(false);
   const { sendMessage, setActiveView } = useCrown();
   // Mux entrega el mismo playbackId como HLS adaptativo, MP4 Enhanced y
   // thumbnails; MuxPlayer negocia el mejor rendimiento según la conexión.
@@ -408,6 +409,18 @@ export function IsabellaCinematicExperience({
           })}
         </nav>
         <section className="isabella-welcome-content">
+          <div className="isabella-welcome-intro">
+            <div>
+              <span className="isabella-welcome-kicker">SOVEREIGN AI / LATAM · 2026</span>
+              <h1>Una nueva forma de entrar en relación con la inteligencia.</h1>
+              <p>Isabella nace en Latinoamérica para convertir contexto, evidencia y territorio en decisiones humanas más claras.</p>
+            </div>
+            <div className="isabella-welcome-signal" aria-label="Sistema operativo">
+              <span className="isabella-signal-dot" />
+              <strong>NODO CERO</strong>
+              <small>SISTEMA LISTO</small>
+            </div>
+          </div>
           {tab === "genesis" && (
             <div className="isabella-section">
               <article className="isabella-feature-card">
@@ -463,9 +476,22 @@ export function IsabellaCinematicExperience({
           )}
         </section>
         <footer className="isabella-welcome-footer">
-          <span>Las capacidades no disponibles se muestran como simulación o degradación.</span>
-          <button className="isabella-enter-button" onClick={enter}>
-            Entrar al ecosistema
+          <div className="isabella-consent-stack">
+            <label className="isabella-consent-check">
+              <input
+                type="checkbox"
+                checked={permissionsAccepted}
+                onChange={(event) => setPermissionsAccepted(event.target.checked)}
+              />
+              <span>
+                Acepto la inmersión inicial de audio y video, la política de privacidad, cookies y reglamentos internos de Isabella.
+              </span>
+            </label>
+            <span className="isabella-disclaimer">Las capacidades no disponibles se muestran como simulación o degradación.</span>
+          </div>
+          <button className="isabella-enter-button" onClick={enter} disabled={!permissionsAccepted}>
+            <span>{permissionsAccepted ? "Iniciar inmersión" : "Autorizar ingreso"}</span>
+            <ArrowRight size={16} />
           </button>
         </footer>
       </div>

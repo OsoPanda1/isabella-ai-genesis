@@ -63,12 +63,20 @@ function evaluateGovernance(request: IntelligenceRequest): GovernanceDecision {
       policyIds: [],
     };
   const temperature = request.temperature ?? 0.7;
-  if (temperature < 0 || temperature > 2)
+  if (!Number.isFinite(temperature) || temperature < 0 || temperature > 2)
     return {
       decision: "DENY",
       reasons: ["temperature-out-of-range"],
       riskScore: 50,
       policyIds: [],
+    };
+  const maxTokens = request.maxTokens ?? 1024;
+  if (!Number.isInteger(maxTokens) || maxTokens < 1 || maxTokens > 32_000)
+    return {
+      decision: "DENY",
+      reasons: ["max-tokens-out-of-range"],
+      riskScore: 60,
+      policyIds: ["inference-firewall-v1"],
     };
   return {
     decision: "ALLOW",

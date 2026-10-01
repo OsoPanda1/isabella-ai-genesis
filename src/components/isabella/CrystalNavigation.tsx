@@ -68,8 +68,13 @@ export function CrystalNavigation({
   collapsed: boolean;
 }) {
   return (
-    <nav className="p-2 space-y-4 flex-1" aria-label="Navegación principal">
-      {groups.map((group) => (
+    <nav className="isabella-nav flex-1 overflow-y-auto px-3 py-4" aria-label="Navegación principal">
+      <div className="isabella-nav-heading">
+        <span>Workspace</span>
+        <span className="isabella-nav-rule" aria-hidden="true" />
+      </div>
+      <div className="isabella-nav-groups">
+        {groups.map((group) => (
         <AccordionGroup
           key={group.id}
           group={group}
@@ -77,7 +82,8 @@ export function CrystalNavigation({
           onSelect={onSelect}
           collapsed={collapsed}
         />
-      ))}
+        ))}
+      </div>
     </nav>
   );
 }
@@ -97,7 +103,7 @@ function AccordionGroup({
   const isOpen = collapsed || group.isOpen;
 
   return (
-    <div className="space-y-1">
+    <section className="isabella-nav-group" aria-labelledby={`nav-label-${group.id}`}>
       {collapsed ? (
         <button
           type="button"
@@ -115,7 +121,8 @@ function AccordionGroup({
           onClick={group.onToggle}
           aria-expanded={isOpen}
           aria-controls={`nav-group-${group.id}`}
-          className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-muted-foreground hover:text-platinum font-mono text-[10px] uppercase tracking-wider transition-all"
+          id={`nav-label-${group.id}`}
+          className="isabella-nav-group-trigger flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-muted-foreground transition-all"
         >
           <span className="flex items-center gap-2">
             <group.Icon className={`size-3.5 ${group.colorClass}`} />
@@ -173,7 +180,7 @@ function AccordionGroup({
           })}
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -200,7 +207,7 @@ export const NAV_GROUPS = (
       },
       {
         id: "cli",
-        label: "Consola Retro CLI",
+        label: "Consola de Operaciones",
         icon: <TerminalIcon className="size-4" />,
         glow: "crystal-glow-electric",
         activeClass:

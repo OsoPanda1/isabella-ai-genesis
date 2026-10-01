@@ -682,20 +682,36 @@
 }
 
 @media (max-width: 640px) {
-  .isabella-welcome-tabs {
-    padding: 6px 10px;
-  }
-  .isabella-welcome-content {
-    padding: 16px;
-  }
-  .isabella-welcome-footer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .isabella-welcome-footer span {
-    text-align: center;
-  }
-  .isabella-enter-button {
-    width: 100%;
-  }
+  .isabella-welcome-tabs { padding: 6px 10px; }
+  .isabella-welcome-content { padding: 16px; }
+  .isabella-welcome-footer { flex-direction: column; align-items: stretch; }
+  .isabella-welcome-footer span { text-align: center; }
+  .isabella-enter-button { width: 100%; }
 }
+
+/* 2026 executive surface: quiet, editorial, institutional. */
+.isabella-welcome-overlay { padding: clamp(16px, 4vw, 48px); background: radial-gradient(circle at 50% 0%, rgba(31, 86, 111, .22), transparent 45%), rgba(2, 4, 8, .78); backdrop-filter: blur(28px) saturate(125%); }
+.isabella-welcome-modal { width: min(100%, 1080px); max-height: min(900px, 92dvh); border: 1px solid rgba(183, 203, 214, .16); border-radius: 28px; background: linear-gradient(135deg, rgba(17, 24, 31, .94), rgba(6, 11, 17, .98) 58%, rgba(17, 25, 30, .94)); box-shadow: 0 32px 100px rgba(0, 0, 0, .64), inset 0 1px rgba(255,255,255,.08); }
+.isabella-welcome-header { padding: 20px clamp(20px, 4vw, 44px); background: rgba(255,255,255,.018); border-bottom-color: rgba(183,203,214,.1); }
+.isabella-welcome-brand p { color: rgba(196,207,214,.58); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.isabella-welcome-tabs { gap: 3px; padding: 10px clamp(20px, 4vw, 44px); background: rgba(0,0,0,.18); border-bottom-color: rgba(183,203,214,.1); }
+.isabella-tab { border-radius: 8px; color: rgba(196,207,214,.54); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+.isabella-tab--active { color: #f2d28a; background: rgba(217,180,91,.1); }
+.isabella-welcome-content { padding: clamp(24px, 5vw, 56px) clamp(20px, 6vw, 72px); }
+.isabella-welcome-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; margin-bottom: 36px; }
+.isabella-welcome-kicker { display: block; margin-bottom: 18px; color: #d9b45b; font: 600 10px/1.2 var(--font-mono, ui-monospace); letter-spacing: .22em; }
+.isabella-welcome-intro h1 { max-width: 650px; margin: 0; color: #f2f5f5; font-size: clamp(30px, 5vw, 64px); font-weight: 500; letter-spacing: -.055em; line-height: .98; }
+.isabella-welcome-intro p { max-width: 560px; margin: 20px 0 0; color: rgba(202,213,219,.68); font-size: 15px; line-height: 1.65; }
+.isabella-welcome-signal { min-width: 150px; display: grid; gap: 7px; padding: 14px 16px; border-left: 1px solid rgba(217,180,91,.46); color: #d9b45b; font: 600 10px/1.2 var(--font-mono, ui-monospace); letter-spacing: .14em; }
+.isabella-welcome-signal small { color: rgba(196,207,214,.45); font-size: 9px; }
+.isabella-signal-dot { width: 7px; height: 7px; border-radius: 50%; background: #6dd3a5; box-shadow: 0 0 16px #6dd3a5; }
+.isabella-feature-card, .isabella-pillar, .isabella-capability, .isabella-starter { border-color: rgba(183,203,214,.13); background: rgba(255,255,255,.035); box-shadow: inset 0 1px rgba(255,255,255,.035); }
+.isabella-pillar:hover, .isabella-capability:hover, .isabella-starter:hover { border-color: rgba(217,180,91,.42); background: rgba(255,255,255,.06); transform: translateY(-3px); }
+.isabella-welcome-footer { align-items: flex-end; padding: 18px clamp(20px,4vw,44px) 22px; background: rgba(0,0,0,.22); border-top-color: rgba(183,203,214,.1); }
+.isabella-consent-stack { display: grid; gap: 8px; max-width: 680px; }
+.isabella-consent-check { display: flex; align-items: flex-start; gap: 10px; color: rgba(225,232,234,.72); font-size: 11px; line-height: 1.5; cursor: pointer; }
+.isabella-consent-check input { accent-color: #d9b45b; margin-top: 2px; }
+.isabella-disclaimer { color: rgba(196,207,214,.38); font: 10px/1.4 var(--font-mono, ui-monospace); }
+.isabella-enter-button { display: inline-flex; align-items: center; gap: 12px; min-width: 190px; justify-content: center; padding: 13px 20px; border: 1px solid rgba(217,180,91,.6); border-radius: 10px; color: #101413; background: #e2bf6d; box-shadow: 0 10px 30px rgba(217,180,91,.18); }
+.isabella-enter-button:disabled { opacity: .42; cursor: not-allowed; box-shadow: none; }
+@media (max-width: 700px) { .isabella-welcome-intro { display: block; } .isabella-welcome-signal { margin-top: 24px; } .isabella-welcome-footer { align-items: stretch; } .isabella-enter-button { width: 100%; } }
