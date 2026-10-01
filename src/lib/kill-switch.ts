@@ -52,6 +52,7 @@ export function createMemoryKillSwitchStore(
   return {
     states,
     async isKilled(capability: string): Promise<boolean> {
+      if (!isKnownCapability(capability)) return true;
       return states.get(capability)?.engaged === true;
     },
     async engage(capability: string, reason: string, actorId: string): Promise<KillSwitchState> {
@@ -121,6 +122,7 @@ export function createPostgresKillSwitchStore(
 ): KillSwitchStore {
   return {
     async isKilled(capability: string): Promise<boolean> {
+      if (!isKnownCapability(capability)) return true;
       const { rows } = await getPool().query(
         "SELECT engaged FROM kill_switch_state WHERE capability = $1 LIMIT 1",
         [capability],
@@ -174,6 +176,7 @@ export const KILL_SWITCH = {
 // through the stores above and can be wired by the production control plane.
 export interface KillSwitchEvent {
   id: string;
+  capability: KillCapability;
   trigger: string;
   severity: string;
   status: "active" | "resolved";
@@ -185,10 +188,18 @@ export interface KillSwitchEvent {
 
 const compatibilityEvents = new Map<string, KillSwitchEvent>();
 
-export function activateKillSwitch(trigger: string, severity = "SEV-2"): KillSwitchEvent {
-  const id = `ks-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+export function activateKillSwitch(
+  trigger: string,
+  severity = "SEV-2",
+  capability: KillCapability = "inference",
+): KillSwitchEvent {
+  if (typeof trigger !== "string" || !trigger.trim()) throw new Error("Trigger obligatorio.");
+  if (typeof severity !== "string" || !severity.trim()) throw new Error("Severity inválida.");
+  if (!isKnownCapability(capability)) throw new Error("Capacidad de kill-switch inválida.");
+  const id = `ks-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
   const event: KillSwitchEvent = {
     id,
+    capability,
     trigger: trigger.slice(0, 512),
     severity: severity.slice(0, 32),
     status: "active",
@@ -197,6 +208,46 @@ export function activateKillSwitch(trigger: string, severity = "SEV-2"): KillSwi
   };
   compatibilityEvents.set(id, event);
   return event;
+}
+
+export function resolveKillCapabilityFromTrigger(trigger: string): KillCapability {
+  const normalized = trigger.trim().toLowerCase();
+  if (normalized.includes("tool")) return "tool-execution";
+  if (normalized.includes("skill")) return "skill-execution";
+  if (normalized.includes("payout") || normalized.includes("payment")) return "payouts";
+  if (normalized.includes("quantum")) return "quantum-jobs";
+  return "inference";
+}
+
+export async function activateCanonicalKillSwitch(params: {
+  trigger: string;
+  severity: string;
+  capability: KillCapability;
+  actorId: string;
+}): Promise<KillSwitchState> {
+  if (typeof params.trigger !== "string" || !params.trigger.trim()) throw new Error("Trigger obligatorio.");
+  if (typeof params.severity !== "string" || !params.severity.trim()) throw new Error("Severity inválida.");
+  if (!params.actorId.trim()) throw new Error("Actor obligatorio.");
+  const store = config().DATABASE_URL ? createPostgresKillSwitchStore() : createMemoryKillSwitchStore();
+  return store.engage(
+    params.capability,
+    `[${params.severity.slice(0, 32)}] ${params.trigger.slice(0, 512)}`,
+    params.actorId.slice(0, 256),
+  );
+}
+
+export async function releaseCanonicalKillSwitch(
+  capability: KillCapability,
+  actorId: string,
+): Promise<KillSwitchState> {
+  if (!actorId.trim()) throw new Error("Actor obligatorio.");
+  const store = config().DATABASE_URL ? createPostgresKillSwitchStore() : createMemoryKillSwitchStore();
+  return store.release(capability, actorId.slice(0, 256));
+}
+
+export async function listCanonicalKillSwitchStates(): Promise<KillSwitchState[]> {
+  const store = config().DATABASE_URL ? createPostgresKillSwitchStore() : createMemoryKillSwitchStore();
+  return store.list();
 }
 
 export function executeNextStep(eventId: string): KillSwitchEvent | null {
