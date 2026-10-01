@@ -18,6 +18,13 @@ import { QuantumBridgeRequestSchema, quantumGuard, runQuantumBridge } from "./sr
 import { summarizeIsabellaV5Fusion } from "./src/lib/isabella-v5";
 import { tamvPlatformRouter } from "./src/lib/tamv-platform.server";
 import { resolveIntroConfig } from "./src/lib/media/intro-config";
+import { loadConfig } from "./src/lib/config";
+import {
+  createMuxDirectUpload,
+  getMuxAsset,
+  MuxApiError,
+  MuxUnavailableError,
+} from "./src/lib/mux/mux.server";
 import { signLedgerBlockPQC, generateMLKEMKeyPair, encapsulateMLKEM } from "./src/lib/postQuantumCrypto";
 import { authenticate, requireRole, requireScope, currentPrincipal } from "./src/middleware/auth";
 import { rateLimit, quotaGate, getBillingIdentity } from "./src/middleware/rateLimit";
@@ -520,6 +527,50 @@ app.get("/api/mux-intro", (req, res) => {
       fallback: { type: "procedural" },
       cacheTtl: 60,
     });
+  }
+});
+
+function sendMuxError(
+  res: import("express").Response,
+  error: unknown,
+  fallbackCode: string,
+): void {
+  if (error instanceof MuxUnavailableError) {
+    res.status(503).json({ ok: false, code: error.code, message: error.message });
+    return;
+  }
+  if (error instanceof MuxApiError) {
+    res.status(error.status === 400 ? 400 : 502).json({
+      ok: false,
+      code: error.code,
+      message: error.message,
+    });
+    return;
+  }
+  res.status(500).json({ ok: false, code: fallbackCode, message: "No se pudo completar la operación con Mux." });
+}
+
+// Direct upload de video a Mux: el navegador sube el archivo directamente a la
+// URL firmada de un solo uso. El servidor solo emite esa URL; el token de cuenta
+// de Mux nunca sale de este proceso ni llega al cliente.
+app.post("/api/mux/uploads", rateLimit, authenticate, async (req, res) => {
+  try {
+    const upload = await createMuxDirectUpload(loadConfig().PUBLIC_URL);
+    res.status(201).json({ ok: true, ...upload });
+  } catch (error) {
+    sendMuxError(res, error, "MUX_UPLOAD_FAILED");
+  }
+});
+
+// Estado de un asset ya subido: devuelve el playbackId cuando Mux terminó de
+// procesarlo, que es lo que consume la introducción cinematográfica.
+app.get("/api/mux/assets/:assetId", authenticate, async (req, res) => {
+  try {
+    const asset = await getMuxAsset(String(req.params.assetId ?? ""));
+    res.set("Cache-Control", "private, no-store");
+    res.json({ ok: true, ...asset });
+  } catch (error) {
+    sendMuxError(res, error, "MUX_ASSET_STATE_FAILED");
   }
 });
 

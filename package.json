@@ -69,6 +69,7 @@
     "@google/genai": "^2.24.0",
     "@hookform/resolvers": "^5.2.2",
     "@idlen/chat-sdk": "1.0.5",
+    "@mux/mux-player-react": "^3.13.4",
     "@neondatabase/serverless": "^1.1.0",
     "@prisma/client": "^7.10.0",
     "@prisma/client-runtime-utils": "7.10.0",
