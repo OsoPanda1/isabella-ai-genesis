@@ -70,7 +70,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .isabella-status-orb { animation: none; }
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* Keep large dashboard surfaces responsive without forcing every subtree to paint. */
+.isabella-shell main > * { content-visibility: auto; contain-intrinsic-size: 720px; }
+.isabella-shell button, .isabella-shell a { -webkit-tap-highlight-color: transparent; }
 
 @media (max-width: 720px) {
   .isabella-command-strip { min-height: 4.25rem; }
