@@ -17,6 +17,7 @@ import { creatorEconomyRouter } from "./src/lib/creator-economy/routes";
 import { QuantumBridgeRequestSchema, quantumGuard, runQuantumBridge } from "./src/lib/quantum-bridge.server";
 import { summarizeIsabellaV5Fusion } from "./src/lib/isabella-v5";
 import { tamvPlatformRouter } from "./src/lib/tamv-platform.server";
+import { resolveIntroConfig } from "./src/lib/media/intro-config";
 import { signLedgerBlockPQC, generateMLKEMKeyPair, encapsulateMLKEM } from "./src/lib/postQuantumCrypto";
 import { authenticate, requireRole, requireScope, currentPrincipal } from "./src/middleware/auth";
 import { rateLimit, quotaGate, getBillingIdentity } from "./src/middleware/rateLimit";
@@ -500,6 +501,26 @@ app.get("/api/health", (req, res) => {
     visualEngine: "Imagen & Neural Canvas Studio Online",
     timestamp: new Date().toISOString(),
   });
+});
+
+// Cinematic introduction media configuration. Express owns this path in
+// production: the file route under src/routes/api is never reached because the
+// catch-all below answers every GET before the TanStack handler would.
+app.get("/api/mux-intro", (req, res) => {
+  try {
+    const config = resolveIntroConfig();
+    res.set({
+      "Cache-Control": `private, max-age=${config.cacheTtl}, stale-while-revalidate=300`,
+      "X-Content-Type-Options": "nosniff",
+    });
+    res.json(config);
+  } catch {
+    res.status(503).json({
+      enabled: false,
+      fallback: { type: "procedural" },
+      cacheTtl: 60,
+    });
+  }
 });
 
 app.get("/api/v1/billing/plans", authenticate, (req, res) => {
@@ -2454,10 +2475,9 @@ async function startServer() {
     app.use(express.static(distPath));
     app.use(express.static(legacyDistPath));
     app.get("/{*splat}", (req, res) => {
-      const indexPath = existsSync(path.join(distPath, "index.html"))
-      ? path.join(distPath, "index.html")
-      : path.join(process.cwd(), "index.html");
-    res.sendFile(indexPath);
+      const builtIndex = path.join(distPath, "index.html");
+      const indexPath = existsSync(builtIndex) ? builtIndex : path.join(process.cwd(), "index.html");
+      res.sendFile(indexPath, { dotfiles: "allow" });
     });
     app.post("/{*splat}", (req, res) => {
       res.status(404).json({ ok: false, error: "API route not found" });
