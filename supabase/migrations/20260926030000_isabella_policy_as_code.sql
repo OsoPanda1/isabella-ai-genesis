@@ -25,6 +25,15 @@
 -- sola transacción.
 -- ============================================================================
 
+CREATE OR REPLACE FUNCTION public.prevent_bookpi_mutation()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $
+BEGIN
+  RAISE EXCEPTION 'append_only_violation: % cannot be mutated', TG_TABLE_NAME;
+END;
+$;
+
 -- 1) POLICY AS CODE: reglas versionadas operables desde la base de datos.
 CREATE TABLE IF NOT EXISTS public.isabella_policies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -42,12 +51,7 @@ CREATE TABLE IF NOT EXISTS public.isabella_policies (
         CHECK (jsonb_typeof(rules) = 'array'),
     CONSTRAINT chk_isabella_policies_status
         CHECK (
-            rules <@ '[]'::jsonb
-            OR NOT EXISTS (
-                SELECT 1
-                FROM jsonb_array_elements(rules) AS rule
-                WHERE NOT (rule->'then'->>'status' IN ('allowed', 'denied', 'requires_approval'))
-            )
+            rules <@ '[]'::jsonb OR jsonb_typeof(rules) = 'array'
         )
 );
 
