@@ -18,9 +18,30 @@ import {
   Layers,
   Maximize2,
   Palette,
+  ThumbsUp,
+  ThumbsDown,
+  MessageSquare,
+  AlertCircle,
+  X,
 } from "lucide-react";
 import { soundManager } from "../../utils/soundEffects";
 import { authFetch } from "../../lib/auth-client";
+
+const POSITIVE_CATEGORIES = [
+  "Precisión Epistémica (E0/E1)",
+  "Prosodia y Empatía Humana",
+  "Razonamiento Dialéctico CROWN",
+  "Resolución Rápida",
+  "Código y Lógica Exacta",
+];
+
+const NEGATIVE_CATEGORIES = [
+  "Alucinación o Inexactitud",
+  "Tono Rígido o Desalineado",
+  "Falta Fundamentación / Citas",
+  "Respuesta Parcial o Incompleta",
+  "Alerta de Seguridad / ARGUS",
+];
 
 interface MessageStreamProps {
   messages: TerminalMessage[];
@@ -30,11 +51,91 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [expandedTraceId, setExpandedTraceId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const { speakText, state, setActiveView } = useCrown();
+  const [feedbackDrawerMsgId, setFeedbackDrawerMsgId] = useState<string | null>(null);
+  const [feedbackState, setFeedbackState] = useState<
+    Record<string, { category?: string; notes?: string }>
+  >({});
+  const [feedbackToast, setFeedbackToast] = useState<{ id: string; text: string } | null>(null);
+
+  const { speakText, state, setActiveView, submitMessageFeedback, removeMessageFeedback } =
+    useCrown();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, state.isProcessing]);
+
+  const showToast = (id: string, text: string) => {
+    setFeedbackToast({ id, text });
+    setTimeout(() => {
+      setFeedbackToast((cur) => (cur?.id === id ? null : cur));
+    }, 3000);
+  };
+
+  const handleThumbsUp = (msgId: string) => {
+    const current = messages.find((m) => m.id === msgId);
+    if (current?.feedback === "up") {
+      removeMessageFeedback(msgId);
+      showToast(msgId, "Evaluación retirada");
+      return;
+    }
+    const cat = feedbackState[msgId]?.category || "Precisión Epistémica (E0/E1)";
+    submitMessageFeedback(msgId, "up", {
+      category: cat,
+      notes: feedbackState[msgId]?.notes,
+    });
+    showToast(msgId, "¡Evaluación positiva registrada!");
+  };
+
+  const handleThumbsDown = (msgId: string) => {
+    const current = messages.find((m) => m.id === msgId);
+    if (current?.feedback === "down") {
+      removeMessageFeedback(msgId);
+      showToast(msgId, "Evaluación retirada");
+      setFeedbackDrawerMsgId(null);
+      return;
+    }
+    const cat = feedbackState[msgId]?.category || "Alucinación o Inexactitud";
+    submitMessageFeedback(msgId, "down", {
+      category: cat,
+      notes: feedbackState[msgId]?.notes,
+    });
+    setFeedbackDrawerMsgId(msgId);
+    showToast(msgId, "Observación de modelo registrada. Puedes detallar abajo.");
+  };
+
+  const toggleFeedbackDrawer = (msgId: string) => {
+    soundManager.playBeep(700, 0.03);
+    setFeedbackDrawerMsgId((prev) => (prev === msgId ? null : msgId));
+  };
+
+  const handleSelectCategory = (msgId: string, category: string, rating: "up" | "down") => {
+    setFeedbackState((prev) => ({
+      ...prev,
+      [msgId]: { ...prev[msgId], category },
+    }));
+    submitMessageFeedback(msgId, rating, {
+      category,
+      notes: feedbackState[msgId]?.notes,
+    });
+    showToast(msgId, `Categoría asignada: ${category}`);
+  };
+
+  const handleNoteChange = (msgId: string, notes: string) => {
+    setFeedbackState((prev) => ({
+      ...prev,
+      [msgId]: { ...prev[msgId], notes },
+    }));
+  };
+
+  const handleSaveFeedbackDetails = (msgId: string, rating: "up" | "down") => {
+    const current = feedbackState[msgId];
+    submitMessageFeedback(msgId, rating, {
+      category: current?.category,
+      notes: current?.notes,
+    });
+    setFeedbackDrawerMsgId(null);
+    showToast(msgId, "Detalles de calidad guardados para análisis del modelo.");
+  };
 
   const handleCopy = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
@@ -530,41 +631,234 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
                   );
                 })()}
 
-              {/* Bottom interaction controls */}
-              <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => speakText(msg.content ?? "")}
-                    className="flex items-center gap-1 hover:text-amber-300 transition-colors cursor-pointer"
-                    title="Escuchar respuesta de Isabella con su voz"
-                  >
-                    <Volume2 className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Escuchar Voz</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(msg.id, msg.content ?? "")}
-                    className="flex items-center gap-1 hover:text-sky-300 transition-colors cursor-pointer"
-                    title="Copiar texto"
-                  >
-                    {copiedId === msg.id ? (
+              {/* Bottom interaction & Qualitative Model Feedback controls */}
+              <div className="pt-3 mt-2 border-t border-slate-800/80 space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono text-slate-400">
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* Voice narration */}
+                    <button
+                      type="button"
+                      onClick={() => speakText(msg.content ?? "")}
+                      className="flex items-center gap-1 hover:text-amber-300 transition-colors cursor-pointer"
+                      title="Escuchar respuesta de Isabella con su voz"
+                    >
+                      <Volume2 className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Escuchar Voz</span>
+                    </button>
+
+                    {/* Copy button */}
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(msg.id, msg.content ?? "")}
+                      className="flex items-center gap-1 hover:text-sky-300 transition-colors cursor-pointer"
+                      title="Copiar texto"
+                    >
+                      {copiedId === msg.id ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-400">Copiado</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Copiar</span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* AI Model Qualitative Feedback (Thumbs Up / Down) */}
+                    {isAssistant && (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        <span className="text-emerald-400">Copiado</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Copiar</span>
+                        <div className="h-3 w-px bg-slate-800 hidden sm:block" />
+                        <div className="flex items-center gap-1 bg-[#030712]/90 p-1 rounded-xl border border-slate-800/90 shadow-inner">
+                          {/* Thumbs Up button */}
+                          <button
+                            type="button"
+                            onClick={() => handleThumbsUp(msg.id)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all cursor-pointer ${
+                              msg.feedback === "up"
+                                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-950/60 font-bold"
+                                : "text-slate-400 hover:text-emerald-300 hover:bg-slate-800/60"
+                            }`}
+                            title="Respuesta precisa, coherente y de alta calidad cualitativa"
+                            aria-label="Voto positivo para esta respuesta"
+                          >
+                            <ThumbsUp
+                              className={`w-3.5 h-3.5 ${
+                                msg.feedback === "up"
+                                  ? "text-emerald-400 fill-emerald-400/30 scale-110"
+                                  : "text-slate-400"
+                              } transition-transform`}
+                            />
+                            <span>Útil</span>
+                          </button>
+
+                          {/* Thumbs Down button */}
+                          <button
+                            type="button"
+                            onClick={() => handleThumbsDown(msg.id)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all cursor-pointer ${
+                              msg.feedback === "down"
+                                ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm shadow-rose-950/60 font-bold"
+                                : "text-slate-400 hover:text-rose-300 hover:bg-slate-800/60"
+                            }`}
+                            title="Señalar alucinación, inconsistencia o respuesta mejorable"
+                            aria-label="Voto negativo para esta respuesta"
+                          >
+                            <ThumbsDown
+                              className={`w-3.5 h-3.5 ${
+                                msg.feedback === "down"
+                                  ? "text-rose-400 fill-rose-400/30 scale-110"
+                                  : "text-slate-400"
+                              } transition-transform`}
+                            />
+                            <span>Mejorar</span>
+                          </button>
+
+                          {/* Toggle Qualitative Details button */}
+                          <button
+                            type="button"
+                            onClick={() => toggleFeedbackDrawer(msg.id)}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-mono transition-all cursor-pointer flex items-center gap-1 ${
+                              feedbackDrawerMsgId === msg.id
+                                ? "bg-sky-500/20 text-sky-300 border border-sky-500/40 font-bold"
+                                : "text-slate-500 hover:text-slate-300 hover:bg-slate-800/40"
+                            }`}
+                            title="Desplegar categorías cualitativas y notas de rendimiento"
+                          >
+                            <MessageSquare className="w-3 h-3 text-sky-400" />
+                            <span className="hidden md:inline">
+                              {feedbackDrawerMsgId === msg.id ? "Ocultar" : "Detalles"}
+                            </span>
+                          </button>
+                        </div>
+
+                        {/* Active feedback status badge */}
+                        {msg.feedback && (
+                          <div
+                            className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono border ${
+                              msg.feedback === "up"
+                                ? "bg-emerald-950/40 text-emerald-300 border-emerald-700/50"
+                                : "bg-rose-950/40 text-rose-300 border-rose-700/50"
+                            }`}
+                          >
+                            {msg.feedback === "up" ? (
+                              <Check className="w-3 h-3 text-emerald-400" />
+                            ) : (
+                              <AlertCircle className="w-3 h-3 text-rose-400" />
+                            )}
+                            <span className="truncate max-w-[170px]">
+                              {msg.feedbackCategory ||
+                                (msg.feedback === "up" ? "Alta Calidad" : "Revisión")}
+                            </span>
+                          </div>
+                        )}
                       </>
                     )}
-                  </button>
+                  </div>
+
+                  <div className="text-[10px] text-slate-400 hidden sm:block">
+                    Isabella Villaseñor • CROWN Enterprise
+                  </div>
                 </div>
 
-                <div className="text-[10px] text-slate-400">
-                  Isabella Villaseñor • CROWN Enterprise
-                </div>
+                {/* Qualitative Feedback Toast */}
+                {feedbackToast?.id === msg.id && (
+                  <div className="px-3 py-1.5 rounded-lg bg-sky-950/80 border border-sky-500/40 text-[11px] font-mono text-sky-300 flex items-center justify-between animate-in fade-in duration-150">
+                    <div className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                      <span>{feedbackToast.text}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFeedbackToast(null)}
+                      className="text-slate-400 hover:text-white"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Qualitative Model Performance Tagging Panel (Expandable Drawer) */}
+                {isAssistant && feedbackDrawerMsgId === msg.id && (
+                  <div className="p-3 bg-[#030712]/95 rounded-2xl border border-sky-500/30 text-xs space-y-2.5 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 font-mono text-[11px] font-bold text-sky-300">
+                        <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                        <span>CAPTURA CUALITATIVA DE RENDIMIENTO DEL MODELO</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackDrawerMsgId(null)}
+                        className="text-slate-500 hover:text-slate-300 p-1 rounded-md cursor-pointer"
+                        title="Cerrar panel"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <p className="text-[11px] text-slate-300 font-sans leading-relaxed">
+                      Selecciona una categoría o ingresa una nota para refinar la alineación,
+                      grounding epistemológico y heurísticas del nodo cognitivo (ISA · SOPHIA · CROWN · ARGUS):
+                    </p>
+
+                    {/* Qualitative Category Pills */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {(msg.feedback === "down" ? NEGATIVE_CATEGORIES : POSITIVE_CATEGORIES).map(
+                        (cat) => {
+                          const isCatSelected =
+                            (feedbackState[msg.id]?.category || msg.feedbackCategory) === cat;
+                          return (
+                            <button
+                              key={cat}
+                              type="button"
+                              onClick={() =>
+                                handleSelectCategory(msg.id, cat, msg.feedback || "up")
+                              }
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-mono transition-all border cursor-pointer ${
+                                isCatSelected
+                                  ? msg.feedback === "down"
+                                    ? "bg-rose-500/20 text-rose-200 border-rose-500/60 font-bold shadow-sm shadow-rose-950/40"
+                                    : "bg-emerald-500/20 text-emerald-200 border-emerald-500/60 font-bold shadow-sm shadow-emerald-950/40"
+                                  : "bg-[#081220] text-slate-300 border-slate-800 hover:border-slate-700 hover:bg-[#0c1a30]"
+                              }`}
+                            >
+                              {cat}
+                            </button>
+                          );
+                        },
+                      )}
+                    </div>
+
+                    {/* Qualitative free-form observations input */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="text"
+                        value={
+                          feedbackState[msg.id]?.notes !== undefined
+                            ? feedbackState[msg.id]?.notes
+                            : msg.feedbackNotes || ""
+                        }
+                        onChange={(e) => handleNoteChange(msg.id, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleSaveFeedbackDetails(msg.id, msg.feedback || "up");
+                          }
+                        }}
+                        placeholder="Nota cualitativa (ej. la respuesta fue poética pero omitió citar la fuente)..."
+                        className="flex-1 bg-[#081220] border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-sky-500/60 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSaveFeedbackDetails(msg.id, msg.feedback || "up")}
+                        className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-md shadow-blue-950/40"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Guardar</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

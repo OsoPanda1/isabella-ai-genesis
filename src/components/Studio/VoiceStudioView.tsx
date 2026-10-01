@@ -21,6 +21,7 @@ import {
 import { soundManager } from "../../utils/soundEffects";
 import { VoiceSettings } from "../../types";
 import { getAvailableFemaleVoices, isStrictlyFemaleVoice } from "../../utils/voiceUtils";
+import { VoiceSpectrumVisualizer } from "../AudioVisualizer/VoiceSpectrumVisualizer";
 
 const TIMBRE_PRESETS: Array<{
   id: VoiceSettings["timbrePreset"];
@@ -193,49 +194,8 @@ export const VoiceStudioView: React.FC = () => {
             </div>
           </div>
 
-          {/* Equalizer frequency visualizer when speaking */}
-          <div className="rounded-2xl bg-[#030712] border border-slate-800 p-4 flex flex-col items-center justify-center relative overflow-hidden">
-            <div className="flex items-center gap-1.5 h-16 w-full justify-center">
-              {Array.from({ length: 32 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-1.5 rounded-full transition-all duration-150 ${
-                    isSpeaking
-                      ? "bg-gradient-to-t from-blue-600 via-sky-400 to-amber-300"
-                      : isListening
-                        ? "bg-rose-500/80"
-                        : "bg-slate-800"
-                  }`}
-                  style={{
-                    height: isSpeaking
-                      ? `${Math.max(12, Math.sin((i + Date.now() / 150) * 0.5) * 48 + 20)}px`
-                      : isListening
-                        ? `${Math.max(8, Math.random() * 32 + 10)}px`
-                        : "6px",
-                  }}
-                />
-              ))}
-            </div>
-
-            <div className="text-[11px] font-mono text-slate-400 mt-2 flex items-center gap-2">
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  isSpeaking
-                    ? "bg-amber-400 animate-ping"
-                    : isListening
-                      ? "bg-rose-400 animate-ping"
-                      : "bg-emerald-400"
-                }`}
-              />
-              <span>
-                {isSpeaking
-                  ? "SINTETIZANDO VOZ NATURAL Y FLUIDA DE ISABELLA"
-                  : isListening
-                    ? "MICRÓFONO ACTIVO :: ESCUCHANDO TU VOZ..."
-                    : "CANAL ACÚSTICO EN REPOSO"}
-              </span>
-            </div>
-          </div>
+          {/* Real-time Visual Spectrum Analyzer & Waveform Visualizer */}
+          <VoiceSpectrumVisualizer height={190} />
         </div>
       </div>
 
