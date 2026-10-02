@@ -1309,7 +1309,7 @@ Puedes conversar conmigo, pedirme que sintetice voz en tiempo real, me solicites
       abortControllerRef.current = new AbortController();
 
       try {
-        const response = await authFetch("/api/isabella/process", {
+        const response = await authFetch("/api/isabella", {
           method: "POST",
           signal: abortControllerRef.current.signal,
           body: JSON.stringify({

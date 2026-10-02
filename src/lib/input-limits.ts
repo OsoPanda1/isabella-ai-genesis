@@ -105,6 +105,12 @@ export async function parseSafeJsonBody(request: Request): Promise<unknown> {
     offset += chunk.length;
   }
 
-  const text = new TextDecoder().decode(completeBuffer);
-  return JSON.parse(text);
+  const text = new TextDecoder("utf-8", { fatal: true }).decode(completeBuffer).trim();
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new LimitError("INVALID_JSON", maxBytes, totalBytes);
+  }
 }

@@ -39,7 +39,7 @@ import {
 const logError = (...args: unknown[]): void => console.error(...args.map(redactLogArg));
 const logWarn = (...args: unknown[]): void => console.warn(...args.map(redactLogArg));
 
-type GatewayContext = {
+export type GatewayContext = {
   ip: string;
   traceId: string;
   correlationId: string;
@@ -48,6 +48,26 @@ type GatewayContext = {
   role: string;
   scope: string;
 };
+
+export function toGatewayContext(context: {
+  ip: string;
+  traceId: string;
+  correlationId: string;
+  userId: string;
+  tenantId: string;
+  role: string;
+  scope: string;
+}): GatewayContext {
+  return {
+    ip: context.ip,
+    traceId: context.traceId,
+    correlationId: context.correlationId,
+    userId: context.userId,
+    tenantId: context.tenantId,
+    role: context.role,
+    scope: context.scope,
+  };
+}
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
