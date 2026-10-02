@@ -188,6 +188,8 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
   return (
     <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
       {messages.map((msg) => {
+        const isAssistant = msg.role === "isabella" || msg.role === "assistant";
+
         if (msg.role === "system") {
           return (
             <div
