@@ -5,23 +5,17 @@
 
 export type RuntimeMode = "development" | "test" | "staging" | "production";
 
-export function resolveRuntimeMode(): RuntimeMode {
-  const env = (process.env.NODE_ENV || "development").toLowerCase();
-  if (env === "production" || process.env.VERCEL === "1") {
-    return "production";
-  }
-  if (env === "test" || process.env.VITEST === "true") {
-    return "test";
-  }
-  if (env === "staging") {
-    return "staging";
-  }
+export function resolveRuntimeMode(input?: string): RuntimeMode {
+  const env = String(input ?? process.env.NODE_ENV ?? "development").trim().toLowerCase();
+  if (env === "production" || process.env.VERCEL === "1") return "production";
+  if (env === "test" || process.env.VITEST === "true") return "test";
+  if (env === "staging") return "staging";
   return "development";
 }
 
-export function isProductionLike(): boolean {
-  const mode = resolveRuntimeMode();
-  return mode === "production" || mode === "staging";
+export function isProductionLike(mode?: RuntimeMode): boolean {
+  const resolved = mode ?? resolveRuntimeMode();
+  return resolved === "production" || resolved === "staging";
 }
 
 export function isDevMode(): boolean {
