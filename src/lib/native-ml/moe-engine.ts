@@ -81,6 +81,7 @@ export function createMoERoute(
   return {
     topK,
     capacityFactor,
+    options: { fallbackExpertId: options.fallbackExpertId },
     experts: [...experts],
     route(input: number[], logits: number[]): MoeGateDecision[] {
       if (logits.length !== experts.length) throw new Error("moe_logit_count_mismatch");
@@ -132,7 +133,11 @@ export async function executeMoE(
   }
 
   if (!outputs.length) {
-    const fallbackId = route.registry.has("fallback") ? "fallback" : undefined;
+    const fallbackId = route.registry.has("fallback")
+      ? "fallback"
+      : route.registry.has(route.options?.fallbackExpertId ?? "")
+        ? route.options?.fallbackExpertId
+        : undefined;
     if (!fallbackId) throw new Error("moe_capacity_exhausted_without_fallback");
     const fallback = route.registry.get(fallbackId)!;
     const output = await fallback.execute(input);
