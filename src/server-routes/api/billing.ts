@@ -13,7 +13,7 @@ import Stripe from "stripe";
 import { getSecret } from "../../lib/secrets";
 import { fraudReviewEngine } from "../../lib/monetization/fraud-review";
 import { executePayout } from "../../lib/monetization/payout-executor";
-import { bookpiPostgresRepository } from "../../lib/repositories/bookpi-postgres-repository";
+import { createBookpiPostgresRepository } from "../../lib/repositories/bookpi-postgres-repository";
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY || "sk_test_mock_stripe_key_placeholder";
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "whsec_test_secret";
@@ -34,6 +34,8 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
     res.status(400).json({ error: `Webhook signature verification failed: ${err instanceof Error ? err.message : String(err)}` });
     return;
   }
+
+  const bookpiPostgresRepository = createBookpiPostgresRepository();
 
   // Handle verified events
   switch (event.type) {
