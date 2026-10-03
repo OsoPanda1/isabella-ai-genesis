@@ -77,11 +77,20 @@ export class PrincipalContext {
     traceId: string,
     correlationId: string,
   ) {
+    const tenantId = typeof claims.tenantId === "string" ? claims.tenantId : claims.tenant_id;
+    const scope =
+      typeof claims.scope === "string"
+        ? claims.scope
+        : Array.isArray(claims.scopes)
+          ? claims.scopes.join(" ")
+          : "";
+    if (!tenantId) throw new Error("AUTH_TENANT_REQUIRED");
+    if (!scope) throw new Error("AUTH_SCOPE_REQUIRED");
     this.userId = claims.sub;
     this.username = username;
-    this.tenantId = claims.tenantId;
+    this.tenantId = tenantId;
     this.role = claims.role as Role;
-    this.scope = claims.scope;
+    this.scope = scope;
     this.ip = ip;
     this.traceId = traceId;
     this.correlationId = correlationId;
