@@ -566,43 +566,41 @@ export async function handleIsabellaChat(
     },
     timestamp: new Date().toISOString(),
   });
-  // Cuando la gobernanza deniega a Guest, la denuncia DEBE detener toda
-  // operacion con side effects de este turno: skills/herramientas y
-  // escrituras. Solo se conserva el turno conversacional sin herramientas
-  // (ISA-170). Este camino no escribe memoria ni ejecuta herramientas; si
-  // se anade una via de side effects, debe consultar guestDegraded.
-  let guestDegraded = false;
   if (governance.denied) {
-    const isGuestLowRisk =
-      context.role === "Guest" &&
-      governance.decision?.policy?.risk !== "critical" &&
-      governance.decision?.policy?.risk !== "high";
-    if (isGuestLowRisk) {
-      guestDegraded = true;
-      logWarn(
-        `[ISABELLA_GUEST_DEGRADED] trace=${context.traceId} reason=${governance.denialReason} risk=${governance.decision?.policy?.risk}`,
-      );
-      // continuar hacia fallback soberano — no bloquear UX pública
-    } else {
-      return contractError(
-        context,
-        IsabellaChatErrorCode.AUTHORIZATION_DENIED,
-        governance.denialReason ?? "Gobernanza denegada.",
-        403,
-      );
-    }
-  }
-  // 1. Enlace directo de habilidades soberanas (@skill:<nombre> o @<nombre>)
-  const skillInvocation = detectSkillInvocation(lastUserMessage);
-  if (guestDegraded && skillInvocation) {
-    // La gobernanza ya denegó el turno: nada de side effects para Guest.
+    logWarn(
+      `[ISABELLA_GOVERNANCE_DENY] trace=${context.traceId} reason=${governance.denialReason} risk=${governance.decision?.policy?.risk}`,
+    );
     return contractError(
       context,
       IsabellaChatErrorCode.AUTHORIZATION_DENIED,
-      "Gobernanza denegó la operación; Guest no puede ejecutar habilidades en este turno.",
+      governance.denialReason ?? "Gobernanza denegada.",
       403,
     );
   }
+  try {
+    const { createMemoryKillSwitchStore, createPostgresKillSwitchStore } =
+      await import("@/lib/kill-switch");
+    const store = config().DATABASE_URL
+      ? createPostgresKillSwitchStore()
+      : createMemoryKillSwitchStore();
+    if (await store.isKilled("inference"))
+      return contractError(
+        context,
+        IsabellaChatErrorCode.KILL_SWITCH_ACTIVE,
+        "La inferencia está detenida por el interruptor de emergencia.",
+        503,
+      );
+  } catch {
+    return contractError(
+      context,
+      IsabellaChatErrorCode.KILL_SWITCH_ACTIVE,
+      "No fue posible verificar el estado del interruptor de emergencia; inferencia bloqueada.",
+      503,
+      true,
+    );
+  }
+  // 1. Enlace directo de habilidades soberanas (@skill:<nombre> o @<nombre>)
+  const skillInvocation = detectSkillInvocation(lastUserMessage);
   if (skillInvocation) {
     const bridgeResult = await executeChatSkillBridge(skillInvocation, {
       correlationId: context.correlationId,
@@ -658,7 +656,7 @@ export async function handleIsabellaChat(
     matched: false,
     result: null,
   };
-  if (!guestDegraded && lastUserMessage.trim().startsWith("@")) {
+  if (lastUserMessage.trim().startsWith("@")) {
     conversationalSkill = await executeConversationalSkill(lastUserMessage, {
       requestId: context.correlationId,
       traceId: context.traceId,
@@ -681,28 +679,6 @@ export async function handleIsabellaChat(
         { skillCode: conversationalSkill.code, invocation: conversationalSkill.invocation },
       );
     }
-  }
-  try {
-    const { createMemoryKillSwitchStore, createPostgresKillSwitchStore } =
-      await import("@/lib/kill-switch");
-    const store = config().DATABASE_URL
-      ? createPostgresKillSwitchStore()
-      : createMemoryKillSwitchStore();
-    if (await store.isKilled("inference"))
-      return contractError(
-        context,
-        IsabellaChatErrorCode.KILL_SWITCH_ACTIVE,
-        "La inferencia está detenida por el interruptor de emergencia.",
-        503,
-      );
-  } catch {
-    return contractError(
-      context,
-      IsabellaChatErrorCode.KILL_SWITCH_ACTIVE,
-      "No fue posible verificar el estado del interruptor de emergencia; inferencia bloqueada.",
-      503,
-      true,
-    );
   }
   const nativeSignal = config().NATIVE_COMPREHENSION_ENABLED
     ? (() => {

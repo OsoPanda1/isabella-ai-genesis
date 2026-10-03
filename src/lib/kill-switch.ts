@@ -52,6 +52,7 @@ export function createMemoryKillSwitchStore(
   return {
     states,
     async isKilled(capability: string): Promise<boolean> {
+      if (!isKnownCapability(capability)) return true;
       return states.get(capability)?.engaged === true;
     },
     async engage(capability: string, reason: string, actorId: string): Promise<KillSwitchState> {
@@ -121,6 +122,7 @@ export function createPostgresKillSwitchStore(
 ): KillSwitchStore {
   return {
     async isKilled(capability: string): Promise<boolean> {
+      if (!isKnownCapability(capability)) return true;
       const { rows } = await getPool().query(
         "SELECT engaged FROM kill_switch_state WHERE capability = $1 LIMIT 1",
         [capability],

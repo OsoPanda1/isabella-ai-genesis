@@ -30,7 +30,8 @@ permissions:
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository }}/isabella-core
-  DEFAULT_NODE_VERSION: "22"
+  DEFAULT_NODE_VERSION: "24.11.0"
+  PNPM_VERSION: "10.34.5"
   PROVENANCE_SIGNER: "github-actions-provenance"
   CANONICAL_ORIGINS: ${{ vars.CANONICAL_ORIGINS }}
   SLSA_LEVEL: "2"
