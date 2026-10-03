@@ -9,3 +9,10 @@ export function getBookPiRepository(): BookPiRepository {
 
 export { BookPiRepository, bookpiPostgresRepository };
 export default bookpiPostgresRepository;
+
+
+/** Legacy engine factory. Preserved for backward compatibility; production
+ * durable callers use createBookpiPostgresRepository(). */
+export function createBookpiRepository(): BookPiRepository {
+  return bookpiPostgresRepository;
+}
