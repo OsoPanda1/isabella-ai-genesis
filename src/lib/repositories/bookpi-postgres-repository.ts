@@ -86,6 +86,13 @@ export interface BookPiRepository {
   verifyIntegrity?(
     tenantId?: string,
   ): { success: boolean; error?: string; corruptedIndex?: number };
+  prune?(
+    tenantId: string,
+    maxAgeMs: number,
+  ): Promise<{ success: boolean; prunedCount?: number; error?: string }>;
+  pruneInactive?(
+    inactiveDays: number,
+  ): Promise<{ success: boolean; prunedTenants?: string[]; error?: string }>;
 }
 
 function assertBoundedText(value: string, field: string, max: number): string {
@@ -558,6 +565,28 @@ class PostgresBookPiRepository implements BookPiRepository {
     return {
       success: false,
       error: "use verifyLedger(tenantId) for async PostgreSQL integrity verification",
+    };
+  }
+
+  async prune(tenantId: string, maxAgeMs: number) {
+    if (!tenantId) return { success: false, error: "tenantId_required" };
+    if (!Number.isFinite(maxAgeMs) || maxAgeMs < 0) {
+      return { success: false, error: "maxAgeMs_invalid" };
+    }
+    // BookPI es append-only. Poda física rompería la evidencia y la cadena.
+    return {
+      success: false,
+      error: "BOOKPI_PRUNE_FORBIDDEN_APPEND_ONLY_LEDGER",
+    };
+  }
+
+  async pruneInactive(inactiveDays: number) {
+    if (!Number.isFinite(inactiveDays) || inactiveDays <= 0) {
+      return { success: false, error: "inactiveDays_invalid" };
+    }
+    return {
+      success: false,
+      error: "BOOKPI_PRUNE_INACTIVE_FORBIDDEN_APPEND_ONLY_LEDGER",
     };
   }
 }
