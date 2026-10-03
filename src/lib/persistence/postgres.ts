@@ -17,10 +17,14 @@ export function getPgPool(): pg.Pool | null {
   try {
     pool = new pg.Pool({
       connectionString,
-      ssl: connectionString.includes("sslmode=require") || connectionString.includes("neon.tech") || connectionString.includes("supabase.co")
-        ? { rejectUnauthorized: false }
-        : undefined,
+      ssl:
+        connectionString.includes("sslmode=require") ||
+        connectionString.includes("neon.tech") ||
+        connectionString.includes("supabase.co")
+          ? { rejectUnauthorized: true }
+          : undefined,
       max: 10,
+      connectionTimeoutMillis: 10000,
       idleTimeoutMillis: 30000,
     });
     return pool;
