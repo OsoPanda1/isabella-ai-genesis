@@ -26,6 +26,7 @@ export interface AuthorizationPolicyCacheStats {
 
 const ALLOW_TTL_MS = 2 * 60_000;
 const DENY_TTL_MS = 60_000;
+const MAX_CACHE_ENTRIES = 5_000;
 const cache = new Map<string, CachedAuthorizationPolicy>();
 let hits = 0;
 let misses = 0;
@@ -99,8 +100,21 @@ export function setAuthorizationPolicyCache(
     issuedAt: now,
     expiresAt: now + (input.allow ? ALLOW_TTL_MS : DENY_TTL_MS),
   };
+  for (const [existingKey, existing] of cache) {
+    if (existing.expiresAt <= now) cache.delete(existingKey);
+  }
   cache.set(key, entry);
-  return { ...entry, obligations: [...entry.obligations], invalidationKeys: [...entry.invalidationKeys] };
+  if (cache.size > MAX_CACHE_ENTRIES) {
+    const oldest = [...cache.entries()]
+      .sort((a, b) => a[1].issuedAt - b[1].issuedAt)
+      .slice(0, cache.size - MAX_CACHE_ENTRIES);
+    for (const [oldestKey] of oldest) cache.delete(oldestKey);
+  }
+  return {
+    ...entry,
+    obligations: [...entry.obligations],
+    invalidationKeys: [...entry.invalidationKeys],
+  };
 }
 
 export function invalidateAuthorizationCache(keys: readonly string[]): number {
