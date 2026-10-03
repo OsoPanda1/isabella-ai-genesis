@@ -38,7 +38,7 @@ const required = [
   ".nvmrc",
   "src/routes/__root.tsx",
   "src/routes/index.tsx",
-  "src/server.ts",
+  "server.ts",
   "src/routes/api/isabella.ts",
   "src/routes/api/v1/isabella.ts",
   "src/lib/isabella-chat-gateway.ts",
