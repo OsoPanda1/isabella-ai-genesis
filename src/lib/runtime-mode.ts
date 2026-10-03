@@ -20,7 +20,7 @@ export function resolveRuntimeMode(input?: string): RuntimeMode {
   return "development";
 }
 
-export function isProductionLike(mode?: RuntimeMode): boolean {
+export function isProductionLike(mode?: string): boolean {
   const resolved = mode ?? resolveRuntimeMode();
   return resolved === "production" || resolved === "staging";
 }
