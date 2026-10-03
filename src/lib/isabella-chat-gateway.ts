@@ -26,7 +26,7 @@ import {
   IsabellaChatErrorCode,
 } from "@/lib/api-contracts";
 import { redactLogArg } from "@/lib/secret-redactor";
-import { governIntelligence } from "@/lib/intelligence/router";
+import { governIntelligence, assertIntelligenceRuntimeAuthority } from "@/lib/intelligence/router";
 import {
   createOutputGateTracker,
   evaluateOutputSecurity,
@@ -865,6 +865,14 @@ export async function handleIsabellaChat(
       }
       const isGemini = attempt.provider === "gemini";
       const isAiGateway = attempt.provider === "ai-gateway";
+
+      // Canonical production authority: direct provider fallback paths must not
+      // bypass the durable model registry. Development remains unchanged.
+      await assertIntelligenceRuntimeAuthority({
+        tenantId: context.tenantId,
+        modelId: attempt.model,
+        providerId: attempt.provider,
+      });
       if (isAiGateway) {
         const headers = sseHeaders(
           context,
