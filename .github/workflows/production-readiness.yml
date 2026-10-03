@@ -1,7 +1,7 @@
 name: Production Readiness & Sovereign Security Matrix (Final)
 
 # Repository: https://github.com/OsoPanda1/isabella-mexa.git
-# Purpose: Hardened, provenance-first CI/CD pipeline for Isabella Core (Node + Rust + K8s)
+# Purpose: Hardened, provenance-first CI/CD pipeline for Isabella Core (Node/TypeScript + K8s)
 # Features:
 #  - Secret scanning baseline (gitleaks + trufflehog)
 #  - Multi-language build (Rust core + Node/TS web)
@@ -81,7 +81,7 @@ jobs:
   # JOB 2: Node.js / TypeScript Web & API Engine (strict, reproducible)
   # =========================================================================
   node-app:
-    name: Node 22 TS Build, Audit & SBOM
+    name: Node 24 TS Build, Audit & SBOM
     runs-on: ubuntu-latest
     needs: [secret-scan]
     env:
@@ -248,7 +248,7 @@ jobs:
   iac-scan:
     name: IaC & SAST Scans
     runs-on: ubuntu-latest
-    needs: [container-build]
+    needs: [node-app]
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -281,6 +281,7 @@ jobs:
   production-gate:
     name: Production Gate Approval
     needs: [secret-scan, node-app, container-build, iac-scan]
+    if: ${{ always() && needs.secret-scan.result == 'success' && needs.node-app.result == 'success' && needs.iac-scan.result == 'success' && (github.event_name == 'pull_request' || needs.container-build.result == 'success') }}
     runs-on: ubuntu-latest
     environment:
       name: production
@@ -306,6 +307,7 @@ jobs:
           path: readiness.txt
 
       - name: Require manual approval (environment protection recommended)
+        if: github.event_name != 'pull_request'
         uses: chrnorm/deploy-approval@v1
         with:
           reviewers: '["platform-eng","security-team"]'
