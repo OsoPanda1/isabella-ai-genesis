@@ -39,7 +39,6 @@ env:
 defaults:
   run:
     shell: bash
-    timeout-minutes: 45
 
 jobs:
   # =========================================================================
@@ -48,6 +47,7 @@ jobs:
   secret-scan:
     name: Secret Scan & Baseline
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     outputs:
       secret_scan_status: ${{ steps.gitleaks.outcome }}
     steps:
@@ -84,6 +84,7 @@ jobs:
   rust-core:
     name: Rust Core (Wasmtime + LITLE Engine)
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: [secret-scan]
     steps:
       - name: Checkout repository
@@ -139,6 +140,7 @@ jobs:
   node-app:
     name: Node 22 TS Build, Audit & SBOM
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: [secret-scan]
     env:
       NODE_OPTIONS: --enable-source-maps
@@ -226,6 +228,7 @@ jobs:
     if: github.event_name != 'pull_request'
     name: Container Build, Trivy & Sign
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: [node-app, rust-core]
     permissions:
       contents: read
@@ -304,6 +307,7 @@ jobs:
   iac-scan:
     name: IaC & SAST Scans
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: [container-build]
     steps:
       - name: Checkout repository
@@ -338,6 +342,7 @@ jobs:
     name: Production Gate Approval
     needs: [secret-scan, rust-core, node-app, container-build, iac-scan]
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     environment:
       name: production
       url: https://isabella-mexa.vercel.app
@@ -375,6 +380,7 @@ jobs:
     needs: [production-gate]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release/'))
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     environment:
       name: production
       url: https://isabella-mexa.vercel.app
@@ -476,6 +482,7 @@ jobs:
     name: Post-Deploy Observability & SLO Check
     needs: [deploy-node-zero]
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Query metrics backend (placeholder)
         run: |
@@ -496,6 +503,7 @@ jobs:
   cleanup:
     name: Cleanup & Retention Enforcement
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: [post-deploy-observability]
     steps:
       - name: Prune ephemeral artifacts older than 7 days (placeholder)
