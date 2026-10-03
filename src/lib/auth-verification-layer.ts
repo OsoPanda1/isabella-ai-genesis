@@ -564,14 +564,34 @@ class AuthVerificationLayerImpl {
     actorIp: string;
     provider: AuthProviderType;
     payload: JwtClaims;
-  }): Promise<AuthVerificationSuccess> {
+  }): Promise<AuthVerificationSuccess | AuthVerificationFailure> {
     const p = params.payload;
+    const tenantId =
+      typeof p.tenantId === "string" && p.tenantId.trim()
+        ? p.tenantId.trim()
+        : typeof (p as Record<string, unknown>).tenant_id === "string" &&
+            String((p as Record<string, unknown>).tenant_id).trim()
+          ? String((p as Record<string, unknown>).tenant_id).trim()
+          : "";
+
+    if (!tenantId) {
+      return this.fail({
+        traceId: params.traceId,
+        correlationId: params.correlationId,
+        actorIp: params.actorIp,
+        error: "Credencial rechazada: el token verificado no contiene un tenant explícito.",
+        reasonCode: "TENANT_MISSING",
+        spoofingAttempt: true,
+        severity: "S0",
+      });
+    }
+
     const claims: TokenClaims = {
       iss: p.iss ?? "unknown",
       sub: p.sub,
       aud: Array.isArray(p.aud) ? p.aud.join(" ") : String(p.aud ?? "isabella"),
       exp: p.exp ?? Math.floor(Date.now() / 1000) + 3600,
-      tenantId: (p.tenantId as string) ?? "sovereign-default",
+      tenantId,
       role:
         typeof p.role === "string" && (ROLES as readonly string[]).includes(p.role)
           ? p.role
