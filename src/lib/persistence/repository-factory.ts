@@ -23,7 +23,9 @@ class ProductionRepositoryFactory implements RepositoryFactory {
       }
       return cfg.NODE_ENV === "production" || mode === "production" || mode === "staging";
     } catch {
-      return false;
+      // La configuración es una frontera de seguridad: si no puede resolverse,
+      // asumir runtime productivo evita cualquier fallback a persistencia local.
+      return true;
     }
   }
 
