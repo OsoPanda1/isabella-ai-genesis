@@ -44,6 +44,7 @@ export type AuthFailureReasonCode =
   | "TOKEN_NOT_YET_VALID"
   | "AUDIENCE_MISMATCH"
   | "SUBJECT_MISSING"
+  | "TENANT_MISSING"
   | "JWKS_KEY_NOT_FOUND"
   | "PRIVILEGE_SPOOFING_ATTEMPT"
   | "CRYPTO_ERROR";
@@ -442,6 +443,20 @@ class AuthVerificationLayerImpl {
       // Mapeo seguro de identidad y prevención de escalado de privilegios
       const p = verified.payload;
       const isSupabase = tokenIssuer.includes("supabase.co") || tokenIssuer.includes("/auth/v1");
+      const rawTenantId =
+        (p.tenantId as string | undefined) ??
+        ((p.app_metadata as Record<string, unknown> | undefined)?.tenant_id as string | undefined);
+      if (typeof rawTenantId !== "string" || rawTenantId.trim().length === 0) {
+        return this.fail({
+          traceId,
+          correlationId,
+          actorIp,
+          error: "Credencial rechazada: el token autenticado no demuestra un tenant explícito.",
+          reasonCode: "TENANT_MISSING",
+          spoofingAttempt: true,
+          severity: "S0",
+        });
+      }
       const providerType: AuthProviderType = isSupabase ? "supabase_auth" : "oidc_jwks";
 
       // Control Anti-Spoofing de Roles:
@@ -473,10 +488,7 @@ class AuthVerificationLayerImpl {
         sub: p.sub,
         aud: Array.isArray(p.aud) ? p.aud.join(" ") : String(p.aud ?? "isabella"),
         exp: p.exp ?? Math.floor(Date.now() / 1000) + 3600,
-        tenantId:
-          (p.tenantId as string) ??
-          ((p.app_metadata as Record<string, unknown> | undefined)?.tenant_id as string) ??
-          "sovereign-default",
+        tenantId: rawTenantId.trim(),
         role: mappedRole,
         scope: typeof p.scope === "string" ? p.scope : "isabella:chat",
         jti: (p.jti as string) ?? `oidc_${crypto.randomUUID().slice(0, 12)}`,
