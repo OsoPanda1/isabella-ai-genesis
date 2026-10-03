@@ -17,7 +17,7 @@
  */
 
 import { config } from "../config";
-import type { DecisionRecord, LedgerStore } from "../governance/decision-ledger";
+import { hashRecord, type DecisionRecord, type LedgerStore } from "../governance/decision-ledger";
 
 export type DecisionQuery = (
   text: string,
@@ -94,7 +94,7 @@ export function createPostgresDecisionLedger(deps?: DecisionLedgerDeps): LedgerS
       `SELECT record_hash
          FROM public.isabella_decisions
         WHERE tenant_id = $1
-        ORDER BY created_at DESC, id DESC
+        ORDER BY append_seq DESC
         LIMIT 1`,
       [tenantId],
     );
@@ -157,10 +157,10 @@ export function createPostgresDecisionLedger(deps?: DecisionLedgerDeps): LedgerS
       `SELECT * FROM (
          SELECT * FROM public.isabella_decisions
           WHERE tenant_id = $1
-          ORDER BY created_at DESC, id DESC
+          ORDER BY append_seq DESC
           LIMIT $2
        ) recent
-       ORDER BY created_at ASC, id ASC`,
+       ORDER BY append_seq ASC`,
       [tenantId, limit],
     );
     let previous: string | null = null;
@@ -169,6 +169,8 @@ export function createPostgresDecisionLedger(deps?: DecisionLedgerDeps): LedgerS
       const record = mapRow(row);
       if (previous === null) previous = record.previousHash;
       if (record.previousHash !== previous) return { ok: false, checked };
+      const { recordHash: _storedHash, ...base } = record;
+      if (hashRecord(base) !== record.recordHash) return { ok: false, checked };
       previous = record.recordHash;
       checked += 1;
     }
