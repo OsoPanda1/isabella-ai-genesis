@@ -8,7 +8,8 @@
 
 import { GoogleGenAI } from "@google/genai";
 import { config } from "../../lib/config";
-import { dualKernel, createRequestId } from "../dual-kernel";
+import { dualKernel } from "../dual-kernel";
+import { createRequestId } from "../contracts";
 
 export interface InferenceRequest {
   readonly systemPrompt: string;
@@ -42,11 +43,18 @@ export interface RuntimeProvider {
 }
 
 function lastUserMessage(req: InferenceRequest): string {
-  return req.messages.filter((message) => message.role === "user").at(-1)?.content?.trim() ?? "";
+  return (
+    req.messages
+      .filter((message) => message.role === "user")
+      .at(-1)
+      ?.content?.trim() ?? ""
+  );
 }
 
 function estimateTokens(req: InferenceRequest, output: string): number {
-  const inputChars = req.systemPrompt.length + req.messages.reduce((sum, message) => sum + message.content.length, 0);
+  const inputChars =
+    req.systemPrompt.length +
+    req.messages.reduce((sum, message) => sum + message.content.length, 0);
   return Math.max(0, Math.ceil((inputChars + output.length) / 3.5));
 }
 

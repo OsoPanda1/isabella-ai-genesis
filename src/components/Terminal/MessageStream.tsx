@@ -801,7 +801,8 @@ export const MessageStream: React.FC<MessageStreamProps> = ({ messages }) => {
 
                     <p className="text-[11px] text-slate-300 font-sans leading-relaxed">
                       Selecciona una categoría o ingresa una nota para refinar la alineación,
-                      grounding epistemológico y heurísticas del nodo cognitivo (ISA · SOPHIA · CROWN · ARGUS):
+                      grounding epistemológico y heurísticas del nodo cognitivo (ISA · SOPHIA ·
+                      CROWN · ARGUS):
                     </p>
 
                     {/* Qualitative Category Pills */}

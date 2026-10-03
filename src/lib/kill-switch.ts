@@ -225,10 +225,14 @@ export async function activateCanonicalKillSwitch(params: {
   capability: KillCapability;
   actorId: string;
 }): Promise<KillSwitchState> {
-  if (typeof params.trigger !== "string" || !params.trigger.trim()) throw new Error("Trigger obligatorio.");
-  if (typeof params.severity !== "string" || !params.severity.trim()) throw new Error("Severity inválida.");
+  if (typeof params.trigger !== "string" || !params.trigger.trim())
+    throw new Error("Trigger obligatorio.");
+  if (typeof params.severity !== "string" || !params.severity.trim())
+    throw new Error("Severity inválida.");
   if (!params.actorId.trim()) throw new Error("Actor obligatorio.");
-  const store = config().DATABASE_URL ? createPostgresKillSwitchStore() : createMemoryKillSwitchStore();
+  const store = config().DATABASE_URL
+    ? createPostgresKillSwitchStore()
+    : createMemoryKillSwitchStore();
   return store.engage(
     params.capability,
     `[${params.severity.slice(0, 32)}] ${params.trigger.slice(0, 512)}`,
@@ -241,12 +245,16 @@ export async function releaseCanonicalKillSwitch(
   actorId: string,
 ): Promise<KillSwitchState> {
   if (!actorId.trim()) throw new Error("Actor obligatorio.");
-  const store = config().DATABASE_URL ? createPostgresKillSwitchStore() : createMemoryKillSwitchStore();
+  const store = config().DATABASE_URL
+    ? createPostgresKillSwitchStore()
+    : createMemoryKillSwitchStore();
   return store.release(capability, actorId.slice(0, 256));
 }
 
 export async function listCanonicalKillSwitchStates(): Promise<KillSwitchState[]> {
-  const store = config().DATABASE_URL ? createPostgresKillSwitchStore() : createMemoryKillSwitchStore();
+  const store = config().DATABASE_URL
+    ? createPostgresKillSwitchStore()
+    : createMemoryKillSwitchStore();
   return store.list();
 }
 

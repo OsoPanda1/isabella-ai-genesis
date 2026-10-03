@@ -4,8 +4,11 @@ export async function verifyLedger(blocks: LedgerBlock[]): Promise<IntegrityResu
   if (!blocks || blocks.length === 0) {
     return {
       valid: true,
-      checkedCount: 0,
-      verifiedAt: new Date().toISOString(),
+      state: "verified",
+      checked: 0,
+      total: 0,
+      code: "LEDGER_EMPTY",
+      message: "Ledger vacío: no hay bloques que verificar.",
     };
   }
 
@@ -16,10 +19,12 @@ export async function verifyLedger(blocks: LedgerBlock[]): Promise<IntegrityResu
       if (current.previousHash && prev.currentHash && current.previousHash !== prev.currentHash) {
         return {
           valid: false,
-          checkedCount: i + 1,
-          errorSeq: current.seq,
-          reason: `Ruptura de cadena en bloque #${current.seq}: previousHash no coincide con bloque #${prev.seq}`,
-          verifiedAt: new Date().toISOString(),
+          state: "invalid",
+          checked: i + 1,
+          total: blocks.length,
+          invalidSeq: current.seq,
+          code: "HASH_CHAIN_BROKEN",
+          message: `Ruptura de cadena en bloque #${current.seq}: previousHash no coincide con bloque #${prev.seq}`,
         };
       }
     }
@@ -27,7 +32,10 @@ export async function verifyLedger(blocks: LedgerBlock[]): Promise<IntegrityResu
 
   return {
     valid: true,
-    checkedCount: blocks.length,
-    verifiedAt: new Date().toISOString(),
+    state: "verified",
+    checked: blocks.length,
+    total: blocks.length,
+    code: "HASH_CHAIN_OK",
+    message: `Cadena continua en ${blocks.length} bloques: previousHash coincide con el currentHash previo.`,
   };
 }

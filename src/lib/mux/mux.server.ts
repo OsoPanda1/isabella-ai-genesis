@@ -99,7 +99,8 @@ export async function createMuxDirectUpload(publicUrl: string): Promise<{
       },
     }),
   });
-  if (!data.id || !data.url) throw new MuxApiError(502, "MUX_RESPONSE_INVALID", "Mux devolvió un upload incompleto.");
+  if (!data.id || !data.url)
+    throw new MuxApiError(502, "MUX_RESPONSE_INVALID", "Mux devolvió un upload incompleto.");
   return {
     id: data.id,
     url: data.url,
@@ -118,9 +119,13 @@ export async function getMuxAsset(assetId: string): Promise<{
   createdAt: string | null;
 }> {
   const id = assetId.trim();
-  if (!ID_PATTERN.test(id)) throw new MuxApiError(400, "INVALID_ASSET_ID", "Identificador de asset Mux inválido.");
-  const data = await muxRequest<MuxAssetData>("/video/v1/assets/" + encodeURIComponent(id), { method: "GET" });
-  if (!data.id) throw new MuxApiError(502, "MUX_RESPONSE_INVALID", "Mux devolvió un asset incompleto.");
+  if (!ID_PATTERN.test(id))
+    throw new MuxApiError(400, "INVALID_ASSET_ID", "Identificador de asset Mux inválido.");
+  const data = await muxRequest<MuxAssetData>("/video/v1/assets/" + encodeURIComponent(id), {
+    method: "GET",
+  });
+  if (!data.id)
+    throw new MuxApiError(502, "MUX_RESPONSE_INVALID", "Mux devolvió un asset incompleto.");
   return {
     id: data.id,
     status: String(data.status ?? "unknown"),
@@ -129,6 +134,8 @@ export async function getMuxAsset(assetId: string): Promise<{
       .map((item) => ({ id: String(item.id), policy: String(item.policy ?? "unknown") })),
     duration: Number.isFinite(data.duration) ? Number(data.duration) : null,
     aspectRatio: typeof data.aspect_ratio === "string" ? data.aspect_ratio : null,
-    createdAt: Number.isFinite(data.created_at) ? new Date(Number(data.created_at) * 1000).toISOString() : null,
+    createdAt: Number.isFinite(data.created_at)
+      ? new Date(Number(data.created_at) * 1000).toISOString()
+      : null,
   };
 }

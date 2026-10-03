@@ -68,20 +68,23 @@ export function CrystalNavigation({
   collapsed: boolean;
 }) {
   return (
-    <nav className="isabella-nav flex-1 overflow-y-auto px-3 py-4" aria-label="Navegación principal">
+    <nav
+      className="isabella-nav flex-1 overflow-y-auto px-3 py-4"
+      aria-label="Navegación principal"
+    >
       <div className="isabella-nav-heading">
         <span>Workspace</span>
         <span className="isabella-nav-rule" aria-hidden="true" />
       </div>
       <div className="isabella-nav-groups">
         {groups.map((group) => (
-        <AccordionGroup
-          key={group.id}
-          group={group}
-          activeTab={activeTab}
-          onSelect={onSelect}
-          collapsed={collapsed}
-        />
+          <AccordionGroup
+            key={group.id}
+            group={group}
+            activeTab={activeTab}
+            onSelect={onSelect}
+            collapsed={collapsed}
+          />
         ))}
       </div>
     </nav>

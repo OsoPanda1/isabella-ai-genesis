@@ -5,16 +5,24 @@
  */
 import { createHash } from "node:crypto";
 import { loadJsonArray, saveJsonArray } from "./durable-json.server";
-import { signLedgerBlockPQC as signLedgerBlockPQCImpl } from "./postQuantumCrypto";
+import { evaluateLitle32Gates, signMLDSA87, signSLHDSA128s } from "./postQuantumCrypto";
 
-// PQC signing is a lab prototype: it throws PROTOTYPE_NOT_AVAILABLE unless
-// FEATURE_LAB_MODE=true. Degrade gracefully to unsigned blocks instead.
+// PQC signing is a lab prototype (PROTOTYPE / SIMULATED, not certified).
+// Degrade gracefully to unsigned blocks instead of inventing a signature.
 function signLedgerBlockPQC(
   blockId: string,
   dataHash: string,
 ): { mlDsaSignature: string; slhDsaSignature: string; litleGatesStatus: string } | null {
   try {
-    return signLedgerBlockPQCImpl(blockId, dataHash);
+    const payload = `${blockId}:${dataHash}`;
+    const mlDsa = signMLDSA87(payload);
+    const slhDsa = signSLHDSA128s(payload);
+    const gates = evaluateLitle32Gates(dataHash);
+    return {
+      mlDsaSignature: mlDsa.signatureHex,
+      slhDsaSignature: slhDsa.signatureHex,
+      litleGatesStatus: `${gates.length}/32_LATTICE_AND_HASH_PROTOTYPE`,
+    };
   } catch {
     return null;
   }

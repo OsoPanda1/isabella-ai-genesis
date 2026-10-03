@@ -206,7 +206,7 @@ export const CattleyaFinanceView: React.FC = () => {
         encryptionKeyRef.current = key;
         hsmKeyIdRef.current = keyId;
         const biometricAvailable = await isBiometricAvailable();
-        await registerWebAuthnCredential(userIdRef.current, "Investigador RDM");
+        await registerWebAuthnCredential(userIdRef.current);
         const sessionToken = await hashSHA3_512(`${userIdRef.current}:${Date.now()}`);
         const teeAttestation = await generateTEEAttestation(sessionToken);
         const initialBalance = 14204.5;
@@ -285,7 +285,7 @@ export const CattleyaFinanceView: React.FC = () => {
     soundManager.playBeep(880, 0.04);
     resetInactivityTimer();
     try {
-      await authenticateWithWebAuthn(userIdRef.current);
+      await authenticateWithWebAuthn();
       if (!encryptedBalance || !encryptionKeyRef.current)
         throw new Error("Encrypted balance unavailable");
       const currentBalance = await decryptBalance(encryptedBalance);
@@ -303,7 +303,7 @@ export const CattleyaFinanceView: React.FC = () => {
       const nextChain = [...crystalsChain, block];
       if (!(await verifyCrystalsLatamvChain(nextChain)))
         throw new Error("CRYSTALS-LATAMV chain verification failed");
-      const proof = signLedgerBlockPQC(txData.id, txHash);
+      const proof = await signLedgerBlockPQC(txData.id, txHash);
       const hsmSignature = hsmKeyIdRef.current
         ? await hsmClient.signWithHSMKey(hsmKeyIdRef.current, txHash)
         : "hsm_unavailable";
@@ -324,7 +324,7 @@ export const CattleyaFinanceView: React.FC = () => {
           status: "PQC+HSM+TEE+CRYSTALS Firmado",
           icon: ArrowUpRight,
           color: "text-rose-400",
-          pqcHash: `${proof.mlDsaSignature.slice(0, 18)}…/${encryptedPayload.hsmKeyId}`,
+          pqcHash: `${proof.signature.slice(0, 18)}…/${encryptedPayload.hsmKeyId}`,
           timestamp: "Ahora",
           crystalsChainHash: block.blockHash,
         },

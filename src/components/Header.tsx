@@ -186,7 +186,9 @@ export const Header: React.FC = () => {
             className="isabella-primary-nav flex min-w-0 max-w-full items-center gap-1 overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#0b1017]/90 p-1.5 shadow-[0_12px_32px_rgba(0,0,0,.22)] backdrop-blur-xl"
             aria-label="Navegación principal"
           >
-            <span className="hidden px-2 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-[#778592] xl:inline">Módulos</span>
+            <span className="hidden px-2 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-[#778592] xl:inline">
+              Módulos
+            </span>
             <button
               type="button"
               onClick={() => {

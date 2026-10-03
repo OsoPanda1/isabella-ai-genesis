@@ -12,7 +12,11 @@ export const SCHEMA_TABLES = [
   { name: "isabella_decisions", scope: "tenant", purpose: "Policy and decision records." },
   { name: "isabella_tool_runs", scope: "tenant", purpose: "Authorized tool execution outcomes." },
   { name: "isabella_policies", scope: "global/server-only", purpose: "Versioned policy-as-code." },
-  { name: "kill_switch_state", scope: "global/server-only", purpose: "Durable emergency capability state." },
+  {
+    name: "kill_switch_state",
+    scope: "global/server-only",
+    purpose: "Durable emergency capability state.",
+  },
 ] as const;
 
 export const ISABELLA_SQL_MIGRATION = `

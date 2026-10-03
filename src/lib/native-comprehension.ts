@@ -33,8 +33,7 @@ export interface NativeComprehensionOutput {
 export function runNativeComprehension(input: NativeComprehensionInput): NativeComprehensionOutput {
   const runtime = config();
   const mode = runtime.ISABELLA_RUNTIME_MODE;
-  const productionLike =
-    mode === "production" || mode === "staging";
+  const productionLike = mode === "production" || mode === "staging";
   const started = performance.now();
   // NCUA debe reconocer cualquier proveedor cognitivo autorizado. La versión
   // anterior solo consideraba Gemini y marcaba mantenimiento aunque Groq/XAI

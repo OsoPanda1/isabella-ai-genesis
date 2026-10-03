@@ -11,10 +11,7 @@ export const Route = createFileRoute("/api/v1/isabella")({
   server: {
     handlers: {
       POST: withSovereignAuth("chat", "execute", async (context, request) =>
-        handleIsabellaChat(
-          toGatewayContext(context),
-          request,
-        ),
+        handleIsabellaChat(toGatewayContext(context), request),
       ),
     },
   },

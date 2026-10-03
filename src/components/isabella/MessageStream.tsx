@@ -101,7 +101,9 @@ function FeedbackRatingButtons({ messageId, content }: { messageId: string; cont
           }`}
           title="Respuesta útil y de alta calidad"
         >
-          <ThumbsUp className={`w-3 h-3 ${rating === "up" ? "text-emerald-400 fill-emerald-400/20" : ""}`} />
+          <ThumbsUp
+            className={`w-3 h-3 ${rating === "up" ? "text-emerald-400 fill-emerald-400/20" : ""}`}
+          />
           <span>Útil</span>
         </button>
 
@@ -115,7 +117,9 @@ function FeedbackRatingButtons({ messageId, content }: { messageId: string; cont
           }`}
           title="Señalar imprecisión o respuesta mejorable"
         >
-          <ThumbsDown className={`w-3 h-3 ${rating === "down" ? "text-rose-400 fill-rose-400/20" : ""}`} />
+          <ThumbsDown
+            className={`w-3 h-3 ${rating === "down" ? "text-rose-400 fill-rose-400/20" : ""}`}
+          />
           <span>Mejorar</span>
         </button>
 

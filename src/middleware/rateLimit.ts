@@ -7,6 +7,19 @@ import {
 } from "../lib/subscription.server";
 import { currentPrincipal } from "../lib/auth.server";
 import { nodeRequire } from "../lib/node-require";
+import type { UsageDecision } from "../lib/subscription.server";
+
+declare global {
+  namespace Express {
+    interface Request {
+      /** Contexto depositado por `quotaGate` para el handler. */
+      isabellaBilling?: {
+        userId: string;
+        decision: UsageDecision;
+      };
+    }
+  }
+}
 
 type Bucket = { count: number; resetAt: number };
 
@@ -24,7 +37,9 @@ const REDIS_URL = process.env.REDIS_URL;
 const REDIS_ENABLED = Boolean(REDIS_URL || (UPSTASH_URL && UPSTASH_TOKEN));
 
 function productionLike(): boolean {
-  const mode = String(process.env.ISABELLA_RUNTIME_MODE ?? "").trim().toLowerCase();
+  const mode = String(process.env.ISABELLA_RUNTIME_MODE ?? "")
+    .trim()
+    .toLowerCase();
   return (
     process.env.NODE_ENV === "production" ||
     mode === "production" ||
@@ -148,7 +163,10 @@ export async function rateLimit(req: Request, res: Response, next: NextFunction)
       res.setHeader("X-RateLimit-Backend", "redis-required");
       return res.status(503).json({
         ok: false,
-        error: { code: "RATE_LIMIT_BACKEND_REQUIRED", message: "Distributed rate limiting is unavailable." },
+        error: {
+          code: "RATE_LIMIT_BACKEND_REQUIRED",
+          message: "Distributed rate limiting is unavailable.",
+        },
       });
     }
     const effective = bucket ?? memoryIncrement(clientKey(req));
@@ -159,7 +177,10 @@ export async function rateLimit(req: Request, res: Response, next: NextFunction)
     if (effective.count > limit) {
       return res.status(429).json({
         ok: false,
-        error: { code: "RATE_LIMITED", message: "Rate limit ARGUS activado. Intenta nuevamente en menos de un minuto." },
+        error: {
+          code: "RATE_LIMITED",
+          message: "Rate limit ARGUS activado. Intenta nuevamente en menos de un minuto.",
+        },
       });
     }
     return next();
@@ -168,7 +189,10 @@ export async function rateLimit(req: Request, res: Response, next: NextFunction)
       res.setHeader("X-RateLimit-Backend", "redis-unavailable");
       return res.status(503).json({
         ok: false,
-        error: { code: "RATE_LIMIT_BACKEND_UNAVAILABLE", message: "Distributed rate limiting is required and currently unavailable." },
+        error: {
+          code: "RATE_LIMIT_BACKEND_UNAVAILABLE",
+          message: "Distributed rate limiting is required and currently unavailable.",
+        },
       });
     }
     const effective = memoryIncrement(clientKey(req));
@@ -180,10 +204,7 @@ export async function rateLimit(req: Request, res: Response, next: NextFunction)
   }
 }
 
-export function quotaGate(
-  capability: MeteredCapability,
-  amountFactory?: (req: Request) => number,
-) {
+export function quotaGate(capability: MeteredCapability, amountFactory?: (req: Request) => number) {
   return async (req: Request, res: Response, next: NextFunction) => {
     const principal = currentPrincipal(req);
     const userId = stableUserId(`${principal.tenantId}:${principal.sub}`);

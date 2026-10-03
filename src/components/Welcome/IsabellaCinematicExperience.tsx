@@ -422,7 +422,10 @@ export function IsabellaCinematicExperience({
             <div>
               <span className="isabella-welcome-kicker">SOVEREIGN AI / LATAM · 2026</span>
               <h1>Una nueva forma de entrar en relación con la inteligencia.</h1>
-              <p>Isabella nace en Latinoamérica para convertir contexto, evidencia y territorio en decisiones humanas más claras.</p>
+              <p>
+                Isabella nace en Latinoamérica para convertir contexto, evidencia y territorio en
+                decisiones humanas más claras.
+              </p>
             </div>
             <div className="isabella-welcome-signal" aria-label="Sistema operativo">
               <span className="isabella-signal-dot" />
@@ -493,10 +496,13 @@ export function IsabellaCinematicExperience({
                 onChange={(event) => setPermissionsAccepted(event.target.checked)}
               />
               <span>
-                Acepto la inmersión inicial de audio y video, la política de privacidad, cookies y reglamentos internos de Isabella.
+                Acepto la inmersión inicial de audio y video, la política de privacidad, cookies y
+                reglamentos internos de Isabella.
               </span>
             </label>
-            <span className="isabella-disclaimer">Las capacidades no disponibles se muestran como simulación o degradación.</span>
+            <span className="isabella-disclaimer">
+              Las capacidades no disponibles se muestran como simulación o degradación.
+            </span>
           </div>
           <button className="isabella-enter-button" onClick={enter} disabled={!permissionsAccepted}>
             <span>{permissionsAccepted ? "Iniciar inmersión" : "Autorizar ingreso"}</span>

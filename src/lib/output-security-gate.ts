@@ -118,9 +118,7 @@ export function evaluateOutputSecurity(text: string): OutputSecurityResult {
   }
 }
 
-type ParsedFrame =
-  | { valid: true; content: string | null }
-  | { valid: false; reason: string };
+type ParsedFrame = { valid: true; content: string | null } | { valid: false; reason: string };
 
 function parseFrame(payload: string): ParsedFrame {
   try {
@@ -144,11 +142,13 @@ function parseFrame(payload: string): ParsedFrame {
 function malformedFrameResult(reason: string): OutputSecurityResult {
   return {
     verdict: "deny",
-    findings: [{
-      code: "MALFORMED_SSE_FRAME",
-      severity: "critical",
-      message: "Marco SSE rechazado por el gate de salida: " + reason + ".",
-    }],
+    findings: [
+      {
+        code: "MALFORMED_SSE_FRAME",
+        severity: "critical",
+        message: "Marco SSE rechazado por el gate de salida: " + reason + ".",
+      },
+    ],
   };
 }
 

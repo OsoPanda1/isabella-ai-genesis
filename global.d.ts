@@ -1,6 +1,5 @@
-declare module "better-sqlite3";
-declare module "@idlen/chat-sdk/server";
-declare module "@idlen/chat-sdk";
+/// <reference types="vite/client" />
+
 declare module "@lovable.dev/cloud-auth-js" {
   export function createLovableAuth(): any;
 }

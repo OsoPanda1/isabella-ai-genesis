@@ -303,7 +303,7 @@ export const VoiceSpectrumVisualizer: React.FC<VoiceSpectrumVisualizerProps> = (
           } else if (isSpeaking) {
             // High fidelity female speech formant profile (F0 ~220Hz, F1 ~600Hz, F2 ~2100Hz)
             const speechPulse = Math.sin(phase * 2.8) * 0.25 + 0.75;
-            const cadence = Math.sin((i * 0.4 - phase * 3.5)) * 0.35 + 0.65;
+            const cadence = Math.sin(i * 0.4 - phase * 3.5) * 0.35 + 0.65;
             const formant1 = Math.exp(-Math.pow((i - 10) / 3.5, 2)) * 0.95;
             const formant2 = Math.exp(-Math.pow((i - 24) / 4.5, 2)) * 0.85;
             const formant3 = Math.exp(-Math.pow((i - 36) / 5.5, 2)) * 0.55;
@@ -316,7 +316,7 @@ export const VoiceSpectrumVisualizer: React.FC<VoiceSpectrumVisualizerProps> = (
             );
           } else {
             // Idle ambient carrier breath
-            magnitude = (Math.sin(i * 0.25 + phase) * 0.04 + 0.05);
+            magnitude = Math.sin(i * 0.25 + phase) * 0.04 + 0.05;
           }
 
           sumAmp += magnitude;
@@ -623,7 +623,11 @@ export const VoiceSpectrumVisualizer: React.FC<VoiceSpectrumVisualizerProps> = (
             className="p-1.5 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition-colors ml-1 cursor-pointer"
             title={expanded ? "Reducir" : "Expandir"}
           >
-            {expanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            {expanded ? (
+              <Minimize2 className="w-3.5 h-3.5" />
+            ) : (
+              <Maximize2 className="w-3.5 h-3.5" />
+            )}
           </button>
         </div>
       </div>
@@ -702,7 +706,11 @@ export const VoiceSpectrumVisualizer: React.FC<VoiceSpectrumVisualizerProps> = (
           <span className="text-[10px] text-slate-400 block">Nivel RMS / Salida</span>
           <span
             className={`font-bold text-sm ${
-              rmsLevel > -12 ? "text-amber-400" : rmsLevel > -30 ? "text-emerald-300" : "text-slate-400"
+              rmsLevel > -12
+                ? "text-amber-400"
+                : rmsLevel > -30
+                  ? "text-emerald-300"
+                  : "text-slate-400"
             }`}
           >
             {rmsLevel} dBFS

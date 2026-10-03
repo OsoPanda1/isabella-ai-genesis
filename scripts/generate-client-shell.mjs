@@ -86,6 +86,10 @@ function buildShell(html, scripts, css) {
   return out;
 }
 
+function assetsExistIn(staticDir, urls) {
+  return urls.filter((url) => existsSync(join(staticDir, url.replace(/^\//, ""))));
+}
+
 function main() {
   const sourcePath = join(ROOT, "index.html");
   if (!existsSync(sourcePath)) {
@@ -104,17 +108,36 @@ function main() {
 
   for (const dir of staticDirs) {
     const fallback = findEntryAssets(dir);
-    const scripts = manifest?.scripts?.length ? manifest.scripts : fallback.scripts;
-    const css = manifest?.css?.length ? manifest.css : fallback.css;
+    const declaredScripts = manifest?.scripts?.length ? manifest.scripts : fallback.scripts;
+    const declaredCss = manifest?.css?.length ? manifest.css : fallback.css;
+    let scripts = assetsExistIn(dir, declaredScripts);
+    let css = assetsExistIn(dir, declaredCss);
+    const mismatched = [
+      ...declaredScripts.filter((u) => !scripts.includes(u)),
+      ...declaredCss.filter((u) => !css.includes(u)),
+    ];
+    if (mismatched.length) {
+      scripts = scripts.length ? scripts : assetsExistIn(dir, fallback.scripts);
+      css = css.length ? css : assetsExistIn(dir, fallback.css);
+      console.warn(
+        `CLIENT-SHELL: STALE — ${dir} no contiene ${mismatched.join(", ")}; usando assets locales.`,
+      );
+    }
     if (!scripts.length) {
-      console.error(`CLIENT-SHELL: FAIL — sin script de entrada en ${dir}.`);
+      console.error(`CLIENT-SHELL: FAIL — sin script de entrada verificable en ${dir}.`);
       process.exit(1);
+    }
+    for (const url of [...scripts, ...css]) {
+      if (!existsSync(join(dir, url.replace(/^\//, "")))) {
+        console.error(`CLIENT-SHELL: FAIL — asset referenciado ausente en ${dir}: ${url}`);
+        process.exit(1);
+      }
     }
     const shell = buildShell(html, scripts, css);
     writeFileSync(join(dir, "index.html"), shell, "utf8");
     console.log(
       `CLIENT-SHELL: OK — ${join(dir, "index.html")} ← ${scripts.join(", ")}${css.length ? " + " + css.join(", ") : ""}` +
-        `${manifest ? " (manifiesto TanStack)" : " (fallback assets/)"}`,
+        `${manifest ? " (manifiesto TanStack, verificado)" : " (fallback assets/, verificado)"}`,
     );
   }
 }

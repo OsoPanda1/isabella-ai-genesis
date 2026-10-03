@@ -34,6 +34,18 @@ export interface QuantumPolicyVerdict {
   maxRuntimeMs: number;
 }
 
+declare global {
+  namespace Express {
+    interface Request {
+      /** Contexto depositado por `quantumBridgeGate` para el handler. */
+      quantumBridge?: {
+        input: QuantumBridgeRequest;
+        policy: QuantumPolicyVerdict;
+      };
+    }
+  }
+}
+
 const DEFAULT_TIMEOUT_MS = Number(process.env.QUANTUM_BRIDGE_TIMEOUT_MS || 12_000);
 const PYTHON = process.env.PYTHON_BIN || (process.platform === "win32" ? "python" : "python3");
 const SCRIPT =

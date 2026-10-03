@@ -5,9 +5,10 @@
  */
 import { createHash, randomUUID } from "node:crypto";
 import { appendBlock } from "./bookpi.server";
-import type { PQCSignatureResult } from "./postQuantumCrypto";
+import type { PQCSignature } from "./postQuantumCrypto";
 
-let _signMLDSA87: ((payload: string) => PQCSignatureResult) | null = null;
+let _signMLDSA87: ((payload: string) => PQCSignature) | null = null;
+let _signSLHDSA128s: ((payload: string) => PQCSignature) | null = null;
 
 let _pqcLoaded = false;
 function _loadPQC() {
@@ -19,18 +20,26 @@ function _loadPQC() {
         try {
           return pqcModule.signMLDSA87(payload);
         } catch {
-          return null as unknown as PQCSignatureResult;
+          return null as unknown as PQCSignature;
+        }
+      };
+      _signSLHDSA128s = (payload: string) => {
+        try {
+          return pqcModule.signSLHDSA128s(payload);
+        } catch {
+          return null as unknown as PQCSignature;
         }
       };
     })
     .catch(() => {
       _signMLDSA87 = null;
+      _signSLHDSA128s = null;
     });
 }
 _loadPQC();
 
-// Legacy compatibility alias: PQCSignatureResult.signatureHex → .mlDsaSignature
-type PQCLegacyResult = PQCSignatureResult & {
+// Legacy compatibility alias: PQCSignature.signatureHex → .mlDsaSignature
+type PQCLegacyResult = PQCSignature & {
   mlDsaSignature: string;
   slhDsaSignature: string;
   litleGatesStatus: string;
@@ -39,10 +48,11 @@ function _signMLDSA87Legacy(payload: string): PQCLegacyResult | null {
   if (!_signMLDSA87) return null;
   try {
     const result = _signMLDSA87(payload);
+    const slhResult = _signSLHDSA128s?.(payload) ?? null;
     return {
       ...result,
       mlDsaSignature: result.signatureHex,
-      slhDsaSignature: result.signatureHex,
+      slhDsaSignature: slhResult?.signatureHex ?? "",
       litleGatesStatus: "32/32_ATTESTED_PROTOTYPE",
     };
   } catch {
