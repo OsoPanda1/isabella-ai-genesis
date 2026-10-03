@@ -122,7 +122,7 @@ function mapRow(row: Record<string, unknown>): LedgerDecisionRecord {
     ...(row.model_id == null ? {} : { modelId: String(row.model_id) }),
     inputHash: String(row.input_hash),
     outputHash: String(row.output_hash),
-    result: String(row.result) as DecisionRecord["result"],
+    result: String(row.result) as LedgerDecisionRecord["result"],
     timestamp: new Date(String(row.recorded_at)).toISOString(),
     previousHash: String(row.previous_hash),
     recordHash: String(row.record_hash),
@@ -154,7 +154,7 @@ export function createPostgresDecisionLedger(deps?: DecisionLedgerDeps): LedgerS
     return rows[0] ? String(rows[0].record_hash) : undefined;
   }
 
-  async function append(record: DecisionRecord): Promise<void> {
+  async function append(record: LedgerDecisionRecord): Promise<void> {
     const run = await resolveQuery(deps);
     // Reenvío idempotente: si el registro ya está, no hay nada que corregir.
     const duplicate = await run(
