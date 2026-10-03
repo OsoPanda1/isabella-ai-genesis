@@ -26,7 +26,7 @@ import {
   IsabellaChatErrorCode,
 } from "@/lib/api-contracts";
 import { redactLogArg } from "@/lib/secret-redactor";
-import { governIntelligence } from "@/lib/intelligence/router";
+import { governIntelligence, assertIntelligenceRuntimeAuthority } from "@/lib/intelligence/router";
 import {
   createOutputGateTracker,
   evaluateOutputSecurity,
@@ -709,28 +709,6 @@ export async function handleIsabellaChat(
       );
     }
   }
-  try {
-    const { createMemoryKillSwitchStore, createPostgresKillSwitchStore } =
-      await import("@/lib/kill-switch");
-    const store = config().DATABASE_URL
-      ? createPostgresKillSwitchStore()
-      : createMemoryKillSwitchStore();
-    if (await store.isKilled("inference"))
-      return contractError(
-        context,
-        IsabellaChatErrorCode.KILL_SWITCH_ACTIVE,
-        "La inferencia está detenida por el interruptor de emergencia.",
-        503,
-      );
-  } catch {
-    return contractError(
-      context,
-      IsabellaChatErrorCode.KILL_SWITCH_ACTIVE,
-      "No fue posible verificar el estado del interruptor de emergencia; inferencia bloqueada.",
-      503,
-      true,
-    );
-  }
   const nativeSignal = config().NATIVE_COMPREHENSION_ENABLED
     ? (() => {
         try {
@@ -887,6 +865,14 @@ export async function handleIsabellaChat(
       }
       const isGemini = attempt.provider === "gemini";
       const isAiGateway = attempt.provider === "ai-gateway";
+
+      // Canonical production authority: direct provider fallback paths must not
+      // bypass the durable model registry. Development remains unchanged.
+      await assertIntelligenceRuntimeAuthority({
+        tenantId: context.tenantId,
+        modelId: attempt.model,
+        providerId: attempt.provider,
+      });
       if (isAiGateway) {
         const headers = sseHeaders(
           context,
