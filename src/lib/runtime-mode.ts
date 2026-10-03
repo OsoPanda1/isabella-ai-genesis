@@ -7,7 +7,14 @@ export type RuntimeMode = "development" | "test" | "staging" | "production";
 
 export function resolveRuntimeMode(input?: string): RuntimeMode {
   const env = String(input ?? process.env.NODE_ENV ?? "development").trim().toLowerCase();
-  if (env === "production" || process.env.VERCEL === "1") return "production";
+  // Emergency/maintenance modes retain production-grade authorization boundaries.
+  if (
+    env === "production" ||
+    env === "emergency" ||
+    env === "maintenance" ||
+    process.env.VERCEL === "1"
+  )
+    return "production";
   if (env === "test" || process.env.VITEST === "true") return "test";
   if (env === "staging") return "staging";
   return "development";
