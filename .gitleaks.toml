@@ -10,5 +10,6 @@ useDefault = true
 description = "Known retired CROWN credential from historical incident; exact value only"
 regexTarget = "secret"
 regexes = [
-  '''C869C1B14A8938785A9438060AD878711124F416'''
+  '''C869C1B14A8938785A9438060AD878711124F416''',
+  '''AIzaSyAny-ujWCY0Lw6_sDS_pIppJtlcESBJ2U8'''
 ]
