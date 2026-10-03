@@ -1,32 +1,16 @@
 /**
- * BookPI Repository Interface & Factory
- * -----------------------------------------------------------------
- * Única entrada de repositorio para el ledger durable.
- * La implementación productiva es PostgreSQL; el adaptador de desarrollo
- * queda separado explícitamente en bookpi-dev-repository.ts.
+ * BookPI Repository Interface & Factory (src/lib/repositories/bookpi-repository.ts)
  */
-import {
-  BookPiRepository,
-  bookpiPostgresRepository,
-  bookpiMemoryRepository,
-} from "./bookpi-postgres-repository";
-
-export function createBookpiRepository(): BookPiRepository {
-  return bookpiPostgresRepository;
-}
-
-export function createBookpiMemoryRepository(): BookPiRepository {
-  return bookpiMemoryRepository;
-}
+import { BookPiRepository, bookpiPostgresRepository } from "./bookpi-postgres-repository";
 
 export function getBookPiRepository(): BookPiRepository {
   return bookpiPostgresRepository;
 }
 
-export {
-  BookPiRepository,
-  bookpiPostgresRepository,
-  bookpiMemoryRepository,
-};
-
+export { BookPiRepository, bookpiPostgresRepository };
 export default bookpiPostgresRepository;
+
+
+export function createBookpiRepository(): BookPiRepository {
+  return bookpiPostgresRepository;
+}
