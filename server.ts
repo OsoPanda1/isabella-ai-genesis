@@ -33,8 +33,7 @@ import { pdpAuthorize, authorizeWithPdp } from "./src/lib/authz-runtime/client";
 import { assertStrictEnv } from "./src/lib/env";
 import { bootstrapNativeAuth, signNativeJwt, getNativeSecret, mintGuestSession, getNativeEd25519PublicKeyPem } from "./src/lib/native-auth";
 import { buildDemoLedgerSnapshot, LEDGER_POLICY_VERSION } from "./src/lib/ledger/demoSnapshot";
-import { configureApiKeyService, createApiKey, listApiKeys, revokeApiKey, rotateApiKey, deleteApiKey } from "./src/lib/api-keys";
-import { SqliteApiKeyRepository } from "./src/lib/persistence/api-key-repository";
+import { ApiKeyService } from "./src/lib/api-key-service";
 import {
   ISABELLA_PLANS,
   buildCheckoutUrl,
@@ -146,17 +145,6 @@ export { app };
 // Express 5. Passing the Express app directly makes Express assign `req.res`
 // on H3's read-only request facade and crashes every request.
 export default fromNodeMiddleware(app);
-
-// ─── API KEY SERVICE INIT ─────────────────────────────────────────
-try {
-  // Pepper resolution lives in the service: API_KEY_PEPPER env wins; without
-  // it the pepper is domain-separated from the native secret, never reused raw.
-  const repo = new SqliteApiKeyRepository();
-  configureApiKeyService(repo, process.env.API_KEY_PEPPER ? { pepper: process.env.API_KEY_PEPPER } : {});
-  log.info("api_key_service_initialized", { engine: "sqlite" });
-} catch (err: unknown) {
-  log.error("api_key_service_init_failed", { error: toErrorMessage(err) });
-}
 
 // Export native Ed25519 public key for the authz-runtime PDP (Ed25519 mode).
 // Gateado: solo escribe el PEM cuando se habilita explícitamente, para no
@@ -296,7 +284,7 @@ app.post("/api/v1/authz/authorize", rateLimit, async (req, res) => {
 // Key lifecycle demands the explicit "keys:manage" scope. Guest sessions
 // never carry it (their allowlist filters it out), so anonymous web users
 // cannot mint persistent credentials; operators' API keys can hold it.
-app.post("/api/v1/apikeys", rateLimit, authenticate, requireScope("keys:manage"), (req, res) => {
+app.post("/api/v1/apikeys", rateLimit, authenticate, requireScope("keys:manage"), async (req, res) => {
   const principal = currentPrincipal(req);
   const { name, scopes, plan, expiresInDays, rateLimitPerMinute } = req.body || {};
   if (!name || typeof name !== "string") {
@@ -327,42 +315,50 @@ app.post("/api/v1/apikeys", rateLimit, authenticate, requireScope("keys:manage")
     return res.status(403).json({ ok: false, error: "Wildcard scope forbidden in API keys" });
   }
 
-  const result = createApiKey({
-    name,
-    userId: principal.sub,
-    tenantId: principal.tenantId || "nodo-cero-rdm",
-    createdBy: principal.sub,
-    scopes,
-    plan,
-    expiresInDays,
-    rateLimitPerMinute,
-  });
-  res.status(201).json({ ok: true, data: result });
+  try {
+    const expiresInSeconds = expiresInDays === undefined ? undefined : Math.floor(Number(expiresInDays) * 86400);
+    const result = await ApiKeyService.createApiKey(
+      principal.tenantId || "nodo-cero-rdm",
+      principal.sub,
+      name,
+      principal.roles.includes("admin") || principal.roles.includes("system") ? "admin" : "api-client",
+      scopes.map(String),
+      expiresInSeconds,
+      principal.sub,
+    );
+    res.status(201).json({ ok: true, data: result });
+  } catch (error) {
+    res.status(400).json({ ok: false, error: toErrorMessage(error) || "API key creation failed" });
+  }
 });
 
-app.get("/api/v1/apikeys", authenticate, requireScope("keys:manage"), (req, res) => {
+app.get("/api/v1/apikeys", authenticate, requireScope("keys:manage"), async (req, res) => {
   const principal = currentPrincipal(req);
-  const keys = listApiKeys(principal.sub, principal.tenantId || "nodo-cero-rdm");
-  res.json({ ok: true, data: keys });
+  try {
+    const keys = await ApiKeyService.listApiKeys(principal.tenantId || "nodo-cero-rdm");
+    res.json({ ok: true, data: keys });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: toErrorMessage(error) || "API key listing failed" });
+  }
 });
 
-app.post("/api/v1/apikeys/:keyId/revoke", authenticate, requireScope("keys:manage"), (req, res) => {
+app.post("/api/v1/apikeys/:keyId/revoke", authenticate, requireScope("keys:manage"), async (req, res) => {
   const principal = currentPrincipal(req);
-  const ok = revokeApiKey(req.params.keyId, principal.sub, principal.tenantId || "nodo-cero-rdm");
+  const ok = await ApiKeyService.revokeApiKey(req.params.keyId, principal.tenantId || "nodo-cero-rdm", principal.sub);
   if (!ok) return res.status(404).json({ ok: false, error: "Key not found or already revoked" });
   res.json({ ok: true });
 });
 
-app.post("/api/v1/apikeys/:keyId/rotate", authenticate, requireScope("keys:manage"), (req, res) => {
+app.post("/api/v1/apikeys/:keyId/rotate", authenticate, requireScope("keys:manage"), async (req, res) => {
   const principal = currentPrincipal(req);
-  const result = rotateApiKey(req.params.keyId, principal.sub, principal.tenantId || "nodo-cero-rdm");
-  if (!result) return res.status(404).json({ ok: false, error: "Key not found" });
+  const result = await ApiKeyService.rotateApiKey(req.params.keyId, principal.tenantId || "nodo-cero-rdm", principal.sub);
+  if (!result.success) return res.status(404).json({ ok: false, error: result.error || "Key not found" });
   res.json({ ok: true, data: result });
 });
 
-app.delete("/api/v1/apikeys/:keyId", authenticate, requireScope("keys:manage"), (req, res) => {
+app.delete("/api/v1/apikeys/:keyId", authenticate, requireScope("keys:manage"), async (req, res) => {
   const principal = currentPrincipal(req);
-  const ok = deleteApiKey(req.params.keyId, principal.sub, principal.tenantId || "nodo-cero-rdm");
+  const ok = await ApiKeyService.deleteApiKey(req.params.keyId, principal.tenantId || "nodo-cero-rdm", principal.sub);
   if (!ok) return res.status(404).json({ ok: false, error: "Key not found" });
   res.json({ ok: true });
 });
