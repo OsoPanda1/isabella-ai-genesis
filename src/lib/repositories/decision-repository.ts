@@ -166,6 +166,14 @@ export function createPostgresDecisionLedger(deps?: DecisionLedgerDeps): LedgerS
         `WITH tenant_lock AS (
            SELECT pg_advisory_xact_lock(hashtextextended($2, 0))
          ),
+         existing AS (
+           SELECT EXISTS(
+             SELECT 1
+               FROM public.isabella_decisions
+              WHERE tenant_id = $2 AND record_hash = $13
+           ) AS already_recorded
+           FROM tenant_lock
+         ),
          expected AS (
            SELECT COALESCE(
              (
@@ -176,8 +184,9 @@ export function createPostgresDecisionLedger(deps?: DecisionLedgerDeps): LedgerS
                 LIMIT 1
              ),
              'GENESIS'
-           ) AS previous_hash
-             FROM tenant_lock
+           ) AS previous_hash,
+           existing.already_recorded
+             FROM existing
          ),
          inserted AS (
            INSERT INTO public.isabella_decisions
@@ -186,12 +195,14 @@ export function createPostgresDecisionLedger(deps?: DecisionLedgerDeps): LedgerS
            SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, expected.previous_hash,
                   $13, $14::jsonb, $15
              FROM expected
-            WHERE expected.previous_hash = $12
+            WHERE NOT expected.already_recorded
+              AND expected.previous_hash = $12
            ON CONFLICT (tenant_id, record_hash) DO NOTHING
            RETURNING id
          )
          SELECT
            expected.previous_hash,
+           expected.already_recorded,
            (SELECT id FROM inserted) AS inserted_id
            FROM expected`,
         [
@@ -214,9 +225,10 @@ export function createPostgresDecisionLedger(deps?: DecisionLedgerDeps): LedgerS
       );
       const row = rows[0] as Record<string, unknown> | undefined;
       const expected = row?.previous_hash == null ? "GENESIS" : String(row.previous_hash);
+      const alreadyRecorded = row?.already_recorded === true;
       const insertedId = row?.inserted_id == null ? null : String(row.inserted_id);
 
-      if (expected !== record.previousHash && insertedId === null) {
+      if (!alreadyRecorded && expected !== record.previousHash && insertedId === null) {
         throw new Error(
           `DECISION_CHAIN_MISMATCH: previousHash ${record.previousHash} no coincide con el último record_hash ${expected}.`,
         );
