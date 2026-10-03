@@ -1,17 +1,15 @@
 /**
  * Production Authority Engine (src/lib/production-authority.ts)
  * -------------------------------------------------------------
- * Enforces the 6 Sovereign Production Authorities:
- * 1. Identity Authority (JWT / OIDC / Supabase Auth)
- * 2. Policy Authority (CROWN Gateway & ARGUS PDP)
- * 3. Persistence Authority (PostgreSQL / Durable Repository)
- * 4. Evidence Authority (BookPI Ledger & HMAC-SHA3-512)
- * 5. Economic Authority (Stripe & Cattleya Double-Entry)
- * 6. Cryptographic Authority (KMS / PQC HSM)
+ * Fuente de verdad de las seis autoridades declaradas por Isabella.
+ * Reporta únicamente estado respaldado por configuración disponible.
  *
- * In production mode, an incomplete authority set causes an immediate
- * fail-closed abort.
+ * IMPORTANTE:
+ * - No confunde criptografía de aplicación con HSM/KMS hardware.
+ * - No inventa readiness en producción.
+ * - Toda configuración se obtiene mediante el contrato central de config().
  */
+import { config } from "./config";
 import { isProductionLike } from "./runtime-mode";
 
 export interface AuthorityStatus {
@@ -29,74 +27,104 @@ export interface ProductionAuditReport {
   missingCount: number;
 }
 
+function present(value: unknown): boolean {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function validBookpiAlgorithm(value: unknown): boolean {
+  return value === "ECDSA-P384" || value === "RSA-SHA256";
+}
+
 export function evaluateProductionAuthorities(): ProductionAuditReport {
-  const env = process.env.NODE_ENV || "development";
+  const cfg = config();
+  const production = isProductionLike(cfg.ISABELLA_RUNTIME_MODE);
+
+  const identityConfigured = present(cfg.AUTH_JWT_SECRET) || present(cfg.SUPABASE_URL);
+  const persistenceConfigured = present(cfg.DATABASE_URL);
+
+  const evidenceConfigured =
+    present(cfg.AEGIS_AUDIT_SECRET) &&
+    present(cfg.BOOKPI_SIGNING_KEY) &&
+    present(cfg.CROWN_POLICY_SIGNING_KEY) &&
+    validBookpiAlgorithm(cfg.BOOKPI_SIGNATURE_ALGORITHM);
+
+  const cryptoConfigured =
+    present(cfg.ENCRYPTION_MASTER_KEY) &&
+    present(cfg.CROWN_POLICY_SIGNING_KEY) &&
+    present(cfg.BOOKPI_SIGNING_KEY) &&
+    validBookpiAlgorithm(cfg.BOOKPI_SIGNATURE_ALGORITHM);
+
   const authorities: AuthorityStatus[] = [
     {
       name: "IDENTITY_AUTHORITY",
-      configured: Boolean(process.env.SUPABASE_URL || process.env.JWT_SECRET || !isProductionLike()),
-      status: "ACTIVE",
+      configured: identityConfigured,
+      status: identityConfigured || !production ? "ACTIVE" : "MISSING",
       requiredInProduction: true,
-      details: "Supabase OIDC / Native JWT verified identity provider.",
+      details:
+        "Identidad firmada mediante AUTH_JWT_SECRET y/o proveedor OIDC/Supabase configurado.",
     },
     {
       name: "POLICY_AUTHORITY",
       configured: true,
       status: "ACTIVE",
       requiredInProduction: true,
-      details: "CROWN / ARGUS PDP deterministic policy evaluation.",
+      details: "CROWN/ARGUS ejecuta evaluación determinista antes de la ejecución sensible.",
     },
     {
       name: "PERSISTENCE_AUTHORITY",
-      configured: Boolean(process.env.DATABASE_URL || !isProductionLike()),
-      status: Boolean(process.env.DATABASE_URL) ? "ACTIVE" : isProductionLike() ? "MISSING" : "ACTIVE",
+      configured: persistenceConfigured,
+      status: persistenceConfigured || !production ? "ACTIVE" : "MISSING",
       requiredInProduction: true,
-      details: "PostgreSQL SoR and schema contracts.",
+      details: "PostgreSQL es la autoridad durable requerida en staging/production.",
     },
     {
       name: "EVIDENCE_AUTHORITY",
-      configured: Boolean(process.env.AEGIS_AUDIT_SECRET || !isProductionLike()),
-      status: Boolean(process.env.AEGIS_AUDIT_SECRET) ? "ACTIVE" : isProductionLike() ? "MISSING" : "ACTIVE",
+      configured: evidenceConfigured,
+      status: evidenceConfigured || !production ? "ACTIVE" : "MISSING",
       requiredInProduction: true,
-      details: "BookPI append-only cryptographic audit chain.",
+      details:
+        "BookPI/ledger requiere AEGIS_AUDIT_SECRET, claves de firma y algoritmo explícitamente permitido.",
     },
     {
       name: "ECONOMIC_AUTHORITY",
-      configured: Boolean(process.env.STRIPE_SECRET_KEY || !isProductionLike()),
-      status: Boolean(process.env.STRIPE_SECRET_KEY) ? "ACTIVE" : isProductionLike() ? "DEGRADED" : "ACTIVE",
+      configured: present(cfg.STRIPE_SECRET_KEY),
+      status: present(cfg.STRIPE_SECRET_KEY) || !production ? "ACTIVE" : "DEGRADED",
       requiredInProduction: false,
-      details: "Stripe and double-entry Cattleya accounting.",
+      details: "Stripe/Cattleya permanece opcional para el núcleo conversacional.",
     },
     {
       name: "CRYPTOGRAPHIC_AUTHORITY",
-      configured: true,
-      status: "ACTIVE",
+      configured: cryptoConfigured,
+      status: cryptoConfigured || !production ? "ACTIVE" : "MISSING",
       requiredInProduction: true,
-      details: "ECDSA P-384, Ed25519, and SHA3-512 cryptographic engines.",
+      details:
+        "AES-256-GCM/HKDF y firmas BookPI/CROWN. La disponibilidad de HSM/KMS hardware no se infiere de esta configuración.",
     },
   ];
 
-  const missing = authorities.filter((a) => a.requiredInProduction && a.status === "MISSING");
-  const ready = missing.length === 0;
+  const missing = authorities.filter(
+    (authority) => authority.requiredInProduction && authority.status === "MISSING",
+  );
 
   return {
-    ready,
-    environment: env,
+    ready: missing.length === 0,
+    environment: cfg.ISABELLA_RUNTIME_MODE,
     authorities,
     missingCount: missing.length,
   };
 }
 
 export function assertProductionReady(): void {
-  if (!isProductionLike()) {
-    return;
-  }
+  const cfg = config();
+  if (!isProductionLike(cfg.ISABELLA_RUNTIME_MODE)) return;
+
   const report = evaluateProductionAuthorities();
   if (!report.ready) {
     const missingNames = report.authorities
-      .filter((a) => a.requiredInProduction && a.status === "MISSING")
-      .map((a) => a.name)
+      .filter((authority) => authority.requiredInProduction && authority.status === "MISSING")
+      .map((authority) => authority.name)
       .join(", ");
+
     throw new Error(
       `PRODUCTION_AUTHORITY_ABORT: System cannot start in production. Incomplete authorities: ${missingNames}`,
     );
