@@ -18,7 +18,8 @@ function walk(dir) {
   return files;
 }
 
-function resolveImport(fromFile, specifier) {
+function resolveImport(fromFile, rawSpecifier) {
+  const specifier = rawSpecifier.split("?", 1)[0];
   let base;
   if (specifier.startsWith("@/")) base = join(root, "src", specifier.slice(2));
   else if (specifier.startsWith("./") || specifier.startsWith("../"))
@@ -50,6 +51,8 @@ for (const file of files) {
   const group = hashes.get(digest) ?? [];
   group.push(relative);
   hashes.set(digest, group);
+
+  if (relative.startsWith("src/generated/prisma/")) continue;
 
   for (const match of content.matchAll(/from\s+["']([^"']+)["']/g)) {
     if (!resolveImport(file, match[1]))
