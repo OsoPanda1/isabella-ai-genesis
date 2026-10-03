@@ -37,19 +37,19 @@ export interface BookpiRefundRequest {
  */
 export function createBookpiEngine(repository: BookpiRepository = createBookpiRepository()) {
   return {
-    async list(tenantId: string): Promise<BlockPIBlock[]> {
-      return await repository.list(tenantId);
+    list(tenantId: string): BlockPIBlock[] {
+      return repository.list(tenantId);
     },
 
-    async record(request: BookpiWriteRequest): Promise<{
+    record(request: BookpiWriteRequest): {
       success: boolean;
       error?: string;
       block?: BlockPIBlock;
-    }> {
+    } {
       if (!request.tenantId) return { success: false, error: "Tenant requerido." };
       if (!request.userId) return { success: false, error: "Usuario requerido." };
       if (request.cost < 0) return { success: false, error: "Costo negativo no admitido." };
-      const write = await repository.append({
+      const write = repository.append({
         tenantId: request.tenantId,
         userId: request.userId,
         operation: request.operation,
@@ -61,11 +61,11 @@ export function createBookpiEngine(repository: BookpiRepository = createBookpiRe
       return { success: true, block: write.block };
     },
 
-    async batchAppend(requests: BookpiWriteRequest[]): Promise<{
+    batchAppend(requests: BookpiWriteRequest[]): {
       success: boolean;
       error?: string;
       blocks?: BlockPIBlock[];
-    }> {
+    } {
       if (requests.length === 0) return { success: true, blocks: [] };
       for (const req of requests) {
         if (!req.tenantId) return { success: false, error: "Tenant requerido en batch." };
@@ -75,21 +75,21 @@ export function createBookpiEngine(repository: BookpiRepository = createBookpiRe
 
       // Ensure the repository has batchAppend, otherwise fallback to sequential
       if (typeof repository.batchAppend === "function") {
-        const write = await repository.batchAppend(requests);
+        const write = repository.batchAppend(requests);
         if (!write.success) return { success: false, error: write.error };
         return { success: true, blocks: write.blocks };
       } else {
         const blocks: BlockPIBlock[] = [];
         for (const req of requests) {
-          const write = await repository.append(req);
+          const write = repository.append(req);
           if (!write.success) return { success: false, error: write.error };
-          if (write.block) blocks.push(write.block);
+          blocks.push(write.block);
         }
         return { success: true, blocks };
       }
     },
 
-    async query(
+    query(
       tenantId: string,
       filter: {
         category?: LedgerCategory;
@@ -97,12 +97,25 @@ export function createBookpiEngine(repository: BookpiRepository = createBookpiRe
         fromDate?: Date;
         toDate?: Date;
       },
-    ): Promise<BlockPIBlock[]> {
+    ): BlockPIBlock[] | Promise<BlockPIBlock[]> {
       if (typeof repository.query === "function") {
-        return await repository.query(tenantId, filter);
+        return repository.query(tenantId, filter);
       }
       // Fallback for repositories without query
-      let blocks = await repository.list(tenantId);
+      let blocks = repository.list(tenantId);
+      // Handle promises from list if postgres
+      if (blocks instanceof Promise) {
+        return blocks.then((b) => {
+          if (filter.category) b = b.filter((x: BlockPIBlock) => x.category === filter.category);
+          if (filter.userId) b = b.filter((x: BlockPIBlock) => x.userId === filter.userId);
+          if (filter.fromDate)
+            b = b.filter((x: BlockPIBlock) => new Date(x.timestamp) >= filter.fromDate!);
+          if (filter.toDate)
+            b = b.filter((x: BlockPIBlock) => new Date(x.timestamp) <= filter.toDate!);
+          return b;
+        });
+      }
+
       if (filter.category) blocks = blocks.filter((b) => b.category === filter.category);
       if (filter.userId) blocks = blocks.filter((b) => b.userId === filter.userId);
       if (filter.fromDate) blocks = blocks.filter((b) => new Date(b.timestamp) >= filter.fromDate!);
@@ -110,8 +123,8 @@ export function createBookpiEngine(repository: BookpiRepository = createBookpiRe
       return blocks;
     },
 
-    async exportLedger(tenantId: string): Promise<string> {
-      const blocks = await repository.list(tenantId);
+    exportLedger(tenantId: string): string | Promise<string> {
+      const blocks = repository.list(tenantId);
 
       const formatResult = (b: BlockPIBlock[]) => {
         const latestBlock = b.length > 0 ? b[b.length - 1] : null;
@@ -143,16 +156,22 @@ export function createBookpiEngine(repository: BookpiRepository = createBookpiRe
         return JSON.stringify(payload, null, 2);
       };
 
+      if (blocks instanceof Promise) {
+        return blocks.then(formatResult);
+      }
+
       return formatResult(blocks);
     },
 
-    async prune(
+    prune(
       tenantId: string,
       maxAgeMs: number,
-    ): Promise<{ success: boolean; prunedCount?: number; error?: string }> {
+    ):
+      | { success: boolean; prunedCount?: number; error?: string }
+      | Promise<{ success: boolean; prunedCount?: number; error?: string }> {
       if (maxAgeMs < 0) return { success: false, error: "maxAgeMs debe ser >= 0" };
       if (typeof repository.prune === "function") {
-        return await repository.prune(tenantId, maxAgeMs);
+        return repository.prune(tenantId, maxAgeMs);
       }
       return {
         success: false,
@@ -160,14 +179,16 @@ export function createBookpiEngine(repository: BookpiRepository = createBookpiRe
       };
     },
 
-    async pruneInactiveTenants(inactiveDays: number): Promise<{
-      success: boolean;
-      prunedTenants?: string[];
-      error?: string;
-    }> {
+    pruneInactiveTenants(inactiveDays: number):
+      | { success: boolean; prunedTenants?: string[]; error?: string }
+      | Promise<{
+          success: boolean;
+          prunedTenants?: string[];
+          error?: string;
+        }> {
       if (inactiveDays <= 0) return { success: false, error: "inactiveDays must be > 0" };
       if (typeof repository.pruneInactive === "function") {
-        return await repository.pruneInactive(inactiveDays);
+        return repository.pruneInactive(inactiveDays);
       }
       return {
         success: false,
