@@ -7,7 +7,7 @@
  */
 import { auditRepository } from "../repositories/audit-repository";
 import { memoryRepository } from "../repositories/memory-repository";
-import { bookpiPostgresRepository } from "../repositories/bookpi-postgres-repository";
+import { createBookpiPostgresRepository } from "../repositories/bookpi-postgres-runtime";
 import { apiKeyRepository } from "../repositories/api-key-repository";
 import { approvalRepository } from "../repositories/approval-repository";
 import { marketplaceRepository } from "../repositories/marketplace-repository";
@@ -30,7 +30,7 @@ export function getRepositoryFactory() {
   return {
     getAuditRepository: () => auditRepository,
     getMemoryRepository: () => memoryRepository,
-    getBookPiRepository: () => bookpiPostgresRepository,
+    getBookPiRepository: () => createBookpiPostgresRepository(),
     getApiKeyRepository: () => apiKeyRepository,
     getApprovalRepository: () => approvalRepository,
     getMarketplaceRepository: () => marketplaceRepository,
