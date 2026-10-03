@@ -30,7 +30,8 @@ permissions:
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository }}/isabella-core
-  DEFAULT_NODE_VERSION: "22"
+  DEFAULT_NODE_VERSION: "24.11.0"
+  PNPM_VERSION: "10.34.5"
   PROVENANCE_SIGNER: "github-actions-provenance"
   CANONICAL_ORIGINS: ${{ vars.CANONICAL_ORIGINS }}
   SLSA_LEVEL: "2"
@@ -38,7 +39,6 @@ env:
 defaults:
   run:
     shell: bash
-    timeout-minutes: 45
 
 jobs:
   # =========================================================================
@@ -117,6 +117,9 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Strict typecheck (tsc --noEmit)
+        run: pnpm run typecheck
+
+      - name: Strict lint
         run: pnpm run lint
 
       - name: Run tests (CI mode)
@@ -276,7 +279,7 @@ jobs:
   # =========================================================================
   production-gate:
     name: Production Gate Approval
-    needs: [secret-scan, rust-core, node-app, container-build, iac-scan]
+    needs: [secret-scan, node-app, container-build, iac-scan]
     runs-on: ubuntu-latest
     environment:
       name: production

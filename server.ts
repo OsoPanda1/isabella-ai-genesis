@@ -19,6 +19,8 @@ import { summarizeIsabellaV5Fusion } from "./src/lib/isabella-v5";
 import { tamvPlatformRouter } from "./src/lib/tamv-platform.server";
 import { resolveIntroConfig } from "./src/lib/media/intro-config";
 import { loadConfig } from "./src/lib/config";
+import { evaluateProductionAuthorities } from "./src/lib/production-authority";
+import { checkRuntimeIntegrity } from "./src/lib/runtime-integrity";
 import {
   createMuxDirectUpload,
   getMuxAsset,
@@ -492,6 +494,51 @@ app.get("/api/ledger", authenticate, requireScope("ledger:read"), rateLimit, asy
     }
   }
   res.status(200).set("Cache-Control", "no-store").json(buildDemoLedgerSnapshot());
+});
+
+app.get("/api/health/live", (_req, res) => {
+  res.status(200).set("Cache-Control", "no-store").json({
+    status: "alive",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get("/api/health/ready", async (_req, res) => {
+  try {
+    const authorities = evaluateProductionAuthorities();
+    const integrity = checkRuntimeIntegrity();
+    const database = await pgHealthCheck();
+    const ready = authorities.ready && integrity.ok && database.ok;
+
+    res.status(ready ? 200 : 503).set("Cache-Control", "no-store").json({
+      status: ready ? "ready" : "not_ready",
+      timestamp: new Date().toISOString(),
+      checks: {
+        runtime: integrity.ok,
+        authorities: authorities.ready,
+        database: database.ok,
+      },
+      runtime: {
+        nodeVersion: integrity.nodeVersion,
+        memoryUsageMb: integrity.memoryUsageMb,
+        uptimeSeconds: integrity.uptimeSeconds,
+      },
+      authorities: authorities.authorities.map((authority) => ({
+        name: authority.name,
+        status: authority.status,
+        requiredInProduction: authority.requiredInProduction,
+      })),
+      database: database.ok
+        ? { ok: true, latencyMs: database.latencyMs }
+        : { ok: false },
+    });
+  } catch {
+    res.status(503).set("Cache-Control", "no-store").json({
+      status: "not_ready",
+      timestamp: new Date().toISOString(),
+      checks: { runtime: false, authorities: false, database: false },
+    });
+  }
 });
 
 app.get("/api/health", (req, res) => {
