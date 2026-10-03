@@ -709,28 +709,6 @@ export async function handleIsabellaChat(
       );
     }
   }
-  try {
-    const { createMemoryKillSwitchStore, createPostgresKillSwitchStore } =
-      await import("@/lib/kill-switch");
-    const store = config().DATABASE_URL
-      ? createPostgresKillSwitchStore()
-      : createMemoryKillSwitchStore();
-    if (await store.isKilled("inference"))
-      return contractError(
-        context,
-        IsabellaChatErrorCode.KILL_SWITCH_ACTIVE,
-        "La inferencia está detenida por el interruptor de emergencia.",
-        503,
-      );
-  } catch {
-    return contractError(
-      context,
-      IsabellaChatErrorCode.KILL_SWITCH_ACTIVE,
-      "No fue posible verificar el estado del interruptor de emergencia; inferencia bloqueada.",
-      503,
-      true,
-    );
-  }
   const nativeSignal = config().NATIVE_COMPREHENSION_ENABLED
     ? (() => {
         try {
