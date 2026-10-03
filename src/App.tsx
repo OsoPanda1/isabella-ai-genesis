@@ -16,6 +16,7 @@ import { GlobalFooter } from "./components/Footer/GlobalFooter";
 import { ShortcutToast } from "./components/Shortcuts/ShortcutToast";
 import { useGlobalShortcuts } from "./hooks/useGlobalShortcuts";
 import { IsabellaCinematicExperience } from "./components/Welcome/IsabellaCinematicExperience";
+import { SecurityGovernanceModal } from "./components/Security/SecurityGovernanceModal";
 
 /*
  * ============================================================================
@@ -133,11 +134,6 @@ const SidebarNav = lazyNamed(() => import("./components/Sidebar/SidebarNav"), "S
 const KeyboardShortcutsModal = lazyNamed(
   () => import("./components/Shortcuts/KeyboardShortcutsModal"),
   "KeyboardShortcutsModal",
-);
-
-const SecurityGovernanceModal = lazyNamed(
-  () => import("./components/Security/SecurityGovernanceModal"),
-  "SecurityGovernanceModal",
 );
 
 /*

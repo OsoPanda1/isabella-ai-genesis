@@ -24925,5 +24925,866 @@
       "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874da0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
       "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
     }
+  },
+  {
+    "index": 1577,
+    "timestamp": "2026-10-03T06:22:37.844Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9a1e6851938115d9",
+      "context": "boot"
+    },
+    "prevHash": "0008f3e6b6e1679505fe51ce90675f8540e9d9607e083e819f2dcf062c1cef85",
+    "nonce": 545,
+    "hash": "00c817ac9504b27b38a2befc0320a55da5366bca8c08e9072c0cf3b66a92a3d4",
+    "cid": "bafyrei43xqs49UCHStaExic5nAP9g9GZ9KLQ1n",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92310000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874da0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1578,
+    "timestamp": "2026-10-03T06:22:37.866Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "66cca76235bc75a8"
+    },
+    "prevHash": "00c817ac9504b27b38a2befc0320a55da5366bca8c08e9072c0cf3b66a92a3d4",
+    "nonce": 9,
+    "hash": "00e59587462335fab60c0a3c2df62b7889ab7d8108d2f05c56be52abb5c9da46",
+    "cid": "bafyrei4W3dWwwNPV8AFLjiQaVVeRZhj5W2Mx9h",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92310000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874da0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1579,
+    "timestamp": "2026-10-03T06:22:44.320Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "2c543ad1367ef615",
+      "context": "boot"
+    },
+    "prevHash": "00e59587462335fab60c0a3c2df62b7889ab7d8108d2f05c56be52abb5c9da46",
+    "nonce": 545,
+    "hash": "00addab4fdc029d6da072206cc2344b8a5f6d2ff4fb35fa0a0a8076e227738f0",
+    "cid": "bafyrei3ekwim73GfJyWWfPL1Di6heQHPndgtdC",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92310000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874da0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1580,
+    "timestamp": "2026-10-03T06:22:44.341Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "89188136c326a0eb"
+    },
+    "prevHash": "00addab4fdc029d6da072206cc2344b8a5f6d2ff4fb35fa0a0a8076e227738f0",
+    "nonce": 78,
+    "hash": "004b206777d9cdec2de1f53b25d7324c950d5c6100415bf8df4c207198c4a610",
+    "cid": "bafyrei29SezLFhB5j6Dk9asxxh5P1UNXPG5YLn",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b923c0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874ea0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1581,
+    "timestamp": "2026-10-03T06:22:49.666Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "aa31ea4610a88903",
+      "context": "boot"
+    },
+    "prevHash": "004b206777d9cdec2de1f53b25d7324c950d5c6100415bf8df4c207198c4a610",
+    "nonce": 34,
+    "hash": "003a25bb1d16812414ccbbfbf96a806b84e16d22916198c594d9b099476d922a",
+    "cid": "bafyreitRhY8p6tDVg2K3x7aFxL6zRCoJ12m3hq",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b923c0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874ea0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1582,
+    "timestamp": "2026-10-03T06:22:49.681Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "76e14bbfdef120a2"
+    },
+    "prevHash": "003a25bb1d16812414ccbbfbf96a806b84e16d22916198c594d9b099476d922a",
+    "nonce": 282,
+    "hash": "0011d4251a6274ad0c72b3fbe575faef9acd845a2ce492378f30a763f836757f",
+    "cid": "bafyreiGmXq2yZWSoxZayBa3tJk5nFvhyxyxzhD",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92410000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874ea0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1583,
+    "timestamp": "2026-10-03T06:22:54.533Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "0efde8d0fe5e945e",
+      "context": "boot"
+    },
+    "prevHash": "0011d4251a6274ad0c72b3fbe575faef9acd845a2ce492378f30a763f836757f",
+    "nonce": 438,
+    "hash": "0085fa45d63bfc42a5eccf686b072f244bb35519e10f238f55b3719750760ea0",
+    "cid": "bafyrei33VT2Ai3Tb2bXkqi2Ni661p8G8X8oyh7",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92410000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874ea0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1584,
+    "timestamp": "2026-10-03T06:22:54.565Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "1da1f769bcc6ab74"
+    },
+    "prevHash": "0085fa45d63bfc42a5eccf686b072f244bb35519e10f238f55b3719750760ea0",
+    "nonce": 261,
+    "hash": "00238be1e589c57dec85d9d2d7e370601f82b0276e16093154c147eccb707c09",
+    "cid": "bafyreiYSNWtC1PffDiU1DfpjnsqsqKR311FT9v",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92410000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874ea0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1585,
+    "timestamp": "2026-10-03T06:22:59.421Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "bc6f5a2aa3567a5e",
+      "context": "boot"
+    },
+    "prevHash": "00238be1e589c57dec85d9d2d7e370601f82b0276e16093154c147eccb707c09",
+    "nonce": 115,
+    "hash": "00755ec6efee2dc477904126eefc7c91c594835573f839c333591a60a1e328eb",
+    "cid": "bafyrei2noZgsAp4aBCN9AFKc31BDZ2HPr1ae35",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92410000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874ea0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1586,
+    "timestamp": "2026-10-03T06:22:59.443Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "d5f24859f77a99c6"
+    },
+    "prevHash": "00755ec6efee2dc477904126eefc7c91c594835573f839c333591a60a1e328eb",
+    "nonce": 67,
+    "hash": "002ddb0b1c553b0df65ecec11876814323055086f80670f756726460a4a96b73",
+    "cid": "bafyreihZBt9quLeruyEMMEgGhwAiM3ViCfDcCw",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92450000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874ea0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1587,
+    "timestamp": "2026-10-03T06:23:04.026Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "d43264a88d305f4e",
+      "context": "boot"
+    },
+    "prevHash": "002ddb0b1c553b0df65ecec11876814323055086f80670f756726460a4a96b73",
+    "nonce": 14,
+    "hash": "00970641dc21fa96121c4dd0baabfa3d763f3d892d429f302008b7fc148c8142",
+    "cid": "bafyrei3JZsf4rM3MKTJNJd5RURKxC5vri37bd9",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92460000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874ea0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1588,
+    "timestamp": "2026-10-03T06:23:04.043Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "20ab337ee3bbb28a"
+    },
+    "prevHash": "00970641dc21fa96121c4dd0baabfa3d763f3d892d429f302008b7fc148c8142",
+    "nonce": 54,
+    "hash": "00368df1c06cadad2faeb430fa0627b1e599acf73e62fefde26920f19511e7fa",
+    "cid": "bafyreiqFQ7Y2qeUThVTZ44s3n65GnUUxhpx5mZ",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92460000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874ea0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1589,
+    "timestamp": "2026-10-03T06:23:08.528Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "1c49df35619e7900",
+      "context": "boot"
+    },
+    "prevHash": "00368df1c06cadad2faeb430fa0627b1e599acf73e62fefde26920f19511e7fa",
+    "nonce": 327,
+    "hash": "0075ca62e7b61817789dfdc92a1ad665d9157f33fe4215f9b1d45c9bbd25ad94",
+    "cid": "bafyrei2oB8HQJKKysTNU8E5nLNyyMq7UAScSYP",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92490000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874ea0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1590,
+    "timestamp": "2026-10-03T06:23:08.545Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "fe95af773ea8686e"
+    },
+    "prevHash": "0075ca62e7b61817789dfdc92a1ad665d9157f33fe4215f9b1d45c9bbd25ad94",
+    "nonce": 67,
+    "hash": "00e943a6e5ee04e2f0d30cb490d6e27e400f9f2d4fb30da80e79da35bff8998f",
+    "cid": "bafyrei4ZJQXtHs2kBz1vtEvR729Jt3H23A7MCz",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92610000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874f80000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1591,
+    "timestamp": "2026-10-03T06:23:13.409Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "ff7fc1d740539dbe",
+      "context": "boot"
+    },
+    "prevHash": "00e943a6e5ee04e2f0d30cb490d6e27e400f9f2d4fb30da80e79da35bff8998f",
+    "nonce": 1124,
+    "hash": "00d1ac4f13aba47ec651145ad18160ca2a1feb4b88d0701a038c30f42a5218ae",
+    "cid": "bafyrei4CSHVQLEpBEGNo9zn8JDJbvmLva1sdgV",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92610000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874f80000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1592,
+    "timestamp": "2026-10-03T06:23:13.441Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "7b241fae451c1c16"
+    },
+    "prevHash": "00d1ac4f13aba47ec651145ad18160ca2a1feb4b88d0701a038c30f42a5218ae",
+    "nonce": 24,
+    "hash": "0012e80f12035d081efb932949641097f3daf8052cfe6e02ed28e1799f403a55",
+    "cid": "bafyreiHipQAJCEiaBD4sijAaF2YpysZSUfdHjA",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92610000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874f80000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1593,
+    "timestamp": "2026-10-03T06:23:18.474Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "0bab6fe97cef42ee",
+      "context": "boot"
+    },
+    "prevHash": "0012e80f12035d081efb932949641097f3daf8052cfe6e02ed28e1799f403a55",
+    "nonce": 111,
+    "hash": "00be6b369e138a58c0b3198107d1ba46950abfdeafe7684605fd4a8af1dc7a78",
+    "cid": "bafyrei3uQdLe3qvgubP3xwJ5QX7sHUUSkprgzw",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92630000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874f80000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1594,
+    "timestamp": "2026-10-03T06:23:18.493Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "2aa023b4b2535246"
+    },
+    "prevHash": "00be6b369e138a58c0b3198107d1ba46950abfdeafe7684605fd4a8af1dc7a78",
+    "nonce": 251,
+    "hash": "00b7a9c1af4d894b4c90224a9d0384dde01a4b327e2fd53446a9e394ececde59",
+    "cid": "bafyrei3oS6Dv2GVdm12GkiMN92YkJhpHavPJW4",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92630000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874f80000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1595,
+    "timestamp": "2026-10-03T06:23:23.391Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "750d566fa032eced",
+      "context": "boot"
+    },
+    "prevHash": "00b7a9c1af4d894b4c90224a9d0384dde01a4b327e2fd53446a9e394ececde59",
+    "nonce": 28,
+    "hash": "002861f073e0b4ba07b8b3f8897ac77e4ff05f7b23e606495fb6082a2f46c366",
+    "cid": "bafyreiciSm7epqPohQPaJrj7YMwUWgmzm2de8C",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92630000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874f80000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1596,
+    "timestamp": "2026-10-03T06:23:23.415Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "ec987602acc4ae3e"
+    },
+    "prevHash": "002861f073e0b4ba07b8b3f8897ac77e4ff05f7b23e606495fb6082a2f46c366",
+    "nonce": 102,
+    "hash": "00bc8aeb6cd2ac311c762886512bbaf4736b1cc750bc1d81d1045d8ceacd5524",
+    "cid": "bafyrei3skPYKwnAFDZ2N9982NQ3DnHpgWq2zSd",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92630000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874f80000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1597,
+    "timestamp": "2026-10-03T06:23:29.080Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "e4bae41b86ae6992",
+      "context": "boot"
+    },
+    "prevHash": "00bc8aeb6cd2ac311c762886512bbaf4736b1cc750bc1d81d1045d8ceacd5524",
+    "nonce": 524,
+    "hash": "00acec07c612224529c7dcdf4683eb3a2c4bda9fe98aea4d7547fad5f9bc0af8",
+    "cid": "bafyrei3dw7ucw6VkDBFS5ErDWYiBM6jZuwZyE3",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92640000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874f80000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1598,
+    "timestamp": "2026-10-03T06:23:29.107Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "d058075fc42a92e1"
+    },
+    "prevHash": "00acec07c612224529c7dcdf4683eb3a2c4bda9fe98aea4d7547fad5f9bc0af8",
+    "nonce": 76,
+    "hash": "00f42763d85b699ddd8ab357dd5a647f55e253978ebb9139daac7f4957e5ca64",
+    "cid": "bafyrei4ivzcFuRoKzzTztN4YgeyEXxdXz2mKRU",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92640000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874f80000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1599,
+    "timestamp": "2026-10-03T06:23:33.740Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "33af3c6650aa0c68",
+      "context": "boot"
+    },
+    "prevHash": "00f42763d85b699ddd8ab357dd5a647f55e253978ebb9139daac7f4957e5ca64",
+    "nonce": 522,
+    "hash": "00c3d2696b91543d384cb6d079304cb83f913b3609050e55513a67bc8bf73665",
+    "cid": "bafyrei3zBnNGF4W8a94a4pb2j5p4AeUaBwcm4u",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b92640000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e874f80000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1600,
+    "timestamp": "2026-10-03T06:23:33.763Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "4d4a29470026d718"
+    },
+    "prevHash": "00c3d2696b91543d384cb6d079304cb83f913b3609050e55513a67bc8bf73665",
+    "nonce": 13,
+    "hash": "008b8bfea9a04cc1a04ed508c7c16652e801239dfc3ebcf3b49ffe00b002a338",
+    "cid": "bafyrei38R8EyvVnxcq2UZGVNPcjtbsq7am3Mvd",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b95370000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8767e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1601,
+    "timestamp": "2026-10-03T06:23:38.913Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "0a38036f155185d8",
+      "context": "boot"
+    },
+    "prevHash": "008b8bfea9a04cc1a04ed508c7c16652e801239dfc3ebcf3b49ffe00b002a338",
+    "nonce": 1214,
+    "hash": "00feccdf52f4f8bde555867984d19dda64d09515d04848776073dca955c57d30",
+    "cid": "bafyrei4tM7ArHBPgmq9AVLYxWuVj5nbuVuqBa9",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b95370000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8767e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1602,
+    "timestamp": "2026-10-03T06:23:38.939Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "8f7e01fe517ca579"
+    },
+    "prevHash": "00feccdf52f4f8bde555867984d19dda64d09515d04848776073dca955c57d30",
+    "nonce": 270,
+    "hash": "0099f774f1c3022c7093724c361175f6e6f94a1860d8643d9bdeaa3510c23724",
+    "cid": "bafyrei3MAo4spLd8k8x13QjLKLD6owxKN9wiyp",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b953a0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8767e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1603,
+    "timestamp": "2026-10-03T06:23:44.520Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "eb82b945713f25c9",
+      "context": "boot"
+    },
+    "prevHash": "0099f774f1c3022c7093724c361175f6e6f94a1860d8643d9bdeaa3510c23724",
+    "nonce": 801,
+    "hash": "00714211b8b0afa615f0478465d75ff26f491ce94bcac50d1240efa69ad04833",
+    "cid": "bafyrei2jAdW1uMJ1XWk3TA9wgPLBANn1m8Piix",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b953a0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8767e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1604,
+    "timestamp": "2026-10-03T06:23:44.550Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "ec48cc58037a09b0"
+    },
+    "prevHash": "00714211b8b0afa615f0478465d75ff26f491ce94bcac50d1240efa69ad04833",
+    "nonce": 132,
+    "hash": "002842f4b89eb5381fb6481e97c643e4e2b833bf0f2f22f8a7e2e55a2962a8b2",
+    "cid": "bafyreiccEgeuBuyWUQpLvR9kKs3PJTtRkJ2MNq",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b953a0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8767e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1605,
+    "timestamp": "2026-10-03T06:23:49.766Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "6be29a4e1b6d5edc",
+      "context": "boot"
+    },
+    "prevHash": "002842f4b89eb5381fb6481e97c643e4e2b833bf0f2f22f8a7e2e55a2962a8b2",
+    "nonce": 351,
+    "hash": "00e0affa3a20765faf041a7dc5bc8deccaaeb5a9cdbefb8305d231d159e24c56",
+    "cid": "bafyrei4RiTCqdLFvNZYdpQ3EvTbiNW79ys6CTx",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b953a0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8767e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1606,
+    "timestamp": "2026-10-03T06:23:49.786Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "113afd6ce2defd81"
+    },
+    "prevHash": "00e0affa3a20765faf041a7dc5bc8deccaaeb5a9cdbefb8305d231d159e24c56",
+    "nonce": 4,
+    "hash": "00811efb9bb7d774b928175589649ff1712f94cfe066e6a904289202f42fbdb8",
+    "cid": "bafyrei2yCKxYQmJNnyfBc7t4fhbLG1zCMX5zBi",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b953e0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8767e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1607,
+    "timestamp": "2026-10-03T06:23:54.655Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "ae669c23a37a8184",
+      "context": "boot"
+    },
+    "prevHash": "00811efb9bb7d774b928175589649ff1712f94cfe066e6a904289202f42fbdb8",
+    "nonce": 488,
+    "hash": "00eb4270053600ffc2bc3b6999db495d403eaa1aad8ee4b1d63f1b9eddfab721",
+    "cid": "bafyrei4b4khRGvzdzkyjvFhupz2Dm7D2M5LdP1",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b953e0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8767e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1608,
+    "timestamp": "2026-10-03T06:23:54.683Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "56828b663aaa7042"
+    },
+    "prevHash": "00eb4270053600ffc2bc3b6999db495d403eaa1aad8ee4b1d63f1b9eddfab721",
+    "nonce": 442,
+    "hash": "00fd9b364511a44e0a522f5153ca7b39596d680e25af9d3cd5b1c1f83151a272",
+    "cid": "bafyrei4sHrtzkRw7GERW8rkDocqguUQLvtHo2S",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b953f0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8767e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1609,
+    "timestamp": "2026-10-03T06:24:00.277Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "b5601c4c5f761def",
+      "context": "boot"
+    },
+    "prevHash": "00fd9b364511a44e0a522f5153ca7b39596d680e25af9d3cd5b1c1f83151a272",
+    "nonce": 262,
+    "hash": "00e852223c1aaaacc640d1d5b0eeaa1db1cb6b7628fc52e27c647107d3b065e7",
+    "cid": "bafyrei4YU1hMpYUmxWg8Gq5wrNcVMcJrrThoZf",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b95450000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8767e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1610,
+    "timestamp": "2026-10-03T06:24:00.303Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "82e965b70f5c0956"
+    },
+    "prevHash": "00e852223c1aaaacc640d1d5b0eeaa1db1cb6b7628fc52e27c647107d3b065e7",
+    "nonce": 464,
+    "hash": "006d943c3177276bfd74ab7982206742046dde9b5527e48a3f1e7f084fea206b",
+    "cid": "bafyrei2fuurBA2qjqf6ihkVJkEcsvPoaUVTjjt",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b95590000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8768e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1611,
+    "timestamp": "2026-10-03T06:24:04.995Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "9ac10f8af2c7093c",
+      "context": "boot"
+    },
+    "prevHash": "006d943c3177276bfd74ab7982206742046dde9b5527e48a3f1e7f084fea206b",
+    "nonce": 3,
+    "hash": "005562474474f5d4405cf808d038ef0de196906ac8d7692b3132ff87e8602a64",
+    "cid": "bafyrei2JWoway6tJHDwguQAf5uQpyGNGkEEn5D",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b95590000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8768e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1612,
+    "timestamp": "2026-10-03T06:24:05.015Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "893e40fdffcafcfa"
+    },
+    "prevHash": "005562474474f5d4405cf808d038ef0de196906ac8d7692b3132ff87e8602a64",
+    "nonce": 390,
+    "hash": "001efd61337b59b254a4b1fbda9b1cdc7bf9e6b239bf051b9b1d4e34a4835725",
+    "cid": "bafyreiUQdr4uZZknDUg1wzQh3LnWeawrMWDhsN",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b95590000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e8768e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1613,
+    "timestamp": "2026-10-03T06:24:09.825Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "e35365ddd6cbf9bd",
+      "context": "boot"
+    },
+    "prevHash": "001efd61337b59b254a4b1fbda9b1cdc7bf9e6b239bf051b9b1d4e34a4835725",
+    "nonce": 33,
+    "hash": "00b9b8ee5511da635b29e0dced2251acbfabc50d19e205d9d5a9af59095a029d",
+    "cid": "bafyrei3qFirNyVssTey3B6ACVB1GgyhBrQwZA1",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b955b0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e876940000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1614,
+    "timestamp": "2026-10-03T06:24:09.853Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "29960216da18a08b"
+    },
+    "prevHash": "00b9b8ee5511da635b29e0dced2251acbfabc50d19e205d9d5a9af59095a029d",
+    "nonce": 314,
+    "hash": "00bc6899062cd4d216a00f33b209ce87cec2dc09c9418e9643dff3387b8998d6",
+    "cid": "bafyrei3sdWfVsP69wcK45NZfqBXzFjKQs5ie3o",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b955b0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e876940000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1615,
+    "timestamp": "2026-10-03T06:24:15.204Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "8593c40b84f016f1",
+      "context": "boot"
+    },
+    "prevHash": "00bc6899062cd4d216a00f33b209ce87cec2dc09c9418e9643dff3387b8998d6",
+    "nonce": 140,
+    "hash": "00c67669e61590813a6b17eeaac62ea27ed8640d442efb6d5f080e0afac3b1b3",
+    "cid": "bafyrei42XEcbw8jERYGGEB76LMWfTa2LNGRKDk",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b955b0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e876940000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1616,
+    "timestamp": "2026-10-03T06:24:15.229Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "1ad5e994bc0b1fe6"
+    },
+    "prevHash": "00c67669e61590813a6b17eeaac62ea27ed8640d442efb6d5f080e0afac3b1b3",
+    "nonce": 67,
+    "hash": "001a00b64e8d57c547b81ff7a91b4f9473669c9aa87dbf28bf52c6da3f5a261e",
+    "cid": "bafyreiPzpt7Gi5cWB7BFVNyqWionHqanNc4PzZ",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b955b0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e876940000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1617,
+    "timestamp": "2026-10-03T06:24:22.706Z",
+    "eventType": "ai_decision",
+    "module": "Isabella",
+    "action": "episode.register",
+    "actor": "system",
+    "data": {
+      "episodeId": "35783012b02079bf",
+      "context": "boot"
+    },
+    "prevHash": "001a00b64e8d57c547b81ff7a91b4f9473669c9aa87dbf28bf52c6da3f5a261e",
+    "nonce": 173,
+    "hash": "00c7a948328cf5fdb2162142e84e4985d83f5b9abf13a26a37df99fd4852b765",
+    "cid": "bafyrei43aivhuCTSCANYCQ9BQ8T2FubiAR8yoH",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b955b0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e876940000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
+  },
+  {
+    "index": 1618,
+    "timestamp": "2026-10-03T06:24:24.403Z",
+    "eventType": "eoct_event",
+    "module": "EOCT",
+    "action": "system.boot",
+    "actor": "EOCT",
+    "data": {
+      "eventId": "d450132225c66710"
+    },
+    "prevHash": "00c7a948328cf5fdb2162142e84e4985d83f5b9abf13a26a37df99fd4852b765",
+    "nonce": 133,
+    "hash": "000fe813a2e9e4fcd113723a60c03aeebc9486d8bb3d245d2ab651c507b599ef",
+    "cid": "bafyreiF4wC4Jt79ANbS8Ko9mBcMBqzTRwtwMRi",
+    "pqcSignature": {
+      "mlDsaSignature": "ML-DSA-87-SIG-18d9f2780b955d0000000000000000000000000000000000000000000000000000000000000000000000000000000000c8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "slhDsaSignature": "SLH-DSA-128s-SIG-25d61175e876940000000000000000000000000000000000000000000000000000000000000000000000000000000000000f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
+      "litleGatesStatus": "32/32_LATTICE_AND_HASH_PROTOTYPE"
+    }
   }
 ]
