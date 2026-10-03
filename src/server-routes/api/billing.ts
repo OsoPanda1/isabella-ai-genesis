@@ -41,9 +41,19 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
   switch (event.type) {
     case "payment_intent.succeeded": {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const tenantId = paymentIntent.metadata?.tenant_id?.trim();
+      const userId = paymentIntent.metadata?.user_id?.trim();
+      if (!tenantId || !userId) {
+        res.status(422).json({
+          received: false,
+          error: "STRIPE_EVENT_MISSING_TENANT_IDENTITY",
+          eventType: event.type,
+        });
+        return;
+      }
       await bookpiPostgresRepository.appendBlock({
-        tenant_id: (paymentIntent.metadata?.tenant_id as string) || "default-tenant",
-        user_id: (paymentIntent.metadata?.user_id as string) || "system",
+        tenant_id: tenantId,
+        user_id: userId,
         operation: "STRIPE_PAYMENT_SUCCEEDED",
         cost_decimal: paymentIntent.amount / 100,
         status: "CONFIRMED",
@@ -52,9 +62,19 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
     }
     case "charge.dispute.created": {
       const dispute = event.data.object as Stripe.Dispute;
+      const tenantId = dispute.metadata?.tenant_id?.trim();
+      const userId = dispute.metadata?.user_id?.trim() || "system";
+      if (!tenantId) {
+        res.status(422).json({
+          received: false,
+          error: "STRIPE_DISPUTE_MISSING_TENANT_IDENTITY",
+          eventType: event.type,
+        });
+        return;
+      }
       await bookpiPostgresRepository.appendBlock({
-        tenant_id: "default-tenant",
-        user_id: "system",
+        tenant_id: tenantId,
+        user_id: userId,
         operation: "CHARGE_DISPUTED",
         cost_decimal: dispute.amount / 100,
         status: "PENDING",
