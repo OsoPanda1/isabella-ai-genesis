@@ -2,5 +2,13 @@
   "buildCommand": "pnpm build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "installCommand": "pnpm install --frozen-lockfile"
+  "installCommand": "pnpm install --frozen-lockfile",
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "feat/*": false,
+      "repair/*": false,
+      "chore/*": false
+    }
+  }
 }
