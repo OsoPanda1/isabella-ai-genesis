@@ -1,5 +1,10 @@
 import { createHash } from "node:crypto";
-import { executeMoE, createMoERoute, type MoeExpertArtifact, type MoeTrace } from "./native-ml/moe-engine";
+import {
+  executeMoE,
+  createMoERoute,
+  type MoeExpertArtifact,
+  type MoeTrace,
+} from "./native-ml/moe-engine";
 import { executeNativeSkill, type NativeSkillExecution } from "./native-ml/skill-fusion";
 import { IsabellaLearningEngine, type LearningMemory } from "./isabella-learning";
 
@@ -32,7 +37,11 @@ function boundedVector(values: readonly number[]): number[] {
 }
 
 function buildExperts(width: number): MoeExpertArtifact[] {
-  const project = (expertId: string, version: string, transform: (value: number, index: number) => number) => ({
+  const project = (
+    expertId: string,
+    version: string,
+    transform: (value: number, index: number) => number,
+  ) => ({
     expertId,
     version,
     modelHash: hash({ expertId, version }),
@@ -45,7 +54,11 @@ function buildExperts(width: number): MoeExpertArtifact[] {
   return [
     project("reasoning", "1.0.0", (value) => Math.tanh(value)),
     project("safety", "1.0.0", (value) => Math.max(-0.75, Math.min(0.75, value))),
-    project("synthesis", "1.0.0", (value, index) => value * (1 - index / Math.max(width, 1) * 0.15)),
+    project(
+      "synthesis",
+      "1.0.0",
+      (value, index) => value * (1 - (index / Math.max(width, 1)) * 0.15),
+    ),
     project("fallback", "1.0.0", (value) => value),
   ];
 }
@@ -60,7 +73,8 @@ export async function evolveIsabella(
   request: IsabellaEvolutionRequest,
   learning = new IsabellaLearningEngine(),
 ): Promise<IsabellaEvolutionResult> {
-  if (!request.tenantId.trim() || !request.requestId.trim()) throw new Error("evolution_identity_required");
+  if (!request.tenantId.trim() || !request.requestId.trim())
+    throw new Error("evolution_identity_required");
   if (!request.skillId.trim() || !request.task.trim()) throw new Error("evolution_task_required");
 
   const execution = executeNativeSkill({
@@ -101,7 +115,12 @@ export async function evolveIsabella(
     moeTrace: moe.trace,
     memories,
     learningAccepted,
-    provenanceHash: hash({ request, executionHash: execution.provenanceHash, moe: moe.trace, memories: memories.map((item) => item.id) }),
+    provenanceHash: hash({
+      request,
+      executionHash: execution.provenanceHash,
+      moe: moe.trace,
+      memories: memories.map((item) => item.id),
+    }),
   };
 }
 
@@ -111,7 +130,11 @@ export function evolutionManifest() {
     version: "evolution-1",
     layers: ["native-skill-fusion", "governed-moe", "auditable-learning", "provenance"],
     status: "IMPLEMENTED",
-    claims: ["no autonomous weight mutation", "external effects require adapters", "learning requires explicit consent"],
+    claims: [
+      "no autonomous weight mutation",
+      "external effects require adapters",
+      "learning requires explicit consent",
+    ],
   } as const;
 }
 
