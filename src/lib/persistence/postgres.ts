@@ -5,12 +5,13 @@
  * for PostgreSQL / Neon / Supabase database authorities.
  */
 import pg from "pg";
+import { config } from "../config";
 
 let pool: pg.Pool | null = null;
 
 export function getPgPool(): pg.Pool | null {
   if (pool) return pool;
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = config().DATABASE_URL;
   if (!connectionString) return null;
 
   try {
