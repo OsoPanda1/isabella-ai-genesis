@@ -16,9 +16,7 @@ export async function isBiometricAvailable(): Promise<boolean> {
   }
 }
 
-export async function registerWebAuthnCredential(
-  username: string,
-): Promise<{ credentialId: string; success: boolean }> {
+export async function registerWebAuthnCredential(username: string): Promise<{ credentialId: string; success: boolean }> {
   return {
     credentialId: `cred-${Date.now()}-${username}`,
     success: true,

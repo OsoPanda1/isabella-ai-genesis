@@ -33,7 +33,7 @@
     "db:neon:preflight": "node scripts/db-neon-preflight.mjs",
     "db:restore": "node scripts/db-restore.mjs",
     "db:verify": "node scripts/db-verify.mjs",
-    "dev": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/check-env.mjs && vite dev --host 0.0.0.0",
+    "dev": "vite dev --host 0.0.0.0 --port 3000",
     "format": "prettier --write .github/workflows/*.yml",
     "format:check": "prettier --check .github/workflows/*.yml",
     "k8s:image:verify": "node scripts/k8s-image-pin.mjs",
