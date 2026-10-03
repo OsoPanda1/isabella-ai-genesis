@@ -1,6 +1,13 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { applySecurityHeaders } from "../src/platform/http/gateway";
+import { getSecurityHeaders } from "../src/lib/security/headers";
+
+function applySecurityHeaders(res: VercelResponse, traceId: string): void {
+  for (const [name, value] of Object.entries(getSecurityHeaders())) {
+    res.setHeader(name, value);
+  }
+  res.setHeader("X-Request-ID", traceId);
+}
 
 /*
  * ============================================================================
@@ -42,13 +49,9 @@ async function getHandler(): Promise<ExpressHandler> {
   return cachedHandler;
 }
 
-const generateTraceId = (): string =>
-  `isabella-${crypto.randomUUID()}`;
+const generateTraceId = (): string => `isabella-${crypto.randomUUID()}`;
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-): Promise<void> {
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   applySecurityHeaders(res, generateTraceId());
 
   try {
@@ -57,9 +60,7 @@ export default async function handler(
     handle(req, res, (err?: unknown) => {
       if (err) {
         if (!res.headersSent) {
-          res
-            .status(500)
-            .json({ ok: false, error: "internal_server_error" });
+          res.status(500).json({ ok: false, error: "internal_server_error" });
         } else {
           res.end();
         }
