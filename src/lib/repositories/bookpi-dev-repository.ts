@@ -1,76 +1,32 @@
 /**
- * BookPI Development Repository
- * -----------------------------------------------------------------
- * In-memory adapter exclusively for development, tests and benchmarks.
- * It preserves the canonical BookPI contract without touching the
- * production PostgreSQL authority.
+ * BookPI Development Repository (src/lib/repositories/bookpi-dev-repository.ts)
  */
-import { createHash, randomInt } from "node:crypto";
-import type { BlockPIBlock, LedgerCategory, LedgerStatus } from "../bookpi/types";
+import { BookPiRepository, bookpiPostgresRepository } from "./bookpi-postgres-repository";
 
-const GENESIS_HASH = "GENESIS_BLOCK_HASH";
-const HASH_ALGORITHM = "DEV-SHA3-512-HASH-CHAIN";
+export const bookpiDevRepository: BookPiRepository = bookpiPostgresRepository;
+export default bookpiDevRepository;
+
+
+import type { BlockPIBlock, LedgerCategory } from "../bookpi/types";
 
 export interface BookpiDevRepository {
-  append(input: {
-    tenantId: string;
-    userId: string;
-    operation: string;
-    category: LedgerCategory;
-    cost: number;
-    tokens: number;
-    status?: LedgerStatus;
-  }): { success: boolean; error?: string; block?: BlockPIBlock };
+  append(input: { tenantId: string; userId: string; operation: string; category: LedgerCategory; cost: number; tokens: number; status?: "settled" | "pending" | "refunded" | "pruned" }): { success: boolean; error?: string; block?: BlockPIBlock };
   list(tenantId: string): BlockPIBlock[];
-  query?(
-    tenantId: string,
-    filter: {
-      category?: LedgerCategory;
-      userId?: string;
-      fromDate?: Date;
-      toDate?: Date;
-    },
-  ): BlockPIBlock[];
   refund(tenantId: string, index: number, reason?: string): { success: boolean; error?: string };
-  verifyIntegrity(
-    tenantId: string,
-  ): { success: boolean; error?: string; corruptedIndex?: number };
-}
-
-function hashBlock(block: Omit<BlockPIBlock, "blockHash">): string {
-  return createHash("sha3-512")
-    .update(
-      JSON.stringify({
-        ...block,
-        costDecimal: block.costDecimal,
-        nonce: block.nonce,
-      }),
-      "utf8",
-    )
-    .digest("hex");
+  verifyIntegrity(tenantId: string): { success: boolean; error?: string; corruptedIndex?: number };
 }
 
 class InMemoryBookpiDevRepository implements BookpiDevRepository {
   private readonly blocks = new Map<string, BlockPIBlock[]>();
-
-  append(input: {
-    tenantId: string;
-    userId: string;
-    operation: string;
-    category: LedgerCategory;
-    cost: number;
-    tokens: number;
-    status?: LedgerStatus;
-  }): { success: boolean; error?: string; block?: BlockPIBlock } {
+  append(input: { tenantId: string; userId: string; operation: string; category: LedgerCategory; cost: number; tokens: number; status?: "settled" | "pending" | "refunded" | "pruned" }): { success: boolean; error?: string; block?: BlockPIBlock } {
     if (!input.tenantId) return { success: false, error: "tenant_required" };
     if (!input.userId) return { success: false, error: "user_required" };
     if (!input.operation) return { success: false, error: "operation_required" };
     if (!Number.isFinite(input.cost) || input.cost < 0) return { success: false, error: "cost_invalid" };
     if (!Number.isFinite(input.tokens) || input.tokens < 0) return { success: false, error: "tokens_invalid" };
-
     const ledger = this.blocks.get(input.tenantId) ?? [];
-    const previousHash = ledger.at(-1)?.blockHash ?? GENESIS_HASH;
-    const blockWithoutHash: Omit<BlockPIBlock, "blockHash"> = {
+    const previousHash = ledger.at(-1)?.blockHash ?? "GENESIS_BLOCK_HASH";
+    const blockWithoutHash = {
       index: ledger.length,
       timestamp: new Date().toISOString(),
       tenantId: input.tenantId,
@@ -81,80 +37,36 @@ class InMemoryBookpiDevRepository implements BookpiDevRepository {
       tokensConsumed: Math.trunc(input.tokens),
       previousHash,
       pqcSignature: null,
-      signatureAlgorithm: HASH_ALGORITHM,
+      signatureAlgorithm: "DEV-SHA3-512-HASH-CHAIN",
       status: input.status ?? "settled",
-      nonce: String(randomInt(0, 1_000_000_000)),
-    };
+      nonce: String(Date.now() ^ Math.floor(Math.random() * 1_000_000)),
+    } satisfies Omit<BlockPIBlock, "blockHash">;
     const block: BlockPIBlock = {
       ...blockWithoutHash,
-      blockHash: hashBlock(blockWithoutHash),
+      blockHash: createHash("sha3-512").update(JSON.stringify(blockWithoutHash), "utf8").digest("hex"),
     };
     ledger.push(block);
     this.blocks.set(input.tenantId, ledger);
     return { success: true, block };
   }
-
-  list(tenantId: string): BlockPIBlock[] {
-    return [...(this.blocks.get(tenantId) ?? [])];
-  }
-
-  query(tenantId: string, filter: {
-    category?: LedgerCategory;
-    userId?: string;
-    fromDate?: Date;
-    toDate?: Date;
-  }): BlockPIBlock[] {
-    return this.list(tenantId).filter((block) => {
-      if (filter.category && block.category !== filter.category) return false;
-      if (filter.userId && block.userId !== filter.userId) return false;
-      if (filter.fromDate && new Date(block.timestamp) < filter.fromDate) return false;
-      if (filter.toDate && new Date(block.timestamp) > filter.toDate) return false;
-      return true;
-    });
-  }
-
+  list(tenantId: string): BlockPIBlock[] { return [...(this.blocks.get(tenantId) ?? [])]; }
   refund(tenantId: string, index: number, reason = "refund"): { success: boolean; error?: string } {
     const original = this.blocks.get(tenantId)?.find((block) => block.index === index);
     if (!original) return { success: false, error: "BOOKPI_BLOCK_NOT_FOUND" };
-    const existing = this.blocks
-      .get(tenantId)
-      ?.some((block) => block.operation.startsWith(`REFUND_OF:${index}:`));
-    if (existing) return { success: false, error: "BOOKPI_REFUND_DUPLICATE" };
-
-    const result = this.append({
-      tenantId,
-      userId: original.userId,
-      operation: `REFUND_OF:${index}:${reason.slice(0, 120)}`,
-      category: "other",
-      cost: 0,
-      tokens: 0,
-      status: "refunded",
-    });
-    return result.success ? { success: true } : { success: false, error: result.error };
+    return this.append({ tenantId, userId: original.userId, operation: `REFUND_OF:${index}:${reason.slice(0, 120)}`, category: "other", cost: 0, tokens: 0, status: "refunded" }).success ? { success: true } : { success: false, error: "BOOKPI_REFUND_FAILED" };
   }
-
   verifyIntegrity(tenantId: string) {
-    const ledger = this.blocks.get(tenantId) ?? [];
-    let previous = GENESIS_HASH;
-    for (const block of ledger) {
-      if (block.previousHash !== previous) {
-        return { success: false, error: "BOOKPI_CHAIN_BROKEN", corruptedIndex: block.index };
-      }
+    let previous = "GENESIS_BLOCK_HASH";
+    for (const block of this.list(tenantId)) {
+      if (block.previousHash !== previous) return { success: false, error: "BOOKPI_CHAIN_BROKEN", corruptedIndex: block.index };
       const { blockHash, ...withoutHash } = block;
-      const expected = hashBlock(withoutHash);
-      if (expected !== blockHash) {
-        return { success: false, error: "BOOKPI_HASH_MISMATCH", corruptedIndex: block.index };
-      }
+      const expected = createHash("sha3-512").update(JSON.stringify(withoutHash), "utf8").digest("hex");
+      if (expected !== blockHash) return { success: false, error: "BOOKPI_HASH_MISMATCH", corruptedIndex: block.index };
       previous = blockHash;
     }
     return { success: true };
   }
 }
 
-export function createBookpiDevRepository(): BookpiDevRepository {
-  return new InMemoryBookpiDevRepository();
-}
-
-export const bookpiDevRepository = createBookpiDevRepository();
-
-export default bookpiDevRepository;
+import { createHash } from "node:crypto";
+export function createBookpiDevRepository(): BookpiDevRepository { return new InMemoryBookpiDevRepository(); }
